@@ -3,11 +3,21 @@ import type { Update } from "@tauri-apps/plugin-updater";
 import { loadBackup, saveBackup } from "./backupActions";
 import { errorText, useToast } from "./ui/Toast";
 import { findUpdate, installUpdate } from "./updater";
-import Home from "./pages/Home";
+import Calculator from "./pages/Calculator";
+import Filaments from "./pages/Filaments";
+import Materials from "./pages/Materials";
+import Preferences from "./pages/Preferences";
+import Printers from "./pages/Printers";
 
 type Page = { id: string; label: string; group: string; render: () => ReactNode };
 
-const PAGES: Page[] = [{ id: "home", label: "Início", group: "", render: () => <Home /> }];
+const PAGES: Page[] = [
+  { id: "calculator", label: "Calculadora", group: "Precificar", render: () => <Calculator /> },
+  { id: "filaments", label: "Filamentos", group: "Cadastros", render: () => <Filaments /> },
+  { id: "materials", label: "Materiais extras", group: "Cadastros", render: () => <Materials /> },
+  { id: "printers", label: "Impressoras", group: "Cadastros", render: () => <Printers /> },
+  { id: "preferences", label: "Preferências", group: "Configurar", render: () => <Preferences /> },
+];
 
 export default function App() {
   const [pageId, setPageId] = useState(PAGES[0].id);
