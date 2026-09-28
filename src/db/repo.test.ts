@@ -1,7 +1,8 @@
 import { beforeEach, describe, expect, test } from "vitest";
 import { DEFAULT_SETTINGS } from "../domain/settings";
 import { migrate } from "./migrations";
-import { filaments, loadSettings, materials, printers, saveSettings } from "./repo";
+import { deleteSecret, filaments, getSecret, loadSettings, materials, printers, saveSettings, setSecret } from "./repo";
+import { exportBackup } from "./backup";
 import { memoryDb } from "./testDb";
 import type { Db } from "./types";
 
@@ -49,4 +50,13 @@ describe("repositórios", () => {
     await saveSettings(db, { ...DEFAULT_SETTINGS, kwhPrice: 1.1 });
     expect((await loadSettings(db)).kwhPrice).toBe(1.1);
   });
+});
+
+test("segredos (chave da API) ficam no banco local e NÃO entram no backup", async () => {
+  expect(await getSecret(db, "anthropic_api_key")).toBeNull();
+  await setSecret(db, "anthropic_api_key", "sk-ant-teste");
+  expect(await getSecret(db, "anthropic_api_key")).toBe("sk-ant-teste");
+  expect(JSON.stringify(await exportBackup(db))).not.toContain("sk-ant-teste");
+  await deleteSecret(db, "anthropic_api_key");
+  expect(await getSecret(db, "anthropic_api_key")).toBeNull();
 });

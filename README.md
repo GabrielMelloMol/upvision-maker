@@ -36,3 +36,18 @@ O app não tem certificado pago, então o sistema avisa na primeira vez:
 - **Windows:** ao abrir o `.exe`/`.msi`, o SmartScreen mostra "O Windows protegeu o computador". Clique em **Mais informações → Executar assim mesmo**.
 - **macOS:** abra o `.dmg` e arraste para Aplicativos. Na primeira abertura, clique com o botão direito no app → **Abrir** → **Abrir**. Se aparecer "está danificado", rode no Terminal:
   `xattr -dr com.apple.quarantine "/Applications/UpVision Maker.app"`
+
+## Pedir à IA (opcional, pago por uso)
+
+A ferramenta usa a API da Anthropic com a **chave da própria usuária** (Preferências → Inteligência artificial). A chave fica só no banco local, fora do backup. O modelo padrão é o Claude Sonnet 5; cada pedido mostra tokens e custo estimado. O código OpenSCAD gerado roda localmente (OpenSCAD em WASM, dentro de um worker).
+
+## Licenças de terceiros
+
+| Componente | Uso | Licença |
+|---|---|---|
+| vtracer (via `vectortracer`) | Imagem → SVG | MIT |
+| manifold-3d | Geometria 3D | Apache-2.0 |
+| MediaPipe Tasks Vision + modelos Selfie Segmenter / DeepLab v3 | Modo Silhueta | Apache-2.0 |
+| OpenSCAD (via `openscad-wasm-prebuilt`) | Pedir à IA | GPL-2.0-or-later — roda como programa separado num worker; fonte: https://github.com/openscad/openscad |
+| Hanken Grotesk, Fredoka, Pacifico, Lobster, Dancing Script, Playfair Display (Fontsource) | Texto dos modelos | SIL OFL 1.1 |
+| three.js, React, opentype.js, fflate, Anthropic SDK | Interface e utilidades | MIT |

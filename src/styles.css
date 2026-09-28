@@ -183,3 +183,10 @@ td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
 .apply-bar .spinner + span { flex: 1; }
 .dirty { color: var(--warn); font-weight: 600; }
 .font-sample { font-size: 22px; color: var(--text); font-weight: 400; line-height: 1.3; padding: 4px 2px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.chat .turn { display: grid; gap: 6px; padding: 10px 12px; border-radius: var(--radius-sm); }
+.chat .turn.user { background: var(--primary-soft); justify-self: end; max-width: 90%; }
+.chat .turn.assistant { background: var(--surface-2); }
+.chat .turn p { margin: 0; white-space: pre-wrap; }
+.chat pre { max-height: 240px; overflow: auto; background: #0f172a; color: #e2e8f0; padding: 10px; border-radius: var(--radius-sm); font-size: 12px; }
+.chat summary { cursor: pointer; color: var(--primary); font-size: 12px; }
+button.example { justify-content: flex-start; text-align: left; font-weight: 400; }

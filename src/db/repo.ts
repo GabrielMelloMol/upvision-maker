@@ -58,3 +58,14 @@ export async function saveSettings(db: Db, s: Settings): Promise<void> {
   const data = JSON.stringify(SettingsSchema.parse(s));
   await db.execute("INSERT INTO settings (id, data) VALUES (1, ?) ON CONFLICT(id) DO UPDATE SET data = excluded.data", [data]);
 }
+
+export async function getSecret(db: Db, key: string): Promise<string | null> {
+  const [row] = await db.select<{ value: string }>("SELECT value FROM secrets WHERE key = ?", [key]);
+  return row?.value ?? null;
+}
+
+export async function setSecret(db: Db, key: string, value: string): Promise<void> {
+  await db.execute("INSERT INTO secrets (key, value) VALUES (?, ?) ON CONFLICT(key) DO UPDATE SET value = excluded.value", [key, value]);
+}
+
+export const deleteSecret = (db: Db, key: string) => db.execute("DELETE FROM secrets WHERE key = ?", [key]);

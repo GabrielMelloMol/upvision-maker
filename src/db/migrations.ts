@@ -11,6 +11,8 @@ export const MIGRATIONS: string[][] = [
     `CREATE TABLE materials (id INTEGER PRIMARY KEY, name TEXT NOT NULL, unit TEXT NOT NULL DEFAULT 'un',
       unitPrice REAL NOT NULL, stock REAL NOT NULL DEFAULT 0, min REAL NOT NULL DEFAULT 0)`,
   ],
+  // Segredos (ex.: chave da API) ficam só neste computador: a tabela não entra no backup.
+  ["CREATE TABLE secrets (key TEXT PRIMARY KEY, value TEXT NOT NULL)"],
 ];
 
 export const SCHEMA_VERSION = MIGRATIONS.length;

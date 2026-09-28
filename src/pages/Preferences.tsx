@@ -6,6 +6,7 @@ import type { Settings } from "../domain/settings";
 import { fieldErrors } from "../ui/fieldErrors";
 import { useToast } from "../ui/Toast";
 import { useData } from "../ui/useData";
+import AiSettingsCard from "./AiSettingsCard";
 
 type NumKey = Exclude<keyof Settings, "channels">;
 const FIELDS: { key: NumKey; label: string }[] = [
@@ -19,7 +20,13 @@ const FIELDS: { key: NumKey; label: string }[] = [
 
 export default function Preferences() {
   const [settings] = useData(loadSettings, null as Settings | null);
-  return settings ? <PreferencesForm initial={settings} /> : null;
+  return (
+    <>
+      {settings && <PreferencesForm initial={settings} />}
+      <h2>Ferramentas</h2>
+      <AiSettingsCard />
+    </>
+  );
 }
 
 const str = (n: number) => String(n).replace(".", ",");
