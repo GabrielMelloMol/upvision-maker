@@ -11,6 +11,9 @@ export default defineConfig(() => ({
   // WASM (vtracer) usa top-level await; WebView2 e WKWebView (Safari 16+) suportam.
   build: { target: "es2022" },
   worker: { format: "es" as const, plugins: () => [wasm()] },
+  // Escaneia todas as páginas (lazy) e workers na partida: sem isso o Vite descobre dependências
+  // só quando a tela abre e recarrega a página no meio do uso (bug B10 do QA, derrubava os E2E).
+  optimizeDeps: { entries: ["index.html", "src/**/*.tsx", "src/**/*.worker.ts"] },
 
   // Vite options tailored for Tauri development and only applied in `tauri dev` or `tauri build`
   // 1. prevent Vite from obscuring rust errors
