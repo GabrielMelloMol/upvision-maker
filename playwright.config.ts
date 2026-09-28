@@ -14,6 +14,8 @@ export default defineConfig({
     baseURL: `http://localhost:${PORT}`,
     ...devices["Desktop Chrome"],
     viewport: { width: 1280, height: 800 },
+    // PW_CHANNEL=msedge roda no Edge instalado (o motor do WebView2 no Windows).
+    channel: process.env.PW_CHANNEL || undefined,
   },
   webServer: { command: `npx vite --port ${PORT} --strictPort`, port: PORT, reuseExistingServer: true },
 });
