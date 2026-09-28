@@ -12,7 +12,7 @@ const text = (s: string, h: number) => (s.trim() ? M.CrossSection.square([0.6 * 
 
 test("plaquinha: placa clara, QR e texto escuros por cima, bolinha na cor do filamento, tudo dentro da placa", () => {
   const m = buildSpoolTag(M, text, { id: 7, title: "PLA Azul", color: "#2563eb" });
-  expect(m.parts.map((p) => p.name)).toEqual(["Placa", "QR", "Texto", "Cor"]);
+  expect(m.parts.map((p) => p.name)).toEqual(["Placa", "QR", "Texto", "PLA Azul"]);
   expect(m.parts[3].color).toBe("#2563eb");
   const plate = meshBounds([m.parts[0].mesh])!;
   for (const p of m.parts.slice(1)) {

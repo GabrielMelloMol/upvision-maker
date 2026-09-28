@@ -39,7 +39,7 @@ export function buildSpoolTag(M: ManifoldToplevel, text: TextFn, t: SpoolTagInpu
       { name: "QR", color: QR_DARK_COLOR, mesh: moveMesh(qr.model.parts[1].mesh, qx, 0) },
     ];
     if (labels.length) parts.push({ name: "Texto", color: QR_DARK_COLOR, mesh: slab(k(M.CrossSection.union(labels)), RELIEF, BASE) });
-    if (t.color) parts.push({ name: "Cor", color: t.color, mesh: slab(k(k(M.CrossSection.circle(DOT_R, 32)).translate([hx, -H / 2 + PAD + DOT_R + 1])), RELIEF, BASE) });
+    if (t.color) parts.push({ name: t.title || "Cor", color: t.color, mesh: slab(k(k(M.CrossSection.circle(DOT_R, 32)).translate([hx, -H / 2 + PAD + DOT_R + 1])), RELIEF, BASE) });
     return { name: t.title || `Filamento ${t.id}`, parts };
   });
 }
