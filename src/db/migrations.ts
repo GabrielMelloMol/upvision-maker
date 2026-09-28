@@ -13,6 +13,13 @@ export const MIGRATIONS: string[][] = [
   ],
   // Segredos (ex.: chave da API) ficam só neste computador: a tabela não entra no backup.
   ["CREATE TABLE secrets (key TEXT PRIMARY KEY, value TEXT NOT NULL)"],
+  [
+    `CREATE TABLE products (id INTEGER PRIMARY KEY, name TEXT NOT NULL, kind TEXT NOT NULL DEFAULT 'simple',
+      composition TEXT NOT NULL, printerId INTEGER, printMinutes REAL NOT NULL DEFAULT 0, laborMinutes REAL NOT NULL DEFAULT 0,
+      piecesPerPlate INTEGER NOT NULL DEFAULT 1, freight REAL NOT NULL DEFAULT 0, manualPrice REAL, consignmentPrice REAL,
+      stock REAL NOT NULL DEFAULT 0, minStock REAL NOT NULL DEFAULT 0, sku TEXT NOT NULL DEFAULT '', notes TEXT NOT NULL DEFAULT '')`,
+    "CREATE TABLE product_photos (id INTEGER PRIMARY KEY, productId INTEGER NOT NULL, position INTEGER NOT NULL, dataUrl TEXT NOT NULL)",
+  ],
 ];
 
 export const SCHEMA_VERSION = MIGRATIONS.length;

@@ -1,4 +1,4 @@
-import { Clock, Cylinder, Package, Plus, Store } from "lucide-react";
+import { Clock, Cylinder, Package, Plus, Save, Store } from "lucide-react";
 import { useMemo, useState } from "react";
 import { filaments, loadSettings, materials, printers } from "../db/repo";
 import type { Db } from "../db/types";
@@ -7,6 +7,9 @@ import { money, parseDecimal } from "../domain/format";
 import { DEFAULT_SETTINGS } from "../domain/settings";
 import { useData } from "../ui/useData";
 import SlicerImport, { type SlicerApply } from "./SlicerImport";
+import type { Go } from "../pages";
+import { setProductDraft } from "./products/draft";
+import { useToast } from "../ui/Toast";
 
 type Option = { id: number; label: string; price: number };
 type Line = { ref: string; price: string; qty: string };
@@ -22,7 +25,7 @@ const load = async (db: Db) => ({
 const num = (s: string) => parseDecimal(s) || 0;
 const newLine = (): Line => ({ ref: "", price: "", qty: "" });
 
-export default function Calculator() {
+export default function Calculator({ go }: { go: Go }) {
   const [data] = useData(load, { settings: DEFAULT_SETTINGS, printers: [], stock: [], filaments: [], materials: [] });
   const [fil, setFil] = useState<Line[]>([newLine()]);
   const [ext, setExt] = useState<Line[]>([]);
@@ -66,6 +69,28 @@ export default function Calculator() {
       minutes: a.seconds !== undefined ? String(Math.round((a.seconds % 3600) / 60)) : cur.minutes,
       quantity: a.pieces ? String(a.pieces) : cur.quantity,
     }));
+  }
+
+  const toast = useToast();
+
+  /** Leva a composição atual para um produto novo (só linhas com filamento/material cadastrado). */
+  function saveAsProduct() {
+    const reg = (ls: Line[]) => ls.filter((l) => l.ref && num(l.qty) > 0);
+    const skipped = fil.length + ext.length - reg(fil).length - reg(ext).length;
+    if (skipped > 0) toast(`${skipped} linha(s) sem item cadastrado ficaram de fora do produto.`, "error");
+    setProductDraft({
+      composition: {
+        filaments: reg(fil).map((l) => ({ filamentId: Number(l.ref), grams: num(l.qty) })),
+        materials: reg(ext).map((l) => ({ materialId: Number(l.ref), qty: num(l.qty) })),
+        items: [],
+      },
+      printerId: printerId ? Number(printerId) : null,
+      printMinutes: num(f.hours) * 60 + num(f.minutes),
+      laborMinutes: num(f.laborMin),
+      piecesPerPlate: Math.max(1, Math.floor(num(f.quantity)) || 1),
+      freight: num(f.freight),
+    });
+    go("products");
   }
 
   function pickPrinter(id: string) {
@@ -144,6 +169,9 @@ export default function Calculator() {
           <section className="card hero">
             <span className="hint">Custo por peça</span>
             <strong className="big" key={r.unitCost}>{money(r.unitCost)}</strong>
+            <button className="primary sm" onClick={saveAsProduct}>
+              <Save aria-hidden /> Salvar como produto
+            </button>
             <div className="prices">
               <div>
                 <span className="hint">Revenda ×{data.settings.multResale}</span>

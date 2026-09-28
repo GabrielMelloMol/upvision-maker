@@ -1,0 +1,17 @@
+/* Telas de gestão novas (produtos, pedidos, financeiro…). Usa só os tokens do design system. */
+.product-editor { display: grid; grid-template-columns: minmax(0, 1fr) 300px; gap: 16px; align-items: start; }
+@media (max-width: 900px) { .product-editor { grid-template-columns: 1fr; } }
+.product-editor fieldset { border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 10px 12px 12px; margin: 0; display: grid; gap: 10px; }
+.product-editor legend { font-size: 12px; font-weight: 600; color: var(--muted); padding: 0 4px; }
+.photo-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+.photo-grid figure { position: relative; margin: 0; aspect-ratio: 1; border-radius: var(--radius-sm); overflow: hidden; border: 1px solid var(--border); background: var(--surface-2); }
+.photo-grid img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.photo-grid figcaption { position: absolute; right: 2px; top: 2px; display: flex; gap: 2px; }
+.photo-grid figcaption button { background: color-mix(in srgb, var(--surface) 85%, transparent); padding: 3px; }
+.photo-add { aspect-ratio: 1; border: 2px dashed var(--border-strong); border-radius: var(--radius-sm); display: grid; place-content: center; justify-items: center; gap: 2px; cursor: pointer; color: var(--muted); font-size: 12px; }
+.photo-add:hover { border-color: var(--primary); color: var(--primary); }
+.thumb { width: 40px; height: 40px; border-radius: 6px; object-fit: cover; background: var(--surface-2); border: 1px solid var(--border); display: block; }
+.thumb.empty { display: grid; place-items: center; color: var(--muted); }
+.list-actions { display: flex; justify-content: flex-end; gap: 4px; white-space: nowrap; }
+.page-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+.page-head .row { align-items: center; }

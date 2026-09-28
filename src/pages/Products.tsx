@@ -1,0 +1,138 @@
+import { Boxes, Factory, Package, Pencil, Plus, Trash2 } from "lucide-react";
+import { ask } from "@tauri-apps/plugin-dialog";
+import { useEffect, useMemo, useState } from "react";
+import { getDb } from "../db";
+import { productsRepo } from "../db/productsRepo";
+import { money } from "../domain/format";
+import { productPricing, salePrice, type Product } from "../domain/products";
+import "../styles/features.css";
+import Button from "../ui/Button";
+import EmptyState from "../ui/EmptyState";
+import { errorText, useToast } from "../ui/Toast";
+import { useData } from "../ui/useData";
+import { EMPTY_DATA, loadProductsData } from "./products/data";
+import { clearProductDraft, peekProductDraft } from "./products/draft";
+import ProduceSheet from "./products/ProduceSheet";
+import ProductEditor from "./products/ProductEditor";
+
+export default function Products() {
+  const [data, reload] = useData(loadProductsData, EMPTY_DATA);
+  const [editing, setEditing] = useState<Partial<Product> | null>(() => peekProductDraft());
+  const [producing, setProducing] = useState<Product | null>(null);
+  const toast = useToast();
+  useEffect(clearProductDraft, []);
+
+  const rows = useMemo(
+    () =>
+      data.products.map((p) => {
+        try {
+          const { result, warnings } = productPricing(p, data);
+          return { p, cost: result.unitCost, price: salePrice(p, result), warn: warnings.length > 0 };
+        } catch {
+          return { p, cost: null, price: null, warn: true };
+        }
+      }),
+    [data],
+  );
+
+  async function remove(p: Product) {
+    const usedIn = data.products.filter((k) => k.composition.items.some((i) => i.productId === p.id));
+    const msg = usedIn.length ? `"${p.name}" faz parte de ${usedIn.map((k) => k.name).join(", ")}. Excluir mesmo assim?` : `Excluir "${p.name}"?`;
+    if (!(await ask(msg, { title: "Excluir produto", kind: "warning", okLabel: "Excluir produto", cancelLabel: "Cancelar" }))) return;
+    try {
+      await productsRepo.remove(await getDb(), p.id);
+      reload();
+    } catch (e) {
+      toast(`Não foi possível excluir: ${errorText(e)}`, "error");
+    }
+  }
+
+  return (
+    <div className="page">
+      <div className="page-head">
+        <div>
+          <h1>Produtos</h1>
+          <p className="lead">Preços recalculados com o custo de hoje dos insumos. Estoque pronto sobe ao produzir e desce nos pedidos.</p>
+        </div>
+        <div className="row">
+          <Button icon={Boxes} onClick={() => setEditing({ kind: "kit" })}>
+            Novo kit
+          </Button>
+          <Button variant="primary" icon={Plus} onClick={() => setEditing({})}>
+            Novo produto
+          </Button>
+        </div>
+      </div>
+
+      {rows.length === 0 ? (
+        <EmptyState icon={Package} title="Nenhum produto ainda" action={<Button variant="primary" icon={Plus} onClick={() => setEditing({})}>Cadastrar o primeiro</Button>}>
+          Dica: na Calculadora, use “Salvar como produto” para não digitar tudo de novo.
+        </EmptyState>
+      ) : (
+        <table>
+          <thead>
+            <tr>
+              <th aria-label="Foto" />
+              <th>Produto</th>
+              <th className="num">Custo</th>
+              <th className="num">Preço</th>
+              <th className="num">Estoque pronto</th>
+              <th />
+            </tr>
+          </thead>
+          <tbody>
+            {rows.map(({ p, cost, price, warn }) => (
+              <tr key={p.id}>
+                <td>{data.covers[p.id] ? <img className="thumb" src={data.covers[p.id]} alt="" /> : <span className="thumb empty"><Package size={16} aria-hidden /></span>}</td>
+                <td>
+                  <b>{p.name}</b> {p.kind === "kit" && <span className="badge ok">kit</span>} {warn && <span className="badge">confira</span>}
+                  {p.sku && <div className="muted small">{p.sku}</div>}
+                </td>
+                <td className="num">{cost === null ? "—" : money(cost)}</td>
+                <td className="num">
+                  {price === null ? "—" : money(price)}
+                  {p.manualPrice !== null && <div className="muted small">manual</div>}
+                </td>
+                <td className="num">
+                  {p.stock.toLocaleString("pt-BR")} {p.minStock > 0 && p.stock <= p.minStock && <span className="badge">baixo</span>}
+                </td>
+                <td>
+                  <div className="list-actions">
+                    <Button variant="ghost" size="sm" icon={Factory} onClick={() => setProducing(p)}>
+                      Produzir
+                    </Button>
+                    <Button variant="ghost" size="sm" icon={Pencil} onClick={() => setEditing(p)} aria-label={`Editar ${p.name}`} />
+                    <Button variant="ghost" size="sm" icon={Trash2} className="danger" onClick={() => remove(p)} aria-label={`Excluir ${p.name}`} />
+                  </div>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      )}
+
+      {editing && (
+        <ProductEditor
+          initial={editing}
+          data={data}
+          onClose={() => setEditing(null)}
+          onSaved={() => {
+            setEditing(null);
+            reload();
+          }}
+        />
+      )}
+      {producing && (
+        <ProduceSheet
+          product={producing}
+          data={data}
+          onClose={() => setProducing(null)}
+          onDone={() => {
+            setProducing(null);
+            reload();
+          }}
+        />
+      )}
+    </div>
+  );
+}

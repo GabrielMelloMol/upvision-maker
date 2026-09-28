@@ -1,5 +1,6 @@
 use tauri::Manager;
 
+mod stock;
 mod vibrancy;
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
@@ -16,7 +17,7 @@ pub fn run() {
             app.manage(vibrancy::Applied(vibrancy::apply(&window)));
             Ok(())
         })
-        .invoke_handler(tauri::generate_handler![vibrancy::window_style])
+        .invoke_handler(tauri::generate_handler![vibrancy::window_style, stock::apply_stock])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
 }

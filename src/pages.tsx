@@ -1,10 +1,11 @@
-import { Award, Bot, Calculator as CalcIcon, Cookie, Cylinder, KeyRound, Layers, House, ImageUp, Package, Palette, Printer, Settings } from "lucide-react";
+import { Award, Bot, Calculator as CalcIcon, Cookie, Cylinder, KeyRound, Layers, House, ImageUp, Package, Palette, Printer, Settings, ShoppingBag } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import { lazy, type ReactNode } from "react";
 import Home from "./pages/Home";
 
 // Cada página vira um chunk próprio: a abertura do app não carrega OpenSCAD, MediaPipe etc.
 const Calculator = lazy(() => import("./pages/Calculator"));
+const Products = lazy(() => import("./pages/Products"));
 const Filaments = lazy(() => import("./pages/Filaments"));
 const Materials = lazy(() => import("./pages/Materials"));
 const Preferences = lazy(() => import("./pages/Preferences"));
@@ -38,7 +39,8 @@ const ALL: PageDef[] = [
   { id: "medal", label: "Medalhas", group: "Ferramentas", icon: Award, blurb: "Formato, texto, imagem e alça para fita.", render: () => <Medal /> },
   { id: "extrude", label: "Extrusão 3D", group: "Ferramentas", icon: Layers, blurb: "SVG vira peça em STL/3MF, com base opcional.", render: () => <Extrude /> },
   { id: "ai", label: "Pedir à IA", group: "Ferramentas", icon: Bot, blurb: "Descreva a peça e o Claude modela (pago por uso).", render: (go) => <AskAI go={go} /> },
-  { id: "calculator", label: "Calculadora", group: "Gestão", icon: CalcIcon, blurb: "Custo e preço por canal de venda.", render: () => <Calculator /> },
+  { id: "calculator", label: "Calculadora", group: "Gestão", icon: CalcIcon, blurb: "Custo e preço por canal de venda.", render: (go) => <Calculator go={go} /> },
+  { id: "products", label: "Produtos", group: "Gestão", icon: ShoppingBag, blurb: "Composição, fotos, kits e estoque pronto.", render: () => <Products /> },
   { id: "filaments", label: "Filamentos", group: "Gestão", icon: Cylinder, blurb: "Estoque, mínimo e custo médio.", render: () => <Filaments /> },
   { id: "materials", label: "Materiais extras", group: "Gestão", icon: Package, blurb: "Embalagens, argolas, ímãs…", render: () => <Materials /> },
   { id: "printers", label: "Impressoras", group: "Gestão", icon: Printer, blurb: "Potência para o custo de energia.", render: () => <Printers /> },
