@@ -1,4 +1,4 @@
-import { Calculator as CalcIcon, Cylinder, House, Package, Printer, Settings } from "lucide-react";
+import { Calculator as CalcIcon, Cylinder, House, ImageUp, Package, Printer, Settings } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import type { ReactNode } from "react";
 import Calculator from "./pages/Calculator";
@@ -7,6 +7,7 @@ import Home from "./pages/Home";
 import Materials from "./pages/Materials";
 import Preferences from "./pages/Preferences";
 import Printers from "./pages/Printers";
+import ImageToSvg from "./tools/ImageToSvg";
 
 export type Go = (pageId: string) => void;
 export type PageDef = {
@@ -21,6 +22,7 @@ export type PageDef = {
 
 export const PAGES: PageDef[] = [
   { id: "home", label: "Início", group: "", icon: House, render: (go) => <Home go={go} /> },
+  { id: "svg", label: "Imagem → SVG", group: "Ferramentas", icon: ImageUp, blurb: "Vetoriza logo ou desenho em 1 cor, em mm.", render: (go) => <ImageToSvg go={go} /> },
   { id: "calculator", label: "Calculadora", group: "Gestão", icon: CalcIcon, blurb: "Custo e preço por canal de venda.", render: () => <Calculator /> },
   { id: "filaments", label: "Filamentos", group: "Gestão", icon: Cylinder, blurb: "Estoque, mínimo e custo médio.", render: () => <Filaments /> },
   { id: "materials", label: "Materiais extras", group: "Gestão", icon: Package, blurb: "Embalagens, argolas, ímãs…", render: () => <Materials /> },
