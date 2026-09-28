@@ -1,4 +1,4 @@
-import { Calculator as CalcIcon, Cookie, Cylinder, KeyRound, Layers, House, ImageUp, Package, Printer, Settings } from "lucide-react";
+import { Award, Calculator as CalcIcon, Cookie, Cylinder, KeyRound, Layers, House, ImageUp, Package, Printer, Settings } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import type { ReactNode } from "react";
 import Calculator from "./pages/Calculator";
@@ -10,6 +10,7 @@ import Printers from "./pages/Printers";
 import CookieCutter from "./tools/CookieCutter";
 import Extrude from "./tools/Extrude";
 import Keychain from "./tools/Keychain";
+import Medal from "./tools/Medal";
 import ImageToSvg from "./tools/ImageToSvg";
 
 export type Go = (pageId: string) => void;
@@ -28,6 +29,7 @@ export const PAGES: PageDef[] = [
   { id: "svg", label: "Imagem → SVG", group: "Ferramentas", icon: ImageUp, blurb: "Vetoriza logo ou desenho em 1 cor, em mm.", render: (go) => <ImageToSvg go={go} /> },
   { id: "cutter", label: "Cortador de biscoito", group: "Ferramentas", icon: Cookie, blurb: "Lâmina + carimbo a partir do desenho.", render: () => <CookieCutter /> },
   { id: "keychain", label: "Chaveiros", group: "Ferramentas", icon: KeyRound, blurb: "Nome + logo em 2 cores, também em lote.", render: () => <Keychain /> },
+  { id: "medal", label: "Medalhas", group: "Ferramentas", icon: Award, blurb: "Formato, texto, imagem e alça para fita.", render: () => <Medal /> },
   { id: "extrude", label: "Extrusão 3D", group: "Ferramentas", icon: Layers, blurb: "SVG vira peça em STL/3MF, com base opcional.", render: () => <Extrude /> },
   { id: "calculator", label: "Calculadora", group: "Gestão", icon: CalcIcon, blurb: "Custo e preço por canal de venda.", render: () => <Calculator /> },
   { id: "filaments", label: "Filamentos", group: "Gestão", icon: Cylinder, blurb: "Estoque, mínimo e custo médio.", render: () => <Filaments /> },
