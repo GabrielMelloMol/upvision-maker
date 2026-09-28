@@ -16,7 +16,7 @@ export async function lookupCep(cep: string, fetchFn: typeof fetch = fetch): Pro
     return { street: j.logradouro ?? "", district: j.bairro ?? "", city: j.localidade, uf: j.uf ?? "" };
   } catch (e) {
     if (e instanceof Error && /CEP/.test(e.message)) throw e;
-    throw new Error("Sem conexão para buscar o CEP. Preencha o endereço à mão.");
+    throw new Error("Sem conexão para buscar o CEP. Preencha o endereço à mão.", { cause: e });
   } finally {
     clearTimeout(t);
   }
