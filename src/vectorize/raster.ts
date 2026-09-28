@@ -112,7 +112,7 @@ export function floodBackground(rgba: Uint8ClampedArray, w: number, h: number): 
 }
 
 /** Mínimo (erosão) ou máximo (dilatação) numa janela quadrada 2r+1, separável. Fora da imagem = 0. */
-function morph(mask: Uint8Array, w: number, h: number, r: number, erode: boolean): Uint8Array {
+export function morph(mask: Uint8Array, w: number, h: number, r: number, erode: boolean): Uint8Array {
   const pass = (src: Uint8Array, horizontal: boolean) => {
     const out = new Uint8Array(src.length);
     for (let y = 0; y < h; y++) {

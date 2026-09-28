@@ -1,5 +1,5 @@
 import type { TraceOptions } from "./pipeline";
-import type { TraceRequest, TraceResponse } from "./vectorize.worker";
+import type { TraceDone, TraceMessage, TraceRequest } from "./vectorize.worker";
 
 const MAX_BYTES = 25 * 1024 * 1024;
 const TIMEOUT_MS = 120_000;
@@ -33,28 +33,46 @@ export async function loadRaster(file: Blob, scale: (w: number, h: number) => nu
 let worker: Worker | null = null;
 let seq = 0;
 
-/** Vetoriza no worker. Pedidos antigos são descartados quando chega um novo (o chamador ignora ids velhos). */
-export function trace(r: Raster, options: TraceOptions): Promise<Extract<TraceResponse, { ok: true }>> {
+export class TraceCancelled extends Error {
+  constructor() {
+    super("Processamento cancelado.");
+  }
+}
+
+export type TraceProgress = { stage: "prepare" | "trace"; ticks: number };
+export type TraceJob = { result: Promise<TraceDone>; cancel: () => void };
+
+/** Vetoriza no worker. `cancel()` encerra o worker na hora (um novo é criado no próximo pedido). */
+export function trace(r: Raster, options: TraceOptions, seg: Uint8Array | null, onProgress?: (p: TraceProgress) => void): TraceJob {
   worker ??= new Worker(new URL("./vectorize.worker.ts", import.meta.url), { type: "module" });
-  const id = ++seq;
   const w = worker;
-  return new Promise((resolve, reject) => {
-    const timer = setTimeout(() => {
-      w.terminate();
-      worker = null;
-      reject(new Error("A vetorização demorou demais. Tente uma imagem menor."));
-    }, TIMEOUT_MS);
-    const onMsg = (e: MessageEvent<TraceResponse>) => {
-      if (e.data.id !== id) return;
+  const id = ++seq;
+  let finish: (err?: Error, done?: TraceDone) => void = () => {};
+  const result = new Promise<TraceDone>((resolve, reject) => {
+    const timer = setTimeout(() => finish(new Error("A vetorização demorou demais. Tente uma imagem menor ou mais limpeza.")), TIMEOUT_MS);
+    const onMsg = (e: MessageEvent<TraceMessage>) => {
+      const m = e.data;
+      if (m.id !== id) return;
+      if (m.type === "progress") onProgress?.({ stage: m.stage, ticks: m.ticks });
+      else if (m.type === "done") finish(undefined, m);
+      else finish(new Error(m.error));
+    };
+    const onErr = (ev: ErrorEvent) => finish(new Error(ev.message || "Falha no motor de vetorização."));
+    finish = (err?: Error, done?: TraceDone) => {
       clearTimeout(timer);
       w.removeEventListener("message", onMsg);
-      if (e.data.ok) resolve(e.data);
-      else reject(new Error(e.data.error));
+      w.removeEventListener("error", onErr);
+      if (err) {
+        // cancelado, estourou o tempo ou falhou: descarta o worker (o próximo pedido cria outro)
+        w.terminate();
+        if (worker === w) worker = null;
+        reject(err);
+      } else resolve(done!);
     };
     w.addEventListener("message", onMsg);
-    w.addEventListener("error", (ev) => reject(new Error(ev.message || "Falha no motor de vetorização.")), { once: true });
-    const msg: TraceRequest = { id, rgba: r.rgba.slice(), w: r.w, h: r.h, options };
+    w.addEventListener("error", onErr);
+    const msg: TraceRequest = { id, rgba: r.rgba.slice(), w: r.w, h: r.h, options, seg: seg?.slice() ?? null };
     w.postMessage(msg);
   });
+  return { result, cancel: () => finish(new TraceCancelled()) };
 }
-export const latestTraceId = () => seq;

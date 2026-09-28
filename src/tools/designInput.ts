@@ -2,6 +2,7 @@ import { getManifold, type CS, type ManifoldToplevel } from "../geometry/manifol
 import { fitWidth } from "../geometry/shape2d";
 import { svgToCrossSection } from "../geometry/svgImport";
 import { loadRaster, trace } from "../vectorize/client";
+import { DEFAULT_TRACE } from "../vectorize/pipeline";
 import { scaleFactor } from "../vectorize/raster";
 import { buildSvg } from "../vectorize/svgOut";
 
@@ -12,7 +13,7 @@ export async function fileToSvg(file: File): Promise<string> {
   if (file.type === "image/svg+xml" || file.name.toLowerCase().endsWith(".svg")) return file.text();
   const r = await loadRaster(file, scaleFactor);
   try {
-    const t = await trace(r, { threshold: null, invert: false, removeBg: true, widthMm: 80 });
+    const t = await trace(r, DEFAULT_TRACE, null).result;
     return buildSvg(t.d, r.w, r.h, 80);
   } finally {
     URL.revokeObjectURL(r.url);

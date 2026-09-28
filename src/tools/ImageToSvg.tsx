@@ -1,20 +1,21 @@
-import { Download, Cookie, Layers } from "lucide-react";
-import { useEffect, useMemo, useState } from "react";
+import { Cookie, Download, Layers, Play, X } from "lucide-react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import type { Go } from "../pages";
 import Alert from "../ui/Alert";
 import Dropzone from "../ui/Dropzone";
 import { saveFile, slug } from "../ui/saveFile";
+import Slider from "../ui/Slider";
 import { errorText, useToast } from "../ui/Toast";
-import { IMAGE_ACCEPT, latestTraceId, loadRaster, trace, type Raster } from "../vectorize/client";
+import { IMAGE_ACCEPT, loadRaster, trace, TraceCancelled, type Raster, type TraceJob, type TraceProgress } from "../vectorize/client";
+import { DEFAULT_TRACE, type TraceOptions } from "../vectorize/pipeline";
 import { scaleFactor } from "../vectorize/raster";
 import { buildSvg } from "../vectorize/svgOut";
+import type { TraceDone } from "../vectorize/vectorize.worker";
 import { handoffSvg } from "./handoff";
 
-type Result = Awaited<ReturnType<typeof trace>>;
-
-const DEBOUNCE_MS = 150;
-const MANY_PATHS = 5000;
+const MANY_PATHS = 2000;
 const MOSTLY_FILLED = 96;
+const CLEANUP_LABELS = ["Nenhuma", "Leve", "Média", "Forte"];
 
 /** Sobreposição vermelha dos pixels com traço fino. */
 function thinOverlay(thin: Uint8Array, w: number, h: number): string {
@@ -28,22 +29,29 @@ function thinOverlay(thin: Uint8Array, w: number, h: number): string {
   return c.toDataURL();
 }
 
+const progressText = (p: TraceProgress | null) =>
+  !p ? "Preparando…" : p.stage === "prepare" ? "Limpando a imagem…" : p.ticks ? `Vetorizando… ${p.ticks} contornos` : "Vetorizando…";
+
 export default function ImageToSvg({ go }: { go: Go }) {
   const [file, setFile] = useState<File | null>(null);
   const [raster, setRaster] = useState<Raster | null>(null);
-  const [auto, setAuto] = useState(true);
-  const [threshold, setThreshold] = useState(160);
-  const [invert, setInvert] = useState(false);
-  const [removeBg, setRemoveBg] = useState(true);
-  const [widthMm, setWidthMm] = useState(80);
-  const [result, setResult] = useState<Result | null>(null);
-  const [busy, setBusy] = useState(false);
+  const [opts, setOpts] = useState<TraceOptions>(DEFAULT_TRACE);
+  const [applied, setApplied] = useState<TraceOptions | null>(null);
+  const [result, setResult] = useState<TraceDone | null>(null);
+  const [progress, setProgress] = useState<TraceProgress | null>(null);
+  const [running, setRunning] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const job = useRef<TraceJob | null>(null);
   const toast = useToast();
+  const set = <K extends keyof TraceOptions>(k: K, v: TraceOptions[K]) => setOpts((o) => ({ ...o, [k]: v }));
+
+  useEffect(() => () => job.current?.cancel(), []);
 
   async function onFile(f: File) {
+    job.current?.cancel();
     setError(null);
     setResult(null);
+    setApplied(null);
     try {
       const r = await loadRaster(f, scaleFactor);
       setFile(f);
@@ -56,25 +64,31 @@ export default function ImageToSvg({ go }: { go: Go }) {
     }
   }
 
-  useEffect(() => {
+  async function apply() {
     if (!raster) return;
-    const width = widthMm > 0 ? widthMm : 80;
-    const timer = setTimeout(() => {
-      setBusy(true);
-      trace(raster, { threshold: auto ? null : threshold, invert, removeBg, widthMm: width })
-        .then((r) => {
-          if (r.id !== latestTraceId()) return; // resposta velha
-          setResult(r);
-          setError(null);
-          if (auto) setThreshold(r.threshold);
-        })
-        .catch((e) => setError(errorText(e)))
-        .finally(() => setBusy(false));
-    }, DEBOUNCE_MS);
-    return () => clearTimeout(timer);
-  }, [raster, auto, threshold, invert, removeBg, widthMm]);
+    const o = { ...opts, widthMm: opts.widthMm > 0 ? opts.widthMm : DEFAULT_TRACE.widthMm };
+    job.current?.cancel();
+    const j = trace(raster, o, null, setProgress);
+    job.current = j;
+    setRunning(true);
+    setProgress(null);
+    setError(null);
+    try {
+      const r = await j.result;
+      setResult(r);
+      setApplied(o);
+    } catch (e) {
+      if (!(e instanceof TraceCancelled)) setError(errorText(e));
+    } finally {
+      if (job.current === j) {
+        job.current = null;
+        setRunning(false);
+      }
+    }
+  }
 
-  const svg = useMemo(() => (result && raster ? buildSvg(result.d, raster.w, raster.h, widthMm > 0 ? widthMm : 80) : null), [result, raster, widthMm]);
+  const dirty = !!applied && JSON.stringify(applied) !== JSON.stringify(opts);
+  const svg = useMemo(() => (result && raster && applied ? buildSvg(result.d, raster.w, raster.h, applied.widthMm) : null), [result, raster, applied]);
   const svgUrl = useMemo(() => (svg ? URL.createObjectURL(new Blob([svg], { type: "image/svg+xml" })) : null), [svg]);
   useEffect(() => () => void (svgUrl && URL.revokeObjectURL(svgUrl)), [svgUrl]);
   const overlay = useMemo(() => (result?.thin && result.thinCount > 0 && raster ? thinOverlay(result.thin, raster.w, raster.h) : null), [result, raster]);
@@ -110,22 +124,41 @@ export default function ImageToSvg({ go }: { go: Go }) {
           <div className="card stack">
             <h3>Ajustes</h3>
             <label className="check">
-              <input type="checkbox" checked={auto} onChange={(e) => setAuto(e.target.checked)} /> Limiar automático
+              <input type="checkbox" checked={opts.threshold === null} onChange={(e) => set("threshold", e.target.checked ? null : (result?.threshold ?? 160))} /> Limiar automático
             </label>
+            <Slider
+              label="Limiar (claro ↔ escuro)"
+              min={20}
+              max={245}
+              value={opts.threshold ?? result?.threshold ?? 160}
+              disabled={opts.threshold === null}
+              onChange={(v) => set("threshold", v)}
+              hint="Mais alto = tons mais claros também viram forma."
+            />
+            <Slider
+              label="Limpeza"
+              min={0}
+              max={3}
+              value={opts.cleanup}
+              display={(v) => CLEANUP_LABELS[v]}
+              onChange={(v) => set("cleanup", v)}
+              hint="Suaviza ruído e fecha furinhos antes de vetorizar."
+            />
+            <Slider label="Detalhe" min={1} max={10} value={opts.detail} onChange={(v) => set("detail", v)} hint="Menos detalhe = curvas mais simples e arquivo menor." />
             <label>
-              Quantidade preenchida: {threshold}
-              <input type="range" min={20} max={245} value={threshold} disabled={auto} onChange={(e) => setThreshold(Number(e.target.value))} />
+              Ignorar pedaços menores que (mm²)
+              <input type="number" min={0} max={100} step={0.5} value={opts.minAreaMm2} onChange={(e) => set("minAreaMm2", Math.max(0, e.target.valueAsNumber || 0))} />
             </label>
             <label className="check">
-              <input type="checkbox" checked={removeBg} onChange={(e) => setRemoveBg(e.target.checked)} /> Remover fundo automaticamente
+              <input type="checkbox" checked={opts.removeBg} onChange={(e) => set("removeBg", e.target.checked)} /> Remover fundo automaticamente
             </label>
             <label className="check">
-              <input type="checkbox" checked={invert} onChange={(e) => setInvert(e.target.checked)} /> O desenho é claro sobre fundo escuro
+              <input type="checkbox" checked={opts.invert} onChange={(e) => set("invert", e.target.checked)} /> O desenho é claro sobre fundo escuro
             </label>
             <label>
               Largura final (mm)
-              <input type="number" min={1} max={1000} value={widthMm} onChange={(e) => setWidthMm(Number(e.target.value))} />
-              <span className="hint">A altura acompanha a proporção{raster ? `: ${((widthMm * raster.h) / raster.w).toFixed(1)} mm` : ""}.</span>
+              <input type="number" min={1} max={1000} value={opts.widthMm} onChange={(e) => set("widthMm", e.target.valueAsNumber)} />
+              <span className="hint">A altura acompanha a proporção{raster ? `: ${((opts.widthMm * raster.h) / raster.w).toFixed(1)} mm` : ""}.</span>
             </label>
           </div>
           <div className="card stack">
@@ -144,6 +177,26 @@ export default function ImageToSvg({ go }: { go: Go }) {
         </div>
 
         <div className="preview-col">
+          <div className="apply-bar" aria-live="polite">
+            {running ? (
+              <>
+                <span className="spinner" />
+                <span>{progressText(progress)}</span>
+                <button onClick={() => job.current?.cancel()}>
+                  <X aria-hidden /> Cancelar
+                </button>
+              </>
+            ) : (
+              <>
+                <button className="primary" disabled={!raster} onClick={apply}>
+                  <Play aria-hidden /> {result ? "Aplicar alterações" : "Aplicar"}
+                </button>
+                <span className={dirty ? "dirty" : "muted"}>
+                  {!raster ? "Envie uma imagem para começar." : dirty ? "Há alterações não aplicadas." : result ? "Resultado atualizado." : "Ajuste à esquerda e clique em Aplicar."}
+                </span>
+              </>
+            )}
+          </div>
           {error && <Alert kind="error">{error}</Alert>}
           <div className="pair">
             <figure>
@@ -153,16 +206,16 @@ export default function ImageToSvg({ go }: { go: Go }) {
             <figure>
               <figcaption>
                 <span>SVG vetorizado</span>
-                {busy && <span className="spinner" aria-label="Vetorizando" />}
+                {dirty && <span className="dirty">desatualizado</span>}
               </figcaption>
-              <div className="img" style={{ background: "#fff" }}>
-                {svgUrl && raster ? (
+              <div className="img" style={{ background: "#fff", opacity: running ? 0.5 : 1 }}>
+                {svgUrl ? (
                   <>
                     <img className="fit" src={svgUrl} alt="Resultado vetorizado" />
                     {overlay && <img className="fit" src={overlay} alt="" />}
                   </>
                 ) : (
-                  <span className="muted">{busy ? "Vetorizando…" : "O resultado aparece aqui"}</span>
+                  <span className="muted">{running ? progressText(progress) : raster ? "Ajuste e clique em Aplicar" : "O resultado aparece aqui"}</span>
                 )}
               </div>
             </figure>
@@ -180,7 +233,7 @@ export default function ImageToSvg({ go }: { go: Go }) {
           )}
           {result && paths === 0 && <Alert kind="warn">Nenhuma forma encontrada. Ajuste o limiar ou marque “claro sobre fundo escuro”.</Alert>}
           {result && result.fillPct > MOSTLY_FILLED && <Alert kind="warn">Quase tudo ficou preenchido. Confira o limiar e a inversão.</Alert>}
-          {paths > MANY_PATHS && <Alert kind="warn">Mais de {MANY_PATHS} caminhos: o arquivo pode ficar pesado no fatiador.</Alert>}
+          {paths > MANY_PATHS && <Alert kind="warn">Mais de {MANY_PATHS} caminhos: aumente a Limpeza ou diminua o Detalhe.</Alert>}
         </div>
       </div>
     </div>

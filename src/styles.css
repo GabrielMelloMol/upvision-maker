@@ -169,3 +169,8 @@ td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
   *, *::before, *::after { transition: none !important; animation-duration: 0.01ms !important; }
 }
 .pair .img img.fit { position: absolute; inset: 12px; width: calc(100% - 24px); height: calc(100% - 24px); max-width: none; max-height: none; object-fit: contain; }
+.slider-head { display: flex; justify-content: space-between; gap: 8px; }
+.slider-head b { color: var(--text); font-weight: 600; font-variant-numeric: tabular-nums; }
+.apply-bar { display: flex; align-items: center; gap: 12px; font-size: 13px; background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 10px 12px; box-shadow: var(--shadow); min-height: 54px; }
+.apply-bar .spinner + span { flex: 1; }
+.dirty { color: var(--warn); font-weight: 600; }
