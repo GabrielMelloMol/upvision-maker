@@ -11,6 +11,21 @@ const SETTLE_MS = 900; // amortecimento depois de soltar o mouse
 /** Refaz o enquadramento só quando o tamanho muda mais que isso (editar um campo não mexe na câmera). */
 const REFRAME_RATIO = 0.25;
 
+/** Direção da câmera em relação ao centro: de frente, um pouco de cima (Z para cima). */
+const VIEW_DIR = new THREE.Vector3(0, -1.6, 1.4).normalize();
+/** Folga em volta do modelo no enquadramento. */
+const FIT_MARGIN = 1.08;
+
+/**
+ * Distância para a esfera de raio `r` caber inteira na tela, pelo menor campo de visão (vertical ou horizontal).
+ * Modelos largos e baixos (etiquetas, placas) dependem do horizontal quando a prévia é estreita.
+ */
+export function fitDistance(r: number, vfovDeg: number, aspect: number): number {
+  const v = (vfovDeg * Math.PI) / 180;
+  const h = 2 * Math.atan(Math.tan(v / 2) * Math.max(aspect, 0.01));
+  return (r / Math.sin(Math.min(v, h) / 2)) * FIT_MARGIN;
+}
+
 const reducedMotion = () => matchMedia("(prefers-reduced-motion: reduce)").matches;
 const cssVar = (name: string) => getComputedStyle(document.documentElement).getPropertyValue(name).trim() || "#999";
 const easeOutCubic = (k: number) => 1 - (1 - k) ** 3;
@@ -124,7 +139,7 @@ export function createViewer(el: HTMLElement) {
     lastSize = size;
     lastCenter.copy(center);
     const r = Math.max(size / 2, 10);
-    const to = center.clone().add(new THREE.Vector3(0, -1.6 * r, 1.4 * r).multiplyScalar(1.3));
+    const to = center.clone().add(VIEW_DIR.clone().multiplyScalar(fitDistance(r, camera.fov, camera.aspect)));
     if (reducedMotion()) {
       camera.position.copy(to);
       controls.target.copy(center);

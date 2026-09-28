@@ -4,7 +4,7 @@ import * as THREE from "three";
 import { afterEach, beforeEach, describe, expect, test, vi } from "vitest";
 import type { Mesh, Model } from "../geometry/types";
 import Preview3D from "./Preview3D";
-import { createViewer } from "./viewerScene";
+import { createViewer, fitDistance } from "./viewerScene";
 
 // happy-dom não tem WebGL: renderer falso que registra onde a câmera estava a cada quadro.
 const gl = vi.hoisted(() => ({ renders: [] as { x: number; y: number; z: number }[], sizes: [] as [number, number][], disposed: 0 }));
@@ -214,5 +214,14 @@ describe("Preview3D", () => {
     expect(container.querySelector(".legend")).toBeNull(); // uma cor só: sem legenda
     rerender(<Preview3D models={[]} error="Deu ruim" />);
     expect(screen.getByRole("alert")).toHaveTextContent("Deu ruim");
+  });
+});
+
+describe("fitDistance", () => {
+  test("a esfera cabe no menor campo de visão (e a prévia estreita afasta a câmera)", () => {
+    const d = fitDistance(50, 35, 1);
+    expect(50 / d).toBeLessThanOrEqual(Math.sin((35 * Math.PI) / 360)); // raio aparente dentro da metade do campo
+    expect(fitDistance(50, 35, 0.5)).toBeGreaterThan(d); // estreita: manda o horizontal
+    expect(fitDistance(50, 35, 2)).toBeCloseTo(d, 6); // larga: manda o vertical
   });
 });
