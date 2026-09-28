@@ -1,7 +1,7 @@
 import jsQR from "jsqr";
 import { describe, expect, test } from "vitest";
 import { pixPayload } from "./pix";
-import { qrMatrix, qrSvg } from "./qr";
+import { linkPayload, qrMatrix, qrSvg, wifiPayload } from "./qr";
 
 /** Renderiza a matriz em RGBA (com quiet zone) e decodifica com jsQR: prova que o QR é legível. */
 function decode(m: boolean[][], scale = 4, quiet = 4) {
@@ -45,5 +45,30 @@ describe("qrSvg", () => {
     expect(svg).toContain(`viewBox="0 0 ${m.length + 8} ${m.length + 8}"`);
     const dark = m.flat().filter(Boolean).length;
     expect((svg.match(/h1v1h-1z/g) ?? []).length).toBe(dark);
+  });
+});
+
+describe("wifiPayload", () => {
+  test("formato WIFI: padrão, com escape de ; , : \\ \"", () => {
+    expect(wifiPayload({ ssid: "Casa da Ana", password: "senha;123", security: "WPA" })).toBe("WIFI:T:WPA;S:Casa da Ana;P:senha\\;123;;");
+    expect(wifiPayload({ ssid: 'a"b:c', password: "", security: "nopass" })).toBe('WIFI:T:nopass;S:a\\"b\\:c;;');
+    expect(wifiPayload({ ssid: "X", password: "p", security: "WPA", hidden: true })).toBe("WIFI:T:WPA;S:X;P:p;H:true;;");
+    expect(wifiPayload({ ssid: "a\\b", password: "c,d", security: "WPA" })).toBe("WIFI:T:WPA;S:a\\\\b;P:c\\,d;;");
+  });
+  test("rede sem nome ou com senha faltando é recusada", () => {
+    expect(() => wifiPayload({ ssid: " ", password: "x", security: "WPA" })).toThrow("nome da rede");
+    expect(() => wifiPayload({ ssid: "X", password: "", security: "WPA" })).toThrow("senha");
+  });
+  test("QR do Wi-Fi decodifica", () => {
+    const t = wifiPayload({ ssid: "Ateliê", password: "abc12345", security: "WPA" });
+    expect(decode(qrMatrix(t))).toBe(t);
+  });
+});
+
+describe("linkPayload", () => {
+  test("completa https:// e valida", () => {
+    expect(linkPayload("instagram.com/upvision")).toBe("https://instagram.com/upvision");
+    expect(linkPayload(" https://x.com ")).toBe("https://x.com");
+    expect(() => linkPayload("não é link")).toThrow("link");
   });
 });

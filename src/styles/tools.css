@@ -64,3 +64,10 @@
 .chat summary { cursor: pointer; color: var(--accent-text); font-size: var(--text-sm); font-weight: 500; }
 button.example { justify-content: flex-start; text-align: left; font-weight: 400; min-height: 38px; padding: 8px 12px; height: auto; }
 button.example svg { color: var(--brand-orange); }
+
+/* QR Code: prévia 2D sempre sobre branco (é como vai ser lido) */
+.viewer.qr-preview { display: grid; place-items: center; background: #fff; }
+.viewer.qr-preview img { width: min(78%, 420px); aspect-ratio: 1; image-rendering: pixelated; animation: fade-up var(--dur-slow) var(--ease-out) both; }
+.viewer.qr-preview .overlay { color: #5c5c63; }
+.viewer .hud svg { width: 13px; height: 13px; vertical-align: -2px; margin-right: 3px; }
+.preview-col > .seg { justify-self: start; }
