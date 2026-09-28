@@ -1,0 +1,72 @@
+import type { CS, ManifoldToplevel, Solid } from "../manifold";
+import { toMesh } from "../mesh";
+import { outerOnly, scoped } from "../shape2d";
+import type { Mesh, Model } from "../types";
+
+/** Texto → região 2D em mm (altura total pedida), centrada; null se vazio. Quem chama dá delete(). */
+export type TextFn = (text: string, heightMm: number) => CS | null;
+
+export type ModelCtx = {
+  M: ManifoldToplevel;
+  text: TextFn;
+  /** Desenho enviado pelo usuário (SVG/imagem já vetorizada), em mm, ou null. */
+  art: CS | null;
+};
+
+export type ModelOutput = {
+  models: Model[];
+  /** Alturas (topo da camada) onde a impressora pausa — vão para o 3MF. */
+  pauses?: number[];
+  warnings?: string[];
+};
+
+/** Região extrudada de `z` a `z + h`, já como malha. */
+export function slab(cs: CS, h: number, z = 0): Mesh {
+  return scoped((k) => toMesh(k(k(cs.extrude(h)).translate([0, 0, z]))));
+}
+
+export const solidMesh = (s: Solid): Mesh => toMesh(s);
+
+export function moveMesh(m: Mesh, dx: number, dy: number, dz = 0): Mesh {
+  const p = m.positions.slice();
+  for (let i = 0; i < p.length; i += 3) {
+    p[i] += dx;
+    p[i + 1] += dy;
+    p[i + 2] += dz;
+  }
+  return { positions: p, indices: m.indices };
+}
+
+export const moveModel = (m: Model, dx: number, dy: number): Model => ({ ...m, parts: m.parts.map((p) => ({ ...p, mesh: moveMesh(p.mesh, dx, dy) })) });
+
+/** Retângulo de cantos arredondados centrado na origem. */
+export function roundedRect(M: ManifoldToplevel, w: number, h: number, r: number): CS {
+  const rr = Math.min(r, w / 2 - 0.01, h / 2 - 0.01);
+  return scoped((k) => {
+    const sq = k(M.CrossSection.square([w - 2 * rr, h - 2 * rr], true));
+    return rr > 0 ? sq.offset(rr, "Round", 2, 48) : sq.translate([0, 0]);
+  });
+}
+
+const BRIDGE_MM = 4;
+
+/** Fundo que contorna o desenho com `border` mm, unindo letras afastadas numa peça só. */
+export function backing(M: ManifoldToplevel, cs: CS, border: number): CS {
+  return scoped((k) => {
+    const out = outerOnly(M, k(k(cs.offset(border + BRIDGE_MM, "Round")).offset(-BRIDGE_MM, "Round")));
+    if (out.decompose().map(k).length <= 1) return out;
+    k(out);
+    return out.hull();
+  });
+}
+
+/** Une regiões (ignora null). */
+export function union(M: ManifoldToplevel, parts: (CS | null)[]): CS {
+  return M.CrossSection.union(parts.filter((p): p is CS => p !== null));
+}
+
+/** Largura e altura de uma região. */
+export function size2(cs: CS): [number, number] {
+  const b = cs.bounds();
+  return [b.max[0] - b.min[0], b.max[1] - b.min[1]];
+}

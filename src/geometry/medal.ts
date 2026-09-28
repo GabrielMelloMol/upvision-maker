@@ -1,6 +1,6 @@
 import type { CS, ManifoldToplevel } from "./manifold";
 import { toMesh } from "./mesh";
-import { scoped } from "./shape2d";
+import { fitInto, scoped, shrinkToFit } from "./shape2d";
 import { flatten, parsePath } from "./svgPath";
 import type { Model } from "./types";
 
@@ -56,41 +56,6 @@ export function medalOutline(M: ManifoldToplevel, shape: MedalShape, d: number):
     const moved = k(cs.translate([-(b.min[0] + b.max[0]) / 2, -(b.min[1] + b.max[1]) / 2]));
     return moved.scale(s);
   });
-}
-
-/** Encaixa `cs` numa caixa (maxW × maxH) centrada em (0, cy). */
-function fitInto(cs: CS, maxW: number, maxH: number, cy: number): CS {
-  const b = cs.bounds();
-  const s = Math.min(maxW / (b.max[0] - b.min[0]), maxH / (b.max[1] - b.min[1]), 1e9);
-  const moved = cs.translate([-(b.min[0] + b.max[0]) / 2, -(b.min[1] + b.max[1]) / 2]);
-  const scaled = moved.scale(s);
-  moved.delete();
-  const out = scaled.translate([0, cy]);
-  scaled.delete();
-  return out;
-}
-
-const FIT_STEP = 0.9;
-const FIT_TRIES = 12;
-const FIT_TOLERANCE = 0.005; // fração da área que pode ficar para fora (ruído numérico)
-
-/** Encolhe `cs` em torno do próprio centro até caber inteiro em `inner` (formatos não retangulares: estrela, escudo). */
-function shrinkToFit(cs: CS, inner: CS): CS {
-  let cur = cs.translate([0, 0]);
-  for (let i = 0; i < FIT_TRIES; i++) {
-    const outside = cur.subtract(inner);
-    const fits = outside.area() <= cur.area() * FIT_TOLERANCE;
-    outside.delete();
-    if (fits) return cur;
-    const b = cur.bounds();
-    const c: [number, number] = [(b.min[0] + b.max[0]) / 2, (b.min[1] + b.max[1]) / 2];
-    const a = cur.translate([-c[0], -c[1]]);
-    const s = a.scale(FIT_STEP);
-    const next = s.translate(c);
-    [cur, a, s].forEach((o) => o.delete());
-    cur = next;
-  }
-  return cur;
 }
 
 /**

@@ -8,8 +8,9 @@ const DEBOUNCE_MS = 200;
  * Reconstrói o modelo quando as entradas mudam (com debounce) e expõe estados de carregamento/erro.
  * `build` retorna null quando não há entrada suficiente.
  */
-export function useModelBuilder(build: () => Promise<{ models: Model[]; warnings: string[] } | null>, deps: unknown[]) {
+export function useModelBuilder(build: () => Promise<{ models: Model[]; warnings: string[]; pauses?: number[] } | null>, deps: unknown[]) {
   const [models, setModels] = useState<Model[]>([]);
+  const [pauses, setPauses] = useState<number[]>([]);
   const [warnings, setWarnings] = useState<string[]>([]);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -25,6 +26,7 @@ export function useModelBuilder(build: () => Promise<{ models: Model[]; warnings
         if (!alive) return;
         setModels(r?.models ?? []);
         setWarnings(r?.warnings ?? []);
+        setPauses(r?.pauses ?? []);
         setError(null);
       } catch (e) {
         if (alive) setError(errorText(e));
@@ -39,5 +41,5 @@ export function useModelBuilder(build: () => Promise<{ models: Model[]; warnings
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, deps);
 
-  return { models, warnings, busy, error };
+  return { models, warnings, pauses, busy, error };
 }

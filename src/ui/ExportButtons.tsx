@@ -6,7 +6,7 @@ import { saveFile, slug } from "./saveFile";
 import { errorText, useToast } from "./Toast";
 
 /** Botões padrão de exportação: 3MF com cores (principal) e STL por objeto. */
-export default function ExportButtons({ models, name, busy }: { models: Model[]; name: string; busy?: boolean }) {
+export default function ExportButtons({ models, name, busy, pauses }: { models: Model[]; name: string; busy?: boolean; pauses?: number[] }) {
   const toast = useToast();
   const disabled = busy || models.length === 0;
 
@@ -21,7 +21,7 @@ export default function ExportButtons({ models, name, busy }: { models: Model[];
 
   return (
     <div className="card stack">
-      <button className="action" disabled={disabled} onClick={() => save(`${slug(name)}.3mf`, write3mf(models), "3mf", "3MF")}>
+      <button className="action" disabled={disabled} onClick={() => save(`${slug(name)}.3mf`, write3mf(models, { pauses }), "3mf", "3MF")}>
         <Download aria-hidden /> Salvar 3MF (Bambu / Orca)
       </button>
       {models.length === 1 ? (

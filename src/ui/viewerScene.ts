@@ -55,6 +55,7 @@ export function createViewer(el: HTMLElement) {
   let fly: { from: THREE.Vector3; to: THREE.Vector3; fromT: THREE.Vector3; toT: THREE.Vector3; t0: number; spin: boolean } | null = null;
   let spinUntil = 0;
   let settleUntil = 0;
+  const lastCenter = new THREE.Vector3();
   let lastSize = 0;
   const render = () => renderer.render(scene, camera);
 
@@ -117,8 +118,11 @@ export function createViewer(el: HTMLElement) {
     if (box.isEmpty()) return;
     const center = box.getCenter(new THREE.Vector3());
     const size = box.getSize(new THREE.Vector3()).length();
-    if (!wasEmpty && lastSize && Math.abs(size - lastSize) / lastSize < REFRAME_RATIO) return;
+    // só reenquadra se o tamanho mudou ou o modelo saiu do lugar (ex.: trocou de modelo), não a cada ajuste fino
+    const moved = center.distanceTo(lastCenter) / Math.max(size, 1);
+    if (!wasEmpty && lastSize && Math.abs(size - lastSize) / lastSize < REFRAME_RATIO && moved < REFRAME_RATIO) return;
     lastSize = size;
+    lastCenter.copy(center);
     const r = Math.max(size / 2, 10);
     const to = center.clone().add(new THREE.Vector3(0, -1.6 * r, 1.4 * r).multiplyScalar(1.3));
     if (reducedMotion()) {

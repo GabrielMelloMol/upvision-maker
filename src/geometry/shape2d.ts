@@ -52,3 +52,39 @@ function fit(cs: CS, axis: 0 | 1, sizeMm: number, mirrorX: boolean): CS {
 
 export const fitWidth = (cs: CS, widthMm: number, mirrorX = false) => fit(cs, 0, widthMm, mirrorX);
 export const fitHeight = (cs: CS, heightMm: number, mirrorX = false) => fit(cs, 1, heightMm, mirrorX);
+
+/** Encaixa `cs` numa caixa (maxW × maxH) centrada em (0, cy). */
+export function fitInto(cs: CS, maxW: number, maxH: number, cy: number): CS {
+  const b = cs.bounds();
+  const s = Math.min(maxW / (b.max[0] - b.min[0]), maxH / (b.max[1] - b.min[1]), 1e9);
+  const moved = cs.translate([-(b.min[0] + b.max[0]) / 2, -(b.min[1] + b.max[1]) / 2]);
+  const scaled = moved.scale(s);
+  moved.delete();
+  const out = scaled.translate([0, cy]);
+  scaled.delete();
+  return out;
+}
+
+const FIT_STEP = 0.9;
+const FIT_TRIES = 12;
+const FIT_TOLERANCE = 0.005; // fração da área que pode ficar para fora (ruído numérico)
+
+/** Encolhe `cs` em torno do próprio centro até caber inteiro em `inner` (formatos não retangulares: estrela, escudo). */
+export function shrinkToFit(cs: CS, inner: CS): CS {
+  let cur = cs.translate([0, 0]);
+  for (let i = 0; i < FIT_TRIES; i++) {
+    const outside = cur.subtract(inner);
+    const fits = outside.area() <= cur.area() * FIT_TOLERANCE;
+    outside.delete();
+    if (fits) return cur;
+    const b = cur.bounds();
+    const c: [number, number] = [(b.min[0] + b.max[0]) / 2, (b.min[1] + b.max[1]) / 2];
+    const a = cur.translate([-c[0], -c[1]]);
+    const s = a.scale(FIT_STEP);
+    const next = s.translate(c);
+    [cur, a, s].forEach((o) => o.delete());
+    cur = next;
+  }
+  return cur;
+}
+

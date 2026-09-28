@@ -13,7 +13,7 @@ function meshXml(m: Mesh): string {
 }
 
 const CONTENT_TYPES = `<?xml version="1.0" encoding="UTF-8"?>
-<Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types"><Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/><Default Extension="model" ContentType="application/vnd.ms-package.3dmanufacturing-3dmodel+xml"/><Default Extension="config" ContentType="text/xml"/></Types>`;
+<Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types"><Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/><Default Extension="model" ContentType="application/vnd.ms-package.3dmanufacturing-3dmodel+xml"/><Default Extension="config" ContentType="text/xml"/><Default Extension="xml" ContentType="text/xml"/></Types>`;
 const RELS = `<?xml version="1.0" encoding="UTF-8"?>
 <Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Target="/3D/3dmodel.model" Id="rel0" Type="http://schemas.microsoft.com/3dmanufacturing/2013/01/3dmodel"/></Relationships>`;
 
@@ -21,8 +21,10 @@ const RELS = `<?xml version="1.0" encoding="UTF-8"?>
  * 3MF com um objeto por modelo e uma parte (componente) por cor.
  * `Metadata/model_settings.config` diz ao Bambu Studio / OrcaSlicer qual extrusora (filamento) cada parte usa:
  * a extrusora é a posição da cor na lista de cores distintas (1ª cor = filamento 1).
+ * `pauses`: alturas (mm) do topo da camada ANTES da qual a impressora pausa (ex.: colocar ímã ou tag NFC).
+ * O OrcaSlicer lê de qualquer 3MF; o Bambu Studio só de projetos gerados por ele (testado no CLI 2.x).
  */
-export function write3mf(models: Model[]): Uint8Array {
+export function write3mf(models: Model[], { pauses = [] }: { pauses?: number[] } = {}): Uint8Array {
   const colors = [...new Set(models.flatMap((m) => m.parts.map((p) => p.color.toLowerCase())))];
   const extruder = (c: string) => colors.indexOf(c.toLowerCase()) + 1;
   let id = 1;
@@ -52,5 +54,20 @@ export function write3mf(models: Model[]): Uint8Array {
     "_rels/.rels": strToU8(RELS),
     "3D/3dmodel.model": strToU8(model),
     "Metadata/model_settings.config": strToU8(settings),
+    ...(pauses.length ? { "Metadata/custom_gcode_per_layer.xml": strToU8(pauseXml(pauses)) } : {}),
   });
+}
+
+/** Formato do Bambu Studio / OrcaSlicer: type 1 = pausa (M400 U1 no firmware Bambu). */
+function pauseXml(pauses: number[]): string {
+  const layers = pauses.map((z) => `<layer top_z="${num(z)}" type="1" extruder="1" color="" extra="" gcode="M400 U1"/>`).join("\n");
+  return `<?xml version="1.0" encoding="utf-8"?>
+<custom_gcodes_per_layer>
+<plate>
+<plate_info id="1"/>
+${layers}
+<mode value="SingleExtruder"/>
+</plate>
+</custom_gcodes_per_layer>
+`;
 }

@@ -1,5 +1,6 @@
 import { Award, Bot, Calculator as CalcIcon, Cookie, Cylinder, KeyRound, Layers, House, ImageUp, Package, Palette, Printer, Settings, ShoppingBag, Users, Building2, ClipboardList, FileText, LayoutDashboard, LineChart, Receipt, QrCode as QrIcon } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
+import { Shapes } from "lucide-react";
 import { lazy, type ReactNode } from "react";
 import Home from "./pages/Home";
 
@@ -25,6 +26,7 @@ const Keychain = lazy(() => import("./tools/Keychain"));
 const Medal = lazy(() => import("./tools/Medal"));
 const ImageToSvg = lazy(() => import("./tools/ImageToSvg"));
 const QrCode = lazy(() => import("./tools/QrCode"));
+const Models = lazy(() => import("./tools/Models"));
 
 export type Go = (pageId: string) => void;
 export type PageDef = {
@@ -47,6 +49,7 @@ const ALL: PageDef[] = [
   { id: "medal", label: "Medalhas", group: "Ferramentas", icon: Award, blurb: "Formato, texto, imagem e alça para fita.", render: () => <Medal /> },
   { id: "extrude", label: "Extrusão 3D", group: "Ferramentas", icon: Layers, blurb: "SVG vira peça em STL/3MF, com base opcional.", render: () => <Extrude /> },
   { id: "qr", label: "QR Code e Pix", group: "Ferramentas", icon: QrIcon, blurb: "Pix com valor, link ou Wi-Fi; SVG e 3MF em 2 cores.", render: () => <QrCode /> },
+  { id: "models", label: "Modelos prontos", group: "Ferramentas", icon: Shapes, blurb: "Placa Pix, topo de bolo, carimbo, troféu, chaveiro NFC…", render: () => <Models /> },
   { id: "ai", label: "Pedir à IA", group: "Ferramentas", icon: Bot, blurb: "Descreva a peça e o Claude modela (pago por uso).", render: (go) => <AskAI go={go} /> },
   { id: "dashboard", label: "Painel", group: "Gestão", icon: LayoutDashboard, blurb: "Prazos, estoque acabando e resultado do mês.", render: (go) => <Dashboard go={go} /> },
   { id: "orders", label: "Pedidos", group: "Gestão", icon: ClipboardList, blurb: "Quadro por status, prazos e baixa de estoque.", render: () => <Orders /> },

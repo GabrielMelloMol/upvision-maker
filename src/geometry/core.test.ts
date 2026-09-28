@@ -97,6 +97,18 @@ describe("3MF", () => {
     expect(config.match(/key="extruder" value="2"/g)).toHaveLength(2);
   });
 
+  test("pausas viram custom_gcode_per_layer (pausa antes da camada com topo em Z)", () => {
+    const f = unzipSync(write3mf([cubeModel()], { pauses: [2, 4.4] }));
+    const xml = strFromU8(f["Metadata/custom_gcode_per_layer.xml"]);
+    expect(xml).toContain('<layer top_z="2" type="1" extruder="1" color="" extra="" gcode="M400 U1"/>');
+    expect(xml).toContain('<layer top_z="4.4" type="1"');
+    expect(strFromU8(f["[Content_Types].xml"])).toContain('Extension="xml"');
+  });
+
+  test("sem pausas não há custom_gcode_per_layer", () => {
+    expect(files["Metadata/custom_gcode_per_layer.xml"]).toBeUndefined();
+  });
+
   test("escapa XML em nomes digitados pelo usuário", () => {
     const m = cubeModel();
     const f = unzipSync(write3mf([{ ...m, name: 'Ana & "Bia" <3' }]));
