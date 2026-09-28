@@ -4,7 +4,7 @@
  * com as migrações reais, diálogos controláveis e arquivos "salvos" num Map.
  *
  * Uso (arquivo precisa começar com `// @vitest-environment happy-dom`):
- *   const t = useTauri();                       // no topo do describe/arquivo
+ *   const t = setupTauri();                       // no topo do describe/arquivo
  *   renderWithApp(<Filaments />);               // já com ToastProvider
  *   t.db.select("SELECT * FROM filaments")      // conferir o banco
  */
@@ -98,7 +98,7 @@ function handle(t: TauriState, cmd: string, a: unknown, headers?: Record<string,
 }
 
 /** Instala o mock do Tauri e um banco novo antes de cada teste do arquivo. */
-export function useTauri(): TauriState {
+export function setupTauri(): TauriState {
   const t = { files: new Map(), savePath: null, openPath: null, askAnswer: true, calls: [], handlers: {}, windowStyle: { effect: "none", overlayTitlebar: false } } as unknown as TauriState;
   beforeEach(async () => {
     t.raw = new DatabaseSync(":memory:");

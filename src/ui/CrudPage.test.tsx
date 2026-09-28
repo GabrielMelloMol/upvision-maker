@@ -4,11 +4,11 @@ import userEvent from "@testing-library/user-event";
 import { describe, expect, test, vi } from "vitest";
 import Filaments from "../pages/Filaments";
 import Printers from "../pages/Printers";
-import { renderWithApp, useTauri } from "../test/harness";
+import { renderWithApp, setupTauri } from "../test/harness";
 import { setPendingOpen } from "./search";
 import { UNDO_MS } from "./CrudPage";
 
-const t = useTauri();
+const t = setupTauri();
 
 describe("CrudPage (Impressoras)", () => {
   test("lista vazia mostra estado vazio e já foca o 1º campo; cadastra com Enter", async () => {
