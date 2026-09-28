@@ -8,6 +8,7 @@ import Slider from "../ui/Slider";
 import { errorText, useToast } from "../ui/Toast";
 import { IMAGE_ACCEPT, loadRaster, trace, TraceCancelled, type Raster, type TraceJob, type TraceProgress } from "../vectorize/client";
 import { DEFAULT_TRACE, type TraceMode, type TraceOptions } from "../vectorize/pipeline";
+import { classifyImage } from "../vectorize/classify";
 import { scaleFactor } from "../vectorize/raster";
 import { segmentSubject, type Subject } from "../vectorize/segment";
 import { buildSvg } from "../vectorize/svgOut";
@@ -57,6 +58,7 @@ export default function ImageToSvg({ go }: { go: Go }) {
   const [running, setRunning] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const job = useRef<TraceJob | null>(null);
+  const isPhoto = useMemo(() => (raster ? classifyImage(raster.rgba, raster.w, raster.h).isPhoto : false), [raster]);
   const toast = useToast();
   const set = <K extends keyof TraceOptions>(k: K, v: TraceOptions[K]) => setOpts((o) => ({ ...o, [k]: v }));
 
@@ -304,6 +306,15 @@ export default function ImageToSvg({ go }: { go: Go }) {
               </>
             )}
           </div>
+          {isPhoto && !silhouette && (
+            <Alert kind="warn">
+              <p>
+                <strong>Isso parece uma foto.</strong> O modo 1 cor funciona melhor com logos e desenhos. Use o modo Silhueta para recortar o contorno da pessoa
+                ou do pet.
+              </p>
+              <button onClick={() => set("mode", "silhouette")}>Usar modo Silhueta</button>
+            </Alert>
+          )}
           {error && <Alert kind="error">{error}</Alert>}
           <div className="pair">
             <figure>
