@@ -1,0 +1,124 @@
+import { test as base, expect, type Page } from "@playwright/test";
+import { DatabaseSync, type SQLInputValue } from "node:sqlite";
+
+/**
+ * Mock do IPC do Tauri para rodar o app no Vite puro.
+ * Mesmo formato do `mockIPC` de @tauri-apps/api/mocks, mas o handler roda no Node:
+ * SQL vai para um SQLite em memória (node:sqlite) e os arquivos "salvos" ficam em `files`.
+ */
+export type TauriMock = {
+  db: DatabaseSync;
+  /** Caminho → conteúdo gravado pelo app (write_file / write_text_file). */
+  files: Map<string, Buffer>;
+  /** Arquivos que o diálogo "Abrir" pode devolver (read_text_file lê daqui também). */
+  nextOpen: string | null;
+  /** Resposta do diálogo "Salvar como": null simula cancelar. Default: /saida/<nome sugerido>. */
+  savePath: ((defaultPath: string) => string | null) | null;
+  /** Resposta de ask()/confirm(). */
+  askAnswer: boolean;
+  calls: string[];
+};
+
+const INIT = () => {
+  const b64 = (u: Uint8Array) => {
+    let s = "";
+    for (let i = 0; i < u.length; i += 0x8000) s += String.fromCharCode(...u.subarray(i, i + 0x8000));
+    return btoa(s);
+  };
+  let nextId = 1;
+  const w = window as unknown as Record<string, unknown>;
+  w.__TAURI_INTERNALS__ = {
+    invoke: async (cmd: string, args: unknown, options?: { headers?: Record<string, string> }) => {
+      const payload = args instanceof Uint8Array ? { __bytes: b64(args) } : (args ?? null);
+      const r = (await (w.__tauriInvoke as (c: string, a: unknown, h: unknown) => Promise<{ ok?: unknown; err?: string }>)(cmd, payload, options?.headers ?? null));
+      if (r.err !== undefined) throw r.err;
+      return r.ok;
+    },
+    transformCallback: (cb: (d: unknown) => void) => {
+      const id = nextId++;
+      w[`_${id}`] = cb;
+      return id;
+    },
+    unregisterCallback: (id: number) => delete w[`_${id}`],
+    convertFileSrc: (p: string) => p,
+    metadata: { currentWindow: { label: "main" }, currentWebview: { windowLabel: "main", label: "main" } },
+  };
+};
+
+function handler(m: TauriMock, cmd: string, a: Record<string, unknown> | null, headers: Record<string, string> | null): unknown {
+  const args = a ?? {};
+  const params = (args.values as SQLInputValue[] | undefined) ?? [];
+  switch (cmd) {
+    case "plugin:sql|load":
+      return args.db;
+    case "plugin:sql|select":
+      return m.db.prepare(String(args.query)).all(...params);
+    case "plugin:sql|execute": {
+      const r = m.db.prepare(String(args.query)).run(...params);
+      return [Number(r.changes), Number(r.lastInsertRowid)];
+    }
+    case "plugin:dialog|save": {
+      const opts = (args.options ?? {}) as { defaultPath?: string };
+      const name = opts.defaultPath ?? "arquivo";
+      return m.savePath ? m.savePath(name) : `/saida/${name}`;
+    }
+    case "plugin:dialog|open":
+      return m.nextOpen;
+    case "plugin:dialog|message":
+      return m.askAnswer ? "Yes" : "No";
+    case "plugin:fs|write_file":
+    case "plugin:fs|write_text_file": {
+      const path = decodeURIComponent(headers?.path ?? "");
+      m.files.set(path, Buffer.from(String(args.__bytes ?? ""), "base64"));
+      return null;
+    }
+    case "plugin:fs|read_text_file": {
+      const f = m.files.get(String(args.path));
+      if (!f) throw new Error(`arquivo não existe: ${args.path}`);
+      return [...f]; // o plugin decodifica bytes → texto
+    }
+    case "plugin:fs|mkdir":
+      return null;
+    case "plugin:path|resolve_directory":
+      return "/dados-app";
+    case "plugin:path|join":
+      return (args.paths as string[]).join("/");
+    case "plugin:app|version":
+      return "0.2.0";
+    case "plugin:updater|check":
+      return null;
+    case "plugin:opener|open_url":
+      return null;
+    default:
+      throw new Error(`comando Tauri sem mock: ${cmd}`);
+  }
+}
+
+export const test = base.extend<{ tauri: TauriMock }>({
+  tauri: async ({ page }, provide) => {
+    const m: TauriMock = { db: new DatabaseSync(":memory:"), files: new Map(), nextOpen: null, savePath: null, askAnswer: true, calls: [] };
+    await page.exposeFunction("__tauriInvoke", (cmd: string, a: Record<string, unknown> | null, h: Record<string, string> | null) => {
+      m.calls.push(cmd);
+      try {
+        return { ok: handler(m, cmd, a, h) };
+      } catch (e) {
+        return { err: e instanceof Error ? e.message : String(e) };
+      }
+    });
+    await page.addInitScript(INIT);
+    await provide(m);
+    m.db.close();
+  },
+});
+
+export { expect };
+
+/** Abre o app e navega pela sidebar. */
+export async function openApp(page: Page) {
+  await page.goto("/");
+  await expect(page.getByRole("navigation", { name: "Navegação principal" })).toBeVisible();
+}
+
+export async function go(page: Page, label: string | RegExp) {
+  await page.getByRole("navigation", { name: "Navegação principal" }).getByRole("button", { name: label }).click();
+}
