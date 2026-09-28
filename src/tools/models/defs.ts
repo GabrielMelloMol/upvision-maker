@@ -1,7 +1,6 @@
-import { Bookmark, Cake, Disc3, Nfc, PencilRuler, QrCode, Stamp, Trophy, type LucideIcon } from "lucide-react";
+import { Bookmark, Cake, Disc3, Nfc, PencilRuler, QrCode, Stamp, Trophy } from "lucide-react";
 import { buildBookmark, DEFAULT_BOOKMARK } from "../../geometry/models/bookmark";
 import { buildCakeTopper, DEFAULT_CAKE_TOPPER } from "../../geometry/models/cakeTopper";
-import type { ModelCtx, ModelOutput } from "../../geometry/models/common";
 import { buildNfcKeychain, DEFAULT_NFC } from "../../geometry/models/nfcKeychain";
 import { buildPenHolder, DEFAULT_PEN_HOLDER } from "../../geometry/models/penHolder";
 import { buildPixPlate, DEFAULT_PIX_PLATE } from "../../geometry/models/pixPlate";
@@ -9,42 +8,12 @@ import { buildSpinner, DEFAULT_SPINNER } from "../../geometry/models/spinner";
 import { buildStamp, DEFAULT_STAMP } from "../../geometry/models/stamp";
 import { buildTrophy, DEFAULT_TROPHY } from "../../geometry/models/trophy";
 import { parseMoney } from "../../ui/parse";
+import { as, color, num, text, type ModelDef, type Params } from "./fields";
+import { TEXT_KITCHEN_MODELS } from "./textKitchen";
 
-export type Params = Record<string, string | number | boolean>;
+export type { FieldDef, ModelDef, Params, Section } from "./fields";
 
-export type FieldDef =
-  | { k: string; kind: "num"; label: string; min: number; max: number; step?: number; unit?: string; hint?: string }
-  | { k: string; kind: "text"; label: string; max?: number; hint?: string }
-  | { k: string; kind: "money"; label: string; hint?: string }
-  | { k: string; kind: "color"; label: string }
-  | { k: string; kind: "bool"; label: string }
-  | { k: string; kind: "choice"; label: string; options: readonly (readonly [string, string])[] };
-
-export type Section = { title: string; fields: FieldDef[] };
-
-export type ModelDef = {
-  id: string;
-  label: string;
-  blurb: string;
-  icon: LucideIcon;
-  defaults: Params;
-  sections: Section[];
-  /** Aceita desenho enviado (SVG/imagem). */
-  art?: string;
-  /** Tem texto: mostra o seletor de fonte (na seção `fontSection`, padrão 0). */
-  font?: boolean;
-  fontSection?: number;
-  build: (ctx: ModelCtx, p: Params) => ModelOutput;
-};
-
-// cada build recebe os parâmetros do formulário com os tipos do modelo
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-const as = <T,>(p: Params) => p as any as T;
-const num = (k: string, label: string, min: number, max: number, extra: Partial<Extract<FieldDef, { kind: "num" }>> = {}): FieldDef => ({ k, kind: "num", label, min, max, ...extra });
-const color = (k: string, label: string): FieldDef => ({ k, kind: "color", label });
-const text = (k: string, label: string, max = 30, hint?: string): FieldDef => ({ k, kind: "text", label, max, hint });
-
-export const MODELS: ModelDef[] = [
+const CORE_MODELS: ModelDef[] = [
   {
     id: "pix",
     label: "Placa Pix",
@@ -159,6 +128,8 @@ export const MODELS: ModelDef[] = [
     build: (ctx, p) => buildTrophy(ctx, as(p)),
   },
 ];
+
+export const MODELS: ModelDef[] = [...CORE_MODELS, ...TEXT_KITCHEN_MODELS];
 
 /** Números dentro dos limites (os campos fora da faixa ficam marcados e não geram o modelo). */
 export function validParams(def: ModelDef, p: Params): boolean {

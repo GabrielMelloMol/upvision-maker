@@ -57,12 +57,13 @@ export default function Models() {
     if (!valid) return null;
     const M = await getManifold();
     const f = await loadFont(font);
-    const artCs = useArt ? (await designFromSvg(useArt.svg, ART_WIDTH_MM, false)).cs : null;
+    const design = useArt ? await designFromSvg(useArt.svg, ART_WIDTH_MM, false, true) : null;
     try {
-      const out = def.build({ M, art: artCs, text: (s, h) => (s.trim() ? textToCrossSection(M, f, s, h) : null) }, p);
+      const out = def.build({ M, art: design?.cs ?? null, artLayers: design?.layers, text: (s, h) => (s.trim() ? textToCrossSection(M, f, s, h) : null) }, p);
       return { models: out.models, warnings: out.warnings ?? [], pauses: out.pauses };
     } finally {
-      artCs?.delete();
+      design?.cs.delete();
+      design?.layers?.forEach((l) => l.cs.delete());
     }
   }, [def, p, font, useArt, valid]);
 
@@ -113,7 +114,7 @@ export default function Models() {
               )}
             </div>
           ))}
-          <ExportButtons models={models} name={`${def.label}-${String(p.text ?? p.line1 ?? p.title ?? "")}`} busy={busy} pauses={pauses} />
+          <ExportButtons models={models} name={`${def.label}-${String(p.text ?? p.line1 ?? p.title ?? p.base ?? "")}`} busy={busy} pauses={pauses} />
         </div>
         <div className="preview-col">
           <Preview3D models={models} busy={busy} busyText={`Gerando ${def.label.toLowerCase()}…`} error={error} emptyText={!valid ? "Corrija os campos em vermelho." : undefined} />

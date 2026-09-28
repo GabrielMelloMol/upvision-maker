@@ -28,6 +28,7 @@ export const DEFAULT_KEYCHAIN: KeychainParams = {
 
 const BRIDGE_MM = 4; // fechamento que une letras afastadas numa base só
 const RING_OVERLAP_MM = 2.5;
+const SLIVER_FRAC = 0.01; // sobra de borda entre a arte e as camadas de cor: não vira parte
 
 /** Chaveiro de 2 cores: base (silhueta + borda, com argola) e desenho/texto em relevo, como partes separadas. */
 export function buildKeychain(M: ManifoldToplevel, art: CS, p: KeychainParams, name: string, layers: ColorLayer2D[] | null = null): Model {
@@ -49,7 +50,7 @@ export function buildKeychain(M: ManifoldToplevel, art: CS, p: KeychainParams, n
     }
     // com `layers` (logo colorido) o que não está nas camadas (o texto) segue na cor do texto
     const rest = layers ? k(art.subtract(k(M.CrossSection.union(layers.map((l) => l.cs))))) : art;
-    const top = rest.isEmpty() ? [] : [{ name: "Texto", color: p.topColor, mesh: toMesh(k(k(rest.extrude(p.relief)).translate([0, 0, p.base]))) }];
+    const top = rest.isEmpty() || (layers && rest.area() < art.area() * SLIVER_FRAC) ? [] : [{ name: "Texto", color: p.topColor, mesh: toMesh(k(k(rest.extrude(p.relief)).translate([0, 0, p.base]))) }];
     return {
       name,
       parts: [{ name: "Base", color: p.baseColor, mesh: toMesh(k(base.extrude(p.base))) }, ...top, ...(layers ? layerParts(layers, p.relief, p.base, "Logo") : [])],

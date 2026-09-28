@@ -1,7 +1,8 @@
+import type { ColorLayer2D } from "../extrude";
 import type { CS, ManifoldToplevel, Solid } from "../manifold";
 import { toMesh } from "../mesh";
-import { outerOnly, scoped } from "../shape2d";
-import type { Mesh, Model } from "../types";
+import { followTransform, outerOnly, scoped } from "../shape2d";
+import type { Mesh, Model, Part } from "../types";
 
 /** Texto → região 2D em mm (altura total pedida), centrada; null se vazio. Quem chama dá delete(). */
 export type TextFn = (text: string, heightMm: number) => CS | null;
@@ -11,6 +12,8 @@ export type ModelCtx = {
   text: TextFn;
   /** Desenho enviado pelo usuário (SVG/imagem já vetorizada), em mm, ou null. */
   art: CS | null;
+  /** Desenho colorido: uma região por cor, no mesmo sistema de `art` (null = 1 cor). */
+  artLayers?: ColorLayer2D[] | null;
 };
 
 export type ModelOutput = {
@@ -69,4 +72,24 @@ export function union(M: ManifoldToplevel, parts: (CS | null)[]): CS {
 export function size2(cs: CS): [number, number] {
   const b = cs.bounds();
   return [b.max[0] - b.min[0], b.max[1] - b.min[1]];
+}
+
+/**
+ * Arte já posicionada (`placed` = `art` escalada/movida) como partes: uma por cor se o desenho for colorido,
+ * senão uma só em `color`. Altura `h` a partir de `z`.
+ */
+export function artParts({ art, artLayers }: ModelCtx, placed: CS, color: string, name: string, h: number, z: number): Part[] {
+  if (!art || !artLayers || artLayers.length < 2) return [{ name, color, mesh: slab(placed, h, z) }];
+  return scoped((k) =>
+    artLayers
+      .map((l) => ({ color: l.color, cs: k(k(followTransform(art, placed, l.cs)).intersect(placed)) }))
+      .filter((l) => !l.cs.isEmpty())
+      .map((l, i) => ({ name: `${name} ${i + 1}`, color: l.color, mesh: slab(l.cs, h, z) })),
+  );
+}
+
+/** Exige um desenho enviado. */
+export function requireArt(art: CS | null): CS {
+  if (!art || art.isEmpty()) throw new Error("Envie um desenho (SVG ou imagem).");
+  return art;
 }

@@ -69,10 +69,10 @@ export function buildCutter(M: ManifoldToplevel, design: CS, p: CutterParams): {
   });
 }
 
-type K = <D extends { delete(): void }>(o: D) => D;
+export type K = <D extends { delete(): void }>(o: D) => D;
 
 /** Linhas: partes do desenho que não são o contorno externo. Vazados: o que é branco dentro da silhueta. */
-function stampRelief(M: ManifoldToplevel, design: CS, inner: CS, mode: ReliefMode, k: K): CS {
+export function stampRelief(M: ManifoldToplevel, design: CS, inner: CS, mode: ReliefMode, k: K): CS {
   const lines = () => {
     const parts = design.decompose().map(k);
     const areas = parts.map((c) => k(outerOnly(M, c)).area());
