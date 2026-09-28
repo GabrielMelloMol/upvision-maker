@@ -104,6 +104,12 @@ export class Pdf {
     this.y -= h;
   }
 
+  /** Retângulo de cantos arredondados; (x, top) é o canto superior esquerdo. */
+  roundRect(x: number, top: number, w: number, h: number, r: number, color: RGB) {
+    const path = `M ${r} 0 H ${w - r} Q ${w} 0 ${w} ${r} V ${h - r} Q ${w} ${h} ${w - r} ${h} H ${r} Q 0 ${h} 0 ${h - r} V ${r} Q 0 0 ${r} 0 Z`;
+    this.page.drawSvgPath(path, { x, y: top, color, borderWidth: 0 });
+  }
+
   rule(color = COLOR.line) {
     this.page.drawLine({ start: { x: MARGIN, y: this.y }, end: { x: A4.w - MARGIN, y: this.y }, thickness: 0.8, color });
   }

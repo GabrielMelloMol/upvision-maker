@@ -7,6 +7,8 @@ import { A4, COLOR, dateBr, MARGIN, moneyBr, Pdf, type PdfFonts } from "./doc";
 import { companyHeader } from "./header";
 
 const QR_SIZE = 110;
+const QR_PAD = 10; // mesma margem nos 4 lados do QR dentro do quadro
+const BOX_RADIUS = 8;
 
 /** Orçamento em A4: itens, descontos, frete, total, validade, condições e QR Pix com o valor exato. */
 export async function quotePdf(fonts: PdfFonts, company: Company, q: Quote, customer?: Customer | null): Promise<{ bytes: Uint8Array; trace: string[]; pixError: string | null }> {
@@ -46,8 +48,17 @@ export async function quotePdf(fonts: PdfFonts, company: Company, q: Quote, cust
   row("Total", moneyBr(t.total), true);
   pdf.gap(6);
 
-  if (q.dueDate) pdf.text(`Prazo de entrega: ${dateBr(q.dueDate)}`, { size: 9.5 });
-  if (q.paymentMethod) pdf.text(`Pagamento: ${q.paymentMethod}`, { size: 9.5 });
+  // prazo e pagamento lado a lado, no mesmo formato de rótulo + valor
+  const facts = [q.dueDate && ["Prazo de entrega", dateBr(q.dueDate)], q.paymentMethod && ["Pagamento", q.paymentMethod]].filter(Boolean) as [string, string][];
+  if (facts.length) {
+    pdf.ensure(30);
+    facts.forEach(([label, value], i) => {
+      const x = MARGIN + i * (pdf.width / 2);
+      pdf.at(label, x, pdf.y - 9, { size: 8.5, font: "semibold", color: COLOR.muted });
+      pdf.at(value, x, pdf.y - 23, { size: 9.5 });
+    });
+    pdf.gap(30);
+  }
   if (q.notes) {
     pdf.gap(6);
     pdf.text("Observações", { size: 8.5, font: "semibold", color: COLOR.muted });
@@ -64,16 +75,16 @@ export async function quotePdf(fonts: PdfFonts, company: Company, q: Quote, cust
     try {
       const payload = pixPayload({ key: company.pixKey, name: company.pixName || company.tradeName || company.name, city: company.pixCity || company.city, amount: t.total, txid: `ORC${q.id}` });
       pdf.gap(10);
-      pdf.ensure(QR_SIZE + 10);
+      pdf.ensure(QR_SIZE + 2 * QR_PAD);
       const top = pdf.y;
-      pdf.page.drawRectangle({ x: MARGIN, y: top - QR_SIZE - 12, width: pdf.width, height: QR_SIZE + 12, color: COLOR.soft });
-      pdf.qr(qrMatrix(payload), MARGIN + 6, top - QR_SIZE - 6, QR_SIZE);
-      pdf.y = top - 10;
-      const x = MARGIN + QR_SIZE + 20;
+      pdf.roundRect(MARGIN, top, pdf.width, QR_SIZE + 2 * QR_PAD, BOX_RADIUS, COLOR.soft);
+      pdf.qr(qrMatrix(payload), MARGIN + QR_PAD, top - QR_PAD - QR_SIZE, QR_SIZE);
+      pdf.y = top - QR_PAD;
+      const x = MARGIN + QR_SIZE + 2 * QR_PAD + 6;
       pdf.text(`Pague com Pix: ${moneyBr(t.total)}`, { x, size: 12, font: "bold" });
       pdf.text("Abra o app do banco, escolha Pix › Ler QR code. Ou use o Pix copia e cola:", { x, size: 8.5, color: COLOR.muted });
       pdf.text(payload, { x, size: 7, color: COLOR.muted });
-      pdf.y = top - QR_SIZE - 16;
+      pdf.y = top - QR_SIZE - 2 * QR_PAD - 6;
     } catch (e) {
       pixError = e instanceof Error ? e.message : String(e);
     }
