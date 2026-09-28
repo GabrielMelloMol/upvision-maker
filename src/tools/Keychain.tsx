@@ -150,7 +150,7 @@ export default function Keychain() {
           <ExportButtons models={models} name={batch ? "chaveiros" : `chaveiro-${text || "logo"}`} busy={busy} />
         </div>
         <div className="preview-col">
-          <Preview3D models={models} busy={busy} busyText="Gerando chaveiros…" error={error} emptyText="Digite um nome para ver o chaveiro." />
+          <Preview3D models={models} busy={busy} busyText="Gerando chaveiros…" error={error} emptyText={!valid ? "Corrija os campos em vermelho." : "Digite um nome para ver o chaveiro."} />
           {warnings.map((w) => (
             <Alert key={w} kind="warn">{w}</Alert>
           ))}

@@ -260,8 +260,8 @@ export default function ImageToSvg({ go }: { go: Go }) {
             </label>
             <label>
               Largura final (mm)
-              <input type="number" min={1} max={1000} value={opts.widthMm} onChange={(e) => set("widthMm", e.target.valueAsNumber)} />
-              <span className="hint">A altura acompanha a proporção{raster ? `: ${((opts.widthMm * raster.h) / raster.w).toFixed(1)} mm` : ""}.</span>
+              <input type="number" min={1} max={1000} value={Number.isFinite(opts.widthMm) ? opts.widthMm : ""} onChange={(e) => set("widthMm", e.target.valueAsNumber)} />
+              <span className="hint">A altura acompanha a proporção{raster && opts.widthMm > 0 ? `: ${((opts.widthMm * raster.h) / raster.w).toFixed(1)} mm` : ""}.</span>
             </label>
           </div>
           <div className="card stack">

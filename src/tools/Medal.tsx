@@ -123,7 +123,7 @@ export default function Medal() {
           <ExportButtons models={models} name={`medalha-${text || "sem-texto"}`} busy={busy} />
         </div>
         <div className="preview-col">
-          <Preview3D models={models} busy={busy} busyText="Gerando medalha…" error={error} />
+          <Preview3D models={models} busy={busy} busyText="Gerando medalha…" error={error} emptyText={!valid ? "Corrija os campos em vermelho." : undefined} />
         </div>
       </div>
     </div>

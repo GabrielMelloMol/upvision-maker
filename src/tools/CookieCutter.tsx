@@ -91,7 +91,7 @@ export default function CookieCutter() {
           <ExportButtons models={models} name={svg ? `cortador-${svg.name}` : "cortador"} busy={busy} />
         </div>
         <div className="preview-col">
-          <Preview3D models={models} busy={busy || loading} busyText={loading ? "Lendo o desenho…" : "Gerando cortador…"} error={error} emptyText="Envie um desenho para ver o cortador." />
+          <Preview3D models={models} busy={busy || loading} busyText={loading ? "Lendo o desenho…" : "Gerando cortador…"} error={error} emptyText={svg && !valid ? "Corrija os campos em vermelho para ver o cortador." : "Envie um desenho para ver o cortador."} />
           {warnings.map((w) => (
             <Alert key={w} kind="warn">{w}</Alert>
           ))}

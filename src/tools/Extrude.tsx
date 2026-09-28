@@ -71,7 +71,7 @@ export default function Extrude() {
           <ExportButtons models={models} name={svg?.name ?? "extrusao"} busy={busy} />
         </div>
         <div className="preview-col">
-          <Preview3D models={models} busy={busy || loading} error={error} emptyText="Envie um desenho para extrudar." />
+          <Preview3D models={models} busy={busy || loading} error={error} emptyText={svg && !valid ? "Corrija os campos em vermelho." : "Envie um desenho para extrudar."} />
           {warnings.map((w) => (
             <Alert key={w} kind="warn">{w}</Alert>
           ))}
