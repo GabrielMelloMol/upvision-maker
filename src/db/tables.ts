@@ -1,6 +1,7 @@
 import { z } from "zod";
 import { FilamentInput, MaterialInput, PrinterInput } from "../domain/entities";
 import { CustomerInput } from "../domain/customers";
+import { OperationalCostInput } from "../domain/finance";
 import { OrderInput, OrderItem, STATUSES } from "../domain/orders";
 import { ProductInput } from "../domain/products";
 
@@ -29,6 +30,7 @@ export const TABLES = {
   order_items: OrderItem.extend({ id, orderId: id, position: z.number().int() }),
   order_history: z.object({ id, orderId: id, status: z.string(), note: z.string(), at: z.string() }),
   quotes: z.object({ id, data: z.string(), createdAt: z.string(), convertedOrderId: z.number().int().nullable() }),
+  operational_costs: OperationalCostInput.extend({ id }),
 };
 
 export type TableName = keyof typeof TABLES;

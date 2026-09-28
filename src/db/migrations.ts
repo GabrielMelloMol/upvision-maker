@@ -41,6 +41,10 @@ export const MIGRATIONS: string[][] = [
     "CREATE INDEX order_history_order ON order_history (orderId)",
   ],
   ["CREATE TABLE quotes (id INTEGER PRIMARY KEY, data TEXT NOT NULL, createdAt TEXT NOT NULL, convertedOrderId INTEGER)"],
+  [
+    `CREATE TABLE operational_costs (id INTEGER PRIMARY KEY, description TEXT NOT NULL, category TEXT NOT NULL DEFAULT '',
+      amount REAL NOT NULL, frequency TEXT NOT NULL, startDate TEXT NOT NULL, endDate TEXT, printerId INTEGER, notes TEXT NOT NULL DEFAULT '')`,
+  ],
 ];
 
 export const SCHEMA_VERSION = MIGRATIONS.length;
