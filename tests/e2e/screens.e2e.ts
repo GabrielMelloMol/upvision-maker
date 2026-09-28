@@ -14,6 +14,7 @@ const PAGES = [
   ["medalhas", "Medalhas"],
   ["extrusao", "Extrusão 3D"],
   ["qr", "QR Code e Pix"],
+  ["modelos", "Modelos prontos"],
   ["ia", "Pedir à IA"],
   ["painel", "Painel"],
   ["pedidos", "Pedidos"],
@@ -52,6 +53,7 @@ const SEED_ORDERS = `
   INSERT INTO order_items (orderId, position, productId, description, qty, unitPrice, discountPct, unitCost) VALUES
     (5, 0, 1, 'Chaveiro com nome', 40, 15, 0, 1.2), (6, 0, 2, 'Topo de bolo', 6, 39.9, 0, 6), (7, 0, 1, 'Chaveiro com nome', 25, 15, 5, 1.2), (8, 0, 2, 'Topo de bolo', 4, 39.9, 0, 6);
   UPDATE order_items SET unitCost = 6 WHERE orderId = 4;
+  INSERT INTO company (id, data) VALUES (1, '{"name":"Ateliê da Ana","tradeName":"Ateliê da Ana","city":"Niterói","pixKey":"fulano@exemplo.com","pixName":"Ana Souza","pixCity":"Niteroi","quoteValidityDays":7}');
   INSERT INTO operational_costs (description, category, amount, frequency, startDate) VALUES ('Internet', 'Contas', 120, 'monthly', '2026-01-01'), ('Aluguel do ateliê', 'Espaço', 400, 'monthly', '2026-01-01'), ('Bico 0,4 reserva', 'Manutenção', 45, 'once', '2026-08-15');`;
 
 test.skip(!process.env.SHOTS, "só roda com SHOTS=antes|depois");
@@ -90,7 +92,7 @@ for (const scheme of ["light", "dark"] as const) {
           await page.getByRole("button", { name: /^Aplicar/ }).click();
           await expect(page.getByText("Resultado atualizado.")).toBeVisible({ timeout: 60_000 });
         }
-        if (slug === "chaveiros" || slug === "medalhas") await page.waitForTimeout(2500);
+        if (slug === "chaveiros" || slug === "medalhas" || slug === "modelos") await page.waitForTimeout(2500);
         await page.waitForTimeout(400);
         await page.screenshot({ path: `${DIR}/${slug}-${size.width}-${scheme}.png` });
       }

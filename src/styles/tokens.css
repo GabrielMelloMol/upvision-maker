@@ -55,6 +55,7 @@
   --muted: #5c5c63;
   --tertiary: #8e8e93; /* só ícones e placeholders */
   --on-accent: #ffffff;
+  --seg-thumb: #ffffff; /* segmento selecionado */
 
   --accent: #2563eb; /* fundo de botão primário / seleção */
   --accent-hover: #1d4ed8;
@@ -120,6 +121,7 @@
     --text: #f5f5f7;
     --muted: #a3a3ab;
     --tertiary: #75757c;
+    --seg-thumb: #5b5b60;
 
     --accent: #2563eb;
     --accent-hover: #3b75f0;
