@@ -3,6 +3,19 @@
 Cada versão aparece para a usuária na tela "O que há de novo" depois da atualização.
 Formato: `## <versão> — <data>` e itens `- …` em linguagem simples.
 
+## 0.4.0 — 2026-09-28
+- **Backup automático**: o app guarda uma cópia por dia sozinho (ao abrir e ao fechar), mantém os últimos dias e deixa escolher a pasta, até no OneDrive ou Google Drive. Se passar uma semana sem backup, ele lembra.
+- **Sobre o app**: a versão aparece no rodapé do menu. A tela Sobre mostra quantas versões você está atrás, o que está perdendo e tem o botão **Atualizar agora**.
+- **Algo deu errado?**: o app guarda um registro de erros (sem dados pessoais) que dá para enviar ou salvar para o suporte.
+- **Catálogo de impressoras**: escolha a marca e o modelo (Bambu Lab, Prusa, Creality, Elegoo, Anycubic, Sovol, Flashforge, Qidi, Voron) e a potência média já vem preenchida, com a fonte do dado. Também no primeiro uso.
+- **Catálogo de filamentos**: marcas comuns no Brasil com material e peso do rolo. Botão **Duplicar** para cadastrar outra cor da mesma marca.
+- **Cadastrar este filamento**: ao importar o arquivo do fatiador, um filamento que você ainda não tem já vem com material e cor preenchidos; só falta o preço.
+- **Preço do kWh pela conta de luz**: digite o total e o consumo da conta e o app calcula, com a bandeira tarifária e o histórico dos meses.
+- **Preço por canal lado a lado**: lucro de verdade em cada canal depois das taxas, o canal que mais rende, preços arredondados (,90 / ,99 / inteiro), preço do concorrente e alerta de prejuízo ou de margem abaixo do mínimo.
+- **Imagem → SVG colorido** (2 a 4 cores), usando as cores dos seus filamentos. Chaveiros, medalhas e extrusão saem com uma parte por cor.
+- **8 modelos novos**: chaveiro de logo, placa adaptável, topo de lápis, placa de sinalização, decoração de palavras, ejetor de brigadeiro, clipe de saco e cortador com carimbo.
+- **Chaveiro NFC no Bambu Studio**: o botão "Projeto do Bambu Studio" já gera o arquivo com a pausa para colocar a tag.
+
 ## 0.3.0 — 2026-09-28
 - **Importar do fatiador**: abra o .3mf ou .gcode do Bambu Studio, OrcaSlicer, PrusaSlicer ou Cura e a Calculadora já puxa tempo, gramas e cores.
 - **Produtos**: salve da Calculadora, com fotos, kits e estoque de peças prontas. O preço se atualiza quando o filamento muda.

@@ -1,6 +1,6 @@
 [package]
 name = "upvision-maker"
-version = "0.3.0"
+version = "0.4.0"
 description = "UpVision Maker"
 authors = ["Gabriel Mol"]
 edition = "2021"
