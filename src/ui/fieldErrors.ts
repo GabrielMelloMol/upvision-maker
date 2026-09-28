@@ -14,6 +14,8 @@ function message(i: z.core.$ZodIssue): string {
       return `No mínimo ${num(i.minimum)}.`;
     case "too_big":
       return isText ? `No máximo ${num(i.maximum)} caracteres.` : `No máximo ${num(i.maximum)}.`;
+    case "custom":
+      return i.message || "Valor inválido."; // mensagens escritas por nós (refine/transform) já vêm em português
     default:
       return "Valor inválido.";
   }

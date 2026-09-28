@@ -37,3 +37,9 @@ describe("fieldErrors", () => {
     expect(fieldErrors(new Error("falhou"))).toEqual({ _: "falhou" });
   });
 });
+
+test("mensagens próprias (refine/transform) chegam intactas", () => {
+  const schema = z.object({ doc: z.string().refine(() => false, "CPF inválido: confira os números.") });
+  const r = schema.safeParse({ doc: "1" });
+  expect(fieldErrors(r.error)).toEqual({ doc: "CPF inválido: confira os números." });
+});

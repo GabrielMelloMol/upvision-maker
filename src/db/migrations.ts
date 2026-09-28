@@ -20,6 +20,14 @@ export const MIGRATIONS: string[][] = [
       stock REAL NOT NULL DEFAULT 0, minStock REAL NOT NULL DEFAULT 0, sku TEXT NOT NULL DEFAULT '', notes TEXT NOT NULL DEFAULT '')`,
     "CREATE TABLE product_photos (id INTEGER PRIMARY KEY, productId INTEGER NOT NULL, position INTEGER NOT NULL, dataUrl TEXT NOT NULL)",
   ],
+  [
+    `CREATE TABLE customers (id INTEGER PRIMARY KEY, kind TEXT NOT NULL DEFAULT 'pf', name TEXT NOT NULL, document TEXT NOT NULL DEFAULT '',
+      phone TEXT NOT NULL DEFAULT '', email TEXT NOT NULL DEFAULT '', instagram TEXT NOT NULL DEFAULT '', cep TEXT NOT NULL DEFAULT '',
+      street TEXT NOT NULL DEFAULT '', number TEXT NOT NULL DEFAULT '', complement TEXT NOT NULL DEFAULT '', district TEXT NOT NULL DEFAULT '',
+      city TEXT NOT NULL DEFAULT '', uf TEXT NOT NULL DEFAULT '', discountPct REAL NOT NULL DEFAULT 0, active INTEGER NOT NULL DEFAULT 1,
+      notes TEXT NOT NULL DEFAULT '')`,
+    "CREATE TABLE company (id INTEGER PRIMARY KEY CHECK (id = 1), data TEXT NOT NULL)",
+  ],
 ];
 
 export const SCHEMA_VERSION = MIGRATIONS.length;
