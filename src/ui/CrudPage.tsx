@@ -29,7 +29,7 @@ type Row = { id: number } & Record<string, string | number>;
 
 type Repo = {
   list(db: Db): Promise<Row[]>;
-  insert(db: Db, v: unknown): Promise<void>;
+  insert(db: Db, v: unknown): Promise<unknown>;
   update(db: Db, id: number, v: unknown): Promise<void>;
   remove(db: Db, id: number): Promise<unknown>;
   restock?(db: Db, id: number, qty: number, price: number): Promise<void>;

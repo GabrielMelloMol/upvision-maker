@@ -1,4 +1,5 @@
 import { filaments } from "../db/repo";
+import { FILAMENT_CATALOG_ITEMS, filamentFromCatalog } from "../domain/catalog/filaments";
 import { MATERIAL_TYPES } from "../domain/entities";
 import { Cylinder } from "lucide-react";
 import CrudPage from "../ui/CrudPage";
@@ -25,6 +26,8 @@ export default function Filaments() {
       sticky={["material", "brand", "pricePerKg", "spoolG", "minG"]}
       isLow={(r) => Number(r.stockG) <= Number(r.minG)}
       restock={{ qtyLabel: "Quanto comprou", priceLabel: "Preço pago por kg", defaultQty: () => "1 rolo", mass: true }}
+      catalog={{ title: "Catálogo de filamentos", icon: Cylinder, items: FILAMENT_CATALOG_ITEMS, toForm: filamentFromCatalog }}
+      duplicate={(v) => ({ ...v, color: "", stockG: "1 rolo" })}
     />
   );
 }

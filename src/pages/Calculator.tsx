@@ -31,7 +31,7 @@ const price = (s: string) => parseMoney(s) || 0;
 const newLine = (): Line => ({ ref: "", price: "", qty: "" });
 
 export default function Calculator({ go }: { go: Go }) {
-  const [data] = useData(load, { settings: DEFAULT_SETTINGS, printers: [], stock: [], filaments: [], materials: [] });
+  const [data, reloadData] = useData(load, { settings: DEFAULT_SETTINGS, printers: [], stock: [], filaments: [], materials: [] });
   const [fil, setFil] = useState<Line[]>([newLine()]);
   const [ext, setExt] = useState<Line[]>([]);
   const [printerId, setPrinterId] = useState("");
@@ -109,7 +109,7 @@ export default function Calculator({ go }: { go: Go }) {
       <p className="lead">Informe os valores da mesa inteira. O custo é dividido pela quantidade de peças na mesa.</p>
       <div className="calc-layout">
         <div>
-          <SlicerImport stock={data.stock} printers={data.printers} onApply={applySlicer} />
+          <SlicerImport stock={data.stock} printers={data.printers} onApply={applySlicer} onStockAdded={reloadData} />
           <section className="card">
             <h2 className="card-title">
               <Cylinder aria-hidden /> Filamentos

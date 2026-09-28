@@ -2,7 +2,9 @@ import { FileInput } from "lucide-react";
 import { useEffect, useState } from "react";
 import type { Filament, Printer } from "../domain/entities";
 import { parseSlicerFile, SLICER_ACCEPT, type SlicerReport } from "../domain/slicer";
-import { colorHex, matchFilament, matchPrinter } from "../domain/slicer/match";
+import { colorHex, filamentDraft, isCloseMatch, matchFilament, matchPrinter } from "../domain/slicer/match";
+import { FILAMENT_COLORS } from "../ui/ColorDots";
+import NewFilamentSheet from "./calculator/NewFilamentSheet";
 import Alert from "../ui/Alert";
 import Card from "../ui/Card";
 import Dropzone from "../ui/Dropzone";
@@ -18,7 +20,13 @@ export type SlicerApply = {
   pieces?: number;
 };
 
-type Props = { stock: Filament[]; printers: Printer[]; onApply: (a: SlicerApply) => void };
+type Props = {
+  stock: Filament[];
+  printers: Printer[];
+  onApply: (a: SlicerApply) => void;
+  /** Um filamento foi cadastrado aqui: recarregue o estoque. */
+  onStockAdded?: () => void;
+};
 
 const duration = (s: number) => {
   const h = Math.floor(s / 3600);
@@ -27,12 +35,13 @@ const duration = (s: number) => {
 };
 
 /** Arrasta o arquivo do fatiador → mostra o que foi lido e preenche a calculadora. Cada filamento pode ser trocado. */
-export default function SlicerImport({ stock, printers, onApply }: Props) {
+export default function SlicerImport({ stock, printers, onApply, onStockAdded }: Props) {
   const [file, setFile] = useState<string | null>(null);
   const [report, setReport] = useState<SlicerReport | null>(null);
   // escolhas feitas à mão; o resto é casado automaticamente com o cadastro ATUAL (que pode chegar depois do arquivo)
   const [overrides, setOverrides] = useState<Record<number, number | null>>({});
   const [error, setError] = useState<string | null>(null);
+  const [creating, setCreating] = useState<number | null>(null);
 
   const mapping = report ? report.filaments.map((f, i) => (i in overrides ? overrides[i] : matchFilament(f, stock))) : [];
   const mappingKey = JSON.stringify([mapping, stock.map((x) => [x.id, x.pricePerKg]), printers.map((p) => [p.id, p.watts])]);
@@ -73,6 +82,17 @@ export default function SlicerImport({ stock, printers, onApply }: Props) {
 
   return (
     <Card title="Importar do fatiador" icon={FileInput}>
+      {creating !== null && report && (
+        <NewFilamentSheet
+          draft={filamentDraft(report.filaments[creating], FILAMENT_COLORS)}
+          onSaved={(id) => {
+            setOverrides({ ...overrides, [creating]: id });
+            setCreating(null);
+            onStockAdded?.();
+          }}
+          onClose={() => setCreating(null)}
+        />
+      )}
       <Dropzone accept={SLICER_ACCEPT} label={file ?? "Arraste o .3mf fatiado ou o G-code"} hint="Bambu Studio, OrcaSlicer, PrusaSlicer (.gcode/.bgcode) ou Cura" onFile={onFile} />
       {error && <Alert kind="error">{error}</Alert>}
       {report && (
@@ -120,6 +140,11 @@ export default function SlicerImport({ stock, printers, onApply }: Props) {
                         </option>
                       ))}
                     </select>
+                    {!isCloseMatch(f, stock.find((s) => s.id === mapping[i])) && (
+                      <button type="button" className="link" onClick={() => setCreating(i)} aria-label={`Cadastrar o filamento ${f.index}`}>
+                        Cadastrar este filamento
+                      </button>
+                    )}
                   </td>
                 </tr>
               ))}

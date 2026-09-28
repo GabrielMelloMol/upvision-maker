@@ -10,12 +10,14 @@ function crud<S extends z.ZodObject>(table: string, schema: S) {
   const cols = Object.keys(schema.shape);
   return {
     list: (db: Db) => db.select<Row>(`SELECT * FROM ${table} ORDER BY id`),
-    async insert(db: Db, input: unknown) {
+    /** Grava e devolve o id novo. */
+    async insert(db: Db, input: unknown): Promise<number> {
       const v = schema.parse(input) as Record<string, unknown>;
-      await db.execute(
+      const r = await db.execute(
         `INSERT INTO ${table} (${cols.join(", ")}) VALUES (${cols.map(() => "?").join(", ")})`,
         cols.map((c) => v[c]),
       );
+      return Number(r.lastInsertId);
     },
     async update(db: Db, id: number, input: unknown) {
       const v = schema.parse(input) as Record<string, unknown>;

@@ -1,4 +1,4 @@
-import type { Filament, Printer } from "../entities";
+import { MATERIAL_TYPES, type Filament, type Printer } from "../entities";
 import type { SlicerFilament } from "./types";
 
 const NAMED: Record<string, string> = {
@@ -45,4 +45,29 @@ export function matchPrinter(model: string | undefined, printers: Printer[]): nu
     .map((p) => ({ id: p.id, t: tokens(p.name).join(" ") }))
     .filter((p) => p.t && new RegExp(`(^| )${p.t.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}( |$)`).test(m));
   return hits.length ? hits.sort((a, b) => b.t.length - a.t.length)[0].id : null;
+}
+
+/** Até esta distância de cor (RGB) é "a mesma cor" (tons de azul de marcas diferentes); vermelho × azul passa de 200. */
+const SAME_COLOR = 110;
+
+/** O filamento cadastrado escolhido é mesmo este do arquivo (material igual e cor parecida)? */
+export function isCloseMatch(f: SlicerFilament, s: Filament | undefined): boolean {
+  if (!s) return false;
+  if (f.type && baseMaterial(s.material) !== baseMaterial(f.type)) return false;
+  const a = colorHex(f.color);
+  const b = colorHex(s.color);
+  return !a || !b || dist(a, b) <= SAME_COLOR;
+}
+
+const MATERIAL_ALIAS: Record<string, string> = { pa: "Nylon", nylon: "Nylon" };
+
+/** Material e cor para pré-preencher "Cadastrar este filamento". A cor vira o nome mais próximo da paleta, ou o hex. */
+export function filamentDraft(f: SlicerFilament, palette: readonly (readonly [string, string])[]): { material: string; color: string } {
+  const base = f.type ? baseMaterial(f.type) : "pla";
+  const material = MATERIAL_ALIAS[base] ?? MATERIAL_TYPES.find((m) => m.toLowerCase() === base) ?? "Outro";
+  const hex = colorHex(f.color);
+  if (!hex) return { material, color: f.color?.trim() ?? "" };
+  const named = palette.filter(([, h]) => /^#[0-9a-f]{6}$/i.test(h)).map(([name, h]) => ({ name, d: dist(hex, h.toUpperCase()) }));
+  const best = named.reduce((a, b) => (b.d < a.d ? b : a), { name: "", d: Infinity });
+  return { material, color: best.d <= SAME_COLOR ? best.name : hex };
 }
