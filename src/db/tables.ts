@@ -28,6 +28,7 @@ export const TABLES = {
   }),
   order_items: OrderItem.extend({ id, orderId: id, position: z.number().int() }),
   order_history: z.object({ id, orderId: id, status: z.string(), note: z.string(), at: z.string() }),
+  quotes: z.object({ id, data: z.string(), createdAt: z.string(), convertedOrderId: z.number().int().nullable() }),
 };
 
 export type TableName = keyof typeof TABLES;

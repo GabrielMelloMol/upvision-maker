@@ -30,10 +30,12 @@ type Props = {
   saveAs?: (input: OrderInput) => Promise<number>;
   title?: string;
   submitLabel?: string;
+  /** Campos extras no fim do formulário (ex.: validade do orçamento). */
+  children?: React.ReactNode;
 };
 
 /** Formulário de pedido (também usado pelo orçamento): cliente, canal, prazo, itens com desconto e frete. */
-export default function OrderEditor({ data, order, draft, onClose, onSaved, saveAs, title, submitLabel }: Props) {
+export default function OrderEditor({ data, order, draft, onClose, onSaved, saveAs, title, submitLabel, children }: Props) {
   const base = order ?? draft ?? {};
   const [customerId, setCustomerId] = useState(base.customerId ? String(base.customerId) : "");
   const [customerName, setCustomerName] = useState(base.customerName ?? "");
@@ -245,6 +247,7 @@ export default function OrderEditor({ data, order, draft, onClose, onSaved, save
         </label>
       </div>
 
+      {children}
       {totals && (
         <table className="totals">
           <tbody>

@@ -1,4 +1,4 @@
-import { Award, Bot, Calculator as CalcIcon, Cookie, Cylinder, KeyRound, Layers, House, ImageUp, Package, Palette, Printer, Settings, ShoppingBag, Users, Building2, ClipboardList, QrCode as QrIcon } from "lucide-react";
+import { Award, Bot, Calculator as CalcIcon, Cookie, Cylinder, KeyRound, Layers, House, ImageUp, Package, Palette, Printer, Settings, ShoppingBag, Users, Building2, ClipboardList, FileText, QrCode as QrIcon } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import { lazy, type ReactNode } from "react";
 import Home from "./pages/Home";
@@ -8,6 +8,7 @@ const Calculator = lazy(() => import("./pages/Calculator"));
 const Products = lazy(() => import("./pages/Products"));
 const Customers = lazy(() => import("./pages/Customers"));
 const Orders = lazy(() => import("./pages/Orders"));
+const Quotes = lazy(() => import("./pages/Quotes"));
 const Company = lazy(() => import("./pages/Company"));
 const Filaments = lazy(() => import("./pages/Filaments"));
 const Materials = lazy(() => import("./pages/Materials"));
@@ -45,6 +46,7 @@ const ALL: PageDef[] = [
   { id: "qr", label: "QR Code e Pix", group: "Ferramentas", icon: QrIcon, blurb: "Pix com valor, link ou Wi-Fi; SVG e 3MF em 2 cores.", render: () => <QrCode /> },
   { id: "ai", label: "Pedir à IA", group: "Ferramentas", icon: Bot, blurb: "Descreva a peça e o Claude modela (pago por uso).", render: (go) => <AskAI go={go} /> },
   { id: "orders", label: "Pedidos", group: "Gestão", icon: ClipboardList, blurb: "Quadro por status, prazos e baixa de estoque.", render: () => <Orders /> },
+  { id: "quotes", label: "Orçamentos", group: "Gestão", icon: FileText, blurb: "PDF com QR Pix, consignação e catálogo.", render: (go) => <Quotes go={go} /> },
   { id: "calculator", label: "Calculadora", group: "Gestão", icon: CalcIcon, blurb: "Custo e preço por canal de venda.", render: (go) => <Calculator go={go} /> },
   { id: "customers", label: "Clientes", group: "Gestão", icon: Users, blurb: "Contatos, endereço e desconto padrão.", render: () => <Customers /> },
   { id: "products", label: "Produtos", group: "Gestão", icon: ShoppingBag, blurb: "Composição, fotos, kits e estoque pronto.", render: () => <Products /> },

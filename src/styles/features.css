@@ -45,3 +45,4 @@ tr.clickable { cursor: pointer; }
 tr.clickable:hover td { background: var(--surface-2); }
 .timeline { margin: 0; padding-left: 18px; display: grid; gap: 4px; }
 .notes { white-space: pre-wrap; background: var(--surface-2); padding: 8px 10px; border-radius: var(--radius-sm); }
+.check-list { display: grid; gap: 6px; max-height: 280px; overflow: auto; padding: 4px; border: 1px solid var(--border); border-radius: var(--radius-sm); }
