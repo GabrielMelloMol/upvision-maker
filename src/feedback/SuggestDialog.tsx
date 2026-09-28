@@ -1,8 +1,9 @@
 import { getVersion } from "@tauri-apps/api/app";
 import { openUrl } from "@tauri-apps/plugin-opener";
-import { Send, X } from "lucide-react";
-import { useEffect, useRef, useState } from "react";
+import { Lightbulb, Send } from "lucide-react";
+import { useState } from "react";
 import Alert from "../ui/Alert";
+import Sheet from "../ui/Sheet";
 import { errorText } from "../ui/Toast";
 import { feedbackUrl } from "./feedback";
 
@@ -16,14 +17,6 @@ export default function SuggestDialog({ onClose }: { onClose: () => void }) {
   const [image, setImage] = useState<File | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [sent, setSent] = useState(false);
-  const first = useRef<HTMLInputElement>(null);
-
-  useEffect(() => {
-    first.current?.focus();
-    const onKey = (e: KeyboardEvent) => e.key === "Escape" && onClose();
-    window.addEventListener("keydown", onKey);
-    return () => window.removeEventListener("keydown", onKey);
-  }, [onClose]);
 
   async function submit(e: React.FormEvent) {
     e.preventDefault();
@@ -38,51 +31,51 @@ export default function SuggestDialog({ onClose }: { onClose: () => void }) {
   }
 
   return (
-    <div className="modal-back" onMouseDown={(e) => e.target === e.currentTarget && onClose()}>
-      <form className="modal stack" role="dialog" aria-modal="true" aria-labelledby="suggest-title" onSubmit={submit}>
-        <header>
-          <h2 id="suggest-title">Sugerir ferramenta</h2>
-          <button type="button" className="link" aria-label="Fechar" onClick={onClose}>
-            <X />
+    <Sheet
+      title="Sugerir ferramenta"
+      icon={Lightbulb}
+      onClose={onClose}
+      onSubmit={submit}
+      footer={
+        sent ? (
+          <button type="button" className="primary" onClick={onClose}>
+            Fechar
           </button>
-        </header>
-        {sent ? (
-          <>
-            <Alert kind="ok">
-              {FEEDBACK_EMAIL ? "Abrimos seu e-mail com a sugestão pronta. É só enviar." : "Abrimos o GitHub com a sugestão pronta. É só publicar."}
-              {image && ` Não esqueça de anexar a imagem ${image.name}.`}
-            </Alert>
-            <button type="button" className="primary" onClick={onClose}>
-              Fechar
-            </button>
-          </>
         ) : (
           <>
-            <label>
-              O que você queria que o app fizesse?
-              <input ref={first} value={title} maxLength={80} onChange={(e) => setTitle(e.target.value)} placeholder="Ex.: gerador de etiqueta com QR e preço" />
-            </label>
-            <label>
-              Conte mais (opcional)
-              <textarea value={description} maxLength={1500} onChange={(e) => setDescription(e.target.value)} placeholder="Para que você usaria, exemplos, tamanhos…" />
-            </label>
-            <label>
-              Imagem de exemplo (opcional)
-              <input type="file" accept="image/*" onChange={(e) => setImage(e.target.files?.[0] ?? null)} />
-              <span className="hint">{FEEDBACK_EMAIL ? "O e-mail" : "A página"} abre pronta; a imagem você anexa antes de enviar.</span>
-            </label>
-            {error && <Alert kind="error">{error}</Alert>}
-            <div className="row">
-              <button className="primary" type="submit">
-                <Send aria-hidden /> {FEEDBACK_EMAIL ? "Abrir e-mail" : "Abrir no GitHub"}
-              </button>
-              <button type="button" onClick={onClose}>
-                Cancelar
-              </button>
-            </div>
+            <button type="button" onClick={onClose}>
+              Cancelar
+            </button>
+            <button className="primary" type="submit">
+              <Send aria-hidden /> {FEEDBACK_EMAIL ? "Abrir e-mail" : "Abrir no GitHub"}
+            </button>
           </>
-        )}
-      </form>
-    </div>
+        )
+      }
+    >
+      {sent ? (
+        <Alert kind="ok">
+          {FEEDBACK_EMAIL ? "Abrimos seu e-mail com a sugestão pronta. É só enviar." : "Abrimos o GitHub com a sugestão pronta. É só publicar."}
+          {image && ` Não esqueça de anexar a imagem ${image.name}.`}
+        </Alert>
+      ) : (
+        <>
+          <label>
+            O que você queria que o app fizesse?
+            <input data-autofocus value={title} maxLength={80} onChange={(e) => setTitle(e.target.value)} placeholder="Ex.: gerador de etiqueta com QR e preço" />
+          </label>
+          <label>
+            Conte mais (opcional)
+            <textarea value={description} maxLength={1500} onChange={(e) => setDescription(e.target.value)} placeholder="Para que você usaria, exemplos, tamanhos…" />
+          </label>
+          <label>
+            Imagem de exemplo (opcional)
+            <input type="file" accept="image/*" onChange={(e) => setImage(e.target.files?.[0] ?? null)} />
+            <span className="hint">{FEEDBACK_EMAIL ? "O e-mail" : "A página"} abre pronta; a imagem você anexa antes de enviar.</span>
+          </label>
+          {error && <Alert kind="error">{error}</Alert>}
+        </>
+      )}
+    </Sheet>
   );
 }

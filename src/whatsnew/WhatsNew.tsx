@@ -1,9 +1,10 @@
 import { getVersion } from "@tauri-apps/api/app";
-import { Sparkles, X } from "lucide-react";
+import { Sparkles } from "lucide-react";
 import { useEffect, useState } from "react";
 import changelogMd from "../../CHANGELOG.md?raw";
 import { getDb } from "../db";
 import { getSecret, setSecret } from "../db/repo";
+import Sheet from "../ui/Sheet";
 import { entriesToShow, parseChangelog, type ChangelogEntry } from "./changelog";
 
 const LAST_SEEN = "last_seen_version";
@@ -19,41 +20,32 @@ function Rich({ text }: { text: string }) {
 }
 
 export function WhatsNewModal({ entries, onClose }: { entries: ChangelogEntry[]; onClose: () => void }) {
-  useEffect(() => {
-    const onKey = (e: KeyboardEvent) => e.key === "Escape" && onClose();
-    window.addEventListener("keydown", onKey);
-    return () => window.removeEventListener("keydown", onKey);
-  }, [onClose]);
   return (
-    <div className="modal-back" onMouseDown={(e) => e.target === e.currentTarget && onClose()}>
-      <div className="modal stack" role="dialog" aria-modal="true" aria-labelledby="wn-title">
-        <header>
-          <h2 id="wn-title">
-            <Sparkles size={18} color="var(--brand-orange)" aria-hidden /> O que há de novo
-          </h2>
-          <button className="link" aria-label="Fechar" onClick={onClose}>
-            <X />
-          </button>
-        </header>
-        {entries.map((e) => (
-          <section key={e.version}>
-            <h3>
-              Versão {e.version} <span className="muted small">{e.date}</span>
-            </h3>
-            <ul className="changes">
-              {e.items.map((it) => (
-                <li key={it}>
-                  <Rich text={it} />
-                </li>
-              ))}
-            </ul>
-          </section>
-        ))}
-        <button className="primary" onClick={onClose} autoFocus>
+    <Sheet
+      title="O que há de novo"
+      icon={Sparkles}
+      onClose={onClose}
+      footer={
+        <button className="primary" onClick={onClose} data-autofocus>
           Entendi
         </button>
-      </div>
-    </div>
+      }
+    >
+      {entries.map((e) => (
+        <section key={e.version}>
+          <h3>
+            Versão {e.version} <span className="muted small">{e.date}</span>
+          </h3>
+          <ul className="changes">
+            {e.items.map((it) => (
+              <li key={it}>
+                <Rich text={it} />
+              </li>
+            ))}
+          </ul>
+        </section>
+      ))}
+    </Sheet>
   );
 }
 
