@@ -72,3 +72,60 @@ Base: `/ui-ux-pro-max` + regras do Apple HIG da skill (escala tipográfica do ma
 Screenshots: `docs/screenshots/antes/` e `docs/screenshots/depois/` (`<tela>-<largura>-<light|dark>.png`, 1280×800 e 1440×900).
 
 Pendências sugeridas: vibrancy nativa da janela (Tauri `windowEffects`: Mica no Windows 11, `sidebar` no macOS) exigiria janela transparente, a testar no Windows real; conferir no WebView2 do Windows (só deu para validar no Chromium do Playwright e no Mac).
+
+---
+
+# QA — v0.3.0
+
+Data: 2026-09-28. Itens do Quartzo (design/QA); os do Lupa (fatiador, produtos, clientes, pedidos, orçamento/PDF, financeiro, modelos) estão no CHANGELOG.
+
+## Verificações
+
+| Comando | Resultado |
+|---|---|
+| `npm test` | 85 arquivos, **603 testes** ✔ |
+| `npm run coverage` | **96,8 % statements · 90,2 % branches · 98,1 % linhas** (era 43,5 % no início da v0.3.0) |
+| `npm run e2e` | **47 testes** ✔ (+ 4 de screenshots com `SHOTS=depois`) |
+| `npm run lint` / `typecheck` / `build` | limpos ✔ |
+| `cargo clippy` / `cargo test` | limpos ✔ · 7 testes (vibrancy, estoque) |
+
+Cobertura: tudo em `src` conta, menos workers e MediaPipe (só rodam no navegador; cobertos pelos E2E), `main.tsx` e o harness de teste. Testes de componente com Testing Library + happy-dom usam `src/test/harness.tsx`: mock do IPC do Tauri com SQLite em memória (migrações reais), diálogos e arquivos salvos inspecionáveis — o mesmo contrato do mock dos E2E.
+
+## Entregas do Quartzo
+
+1. **Vibrancy nativa** — Mica no Windows 11, material "sidebar" no macOS com barra de título sobreposta; Windows 10 (sem Mica) ou `UPVISION_NO_VIBRANCY=1` → janela opaca. Conteúdo sempre sobre fundo sólido; `prefers-reduced-transparency` volta ao opaco. Testado: Rust (`vibrancy.rs`), unitário (`windowStyle.test.ts`), E2E `janela.e2e.ts` (Mica claro/escuro, fallback, semáforos do Mac) e visualmente no app real no Mac (`docs/screenshots/depois/janela-mac-vibrancy-dark.png`). **Não testado em Windows real** (checagem cruzada do Rust para Windows não compila no Mac; o CI de release compila).
+2. **Formulários** (checklist de formulários do `/ui-ux-pro-max`: validar ao sair do campo, revalidar ao vivo depois do erro, confirmar o valor entendido, erro com ícone + texto, desfazer em vez de confirmar):
+   - Tempo num campo só: `3h20`, `3:20`, `200 min`, `3` (horas) — mão de obra aceita `15` como minutos.
+   - R$ com prefixo e formatação ao sair (`1.234,50`); aceita `R$ 15`, `15,9`, `1234.5`.
+   - Estoque em gramas, kg ou rolos (`2 rolos` = 2000 g pelo peso do rolo), com confirmação `2.000 g (2 rolos)`.
+   - Cor em bolinhas (16 cores comuns + personalizada); tabela mostra a bolinha.
+   - Enter salva; cursor já no 1º campo quando a lista está vazia; campos lembrados no próximo cadastro (material, marca, preço).
+   - Ctrl/⌘+K busca global (telas, filamentos, materiais, impressoras, produtos, clientes, pedidos) e abre o registro em edição; Ctrl/⌘+N novo cadastro.
+   - Excluir some na hora com "Desfazer" (8 s) em vez de "tem certeza?"; só apaga do banco no fim do prazo (mantém os ids que produtos/pedidos referenciam).
+   - Aplicado em Filamentos, Materiais, Impressoras, Calculadora, Preferências, onboarding, Produto, Pedido e Custos.
+3. **QR Code e Pix** — Pix estático com valor (BR Code EMV + CRC16; vetor oficial do BCB `…63041D3D`; CPF/CNPJ com dígito verificador), link, Wi-Fi e texto; SVG em mm e 3MF em 2 cores. Utilitários para o Lupa: `pixPayload`, `validPixKey` (`src/domain/pix.ts`), `qrMatrix`/`qrSvg`/`wifiPayload` (`src/domain/qr.ts`), `qrModel` (`src/geometry/qr3d.ts`, usado na Placa Pix). Todo QR gerado nos testes é lido de volta com jsQR.
+4. **Design das telas novas** — kanban de pedidos com cor por status e atraso destacado, stat tiles e gráficos do Financeiro com paleta **validada** (`validate_palette`: CVD ΔE ≥ 8 e visão normal ≥ 15, claro e escuro; tokens `--viz-*`), um eixo só, lucro em gráfico divergente separado, "Ver tabela"; Painel e PDF do orçamento revisados.
+5. **QA** — E2E do fluxo completo `fluxo-completo.e2e.ts` (fatiador → produto → orçamento com PDF/Pix → pedido → baixa de estoque de 2 × 3,79 g e 2 × 0,55 g → entrega → receita no Financeiro), screenshots claro/escuro em 1280×800 e 1440×900 de todas as telas.
+
+## Bugs da v0.3.0
+
+| # | Sev. | Onde | O que acontecia | Status |
+|---|---|---|---|---|
+| C1 | Média | Telas novas (CSS) | `features.css` usava tokens que não existem mais (`--radius`, `--primary`, `--shadow`): cantos, sombras e acento quebrados em Produtos/Pedidos/Clientes | Corrigido (Quartzo) |
+| C2 | Média | Validação | `fieldErrors` trocava a mensagem do schema pela genérica: "Informe o cliente" virava "Obrigatório.", "Máximo 100%" virava "No máximo 100." | Corrigido (Quartzo) |
+| C3 | Média | Dev/E2E | Com cache frio o Vite descobria dependências tarde e recarregava a página no meio do uso (B10), derrubando E2E ao acaso | Corrigido (`optimizeDeps.entries`) |
+| C4 | Média | Calculadora | Importar do fatiador antes do cadastro carregar deixava o preço do filamento vazio (1 em 9 rodadas) | Corrigido (Lupa) |
+| C5 | Média | Financeiro | "vs. período anterior" usava janela de mesmo nº de dias, não o mês/3 meses anteriores (pulava o dia 1º) | Corrigido (Lupa) |
+| C6 | Média | Importar SVG | Linha aberta com traço virava só os pontinhos das juntas | Corrigido (Lupa) |
+| C7 | Baixa | Produtos | Miniatura vazia gigante: classe `.empty` do EmptyState colidia com `thumb empty` | Corrigido (Quartzo, `.empty-state`) |
+| C8 | Baixa | NumField | Sem limite a mensagem ficava "Use entre  e ."; decimal com ponto | Corrigido (Quartzo) |
+| C9 | Baixa | Pedido | Erro de item não dizia qual item | Corrigido (Lupa) |
+| C10 | Baixa | Orçamentos / Produto | Excluir orçamento e ações de foto não avisavam falha do banco | Corrigido (Lupa) |
+| C11 | Baixa | Custos | Total mensal contava custo que ainda não começou | Corrigido (Lupa) |
+| C12 | Baixa | Imagem→SVG | Largura vazia deixava o resultado marcado como desatualizado para sempre | Corrigido (Lupa) |
+| C13 | Baixa (a11y) | Medalhas | Botões de formato anunciados como "Formato Formato" | Corrigido (Lupa) |
+| C14 | Baixa (a11y) | Campos inteligentes | Dica fazia parte do nome acessível do campo | Corrigido (Quartzo, `aria-describedby`) |
+| C15 | Baixa | Visual | Rótulos desalinhavam com dica no campo vizinho; segmento selecionado sumia no escuro | Corrigido (Quartzo) |
+| C16 | Info | Testes | `vectorize/regression.test.ts` (limite de 8 s) às vezes estoura só na rodada com cobertura (instrumentação + 85 arquivos em paralelo); isolado < 1 s | Aberto (sugerido ao Lupa pular o tempo sob cobertura) |
+
+Pendências: conferir vibrancy/Mica e o fallback num Windows 10/11 real; o Bambu Studio só lê pausa de 3MF gerado por ele (chaveiro NFC: a tela ensina a pausa manual; o Orca lê).
