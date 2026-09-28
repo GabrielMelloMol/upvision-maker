@@ -12,7 +12,8 @@ export default function Dropzone({ accept, label, hint, onFile }: Props) {
       className={`dropzone ${over ? "over" : ""}`}
       role="button"
       tabIndex={0}
-      onClick={() => input.current?.click()}
+      // o clique programático no <input> sobe até aqui de novo: ignora para não entrar em loop
+      onClick={(e) => e.target !== input.current && input.current?.click()}
       onKeyDown={(e) => {
         if (e.key !== "Enter" && e.key !== " ") return;
         e.preventDefault(); // Espaço não rola a página
