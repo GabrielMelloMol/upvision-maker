@@ -9,6 +9,11 @@ test("litofania: plana, curva e caixa de luz a partir da foto; salva 3MF (#13)",
   await openApp(page);
   await go(page, "Litofania e quadro");
   await page.locator('input[type="file"]').setInputFiles("tests/fixtures/foto-pessoa.jpg");
+  // abre na simulação contra a luz (original × litofania acesa); o 3D fica no outro botão
+  await expect(page.getByRole("img", { name: "Simulação da litofania contra a luz" })).toBeVisible({ timeout: 60_000 });
+  await expect(page.getByRole("img", { name: "Foto original" })).toBeVisible();
+  if (SHOTS) await page.screenshot({ path: `${SHOTS}/litofania-contra-a-luz.png` });
+  await page.getByRole("group", { name: "Prévia" }).getByRole("button", { name: "3D" }).click();
   await expect(hud(page)).toContainText("mm", { timeout: 60_000 });
   const flat = await hud(page).innerText();
   if (SHOTS) await page.screenshot({ path: `${SHOTS}/litofania-plana.png` });
@@ -39,7 +44,10 @@ test("quadro por camadas: filamentos cadastrados viram trocas por camada; AMS se
   if (SHOTS) await page.screenshot({ path: `${SHOTS}/quadro-camadas.png` });
 
   await page.getByRole("switch", { name: /Uma parte por cor/ }).check();
-  await expect(page.locator(".viewer .legend span")).toHaveCount(3, { timeout: 60_000 }); // uma parte por cor
+  // a prévia já mostra as 3 faixas; com AMS o arquivo perde as pausas (some o botão do Bambu) e ganha 3 partes
+  await expect(page.locator(".viewer .legend span")).toHaveCount(3, { timeout: 60_000 });
+  await expect(page.getByRole("button", { name: /Projeto do Bambu Studio/ })).toHaveCount(0, { timeout: 60_000 });
+  await expect(page.locator(".viewer .overlay.busy")).toHaveCount(0, { timeout: 60_000 });
   await page.getByRole("button", { name: /Salvar 3MF/ }).click();
   await expect(toastWith(page, "Arquivo salvo em")).toBeVisible();
   expect(objects3mf([...tauri.files].find(([p]) => p.endsWith(".3mf"))![1])).toBeGreaterThanOrEqual(3);

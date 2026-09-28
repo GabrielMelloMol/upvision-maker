@@ -1,6 +1,7 @@
 // @vitest-environment happy-dom
 import { screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
+import { strFromU8, unzipSync } from "fflate";
 import { beforeEach, describe, expect, test, vi } from "vitest";
 import { renderWithApp, setupTauri } from "../test/harness";
 import { loadRaster } from "../vectorize/client";
@@ -40,6 +41,10 @@ describe("Litofania e quadro", () => {
 
   test("litofania plana em pé: largura pedida e salva 3MF; detalhe fino demais é limitado", async () => {
     const { user } = await withPhoto();
+    // abre em "Contra a luz" (original × simulação); o 3D fica no outro botão
+    expect(screen.getByRole("img", { name: "Foto original" })).toBeInTheDocument();
+    expect(screen.getByText("Contra a luz", { selector: "figcaption span" })).toBeInTheDocument();
+    await user.click(screen.getByRole("button", { name: "3D" }));
     await user.clear(screen.getByLabelText(/^Largura/));
     await user.type(screen.getByLabelText(/^Largura/), "60");
     expect(await screen.findByText(/^60\.0 × /, undefined, BUILD)).toBeInTheDocument();
@@ -59,8 +64,16 @@ describe("Litofania e quadro", () => {
     expect(list).toHaveTextContent("Comece com");
     expect(list.querySelectorAll("li")).toHaveLength(3); // início + 2 trocas (3 cores padrão)
     expect(screen.getByRole("button", { name: /Projeto do Bambu Studio/ })).toBeInTheDocument();
+    // sem AMS a prévia já mostra as 3 faixas coloridas (o arquivo é uma peça só com pausas)
+    expect(container.querySelectorAll(".legend span")).toHaveLength(3);
+    expect(screen.queryByRole("button", { name: "3D" })).not.toBeInTheDocument();
+    await user.click(screen.getByRole("button", { name: /Salvar 3MF/ }));
+    await waitFor(() => expect(t.files.has("/saida/quadro-camadas.3mf")).toBe(true));
+    const one = strFromU8(unzipSync(t.files.get("/saida/quadro-camadas.3mf")!)["Metadata/model_settings.config"]);
+    expect(one.match(/<part /g)).toHaveLength(1);
     await user.click(screen.getByRole("switch", { name: /Uma parte por cor/ }));
     await waitFor(() => expect(screen.queryByRole("button", { name: /Projeto do Bambu Studio/ })).not.toBeInTheDocument(), BUILD);
-    await waitFor(() => expect(container.querySelectorAll(".legend span")).toHaveLength(3), BUILD);
+    await user.click(screen.getByRole("button", { name: /Salvar 3MF/ }));
+    await waitFor(() => expect(strFromU8(unzipSync(t.files.get("/saida/quadro-camadas.3mf")!)["Metadata/model_settings.config"]).match(/<part /g)).toHaveLength(3));
   }, 40_000);
 });

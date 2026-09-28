@@ -1,8 +1,9 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import type { Filament } from "../domain/entities";
 import { lumaGrid } from "../geometry/heightfield";
 import { buildLayeredPicture, DEFAULT_LAYERED, type ColorSwap } from "../geometry/layeredPicture";
-import { buildLithophane, DEFAULT_LITHO, type LithoShape } from "../geometry/lithophane";
+import { backlitPreview, buildLithophane, DEFAULT_LITHO, type LithoShape } from "../geometry/lithophane";
+import type { Model } from "../geometry/types";
 import { getManifold } from "../geometry/manifold";
 import Alert from "../ui/Alert";
 import Dropzone from "../ui/Dropzone";
@@ -26,10 +27,26 @@ const SHAPES: [LithoShape, string][] = [
   ["curved", "Curva"],
   ["box", "Caixa de luz"],
 ];
+type View = "light" | "3d";
+const VIEWS: [View, string][] = [
+  ["light", "Contra a luz"],
+  ["3d", "3D"],
+];
 const MAX_COLS = 400; // ~250 mil triângulos por face: prévia e 3MF continuam leves
 const MAX_COLORS = 4;
 const FALLBACK_COLORS = DEFAULT_LAYERED.colors;
 const mmText = (n: number) => n.toFixed(2).replace(".", ",");
+
+/** RGBA → imagem (data URL) para mostrar na tela; null onde não há canvas 2D (testes). */
+function toDataUrl(rgba: Uint8ClampedArray<ArrayBuffer>, w: number, h: number): string | null {
+  const c = document.createElement("canvas");
+  c.width = w;
+  c.height = h;
+  const ctx = c.getContext("2d");
+  if (!ctx) return null;
+  ctx.putImageData(new ImageData(rgba, w, h), 0, 0);
+  return c.toDataURL();
+}
 
 /** Foto → litofania (relevo que aparece contra a luz) ou quadro por camadas de filamento (estilo HueForge). */
 export default function Lithophane() {
@@ -40,6 +57,11 @@ export default function Lithophane() {
   const [litho, setLitho] = useState(DEFAULT_LITHO);
   const [layered, setLayered] = useState({ ...DEFAULT_LAYERED, colors: [] as string[] });
   const [swaps, setSwaps] = useState<ColorSwap[]>([]);
+  const [view, setView] = useState<View>("light");
+  const [backlit, setBacklit] = useState<string | null>(null);
+  const [exportModels, setExportModels] = useState<Model[]>([]);
+  const original = useMemo(() => (file ? URL.createObjectURL(file) : null), [file]);
+  useEffect(() => () => void (original && URL.revokeObjectURL(original)), [original]);
   const [rows] = useData(loadFilaments, [] as Filament[]);
   const filColors = useMemo(() => filamentColors(rows), [rows]);
   const nameOf = (hex: string) => filColors.find((f) => f.hex === hex)?.label ?? hex;
@@ -67,11 +89,17 @@ export default function Lithophane() {
     const warn = step > cell ? [`Detalhe limitado a ${mmText(step)} mm por ponto para a peça não ficar pesada.`] : [];
     if (mode === "litho") {
       setSwaps([]);
-      return { models: [buildLithophane(M, luma, r.w, r.h, step, litho)], warnings: warn };
+      setBacklit(toDataUrl(backlitPreview(luma, r.w, r.h, step, litho), r.w, r.h));
+      const m = [buildLithophane(M, luma, r.w, r.h, step, litho)];
+      setExportModels(m);
+      return { models: m, warnings: warn };
     }
     const out = buildLayeredPicture(M, luma, r.w, r.h, step, { ...layered, colors });
+    // faixas com o nome do filamento na legenda; a prévia é sempre colorida, o arquivo segue o toggle
+    const named = (m: Model): Model => (m.parts.length > 1 ? { ...m, parts: m.parts.map((p) => ({ ...p, name: nameOf(p.color) })) } : m);
     setSwaps(out.swaps);
-    return { models: [out.model], warnings: warn, pauses: layered.split ? [] : out.swaps.map((s) => s.z) };
+    setExportModels([named(out.model)]);
+    return { models: [named(out.preview)], warnings: warn, pauses: layered.split ? [] : out.swaps.map((s) => s.z) };
   }, [file, width, cell, mode, litho, layered, colors.join(), valid]);
 
   return (
@@ -132,10 +160,29 @@ export default function Lithophane() {
               <span className="hint">{layered.split ? "O fatiador troca de filamento sozinho em cada faixa." : "Sem AMS: a impressora pausa em cada troca para você trocar o filamento."}</span>
             </div>
           )}
-          <ExportButtons models={models} name={mode === "litho" ? "litofania" : "quadro-camadas"} busy={busy} pauses={pauses} />
+          <ExportButtons models={models.length ? exportModels : []} name={mode === "litho" ? "litofania" : "quadro-camadas"} busy={busy} pauses={pauses} />
         </div>
         <div className="preview-col">
-          <Preview3D models={models} busy={busy} busyText="Gerando relevo…" error={error} emptyText={!valid ? "Corrija os campos em vermelho." : "Envie uma foto para ver o relevo."} />
+          {mode === "litho" && <Segmented label="Prévia" value={view} options={VIEWS} onChange={setView} />}
+          {mode === "litho" && view === "light" ? (
+            <div className="pair">
+              <figure>
+                <figcaption>Original</figcaption>
+                <div className="img checker">{original ? <img src={original} alt="Foto original" /> : <span className="muted">Nenhuma foto</span>}</div>
+              </figure>
+              <figure>
+                <figcaption>
+                  <span>Contra a luz</span>
+                  {busy && <span className="muted">atualizando…</span>}
+                </figcaption>
+                <div className="img" style={{ background: "#111" }}>
+                  {backlit && file ? <img className="fit" src={backlit} alt="Simulação da litofania contra a luz" /> : <span className="muted">{error ?? "Envie uma foto para ver o relevo."}</span>}
+                </div>
+              </figure>
+            </div>
+          ) : (
+            <Preview3D models={models} busy={busy} busyText="Gerando relevo…" error={error} emptyText={!valid ? "Corrija os campos em vermelho." : "Envie uma foto para ver o relevo."} />
+          )}
           {mode === "layered" && swaps.length > 0 && models.length > 0 && (
             <div className="card stack" aria-label="Trocas de filamento">
               <h3>Trocas de filamento</h3>

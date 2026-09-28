@@ -63,3 +63,22 @@ export function buildLithophane(M: ManifoldToplevel, luma: Float32Array, cols: n
     return { name: "Caixa de luz", parts: [{ name: "Caixa de luz", color: p.color, mesh: toMesh(k(M.Manifold.union(walls))) }] };
   });
 }
+
+const ATTENUATION = 1.5; // por mm: PLA branco deixa passar ~e^(-1,5·t) da luz (aproximado)
+const WARM = [1, 0.92, 0.78];
+
+/**
+ * Como a litofania fica contra a luz: RGBA em tons de cinza (fino = claro, grosso = escuro),
+ * normalizado entre as espessuras mínima e máxima.
+ */
+export function backlitPreview(luma: Float32Array, cols: number, rows: number, cell: number, p: Pick<LithoParams, "minT" | "maxT" | "border">): Uint8ClampedArray<ArrayBuffer> {
+  const t = lithoThickness(luma, cols, rows, cell, p);
+  const lo = Math.exp(-ATTENUATION * p.maxT), hi = Math.exp(-ATTENUATION * p.minT);
+  const out = new Uint8ClampedArray(cols * rows * 4);
+  for (let i = 0; i < t.length; i++) {
+    const v = Math.round(((Math.exp(-ATTENUATION * t[i]) - lo) / (hi - lo)) * 255);
+    out.set([v, v * WARM[1], v * WARM[2], 255], i * 4); // luz de LED quente atrás
+
+  }
+  return out;
+}

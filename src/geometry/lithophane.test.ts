@@ -2,7 +2,7 @@ import { beforeAll, describe, expect, test } from "vitest";
 import { meshBounds } from "./bounds";
 import { heightfieldMesh, lumaGrid } from "./heightfield";
 import { buildLayeredPicture, DEFAULT_LAYERED } from "./layeredPicture";
-import { buildLithophane, DEFAULT_LITHO, lithoThickness } from "./lithophane";
+import { backlitPreview, buildLithophane, DEFAULT_LITHO, lithoThickness } from "./lithophane";
 import { getManifold, type ManifoldToplevel } from "./manifold";
 import { volume } from "./testUtil";
 import type { Mesh } from "./types";
@@ -45,6 +45,15 @@ describe("litofania", () => {
     expect(t[0]).toBe(DEFAULT_LITHO.maxT); // moldura
   });
 
+  test("contra a luz: branco da foto fica claro, preto fica escuro, moldura escura", () => {
+    const img = backlitPreview(ramp, COLS, ROWS, CELL, { ...DEFAULT_LITHO, border: 1 });
+    const px = (c: number, r: number) => img[(r * COLS + c) * 4];
+    expect(px(COLS - 3, 10)).toBeGreaterThan(200);
+    expect(px(3, 10)).toBeLessThan(30);
+    expect(px(0, 0)).toBe(0);
+    expect(px(COLS / 2, 10)).toBeGreaterThan(px(5, 10)); // cresce com a luminância
+  });
+
   test("plana: em pé (altura = foto), com pé na mesa", () => {
     const m = buildLithophane(M, ramp, COLS, ROWS, CELL, DEFAULT_LITHO).parts[0].mesh;
     valid(m);
@@ -72,7 +81,10 @@ describe("litofania", () => {
 
 describe("quadro por camadas", () => {
   test("claro mais alto; trocas do escuro ao claro em camadas inteiras", () => {
-    const { model, swaps } = buildLayeredPicture(M, ramp, COLS, ROWS, CELL, { ...DEFAULT_LAYERED, colors: ["#f8f8f6", "#1c1c1e", "#8e8e93"] });
+    const { model, preview, swaps } = buildLayeredPicture(M, ramp, COLS, ROWS, CELL, { ...DEFAULT_LAYERED, colors: ["#f8f8f6", "#1c1c1e", "#8e8e93"] });
+    // prévia sempre em faixas coloridas, mesmo sem AMS; o arquivo é uma peça só
+    expect(preview.parts.map((p) => p.color)).toEqual(["#1c1c1e", "#8e8e93", "#f8f8f6"]);
+    expect(model.parts).toHaveLength(1);
     const m = model.parts[0].mesh;
     valid(m);
     expect(model.parts[0].color).toBe("#1c1c1e"); // começa pelo mais escuro

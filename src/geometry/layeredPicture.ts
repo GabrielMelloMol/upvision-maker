@@ -25,7 +25,14 @@ const snap = (z: number, lh: number) => Math.round(Math.round(z / lh) * lh * 100
  * Quadro por camadas (estilo HueForge): placa deitada em que o claro da foto é mais alto; os filamentos vão do
  * mais escuro (embaixo) ao mais claro (em cima) e trocam em alturas fixas. Devolve as trocas (pausas). Com `split`, cada faixa de altura sai como parte da sua cor (o fatiador troca sozinho no AMS).
  */
-export function buildLayeredPicture(M: ManifoldToplevel, luma: Float32Array, cols: number, rows: number, cell: number, p: LayeredParams): { model: Model; swaps: ColorSwap[] } {
+export function buildLayeredPicture(
+  M: ManifoldToplevel,
+  luma: Float32Array,
+  cols: number,
+  rows: number,
+  cell: number,
+  p: LayeredParams,
+): { model: Model; preview: Model; swaps: ColorSwap[] } {
   if (p.colors.length < 2) throw new Error("Escolha pelo menos 2 filamentos.");
   const colors = [...p.colors].sort((a, b) => lightness(a) - lightness(b));
   const base = snap(p.base, p.layerHeight);
@@ -39,7 +46,6 @@ export function buildLayeredPicture(M: ManifoldToplevel, luma: Float32Array, col
     return { z, layer: Math.round(z / p.layerHeight), color: colors[i + 1] };
   });
   const mesh = heightfieldMesh(t, cols, rows, cell);
-  if (!p.split) return { model: { name: "Quadro", parts: [{ name: "Quadro", color: colors[0], mesh }] }, swaps };
   const parts = scoped((k) => {
     const solid = k(M.Manifold.ofMesh(new M.Mesh({ numProp: 3, vertProperties: mesh.positions, triVerts: mesh.indices })));
     const cuts = [0, ...bounds, top + 1];
@@ -51,5 +57,7 @@ export function buildLayeredPicture(M: ManifoldToplevel, luma: Float32Array, col
       })
       .filter((x) => x !== null);
   });
-  return { model: { name: "Quadro", parts }, swaps };
+  // a prévia mostra sempre as faixas nas cores reais; o arquivo segue `split`
+  const preview = { name: "Quadro", parts };
+  return { model: p.split ? preview : { name: "Quadro", parts: [{ name: "Quadro", color: colors[0], mesh }] }, preview, swaps };
 }
