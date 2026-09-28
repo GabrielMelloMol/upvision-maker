@@ -71,3 +71,4 @@ button.example svg { color: var(--brand-orange); }
 .viewer.qr-preview .overlay { color: #5c5c63; }
 .viewer .hud svg { width: 13px; height: 13px; vertical-align: -2px; margin-right: 3px; }
 .preview-col > .seg { justify-self: start; }
+.qr-video { width: 100%; aspect-ratio: 4 / 3; object-fit: cover; border-radius: var(--r); background: #000; }
