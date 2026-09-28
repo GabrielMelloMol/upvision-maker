@@ -1,6 +1,6 @@
 import { Award, Bot, Calculator as CalcIcon, Cookie, Cylinder, KeyRound, Layers, House, ImageUp, Package, Palette, Printer, Settings, ShoppingBag, Users, Building2, ClipboardList, FileText, LayoutDashboard, LineChart, Receipt, QrCode as QrIcon } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
-import { Shapes, Tag } from "lucide-react";
+import { Shapes, Sun, Tag } from "lucide-react";
 import { lazy, type ReactNode } from "react";
 import Home from "./pages/Home";
 
@@ -28,6 +28,7 @@ const ImageToSvg = lazy(() => import("./tools/ImageToSvg"));
 const QrCode = lazy(() => import("./tools/QrCode"));
 const Models = lazy(() => import("./tools/Models"));
 const SpoolLabels = lazy(() => import("./tools/SpoolLabels"));
+const Lithophane = lazy(() => import("./tools/Lithophane"));
 
 export type Go = (pageId: string) => void;
 export type PageDef = {
@@ -52,6 +53,7 @@ const ALL: PageDef[] = [
   { id: "qr", label: "QR Code e Pix", group: "Ferramentas", icon: QrIcon, blurb: "Pix com valor, link ou Wi-Fi; SVG e 3MF em 2 cores.", render: () => <QrCode /> },
   { id: "models", label: "Modelos prontos", group: "Ferramentas", icon: Shapes, blurb: "Placa Pix, topo de bolo, carimbo, troféu, chaveiro NFC…", render: () => <Models /> },
   { id: "spools", label: "Etiquetas de rolo", group: "Ferramentas", icon: Tag, blurb: "QR por rolo: baixa de gramas lendo a etiqueta.", render: () => <SpoolLabels /> },
+  { id: "lithophane", label: "Litofania e quadro", group: "Ferramentas", icon: Sun, blurb: "Foto em relevo: litofania ou quadro por camadas.", render: () => <Lithophane /> },
   { id: "ai", label: "Pedir à IA", group: "Ferramentas", icon: Bot, blurb: "Descreva a peça e o Claude modela (pago por uso).", render: (go) => <AskAI go={go} /> },
   { id: "dashboard", label: "Painel", group: "Gestão", icon: LayoutDashboard, blurb: "Prazos, estoque acabando e resultado do mês.", render: (go) => <Dashboard go={go} /> },
   { id: "orders", label: "Pedidos", group: "Gestão", icon: ClipboardList, blurb: "Quadro por status, prazos e baixa de estoque.", render: () => <Orders /> },

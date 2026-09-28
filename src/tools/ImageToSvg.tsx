@@ -12,9 +12,8 @@ import { classifyImage } from "../vectorize/classify";
 import { scaleFactor } from "../vectorize/raster";
 import { segmentSubject, type Subject } from "../vectorize/segment";
 import { buildColorSvg, buildSvg } from "../vectorize/svgOut";
-import { filaments as filamentsRepo } from "../db/repo";
 import type { Filament } from "../domain/entities";
-import { colorSwatch } from "../ui/ColorDots";
+import { filamentColors, loadFilaments } from "./filamentColors";
 import Segmented from "../ui/Segmented";
 import { useData } from "../ui/useData";
 import type { TraceDone } from "../vectorize/vectorize.worker";
@@ -30,19 +29,6 @@ const COLOR_COUNTS = [
   ["4", "4"],
 ] as const;
 
-type FilamentColor = { hex: string; label: string };
-const loadFilaments = (db: Parameters<typeof filamentsRepo.list>[0]) => filamentsRepo.list(db);
-
-/** Filamentos cadastrados com cor reconhecível (nome comum ou hex), sem repetir a cor. */
-function filamentColors(list: Filament[]): FilamentColor[] {
-  const out = new Map<string, FilamentColor>();
-  for (const f of list) {
-    const hex = colorSwatch(f.color);
-    if (!hex || hex === "transparent" || out.has(hex.toLowerCase())) continue;
-    out.set(hex.toLowerCase(), { hex: hex.toLowerCase(), label: [f.material, f.color, f.brand && `(${f.brand})`].filter(Boolean).join(" ") });
-  }
-  return [...out.values()];
-}
 
 /** Sobreposição vermelha dos pixels com traço fino. */
 function thinOverlay(thin: Uint8Array, w: number, h: number): string {
