@@ -6,6 +6,7 @@ import { errorText, useToast } from "./ui/Toast";
 import { findUpdate, installUpdate } from "./updater";
 import logo from "./assets/logo.png";
 import SuggestDialog from "./feedback/SuggestDialog";
+import { CHANGELOG, useWhatsNewAfterUpdate, WhatsNewModal } from "./whatsnew/WhatsNew";
 import { PAGES } from "./pages";
 
 export default function App() {
@@ -14,6 +15,8 @@ export default function App() {
   const [update, setUpdate] = useState<Update | null>(null);
   const [installing, setInstalling] = useState(false);
   const [suggesting, setSuggesting] = useState(false);
+  const [afterUpdate, closeAfterUpdate] = useWhatsNewAfterUpdate();
+  const [showAllNews, setShowAllNews] = useState(false);
   const toast = useToast();
   const page = PAGES.find((p) => p.id === pageId) ?? PAGES[0];
 
@@ -79,6 +82,9 @@ export default function App() {
           );
         })}
         <div className="footer">
+          <button className="link" onClick={() => setShowAllNews(true)}>
+            O que há de novo
+          </button>
           <button className="suggest" onClick={() => setSuggesting(true)}>
             <Lightbulb aria-hidden /> Sugerir ferramenta
           </button>
@@ -102,6 +108,8 @@ export default function App() {
         {page.render(setPageId)}
       </main>
       {suggesting && <SuggestDialog onClose={() => setSuggesting(false)} />}
+      {afterUpdate.length > 0 && <WhatsNewModal entries={afterUpdate} onClose={closeAfterUpdate} />}
+      {showAllNews && <WhatsNewModal entries={CHANGELOG} onClose={() => setShowAllNews(false)} />}
     </div>
   );
 }
