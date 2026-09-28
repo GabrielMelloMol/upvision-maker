@@ -1,10 +1,11 @@
-import { DatabaseBackup, History } from "lucide-react";
+import { DatabaseBackup, History, Lightbulb } from "lucide-react";
 import { useEffect, useState } from "react";
 import type { Update } from "@tauri-apps/plugin-updater";
 import { loadBackup, saveBackup } from "./backupActions";
 import { errorText, useToast } from "./ui/Toast";
 import { findUpdate, installUpdate } from "./updater";
 import logo from "./assets/logo.png";
+import SuggestDialog from "./feedback/SuggestDialog";
 import { PAGES } from "./pages";
 
 export default function App() {
@@ -12,6 +13,7 @@ export default function App() {
   const [reloadKey, setReloadKey] = useState(0);
   const [update, setUpdate] = useState<Update | null>(null);
   const [installing, setInstalling] = useState(false);
+  const [suggesting, setSuggesting] = useState(false);
   const toast = useToast();
   const page = PAGES.find((p) => p.id === pageId) ?? PAGES[0];
 
@@ -77,6 +79,9 @@ export default function App() {
           );
         })}
         <div className="footer">
+          <button className="suggest" onClick={() => setSuggesting(true)}>
+            <Lightbulb aria-hidden /> Sugerir ferramenta
+          </button>
           <button onClick={onSave}>
             <DatabaseBackup aria-hidden /> Fazer backup
           </button>
@@ -96,6 +101,7 @@ export default function App() {
         )}
         {page.render(setPageId)}
       </main>
+      {suggesting && <SuggestDialog onClose={() => setSuggesting(false)} />}
     </div>
   );
 }

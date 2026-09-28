@@ -190,3 +190,5 @@ td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
 .chat pre { max-height: 240px; overflow: auto; background: #0f172a; color: #e2e8f0; padding: 10px; border-radius: var(--radius-sm); font-size: 12px; }
 .chat summary { cursor: pointer; color: var(--primary); font-size: 12px; }
 button.example { justify-content: flex-start; text-align: left; font-weight: 400; }
+button.suggest { border-color: #fed7aa; background: var(--action-soft); color: var(--action); }
+button.suggest:hover { background: #ffedd5; }

@@ -25,6 +25,7 @@ tauri-plugin-sql = { version = "2.5.0", features = ["sqlite"] }
 tauri-plugin-dialog = "2.8.0"
 tauri-plugin-fs = "2.6.0"
 tauri-plugin-process = "2.4.0"
+tauri-plugin-opener = "2.6.0"
 
 
 # Read the optimization guideline for more details: https://tauri.app/concept/size/#cargo-configuration

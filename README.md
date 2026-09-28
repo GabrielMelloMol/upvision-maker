@@ -24,6 +24,7 @@ Os dados de desenvolvimento ficam em `~/Library/Application Support/com.upvision
 2. Em *Settings → Secrets → Actions*, crie:
    - `TAURI_SIGNING_PRIVATE_KEY`: conteúdo de `~/.tauri/upvision-maker.key`
    - `TAURI_SIGNING_PRIVATE_KEY_PASSWORD`: vazio (a chave foi gerada sem senha)
+   - `FEEDBACK_EMAIL` (opcional): e-mail que recebe o "Sugerir ferramenta". Sem ele, o botão abre uma issue no GitHub. Para testar localmente, crie `.env.local` com `VITE_FEEDBACK_EMAIL=...` (arquivo ignorado pelo git).
 3. Suba a versão em `package.json`, `src-tauri/tauri.conf.json` e `src-tauri/Cargo.toml`, faça commit e `git tag v0.2.0 && git push --tags`.
 4. O workflow `release` gera um *draft* com `.msi`, `.exe`, `.dmg` universal e `latest.json`. Revise e publique: os apps instalados se atualizam sozinhos.
 
