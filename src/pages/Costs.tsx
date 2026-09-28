@@ -6,13 +6,15 @@ import { costsRepo } from "../db/costsRepo";
 import { printers } from "../db/repo";
 import type { Db } from "../db/types";
 import type { Printer } from "../domain/entities";
-import { money, parseDecimal } from "../domain/format";
+import { money } from "../domain/format";
 import { FREQUENCIES, FREQUENCY_LABEL, monthlyRecurring, type OperationalCost, type OperationalCostInput } from "../domain/finance";
 import { todayIso } from "../domain/orders";
 import "../styles/features.css";
 import Button from "../ui/Button";
 import EmptyState from "../ui/EmptyState";
 import { fieldErrors } from "../ui/fieldErrors";
+import MoneyField from "../ui/MoneyField";
+import { formatMoneyInput, parseMoney } from "../ui/parse";
 import Sheet from "../ui/Sheet";
 import { errorText, useToast } from "../ui/Toast";
 import { useData } from "../ui/useData";
@@ -89,7 +91,7 @@ function CostSheet({ initial, printerList, onClose, onSaved }: { initial: Partia
   const [v, setV] = useState({
     description: initial.description ?? "",
     category: initial.category ?? "",
-    amount: initial.amount ? String(initial.amount).replace(".", ",") : "",
+    amount: initial.amount ? formatMoneyInput(String(initial.amount)) : "",
     frequency: initial.frequency ?? ("monthly" as OperationalCostInput["frequency"]),
     startDate: initial.startDate ?? todayIso(),
     endDate: initial.endDate ?? "",
@@ -102,7 +104,7 @@ function CostSheet({ initial, printerList, onClose, onSaved }: { initial: Partia
 
   async function save(e: React.FormEvent) {
     e.preventDefault();
-    const input = { ...v, amount: parseDecimal(v.amount), endDate: v.frequency === "once" || !v.endDate ? null : v.endDate, printerId: v.printerId ? Number(v.printerId) : null };
+    const input = { ...v, amount: parseMoney(v.amount), endDate: v.frequency === "once" || !v.endDate ? null : v.endDate, printerId: v.printerId ? Number(v.printerId) : null };
     try {
       const db = await getDb();
       if (initial.id) await costsRepo.update(db, initial.id, input);
@@ -139,11 +141,7 @@ function CostSheet({ initial, printerList, onClose, onSaved }: { initial: Partia
           <input list="cost-categories" value={v.category} maxLength={60} onChange={set("category")} />
           <datalist id="cost-categories">{CATEGORIES.map((c) => <option key={c} value={c} />)}</datalist>
         </label>
-        <label>
-          Valor (R$)
-          <input inputMode="decimal" value={v.amount} aria-invalid={!!errors.amount} onChange={set("amount")} />
-          {err("amount")}
-        </label>
+        <MoneyField label="Valor" value={v.amount} error={errors.amount} onChange={(amount) => setV((cur) => ({ ...cur, amount }))} />
         <label>
           Frequência
           <select value={v.frequency} onChange={set("frequency")}>

@@ -8,6 +8,8 @@ import { productPricing } from "../../domain/products";
 import Alert from "../../ui/Alert";
 import Button from "../../ui/Button";
 import { fieldErrors } from "../../ui/fieldErrors";
+import MoneyField from "../../ui/MoneyField";
+import { formatMoneyInput, parseMoney } from "../../ui/parse";
 import Sheet from "../../ui/Sheet";
 import { errorText, useToast } from "../../ui/Toast";
 import type { OrdersData } from "./data";
@@ -18,6 +20,8 @@ type Line = { productId: string; description: string; qty: string; unitPrice: st
 
 const str = (n: number) => String(n).replace(".", ",");
 const num = (s: string) => parseDecimal(s);
+/** Preço no formato do campo de R$ ("15,00"). */
+const brl = (n: number) => formatMoneyInput(String(n));
 
 type Props = {
   data: OrdersData;
@@ -43,9 +47,9 @@ export default function OrderEditor({ data, order, draft, onClose, onSaved, save
   const [dueDate, setDueDate] = useState(base.dueDate ?? "");
   const [payment, setPayment] = useState(base.paymentMethod ?? "Pix");
   const [notes, setNotes] = useState(base.notes ?? "");
-  const [freight, setFreight] = useState(str(base.freight ?? 0));
+  const [freight, setFreight] = useState(base.freight ? brl(base.freight) : "");
   const [lines, setLines] = useState<Line[]>(
-    (base.items ?? []).map((i) => ({ productId: i.productId ? String(i.productId) : "", description: i.description, qty: str(i.qty), unitPrice: str(i.unitPrice), discountPct: str(i.discountPct), manualPrice: true })),
+    (base.items ?? []).map((i) => ({ productId: i.productId ? String(i.productId) : "", description: i.description, qty: str(i.qty), unitPrice: brl(i.unitPrice), discountPct: str(i.discountPct), manualPrice: true })),
   );
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [saving, setSaving] = useState(false);
@@ -70,7 +74,7 @@ export default function OrderEditor({ data, order, draft, onClose, onSaved, save
   function pickProduct(i: number, productId: string) {
     const p = data.products.find((x) => String(x.id) === productId);
     const price = suggested(productId, channel);
-    update(i, { productId, description: p?.name ?? lines[i].description, unitPrice: price === null ? lines[i].unitPrice : str(price), manualPrice: false });
+    update(i, { productId, description: p?.name ?? lines[i].description, unitPrice: price === null ? lines[i].unitPrice : brl(price), manualPrice: false });
   }
 
   function changeChannel(ch: string) {
@@ -78,7 +82,7 @@ export default function OrderEditor({ data, order, draft, onClose, onSaved, save
     // preços que não foram digitados à mão acompanham o canal
     setLines(lines.map((l) => {
       const price = !l.manualPrice && l.productId ? suggested(l.productId, ch) : null;
-      return price === null ? l : { ...l, unitPrice: str(price) };
+      return price === null ? l : { ...l, unitPrice: brl(price) };
     }));
   }
 
@@ -105,7 +109,7 @@ export default function OrderEditor({ data, order, draft, onClose, onSaved, save
       productId: p ? p.id : null,
       description: l.description,
       qty: num(l.qty),
-      unitPrice: num(l.unitPrice),
+      unitPrice: parseMoney(l.unitPrice),
       discountPct: num(l.discountPct) || 0,
       unitCost,
       printMinutes: p ? p.printMinutes / p.piecesPerPlate : 0,
@@ -118,7 +122,7 @@ export default function OrderEditor({ data, order, draft, onClose, onSaved, save
     dueDate: dueDate || null,
     paymentMethod: payment,
     notes,
-    freight: num(freight) || 0,
+    freight: parseMoney(freight) || 0,
     items,
   };
   const valid = items.every((i) => Number.isFinite(i.qty) && Number.isFinite(i.unitPrice));
@@ -224,7 +228,9 @@ export default function OrderEditor({ data, order, draft, onClose, onSaved, save
                 <input value={l.description} maxLength={200} onChange={(e) => update(i, { description: e.target.value })} />
               </label>
               <label className="narrow">Qtd<input inputMode="decimal" value={l.qty} onChange={(e) => update(i, { qty: e.target.value })} /></label>
-              <label className="narrow">Preço un. (R$)<input inputMode="decimal" value={l.unitPrice} onChange={(e) => update(i, { unitPrice: e.target.value, manualPrice: true })} /></label>
+              <div className="money">
+                <MoneyField label="Preço un." value={l.unitPrice} onChange={(v) => update(i, { unitPrice: v, manualPrice: true })} />
+              </div>
               <label className="narrow">Desc. %<input inputMode="decimal" value={l.discountPct} onChange={(e) => update(i, { discountPct: e.target.value })} /></label>
               <span className="num line-total">{Number.isFinite(items[i].qty) && Number.isFinite(items[i].unitPrice) ? money(lineTotal(items[i])) : "—"}</span>
               <button type="button" className="link danger" onClick={() => setLines(lines.filter((_, j) => j !== i))}>
@@ -240,7 +246,7 @@ export default function OrderEditor({ data, order, draft, onClose, onSaved, save
       </fieldset>
 
       <div className="grid">
-        <label>Frete cobrado (R$)<input inputMode="decimal" value={freight} onChange={(e) => setFreight(e.target.value)} /></label>
+        <MoneyField label="Frete cobrado" value={freight} onChange={setFreight} />
         <label className="span2">
           Observações (cor, acabamento, personalização)
           <textarea value={notes} maxLength={2000} rows={2} onChange={(e) => setNotes(e.target.value)} />

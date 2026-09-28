@@ -165,11 +165,10 @@ describe("Produtos: editor", () => {
 
     const price = within(sheet).getByRole("row", { name: /Custo por peça/ });
     expect(price).toHaveTextContent("R$ 15,96");
-    expect(within(sheet).getByLabelText(/Preço manual/)).toHaveAttribute("placeholder", "79,8");
+    expect(within(sheet).getByLabelText(/Preço manual/)).toHaveAttribute("placeholder", "79,80");
 
     await user.selectOptions(within(sheet).getByLabelText("Impressora"), "A1");
-    await user.type(within(sheet).getByLabelText("Tempo (h)"), "1");
-    await user.type(within(sheet).getByLabelText("+ minutos"), "30");
+    await user.type(within(sheet).getByLabelText("Tempo de impressão"), "1h30");
     await user.clear(within(sheet).getByLabelText("Estoque mínimo (un)"));
     await user.type(within(sheet).getByLabelText("Estoque mínimo (un)"), "3");
     await user.type(within(sheet).getByLabelText("Observações"), "frágil");
@@ -256,9 +255,8 @@ describe("Produtos: editor", () => {
     renderWithApp(<Products />);
     await user.click(await screen.findByRole("button", { name: "Editar Peça" }));
     const sheet = await dialog("Editar Peça");
-    expect(within(sheet).getByLabelText("Tempo (h)")).toHaveValue("1");
-    expect(within(sheet).getByLabelText("+ minutos")).toHaveValue("15");
-    expect(within(sheet).getByLabelText(/Preço manual/)).toHaveValue("12,5");
+    expect(within(sheet).getByLabelText("Tempo de impressão")).toHaveValue("1h15");
+    expect(within(sheet).getByLabelText(/Preço manual/)).toHaveValue("12,50");
     expect(within(sheet).getByText("Um filamento da composição foi excluído do cadastro.")).toBeInTheDocument();
     await user.clear(within(sheet).getByLabelText(/Preço manual/));
     await user.type(within(sheet).getByLabelText(/Repasse em consignação/), "8,5");

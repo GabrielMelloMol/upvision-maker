@@ -108,7 +108,7 @@ describe("Custos operacionais", () => {
     renderWithApp(<Costs />);
     await user.click(await screen.findByRole("button", { name: "Editar Internet" }));
     const dialog = screen.getByRole("dialog", { name: "Editar custo" });
-    expect(within(dialog).getByLabelText(/^Valor/)).toHaveValue("99,9");
+    expect(within(dialog).getByLabelText(/^Valor/)).toHaveValue("99,90");
     expect(within(dialog).getByLabelText(/Termina em/)).toHaveValue("2026-12-05");
     await user.clear(within(dialog).getByLabelText(/^Valor/));
     await user.type(within(dialog).getByLabelText(/^Valor/), "129,9");

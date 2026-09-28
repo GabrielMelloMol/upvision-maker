@@ -77,12 +77,12 @@ describe("Pedidos: novo pedido", () => {
     await user.click(within(sheet).getByRole("button", { name: "Adicionar item" }));
     await user.selectOptions(within(sheet).getByLabelText("Produto"), "Chaveiro");
     expect(within(sheet).getByLabelText("Descrição")).toHaveValue("Chaveiro");
-    expect(within(sheet).getByLabelText("Preço un. (R$)")).toHaveValue("15");
+    expect(within(sheet).getByLabelText("Preço un.")).toHaveValue("15,00");
     expect(within(sheet).getByLabelText("Desc. %")).toHaveValue("10");
     await user.clear(within(sheet).getByLabelText("Qtd"));
     await user.type(within(sheet).getByLabelText("Qtd"), "3");
-    await user.clear(within(sheet).getByLabelText("Frete cobrado (R$)"));
-    await user.type(within(sheet).getByLabelText("Frete cobrado (R$)"), "12");
+    await user.clear(within(sheet).getByLabelText("Frete cobrado"));
+    await user.type(within(sheet).getByLabelText("Frete cobrado"), "12");
     const totals = within(sheet).getByRole("table");
     expect(within(totals).getByRole("row", { name: /Subtotal/ })).toHaveTextContent("R$ 45,00");
     expect(within(totals).getByRole("row", { name: /Descontos/ })).toHaveTextContent("R$ 4,50");
@@ -125,12 +125,12 @@ describe("Pedidos: novo pedido", () => {
     const [p1, p2] = within(sheet).getAllByLabelText("Produto");
     await user.selectOptions(p1, "Chaveiro");
     await user.selectOptions(p2, "Chaveiro");
-    const [price1, price2] = within(sheet).getAllByLabelText("Preço un. (R$)");
+    const [price1, price2] = within(sheet).getAllByLabelText("Preço un.");
     await user.clear(price2);
     await user.type(price2, "20");
     await user.selectOptions(within(sheet).getByLabelText("Canal"), "Revenda");
-    expect(price1).not.toHaveValue("15"); // acompanhou o canal (preço de revenda calculado)
-    expect(price2).toHaveValue("20");
+    expect(price1).not.toHaveValue("15,00"); // acompanhou o canal (preço de revenda calculado)
+    expect(price2).toHaveValue("20,00"); // formatado ao sair do campo
     const resale = (price1 as HTMLInputElement).value;
     await user.selectOptions(within(sheet).getByLabelText("Canal"), "Shopee");
     expect(price1).not.toHaveValue(resale);
@@ -140,11 +140,11 @@ describe("Pedidos: novo pedido", () => {
     await user.click(within(sheet).getByRole("button", { name: "Adicionar item" }));
     const desc = within(sheet).getAllByLabelText("Descrição")[1];
     await user.type(desc, "Embrulho");
-    await user.type(within(sheet).getAllByLabelText("Preço un. (R$)")[1], "abc");
+    await user.type(within(sheet).getAllByLabelText("Preço un.")[1], "abc");
     expect(within(sheet).queryByRole("row", { name: /Total/ })).not.toBeInTheDocument(); // preço inválido esconde os totais
     expect(within(sheet).getAllByText("—").length).toBeGreaterThan(0);
-    await user.clear(within(sheet).getAllByLabelText("Preço un. (R$)")[1]);
-    await user.type(within(sheet).getAllByLabelText("Preço un. (R$)")[1], "2,5");
+    await user.clear(within(sheet).getAllByLabelText("Preço un.")[1]);
+    await user.type(within(sheet).getAllByLabelText("Preço un.")[1], "2,5");
     await user.click(within(sheet).getByRole("button", { name: "Criar pedido" }));
     await screen.findByText("Pedido #1 criado.");
     expect(t.raw.prepare("SELECT channel FROM orders").get()).toEqual({ channel: "Shopee" });
@@ -164,7 +164,7 @@ describe("Pedidos: novo pedido", () => {
     expect(within(sheet).getByLabelText(/^Nome do cliente/)).toHaveAttribute("aria-invalid", "true");
     expect(within(sheet).getByText("Adicione pelo menos um item.")).toBeInTheDocument();
     await user.click(within(sheet).getByRole("button", { name: "Adicionar item" }));
-    await user.type(within(sheet).getByLabelText("Preço un. (R$)"), "5");
+    await user.type(within(sheet).getByLabelText("Preço un."), "5");
     await user.click(within(sheet).getByRole("button", { name: "Criar pedido" }));
     // item sem descrição: sai o erro do campo (ainda sem dizer qual item — OrderEditor:238, repassado ao dev)
     const items = within(sheet).getByRole("group", { name: "Itens" });
@@ -180,7 +180,7 @@ describe("Pedidos: novo pedido", () => {
     await user.type(within(sheet).getByLabelText(/^Nome do cliente/), "Caio");
     await user.click(within(sheet).getByRole("button", { name: "Adicionar item" }));
     await user.type(within(sheet).getByLabelText("Descrição"), "Peça");
-    await user.type(within(sheet).getByLabelText("Preço un. (R$)"), "5");
+    await user.type(within(sheet).getByLabelText("Preço un."), "5");
     t.handlers["plugin:sql|execute"] = () => {
       throw new Error("disco cheio");
     };

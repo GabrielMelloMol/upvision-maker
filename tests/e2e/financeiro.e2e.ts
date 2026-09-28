@@ -54,7 +54,7 @@ test("custos operacionais: cadastra parcela com data final", async ({ page, taur
   await page.getByRole("button", { name: "Novo custo" }).first().click();
   const s = page.getByRole("dialog", { name: "Novo custo" });
   await s.getByLabel("Descrição").fill("Parcela da impressora");
-  await s.getByLabel("Valor (R$)").fill("250");
+  await s.getByLabel("Valor").fill("250");
   await s.getByLabel("Termina em (opcional)").fill("2027-06-30");
   await s.getByRole("button", { name: "Salvar custo" }).click();
   await expect(page.getByRole("row", { name: /Parcela da impressora/ })).toContainText("até 30/06/2027");

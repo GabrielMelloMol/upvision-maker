@@ -3,6 +3,9 @@ import { useEffect, useState } from "react";
 import { getDb } from "../../db";
 import { MAX_PHOTOS, photosRepo, productsRepo, type Photo } from "../../db/productsRepo";
 import { money, parseDecimal } from "../../domain/format";
+import MoneyField from "../../ui/MoneyField";
+import { formatDuration, formatMoneyInput, parseDuration, parseMoney } from "../../ui/parse";
+import TimeField from "../../ui/TimeField";
 import { EMPTY_PRODUCT, productPricing, type Product, type ProductInput } from "../../domain/products";
 import Alert from "../../ui/Alert";
 import Button from "../../ui/Button";
@@ -18,7 +21,9 @@ type Props = { initial: Partial<Product>; data: ProductsData; onClose: () => voi
 
 const str = (n: number | null | undefined) => (n === null || n === undefined ? "" : String(n).replace(".", ","));
 const num = (s: string) => parseDecimal(s);
-const opt = (s: string) => (s.trim() === "" ? null : num(s));
+/** Preço opcional: vazio = sem preço manual. */
+const optMoney = (s: string) => (s.trim() === "" ? null : parseMoney(s));
+const brl = (v: number) => formatMoneyInput(String(v));
 
 export default function ProductEditor({ initial, data, onClose, onSaved }: Props) {
   const base = { ...EMPTY_PRODUCT, ...initial };
@@ -28,13 +33,12 @@ export default function ProductEditor({ initial, data, onClose, onSaved }: Props
   const [notes, setNotes] = useState(base.notes);
   const [printerId, setPrinterId] = useState(base.printerId ? String(base.printerId) : "");
   const [n, setN] = useState({
-    printH: str(Math.floor(base.printMinutes / 60)),
-    printMin: str(Math.round(base.printMinutes % 60)),
-    laborMin: str(base.laborMinutes),
+    time: base.printMinutes > 0 ? formatDuration(base.printMinutes) : "",
+    labor: base.laborMinutes > 0 ? formatDuration(base.laborMinutes) : "",
     pieces: str(base.piecesPerPlate),
-    freight: str(base.freight),
-    manualPrice: str(base.manualPrice),
-    consignmentPrice: str(base.consignmentPrice),
+    freight: base.freight ? brl(base.freight) : "",
+    manualPrice: base.manualPrice != null ? brl(base.manualPrice) : "",
+    consignmentPrice: base.consignmentPrice != null ? brl(base.consignmentPrice) : "",
     stock: str(base.stock),
     minStock: str(base.minStock),
   });
@@ -47,6 +51,7 @@ export default function ProductEditor({ initial, data, onClose, onSaved }: Props
   const [saving, setSaving] = useState(false);
   const toast = useToast();
   const setNum = (k: keyof typeof n) => (e: React.ChangeEvent<HTMLInputElement>) => setN({ ...n, [k]: e.target.value });
+  const setText = (k: keyof typeof n) => (v: string) => setN((cur) => ({ ...cur, [k]: v }));
 
   useEffect(() => {
     if (!initial.id) return;
@@ -63,12 +68,12 @@ export default function ProductEditor({ initial, data, onClose, onSaved }: Props
     sku,
     notes,
     printerId: printerId ? Number(printerId) : null,
-    printMinutes: (num(n.printH) || 0) * 60 + (num(n.printMin) || 0),
-    laborMinutes: num(n.laborMin) || 0,
+    printMinutes: parseDuration(n.time) || 0,
+    laborMinutes: parseDuration(n.labor, "min") || 0,
     piecesPerPlate: num(n.pieces),
-    freight: num(n.freight) || 0,
-    manualPrice: opt(n.manualPrice),
-    consignmentPrice: opt(n.consignmentPrice),
+    freight: parseMoney(n.freight) || 0,
+    manualPrice: optMoney(n.manualPrice),
+    consignmentPrice: optMoney(n.consignmentPrice),
     stock: num(n.stock) || 0,
     minStock: num(n.minStock) || 0,
     composition: {
@@ -190,29 +195,27 @@ export default function ProductEditor({ initial, data, onClose, onSaved }: Props
                   ))}
                 </select>
               </label>
-              <label>Tempo (h)<input inputMode="decimal" value={n.printH} onChange={setNum("printH")} /></label>
-              <label>+ minutos<input inputMode="decimal" value={n.printMin} onChange={setNum("printMin")} /></label>
-              <label>Mão de obra (min)<input inputMode="decimal" value={n.laborMin} onChange={setNum("laborMin")} /></label>
+              <TimeField label="Tempo de impressão" value={n.time} onChange={setText("time")} />
+              <TimeField label="Mão de obra" bare="min" value={n.labor} onChange={setText("labor")} placeholder="15 min" hint="Ex.: 15 (minutos), 1h10" />
               <label>
                 Peças na mesa
                 <input inputMode="numeric" value={n.pieces} aria-invalid={!!errors.piecesPerPlate} onChange={setNum("pieces")} />
                 {errors.piecesPerPlate && <span className="error">Use 1 ou mais.</span>}
               </label>
-              <label>Frete absorvido por peça (R$)<input inputMode="decimal" value={n.freight} onChange={setNum("freight")} /></label>
+              <MoneyField label="Frete absorvido por peça" value={n.freight} onChange={setText("freight")} />
             </div>
           </fieldset>
           <fieldset>
             <legend>Venda e estoque</legend>
             <div className="grid">
-              <label>
-                Preço manual (R$)
-                <input inputMode="decimal" placeholder={pricing && "result" in pricing ? str(pricing.result.consumer) : ""} value={n.manualPrice} onChange={setNum("manualPrice")} />
-                <span className="hint">Vazio = preço calculado</span>
-              </label>
-              <label>
-                Repasse em consignação (R$)
-                <input inputMode="decimal" value={n.consignmentPrice} onChange={setNum("consignmentPrice")} />
-              </label>
+              <MoneyField
+                label="Preço manual"
+                placeholder={pricing && "result" in pricing ? brl(pricing.result.consumer) : ""}
+                value={n.manualPrice}
+                onChange={setText("manualPrice")}
+                hint="Vazio = preço calculado"
+              />
+              <MoneyField label="Repasse em consignação" value={n.consignmentPrice} onChange={setText("consignmentPrice")} />
               <label>Estoque pronto (un)<input inputMode="decimal" value={n.stock} onChange={setNum("stock")} /></label>
               <label>Estoque mínimo (un)<input inputMode="decimal" value={n.minStock} onChange={setNum("minStock")} /></label>
             </div>

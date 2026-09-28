@@ -18,7 +18,7 @@ test("pedidos: cria com preço do produto e desconto do cliente; iniciar produç
   await sheet.getByLabel("Prazo de entrega").fill("2026-10-10");
   await sheet.getByRole("button", { name: "Adicionar item" }).click();
   await sheet.getByLabel("Produto").selectOption({ label: "Chaveiro" });
-  await expect(sheet.getByLabel("Preço un. (R$)")).toHaveValue("15");
+  await expect(sheet.getByLabel("Preço un.")).toHaveValue("15,00");
   await expect(sheet.getByLabel("Desc. %")).toHaveValue("10");
   await sheet.getByLabel("Qtd").fill("3");
   await expect(sheet.getByText("R$ 40,50").first()).toBeVisible(); // 3 × 15 − 10%
