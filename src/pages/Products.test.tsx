@@ -297,6 +297,12 @@ describe("Produtos: editor", () => {
     await waitFor(() => expect(within(sheet).getByAltText("Foto 1 de Vaso")).toHaveAttribute("src", `data:image/jpeg;base64,${btoa("x.png")}`));
     await user.click(within(sheet).getAllByRole("button", { name: "Excluir foto" })[0]);
     await waitFor(async () => expect(await t.db.select("SELECT dataUrl FROM product_photos")).toEqual([{ dataUrl: "data:image/png;base64,UM" }]));
+
+    t.handlers["plugin:sql|execute"] = () => {
+      throw new Error("banco travado");
+    };
+    await user.click(within(sheet).getByRole("button", { name: "Excluir foto" }));
+    expect(await screen.findByText("Não foi possível alterar a foto: banco travado")).toBeInTheDocument();
   });
 
   test("foto que não abre vira aviso", async () => {

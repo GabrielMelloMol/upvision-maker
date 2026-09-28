@@ -100,10 +100,14 @@ export default function ProductEditor({ initial, data, onClose, onSaved }: Props
   }
 
   async function photoAction(p: Photo, action: "cover" | "remove") {
-    const db = await getDb();
-    if (action === "cover") await photosRepo.makeCover(db, p.productId, p.id);
-    else await photosRepo.remove(db, p.id);
-    setPhotos(await photosRepo.list(db, p.productId));
+    try {
+      const db = await getDb();
+      if (action === "cover") await photosRepo.makeCover(db, p.productId, p.id);
+      else await photosRepo.remove(db, p.id);
+      setPhotos(await photosRepo.list(db, p.productId));
+    } catch (e) {
+      toast(`Não foi possível alterar a foto: ${errorText(e)}`, "error");
+    }
   }
 
   async function save(e: React.FormEvent) {

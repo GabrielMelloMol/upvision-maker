@@ -51,8 +51,12 @@ export default function Quotes({ go }: { go: Go }) {
 
   async function remove(q: Quote) {
     if (!(await ask(`Excluir o orçamento nº ${q.id}?`, { title: "Excluir orçamento", kind: "warning", okLabel: "Excluir orçamento", cancelLabel: "Cancelar" }))) return;
-    await quotesRepo.remove(await getDb(), q.id);
-    reload();
+    try {
+      await quotesRepo.remove(await getDb(), q.id);
+      reload();
+    } catch (e) {
+      toast(`Não foi possível excluir: ${errorText(e)}`, "error");
+    }
   }
 
   return (

@@ -179,6 +179,12 @@ describe("Orçamentos", () => {
     await user.click(screen.getByRole("button", { name: "Excluir orçamento 2" }));
     await waitFor(() => expect(screen.queryByRole("row", { name: /Caio/ })).not.toBeInTheDocument());
     expect(t.raw.prepare("SELECT id FROM quotes").all()).toEqual([{ id: 1 }]);
+
+    t.handlers["plugin:sql|execute"] = () => {
+      throw new Error("banco travado");
+    };
+    await user.click(screen.getByRole("button", { name: "Excluir orçamento 1" }));
+    expect(await screen.findByText("Não foi possível excluir: banco travado")).toBeInTheDocument();
   });
 });
 

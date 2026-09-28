@@ -1,3 +1,4 @@
+import { z } from "zod";
 import { ClipboardList, Plus } from "lucide-react";
 import { useState } from "react";
 import { getDb } from "../../db";
@@ -142,14 +143,14 @@ export default function OrderEditor({ data, order, draft, onClose, onSaved, save
       onSaved(id);
     } catch (err) {
       const fe = fieldErrors(err);
-      setErrors(fe);
+      const item = itemError(err);
+      setErrors(item ? { ...fe, items: item } : fe);
       if (fe._) toast(errorText(err), "error");
     } finally {
       setSaving(false);
     }
   }
 
-  const itemError = Object.keys(errors).find((k) => k === "items");
   return (
     <Sheet
       wide
@@ -241,7 +242,7 @@ export default function OrderEditor({ data, order, draft, onClose, onSaved, save
           <Button size="sm" icon={Plus} onClick={() => setLines([...lines, { productId: "", description: "", qty: "1", unitPrice: "", discountPct: defaultDiscount, manualPrice: false }])}>
             Adicionar item
           </Button>
-          {itemError && <span className="error">{errors.items === "Valor inválido." ? "Confira descrição, quantidade e preço de cada item." : errors.items}</span>}
+          {errors.items && <span className="error">{errors.items}</span>}
         </div>
       </fieldset>
 
@@ -267,4 +268,16 @@ export default function OrderEditor({ data, order, draft, onClose, onSaved, save
       {order?.stockApplied && <Alert kind="info">O estoque deste pedido já foi baixado: para mudar produtos ou quantidades, volte-o para Pendente.</Alert>}
     </Sheet>
   );
+}
+
+const ITEM_FIELD: Record<string, string> = { description: "descrição", qty: "quantidade", unitPrice: "preço", discountPct: "desconto", unitCost: "custo" };
+
+/** Erro num campo de um item ("Item 2 — preço: …"); null se o erro não for de um item específico. */
+function itemError(err: unknown): string | null {
+  if (!(err instanceof z.ZodError)) return null;
+  const issue = err.issues.find((i) => i.path[0] === "items" && typeof i.path[1] === "number");
+  if (!issue) return null;
+  const msg = fieldErrors(new z.ZodError([{ ...issue, path: ["x"] }])).x;
+  const field = ITEM_FIELD[String(issue.path[2])];
+  return `Item ${Number(issue.path[1]) + 1}${field ? ` — ${field}` : ""}: ${msg}`;
 }

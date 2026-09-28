@@ -166,9 +166,9 @@ describe("Pedidos: novo pedido", () => {
     await user.click(within(sheet).getByRole("button", { name: "Adicionar item" }));
     await user.type(within(sheet).getByLabelText("Preço un."), "5");
     await user.click(within(sheet).getByRole("button", { name: "Criar pedido" }));
-    // item sem descrição: sai o erro do campo (ainda sem dizer qual item — OrderEditor:238, repassado ao dev)
+    // item sem descrição: o erro diz qual item e qual campo
     const items = within(sheet).getByRole("group", { name: "Itens" });
-    expect(await within(items).findByText("Obrigatório.")).toBeInTheDocument();
+    expect(await within(items).findByText("Item 1 — descrição: Obrigatório.")).toBeInTheDocument();
     expect(t.raw.prepare("SELECT COUNT(*) AS n FROM orders").get()).toEqual({ n: 0 });
   });
 
