@@ -1,0 +1,66 @@
+/* Ferramentas 3D: controles à esquerda (inspector), prévia à direita. Só usa tokens. */
+.tool-layout { display: grid; grid-template-columns: minmax(320px, 390px) 1fr; gap: var(--space-5); align-items: start; }
+.tool-layout > .controls { display: grid; gap: var(--space-3); }
+.tool-layout > .controls .card { margin: 0; }
+.tool-layout > .controls .card h3 { font-size: var(--text-xs); text-transform: uppercase; letter-spacing: 0.05em; color: var(--muted); font-weight: 600; }
+.preview-col { position: sticky; top: 64px; display: grid; gap: var(--space-3); }
+@media (max-width: 980px) { .tool-layout { grid-template-columns: 1fr; } .preview-col { position: static; } }
+
+/* Prévia 3D / 2D */
+.viewer { position: relative; overflow: hidden; height: min(560px, calc(100vh - 150px)); min-height: 380px; border-radius: var(--r-xl); background: linear-gradient(180deg, var(--viewer-top), var(--viewer-bottom)); box-shadow: var(--shadow-1); }
+.viewer canvas { display: block; width: 100%; height: 100%; cursor: grab; animation: fade var(--dur-slow) ease both; }
+.viewer canvas:active { cursor: grabbing; }
+.viewer .overlay { position: absolute; inset: 0; display: grid; place-items: center; text-align: center; padding: var(--space-6); color: var(--muted); animation: fade var(--dur) ease both; }
+.viewer .overlay.busy { background: color-mix(in srgb, var(--viewer-top) 55%, transparent); -webkit-backdrop-filter: blur(6px); backdrop-filter: blur(6px); }
+.viewer .overlay .inner { display: grid; gap: 10px; justify-items: center; max-width: 360px; }
+.viewer .overlay .inner > svg { width: 44px; height: 44px; color: var(--tertiary); stroke-width: 1.25; }
+.viewer .legend, .viewer .hud {
+  position: absolute; font-size: var(--text-sm); padding: 5px 10px; border-radius: var(--r-pill);
+  background: var(--glass); -webkit-backdrop-filter: var(--blur); backdrop-filter: var(--blur); box-shadow: var(--shadow-1);
+  animation: fade-up var(--dur) var(--ease-out) both;
+}
+.viewer .legend { left: 12px; bottom: 12px; display: flex; gap: 12px; flex-wrap: wrap; }
+.viewer .legend i { display: inline-block; width: 10px; height: 10px; border-radius: 3px; margin-right: 5px; vertical-align: -1px; box-shadow: inset 0 0 0 0.5px rgb(0 0 0 / 0.2); }
+.viewer .hud { right: 12px; top: 12px; color: var(--muted); font-variant-numeric: tabular-nums; font-weight: 500; }
+
+/* Imagem → SVG: original × resultado */
+.checker { background-color: #fff; background-image: linear-gradient(45deg, #eceef2 25%, transparent 25%), linear-gradient(-45deg, #eceef2 25%, transparent 25%), linear-gradient(45deg, transparent 75%, #eceef2 75%), linear-gradient(-45deg, transparent 75%, #eceef2 75%); background-size: 16px 16px; background-position: 0 0, 0 8px, 8px -8px, -8px 0; }
+.pair { display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-3); }
+.pair figure { margin: 0; border-radius: var(--r-lg); overflow: hidden; background: var(--surface); box-shadow: var(--shadow-1); }
+.pair figcaption { font-size: var(--text-sm); font-weight: 500; color: var(--muted); padding: 9px 14px; border-bottom: 1px solid var(--separator); display: flex; justify-content: space-between; }
+.pair .img { height: 380px; display: grid; place-items: center; padding: var(--space-3); position: relative; transition: opacity var(--dur) ease; }
+.pair .img img { max-width: 100%; max-height: 100%; object-fit: contain; animation: fade var(--dur-slow) ease both; }
+.pair .img img.fit { position: absolute; inset: 12px; width: calc(100% - 24px); height: calc(100% - 24px); max-width: none; max-height: none; object-fit: contain; }
+
+/* Área de soltar arquivo */
+.dropzone {
+  display: grid; gap: 4px; justify-items: center; text-align: center; padding: var(--space-6) var(--space-4); cursor: pointer;
+  border-radius: var(--r); border: 1.5px dashed var(--border-strong); background: var(--fill); color: var(--muted);
+  transition: border-color var(--dur-fast) ease, background var(--dur-fast) ease, transform var(--dur) var(--spring);
+}
+.dropzone:hover, .dropzone.over { border-color: var(--accent); background: var(--accent-soft); }
+.dropzone.over { transform: scale(1.01); }
+.dropzone:focus-visible { box-shadow: 0 0 0 3px var(--focus-ring); }
+.dropzone > svg { width: 36px; height: 36px; padding: 8px; margin-bottom: 4px; border-radius: 50%; color: var(--brand-orange); background: var(--action-soft); transition: transform var(--dur) var(--spring); }
+.dropzone:hover > svg { transform: translateY(-2px); }
+.dropzone strong { color: var(--text); font-weight: 600; overflow-wrap: anywhere; }
+
+.metrics { display: flex; gap: var(--space-4); flex-wrap: wrap; font-size: var(--text-sm); color: var(--muted); padding: 0 4px; }
+.metrics b { color: var(--text); font-variant-numeric: tabular-nums; font-weight: 600; }
+.slider-head { display: flex; justify-content: space-between; gap: var(--space-2); }
+.slider-head b { color: var(--text); font-weight: 600; font-variant-numeric: tabular-nums; }
+.apply-bar { display: flex; align-items: center; gap: var(--space-3); font-size: 13px; min-height: 56px; padding: 10px 12px; border-radius: var(--r-lg); background: var(--surface); box-shadow: var(--shadow-1); }
+.apply-bar .spinner + span { flex: 1; }
+.dirty { color: var(--warn); font-weight: 600; }
+.font-sample { font-size: 22px; color: var(--text); font-weight: 400; line-height: 1.3; padding: 4px 2px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+/* Pedir à IA: conversa */
+.chat .turn { display: grid; gap: 6px; padding: 10px 14px; border-radius: var(--r); animation: fade-up var(--dur) var(--ease-out) both; }
+.chat .turn.user { background: var(--accent); color: var(--on-accent); justify-self: end; max-width: 88%; border-bottom-right-radius: 5px; }
+.chat .turn.user .hint { color: rgb(255 255 255 / 0.8); }
+.chat .turn.assistant { background: var(--surface-2); border-bottom-left-radius: 5px; }
+.chat .turn p { margin: 0; white-space: pre-wrap; }
+.chat pre { max-height: 240px; overflow: auto; background: #1c1c1e; color: #e5e5ea; padding: 12px; border-radius: var(--r-sm); font-size: var(--text-sm); }
+.chat summary { cursor: pointer; color: var(--accent-text); font-size: var(--text-sm); font-weight: 500; }
+button.example { justify-content: flex-start; text-align: left; font-weight: 400; min-height: 38px; padding: 8px 12px; height: auto; }
+button.example svg { color: var(--brand-orange); }

@@ -1,0 +1,166 @@
+/*
+ * Tokens do design system UpVision Maker — ÚNICO lugar com cores, raios, sombras, tipografia e motion.
+ * Estilo Apple/macOS: fonte do sistema, superfícies neutras, acento azul, laranja só em destaque.
+ * Claro/escuro seguem o sistema (prefers-color-scheme). Contraste: texto ≥ 7:1, muted ≥ 4.5:1 nos dois modos.
+ * Para mudar a cara do app, mude aqui; componentes só usam var(--…).
+ */
+:root {
+  color-scheme: light dark;
+
+  /* Tipografia: SF Pro no Mac, Segoe UI Variable no Windows 11, Segoe UI no 10. Nada é baixado. */
+  --font: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI Variable Text", "Segoe UI Variable", "Segoe UI", system-ui, sans-serif;
+  --font-display: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Segoe UI Variable Display", "Segoe UI Variable", "Segoe UI", system-ui, sans-serif;
+  --font-mono: ui-monospace, "SF Mono", "Cascadia Code", Consolas, monospace;
+  --text-xs: 11px;
+  --text-sm: 12.5px;
+  --text-md: 14px; /* corpo */
+  --text-lg: 16px;
+  --title-3: 15px;
+  --title-2: 19px;
+  --title-1: 30px; /* large title das páginas */
+  --leading: 1.45;
+
+  /* Espaço (grade de 4) */
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 20px;
+  --space-6: 24px;
+  --space-8: 32px;
+  --space-10: 40px;
+
+  /* Cantos (contínuos onde o navegador suporta corner-shape) */
+  --r-xs: 5px;
+  --r-sm: 8px;
+  --r: 12px;
+  --r-lg: 16px;
+  --r-xl: 22px;
+  --r-pill: 999px;
+
+  /* Cores — claro */
+  --bg: #f5f5f7;
+  --surface: #ffffff;
+  --surface-2: #f5f5f7;
+  --surface-raised: #ffffff;
+  --fill: rgb(120 120 128 / 0.1); /* fundo de controles (segmented, trilho) */
+  --fill-hover: rgb(120 120 128 / 0.16);
+  --fill-strong: rgb(120 120 128 / 0.24);
+  --field: #ffffff;
+  --border: rgb(0 0 0 / 0.08);
+  --border-strong: rgb(0 0 0 / 0.14);
+  --separator: rgb(60 60 67 / 0.12);
+  --text: #1d1d1f;
+  --muted: #5c5c63;
+  --tertiary: #8e8e93; /* só ícones e placeholders */
+  --on-accent: #ffffff;
+
+  --accent: #2563eb; /* fundo de botão primário / seleção */
+  --accent-hover: #1d4ed8;
+  --accent-text: #1d4ed8; /* links e texto em acento */
+  --accent-soft: rgb(37 99 235 / 0.1);
+  --focus-ring: rgb(37 99 235 / 0.35);
+
+  --brand-orange: #f97316; /* decorativo (ícones, destaques) */
+  --action: #c2410c; /* botão de exportar (laranja AA com texto branco) */
+  --action-hover: #9a3412;
+  --action-text: #c2410c;
+  --action-soft: rgb(249 115 22 / 0.12);
+
+  --danger: #d70015;
+  --danger-soft: rgb(255 59 48 / 0.1);
+  --ok: #1a7f37;
+  --ok-soft: rgb(52 199 89 / 0.13);
+  --warn: #8a5300;
+  --warn-soft: rgb(255 159 10 / 0.15);
+  --info-soft: rgb(37 99 235 / 0.08);
+
+  /* Materiais (vibrancy) */
+  --sidebar: rgb(236 236 240 / 0.78);
+  --toolbar: rgb(245 245 247 / 0.72);
+  --glass: rgb(255 255 255 / 0.78);
+  --blur: saturate(180%) blur(20px);
+  --scrim: rgb(0 0 0 / 0.28);
+  --toast: rgb(29 29 31 / 0.9);
+
+  /* Prévia 3D */
+  --viewer-top: #fbfbfd;
+  --viewer-bottom: #e9ebf0;
+  --grid-major: #a1a7b3;
+  --grid-minor: #d2d6de;
+
+  /* Sombras em camadas */
+  --shadow-1: 0 0 0 0.5px rgb(0 0 0 / 0.05), 0 1px 2px rgb(0 0 0 / 0.05), 0 2px 8px rgb(0 0 0 / 0.04);
+  --shadow-2: 0 0 0 0.5px rgb(0 0 0 / 0.06), 0 4px 12px rgb(0 0 0 / 0.07), 0 16px 40px rgb(0 0 0 / 0.08);
+  --shadow-3: 0 0 0 0.5px rgb(0 0 0 / 0.08), 0 10px 24px rgb(0 0 0 / 0.12), 0 32px 80px rgb(0 0 0 / 0.22);
+  --highlight: inset 0 0.5px 0 rgb(255 255 255 / 0.25);
+
+  /* Motion: só transform/opacity. --spring tem leve overshoot (fallback: ease-out). */
+  --dur-fast: 140ms;
+  --dur: 220ms;
+  --dur-slow: 360ms;
+  --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
+  --spring: linear(0, 0.063, 0.222 8%, 0.463 15%, 0.715 24%, 0.894 33%, 1.004 43%, 1.037 52%, 1.029 62%, 1.01 75%, 1);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #161618;
+    --surface: #1e1e21;
+    --surface-2: #26262a;
+    --surface-raised: #2a2a2e;
+    --fill: rgb(120 120 128 / 0.2);
+    --fill-hover: rgb(120 120 128 / 0.28);
+    --fill-strong: rgb(120 120 128 / 0.36);
+    --field: rgb(255 255 255 / 0.05);
+    --border: rgb(255 255 255 / 0.08);
+    --border-strong: rgb(255 255 255 / 0.15);
+    --separator: rgb(255 255 255 / 0.09);
+    --text: #f5f5f7;
+    --muted: #a3a3ab;
+    --tertiary: #75757c;
+
+    --accent: #2563eb;
+    --accent-hover: #3b75f0;
+    --accent-text: #6ea2ff;
+    --accent-soft: rgb(80 140 255 / 0.18);
+    --focus-ring: rgb(110 162 255 / 0.45);
+
+    --action: #c2410c;
+    --action-hover: #d9531d;
+    --action-text: #ff9f5a;
+    --action-soft: rgb(249 115 22 / 0.18);
+
+    --danger: #ff6961;
+    --danger-soft: rgb(255 69 58 / 0.16);
+    --ok: #4cd964;
+    --ok-soft: rgb(48 209 88 / 0.16);
+    --warn: #ffc15c;
+    --warn-soft: rgb(255 159 10 / 0.16);
+    --info-soft: rgb(80 140 255 / 0.13);
+
+    --sidebar: rgb(32 32 36 / 0.78);
+    --toolbar: rgb(22 22 24 / 0.72);
+    --glass: rgb(40 40 44 / 0.78);
+    --scrim: rgb(0 0 0 / 0.5);
+    --toast: rgb(58 58 62 / 0.92);
+
+    --viewer-top: #26262b;
+    --viewer-bottom: #17171a;
+    --grid-major: #55555e;
+    --grid-minor: #34343a;
+
+    --shadow-1: 0 0 0 0.5px rgb(255 255 255 / 0.06), 0 1px 2px rgb(0 0 0 / 0.4), 0 2px 8px rgb(0 0 0 / 0.25);
+    --shadow-2: 0 0 0 0.5px rgb(255 255 255 / 0.08), 0 4px 12px rgb(0 0 0 / 0.35), 0 16px 40px rgb(0 0 0 / 0.35);
+    --shadow-3: 0 0 0 0.5px rgb(255 255 255 / 0.1), 0 10px 24px rgb(0 0 0 / 0.4), 0 32px 80px rgb(0 0 0 / 0.55);
+    --highlight: inset 0 0.5px 0 rgb(255 255 255 / 0.12);
+  }
+}
+
+/* Aumentar contraste / reduzir transparência do sistema */
+@media (prefers-contrast: more) {
+  :root { --border: var(--border-strong); --muted: var(--text); }
+}
+@media (prefers-reduced-transparency: reduce) {
+  :root { --sidebar: var(--surface-2); --toolbar: var(--bg); --glass: var(--surface); --blur: none; }
+}
