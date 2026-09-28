@@ -28,7 +28,7 @@ function strokeOf(M: ManifoldToplevel, pts: Contour, closed: boolean, width: num
     pieces.push([[a[0] + nx, a[1] + ny], [b[0] + nx, b[1] + ny], [b[0] - nx, b[1] - ny], [a[0] - nx, a[1] - ny]]);
   }
   const joints = pts.map((p) => M.CrossSection.circle(r, 16).translate(p));
-  const all = M.CrossSection.union([...joints, new M.CrossSection(pieces, "Positive")]);
+  const all = M.CrossSection.union([...joints, new M.CrossSection(pieces, "NonZero")]);
   joints.forEach((j) => j.delete());
   return all;
 }

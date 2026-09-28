@@ -101,7 +101,10 @@ describe("Imagem → SVG", () => {
     await user.click(screen.getByRole("button", { name: /^Aplicar/ }));
     await waitFor(() => expect(traceMock).toHaveBeenCalled());
     expect(traceMock.mock.calls[0][1].widthMm).toBe(80);
-    // Obs.: com o campo vazio o resultado já nasce "desatualizado" (applied=80 ≠ opts=NaN) — bug relatado, não coberto aqui
+    // o campo volta a mostrar 80 e o resultado não fica "desatualizado"
+    await screen.findByText("Resultado atualizado.");
+    expect(screen.getByLabelText(/Largura final/)).toHaveValue(80);
+    expect(screen.queryByText("desatualizado")).not.toBeInTheDocument();
   });
 
   test("limiar manual parte do limiar automático encontrado", async () => {

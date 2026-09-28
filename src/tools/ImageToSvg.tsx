@@ -85,6 +85,7 @@ export default function ImageToSvg({ go }: { go: Go }) {
   async function apply(next: TraceOptions = opts) {
     if (!raster) return;
     const o = { ...next, widthMm: next.widthMm > 0 ? next.widthMm : DEFAULT_TRACE.widthMm };
+    if (o.widthMm !== next.widthMm) setOpts(o); // campo vazio/inválido volta para a largura usada
     job.current?.cancel();
     cancelled.current = false;
     setRunning(true);

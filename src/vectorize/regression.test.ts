@@ -22,7 +22,7 @@ async function run(name: string, o: Partial<TraceOptions>, seg?: Uint8Array) {
   return { paths: (d.match(/M/g) ?? []).length, ms: performance.now() - t0, bytes: d.length, p, f };
 }
 
-const MAX_MS = 8000; // folga para CI; no Mac leva < 1 s
+const MAX_MS = 20_000; // pega travamento, não lentidão: isolado leva < 1 s, com cobertura em paralelo 8–9 s
 
 describe("regressão de vetorização (tests/fixtures)", () => {
   test("logo simples: poucos caminhos", async () => {

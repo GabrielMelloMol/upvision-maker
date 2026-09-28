@@ -8,8 +8,10 @@ import Dropzone from "../ui/Dropzone";
 import ExportButtons from "../ui/ExportButtons";
 import NumField, { inRange } from "../ui/NumField";
 import Preview3D from "../ui/Preview3D";
+import Segmented from "../ui/Segmented";
 import { errorText } from "../ui/Toast";
 import { useModelBuilder } from "../ui/useModelBuilder";
+import "../styles/features.css";
 import { DESIGN_ACCEPT, designFromSvg, fileToSvg } from "./designInput";
 
 const SHAPES: [MedalShape, string][] = [
@@ -59,16 +61,10 @@ export default function Medal() {
       <div className="tool-layout">
         <div className="controls">
           <div className="card stack">
-            <label>
-              Formato
-              <div className="seg" role="group" aria-label="Formato">
-                {SHAPES.map(([s, label]) => (
-                  <button key={s} aria-pressed={p.shape === s} onClick={() => set("shape")(s)}>
-                    {label}
-                  </button>
-                ))}
-              </div>
-            </label>
+            <div className="span-2">
+              <span className="field-label">Formato</span>
+              <Segmented label="Formato" value={p.shape} options={SHAPES} onChange={set("shape")} full />
+            </div>
             <div className="grid two">
               <NumField label="Tamanho" value={p.diameter} onChange={set("diameter")} min={25} max={150} step={1} />
               <NumField label="Largura da fita" value={p.ribbon} onChange={set("ribbon")} min={0} max={50} step={1} hint="0 = sem alça" />

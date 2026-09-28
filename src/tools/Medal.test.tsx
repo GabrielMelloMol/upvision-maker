@@ -1,5 +1,5 @@
 // @vitest-environment happy-dom
-import { fireEvent, screen, waitFor } from "@testing-library/react";
+import { fireEvent, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
@@ -44,9 +44,9 @@ describe("Medalhas", () => {
   test("formato estrela, sem texto e sem alça: nome padrão no arquivo", async () => {
     const user = userEvent.setup();
     const { container } = renderWithApp(<Medal />);
-    // os botões de formato ficam dentro de <label>Formato</label>: o nome acessível deles vira "Formato" (ver relatório)
-    await user.click(screen.getByText("Estrela"));
-    expect(screen.getByText("Estrela")).toHaveAttribute("aria-pressed", "true");
+    const shape = screen.getByRole("group", { name: "Formato" });
+    await user.click(within(shape).getByRole("button", { name: "Estrela" }));
+    expect(within(shape).getByRole("button", { name: "Estrela" })).toHaveAttribute("aria-pressed", "true");
     await user.clear(screen.getByLabelText(/Texto \(embaixo\)/));
     await user.clear(screen.getByLabelText(/^Largura da fita/));
     await user.type(screen.getByLabelText(/^Largura da fita/), "0");

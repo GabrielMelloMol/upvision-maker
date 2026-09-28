@@ -9,9 +9,8 @@ beforeAll(async () => {
 });
 const svg = (body: string) => `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">${body}</svg>`;
 
-// BUG conhecido (relatado): em strokeOf os retângulos dos segmentos saem em sentido horário e o preenchimento "Positive"
-// os descarta, então uma linha aberta vira só bolinhas nos vértices. `test.fails` passa enquanto o bug existir.
-test.fails("linha aberta com traço vira cápsula: comprimento × largura + pontas redondas", () => {
+// Os retângulos dos segmentos saem em sentido horário: o preenchimento é NonZero para não descartá-los.
+test("linha aberta com traço vira cápsula: comprimento × largura + pontas redondas", () => {
   const cs = svgToCrossSection(M, svg('<polyline points="10,50 50,50 50,90" fill="none" stroke="#000" stroke-width="4"/>'));
   const b = cs.bounds();
   expect([b.min[0], b.max[0], b.max[1]]).toEqual([expect.closeTo(8, 1), expect.closeTo(52, 1), expect.closeTo(92, 1)]);
