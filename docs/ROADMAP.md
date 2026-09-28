@@ -44,9 +44,10 @@
 | Materiais extras com estoque, reposição e ajuste | §1.3 | ✅ | P | — |
 | Calculadora (§1.1): vários filamentos, extras, energia, mão de obra, manutenção %, quantidade na mesa, frete somado **depois** do multiplicador, preço por canal com margem líquida, detalhamento | §1.1 | ✅ | M | Arredondar só no fim (testado com o exemplo R$ 15,96 / 47,88 / 79,80) |
 
-## Fase 2 — Ferramentas 3D do dia a dia ⭐ PRIORIDADE ATUAL (definida em 2026-09-28)
+## Fase 2 — Ferramentas 3D do dia a dia ✅ (feita em 2026-09-28, v0.2.0)
 Motivo: é o que ela já faz hoje pedindo ao Claude (3MF de chaveiros e medalhas) e com SVG (cortador de biscoito). A gestão (antiga Fase 2 em diante) vem depois.
-Ordem de entrega: 0 → 1 → 2 primeiro, de ponta a ponta; depois 3 → 8.
+Ordem de entrega: 0 → 1 → 2 primeiro, de ponta a ponta; depois 3 → 8. Todos entregues; 3MF validado no Bambu Studio (CLI: partes, extrusoras e fatiamento).
+Extra entregue a partir do feedback: modo **Silhueta** (MediaPipe local), Aplicar explícito com progresso/cancelar, limpeza em mm, detecção de foto e testes de regressão com imagens de referência.
 
 | # | Item | Ref. | Viável | Esforço | Riscos |
 |---|---|---|---|---|---|
