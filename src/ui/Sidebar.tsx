@@ -11,10 +11,14 @@ type Props = {
   onSuggest: () => void;
   onBackup: () => void;
   onRestore: () => void;
+  /** Versão instalada (rodapé) e se há atualização (selo). Clicar abre "Sobre". */
+  version?: string | null;
+  updateAvailable?: boolean;
+  onAbout?: () => void;
 };
 
 /** Barra lateral translúcida: marca, páginas por grupo (rolagem própria) e rodapé fixo com backup. */
-export default function Sidebar({ pages, current, onNavigate, onNews, onSuggest, onBackup, onRestore }: Props) {
+export default function Sidebar({ pages, current, onNavigate, onNews, onSuggest, onBackup, onRestore, version, updateAvailable, onAbout }: Props) {
   return (
     <nav className="sidebar" aria-label="Navegação principal">
       <div className="drag" data-tauri-drag-region />
@@ -49,6 +53,12 @@ export default function Sidebar({ pages, current, onNavigate, onNews, onSuggest,
         <button className="nav" onClick={onRestore}>
           <History aria-hidden /> Restaurar backup
         </button>
+        {onAbout && (
+          <button className={`version ${updateAvailable ? "has-update" : ""}`} onClick={onAbout} aria-label={`Versão ${version ?? ""}${updateAvailable ? ", atualização disponível" : ""}: abrir Sobre`}>
+            <span>v{version ?? "…"}</span>
+            {updateAvailable && <span className="update-pill">Atualização disponível</span>}
+          </button>
+        )}
       </div>
     </nav>
   );

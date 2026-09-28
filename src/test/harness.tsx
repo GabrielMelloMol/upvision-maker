@@ -12,7 +12,7 @@ import { mockIPC } from "@tauri-apps/api/mocks";
 import { render, type RenderOptions } from "@testing-library/react";
 import { DatabaseSync, type SQLInputValue } from "node:sqlite";
 import type { ReactElement } from "react";
-import { beforeEach } from "vitest";
+import { beforeEach, vi } from "vitest";
 import { migrate } from "../db/migrations";
 import type { Db } from "../db/types";
 import { ToastProvider } from "../ui/Toast";
@@ -35,6 +35,8 @@ export type TauriState = {
   calls: string[];
   /** Backups automáticos "no disco": pasta → (nome → conteúdo). Pasta "" = padrão. */
   autoBackups: Map<string, Map<string, string>>;
+  /** Resposta da API pública de releases do GitHub (fetch é interceptado; nada vai para a rede). null = sem internet. */
+  releases: unknown[] | null;
   /** Respostas extras por comando (ex.: comandos Rust novos). */
   handlers: Record<string, (args: Record<string, unknown>) => unknown>;
 };
@@ -139,7 +141,14 @@ export function setupTauri(): TauriState {
     t.openPath = null;
     t.askAnswer = true;
     t.handlers = {};
+    t.releases = [];
     mockIPC((cmd, args) => handle(t, cmd, args));
+    const realFetch = globalThis.fetch;
+    vi.stubGlobal("fetch", async (url: RequestInfo | URL, init?: RequestInit) => {
+      if (!String(url).startsWith("https://api.github.com/")) return realFetch(url, init);
+      if (t.releases === null) throw new TypeError("Failed to fetch");
+      return new Response(JSON.stringify(t.releases), { status: 200 });
+    });
     // mockIPC descarta os headers (o writeFile manda o caminho neles): repassa as opções também.
     const internals = (window as unknown as { __TAURI_INTERNALS__: { invoke: (c: string, a: unknown, o?: { headers?: Record<string, string> }) => Promise<unknown> } }).__TAURI_INTERNALS__;
     internals.invoke = async (c, a, o) => handle(t, c, a, o?.headers);

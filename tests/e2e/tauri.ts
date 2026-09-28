@@ -17,6 +17,10 @@ export type TauriMock = {
   /** Resposta de ask()/confirm(). */
   askAnswer: boolean;
   calls: string[];
+  /** Resposta do updater (latest.json): null = sem atualização. */
+  update: { rid: number; currentVersion: string; version: string; date: null; body: null; rawJson: object } | null;
+  /** Resposta da API de releases do GitHub (interceptada; null = sem internet). */
+  releases: unknown[] | null;
   /** Backups automáticos "no disco": pasta → (nome → conteúdo). */
   autoBackups: Map<string, Map<string, string>>;
   /** Resposta do comando window_style (material nativo). */
@@ -126,7 +130,7 @@ function handler(m: TauriMock, cmd: string, a: Record<string, unknown> | null, h
     case "plugin:app|version":
       return "0.2.0";
     case "plugin:updater|check":
-      return null;
+      return m.update;
     case "window_style":
       return m.windowStyle;
     case "plugin:event|listen":
@@ -164,7 +168,7 @@ function handler(m: TauriMock, cmd: string, a: Record<string, unknown> | null, h
 
 export const test = base.extend<{ tauri: TauriMock }>({
   tauri: async ({ page }, provide) => {
-    const m: TauriMock = { db: new DatabaseSync(":memory:"), files: new Map(), nextOpen: null, savePath: null, askAnswer: true, calls: [], autoBackups: new Map(), windowStyle: { effect: "none", overlayTitlebar: false } };
+    const m: TauriMock = { db: new DatabaseSync(":memory:"), files: new Map(), nextOpen: null, savePath: null, askAnswer: true, calls: [], update: null, releases: [], autoBackups: new Map(), windowStyle: { effect: "none", overlayTitlebar: false } };
     await page.exposeFunction("__tauriInvoke", (cmd: string, a: Record<string, unknown> | null, h: Record<string, string> | null) => {
       m.calls.push(cmd);
       try {
@@ -174,6 +178,9 @@ export const test = base.extend<{ tauri: TauriMock }>({
       }
     });
     await page.addInitScript(INIT);
+    await page.route("https://api.github.com/**", (route) =>
+      m.releases === null ? route.abort("internetdisconnected") : route.fulfill({ json: m.releases, headers: { "access-control-allow-origin": "*" } }),
+    );
     await provide(m);
     m.db.close();
   },

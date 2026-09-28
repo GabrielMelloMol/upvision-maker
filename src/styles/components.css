@@ -221,3 +221,21 @@ h3.subhead svg { width: 16px; height: 16px; color: var(--muted); }
 .backup-list li:last-child { border-bottom: 0; }
 .banner.warn { background: var(--warn-soft); }
 .banner button.ghost { color: var(--text); }
+
+/* Sobre (#18) */
+.about-head { display: flex; align-items: center; gap: var(--space-4); }
+.about-head img { width: 56px; height: 56px; border-radius: 14px; box-shadow: var(--shadow-1); background: #fff; }
+.about-head strong { display: block; font-family: var(--font-display); font-size: var(--title-2); font-weight: 700; }
+.about-head .about-version { display: inline-block; margin: 2px 8px 2px 0; font-size: var(--text-lg); font-weight: 600; font-variant-numeric: tabular-nums; }
+.about-status { display: flex; align-items: center; gap: 10px; padding: 12px 14px; border-radius: var(--r); background: var(--fill); font-weight: 500; }
+.about-status svg { width: 18px; height: 18px; flex: none; color: var(--muted); }
+.about-status.current { background: var(--ok-soft); }
+.about-status.current svg { color: var(--ok); }
+.about-status.available { background: var(--action-soft); }
+.about-status.available svg { color: var(--action-text); }
+.about-status.offline { background: var(--warn-soft); }
+.about-status.offline svg { color: var(--warn); }
+.about-status svg.spin { animation: spin 0.9s linear infinite; }
+.about-missing h3 { margin: var(--space-2) 0; }
+.about-missing > ul { margin: 0; padding-left: 18px; display: grid; gap: 8px; }
+.about-missing ul ul { margin: 4px 0 0; padding-left: 16px; color: var(--muted); display: grid; gap: 2px; }

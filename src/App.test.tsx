@@ -134,7 +134,7 @@ describe("App", () => {
     t.handlers["plugin:updater|download_and_install"] = fail("sem espaço");
     const user = userEvent.setup();
     renderWithApp(<App />);
-    expect(await screen.findByText("Nova versão 0.4.0 disponível.")).toBeInTheDocument();
+    expect(await screen.findByText("Nova versão v0.4.0 disponível.")).toBeInTheDocument();
     await user.click(screen.getByRole("button", { name: "Atualizar e reiniciar" }));
     expect(await screen.findByRole("alert")).toHaveTextContent("Falha ao atualizar: sem espaço");
     expect(screen.getByRole("button", { name: "Atualizar e reiniciar" })).toBeEnabled();

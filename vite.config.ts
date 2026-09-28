@@ -9,6 +9,8 @@ const host = process.env.TAURI_DEV_HOST;
 // https://vite.dev/config/
 export default defineConfig(() => ({
   plugins: [react(), wasm()],
+  // Data do build (tela Sobre, #18).
+  define: { __BUILD_DATE__: JSON.stringify(new Date().toISOString().slice(0, 10)) },
   // WASM (vtracer) usa top-level await; WebView2 e WKWebView (Safari 16+) suportam.
   build: { target: "es2022" },
   worker: { format: "es" as const, plugins: () => [wasm()] },

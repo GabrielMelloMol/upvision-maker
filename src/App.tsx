@@ -1,8 +1,8 @@
 import { useEffect, useState, Suspense } from "react";
-import type { Update } from "@tauri-apps/plugin-updater";
 import { loadBackup, saveBackup } from "./backupActions";
 import { errorText, useToast } from "./ui/Toast";
-import { findUpdate, installUpdate } from "./updater";
+import AboutSheet from "./about/AboutSheet";
+import { latestVersion, useUpdates } from "./about/useUpdates";
 import { useAutoBackup } from "./backup/useAutoBackup";
 import { notifyBackupDone } from "./backup/BackupSettingsCard";
 import SuggestDialog from "./feedback/SuggestDialog";
@@ -24,8 +24,8 @@ export default function App() {
   const [pageId, setPageId] = useState(PAGES[0].id);
   const [reloadKey, setReloadKey] = useState(0);
   const [scrolled, setScrolled] = useState(false);
-  const [update, setUpdate] = useState<Update | null>(null);
-  const [installing, setInstalling] = useState(false);
+  const updates = useUpdates();
+  const [about, setAbout] = useState(false);
   const [suggesting, setSuggesting] = useState(false);
   const [afterUpdate, closeAfterUpdate] = useWhatsNewAfterUpdate();
   const [showAllNews, setShowAllNews] = useState(false);
@@ -35,9 +35,6 @@ export default function App() {
   const { reminderDays, neverBackedUp, backupNow } = useAutoBackup();
   const page = PAGES.find((p) => p.id === pageId) ?? PAGES[0];
 
-  useEffect(() => {
-    findUpdate().then(setUpdate);
-  }, []);
   useEffect(() => installShortcuts({ openPalette: () => setSearching(true) }), []);
 
   function pick(item: SearchItem) {
@@ -75,16 +72,6 @@ export default function App() {
     }
   }
 
-  async function onInstall() {
-    if (!update) return;
-    setInstalling(true);
-    try {
-      await installUpdate(update);
-    } catch (e) {
-      setInstalling(false);
-      toast(`Falha ao atualizar: ${errorText(e)}`, "error");
-    }
-  }
 
   return (
     <div className="app">
@@ -96,6 +83,9 @@ export default function App() {
         onSuggest={() => setSuggesting(true)}
         onBackup={onSave}
         onRestore={onRestore}
+        version={updates.version}
+        updateAvailable={updates.status === "available"}
+        onAbout={() => setAbout(true)}
       />
       <main key={`${page.id}-${reloadKey}`} onScroll={(e) => setScrolled(e.currentTarget.scrollTop > TITLE_SCROLL_PX)}>
         <Toolbar title={page.label} icon={page.icon} scrolled={scrolled}>
@@ -116,17 +106,32 @@ export default function App() {
               </button>
             </div>
           )}
-          {update && (
+          {updates.update && !about && (
             <div className="banner">
-              <span>Nova versão {update.version} disponível.</span>
-              <button className="primary" onClick={onInstall} disabled={installing}>
-                {installing ? "Atualizando…" : "Atualizar e reiniciar"}
+              <span>Nova versão v{latestVersion(updates)} disponível.</span>
+              <button className="primary" onClick={updates.install} disabled={updates.status === "installing"}>
+                {updates.status === "installing" ? "Atualizando…" : "Atualizar e reiniciar"}
               </button>
+              {updates.error && (
+                <span className="error" role="alert">
+                  {updates.error}
+                </span>
+              )}
             </div>
           )}
           <Suspense fallback={<PageSkeleton />}>{page.render(navigate)}</Suspense>
         </div>
       </main>
+      {about && (
+        <AboutSheet
+          {...updates}
+          onClose={() => setAbout(false)}
+          onNews={() => {
+            setAbout(false);
+            setShowAllNews(true);
+          }}
+        />
+      )}
       {searching && <CommandPalette pages={PAGES} onPick={pick} onClose={() => setSearching(false)} />}
       {suggesting && <SuggestDialog onClose={() => setSuggesting(false)} />}
       {afterUpdate.length > 0 && <WhatsNewModal entries={afterUpdate} onClose={closeAfterUpdate} />}
