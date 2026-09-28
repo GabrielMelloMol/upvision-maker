@@ -7,7 +7,7 @@ import { printers } from "../db/repo";
 import type { Db } from "../db/types";
 import type { Printer } from "../domain/entities";
 import { money, parseDecimal } from "../domain/format";
-import { FREQUENCIES, FREQUENCY_LABEL, type OperationalCost, type OperationalCostInput } from "../domain/finance";
+import { FREQUENCIES, FREQUENCY_LABEL, monthlyRecurring, type OperationalCost, type OperationalCostInput } from "../domain/finance";
 import { todayIso } from "../domain/orders";
 import "../styles/features.css";
 import Button from "../ui/Button";
@@ -25,11 +25,7 @@ export default function Costs() {
   const [data, reload] = useData(load, { costs: [] as OperationalCost[], printers: [] as Printer[] });
   const [editing, setEditing] = useState<Partial<OperationalCost> | null>(null);
   const toast = useToast();
-  const monthly = data.costs.reduce((s, c) => {
-    const factor = { once: 0, weekly: 52 / 12, monthly: 1, yearly: 1 / 12 }[c.frequency];
-    const active = !c.endDate || c.endDate >= todayIso();
-    return s + (active ? c.amount * factor : 0);
-  }, 0);
+  const monthly = monthlyRecurring(data.costs, todayIso());
 
   async function remove(c: OperationalCost) {
     if (!(await ask(`Excluir "${c.description}"?`, { title: "Excluir custo", kind: "warning", okLabel: "Excluir custo", cancelLabel: "Cancelar" }))) return;

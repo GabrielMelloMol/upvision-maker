@@ -16,7 +16,7 @@ async function order(o: { channel: string; status: string; deliveredAt: string |
 }
 
 /**
- * Hoje = 15/06/2026. "3 meses" = 01/04–30/06 (anterior: 31/12/2025–31/03/2026).
+ * Hoje = 15/06/2026. "3 meses" = 01/04–30/06 (anterior: 01/01–31/03/2026, meses de calendário).
  * Atual: pedido de jun (Shopee, 10× Chaveiro a 20 + frete 15 = 215, custo 50, 5 h) e de mai (Instagram, 2× Medalha a 50 −10% = 90, custo 20, 2 h).
  * Anterior: pedido de fev (Shopee, 5× Chaveiro = 100, custo 25). Custo fixo de 100/mês desde jan, ligado à impressora 1.
  */
@@ -87,8 +87,10 @@ describe("Financeiro", () => {
 
     await user.click(screen.getByRole("button", { name: "Este mês" }));
     expect(text(tile("Receita"))).toContain("R$ 215,00");
-    expect(text(tile("Receita"))).toContain("▲ 139%"); // vs 02/05–31/05 (90)
+    expect(text(tile("Receita"))).toContain("▲ 139%"); // vs maio inteiro (90)
     expect(text(tile("Custos operacionais"))).toContain("R$ 100,00");
+    // maio inteiro (com o dia 1º, quando cai a parcela) é a base: 100 vs 100, sem variação
+    expect(text(tile("Custos operacionais"))).not.toContain("sem base para comparar");
     expect(text(tile("Lucro"))).toContain("R$ 65,00");
     expect(tile("Lucro")).not.toHaveClass("bad");
 

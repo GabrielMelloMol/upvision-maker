@@ -39,15 +39,15 @@ describe("Custos operacionais", () => {
     expect(text(screen.getByText(/Custos recorrentes ativos/))).toBe("Custos recorrentes ativos: cerca de R$ 1.200,50 por mês.");
   });
 
-  test("total mensal: semanal × 52/12, anual ÷ 12, único e encerrados fora; mostra impressora e período", async () => {
+  test("total mensal: semanal × 52/12, anual ÷ 12, único, encerrados e futuros fora; mostra impressora e período", async () => {
     await t.db.execute("INSERT INTO printers (id, name, watts) VALUES (1, 'Bambu A1', 95)");
     await insert(
       `('Internet', '', 120, 'weekly', '2026-01-01', NULL, NULL), ('Seguro', '', 1200, 'yearly', '2026-01-01', NULL, NULL),
        ('Impressora nova', '', 3000, 'once', '2026-03-10', NULL, 1), ('Parcela', '', 500, 'monthly', '2025-01-01', '2026-05-31', 1),
-       ('Luz', '', 80, 'monthly', '2026-01-01', '2026-06-15', NULL)`,
+       ('Luz', '', 80, 'monthly', '2026-01-01', '2026-06-15', NULL), ('Loja nova', '', 900, 'monthly', '2027-01-01', NULL, NULL)`,
     );
     renderWithApp(<Costs />);
-    // 120 × 52/12 = 520 + 1200/12 = 100 + Luz 80 (termina hoje, ainda ativo) = 700
+    // 120 × 52/12 = 520 + 1200/12 = 100 + Luz 80 (termina hoje, ainda ativo) = 700; "Loja nova" só começa em 2027
     expect(text(await screen.findByText(/Custos recorrentes ativos/))).toContain("R$ 700,00");
     const cells = (name: RegExp) => within(screen.getByRole("row", { name })).getAllByRole("cell").map(text);
     expect(cells(/Impressora nova/)[0]).toBe("Impressora novaBambu A1");

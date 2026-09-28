@@ -159,13 +159,32 @@ export function periodRange(p: Exclude<Period, "custom">, today: string): [strin
   }
 }
 
-/** Período imediatamente anterior com a mesma duração (para comparar). */
+/**
+ * Período imediatamente anterior para comparar: se for de meses inteiros (1º dia a último dia),
+ * os mesmos N meses de calendário antes; senão, a janela de mesma duração em dias.
+ */
 export function previousRange(from: string, to: string): [string, string] {
+  const [fy, fm, fd] = from.split("-").map(Number);
+  const [ty, tm, td] = to.split("-").map(Number);
+  const lastDay = new Date(ty, tm, 0).getDate();
+  if (fd === 1 && td === lastDay) {
+    const months = (ty - fy) * 12 + (tm - fm) + 1;
+    const start = new Date(fy, fm - 1 - months, 1);
+    const end = new Date(fy, fm - 1, 0);
+    return [todayIso(start), todayIso(end)];
+  }
   const day = 86_400_000;
   const a = new Date(`${from}T12:00:00`).getTime();
   const b = new Date(`${to}T12:00:00`).getTime();
   const len = Math.round((b - a) / day) + 1;
   return [todayIso(new Date(a - len * day)), todayIso(new Date(a - day))];
+}
+
+const MONTHLY_FACTOR = { once: 0, weekly: 52 / 12, monthly: 1, yearly: 1 / 12 } as const;
+
+/** Soma mensal equivalente dos custos recorrentes em vigor hoje (já começaram e não terminaram). */
+export function monthlyRecurring(costs: Pick<OperationalCost, "frequency" | "amount" | "startDate" | "endDate">[], today: string): number {
+  return costs.reduce((s, c) => (c.startDate <= today && (!c.endDate || c.endDate >= today) ? s + c.amount * MONTHLY_FACTOR[c.frequency] : s), 0);
 }
 
 /** Variação percentual; null quando não há base de comparação. */

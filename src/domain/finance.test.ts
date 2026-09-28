@@ -99,11 +99,24 @@ test("períodos prontos", async () => {
   expect(periodRange("year", "2026-09-28")).toEqual(["2026-01-01", "2026-12-31"]);
 });
 
-test("período anterior de mesma duração e variação", async () => {
+test("período anterior: meses de calendário quando o período é de meses inteiros; senão mesma duração", async () => {
   const { previousRange, change } = await import("./finance");
-  expect(previousRange("2026-09-01", "2026-09-30")).toEqual(["2026-08-02", "2026-08-31"]);
+  expect(previousRange("2026-09-01", "2026-09-30")).toEqual(["2026-08-01", "2026-08-31"]);
+  expect(previousRange("2026-06-01", "2026-06-30")).toEqual(["2026-05-01", "2026-05-31"]);
+  expect(previousRange("2026-04-01", "2026-06-30")).toEqual(["2026-01-01", "2026-03-31"]);
+  expect(previousRange("2025-07-01", "2026-06-30")).toEqual(["2024-07-01", "2025-06-30"]);
+  expect(previousRange("2026-03-01", "2026-03-31")).toEqual(["2026-02-01", "2026-02-28"]);
   expect(previousRange("2026-03-01", "2026-03-01")).toEqual(["2026-02-28", "2026-02-28"]);
+  expect(previousRange("2026-03-10", "2026-03-19")).toEqual(["2026-02-28", "2026-03-09"]);
   expect(change(150, 100)).toBe(50);
   expect(change(50, -100)).toBe(150);
   expect(change(10, 0)).toBeNull();
+});
+
+test("custos recorrentes em vigor: ignora os que ainda não começaram, já terminaram ou são únicos", async () => {
+  const { monthlyRecurring } = await import("./finance");
+  const c = (frequency: "once" | "weekly" | "monthly" | "yearly", amount: number, startDate: string, endDate: string | null = null) => ({ frequency, amount, startDate, endDate });
+  const today = "2026-06-15";
+  expect(monthlyRecurring([c("monthly", 100, "2026-01-01"), c("yearly", 1200, "2025-01-01"), c("once", 500, "2026-06-01")], today)).toBe(200);
+  expect(monthlyRecurring([c("monthly", 100, "2027-01-01"), c("monthly", 50, "2026-01-01", "2026-05-31")], today)).toBe(0);
 });
