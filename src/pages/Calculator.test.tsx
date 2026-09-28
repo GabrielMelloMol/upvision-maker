@@ -98,10 +98,10 @@ describe("Calculator", () => {
     expect(shopee.slice(1, 4)).toEqual(["R$ 50,90", "R$ 14,18", "R$ 15,72"]); // taxas e lucro no preço arredondado
 
     await user.type(screen.getByLabelText("Preço do concorrente"), "30");
-    expect(screen.getByRole("columnheader", { name: "No preço do concorrente" })).toBeInTheDocument();
+    expect(screen.getByRole("columnheader", { name: "Lucro no preço do concorrente" })).toBeInTheDocument();
     expect(row(/^Shopee/)).toHaveTextContent(/-R\$\s1,00\s*prejuízo/); // 30 − (6 + 4) − 21
     expect(row(/^Direto ao consumidor/)).not.toHaveTextContent("prejuízo");
-    expect(screen.getByText(/Seu preço direto está \d+% acima do concorrente/)).toBeInTheDocument();
+    expect(screen.getByText(/^\d+% acima do concorrente/)).toBeInTheDocument();
   });
 
   test("margem mínima das preferências marca o canal abaixo dela", async () => {

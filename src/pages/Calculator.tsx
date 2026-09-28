@@ -263,7 +263,7 @@ function CompetitorHint({ ours, competitor }: { ours: number; competitor: number
   return h.ok ? <span className="hint ok">{h.text}</span> : <span className="error">{h.text}</span>;
 }
 
-const pct = (n: number) => `${n.toLocaleString("pt-BR")}%`;
+const pct = (n: number) => `${n.toLocaleString("pt-BR", { maximumFractionDigits: 1 })}%`;
 
 /** Preço em cada canal lado a lado, com lucro líquido depois das taxas e alertas (nunca só por cor). */
 function ChannelTable({ rows, minMarginPct, children }: { rows: ChannelRow[]; minMarginPct: number; children: React.ReactNode }) {
@@ -282,7 +282,11 @@ function ChannelTable({ rows, minMarginPct, children }: { rows: ChannelRow[]; mi
             <th className="num">Taxas</th>
             <th className="num">Lucro líquido</th>
             <th className="num">Margem</th>
-            {comp && <th className="num">No preço do concorrente</th>}
+            {comp && (
+              <th className="num" title="Lucro líquido em cada canal vendendo pelo preço do concorrente, já descontadas as taxas">
+                Lucro no preço do concorrente
+              </th>
+            )}
           </tr>
         </thead>
         <tbody>

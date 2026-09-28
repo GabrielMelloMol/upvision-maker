@@ -69,15 +69,13 @@ export function compareChannels(r: CalcResult, s: Settings, freight: number, opt
   return rows.map((x) => ({ ...x, best: x === top }));
 }
 
-const FAR_PCT = 20;
+const SIMILAR_PCT = 5;
 
-/** Compara o preço direto com o do concorrente; null sem concorrente. */
+/** Compara o preço direto com o do concorrente: até ±5% é "parecido"; abaixo é ok (vende), acima pede atenção. null sem concorrente. */
 export function competitorHint(ours: number, competitor: number): { ok: boolean; text: string } | null {
   if (!(competitor > 0) || !(ours > 0)) return null;
   const rel = (ours - competitor) / competitor;
   const pct = Math.round(Math.abs(rel) * 100); // arredonda igual para cima e para baixo
-  const side = rel >= 0 ? "acima" : "abaixo";
-  if (pct <= FAR_PCT) return { ok: true, text: `Parecido com o concorrente (${pct}% ${side}).` };
-  const tail = rel < 0 ? ": dá para cobrar mais." : ".";
-  return { ok: false, text: `Seu preço direto está ${pct}% ${side} do concorrente (${money(competitor)})${tail}` };
+  if (pct <= SIMILAR_PCT) return { ok: true, text: "Parecido com o concorrente." };
+  return rel < 0 ? { ok: true, text: `${pct}% abaixo do concorrente.` } : { ok: false, text: `${pct}% acima do concorrente (${money(competitor)}).` };
 }

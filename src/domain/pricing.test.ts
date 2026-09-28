@@ -56,13 +56,14 @@ describe("canais lado a lado", () => {
   });
 });
 
-test("aviso do concorrente: muito acima, muito abaixo ou parecido", () => {
+test("aviso do concorrente: parecido até ±5%, abaixo ok, acima pede atenção", () => {
   const hint = (a: number, b: number) => {
     const h = competitorHint(a, b);
     return h && { ...h, text: h.text.replace(/\u00a0/g, " ") };
   };
-  expect(hint(79.8, 35)).toEqual({ ok: false, text: "Seu preço direto está 128% acima do concorrente (R$ 35,00)." });
-  expect(hint(79.8, 120)).toEqual({ ok: false, text: "Seu preço direto está 34% abaixo do concorrente (R$ 120,00): dá para cobrar mais." });
-  expect(hint(79.8, 78)).toEqual({ ok: true, text: "Parecido com o concorrente (2% acima)." });
-  expect(competitorHint(79.8, 0)).toBeNull();
+  expect(hint(79.8, 35)).toEqual({ ok: false, text: "128% acima do concorrente (R$ 35,00)." });
+  expect(hint(79.8, 120)).toEqual({ ok: true, text: "34% abaixo do concorrente." });
+  expect(hint(79.8, 95)).toEqual({ ok: true, text: "16% abaixo do concorrente." });
+  expect(hint(79.8, 78)).toEqual({ ok: true, text: "Parecido com o concorrente." });
+  expect(hint(79.8, 0)).toBeNull();
 });
