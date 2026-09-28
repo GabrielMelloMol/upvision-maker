@@ -1,10 +1,10 @@
-import { expect, go, openApp, test } from "./tauri";
+import { expect, go, openApp, test, toastWith } from "./tauri";
 
 test("navegação: todas as páginas da sidebar abrem com título", async ({ page, tauri }) => {
   void tauri;
   await openApp(page);
   const nav = page.getByRole("navigation", { name: "Navegação principal" });
-  const labels = await nav.locator("button.nav").allInnerTexts();
+  const labels = await nav.locator(".scroll button.nav").allInnerTexts();
   expect(labels.length).toBeGreaterThanOrEqual(12);
   for (const label of labels) {
     await nav.getByRole("button", { name: label.trim(), exact: true }).click();
@@ -22,7 +22,7 @@ test("preferências: salva e persiste valores; recusa valor inválido", async ({
   const kwh = page.getByLabel("Preço do kWh (R$)");
   await kwh.fill("1,15");
   await page.getByRole("button", { name: "Salvar preferências" }).click();
-  await expect(page.getByRole("status").filter({ hasText: "Preferências salvas." })).toBeVisible();
+  await expect(toastWith(page, "Preferências salvas.")).toBeVisible();
   const saved = tauri.db.prepare("SELECT data FROM settings WHERE id = 1").get() as { data: string };
   expect(JSON.parse(saved.data).kwhPrice).toBe(1.15);
 
@@ -43,6 +43,7 @@ test("impressoras: adiciona, edita e exclui", async ({ page, tauri }) => {
   await page.getByRole("button", { name: "Adicionar" }).click();
   const row = page.getByRole("row", { name: /Bambu A1/ });
   await expect(row).toContainText("95");
+  await expect(page.getByText("Nada cadastrado ainda.")).toBeHidden();
 
   await row.getByRole("button", { name: "Editar" }).click();
   await page.getByLabel("Potência média (W)").fill("110");
@@ -103,7 +104,7 @@ test("calculadora: exemplo da home dá R$ 15,96 / 47,88 / 79,80", async ({ page,
   const main = page.getByRole("main");
   await main.getByLabel("Preço por kg (R$)").fill("85");
   await main.getByLabel("Gramas").fill("120");
-  await main.getByRole("button", { name: "Adicionar" }).nth(1).click(); // linha de material extra
+  await main.getByRole("button", { name: "Adicionar material" }).click();
   await main.getByLabel("Preço unitário (R$)").fill("5");
   await main.getByLabel("Quantidade").fill("1");
   await expect(page.getByRole("row", { name: /Custo por peça/ })).toContainText("R$ 15,96");
@@ -120,7 +121,7 @@ test("backup: salva JSON e restaura substituindo os dados (com cópia de seguran
   await expect(page.getByRole("row", { name: /Ender 3/ })).toBeVisible();
 
   await page.getByRole("button", { name: "Fazer backup" }).click();
-  await expect(page.getByRole("status").filter({ hasText: "Backup salvo em" })).toBeVisible();
+  await expect(toastWith(page, "Backup salvo em")).toBeVisible();
   const [path, bytes] = [...tauri.files].find(([p]) => p.includes("upvision-backup-"))!;
   const backup = JSON.parse(bytes.toString());
   expect(backup.app).toBe("upvision-maker");
@@ -130,7 +131,7 @@ test("backup: salva JSON e restaura substituindo os dados (com cópia de seguran
   tauri.db.exec("DELETE FROM printers");
   tauri.nextOpen = path;
   await page.getByRole("button", { name: "Restaurar backup" }).click();
-  await expect(page.getByRole("status").filter({ hasText: "Backup restaurado" })).toBeVisible();
+  await expect(toastWith(page, "Backup restaurado")).toBeVisible();
   await expect(page.getByRole("row", { name: /Ender 3/ })).toBeVisible();
   expect([...tauri.files.keys()].some((p) => p.startsWith("/dados-app/backups/antes-de-restaurar-"))).toBe(true);
 });
@@ -141,5 +142,44 @@ test("backup: arquivo que não é backup mostra erro e não apaga nada", async (
   tauri.files.set("/qualquer.json", Buffer.from('{"foo": 1}'));
   tauri.nextOpen = "/qualquer.json";
   await page.getByRole("button", { name: "Restaurar backup" }).click();
-  await expect(page.getByRole("status").filter({ hasText: "não é um backup do UpVision Maker" })).toBeVisible();
+  await expect(page.getByRole("alert").filter({ hasText: "não é um backup do UpVision Maker" })).toBeVisible();
+});
+
+test("primeiro uso: apresentação em 3 passos grava custos, impressora e filamento", async ({ page, tauri }) => {
+  await openApp(page, { keepOnboarding: true });
+  const sheet = page.getByRole("dialog", { name: "Boas-vindas ao UpVision Maker" });
+  await sheet.getByLabel("Preço do kWh (R$)").fill("1,05");
+  await sheet.getByRole("button", { name: "Continuar" }).click();
+  await sheet.getByRole("button", { name: "Continuar" }).click(); // nome vazio → erro
+  await expect(sheet.locator("label", { hasText: "Nome" }).locator(".error")).toHaveText("Obrigatório.");
+  await sheet.getByLabel("Nome").fill("Bambu Lab A1");
+  await sheet.getByLabel("Potência média (W)").fill("95");
+  await sheet.getByRole("button", { name: "Continuar" }).click();
+  await sheet.getByLabel("Cor").fill("Branco");
+  await sheet.getByLabel("Preço por kg (R$)").fill("99,90");
+  await sheet.getByRole("button", { name: "Concluir" }).click();
+  await expect(sheet).toBeHidden();
+  await expect(toastWith(page, "Tudo pronto")).toBeVisible();
+
+  expect(JSON.parse((tauri.db.prepare("SELECT data FROM settings").get() as { data: string }).data).kwhPrice).toBe(1.05);
+  expect(tauri.db.prepare("SELECT name, watts FROM printers").all()).toEqual([{ name: "Bambu Lab A1", watts: 95 }]);
+  expect(tauri.db.prepare("SELECT color, pricePerKg, stockG FROM filaments").all()).toEqual([{ color: "Branco", pricePerKg: 99.9, stockG: 1000 }]);
+
+  // não aparece de novo
+  await page.reload();
+  await expect(page.getByRole("navigation", { name: "Navegação principal" })).toBeVisible();
+  await page.waitForTimeout(500);
+  await expect(page.getByRole("dialog")).toHaveCount(0);
+});
+
+test("modal: Esc fecha e o foco volta ao botão que abriu", async ({ page, tauri }) => {
+  void tauri;
+  await openApp(page);
+  const opener = page.getByRole("button", { name: "Sugerir ferramenta" });
+  await opener.click();
+  const dialog = page.getByRole("dialog", { name: "Sugerir ferramenta" });
+  await expect(dialog.getByLabel("O que você queria que o app fizesse?")).toBeFocused();
+  await page.keyboard.press("Escape");
+  await expect(dialog).toBeHidden();
+  await expect(opener).toBeFocused();
 });

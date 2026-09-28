@@ -1,5 +1,5 @@
 import type { Page } from "@playwright/test";
-import { expect, go, openApp, test } from "./tauri";
+import { expect, go, openApp, test, toastWith } from "./tauri";
 
 const FIX = "tests/fixtures";
 
@@ -23,7 +23,7 @@ for (const file of ["logo.jpg", "desenho.jpg"]) {
     const paths = await applyAndWait(page);
     expect(paths).toBeGreaterThan(0);
     await page.getByRole("button", { name: "Salvar SVG" }).click();
-    await expect(page.getByRole("status").filter({ hasText: "SVG salvo em" })).toBeVisible();
+    await expect(toastWith(page, "SVG salvo em")).toBeVisible();
     const svg = [...tauri.files].find(([p]) => p.endsWith(".svg"))![1].toString();
     expect(svg).toMatch(/<svg[^>]*width="[\d.]+mm"/);
   });
@@ -51,7 +51,7 @@ test("Imagem→SVG → Cortador: handoff do SVG e export STL/3MF", async ({ page
   await expect(page.locator(".viewer .hud")).toContainText("mm", { timeout: 60_000 });
 
   await page.getByRole("button", { name: /Salvar 3MF/ }).click();
-  await expect(page.getByRole("status").filter({ hasText: "Arquivo salvo em" })).toBeVisible();
+  await expect(toastWith(page, "Arquivo salvo em")).toBeVisible();
   const threemf = [...tauri.files].find(([p]) => p.endsWith(".3mf"))![1];
   expect(threemf.subarray(0, 2).toString()).toBe("PK"); // zip
 

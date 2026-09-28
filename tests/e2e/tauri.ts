@@ -64,8 +64,10 @@ function handler(m: TauriMock, cmd: string, a: Record<string, unknown> | null, h
     }
     case "plugin:dialog|open":
       return m.nextOpen;
-    case "plugin:dialog|message":
-      return m.askAnswer ? "Yes" : "No";
+    case "plugin:dialog|message": {
+      const custom = (args.buttons as { OkCancelCustom?: [string, string] } | undefined)?.OkCancelCustom;
+      return custom ? custom[m.askAnswer ? 0 : 1] : m.askAnswer ? "Yes" : "No";
+    }
     case "plugin:fs|write_file":
     case "plugin:fs|write_text_file": {
       const path = decodeURIComponent(headers?.path ?? "");
@@ -113,11 +115,20 @@ export const test = base.extend<{ tauri: TauriMock }>({
 
 export { expect };
 
-/** Abre o app e navega pela sidebar. */
-export async function openApp(page: Page) {
+/** Abre o app (fecha a apresentação de primeiro uso, a menos que `keepOnboarding`). */
+export async function openApp(page: Page, { keepOnboarding = false } = {}) {
   await page.goto("/");
   await expect(page.getByRole("navigation", { name: "Navegação principal" })).toBeVisible();
+  const welcome = page.getByRole("dialog", { name: "Boas-vindas ao UpVision Maker" });
+  await expect(welcome).toBeVisible();
+  if (!keepOnboarding) {
+    await welcome.getByRole("button", { name: "Agora não" }).click();
+    await expect(welcome).toBeHidden();
+  }
 }
+
+/** Toast (ok = status, erro = alert) com o texto. */
+export const toastWith = (page: Page, text: string) => page.locator(".toast", { hasText: text });
 
 export async function go(page: Page, label: string | RegExp) {
   await page.getByRole("navigation", { name: "Navegação principal" }).getByRole("button", { name: label }).click();

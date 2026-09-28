@@ -12,8 +12,8 @@ export default defineConfig({
   reporter: [["list"]],
   use: {
     baseURL: `http://localhost:${PORT}`,
-    viewport: { width: 1280, height: 800 },
     ...devices["Desktop Chrome"],
+    viewport: { width: 1280, height: 800 },
   },
   webServer: { command: `npx vite --port ${PORT} --strictPort`, port: PORT, reuseExistingServer: true },
 });
