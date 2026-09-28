@@ -1,14 +1,13 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { buildCutter, DEFAULT_CUTTER, type CutterParams, type ReliefMode } from "../geometry/cutter";
 import Alert from "../ui/Alert";
 import Dropzone from "../ui/Dropzone";
 import ExportButtons from "../ui/ExportButtons";
 import NumField, { inRange } from "../ui/NumField";
 import Preview3D from "../ui/Preview3D";
-import { errorText } from "../ui/Toast";
 import { useModelBuilder } from "../ui/useModelBuilder";
-import { DESIGN_ACCEPT, designFromSvg, fileToSvg, svgWidthMm } from "./designInput";
-import { clearHandoff, peekHandoff } from "./handoff";
+import { DESIGN_ACCEPT, designFromSvg } from "./designInput";
+import { useDesignInput } from "./useDesignInput";
 
 const LIMITS = {
   width: [20, 250],
@@ -23,33 +22,10 @@ const LIMITS = {
 } as const;
 
 export default function CookieCutter() {
-  const [svg, setSvg] = useState<{ text: string; name: string } | null>(() => {
-    const h = peekHandoff();
-    return h && { text: h.svg, name: h.name };
-  });
-  const [loading, setLoading] = useState(false);
-  const [inputError, setInputError] = useState<string | null>(null);
-  const [width, setWidth] = useState(() => Math.round((svg && svgWidthMm(svg.text)) || 70));
+  const { svg, width, setWidth, loading, error: inputError, onFile } = useDesignInput(70);
   const [mirror, setMirror] = useState(true);
   const [p, setP] = useState<CutterParams>(DEFAULT_CUTTER);
   const set = <K extends keyof CutterParams>(key: K) => (v: CutterParams[K]) => setP((o) => ({ ...o, [key]: v }));
-
-  useEffect(clearHandoff, []);
-
-  async function onFile(f: File) {
-    setLoading(true);
-    setInputError(null);
-    try {
-      const text = await fileToSvg(f);
-      setSvg({ text, name: f.name.replace(/\.[^.]+$/, "") });
-      const w = svgWidthMm(text);
-      if (w && f.name.toLowerCase().endsWith(".svg")) setWidth(Math.round(w));
-    } catch (e) {
-      setInputError(errorText(e));
-    } finally {
-      setLoading(false);
-    }
-  }
 
   const valid = (Object.entries(LIMITS) as [keyof typeof LIMITS, readonly [number, number]][]).every(([k, [lo, hi]]) =>
     inRange(k === "width" ? width : (p[k] as number), lo, hi),
