@@ -10,8 +10,8 @@ test("Modelos prontos: cada modelo gera prévia 3D sem erro", async ({ page, tau
   await go(page, "Modelos prontos");
   const gallery = page.getByRole("group", { name: "Modelo" });
   for (const name of MODELS) {
-    await gallery.getByRole("button", { name }).click();
-    await expect(gallery.getByRole("button", { name })).toHaveAttribute("aria-pressed", "true");
+    await gallery.getByRole("button", { name, exact: true }).click();
+    await expect(gallery.getByRole("button", { name, exact: true })).toHaveAttribute("aria-pressed", "true");
     await expect(page.locator(".viewer .overlay.busy")).toHaveCount(0, { timeout: 60_000 });
     await expect(page.locator(".viewer .hud")).toContainText("mm", { timeout: 60_000 });
     await expect(page.locator(".viewer .overlay")).toHaveCount(0);
