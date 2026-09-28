@@ -1,3 +1,4 @@
+import { Coins, Plus, Store } from "lucide-react";
 import { useState } from "react";
 import { getDb } from "../db";
 import { loadSettings, saveSettings } from "../db/repo";
@@ -21,11 +22,13 @@ const FIELDS: { key: NumKey; label: string }[] = [
 export default function Preferences() {
   const [settings] = useData(loadSettings, null as Settings | null);
   return (
-    <>
-      {settings && <PreferencesForm initial={settings} />}
+    <div className="page">
+      <h1>Preferências</h1>
+      <p className="lead">Custos da sua produção e taxas dos canais de venda. Tudo fica salvo só neste computador.</p>
+      {settings ? <PreferencesForm initial={settings} /> : <span className="skeleton" style={{ height: 180, borderRadius: 16, marginBottom: 16 }} />}
       <h2>Ferramentas</h2>
       <AiSettingsCard />
-    </>
+    </div>
   );
 }
 
@@ -57,8 +60,10 @@ function PreferencesForm({ initial }: { initial: Settings }) {
 
   return (
     <form onSubmit={submit} noValidate>
-      <h1>Preferências</h1>
       <div className="card">
+        <h2 className="card-title">
+          <Coins aria-hidden /> Custos e preço
+        </h2>
         <div className="grid">
           {FIELDS.map((f) => (
             <label key={f.key}>
@@ -70,18 +75,22 @@ function PreferencesForm({ initial }: { initial: Settings }) {
         </div>
       </div>
 
-      <h2>Canais de venda (taxas)</h2>
-      <p className="muted">As taxas dos marketplaces mudam com frequência. Confira os valores atuais de cada canal.</p>
       <div className="card">
+        <h2 className="card-title">
+          <Store aria-hidden /> Canais de venda (taxas)
+        </h2>
+        <p className="hint" style={{ marginTop: -8, marginBottom: 16 }}>As taxas dos marketplaces mudam com frequência. Confira os valores atuais de cada canal.</p>
         {channels.map((c, i) => (
-          <div className="row" key={i} style={{ marginBottom: 8 }}>
+          <div className="row line" key={i}>
             <label>Canal<input value={c.name} onChange={(e) => setChannel(i, "name", e.target.value)} /></label>
             <label>Comissão (%)<input inputMode="decimal" value={c.feePct} onChange={(e) => setChannel(i, "feePct", e.target.value)} /></label>
             <label>Taxa fixa por venda (R$)<input inputMode="decimal" value={c.feeFixed} onChange={(e) => setChannel(i, "feeFixed", e.target.value)} /></label>
             <button type="button" className="link danger" onClick={() => setChannels(channels.filter((_, j) => j !== i))}>Remover</button>
           </div>
         ))}
-        <button type="button" onClick={() => setChannels([...channels, { name: "", feePct: "0", feeFixed: "0" }])}>Adicionar canal</button>
+        <button type="button" className="sm" onClick={() => setChannels([...channels, { name: "", feePct: "0", feeFixed: "0" }])}>
+          <Plus aria-hidden /> Adicionar canal
+        </button>
         {errors.channels && <p className="error">Confira os canais: nome obrigatório e comissão entre 0 e 100%.</p>}
       </div>
       {errors._ && <p className="error">{errors._}</p>}

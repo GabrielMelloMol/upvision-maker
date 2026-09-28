@@ -1,5 +1,6 @@
 import { filaments } from "../db/repo";
 import { MATERIAL_TYPES } from "../domain/entities";
+import { Cylinder } from "lucide-react";
 import CrudPage from "../ui/CrudPage";
 
 export default function Filaments() {
@@ -7,6 +8,8 @@ export default function Filaments() {
     <CrudPage
       title="Filamentos"
       singular="Filamento"
+      lead="Estoque em gramas, aviso de mínimo e custo médio atualizado a cada reposição."
+      empty={{ icon: Cylinder, text: "Cadastre os rolos que você tem: o app avisa quando o estoque passar do mínimo e usa o preço na calculadora." }}
       repo={filaments}
       fields={[
         { key: "material", label: "Material", kind: "select", options: MATERIAL_TYPES },

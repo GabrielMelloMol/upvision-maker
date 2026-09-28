@@ -1,8 +1,10 @@
 import { ask } from "@tauri-apps/plugin-dialog";
-import { Fragment, useState } from "react";
+import { Plus, type LucideIcon } from "lucide-react";
+import { Fragment, useRef, useState } from "react";
 import { getDb } from "../db";
 import type { Db } from "../db/types";
 import { money, parseDecimal } from "../domain/format";
+import EmptyState from "./EmptyState";
 import { fieldErrors } from "./fieldErrors";
 import { errorText, useToast } from "./Toast";
 import { useData } from "./useData";
@@ -27,27 +29,33 @@ type Repo = {
 type Props = {
   title: string;
   singular: string;
+  /** Frase abaixo do título. */
+  lead?: string;
   repo: Repo;
   fields: Field[];
   defaults: Record<string, string>;
+  /** Ícone e frase do estado vazio. */
+  empty: { icon: LucideIcon; text: string };
   isLow?: (r: Row) => boolean;
   restock?: { qtyLabel: string; priceLabel: string; defaultQty: (r: Row) => number };
 };
 
-const show = (f: Field, v: string | number) =>
-  f.kind === "money" ? money(Number(v)) : f.kind === "number" ? Number(v).toLocaleString("pt-BR") : v;
+const SKELETON_ROWS = 3;
+const isNum = (f: Field) => f.kind === "number" || f.kind === "money";
+const show = (f: Field, v: string | number) => (f.kind === "money" ? money(Number(v)) : f.kind === "number" ? Number(v).toLocaleString("pt-BR") : v);
 
-export default function CrudPage({ title, singular, repo, fields, defaults, isLow, restock }: Props) {
-  const [rows, reload] = useData((db) => repo.list(db), [] as Row[]);
+export default function CrudPage({ title, singular, lead, repo, fields, defaults, empty, isLow, restock }: Props) {
+  const [rows, reload, loading] = useData((db) => repo.list(db), [] as Row[]);
   const [form, setForm] = useState(defaults);
   const [editing, setEditing] = useState<number | null>(null);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [restocking, setRestocking] = useState<{ id: number; qty: string; price: string } | null>(null);
+  const formRef = useRef<HTMLFormElement>(null);
   const toast = useToast();
 
   function toValues() {
     const v: Record<string, unknown> = {};
-    for (const f of fields) v[f.key] = f.kind === "number" || f.kind === "money" ? parseDecimal(form[f.key] ?? "") : form[f.key];
+    for (const f of fields) v[f.key] = isNum(f) ? parseDecimal(form[f.key] ?? "") : form[f.key];
     return v;
   }
 
@@ -71,16 +79,24 @@ export default function CrudPage({ title, singular, repo, fields, defaults, isLo
     setErrors({});
   }
 
+  function focusForm() {
+    formRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+    formRef.current?.querySelector<HTMLElement>("input, select")?.focus({ preventScroll: true });
+  }
+
   function edit(r: Row) {
     setEditing(r.id);
     setErrors({});
     setForm(Object.fromEntries(fields.map((f) => [f.key, String(r[f.key] ?? "")])));
+    focusForm();
   }
 
   async function remove(r: Row) {
-    if (!(await ask(`Excluir "${r[fields[0].key]}"?`, { title: "Confirmar exclusão", kind: "warning" }))) return;
+    const name = r[fields[0].key];
+    if (!(await ask(`Excluir "${name}"? Isso não pode ser desfeito.`, { title: "Confirmar exclusão", kind: "warning", okLabel: "Excluir", cancelLabel: "Cancelar" }))) return;
     try {
       await repo.remove(await getDb(), r.id);
+      toast(`"${name}" excluído(a).`);
       reload();
     } catch (e) {
       toast(`Não foi possível excluir: ${errorText(e)}`, "error");
@@ -100,9 +116,11 @@ export default function CrudPage({ title, singular, repo, fields, defaults, isLo
   }
 
   return (
-    <>
+    <div className="page">
       <h1>{title}</h1>
-      <form className="card" onSubmit={submit} noValidate>
+      {lead && <p className="lead">{lead}</p>}
+      <form ref={formRef} className="card" onSubmit={submit} noValidate>
+        <h2 className="card-title">{editing === null ? `Adicionar ${singular.toLowerCase()}` : `Editar ${singular.toLowerCase()}`}</h2>
         <div className="grid">
           {fields.map((f) => (
             <label key={f.key}>
@@ -124,45 +142,73 @@ export default function CrudPage({ title, singular, repo, fields, defaults, isLo
           ))}
         </div>
         {errors._ && <p className="error">{errors._}</p>}
-        <div className="row" style={{ marginTop: 12 }}>
-          <button className="primary" type="submit">{editing === null ? "Adicionar" : "Salvar alterações"}</button>
-          {editing !== null && <button type="button" onClick={cancel}>Cancelar</button>}
+        <div className="row" style={{ marginTop: 16 }}>
+          <button className="primary" type="submit">
+            {editing === null ? (
+              <>
+                <Plus aria-hidden /> Adicionar
+              </>
+            ) : (
+              "Salvar alterações"
+            )}
+          </button>
+          {editing !== null && (
+            <button type="button" onClick={cancel}>
+              Cancelar
+            </button>
+          )}
         </div>
       </form>
 
-      {rows.length === 0 ? (
-        <p className="muted">Nada cadastrado ainda.</p>
+      {loading ? (
+        <div className="card" style={{ padding: 0, overflow: "hidden" }} aria-busy="true" aria-label="Carregando">
+          {Array.from({ length: SKELETON_ROWS }, (_, i) => (
+            <span key={i} className="skeleton row" style={{ animationDelay: `${i * 120}ms` }} />
+          ))}
+        </div>
+      ) : rows.length === 0 ? (
+        <EmptyState icon={empty.icon} title="Nada cadastrado ainda." action={<button onClick={focusForm}>Cadastrar {singular.toLowerCase()}</button>}>
+          {empty.text}
+        </EmptyState>
       ) : (
         <table>
           <thead>
             <tr>
               {fields.map((f) => (
-                <th key={f.key} className={f.kind === "text" || f.kind === "select" ? "" : "num"}>{f.label}</th>
+                <th key={f.key} className={isNum(f) ? "num" : ""}>
+                  {f.label}
+                </th>
               ))}
-              <th />
+              <th>
+                <span className="sr-only">Ações</span>
+              </th>
             </tr>
           </thead>
           <tbody>
             {rows.map((r) => (
               <Fragment key={r.id}>
-                <tr>
+                <tr className={editing === r.id ? "selected" : ""}>
                   {fields.map((f, i) => (
-                    <td key={f.key} className={f.kind === "text" || f.kind === "select" ? "" : "num"}>
-                      {show(f, r[f.key])} {i === 0 && isLow?.(r) && <span className="badge">estoque baixo</span>}
+                    <td key={f.key} className={isNum(f) ? "num" : ""}>
+                      {i === 0 ? <strong>{show(f, r[f.key])}</strong> : show(f, r[f.key])} {i === 0 && isLow?.(r) && <span className="badge">estoque baixo</span>}
                     </td>
                   ))}
-                  <td className="num" style={{ whiteSpace: "nowrap" }}>
+                  <td className="num actions">
                     {restock && (
                       <button className="link" onClick={() => setRestocking({ id: r.id, qty: String(restock.defaultQty(r)), price: "" })}>
                         Repor
                       </button>
                     )}
-                    <button className="link" onClick={() => edit(r)}>Editar</button>
-                    <button className="link danger" onClick={() => remove(r)}>Excluir</button>
+                    <button className="link" onClick={() => edit(r)}>
+                      Editar
+                    </button>
+                    <button className="link danger" onClick={() => remove(r)}>
+                      Excluir
+                    </button>
                   </td>
                 </tr>
                 {restock && restocking?.id === r.id && (
-                  <tr>
+                  <tr className="restock">
                     <td colSpan={fields.length + 1}>
                       <div className="row">
                         <label>
@@ -173,7 +219,9 @@ export default function CrudPage({ title, singular, repo, fields, defaults, isLo
                           {restock.priceLabel}
                           <input inputMode="decimal" autoFocus value={restocking.price} onChange={(e) => setRestocking({ ...restocking, price: e.target.value })} />
                         </label>
-                        <button className="primary" onClick={confirmRestock}>Confirmar reposição</button>
+                        <button className="primary" onClick={confirmRestock}>
+                          Confirmar reposição
+                        </button>
                         <button onClick={() => setRestocking(null)}>Cancelar</button>
                       </div>
                     </td>
@@ -184,6 +232,6 @@ export default function CrudPage({ title, singular, repo, fields, defaults, isLo
           </tbody>
         </table>
       )}
-    </>
+    </div>
   );
 }

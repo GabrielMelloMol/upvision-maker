@@ -1,4 +1,4 @@
-import { CircleCheck, KeyRound } from "lucide-react";
+import { Bot, CircleCheck, KeyRound } from "lucide-react";
 import { useEffect, useState } from "react";
 import { loadAiSettings, looksLikeKey, saveAiSettings } from "../ai/aiSettings";
 import { aiErrorText, testKey } from "../ai/claude";
@@ -63,7 +63,9 @@ export default function AiSettingsCard() {
 
   return (
     <div className="card stack">
-      <h2 style={{ marginTop: 0 }}>Inteligência artificial (opcional)</h2>
+      <h2 className="card-title">
+        <Bot aria-hidden /> Inteligência artificial (opcional)
+      </h2>
       <Alert kind="warn">
         A ferramenta <strong>Pedir à IA</strong> usa a API da Anthropic, que é <strong>paga por uso</strong> e cobrada no cartão da conta dona da chave. Cada pedido
         mostra os tokens e o custo estimado. A chave fica guardada só neste computador e não entra no backup.

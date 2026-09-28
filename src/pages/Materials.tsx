@@ -1,4 +1,5 @@
 import { materials } from "../db/repo";
+import { Package } from "lucide-react";
 import CrudPage from "../ui/CrudPage";
 
 export default function Materials() {
@@ -6,6 +7,8 @@ export default function Materials() {
     <CrudPage
       title="Materiais extras"
       singular="Material"
+      lead="Embalagens, argolas, ímãs e tudo mais que vai junto com a peça."
+      empty={{ icon: Package, text: "Embalagem, argola de chaveiro, ímã… cadastre o que entra no custo de cada peça." }}
       repo={materials}
       fields={[
         { key: "name", label: "Nome", kind: "text" },
