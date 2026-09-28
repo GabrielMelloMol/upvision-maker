@@ -64,16 +64,12 @@ export default function Calculator({ go }: { go: Go }) {
     const str = (n: number) => String(n).replace(".", ",");
     const brl = (n: number) => formatMoneyInput(String(n));
     setFil(
-      a.filaments.map((x) => {
-        const o = data.filaments.find((d) => d.id === x.filamentId);
-        return { ref: o ? String(o.id) : "", price: o ? brl(o.price) : "", qty: str(x.grams) };
-      }),
+      a.filaments.map((x) => ({ ref: x.filamentId ? String(x.filamentId) : "", price: x.pricePerKg !== null ? brl(x.pricePerKg) : "", qty: str(x.grams) })),
     );
-    const p = data.printers.find((x) => x.id === a.printerId);
-    setPrinterId(p ? String(p.id) : "");
+    setPrinterId(a.printerId ? String(a.printerId) : "");
     setF((cur) => ({
       ...cur,
-      watts: p ? str(p.watts) : cur.watts,
+      watts: a.printerWatts !== null ? str(a.printerWatts) : cur.watts,
       time: a.seconds !== undefined ? formatDuration(Math.round(a.seconds / 60)) : cur.time,
       quantity: a.pieces ? String(a.pieces) : cur.quantity,
     }));

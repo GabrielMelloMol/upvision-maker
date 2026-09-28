@@ -1,5 +1,5 @@
 import { FileInput } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import type { Filament, Printer } from "../domain/entities";
 import { parseSlicerFile, SLICER_ACCEPT, type SlicerReport } from "../domain/slicer";
 import { colorHex, matchFilament, matchPrinter } from "../domain/slicer/match";
@@ -8,9 +8,12 @@ import Card from "../ui/Card";
 import Dropzone from "../ui/Dropzone";
 import { errorText } from "../ui/Toast";
 
+/** Tudo que a calculadora precisa, já resolvido a partir das MESMAS listas usadas no casamento
+ *  (a calculadora não busca de novo: evita usar um cadastro desatualizado). */
 export type SlicerApply = {
-  filaments: { filamentId: number | null; grams: number }[];
+  filaments: { filamentId: number | null; pricePerKg: number | null; grams: number }[];
   printerId: number | null;
+  printerWatts: number | null;
   seconds?: number;
   pieces?: number;
 };
@@ -27,38 +30,44 @@ const duration = (s: number) => {
 export default function SlicerImport({ stock, printers, onApply }: Props) {
   const [file, setFile] = useState<string | null>(null);
   const [report, setReport] = useState<SlicerReport | null>(null);
-  const [mapping, setMapping] = useState<(number | null)[]>([]);
+  // escolhas feitas à mão; o resto é casado automaticamente com o cadastro ATUAL (que pode chegar depois do arquivo)
+  const [overrides, setOverrides] = useState<Record<number, number | null>>({});
   const [error, setError] = useState<string | null>(null);
 
-  const apply = (r: SlicerReport, map: (number | null)[]) =>
+  const mapping = report ? report.filaments.map((f, i) => (i in overrides ? overrides[i] : matchFilament(f, stock))) : [];
+  const mappingKey = JSON.stringify([mapping, stock.map((x) => [x.id, x.pricePerKg]), printers.map((p) => [p.id, p.watts])]);
+
+  const apply = (r: SlicerReport, map: (number | null)[]) => {
+    const printer = printers.find((p) => p.id === matchPrinter(r.printer, printers));
     onApply({
-      filaments: r.filaments.map((f, i) => ({ filamentId: map[i], grams: f.grams ?? 0 })),
-      printerId: matchPrinter(r.printer, printers),
+      filaments: r.filaments.map((f, i) => ({ filamentId: map[i], pricePerKg: stock.find((s) => s.id === map[i])?.pricePerKg ?? null, grams: f.grams ?? 0 })),
+      printerId: printer?.id ?? null,
+      printerWatts: printer?.watts ?? null,
       seconds: r.seconds,
       pieces: r.pieces,
     });
+  };
+
+  // reaplica quando o arquivo é lido, quando a pessoa troca um filamento ou quando o cadastro termina de carregar
+  useEffect(() => {
+    if (report) apply(report, mapping);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [report, mappingKey]);
 
   async function onFile(f: File) {
     setError(null);
     try {
       const r = parseSlicerFile(f.name, new Uint8Array(await f.arrayBuffer()));
-      const map = r.filaments.map((x) => matchFilament(x, stock));
       setFile(f.name);
+      setOverrides({});
       setReport(r);
-      setMapping(map);
-      apply(r, map);
     } catch (e) {
       setReport(null);
       setError(errorText(e));
     }
   }
 
-  function remap(i: number, id: string) {
-    if (!report) return;
-    const map = mapping.map((m, j) => (j === i ? (id ? Number(id) : null) : m));
-    setMapping(map);
-    apply(report, map);
-  }
+  const remap = (i: number, id: string) => setOverrides({ ...overrides, [i]: id ? Number(id) : null });
 
   const printer = report && printers.find((p) => p.id === matchPrinter(report.printer, printers));
 
