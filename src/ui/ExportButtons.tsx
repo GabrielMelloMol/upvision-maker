@@ -1,4 +1,5 @@
 import { Download } from "lucide-react";
+import { bambuProject } from "../geometry/bambuProject";
 import { writeStl } from "../geometry/stl";
 import { write3mf } from "../geometry/threemf";
 import type { Model } from "../geometry/types";
@@ -10,9 +11,11 @@ export default function ExportButtons({ models, name, busy, pauses }: { models: 
   const toast = useToast();
   const disabled = busy || models.length === 0;
 
-  async function save(file: string, data: Uint8Array, ext: string, label: string) {
+  const hasPauses = !!pauses?.length;
+
+  async function save(file: string, data: Uint8Array | (() => Promise<Uint8Array>), ext: string, label: string) {
     try {
-      const p = await saveFile(file, data, ext, label);
+      const p = await saveFile(file, typeof data === "function" ? await data() : data, ext, label);
       if (p) toast(`Arquivo salvo em ${p}`);
     } catch (e) {
       toast(`Não foi possível salvar: ${errorText(e)}`, "error");
@@ -22,8 +25,13 @@ export default function ExportButtons({ models, name, busy, pauses }: { models: 
   return (
     <div className="card stack">
       <button className="action" disabled={disabled} onClick={() => save(`${slug(name)}.3mf`, write3mf(models, { pauses }), "3mf", "3MF")}>
-        <Download aria-hidden /> Salvar 3MF (Bambu / Orca)
+        <Download aria-hidden /> Salvar 3MF {hasPauses ? "(Orca / Prusa)" : "(Bambu / Orca / Prusa)"}
       </button>
+      {hasPauses && (
+        <button disabled={disabled} onClick={() => save(`${slug(name)}-bambu.3mf`, () => bambuProject(models, pauses!), "3mf", "Projeto do Bambu Studio")}>
+          <Download aria-hidden /> Projeto do Bambu Studio (pausa pronta)
+        </button>
+      )}
       {models.length === 1 ? (
         <button disabled={disabled} onClick={() => save(`${slug(name)}.stl`, writeStl(models), "stl", "STL")}>
           <Download aria-hidden /> Salvar STL
@@ -37,7 +45,11 @@ export default function ExportButtons({ models, name, busy, pauses }: { models: 
           ))}
         </div>
       )}
-      <span className="hint">O 3MF já separa as cores em partes: no Bambu Studio/OrcaSlicer é só escolher o filamento de cada uma.</span>
+      <span className="hint">
+        {hasPauses
+          ? "A pausa já vem no 3MF para OrcaSlicer e PrusaSlicer. Para o Bambu Studio, salve o projeto: o app usa o Bambu Studio instalado e a impressora selecionada nele."
+          : "O 3MF já separa as cores em partes: no fatiador é só escolher o filamento de cada uma."}
+      </span>
     </div>
   );
 }

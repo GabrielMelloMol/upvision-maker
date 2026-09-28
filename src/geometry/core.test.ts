@@ -103,10 +103,16 @@ describe("3MF", () => {
     expect(xml).toContain('<layer top_z="2" type="1" extruder="1" color="" extra="" gcode="M400 U1"/>');
     expect(xml).toContain('<layer top_z="4.4" type="1"');
     expect(strFromU8(f["[Content_Types].xml"])).toContain('Extension="xml"');
+    // PrusaSlicer (e forks): arquivo próprio, pausa = type 1 com a altura da camada
+    const prusa = strFromU8(f["Metadata/Prusa_Slicer_custom_gcode_per_print_z.xml"]);
+    expect(prusa).toMatch(/^<\?xml[\s\S]*<custom_gcodes_per_print_z bed_idx="0">/);
+    expect(prusa.match(/<code print_z="(2|4\.4)" type="1" extruder="1" color="" extra="[^"]*"\/>/g)).toHaveLength(2);
+    expect(prusa).toContain('<mode value="SingleExtruder"/>');
   });
 
   test("sem pausas não há custom_gcode_per_layer", () => {
     expect(files["Metadata/custom_gcode_per_layer.xml"]).toBeUndefined();
+    expect(files["Metadata/Prusa_Slicer_custom_gcode_per_print_z.xml"]).toBeUndefined();
   });
 
   test("escapa XML em nomes digitados pelo usuário", () => {

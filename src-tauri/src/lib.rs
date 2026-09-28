@@ -1,6 +1,7 @@
 use tauri::Manager;
 
 mod backup;
+mod bambu;
 mod stock;
 mod vibrancy;
 
@@ -24,7 +25,8 @@ pub fn run() {
             backup::backup_default_dir,
             backup::backup_write,
             backup::backup_list,
-            backup::backup_read
+            backup::backup_read,
+            bambu::bambu_project
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

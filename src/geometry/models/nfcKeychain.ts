@@ -70,7 +70,7 @@ export function buildNfcKeychain({ M, text }: ModelCtx, p: NfcKeychainParams): M
       pauses: [L.pauseZ],
       warnings: [
         `Pausa em Z = ${z} mm: a impressora para, você coloca a tag no bolsão e retoma.`,
-        `OrcaSlicer já abre com a pausa. No Bambu Studio, adicione à mão: na prévia fatiada, clique com o botão direito na camada ${z} mm → “Adicionar pausa”.`,
+        `OrcaSlicer e PrusaSlicer já abrem com a pausa. Para o Bambu Studio, use “Projeto do Bambu Studio (pausa pronta)”.`,
       ],
     };
   });
