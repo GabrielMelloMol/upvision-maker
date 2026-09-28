@@ -17,6 +17,8 @@ export type TauriMock = {
   /** Resposta de ask()/confirm(). */
   askAnswer: boolean;
   calls: string[];
+  /** Backups automáticos "no disco": pasta → (nome → conteúdo). */
+  autoBackups: Map<string, Map<string, string>>;
   /** Resposta do comando window_style (material nativo). */
   windowStyle: { effect: "mica" | "sidebar" | "none"; overlayTitlebar: boolean };
 };
@@ -127,6 +129,32 @@ function handler(m: TauriMock, cmd: string, a: Record<string, unknown> | null, h
       return null;
     case "window_style":
       return m.windowStyle;
+    case "plugin:event|listen":
+      return 1;
+    case "plugin:event|unlisten":
+      return null;
+    case "backup_default_dir":
+      return "/dados-app/backups/auto";
+    case "backup_write": {
+      const dir = String(args.dir ?? "");
+      const folder = m.autoBackups.get(dir) ?? new Map<string, string>();
+      const name = `upvision-auto-${args.stamp}.json`;
+      for (const k of [...folder.keys()]) if (k.startsWith(`upvision-auto-${String(args.stamp).slice(0, 10)}`)) folder.delete(k);
+      folder.set(name, String(args.json));
+      const keep = [...folder.keys()].sort().reverse().slice(0, Number(args.keep));
+      for (const k of [...folder.keys()]) if (!keep.includes(k)) folder.delete(k);
+      m.autoBackups.set(dir, folder);
+      return { name, path: `${dir || "/dados-app/backups/auto"}/${name}`, bytes: String(args.json).length };
+    }
+    case "backup_list":
+      return [...(m.autoBackups.get(String(args.dir ?? "")) ?? new Map<string, string>()).entries()]
+        .sort(([a], [b]) => b.localeCompare(a))
+        .map(([name, json]) => ({ name, path: `${args.dir || "/dados-app/backups/auto"}/${name}`, bytes: json.length }));
+    case "backup_read": {
+      const json = m.autoBackups.get(String(args.dir ?? ""))?.get(String(args.name));
+      if (json === undefined) throw new Error("backup não encontrado");
+      return json;
+    }
     case "plugin:opener|open_url":
       return null;
     default:
@@ -136,7 +164,7 @@ function handler(m: TauriMock, cmd: string, a: Record<string, unknown> | null, h
 
 export const test = base.extend<{ tauri: TauriMock }>({
   tauri: async ({ page }, provide) => {
-    const m: TauriMock = { db: new DatabaseSync(":memory:"), files: new Map(), nextOpen: null, savePath: null, askAnswer: true, calls: [], windowStyle: { effect: "none", overlayTitlebar: false } };
+    const m: TauriMock = { db: new DatabaseSync(":memory:"), files: new Map(), nextOpen: null, savePath: null, askAnswer: true, calls: [], autoBackups: new Map(), windowStyle: { effect: "none", overlayTitlebar: false } };
     await page.exposeFunction("__tauriInvoke", (cmd: string, a: Record<string, unknown> | null, h: Record<string, string> | null) => {
       m.calls.push(cmd);
       try {

@@ -211,3 +211,13 @@ dialog.palette::backdrop { background: rgb(0 0 0 / 0.18); animation: fade var(--
 .search-btn { color: var(--muted); gap: 6px; }
 .search-btn kbd { margin-left: 0; }
 .search-btn kbd:first-of-type { margin-left: 6px; }
+
+/* Backup automático (Preferências) */
+code.path { flex: 1 1 260px; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: var(--text-sm); padding: 7px 10px; border-radius: var(--r-sm); background: var(--fill); color: var(--text); }
+h3.subhead { display: flex; align-items: center; gap: 8px; margin: var(--space-3) 0 0; font-size: var(--title-3); }
+h3.subhead svg { width: 16px; height: 16px; color: var(--muted); }
+.backup-list { list-style: none; margin: 0; padding: 0; display: grid; }
+.backup-list li { display: grid; grid-template-columns: 1fr auto auto; align-items: center; gap: var(--space-3); padding: 6px 0; border-bottom: 1px solid var(--separator); font-variant-numeric: tabular-nums; }
+.backup-list li:last-child { border-bottom: 0; }
+.banner.warn { background: var(--warn-soft); }
+.banner button.ghost { color: var(--text); }

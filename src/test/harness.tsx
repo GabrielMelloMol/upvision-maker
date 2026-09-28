@@ -33,6 +33,8 @@ export type TauriState = {
   windowStyle: { effect: "mica" | "sidebar" | "none"; overlayTitlebar: boolean };
   /** Comandos chamados, em ordem. */
   calls: string[];
+  /** Backups automáticos "no disco": pasta → (nome → conteúdo). Pasta "" = padrão. */
+  autoBackups: Map<string, Map<string, string>>;
   /** Respostas extras por comando (ex.: comandos Rust novos). */
   handlers: Record<string, (args: Record<string, unknown>) => unknown>;
 };
@@ -92,6 +94,32 @@ function handle(t: TauriState, cmd: string, a: unknown, headers?: Record<string,
       return null;
     case "window_style":
       return t.windowStyle;
+    case "plugin:event|listen":
+      return 1;
+    case "plugin:event|unlisten":
+      return null;
+    case "backup_default_dir":
+      return "/dados-app/backups/auto";
+    case "backup_write": {
+      const dir = String(args.dir ?? "");
+      const folder = t.autoBackups.get(dir) ?? new Map<string, string>();
+      const name = `upvision-auto-${args.stamp}.json`;
+      for (const k of [...folder.keys()]) if (k.startsWith(`upvision-auto-${String(args.stamp).slice(0, 10)}`)) folder.delete(k);
+      folder.set(name, String(args.json));
+      const keep = [...folder.keys()].sort().reverse().slice(0, Number(args.keep));
+      for (const k of [...folder.keys()]) if (!keep.includes(k)) folder.delete(k);
+      t.autoBackups.set(dir, folder);
+      return { name, path: `${dir || "/dados-app/backups/auto"}/${name}`, bytes: String(args.json).length };
+    }
+    case "backup_list":
+      return [...(t.autoBackups.get(String(args.dir ?? "")) ?? new Map()).entries()]
+        .sort(([a], [b]) => b.localeCompare(a))
+        .map(([name, json]) => ({ name, path: `${args.dir || "/dados-app/backups/auto"}/${name}`, bytes: json.length }));
+    case "backup_read": {
+      const json = t.autoBackups.get(String(args.dir ?? ""))?.get(String(args.name));
+      if (json === undefined) throw new Error("backup não encontrado");
+      return json;
+    }
     default:
       throw new Error(`comando Tauri sem mock: ${cmd}`);
   }
@@ -99,12 +127,13 @@ function handle(t: TauriState, cmd: string, a: unknown, headers?: Record<string,
 
 /** Instala o mock do Tauri e um banco novo antes de cada teste do arquivo. */
 export function setupTauri(): TauriState {
-  const t = { files: new Map(), savePath: null, openPath: null, askAnswer: true, calls: [], handlers: {}, windowStyle: { effect: "none", overlayTitlebar: false } } as unknown as TauriState;
+  const t = { files: new Map(), autoBackups: new Map(), savePath: null, openPath: null, askAnswer: true, calls: [], handlers: {}, windowStyle: { effect: "none", overlayTitlebar: false } } as unknown as TauriState;
   beforeEach(async () => {
     t.raw = new DatabaseSync(":memory:");
     t.db = wrap(t.raw);
     await migrate(t.db);
     t.files.clear();
+    t.autoBackups.clear();
     t.calls.length = 0;
     t.savePath = null;
     t.openPath = null;
@@ -114,6 +143,7 @@ export function setupTauri(): TauriState {
     // mockIPC descarta os headers (o writeFile manda o caminho neles): repassa as opções também.
     const internals = (window as unknown as { __TAURI_INTERNALS__: { invoke: (c: string, a: unknown, o?: { headers?: Record<string, string> }) => Promise<unknown> } }).__TAURI_INTERNALS__;
     internals.invoke = async (c, a, o) => handle(t, c, a, o?.headers);
+    (internals as unknown as { metadata: unknown }).metadata = { currentWindow: { label: "main" }, currentWebview: { windowLabel: "main", label: "main" } };
   });
   return t;
 }

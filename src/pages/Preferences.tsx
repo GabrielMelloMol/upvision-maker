@@ -8,6 +8,7 @@ import { fieldErrors } from "../ui/fieldErrors";
 import { errorText, useToast } from "../ui/Toast";
 import { useData } from "../ui/useData";
 import AiSettingsCard from "./AiSettingsCard";
+import BackupSettingsCard from "../backup/BackupSettingsCard";
 import MoneyField from "../ui/MoneyField";
 import { formatMoneyInput, parseMoney } from "../ui/parse";
 import { addKwhHistory, type KwhEntry } from "../domain/energy";
@@ -31,6 +32,8 @@ export default function Preferences() {
       <h1>Preferências</h1>
       <p className="lead">Custos da sua produção e taxas dos canais de venda. Tudo fica salvo só neste computador.</p>
       {settings ? <PreferencesForm initial={settings} /> : <span className="skeleton" style={{ height: 180, borderRadius: 16, marginBottom: 16 }} />}
+      <h2>Seus dados</h2>
+      <BackupSettingsCard />
       <h2>Ferramentas</h2>
       <AiSettingsCard />
     </div>

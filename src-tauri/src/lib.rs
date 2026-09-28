@@ -1,5 +1,6 @@
 use tauri::Manager;
 
+mod backup;
 mod stock;
 mod vibrancy;
 
@@ -17,7 +18,14 @@ pub fn run() {
             app.manage(vibrancy::Applied(vibrancy::apply(&window)));
             Ok(())
         })
-        .invoke_handler(tauri::generate_handler![vibrancy::window_style, stock::apply_stock])
+        .invoke_handler(tauri::generate_handler![
+            vibrancy::window_style,
+            stock::apply_stock,
+            backup::backup_default_dir,
+            backup::backup_write,
+            backup::backup_list,
+            backup::backup_read
+        ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
 }

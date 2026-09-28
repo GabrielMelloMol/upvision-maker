@@ -3,6 +3,8 @@ import type { Update } from "@tauri-apps/plugin-updater";
 import { loadBackup, saveBackup } from "./backupActions";
 import { errorText, useToast } from "./ui/Toast";
 import { findUpdate, installUpdate } from "./updater";
+import { useAutoBackup } from "./backup/useAutoBackup";
+import { notifyBackupDone } from "./backup/BackupSettingsCard";
 import SuggestDialog from "./feedback/SuggestDialog";
 import { CHANGELOG, useWhatsNewAfterUpdate, WhatsNewModal } from "./whatsnew/WhatsNew";
 import Onboarding, { useFirstRun } from "./onboarding/Onboarding";
@@ -30,6 +32,7 @@ export default function App() {
   const [firstRun, closeFirstRun] = useFirstRun();
   const [searching, setSearching] = useState(false);
   const toast = useToast();
+  const { reminderDays, neverBackedUp, backupNow } = useAutoBackup();
   const page = PAGES.find((p) => p.id === pageId) ?? PAGES[0];
 
   useEffect(() => {
@@ -52,7 +55,10 @@ export default function App() {
   async function onSave() {
     try {
       const path = await saveBackup();
-      if (path) toast(`Backup salvo em ${path}`);
+      if (path) {
+        toast(`Backup salvo em ${path}`);
+        notifyBackupDone();
+      }
     } catch (e) {
       toast(`Não foi possível salvar o backup: ${errorText(e)}`, "error");
     }
@@ -99,6 +105,17 @@ export default function App() {
           </button>
         </Toolbar>
         <div className="view">
+          {reminderDays !== null && (
+            <div className="banner warn" role="status">
+              <span>{neverBackedUp ? "Você ainda não fez nenhum backup dos seus dados." : `Faz ${reminderDays} dias sem backup dos seus dados.`}</span>
+              <button className="primary" onClick={() => backupNow().then(() => toast("Backup feito."), (e) => toast(`Não foi possível fazer o backup: ${errorText(e)}`, "error"))}>
+                Fazer backup agora
+              </button>
+              <button className="ghost" onClick={() => navigate("preferences")}>
+                Configurar
+              </button>
+            </div>
+          )}
           {update && (
             <div className="banner">
               <span>Nova versão {update.version} disponível.</span>
