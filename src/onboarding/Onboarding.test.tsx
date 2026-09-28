@@ -1,5 +1,5 @@
 // @vitest-environment happy-dom
-import { renderHook, screen, waitFor } from "@testing-library/react";
+import { renderHook, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { act } from "react";
 import { describe, expect, test, vi } from "vitest";
@@ -49,6 +49,20 @@ describe("useFirstRun", () => {
 });
 
 describe("Onboarding", () => {
+  test("passo 2: impressora pelo catálogo (#1)", async () => {
+    const user = userEvent.setup();
+    renderWithApp(<Onboarding onClose={vi.fn()} />);
+    await user.click(screen.getByRole("button", { name: "Continuar" }));
+    expect(await screen.findByText("Passo 2 de 3")).toBeInTheDocument();
+    await user.click(screen.getByRole("button", { name: "Escolher do catálogo" }));
+    const sheet = await screen.findByRole("dialog", { name: "Catálogo de impressoras" });
+    await user.click(within(sheet).getByRole("option", { name: /^A1 mini/ }));
+    expect(screen.getByLabelText(/^Nome/)).toHaveValue("Bambu Lab A1 mini");
+    await user.click(screen.getByRole("button", { name: "Continuar" }));
+    expect(await screen.findByText("Passo 3 de 3")).toBeInTheDocument();
+    expect(await t.db.select("SELECT name, watts FROM printers")).toEqual([{ name: "Bambu Lab A1 mini", watts: 80 }]);
+  });
+
   test("3 passos gravam custos, impressora e filamento; ao concluir agradece e fecha", async () => {
     const onClose = vi.fn();
     const user = userEvent.setup();

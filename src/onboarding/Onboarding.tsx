@@ -2,8 +2,10 @@ import { Cylinder, Printer, Sparkles, Zap, type LucideIcon } from "lucide-react"
 import { useEffect, useState, type FormEvent } from "react";
 import { getDb } from "../db";
 import { filaments, getSecret, loadSettings, printers, saveSettings, setSecret } from "../db/repo";
+import { PRINTER_CATALOG_ITEMS, printerFromCatalog } from "../domain/catalog/printers";
 import { MATERIAL_TYPES } from "../domain/entities";
 import { parseDecimal } from "../domain/format";
+import CatalogSheet from "../ui/CatalogSheet";
 import ColorDots from "../ui/ColorDots";
 import Field from "../ui/Field";
 import MassField from "../ui/MassField";
@@ -55,7 +57,7 @@ const STEPS: Step[] = [
     text: "A potência média entra no custo de energia de cada impressão.",
     fields: [
       { key: "name", label: "Nome", kind: "text", hint: "Ex.: Bambu Lab A1" },
-      { key: "watts", label: "Potência média (W)", kind: "number", hint: "Veja no manual ou numa tomada medidora." },
+      { key: "watts", label: "Potência média (W)", kind: "number", hint: "Média imprimindo PLA. Não sabe? Escolha do catálogo." },
     ],
   },
   {
@@ -87,6 +89,7 @@ export default function Onboarding({ onClose }: { onClose: () => void }) {
   const [step, setStep] = useState(0);
   const [values, setValues] = useState(DEFAULTS);
   const [errors, setErrors] = useState<Record<string, string>>({});
+  const [catalogOpen, setCatalogOpen] = useState(false);
   const toast = useToast();
   const s = STEPS[step];
   const last = step === STEPS.length - 1;
@@ -180,8 +183,27 @@ export default function Onboarding({ onClose }: { onClose: () => void }) {
             );
           })}
         </div>
+        {step === 1 && (
+          <button type="button" className="link" onClick={() => setCatalogOpen(true)}>
+            Escolher do catálogo
+          </button>
+        )}
         {errors._ && <p className="error">{errors._}</p>}
       </div>
+      {catalogOpen && (
+        <CatalogSheet
+          title="Catálogo de impressoras"
+          icon={Printer}
+          items={PRINTER_CATALOG_ITEMS}
+          onPick={(id) => {
+            setValues((v) => ({ ...v, ...printerFromCatalog(id) }));
+            setCatalogOpen(false);
+            toast("Preenchido com o catálogo — confira os valores.");
+          }}
+          onManual={() => setCatalogOpen(false)}
+          onClose={() => setCatalogOpen(false)}
+        />
+      )}
     </Sheet>
   );
 }

@@ -3,6 +3,7 @@ import { Fragment, useEffect, useRef, useState } from "react";
 import { getDb } from "../db";
 import type { Db } from "../db/types";
 import { money, parseDecimal } from "../domain/format";
+import CatalogSheet, { type CatalogItem } from "./CatalogSheet";
 import ColorDots, { colorSwatch } from "./ColorDots";
 import EmptyState from "./EmptyState";
 import { fieldErrors } from "./fieldErrors";
@@ -50,6 +51,10 @@ type Props = {
   empty: { icon: LucideIcon; text: string };
   isLow?: (r: Row) => boolean;
   restock?: { qtyLabel: string; priceLabel: string; defaultQty: (r: Row) => string | number; mass?: boolean };
+  /** "Escolher do catálogo": lista pesquisável que preenche o formulário (continua editável). */
+  catalog?: { title: string; icon: LucideIcon; items: CatalogItem[]; toForm: (id: string) => Record<string, string> };
+  /** "Duplicar" na linha: abre um novo cadastro com os valores da linha, ajustados por esta função. */
+  duplicate?: (values: Record<string, string>) => Record<string, string>;
 };
 
 const SKELETON_ROWS = 3;
@@ -78,13 +83,14 @@ function show(f: Field, r: Row) {
 /** Texto do campo ao editar um registro existente. */
 const toText = (f: Field, v: unknown) => (v == null ? "" : f.kind === "money" ? formatMoneyInput(String(v)) : String(v));
 
-export default function CrudPage({ pageId, title, singular, lead, repo, fields, defaults, sticky = [], empty, isLow, restock }: Props) {
+export default function CrudPage({ pageId, title, singular, lead, repo, fields, defaults, sticky = [], empty, isLow, restock, catalog, duplicate }: Props) {
   const [rows, reload, loading] = useData((db) => repo.list(db), [] as Row[]);
   const [form, setForm] = useState(defaults);
   const [editing, setEditing] = useState<number | null>(null);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [restocking, setRestocking] = useState<{ id: number; qty: string; price: string } | null>(null);
   const [hidden, setHidden] = useState<Set<number>>(new Set());
+  const [catalogOpen, setCatalogOpen] = useState(false);
   const formRef = useRef<HTMLFormElement>(null);
   const toast = useToast();
   const set = (k: string, v: string) => {
@@ -157,6 +163,21 @@ export default function CrudPage({ pageId, title, singular, lead, repo, fields, 
     focusForm();
   }
 
+  function pickFromCatalog(id: string) {
+    setForm((f) => ({ ...f, ...catalog!.toForm(id) }));
+    setErrors({});
+    setCatalogOpen(false);
+    toast("Preenchido com o catálogo — confira os valores.");
+    focusForm();
+  }
+
+  function duplicateRow(r: Row) {
+    setEditing(null);
+    setErrors({});
+    setForm(duplicate!(Object.fromEntries(fields.map((f) => [f.key, toText(f, r[f.key])]))));
+    focusForm();
+  }
+
   /** Esconde já e só apaga do banco depois do prazo de desfazer. */
   function remove(r: Row) {
     const name = String(r[fields[0].key]);
@@ -225,10 +246,30 @@ export default function CrudPage({ pageId, title, singular, lead, repo, fields, 
 
   return (
     <div className="page">
+      {catalogOpen && catalog && (
+        <CatalogSheet
+          title={catalog.title}
+          icon={catalog.icon}
+          items={catalog.items}
+          onPick={pickFromCatalog}
+          onManual={() => {
+            setCatalogOpen(false);
+            focusForm();
+          }}
+          onClose={() => setCatalogOpen(false)}
+        />
+      )}
       <h1>{title}</h1>
       {lead && <p className="lead">{lead}</p>}
       <form ref={formRef} className="card" onSubmit={submit} noValidate>
-        <h2 className="card-title">{editing === null ? `Adicionar ${singular.toLowerCase()}` : `Editar ${singular.toLowerCase()}`}</h2>
+        <div className="row" style={{ justifyContent: "space-between", alignItems: "baseline" }}>
+          <h2 className="card-title">{editing === null ? `Adicionar ${singular.toLowerCase()}` : `Editar ${singular.toLowerCase()}`}</h2>
+          {catalog && (
+            <button type="button" className="link" onClick={() => setCatalogOpen(true)}>
+              Escolher do catálogo
+            </button>
+          )}
+        </div>
         <div className="grid">{fields.map(input)}</div>
         {errors._ && <p className="error">{errors._}</p>}
         <div className="row" style={{ marginTop: 16 }}>
@@ -289,6 +330,11 @@ export default function CrudPage({ pageId, title, singular, lead, repo, fields, 
                     {restock && (
                       <button className="link" onClick={() => setRestocking({ id: r.id, qty: String(restock.defaultQty(r)), price: "" })}>
                         Repor
+                      </button>
+                    )}
+                    {duplicate && (
+                      <button className="link" onClick={() => duplicateRow(r)} aria-label={`Duplicar ${String(r[fields[0].key])}`}>
+                        Duplicar
                       </button>
                     )}
                     <button className="link" onClick={() => edit(r)}>
