@@ -2,8 +2,13 @@ import { z } from "zod";
 
 const num = (n: unknown) => Number(n).toLocaleString("pt-BR");
 
-/** Mensagem em português a partir do código do Zod (as padrão vêm em inglês). */
+/** Mensagens padrão do Zod (em inglês): essas a gente traduz pelo código. */
+const ZOD_DEFAULT = /^(Invalid|Too (small|big)|Expected|Required|Unrecognized)\b/;
+const sentence = (m: string) => (/[.!?]$/.test(m) ? m : `${m}.`);
+
+/** Mensagem para a usuária: a escrita no schema, se houver; senão, a padrão traduzida pelo código. */
 function message(i: z.core.$ZodIssue): string {
+  if (i.message && !ZOD_DEFAULT.test(i.message)) return sentence(i.message);
   const isText = "origin" in i && i.origin === "string";
   switch (i.code) {
     case "invalid_type":
@@ -14,8 +19,6 @@ function message(i: z.core.$ZodIssue): string {
       return `No mínimo ${num(i.minimum)}.`;
     case "too_big":
       return isText ? `No máximo ${num(i.maximum)} caracteres.` : `No máximo ${num(i.maximum)}.`;
-    case "custom":
-      return i.message || "Valor inválido."; // mensagens escritas por nós (refine/transform) já vêm em português
     default:
       return "Valor inválido.";
   }

@@ -33,6 +33,15 @@ describe("fieldErrors", () => {
     });
   });
 
+  test("mensagem escrita no schema vence a padrão (e ganha ponto final)", () => {
+    const O = z.object({ customer: z.string().trim().min(1, "Informe o cliente"), items: z.array(z.number()).min(1, "Adicione pelo menos um item."), name: z.string().min(1, "Obrigatório") });
+    expect(errorsOf(O, { customer: "", items: [], name: "" })).toEqual({
+      customer: "Informe o cliente.",
+      items: "Adicione pelo menos um item.",
+      name: "Obrigatório.",
+    });
+  });
+
   test("erro comum vai em _", () => {
     expect(fieldErrors(new Error("falhou"))).toEqual({ _: "falhou" });
   });
