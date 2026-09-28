@@ -23,6 +23,7 @@ const FIELDS: { key: NumKey; label: string; money?: true; hint?: string }[] = [
   { key: "multResale", label: "Multiplicador revenda (×)" },
   { key: "multConsumer", label: "Multiplicador consumidor final (×)" },
   { key: "marketplaceMarginPct", label: "Margem padrão em marketplace (%)" },
+  { key: "minMarginPct", label: "Margem mínima (%)", hint: "A calculadora alerta canais abaixo disso." },
 ];
 
 export default function Preferences() {

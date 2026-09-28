@@ -1,0 +1,83 @@
+import type { CalcResult } from "./calc";
+import { money, round2 } from "./format";
+import type { Settings } from "./settings";
+
+export type Rounding = "none" | "90" | "99" | "int";
+export const ROUNDINGS: readonly (readonly [Rounding, string])[] = [
+  ["none", "Sem"],
+  ["90", ",90"],
+  ["99", ",99"],
+  ["int", "Inteiro"],
+];
+
+const EPS = 1e-9;
+
+/** Arredonda sempre PARA CIMA até o final escolhido (R$ 39,92 → 40,90 / 39,99 / 40): nunca reduz a margem. */
+export function roundPrice(p: number, mode: Rounding): number {
+  if (mode === "none") return round2(p);
+  if (mode === "int") return Math.ceil(p - EPS);
+  const end = mode === "90" ? 0.9 : 0.99;
+  const k = Math.floor(p);
+  return round2(k + end >= p - EPS ? k + end : k + 1 + end);
+}
+
+type Money = { price: number; fees: number; profit: number; marginPct: number; loss: boolean };
+
+export type ChannelRow = {
+  name: string;
+  /** null = taxa + margem passam de 100% (não há preço possível). */
+  price: number | null;
+  fees: number;
+  profit: number;
+  marginPct: number;
+  loss: boolean;
+  belowMin: boolean;
+  best: boolean;
+  /** Lucro vendendo pelo preço do concorrente neste canal. */
+  atCompetitor?: Money;
+};
+
+/** Taxas, lucro líquido e margem de um preço num canal. */
+function at(price: number, feePct: number, feeFixed: number, unitCost: number, freight: number): Money {
+  const fees = round2((price * feePct) / 100 + feeFixed);
+  const profit = round2(price - fees - unitCost - freight);
+  return { price, fees, profit, marginPct: price > 0 ? round2((profit / price) * 100) : 0, loss: profit < 0 };
+}
+
+/**
+ * Preço sugerido em cada canal lado a lado — direto (sem taxa), revenda e cada marketplace — com lucro líquido depois das
+ * taxas, alertas de prejuízo e de margem mínima, o canal de melhor lucro e, opcionalmente, o lucro no preço do concorrente.
+ */
+export function compareChannels(r: CalcResult, s: Settings, freight: number, opts: { rounding: Rounding; competitor?: number }): ChannelRow[] {
+  const bases = [
+    { name: "Direto ao consumidor", suggested: r.consumer as number | null, feePct: 0, feeFixed: 0 },
+    { name: "Revenda", suggested: r.resale as number | null, feePct: 0, feeFixed: 0 },
+    ...r.channels.map((c) => {
+      const cfg = s.channels.find((x) => x.name === c.name);
+      return { name: c.name, suggested: c.price, feePct: cfg?.feePct ?? 0, feeFixed: cfg?.feeFixed ?? 0 };
+    }),
+  ];
+  const comp = opts.competitor && opts.competitor > 0 ? opts.competitor : undefined;
+  const rows: ChannelRow[] = bases.map((b) => {
+    const atComp = comp !== undefined ? at(comp, b.feePct, b.feeFixed, r.unitCost, freight) : undefined;
+    if (b.suggested === null) return { name: b.name, price: null, fees: 0, profit: 0, marginPct: 0, loss: false, belowMin: false, best: false, atCompetitor: atComp };
+    const m = at(roundPrice(b.suggested, opts.rounding), b.feePct, b.feeFixed, r.unitCost, freight);
+    return { name: b.name, ...m, belowMin: !m.loss && m.marginPct < s.minMarginPct, best: false, atCompetitor: atComp };
+  });
+  const priced = rows.filter((x) => x.price !== null);
+  const top = priced.reduce<ChannelRow | null>((a, b) => (!a || b.profit > a.profit ? b : a), null);
+  return rows.map((x) => ({ ...x, best: x === top }));
+}
+
+const FAR_PCT = 20;
+
+/** Compara o preço direto com o do concorrente; null sem concorrente. */
+export function competitorHint(ours: number, competitor: number): { ok: boolean; text: string } | null {
+  if (!(competitor > 0) || !(ours > 0)) return null;
+  const rel = (ours - competitor) / competitor;
+  const pct = Math.round(Math.abs(rel) * 100); // arredonda igual para cima e para baixo
+  const side = rel >= 0 ? "acima" : "abaixo";
+  if (pct <= FAR_PCT) return { ok: true, text: `Parecido com o concorrente (${pct}% ${side}).` };
+  const tail = rel < 0 ? ": dá para cobrar mais." : ".";
+  return { ok: false, text: `Seu preço direto está ${pct}% ${side} do concorrente (${money(competitor)})${tail}` };
+}

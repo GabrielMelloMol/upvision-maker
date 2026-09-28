@@ -1,10 +1,12 @@
-import { Clock, Cylinder, Package, Plus, Save, Store } from "lucide-react";
+import { Clock, Cylinder, Package, Plus, Save, Store, TriangleAlert, Trophy } from "lucide-react";
 import { useMemo, useState } from "react";
 import { filaments, loadSettings, materials, printers } from "../db/repo";
 import type { Db } from "../db/types";
 import { calculate } from "../domain/calc";
 import { money, parseDecimal } from "../domain/format";
 import { DEFAULT_SETTINGS } from "../domain/settings";
+import { compareChannels, competitorHint, roundPrice, ROUNDINGS, type ChannelRow, type Rounding } from "../domain/pricing";
+import Segmented from "../ui/Segmented";
 import { useData } from "../ui/useData";
 import MoneyField from "../ui/MoneyField";
 import { formatDuration, formatMoneyInput, parseDuration, parseMoney } from "../ui/parse";
@@ -36,6 +38,8 @@ export default function Calculator({ go }: { go: Go }) {
   const [ext, setExt] = useState<Line[]>([]);
   const [printerId, setPrinterId] = useState("");
   const [f, setF] = useState({ watts: "", time: "", labor: "", quantity: "1", freight: "", margin: "" });
+  const [rounding, setRounding] = useState<Rounding>("none");
+  const [competitor, setCompetitor] = useState("");
   const printMin = parseDuration(f.time) || 0;
   const laborMin = parseDuration(f.labor, "min") || 0;
   const setText = (k: keyof typeof f) => (v: string) => setF((cur) => ({ ...cur, [k]: v }));
@@ -203,31 +207,22 @@ export default function Calculator({ go }: { go: Go }) {
         </aside>
       </div>
 
-      <h2>Preço por canal</h2>
-      <table>
-        <thead>
-          <tr><th>Canal</th><th className="num">Preço</th><th className="num">Taxas</th><th className="num">Lucro</th><th className="num">Margem</th></tr>
-        </thead>
-        <tbody>
-          <tr><td>Revenda (×{data.settings.multResale})</td><td className="num">{money(r.resale)}</td><td className="num">—</td><td className="num">{money(r.resaleProfit)}</td><td className="num">—</td></tr>
-          <tr><td>Consumidor final (×{data.settings.multConsumer})</td><td className="num">{money(r.consumer)}</td><td className="num">—</td><td className="num">{money(r.consumerProfit)}</td><td className="num">—</td></tr>
-          {r.channels.map((c) => (
-            <tr key={c.name}>
-              <td>{c.name}</td>
-              {c.price === null ? (
-                <td className="num" colSpan={4}>Taxa + margem passam de 100%</td>
-              ) : (
-                <>
-                  <td className="num">{money(c.price)}</td>
-                  <td className="num">{money(c.fees)}</td>
-                  <td className="num">{money(c.profit)}</td>
-                  <td className="num">{c.marginPct.toLocaleString("pt-BR")}%</td>
-                </>
-              )}
-            </tr>
-          ))}
-        </tbody>
-      </table>
+      <ChannelTable rows={compareChannels(r, data.settings, price(f.freight), { rounding, competitor: price(competitor) })} minMarginPct={data.settings.minMarginPct}>
+        <div className="row" style={{ alignItems: "flex-start", flexWrap: "wrap", gap: "var(--space-4)", marginBottom: "var(--space-3)" }}>
+          <div className="stack" style={{ gap: 6 }}>
+            <span className="field-label">Arredondar preços</span>
+            <Segmented label="Arredondar preços" value={rounding} onChange={setRounding} options={ROUNDINGS} />
+          </div>
+          <div style={{ flex: "1 1 240px", maxWidth: 360 }}>
+          <MoneyField
+            label="Preço do concorrente"
+            value={competitor}
+            onChange={setCompetitor}
+            hint={<CompetitorHint ours={roundPrice(r.consumer, rounding)} competitor={price(competitor)} />}
+          />
+          </div>
+        </div>
+      </ChannelTable>
     </div>
   );
 }
@@ -258,6 +253,70 @@ function Lines(props: { lines: Line[]; setLines: (l: Line[]) => void; options: O
       <button className="sm" onClick={() => setLines([...lines, newLine()])}>
         <Plus aria-hidden /> {props.addLabel}
       </button>
+    </>
+  );
+}
+
+function CompetitorHint({ ours, competitor }: { ours: number; competitor: number }) {
+  const h = competitorHint(ours, competitor);
+  if (!h) return <>Opcional: veja se o seu preço está longe do mercado.</>;
+  return h.ok ? <span className="hint ok">{h.text}</span> : <span className="error">{h.text}</span>;
+}
+
+const pct = (n: number) => `${n.toLocaleString("pt-BR")}%`;
+
+/** Preço em cada canal lado a lado, com lucro líquido depois das taxas e alertas (nunca só por cor). */
+function ChannelTable({ rows, minMarginPct, children }: { rows: ChannelRow[]; minMarginPct: number; children: React.ReactNode }) {
+  const comp = rows.some((x) => x.atCompetitor);
+  return (
+    <section className="card">
+      <h2 className="card-title">
+        <Store aria-hidden /> Preço por canal
+      </h2>
+      {children}
+      <table>
+        <thead>
+          <tr>
+            <th>Canal</th>
+            <th className="num">Preço</th>
+            <th className="num">Taxas</th>
+            <th className="num">Lucro líquido</th>
+            <th className="num">Margem</th>
+            {comp && <th className="num">No preço do concorrente</th>}
+          </tr>
+        </thead>
+        <tbody>
+          {rows.map((c) => (
+            <tr key={c.name}>
+              <td>
+                {c.name} {c.best && <span className="badge ok"><Trophy aria-hidden size={12} /> melhor lucro</span>}
+                {c.belowMin && <span className="badge warn" title={`Margem mínima: ${pct(minMarginPct)} (Preferências)`}><TriangleAlert aria-hidden size={12} /> abaixo da margem mínima</span>}
+              </td>
+              {c.price === null ? (
+                <td className="num" colSpan={4}>Taxa + margem passam de 100%</td>
+              ) : (
+                <>
+                  <td className="num">{money(c.price)}</td>
+                  <td className="num">{money(c.fees)}</td>
+                  <td className="num"><Profit value={c.profit} loss={c.loss} /></td>
+                  <td className="num">{pct(c.marginPct)}</td>
+                </>
+              )}
+              {comp && <td className="num">{c.atCompetitor && <Profit value={c.atCompetitor.profit} loss={c.atCompetitor.loss} />}</td>}
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </section>
+  );
+}
+
+function Profit({ value, loss }: { value: number; loss: boolean }) {
+  if (!loss) return <>{money(value)}</>;
+  return (
+    <>
+      <span style={{ color: "var(--danger)" }}>{money(value)}</span>{" "}
+      <span className="badge"><TriangleAlert aria-hidden size={12} /> prejuízo</span>
     </>
   );
 }

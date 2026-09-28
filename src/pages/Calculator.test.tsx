@@ -84,6 +84,35 @@ describe("Calculator", () => {
     expect(screen.getByRole("row", { name: /^Shopee/ })).toHaveTextContent("Taxa + margem passam de 100%");
   });
 
+  test("canais lado a lado (#4): melhor lucro, arredondamento, concorrente com prejuízo e margem mínima", async () => {
+    const user = userEvent.setup();
+    renderWithApp(<Calculator go={() => {}} />);
+    await user.type(screen.getByLabelText("Preço por kg"), "100");
+    await user.type(screen.getByLabelText("Gramas"), "200"); // custo por peça R$ 21,00
+    const row = (name: RegExp) => screen.getByRole("row", { name });
+    expect(row(/^Direto ao consumidor/)).toHaveTextContent("melhor lucro");
+    expect(row(/^Shopee/)).toHaveTextContent(brl("50,00")); // (21 + 4) ÷ (1 − 20% − 30%)
+
+    await user.click(screen.getByRole("button", { name: ",90" }));
+    const shopee = within(row(/^Shopee/)).getAllByRole("cell").map((c) => c.textContent!.replace(/\u00a0/g, " "));
+    expect(shopee.slice(1, 4)).toEqual(["R$ 50,90", "R$ 14,18", "R$ 15,72"]); // taxas e lucro no preço arredondado
+
+    await user.type(screen.getByLabelText("Preço do concorrente"), "30");
+    expect(screen.getByRole("columnheader", { name: "No preço do concorrente" })).toBeInTheDocument();
+    expect(row(/^Shopee/)).toHaveTextContent(/-R\$\s1,00\s*prejuízo/); // 30 − (6 + 4) − 21
+    expect(row(/^Direto ao consumidor/)).not.toHaveTextContent("prejuízo");
+    expect(screen.getByText(/Seu preço direto está \d+% acima do concorrente/)).toBeInTheDocument();
+  });
+
+  test("margem mínima das preferências marca o canal abaixo dela", async () => {
+    await t.db.execute(`INSERT INTO settings (id, data) VALUES (1, '{"multResale":1.05,"minMarginPct":10}')`);
+    const user = userEvent.setup();
+    renderWithApp(<Calculator go={() => {}} />);
+    await user.type(await screen.findByLabelText("Preço por kg"), "100");
+    await user.type(screen.getByLabelText("Gramas"), "200");
+    await waitFor(() => expect(screen.getByRole("row", { name: /^Revenda/ })).toHaveTextContent("abaixo da margem mínima"));
+  });
+
   test("salvar como produto leva só linhas cadastradas, avisa as puladas e abre Produtos", async () => {
     await t.db.execute("INSERT INTO filaments (material, color, brand, pricePerKg) VALUES ('PLA', 'Preto', '', 100)");
     await t.db.execute("INSERT INTO printers (name, watts) VALUES ('A1', 95)");

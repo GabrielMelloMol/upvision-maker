@@ -118,7 +118,7 @@ test("calculadora: exemplo da home dá R$ 15,96 / 47,88 / 79,80", async ({ page,
   await main.getByLabel("Quantidade").fill("1");
   await expect(page.getByRole("row", { name: /Custo por peça/ })).toContainText("R$ 15,96");
   await expect(page.getByRole("row", { name: /Revenda/ })).toContainText("R$ 47,88");
-  await expect(page.getByRole("row", { name: /Consumidor final/ })).toContainText("R$ 79,80");
+  await expect(page.getByRole("row", { name: /Direto ao consumidor/ })).toContainText("R$ 79,80");
 });
 
 test("backup: salva JSON e restaura substituindo os dados (com cópia de segurança)", async ({ page, tauri }) => {

@@ -17,6 +17,8 @@ export const SettingsSchema = z.object({
   multResale: z.number().positive(),
   multConsumer: z.number().positive(),
   marketplaceMarginPct: pct,
+  /** Abaixo disso a calculadora alerta o canal. */
+  minMarginPct: pct,
   channels: z.array(ChannelSchema),
   /** Cálculos do kWh pela conta de luz (mais recente primeiro). */
   kwhHistory: z.array(KwhEntrySchema),
@@ -31,6 +33,7 @@ export const DEFAULT_SETTINGS: Settings = {
   multResale: 3,
   multConsumer: 5,
   marketplaceMarginPct: 30,
+  minMarginPct: 10,
   channels: [
     { name: "Shopee", feePct: 20, feeFixed: 4 },
     { name: "Mercado Livre (clássico)", feePct: 14, feeFixed: 6.75 },
