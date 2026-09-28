@@ -15,7 +15,14 @@ export default defineConfig(() => ({
   // Escaneia todas as páginas (lazy) e workers na partida: sem isso o Vite descobre dependências
   // só quando a tela abre e recarrega a página no meio do uso (bug B10 do QA, derrubava os E2E).
   optimizeDeps: { entries: ["index.html", "src/**/*.tsx", "src/**/*.worker.ts"] },
-  test: { setupFiles: ["src/test/setup.ts"] },
+  test: {
+    setupFiles: ["src/test/setup.ts"],
+    coverage: {
+      include: ["src/**/*.{ts,tsx}"],
+      // Fora da cobertura unitária: workers e MediaPipe só rodam no navegador (cobertos pelos E2E), bootstrap e o próprio harness.
+      exclude: ["src/**/*.test.{ts,tsx}", "src/**/*.worker.ts", "src/vectorize/segment.ts", "src/main.tsx", "src/env.d.ts", "src/test/**"],
+    },
+  },
 
   // Vite options tailored for Tauri development and only applied in `tauri dev` or `tauri build`
   // 1. prevent Vite from obscuring rust errors
