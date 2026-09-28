@@ -7,8 +7,9 @@ import { saveFile, slug } from "../ui/saveFile";
 import Slider from "../ui/Slider";
 import { errorText, useToast } from "../ui/Toast";
 import { IMAGE_ACCEPT, loadRaster, trace, TraceCancelled, type Raster, type TraceJob, type TraceProgress } from "../vectorize/client";
-import { DEFAULT_TRACE, type TraceOptions } from "../vectorize/pipeline";
+import { DEFAULT_TRACE, type TraceMode, type TraceOptions } from "../vectorize/pipeline";
 import { scaleFactor } from "../vectorize/raster";
+import { segmentSubject, type Subject } from "../vectorize/segment";
 import { buildSvg } from "../vectorize/svgOut";
 import type { TraceDone } from "../vectorize/vectorize.worker";
 import { handoffSvg } from "./handoff";
@@ -29,8 +30,18 @@ function thinOverlay(thin: Uint8Array, w: number, h: number): string {
   return c.toDataURL();
 }
 
-const progressText = (p: TraceProgress | null) =>
-  !p ? "Preparando…" : p.stage === "prepare" ? "Limpando a imagem…" : p.ticks ? `Vetorizando… ${p.ticks} contornos` : "Vetorizando…";
+type Progress = TraceProgress | { stage: "segment"; ticks: 0 };
+
+const progressText = (p: Progress | null) =>
+  !p
+    ? "Preparando…"
+    : p.stage === "segment"
+      ? "Recortando com a IA local…"
+      : p.stage === "prepare"
+        ? "Limpando a imagem…"
+        : p.ticks
+          ? `Vetorizando… ${p.ticks} contornos`
+          : "Vetorizando…";
 
 export default function ImageToSvg({ go }: { go: Go }) {
   const [file, setFile] = useState<File | null>(null);
@@ -38,7 +49,11 @@ export default function ImageToSvg({ go }: { go: Go }) {
   const [opts, setOpts] = useState<TraceOptions>(DEFAULT_TRACE);
   const [applied, setApplied] = useState<TraceOptions | null>(null);
   const [result, setResult] = useState<TraceDone | null>(null);
-  const [progress, setProgress] = useState<TraceProgress | null>(null);
+  const [progress, setProgress] = useState<Progress | null>(null);
+  const [subject, setSubject] = useState<Subject>("person");
+  const [appliedSubject, setAppliedSubject] = useState<Subject | null>(null);
+  const segCache = useRef(new Map<Subject, Uint8Array | null>());
+  const cancelled = useRef(false);
   const [running, setRunning] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const job = useRef<TraceJob | null>(null);
@@ -52,6 +67,7 @@ export default function ImageToSvg({ go }: { go: Go }) {
     setError(null);
     setResult(null);
     setApplied(null);
+    segCache.current.clear();
     try {
       const r = await loadRaster(f, scaleFactor);
       setFile(f);
@@ -68,26 +84,42 @@ export default function ImageToSvg({ go }: { go: Go }) {
     if (!raster) return;
     const o = { ...next, widthMm: next.widthMm > 0 ? next.widthMm : DEFAULT_TRACE.widthMm };
     job.current?.cancel();
-    const j = trace(raster, o, null, setProgress);
-    job.current = j;
+    cancelled.current = false;
     setRunning(true);
-    setProgress(null);
     setError(null);
     try {
+      let seg: Uint8Array | null = null;
+      if (o.mode === "silhouette") {
+        if (!segCache.current.has(subject)) {
+          setProgress({ stage: "segment", ticks: 0 });
+          segCache.current.set(subject, await segmentSubject(raster.rgba, raster.w, raster.h, subject));
+        }
+        seg = segCache.current.get(subject) ?? null;
+        if (cancelled.current) return;
+      }
+      setProgress(null);
+      const j = trace(raster, o, seg, setProgress);
+      job.current = j;
       const r = await j.result;
       setResult(r);
       setApplied(o);
+      setAppliedSubject(subject);
     } catch (e) {
       if (!(e instanceof TraceCancelled)) setError(errorText(e));
     } finally {
-      if (job.current === j) {
-        job.current = null;
-        setRunning(false);
-      }
+      job.current = null;
+      setRunning(false);
     }
   }
 
-  const dirty = !!applied && JSON.stringify(applied) !== JSON.stringify(opts);
+  function cancel() {
+    cancelled.current = true;
+    job.current?.cancel();
+    setRunning(false);
+  }
+
+  const dirty = !!applied && (JSON.stringify(applied) !== JSON.stringify(opts) || (opts.mode === "silhouette" && appliedSubject !== subject));
+  const silhouette = opts.mode === "silhouette";
   const svg = useMemo(() => (result && raster && applied ? buildSvg(result.d, raster.w, raster.h, applied.widthMm) : null), [result, raster, applied]);
   const svgUrl = useMemo(() => (svg ? URL.createObjectURL(new Blob([svg], { type: "image/svg+xml" })) : null), [svg]);
   useEffect(() => () => void (svgUrl && URL.revokeObjectURL(svgUrl)), [svgUrl]);
@@ -119,44 +151,110 @@ export default function ImageToSvg({ go }: { go: Go }) {
       <div className="tool-layout">
         <div className="controls">
           <div className="card stack">
-            <Dropzone accept={IMAGE_ACCEPT} label={file ? file.name : "Arraste uma imagem ou clique"} hint="PNG, JPG, WebP, BMP, GIF ou AVIF · até 25 MB" onFile={onFile} />
+            <Dropzone
+              accept={IMAGE_ACCEPT}
+              label={file ? file.name : "Arraste uma imagem ou clique"}
+              hint="PNG, JPG, WebP, BMP, GIF ou AVIF · até 25 MB"
+              onFile={onFile}
+            />
           </div>
           <div className="card stack">
             <h3>Ajustes</h3>
-            <label className="check">
-              <input type="checkbox" checked={opts.threshold === null} onChange={(e) => set("threshold", e.target.checked ? null : (result?.threshold ?? 160))} /> Limiar automático
-            </label>
+            <div className="seg" role="group" aria-label="Modo">
+              {(
+                [
+                  ["logo", "Logo / desenho"],
+                  ["silhouette", "Silhueta"],
+                ] as [TraceMode, string][]
+              ).map(([m, label]) => (
+                <button key={m} aria-pressed={opts.mode === m} onClick={() => set("mode", m)}>
+                  {label}
+                </button>
+              ))}
+            </div>
+            <span className="hint">
+              {silhouette
+                ? "Recorta só o contorno do objeto principal, cheio e liso. Ideal para cortador de pessoa ou pet."
+                : "Para logos, desenhos e textos: separa o escuro do claro."}
+            </span>
+            {silhouette ? (
+              <>
+                <label>
+                  Recortar
+                  <select value={subject} onChange={(e) => setSubject(e.target.value as Subject)}>
+                    <option value="person">Pessoa (IA local)</option>
+                    <option value="pet">Pet ou objeto (IA local)</option>
+                    <option value="plain">Objeto em fundo liso (sem IA)</option>
+                  </select>
+                </label>
+                <Slider
+                  label="Suavização do contorno"
+                  min={0}
+                  max={4}
+                  step={0.5}
+                  value={opts.smoothMm}
+                  display={(v) => `${v.toLocaleString("pt-BR")} mm`}
+                  onChange={(v) => set("smoothMm", v)}
+                  hint="Mais suave = contorno mais redondo, sem pontinhas."
+                />
+              </>
+            ) : (
+              <>
+                <label className="check">
+                  <input
+                    type="checkbox"
+                    checked={opts.threshold === null}
+                    onChange={(e) => set("threshold", e.target.checked ? null : (result?.threshold ?? 160))}
+                  />{" "}
+                  Limiar automático
+                </label>
+                <Slider
+                  label="Limiar (claro ↔ escuro)"
+                  min={20}
+                  max={245}
+                  value={opts.threshold ?? result?.threshold ?? 160}
+                  disabled={opts.threshold === null}
+                  onChange={(v) => set("threshold", v)}
+                  hint="Mais alto = tons mais claros também viram forma."
+                />
+                <Slider
+                  label="Limpeza"
+                  min={0}
+                  max={3}
+                  value={opts.cleanup}
+                  display={(v) => CLEANUP_LABELS[v]}
+                  onChange={(v) => set("cleanup", v)}
+                  hint="Suaviza ruído e fecha furinhos antes de vetorizar."
+                />
+                <label className="check">
+                  <input type="checkbox" checked={opts.thicken} onChange={(e) => set("thicken", e.target.checked)} /> Engrossar traços finos (mín. 0,4 mm)
+                </label>
+                <label className="check">
+                  <input type="checkbox" checked={opts.removeBg} onChange={(e) => set("removeBg", e.target.checked)} /> Remover fundo automaticamente
+                </label>
+                <label className="check">
+                  <input type="checkbox" checked={opts.invert} onChange={(e) => set("invert", e.target.checked)} /> O desenho é claro sobre fundo escuro
+                </label>
+              </>
+            )}
             <Slider
-              label="Limiar (claro ↔ escuro)"
-              min={20}
-              max={245}
-              value={opts.threshold ?? result?.threshold ?? 160}
-              disabled={opts.threshold === null}
-              onChange={(v) => set("threshold", v)}
-              hint="Mais alto = tons mais claros também viram forma."
+              label="Detalhe"
+              min={1}
+              max={10}
+              value={opts.detail}
+              onChange={(v) => set("detail", v)}
+              hint="Menos detalhe = curvas mais simples e arquivo menor."
             />
-            <Slider
-              label="Limpeza"
-              min={0}
-              max={3}
-              value={opts.cleanup}
-              display={(v) => CLEANUP_LABELS[v]}
-              onChange={(v) => set("cleanup", v)}
-              hint="Suaviza ruído e fecha furinhos antes de vetorizar."
-            />
-            <Slider label="Detalhe" min={1} max={10} value={opts.detail} onChange={(v) => set("detail", v)} hint="Menos detalhe = curvas mais simples e arquivo menor." />
             <label>
               Ignorar pedaços menores que (mm²)
-              <input type="number" min={0} max={100} step={0.5} value={opts.minAreaMm2} onChange={(e) => set("minAreaMm2", Math.max(0, e.target.valueAsNumber || 0))} />
-            </label>
-            <label className="check">
-              <input type="checkbox" checked={opts.thicken} onChange={(e) => set("thicken", e.target.checked)} /> Engrossar traços finos (mín. 0,4 mm)
-            </label>
-            <label className="check">
-              <input type="checkbox" checked={opts.removeBg} onChange={(e) => set("removeBg", e.target.checked)} /> Remover fundo automaticamente
-            </label>
-            <label className="check">
-              <input type="checkbox" checked={opts.invert} onChange={(e) => set("invert", e.target.checked)} /> O desenho é claro sobre fundo escuro
+              <input
+                type="number"
+                min={0}
+                max={100}
+                step={0.5}
+                value={opts.minAreaMm2}
+                onChange={(e) => set("minAreaMm2", Math.max(0, e.target.valueAsNumber || 0))}
+              />
             </label>
             <label>
               Largura final (mm)
@@ -185,7 +283,7 @@ export default function ImageToSvg({ go }: { go: Go }) {
               <>
                 <span className="spinner" />
                 <span>{progressText(progress)}</span>
-                <button onClick={() => job.current?.cancel()}>
+                <button onClick={cancel}>
                   <X aria-hidden /> Cancelar
                 </button>
               </>
@@ -195,7 +293,13 @@ export default function ImageToSvg({ go }: { go: Go }) {
                   <Play aria-hidden /> {result ? "Aplicar alterações" : "Aplicar"}
                 </button>
                 <span className={dirty ? "dirty" : "muted"}>
-                  {!raster ? "Envie uma imagem para começar." : dirty ? "Há alterações não aplicadas." : result ? "Resultado atualizado." : "Ajuste à esquerda e clique em Aplicar."}
+                  {!raster
+                    ? "Envie uma imagem para começar."
+                    : dirty
+                      ? "Há alterações não aplicadas."
+                      : result
+                        ? "Resultado atualizado."
+                        : "Ajuste à esquerda e clique em Aplicar."}
                 </span>
               </>
             )}
@@ -225,10 +329,18 @@ export default function ImageToSvg({ go }: { go: Go }) {
           </div>
           {result && (
             <div className="metrics" aria-live="polite">
-              <span>Caminhos <b>{paths}</b></span>
-              <span>Área preenchida <b>{result.fillPct.toFixed(0)}%</b></span>
-              <span>Arquivo <b>{((svg?.length ?? 0) / 1024).toFixed(1)} KB</b></span>
-              <span>Tempo <b>{result.ms.toFixed(0)} ms</b></span>
+              <span>
+                Caminhos <b>{paths}</b>
+              </span>
+              <span>
+                Área preenchida <b>{result.fillPct.toFixed(0)}%</b>
+              </span>
+              <span>
+                Arquivo <b>{((svg?.length ?? 0) / 1024).toFixed(1)} KB</b>
+              </span>
+              <span>
+                Tempo <b>{result.ms.toFixed(0)} ms</b>
+              </span>
             </div>
           )}
           {result && result.thinCount > 0 && (
