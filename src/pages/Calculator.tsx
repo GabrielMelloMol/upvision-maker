@@ -6,6 +6,7 @@ import { calculate } from "../domain/calc";
 import { money, parseDecimal } from "../domain/format";
 import { DEFAULT_SETTINGS } from "../domain/settings";
 import { useData } from "../ui/useData";
+import SlicerImport, { type SlicerApply } from "./SlicerImport";
 
 type Option = { id: number; label: string; price: number };
 type Line = { ref: string; price: string; qty: string };
@@ -13,6 +14,7 @@ type Line = { ref: string; price: string; qty: string };
 const load = async (db: Db) => ({
   settings: await loadSettings(db),
   printers: await printers.list(db),
+  stock: await filaments.list(db),
   filaments: (await filaments.list(db)).map((f) => ({ id: f.id, label: [f.material, f.color, f.brand].filter(Boolean).join(" · "), price: f.pricePerKg })),
   materials: (await materials.list(db)).map((m) => ({ id: m.id, label: `${m.name} (${m.unit})`, price: m.unitPrice })),
 });
@@ -21,7 +23,7 @@ const num = (s: string) => parseDecimal(s) || 0;
 const newLine = (): Line => ({ ref: "", price: "", qty: "" });
 
 export default function Calculator() {
-  const [data] = useData(load, { settings: DEFAULT_SETTINGS, printers: [], filaments: [], materials: [] });
+  const [data] = useData(load, { settings: DEFAULT_SETTINGS, printers: [], stock: [], filaments: [], materials: [] });
   const [fil, setFil] = useState<Line[]>([newLine()]);
   const [ext, setExt] = useState<Line[]>([]);
   const [printerId, setPrinterId] = useState("");
@@ -46,6 +48,26 @@ export default function Calculator() {
     [fil, ext, f, data.settings],
   );
 
+  /** Preenche a calculadora com o que o arquivo do fatiador informou. */
+  function applySlicer(a: SlicerApply) {
+    const str = (n: number) => String(n).replace(".", ",");
+    setFil(
+      a.filaments.map((x) => {
+        const o = data.filaments.find((d) => d.id === x.filamentId);
+        return { ref: o ? String(o.id) : "", price: o ? str(o.price) : "", qty: str(x.grams) };
+      }),
+    );
+    const p = data.printers.find((x) => x.id === a.printerId);
+    setPrinterId(p ? String(p.id) : "");
+    setF((cur) => ({
+      ...cur,
+      watts: p ? str(p.watts) : cur.watts,
+      hours: a.seconds !== undefined ? String(Math.floor(a.seconds / 3600)) : cur.hours,
+      minutes: a.seconds !== undefined ? String(Math.round((a.seconds % 3600) / 60)) : cur.minutes,
+      quantity: a.pieces ? String(a.pieces) : cur.quantity,
+    }));
+  }
+
   function pickPrinter(id: string) {
     setPrinterId(id);
     const p = data.printers.find((x) => String(x.id) === id);
@@ -58,6 +80,7 @@ export default function Calculator() {
       <p className="lead">Informe os valores da mesa inteira. O custo é dividido pela quantidade de peças na mesa.</p>
       <div className="calc-layout">
         <div>
+          <SlicerImport stock={data.stock} printers={data.printers} onApply={applySlicer} />
           <section className="card">
             <h2 className="card-title">
               <Cylinder aria-hidden /> Filamentos
