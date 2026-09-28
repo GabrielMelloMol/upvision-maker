@@ -244,3 +244,5 @@ h3.subhead svg { width: 16px; height: 16px; color: var(--muted); }
 .diagnostics { margin-top: var(--space-2); padding: var(--space-4); border-radius: var(--r); background: var(--surface-2); display: grid; gap: var(--space-2); }
 .diagnostics h3 { display: flex; align-items: center; gap: 8px; margin: 0; }
 .diagnostics h3 svg { width: 16px; height: 16px; color: var(--muted); }
+/* Resumo da calculadora: ação separada do número (não disputa com o custo) */
+.calc-summary .hero > button { margin: var(--space-3) 0 var(--space-1); }
