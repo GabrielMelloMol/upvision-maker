@@ -13,7 +13,11 @@ export default function Dropzone({ accept, label, hint, onFile }: Props) {
       role="button"
       tabIndex={0}
       onClick={() => input.current?.click()}
-      onKeyDown={(e) => (e.key === "Enter" || e.key === " ") && input.current?.click()}
+      onKeyDown={(e) => {
+        if (e.key !== "Enter" && e.key !== " ") return;
+        e.preventDefault(); // Espaço não rola a página
+        input.current?.click();
+      }}
       onDragOver={(e) => {
         e.preventDefault();
         setOver(true);
