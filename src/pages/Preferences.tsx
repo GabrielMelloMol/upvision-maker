@@ -5,15 +5,18 @@ import { loadSettings, saveSettings } from "../db/repo";
 import { parseDecimal } from "../domain/format";
 import type { Settings } from "../domain/settings";
 import { fieldErrors } from "../ui/fieldErrors";
-import { useToast } from "../ui/Toast";
+import { errorText, useToast } from "../ui/Toast";
 import { useData } from "../ui/useData";
 import AiSettingsCard from "./AiSettingsCard";
 import MoneyField from "../ui/MoneyField";
 import { formatMoneyInput, parseMoney } from "../ui/parse";
+import { addKwhHistory, type KwhEntry } from "../domain/energy";
+import { money } from "../domain/format";
+import KwhBillSheet from "./preferences/KwhBillSheet";
 
-type NumKey = Exclude<keyof Settings, "channels">;
+type NumKey = Exclude<keyof Settings, "channels" | "kwhHistory">;
 const FIELDS: { key: NumKey; label: string; money?: true; hint?: string }[] = [
-  { key: "kwhPrice", label: "Preço do kWh", money: true, hint: "Na conta de luz: valor total ÷ kWh." },
+  { key: "kwhPrice", label: "Preço do kWh", money: true, hint: "Valor total da conta ÷ kWh consumidos." },
   { key: "laborHourCost", label: "Sua hora de trabalho", money: true, hint: "Use 0 para não cobrar mão de obra." },
   { key: "maintenancePct", label: "Manutenção (%)" },
   { key: "multResale", label: "Multiplicador revenda (×)" },
@@ -40,6 +43,8 @@ function PreferencesForm({ initial }: { initial: Settings }) {
   const [nums, setNums] = useState(Object.fromEntries(FIELDS.map((f) => [f.key, f.money ? formatMoneyInput(String(initial[f.key])) : str(initial[f.key])])));
   const [channels, setChannels] = useState(initial.channels.map((c) => ({ name: c.name, feePct: str(c.feePct), feeFixed: formatMoneyInput(String(c.feeFixed)) })));
   const [errors, setErrors] = useState<Record<string, string>>({});
+  const [billOpen, setBillOpen] = useState(false);
+  const [kwhHistory, setKwhHistory] = useState(initial.kwhHistory);
   const toast = useToast();
 
   const setChannel = (i: number, k: keyof (typeof channels)[number], v: string) =>
@@ -50,9 +55,11 @@ function PreferencesForm({ initial }: { initial: Settings }) {
     const s = {
       ...Object.fromEntries(FIELDS.map((f) => [f.key, f.money ? parseMoney(nums[f.key]) : parseDecimal(nums[f.key])])),
       channels: channels.map((c) => ({ name: c.name, feePct: parseDecimal(c.feePct), feeFixed: parseMoney(c.feeFixed) })),
-    } as Settings;
+    } as Omit<Settings, "kwhHistory">;
     try {
-      await saveSettings(await getDb(), s);
+      const db = await getDb();
+      // relê o que está gravado para não apagar o que este formulário não edita (ex.: histórico do kWh)
+      await saveSettings(db, { ...(await loadSettings(db)), ...s });
       setErrors({});
       toast("Preferências salvas.");
     } catch (err) {
@@ -60,7 +67,25 @@ function PreferencesForm({ initial }: { initial: Settings }) {
     }
   }
 
+  async function applyBill(entry: KwhEntry) {
+    try {
+      const db = await getDb();
+      const current = await loadSettings(db);
+      const history = addKwhHistory(current.kwhHistory, entry);
+      await saveSettings(db, { ...current, kwhPrice: entry.price, kwhHistory: history });
+      setNums((n) => ({ ...n, kwhPrice: formatMoneyInput(String(entry.price)) }));
+      setKwhHistory(history);
+      setBillOpen(false);
+      toast(`Preço do kWh atualizado: ${money(entry.price)}.`);
+    } catch (err) {
+      toast(`Não foi possível salvar: ${errorText(err)}`, "error");
+    }
+  }
+
   return (
+    <>
+    {/* fora do <form>: o envio do assistente não pode disparar o "Salvar preferências" */}
+    {billOpen && <KwhBillSheet history={kwhHistory} onUse={applyBill} onClose={() => setBillOpen(false)} />}
     <form onSubmit={submit} noValidate>
       <div className="card">
         <h2 className="card-title">
@@ -68,7 +93,14 @@ function PreferencesForm({ initial }: { initial: Settings }) {
         </h2>
         <div className="grid">
           {FIELDS.map((f) =>
-            f.money ? (
+            f.key === "kwhPrice" ? (
+              <div key={f.key} className="stack" style={{ gap: 4 }}>
+                <MoneyField label={f.label} hint={f.hint} value={nums[f.key]} error={errors[f.key]} onChange={(v) => setNums({ ...nums, [f.key]: v })} />
+                <button type="button" className="link" style={{ justifySelf: "start" }} onClick={() => setBillOpen(true)}>
+                  Calcular pela conta de luz
+                </button>
+              </div>
+            ) : f.money ? (
               <MoneyField key={f.key} label={f.label} hint={f.hint} value={nums[f.key]} error={errors[f.key]} onChange={(v) => setNums({ ...nums, [f.key]: v })} />
             ) : (
               <label key={f.key}>
@@ -102,5 +134,6 @@ function PreferencesForm({ initial }: { initial: Settings }) {
       {errors._ && <p className="error">{errors._}</p>}
       <button className="primary" type="submit">Salvar preferências</button>
     </form>
+    </>
   );
 }

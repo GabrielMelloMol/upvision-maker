@@ -47,6 +47,53 @@ describe("Preferences", () => {
     expect(s.channels[2]).toEqual({ name: "Feira", feePct: 5, feeFixed: 1.5 });
   });
 
+  test("calcular o kWh pela conta de luz (#2): total ÷ kWh + bandeira, usa, guarda histórico e salvar não apaga", async () => {
+    vi.useFakeTimers({ toFake: ["Date"] });
+    vi.setSystemTime(new Date(2026, 8, 15, 12));
+    const user = userEvent.setup();
+    renderWithApp(<Preferences />);
+    await user.click(await screen.findByRole("button", { name: "Calcular pela conta de luz" }));
+    const sheet = await screen.findByRole("dialog", { name: "Calcular pela conta de luz" });
+    expect(within(sheet).getByRole("button", { name: "Usar este valor" })).toBeDisabled();
+    await user.type(within(sheet).getByLabelText("Valor total da conta"), "276");
+    await user.type(within(sheet).getByLabelText(/^kWh consumidos/), "300");
+    expect(within(sheet).getByText("R$ 0,92", { selector: ".big", normalizer: (x) => x.replace(/\u00a0/g, " ") })).toBeInTheDocument();
+    await user.click(within(sheet).getByRole("button", { name: "Amarela" }));
+    await user.click(within(sheet).getByRole("button", { name: /Usar R\$\s0,94\/kWh/ }));
+
+    expect(await screen.findByText(/Preço do kWh atualizado: R\$\s0,94\./)).toBeInTheDocument();
+    expect(screen.getByLabelText("Preço do kWh")).toHaveValue("0,94");
+    expect(await settings()).toMatchObject({ kwhPrice: 0.94, kwhHistory: [{ month: "2026-09", total: 276, kwh: 300, flag: "amarela", price: 0.94 }] });
+
+    // salvar o resto das preferências não apaga o histórico
+    await user.click(screen.getByRole("button", { name: "Salvar preferências" }));
+    expect(await screen.findByText("Preferências salvas.")).toBeInTheDocument();
+    expect((await settings()).kwhHistory).toHaveLength(1);
+
+    // histórico aparece no assistente, com a variação
+    vi.setSystemTime(new Date(2026, 9, 15, 12));
+    await user.click(screen.getByRole("button", { name: "Calcular pela conta de luz" }));
+    const again = await screen.findByRole("dialog", { name: "Calcular pela conta de luz" });
+    await user.type(within(again).getByLabelText("Valor total da conta"), "300");
+    await user.type(within(again).getByLabelText(/^kWh consumidos/), "300");
+    await user.click(within(again).getByRole("button", { name: /Usar/ }));
+    await waitFor(async () => expect((await settings()).kwhHistory.map((h: { month: string }) => h.month)).toEqual(["2026-10", "2026-09"]));
+    await user.click(screen.getByRole("button", { name: "Calcular pela conta de luz" }));
+    const list = within(await screen.findByRole("dialog", { name: "Calcular pela conta de luz" })).getByRole("list", { name: "Cálculos anteriores" });
+    expect(list.textContent!.replace(/\u00a0/g, " ")).toContain("out/2026 · VerdeR$ 1,00/kWh▲ R$ 0,06 vs. set/2026");
+    vi.useRealTimers();
+  });
+
+  test("conta com números trocados: avisa e deixa conferir", async () => {
+    const user = userEvent.setup();
+    renderWithApp(<Preferences />);
+    await user.click(await screen.findByRole("button", { name: "Calcular pela conta de luz" }));
+    const sheet = await screen.findByRole("dialog", { name: "Calcular pela conta de luz" });
+    await user.type(within(sheet).getByLabelText("Valor total da conta"), "30");
+    await user.type(within(sheet).getByLabelText(/^kWh consumidos/), "276");
+    expect(within(sheet).getByText(/Confira se o total e os kWh não foram trocados/)).toBeInTheDocument();
+  });
+
   test("canal sem nome e número inválido mostram erros e não salvam", async () => {
     const user = userEvent.setup();
     renderWithApp(<Preferences />);

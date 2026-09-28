@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { KwhEntrySchema } from "./energy";
 
 const pct = z.number().min(0).max(100);
 
@@ -17,6 +18,8 @@ export const SettingsSchema = z.object({
   multConsumer: z.number().positive(),
   marketplaceMarginPct: pct,
   channels: z.array(ChannelSchema),
+  /** Cálculos do kWh pela conta de luz (mais recente primeiro). */
+  kwhHistory: z.array(KwhEntrySchema),
 });
 export type Settings = z.infer<typeof SettingsSchema>;
 
@@ -33,4 +36,5 @@ export const DEFAULT_SETTINGS: Settings = {
     { name: "Mercado Livre (clássico)", feePct: 14, feeFixed: 6.75 },
     { name: "TikTok Shop", feePct: 12, feeFixed: 4 },
   ],
+  kwhHistory: [],
 };
