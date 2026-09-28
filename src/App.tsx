@@ -1,23 +1,11 @@
-import { useEffect, useState, type ReactNode } from "react";
+import { DatabaseBackup, History } from "lucide-react";
+import { useEffect, useState } from "react";
 import type { Update } from "@tauri-apps/plugin-updater";
 import { loadBackup, saveBackup } from "./backupActions";
 import { errorText, useToast } from "./ui/Toast";
 import { findUpdate, installUpdate } from "./updater";
-import Calculator from "./pages/Calculator";
-import Filaments from "./pages/Filaments";
-import Materials from "./pages/Materials";
-import Preferences from "./pages/Preferences";
-import Printers from "./pages/Printers";
-
-type Page = { id: string; label: string; group: string; render: () => ReactNode };
-
-const PAGES: Page[] = [
-  { id: "calculator", label: "Calculadora", group: "Precificar", render: () => <Calculator /> },
-  { id: "filaments", label: "Filamentos", group: "Cadastros", render: () => <Filaments /> },
-  { id: "materials", label: "Materiais extras", group: "Cadastros", render: () => <Materials /> },
-  { id: "printers", label: "Impressoras", group: "Cadastros", render: () => <Printers /> },
-  { id: "preferences", label: "Preferências", group: "Configurar", render: () => <Preferences /> },
-];
+import logo from "./assets/logo.png";
+import { PAGES } from "./pages";
 
 export default function App() {
   const [pageId, setPageId] = useState(PAGES[0].id);
@@ -65,7 +53,13 @@ export default function App() {
   return (
     <div className="app">
       <nav className="sidebar" aria-label="Navegação principal">
-        <div className="brand">UpVision Maker</div>
+        <button className="brand" onClick={() => setPageId("home")}>
+          <img src={logo} alt="" />
+          <span>
+            UpVision Maker
+            <small>Ferramentas para makers 3D</small>
+          </span>
+        </button>
         {PAGES.map((p, i) => {
           const header = p.group && p.group !== PAGES[i - 1]?.group ? <div className="group">{p.group}</div> : null;
           return (
@@ -76,14 +70,19 @@ export default function App() {
                 aria-current={p.id === page.id ? "page" : undefined}
                 onClick={() => setPageId(p.id)}
               >
+                <p.icon aria-hidden />
                 {p.label}
               </button>
             </div>
           );
         })}
         <div className="footer">
-          <button onClick={onSave}>Fazer backup</button>
-          <button onClick={onRestore}>Restaurar backup</button>
+          <button onClick={onSave}>
+            <DatabaseBackup aria-hidden /> Fazer backup
+          </button>
+          <button onClick={onRestore}>
+            <History aria-hidden /> Restaurar backup
+          </button>
         </div>
       </nav>
       <main key={`${page.id}-${reloadKey}`}>
@@ -95,7 +94,7 @@ export default function App() {
             </button>
           </div>
         )}
-        {page.render()}
+        {page.render(setPageId)}
       </main>
     </div>
   );
