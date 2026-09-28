@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { FONTS, loadFont, type FontId } from "../geometry/fonts";
 import { getManifold } from "../geometry/manifold";
 import { buildMedal, DEFAULT_MEDAL, type MedalParams, type MedalShape } from "../geometry/medal";
@@ -12,7 +12,8 @@ import Segmented from "../ui/Segmented";
 import { errorText } from "../ui/Toast";
 import { useModelBuilder } from "../ui/useModelBuilder";
 import "../styles/features.css";
-import { DESIGN_ACCEPT, designFromSvg, fileToSvg } from "./designInput";
+import { clearHandoff, peekHandoff } from "./handoff";
+import { DESIGN_ACCEPT, designFromSvg, fileToSvg, svgFillColors } from "./designInput";
 
 const SHAPES: [MedalShape, string][] = [
   ["circle", "Redonda"],
@@ -25,7 +26,9 @@ export default function Medal() {
   const [p, setP] = useState<MedalParams>(DEFAULT_MEDAL);
   const [text, setText] = useState("CAMPEÃ");
   const [font, setFont] = useState<FontId>("hanken");
-  const [art, setArt] = useState<{ svg: string; name: string } | null>(null);
+  // SVG vindo do Imagem → SVG (pode ser colorido)
+  const [art, setArt] = useState<{ svg: string; name: string } | null>(() => peekHandoff());
+  useEffect(clearHandoff, []);
   const [artError, setArtError] = useState<string | null>(null);
   const set = <K extends keyof MedalParams>(k: K) => (v: MedalParams[K]) => setP((o) => ({ ...o, [k]: v }));
 
@@ -38,6 +41,7 @@ export default function Medal() {
     }
   }
 
+  const artMulti = !!art && svgFillColors(art.svg).length > 1;
   const valid =
     inRange(p.diameter, 25, 150) && inRange(p.thickness, 1, 10) && inRange(p.rim, 0.8, 10) && inRange(p.relief, 0.4, 5) && (p.ribbon === 0 || inRange(p.ribbon, 5, 50));
 
@@ -45,12 +49,13 @@ export default function Medal() {
     if (!valid) return null;
     const M = await getManifold();
     const txt = text.trim() ? textToCrossSection(M, await loadFont(font), text, p.diameter * 0.14) : null;
-    const artCs = art ? (await designFromSvg(art.svg, 100, false)).cs : null;
+    const design = art ? await designFromSvg(art.svg, 100, false, true) : null;
     try {
-      return { models: [{ ...buildMedal(M, p, artCs, txt), name: text.trim() || "Medalha" }], warnings: [] };
+      return { models: [{ ...buildMedal(M, p, design?.cs ?? null, txt, design?.layers), name: text.trim() || "Medalha" }], warnings: [] };
     } finally {
       txt?.delete();
-      artCs?.delete();
+      design?.cs.delete();
+      design?.layers?.forEach((l) => l.cs.delete());
     }
   }, [p, text, font, art, valid]);
 
@@ -110,11 +115,14 @@ export default function Medal() {
                 Borda e texto
                 <input type="color" value={p.accentColor} onChange={(e) => set("accentColor")(e.target.value)} />
               </label>
-              <label>
-                Imagem
-                <input type="color" value={p.artColor} onChange={(e) => set("artColor")(e.target.value)} />
-              </label>
+              {!artMulti && (
+                <label>
+                  Imagem
+                  <input type="color" value={p.artColor} onChange={(e) => set("artColor")(e.target.value)} />
+                </label>
+              )}
             </div>
+            {artMulti && <span className="hint">A imagem é colorida: cada cor dela sai com o próprio filamento.</span>}
           </div>
           <ExportButtons models={models} name={`medalha-${text || "sem-texto"}`} busy={busy} />
         </div>

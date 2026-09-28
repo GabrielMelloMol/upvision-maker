@@ -33,3 +33,14 @@ export function buildSvg(d: string, w: number, h: number, widthMm: number): stri
     `<path fill="#000" fill-rule="evenodd" stroke="none" d="${d}"/></svg>`
   );
 }
+
+export type ColorLayer = { color: string; d: string };
+
+/** SVG colorido: um caminho por cor, em ordem de pintura (cada um cobre os de baixo, sem fresta). */
+export function buildColorSvg(layers: ColorLayer[], w: number, h: number, widthMm: number): string {
+  return (
+    `<svg xmlns="http://www.w3.org/2000/svg" width="${mm(widthMm)}mm" height="${mm((widthMm * h) / w)}mm" viewBox="0 0 ${w} ${h}">` +
+    layers.map((l) => `<path fill="${l.color}" fill-rule="evenodd" stroke="none" d="${l.d}"/>`).join("") +
+    `</svg>`
+  );
+}

@@ -1,4 +1,5 @@
 import type { CS, ManifoldToplevel } from "./manifold";
+import { layerParts, type ColorLayer2D } from "./extrude";
 import { toMesh } from "./mesh";
 import { outerOnly, scoped } from "./shape2d";
 import type { Model } from "./types";
@@ -29,7 +30,7 @@ const BRIDGE_MM = 4; // fechamento que une letras afastadas numa base só
 const RING_OVERLAP_MM = 2.5;
 
 /** Chaveiro de 2 cores: base (silhueta + borda, com argola) e desenho/texto em relevo, como partes separadas. */
-export function buildKeychain(M: ManifoldToplevel, art: CS, p: KeychainParams, name: string): Model {
+export function buildKeychain(M: ManifoldToplevel, art: CS, p: KeychainParams, name: string, layers: ColorLayer2D[] | null = null): Model {
   return scoped((k) => {
     let base = k(outerOnly(M, k(k(art.offset(p.border + BRIDGE_MM, "Round")).offset(-BRIDGE_MM, "Round"))));
     if (base.decompose().map(k).length > 1) base = k(base.hull());
@@ -46,13 +47,12 @@ export function buildKeychain(M: ManifoldToplevel, art: CS, p: KeychainParams, n
       const hole = k(M.CrossSection.circle(p.ringHole, 32).translate(c));
       base = k(k(base.add(disc)).subtract(hole));
     }
-    const top = k(k(art.extrude(p.relief)).translate([0, 0, p.base]));
+    // com `layers` (logo colorido) o que não está nas camadas (o texto) segue na cor do texto
+    const rest = layers ? k(art.subtract(k(M.CrossSection.union(layers.map((l) => l.cs))))) : art;
+    const top = rest.isEmpty() ? [] : [{ name: "Texto", color: p.topColor, mesh: toMesh(k(k(rest.extrude(p.relief)).translate([0, 0, p.base]))) }];
     return {
       name,
-      parts: [
-        { name: "Base", color: p.baseColor, mesh: toMesh(k(base.extrude(p.base))) },
-        { name: "Texto", color: p.topColor, mesh: toMesh(top) },
-      ],
+      parts: [{ name: "Base", color: p.baseColor, mesh: toMesh(k(base.extrude(p.base))) }, ...top, ...(layers ? layerParts(layers, p.relief, p.base, "Logo") : [])],
     };
   });
 }

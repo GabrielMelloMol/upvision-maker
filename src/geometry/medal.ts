@@ -1,6 +1,7 @@
 import type { CS, ManifoldToplevel } from "./manifold";
 import { toMesh } from "./mesh";
-import { fitInto, scoped, shrinkToFit } from "./shape2d";
+import { layerParts, type ColorLayer2D } from "./extrude";
+import { fitInto, followTransform, scoped, shrinkToFit } from "./shape2d";
 import { flatten, parsePath } from "./svgPath";
 import type { Model } from "./types";
 
@@ -62,7 +63,7 @@ export function medalOutline(M: ManifoldToplevel, shape: MedalShape, d: number):
  * Medalha: base (com alça e rasgo para a fita), destaque (borda + texto) e imagem central, cada um uma parte/cor.
  * `art` e `text` já em mm (Y para cima); aqui só são posicionados e limitados à área interna.
  */
-export function buildMedal(M: ManifoldToplevel, p: MedalParams, art: CS | null, text: CS | null): Model {
+export function buildMedal(M: ManifoldToplevel, p: MedalParams, art: CS | null, text: CS | null, artLayers: ColorLayer2D[] | null = null): Model {
   return scoped((k) => {
     const d = p.diameter;
     const outline = k(medalOutline(M, p.shape, d));
@@ -95,7 +96,12 @@ export function buildMedal(M: ManifoldToplevel, p: MedalParams, art: CS | null, 
     if (art) {
       const artH = text ? innerH * 0.5 : innerH * 0.7;
       const placed = k(shrinkToFit(k(fitInto(art, innerW * 0.7, artH, text ? innerH * 0.08 : 0)), inner));
-      if (!placed.isEmpty()) parts.push({ name: "Imagem", color: p.artColor, mesh: at(placed) });
+      if (placed.isEmpty()) return { name: "Medalha", parts };
+      if (!artLayers) parts.push({ name: "Imagem", color: p.artColor, mesh: at(placed) });
+      else {
+        const moved = artLayers.map((l) => ({ color: l.color, cs: k(k(followTransform(art, placed, l.cs)).intersect(placed)) }));
+        parts.push(...layerParts(moved, p.relief, p.thickness, "Imagem"));
+      }
     }
     return { name: "Medalha", parts };
   });

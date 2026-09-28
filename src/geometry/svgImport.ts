@@ -1,3 +1,4 @@
+import { Color } from "three";
 import { SVGLoader } from "three/addons/loaders/SVGLoader.js";
 import type { CS, ManifoldToplevel } from "./manifold";
 import type { Contour } from "./svgPath";
@@ -33,15 +34,22 @@ function strokeOf(M: ManifoldToplevel, pts: Contour, closed: boolean, width: num
   return all;
 }
 
-/**
- * SVG qualquer (caminhos, formas, grupos com transform, preenchimento e/ou traço) → uma região 2D (união de tudo).
- * Coordenadas continuam em unidades do SVG (Y para baixo); use fitWidth para ir a mm.
- */
-export function svgToCrossSection(M: ManifoldToplevel, svg: string): CS {
+type Piece = { color: string; cs: CS };
+
+const hexOf = (c: string | number | undefined, fallback: Color) => {
+  try {
+    return "#" + (typeof c === "string" && c !== "none" ? new Color(c) : fallback).getHexString();
+  } catch {
+    return "#" + fallback.getHexString();
+  }
+};
+
+/** Cada preenchimento e cada traço do SVG vira uma região 2D com a sua cor, em ordem de pintura. */
+function svgPieces(M: ManifoldToplevel, svg: string): Piece[] {
   if (svg.length > MAX_BYTES) throw new Error("SVG maior que 5 MB.");
   if (/<!ENTITY/i.test(svg)) throw new Error("SVG com declarações ENTITY não é aceito.");
   const data = new SVGLoader().parse(svg);
-  const pieces: CS[] = [];
+  const pieces: Piece[] = [];
   for (const path of data.paths) {
     const style = (path.userData?.style ?? {}) as Record<string, string | number | undefined>;
     const contours = path.subPaths.map((sp) => {
@@ -53,19 +61,74 @@ export function svgToCrossSection(M: ManifoldToplevel, svg: string): CS {
     const filled = style.fill !== "none" && style.fill !== "transparent" && style.fillOpacity !== 0;
     if (filled) {
       const polys = contours.map((c) => c.pts).filter((p) => p.length >= 3);
-      if (polys.length) pieces.push(new M.CrossSection(polys, style.fillRule === "evenodd" ? "EvenOdd" : "NonZero"));
+      if (polys.length) pieces.push({ color: hexOf(style.fill, path.color), cs: new M.CrossSection(polys, style.fillRule === "evenodd" ? "EvenOdd" : "NonZero") });
     }
     const sw = Number(style.strokeWidth ?? 0);
     // ponytail: largura do traço não acompanha scale() do transform; bom para SVGs de ilustrador comuns
     if (style.stroke && style.stroke !== "none" && sw > 0) {
-      for (const c of contours) if (c.pts.length >= 2) pieces.push(strokeOf(M, c.pts, c.closed, sw));
+      const color = hexOf(style.stroke, path.color);
+      for (const c of contours) if (c.pts.length >= 2) pieces.push({ color, cs: strokeOf(M, c.pts, c.closed, sw) });
     }
   }
-  const all = M.CrossSection.union(pieces);
-  pieces.forEach((p) => p.delete());
+  return pieces;
+}
+
+function emptyError(): never {
+  throw new Error("Nenhuma forma encontrada no SVG.");
+}
+
+/**
+ * SVG qualquer (caminhos, formas, grupos com transform, preenchimento e/ou traço) → uma região 2D (união de tudo).
+ * Coordenadas continuam em unidades do SVG (Y para baixo); use fitWidth para ir a mm.
+ */
+export function svgToCrossSection(M: ManifoldToplevel, svg: string): CS {
+  const pieces = svgPieces(M, svg);
+  const all = M.CrossSection.union(pieces.map((p) => p.cs));
+  pieces.forEach((p) => p.cs.delete());
   if (all.isEmpty()) {
     all.delete();
-    throw new Error("Nenhuma forma encontrada no SVG.");
+    emptyError();
   }
   return all;
+}
+
+export type ColorRegion = { color: string; cs: CS };
+
+const SLIVER_FRAC = 0.001; // fiapos mais finos que 0,2% do desenho (borda entre traçados vizinhos) somem
+
+/**
+ * Regiões por cor, como o SVG é pintado: o que vem depois cobre o que veio antes.
+ * Não há sobreposição nem fresta entre cores (as regiões se encaixam). Ordem: 1ª cor pintada primeiro.
+ */
+export function svgToColorRegions(M: ManifoldToplevel, svg: string): ColorRegion[] {
+  const pieces = svgPieces(M, svg);
+  const size = pieces.reduce((m, p) => {
+    const b = p.cs.bounds();
+    return Math.max(m, b.max[0] - b.min[0], b.max[1] - b.min[1]);
+  }, 0);
+  const sliver = size * SLIVER_FRAC;
+  const byColor = new Map<string, CS[]>();
+  let covered: CS | null = null;
+  for (let i = pieces.length - 1; i >= 0; i--) {
+    const { color, cs } = pieces[i];
+    const visible = covered ? cs.subtract(covered) : cs.translate([0, 0]);
+    const next: CS = covered ? covered.add(cs) : cs.translate([0, 0]);
+    covered?.delete();
+    cs.delete();
+    covered = next;
+    const opened = visible.offset(-sliver, "Miter");
+    const clean = opened.offset(sliver, "Miter");
+    [visible, opened].forEach((o) => o.delete());
+    byColor.set(color, [clean, ...(byColor.get(color) ?? [])]);
+  }
+  covered?.delete();
+  const out: ColorRegion[] = [];
+  for (const [color, list] of [...byColor].reverse()) {
+    const cs = M.CrossSection.union(list);
+    list.forEach((c) => c.delete());
+    if (cs.isEmpty()) cs.delete();
+    else out.push({ color, cs });
+  }
+  if (!out.length) emptyError();
+  return out;
 }

@@ -37,8 +37,10 @@ export function outerOnly(M: ManifoldToplevel, cs: CS): CS {
 }
 
 /** Converte coordenadas de SVG/fonte (Y para baixo) em mm (Y para cima), no tamanho pedido, centralizado na origem. */
-function fit(cs: CS, axis: 0 | 1, sizeMm: number, mirrorX: boolean): CS {
-  const b = cs.bounds();
+type Rect = { min: [number, number] | number[]; max: [number, number] | number[] };
+
+/** `ref`: caixa de referência (para encaixar várias camadas com a mesma transformação). */
+function fit(cs: CS, axis: 0 | 1, sizeMm: number, mirrorX: boolean, b: Rect = cs.bounds()): CS {
   const size = b.max[axis] - b.min[axis];
   if (!(size > 0)) throw new Error("O desenho está vazio.");
   const s = sizeMm / size;
@@ -50,7 +52,7 @@ function fit(cs: CS, axis: 0 | 1, sizeMm: number, mirrorX: boolean): CS {
   return out;
 }
 
-export const fitWidth = (cs: CS, widthMm: number, mirrorX = false) => fit(cs, 0, widthMm, mirrorX);
+export const fitWidth = (cs: CS, widthMm: number, mirrorX = false, ref?: Rect) => fit(cs, 0, widthMm, mirrorX, ref);
 export const fitHeight = (cs: CS, heightMm: number, mirrorX = false) => fit(cs, 1, heightMm, mirrorX);
 
 /** Encaixa `cs` numa caixa (maxW × maxH) centrada em (0, cy). */
@@ -88,3 +90,14 @@ export function shrinkToFit(cs: CS, inner: CS): CS {
   return cur;
 }
 
+
+/** Aplica em `other` a mesma escala uniforme + translação que levou `from` a `to` (ex.: camadas de cor seguindo a arte). */
+export function followTransform(from: CS, to: CS, other: CS): CS {
+  const a = from.bounds(), b = to.bounds();
+  const wa = a.max[0] - a.min[0];
+  const s = wa > 0 ? (b.max[0] - b.min[0]) / wa : 1;
+  const scaled = other.scale(s);
+  const out = scaled.translate([b.min[0] - a.min[0] * s, b.min[1] - a.min[1] * s]);
+  scaled.delete();
+  return out;
+}

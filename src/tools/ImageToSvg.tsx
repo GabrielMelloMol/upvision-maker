@@ -1,4 +1,4 @@
-import { Cookie, Download, Layers, Play, X } from "lucide-react";
+import { Award, Cookie, Download, KeyRound, Layers, Play, X } from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
 import type { Go } from "../pages";
 import Alert from "../ui/Alert";
@@ -11,13 +11,38 @@ import { DEFAULT_TRACE, type TraceMode, type TraceOptions } from "../vectorize/p
 import { classifyImage } from "../vectorize/classify";
 import { scaleFactor } from "../vectorize/raster";
 import { segmentSubject, type Subject } from "../vectorize/segment";
-import { buildSvg } from "../vectorize/svgOut";
+import { buildColorSvg, buildSvg } from "../vectorize/svgOut";
+import { filaments as filamentsRepo } from "../db/repo";
+import type { Filament } from "../domain/entities";
+import { colorSwatch } from "../ui/ColorDots";
+import Segmented from "../ui/Segmented";
+import { useData } from "../ui/useData";
 import type { TraceDone } from "../vectorize/vectorize.worker";
 import { handoffSvg } from "./handoff";
 
 const MANY_PATHS = 2000;
 const MOSTLY_FILLED = 96;
 const CLEANUP_LABELS = ["Nenhuma", "Leve", "Média", "Forte"];
+const COLOR_COUNTS = [
+  ["1", "1 cor"],
+  ["2", "2"],
+  ["3", "3"],
+  ["4", "4"],
+] as const;
+
+type FilamentColor = { hex: string; label: string };
+const loadFilaments = (db: Parameters<typeof filamentsRepo.list>[0]) => filamentsRepo.list(db);
+
+/** Filamentos cadastrados com cor reconhecível (nome comum ou hex), sem repetir a cor. */
+function filamentColors(list: Filament[]): FilamentColor[] {
+  const out = new Map<string, FilamentColor>();
+  for (const f of list) {
+    const hex = colorSwatch(f.color);
+    if (!hex || hex === "transparent" || out.has(hex.toLowerCase())) continue;
+    out.set(hex.toLowerCase(), { hex: hex.toLowerCase(), label: [f.material, f.color, f.brand && `(${f.brand})`].filter(Boolean).join(" ") });
+  }
+  return [...out.values()];
+}
 
 /** Sobreposição vermelha dos pixels com traço fino. */
 function thinOverlay(thin: Uint8Array, w: number, h: number): string {
@@ -60,6 +85,10 @@ export default function ImageToSvg({ go }: { go: Go }) {
   const job = useRef<TraceJob | null>(null);
   const isPhoto = useMemo(() => (raster ? classifyImage(raster.rgba, raster.w, raster.h).isPhoto : false), [raster]);
   const toast = useToast();
+  const [filamentRows] = useData(loadFilaments, [] as Filament[]);
+  const filColors = useMemo(() => filamentColors(filamentRows), [filamentRows]);
+  const [useFilaments, setUseFilaments] = useState(true);
+  const [recolor, setRecolor] = useState<Record<number, string>>({});
   const set = <K extends keyof TraceOptions>(k: K, v: TraceOptions[K]) => setOpts((o) => ({ ...o, [k]: v }));
 
   useEffect(() => () => job.current?.cancel(), []);
@@ -84,7 +113,11 @@ export default function ImageToSvg({ go }: { go: Go }) {
 
   async function apply(next: TraceOptions = opts) {
     if (!raster) return;
-    const o = { ...next, widthMm: next.widthMm > 0 ? next.widthMm : DEFAULT_TRACE.widthMm };
+    const o = {
+      ...next,
+      widthMm: next.widthMm > 0 ? next.widthMm : DEFAULT_TRACE.widthMm,
+      palette: next.colors > 1 && useFilaments && filColors.length ? filColors.map((f) => f.hex) : null,
+    };
     if (o.widthMm !== next.widthMm) setOpts(o); // campo vazio/inválido volta para a largura usada
     job.current?.cancel();
     cancelled.current = false;
@@ -105,6 +138,7 @@ export default function ImageToSvg({ go }: { go: Go }) {
       job.current = j;
       const r = await j.result;
       setResult(r);
+      setRecolor({});
       setApplied(o);
       setAppliedSubject(subject);
     } catch (e) {
@@ -121,9 +155,15 @@ export default function ImageToSvg({ go }: { go: Go }) {
     setRunning(false);
   }
 
-  const dirty = !!applied && (JSON.stringify(applied) !== JSON.stringify(opts) || (opts.mode === "silhouette" && appliedSubject !== subject));
   const silhouette = opts.mode === "silhouette";
-  const svg = useMemo(() => (result && raster && applied ? buildSvg(result.d, raster.w, raster.h, applied.widthMm) : null), [result, raster, applied]);
+  const colorMode = !silhouette && opts.colors > 1;
+  const same = (a: TraceOptions, b: TraceOptions) => JSON.stringify({ ...a, palette: null }) === JSON.stringify({ ...b, palette: null });
+  const dirty = !!applied && (!same(applied, opts) || (opts.mode === "silhouette" && appliedSubject !== subject) || (colorMode && !!applied.palette !== (useFilaments && filColors.length > 0)));
+  const layers = useMemo(() => result?.layers?.map((l, i) => ({ ...l, color: recolor[i] ?? l.color })) ?? null, [result, recolor]);
+  const svg = useMemo(
+    () => (result && raster && applied ? (layers ? buildColorSvg(layers, raster.w, raster.h, applied.widthMm) : buildSvg(result.d, raster.w, raster.h, applied.widthMm)) : null),
+    [result, raster, applied, layers],
+  );
   const svgUrl = useMemo(() => (svg ? URL.createObjectURL(new Blob([svg], { type: "image/svg+xml" })) : null), [svg]);
   useEffect(() => () => void (svgUrl && URL.revokeObjectURL(svgUrl)), [svgUrl]);
   const overlay = useMemo(() => (result?.thin && result.thinCount > 0 && raster ? thinOverlay(result.thin, raster.w, raster.h) : null), [result, raster]);
@@ -150,7 +190,7 @@ export default function ImageToSvg({ go }: { go: Go }) {
   return (
     <div className="page">
       <h1>Imagem → SVG</h1>
-      <p className="lead">Transforma logo, desenho ou silhueta em um SVG de 1 cor, liso e já no tamanho de impressão.</p>
+      <p className="lead">Transforma logo, desenho ou silhueta em um SVG liso, de 1 a 4 cores, já no tamanho de impressão.</p>
       <div className="tool-layout">
         <div className="controls">
           <div className="card stack">
@@ -180,6 +220,22 @@ export default function ImageToSvg({ go }: { go: Go }) {
                 ? "Recorta só o contorno do objeto principal, cheio e liso. Ideal para cortador de pessoa ou pet."
                 : "Para logos, desenhos e textos: separa o escuro do claro."}
             </span>
+            {!silhouette && (
+              <div>
+                <span className="field-label">Cores</span>
+                <Segmented label="Cores" value={String(opts.colors) as "1"} options={COLOR_COUNTS} onChange={(v) => set("colors", Number(v))} full />
+              </div>
+            )}
+            {colorMode && (
+              <>
+                <span className="hint">Cada cor vira uma camada que se encaixa na outra, sem frestas: pronta para extrudar ou fazer chaveiro e medalha multicor.</span>
+                <label className="check">
+                  <input type="checkbox" checked={useFilaments && filColors.length > 0} disabled={!filColors.length} onChange={(e) => setUseFilaments(e.target.checked)} /> Usar as
+                  cores dos filamentos cadastrados
+                </label>
+                {!filColors.length && <span className="hint">Cadastre filamentos com cor em Filamentos para usar a paleta deles.</span>}
+              </>
+            )}
             {silhouette ? (
               <>
                 <label>
@@ -201,6 +257,10 @@ export default function ImageToSvg({ go }: { go: Go }) {
                   hint="Mais suave = contorno mais redondo, sem pontinhas."
                 />
               </>
+            ) : colorMode ? (
+              <label className="check">
+                <input type="checkbox" checked={opts.removeBg} onChange={(e) => set("removeBg", e.target.checked)} /> Remover fundo automaticamente
+              </label>
             ) : (
               <>
                 <label className="check">
@@ -276,6 +336,12 @@ export default function ImageToSvg({ go }: { go: Go }) {
               <button disabled={!svg} onClick={() => sendTo("extrude")}>
                 <Layers aria-hidden /> Extrudar em 3D
               </button>
+              <button disabled={!svg} onClick={() => sendTo("keychain")}>
+                <KeyRound aria-hidden /> Fazer chaveiro
+              </button>
+              <button disabled={!svg} onClick={() => sendTo("medal")}>
+                <Award aria-hidden /> Fazer medalha
+              </button>
             </div>
           </div>
         </div>
@@ -339,6 +405,27 @@ export default function ImageToSvg({ go }: { go: Go }) {
               </div>
             </figure>
           </div>
+          {layers && (
+            <div className="card stack">
+              <h3>Cores</h3>
+              {layers.map((l, i) => (
+                <label key={i} className="row">
+                  <span className="swatch-inline">
+                    <i style={{ background: l.color }} />
+                  </span>
+                  <span>Cor {i + 1}</span>
+                  <select aria-label={`Filamento da cor ${i + 1}`} value={l.color} onChange={(e) => setRecolor((r) => ({ ...r, [i]: e.target.value }))}>
+                    {!filColors.some((f) => f.hex === l.color) && <option value={l.color}>{l.color} (da imagem)</option>}
+                    {filColors.map((f) => (
+                      <option key={f.hex} value={f.hex}>
+                        {f.label}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+              ))}
+            </div>
+          )}
           {result && (
             <div className="metrics" aria-live="polite">
               <span>

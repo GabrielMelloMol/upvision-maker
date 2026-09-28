@@ -209,4 +209,35 @@ describe("Imagem → SVG", () => {
     fireEvent.change(screen.getByRole("slider", { name: /Suavização/ }), { target: { value: "2.5" } });
     expect(screen.getByText("2,5 mm")).toBeInTheDocument();
   });
+
+  test("modo colorido: 3 cores com a paleta dos filamentos, troca de filamento por cor e SVG com uma camada por cor", async () => {
+    for (const [color, brand] of [["Azul", "Voolt"], ["Branco", "Voolt"], ["#123456", ""], ["Transparente", ""]])
+      await t.db.execute("INSERT INTO filaments (material, color, brand, pricePerKg, spoolG, stockG, minG) VALUES ('PLA', ?, ?, 100, 1000, 1000, 100)", [color, brand]);
+    traceMock.mockImplementation(() => ({
+      result: Promise.resolve(done({ layers: [{ color: "#2563eb", d: "M0 0L4 0L4 2Z" }, { color: "#ff00ff", d: "M1 0L2 0L2 1Z" }] })),
+      cancel: () => {},
+    }));
+    const { user } = await withImage();
+    await user.click(screen.getByRole("button", { name: "3" }));
+    expect(screen.queryByRole("slider", { name: /Limiar/ })).not.toBeInTheDocument();
+    await waitFor(() => expect(screen.getByRole("checkbox", { name: /cores dos filamentos/ })).toBeEnabled());
+    await user.click(screen.getByRole("button", { name: /^Aplicar/ }));
+    await screen.findByText("Resultado atualizado.");
+    // azul, branco e o hex; "Transparente" não entra na paleta
+    expect(traceMock.mock.calls[0][1]).toMatchObject({ colors: 3, palette: ["#2563eb", "#f8f8f6", "#123456"] });
+
+    const second = screen.getByRole("combobox", { name: "Filamento da cor 2" });
+    expect(second).toHaveValue("#ff00ff"); // cor que não é de filamento aparece como "da imagem"
+    await user.selectOptions(second, "#f8f8f6");
+    await user.click(screen.getByRole("button", { name: /Salvar SVG/ }));
+    const svg = new TextDecoder().decode(await waitFor(() => t.files.get("/saida/meu-logo.svg")!));
+    expect(svg.match(/<path fill="#[0-9a-f]+"/g)).toEqual(['<path fill="#2563eb"', '<path fill="#f8f8f6"']);
+
+    // sem a paleta dos filamentos: vetoriza com as cores da imagem
+    await user.click(screen.getByRole("checkbox", { name: /cores dos filamentos/ }));
+    expect(screen.getByText("Há alterações não aplicadas.")).toBeInTheDocument();
+    await user.click(screen.getByRole("button", { name: "Aplicar alterações" }));
+    await screen.findByText("Resultado atualizado.");
+    expect(traceMock.mock.calls[1][1].palette).toBeNull();
+  });
 });

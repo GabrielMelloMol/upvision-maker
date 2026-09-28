@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { FONTS, loadFont, type FontId } from "../geometry/fonts";
 import { buildKeychain, DEFAULT_KEYCHAIN, layoutOnPlate, parseNames, type KeychainParams } from "../geometry/keychain";
 import { modelsBounds } from "../geometry/bounds";
@@ -11,6 +11,7 @@ import ExportButtons from "../ui/ExportButtons";
 import NumField, { inRange } from "../ui/NumField";
 import Preview3D from "../ui/Preview3D";
 import { useModelBuilder } from "../ui/useModelBuilder";
+import { clearHandoff, peekHandoff } from "./handoff";
 import { DESIGN_ACCEPT, designFromSvg, fileToSvg } from "./designInput";
 import { errorText } from "../ui/Toast";
 
@@ -25,7 +26,9 @@ export default function Keychain() {
   const [names, setNames] = useState("Ana\nBia\nCaio");
   const [font, setFont] = useState<FontId>("pacifico");
   const [textH, setTextH] = useState(14);
-  const [logo, setLogo] = useState<{ svg: string; name: string } | null>(null);
+  // SVG vindo do Imagem → SVG (pode ser colorido)
+  const [logo, setLogo] = useState<{ svg: string; name: string } | null>(() => peekHandoff());
+  useEffect(clearHandoff, []);
   const [logoH, setLogoH] = useState(16);
   const [logoError, setLogoError] = useState<string | null>(null);
   const [p, setP] = useState<KeychainParams>(DEFAULT_KEYCHAIN);
@@ -47,21 +50,27 @@ export default function Keychain() {
     if (!valid || (!list.length && !logo)) return null;
     const M = await getManifold();
     const f = await loadFont(font);
-    const logoCs: CS | null = logo ? (await designFromSvg(logo.svg, 100, false)).cs : null;
+    const design = logo ? await designFromSvg(logo.svg, 100, false, true) : null;
+    const logoCs: CS | null = design?.cs ?? null;
     try {
       const built = scoped((k) => {
-        // logo no tamanho pedido (altura), reaproveitado em todos os chaveiros
+        // logo no tamanho pedido (altura), reaproveitado em todos os chaveiros; logo colorido leva as camadas junto
         const lb = logoCs?.bounds();
-        const logoFit = logoCs && lb ? k(logoCs.scale(logoH / (lb.max[1] - lb.min[1]))) : null;
+        const s = lb ? logoH / (lb.max[1] - lb.min[1]) : 1;
+        const logoFit = logoCs ? k(logoCs.scale(s)) : null;
+        const layersFit = design?.layers?.map((l) => ({ color: l.color, cs: k(l.cs.scale(s)) })) ?? null;
         const names = list.length ? list : [""];
         return names.map((name) => {
           const txt = name ? k(textToCrossSection(M, f, name, textH)) : null;
           let art: CS;
+          let dx = 0;
           if (txt && logoFit) {
             const tb = txt.bounds(), gb = logoFit.bounds();
-            art = k(txt.add(k(logoFit.translate([tb.min[0] - LOGO_GAP_MM - gb.max[0], 0]))));
+            dx = tb.min[0] - LOGO_GAP_MM - gb.max[0];
+            art = k(txt.add(k(logoFit.translate([dx, 0]))));
           } else art = (txt ?? logoFit)!;
-          return buildKeychain(M, art, p, name || "Chaveiro");
+          const layers = layersFit?.map((l) => ({ color: l.color, cs: k(l.cs.translate([dx, 0])) })) ?? null;
+          return buildKeychain(M, art, p, name || "Chaveiro", layers);
         });
       });
       const placed = built.length > 1 ? layoutOnPlate(built, PLATE_MM - 2 * GAP_MM, GAP_MM) : built;
@@ -72,6 +81,7 @@ export default function Keychain() {
       return { models: placed, warnings: warn };
     } finally {
       logoCs?.delete();
+      design?.layers?.forEach((l) => l.cs.delete());
     }
   }, [batch, text, names, font, textH, logo, logoH, p, valid]);
 

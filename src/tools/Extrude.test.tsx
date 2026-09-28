@@ -17,6 +17,17 @@ const legendColors = (c: HTMLElement) => [...c.querySelectorAll<HTMLElement>(".l
 
 
 describe("Extrusão SVG → 3D", () => {
+  test("SVG colorido (do Imagem → SVG): uma parte por cor, sem seletor de cor do desenho", async () => {
+    const svg =
+      '<svg xmlns="http://www.w3.org/2000/svg" width="40mm" height="20mm" viewBox="0 0 40 20"><path fill="#2563eb" d="M0 0H40V20H0Z"/><path fill="#f8f8f6" d="M10 5H30V15H10Z"/></svg>';
+    handoffSvg(svg, "logo");
+    const { container } = renderWithApp(<Extrude />);
+    expect(screen.getByText(/Desenho com 2 cores/)).toBeInTheDocument();
+    expect(screen.queryByText("Cor")).not.toBeInTheDocument();
+    await screen.findByText(/40\.0 × 20\.0 × 2\.0 mm/, undefined, BUILD);
+    expect(legendColors(container)).toEqual(["#2563eb", "#f8f8f6"]);
+  });
+
   test("sem desenho: prévia vazia e botões de exportar desabilitados", () => {
     renderWithApp(<Extrude />);
     expect(screen.getByText("Envie um desenho para extrudar.")).toBeInTheDocument();

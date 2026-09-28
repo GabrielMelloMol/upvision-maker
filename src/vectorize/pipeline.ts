@@ -14,6 +14,8 @@ export type TraceOptions = {
   detail: number; // 1–10: fidelidade das curvas
   thicken: boolean; // engrossa traços finos
   smoothMm: number; // silhueta: suavização do contorno
+  colors: number; // 1 = forma única; 2–4 = modo colorido (uma camada por cor)
+  palette: string[] | null; // cores dos filamentos para o modo colorido (null = cores da imagem)
 };
 
 export const DEFAULT_TRACE: TraceOptions = {
@@ -27,6 +29,8 @@ export const DEFAULT_TRACE: TraceOptions = {
   detail: 6,
   thicken: false,
   smoothMm: 1,
+  colors: 1,
+  palette: null,
 };
 
 export type Prepared = { mask: Uint8Array; threshold: number; fillPct: number; thin: Uint8Array | null; thinCount: number };
