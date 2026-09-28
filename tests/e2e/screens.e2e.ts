@@ -29,10 +29,18 @@ for (const scheme of ["light", "dark"] as const) {
       test.setTimeout(180_000);
       await page.emulateMedia({ colorScheme: scheme, reducedMotion: "reduce" });
       await page.setViewportSize(size);
-      await openApp(page);
+      await openApp(page, { keepOnboarding: true });
+      const welcome = page.getByRole("dialog", { name: "Boas-vindas ao UpVision Maker" });
+      if (process.env.SHOTS !== "antes") {
+        await page.waitForTimeout(400);
+        await page.screenshot({ path: `${DIR}/onboarding-${size.width}-${scheme}.png` });
+      }
+      await welcome.getByRole("button", { name: "Agora não" }).click();
       // dados de exemplo para as tabelas não ficarem vazias
       await go(page, "Impressoras"); // cria o banco (migrações rodam no 1º acesso)
       await expect(page.getByText("Nada cadastrado ainda.")).toBeVisible();
+      await page.waitForTimeout(400);
+      await page.screenshot({ path: `${DIR}/vazio-impressoras-${size.width}-${scheme}.png` });
       tauri.db.exec(`INSERT INTO printers (name, watts) VALUES ('Bambu Lab A1', 95), ('Ender 3 V3', 150)`);
       tauri.db.exec(`INSERT INTO filaments (material, color, brand, pricePerKg, spoolG, stockG, minG) VALUES ('PLA','Preto','Voolt',99.9,1000,850,200), ('PETG','Branco','3D Fila',119,1000,120,200)`);
       tauri.db.exec(`INSERT INTO materials (name, unit, unitPrice, stock, min) VALUES ('Argola de chaveiro','un',0.35,120,20), ('Saquinho kraft','un',0.9,8,10)`);
