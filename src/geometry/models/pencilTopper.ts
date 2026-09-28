@@ -1,5 +1,5 @@
 import { fitInto, scoped } from "../shape2d";
-import { backing, slab, solidMesh, type ModelCtx, type ModelOutput } from "./common";
+import { backing, slab, solidMesh, type ModelCtx, type ModelOutput, MissingInput } from "./common";
 
 export type PencilTopperParams = {
   text: string;
@@ -38,7 +38,7 @@ export function buildPencilTopper({ M, text }: ModelCtx, p: PencilTopperParams):
   if (p.body < p.holeD + 2 * MIN_SIDE_WALL) throw new Error(`O corpo precisa ter pelo menos ${(p.holeD + 2 * MIN_SIDE_WALL).toFixed(1).replace(".", ",")} mm para o furo de ${String(p.holeD).replace(".", ",")} mm.`);
   return scoped((k) => {
     const raw = text(p.text, p.textHeight);
-    if (!raw) throw new Error("Digite o nome.");
+    if (!raw) throw new MissingInput("Digite o nome.");
     const letters = k(fitInto(k(raw), p.maxWidth, p.textHeight, 0));
     const plate = k(backing(M, letters, p.border));
     const bottom = plate.bounds().min[1];

@@ -3,7 +3,7 @@ import { qrMatrix } from "../../domain/qr";
 import { qrModel, QR_BASE_COLOR, QR_DARK_COLOR } from "../qr3d";
 import { fitInto, scoped } from "../shape2d";
 import type { Model } from "../types";
-import { moveMesh, roundedRect, slab, solidMesh, type ModelCtx, type ModelOutput } from "./common";
+import { MissingInput, moveMesh, roundedRect, slab, solidMesh, type ModelCtx, type ModelOutput } from "./common";
 
 export type PixPlateParams = {
   key: string;
@@ -40,6 +40,7 @@ const SLOT_CLEARANCE = 0.5;
 
 /** Placa de balcão: título, QR do Pix e nome em relevo escuro sobre placa clara; suporte inclinado opcional. */
 export function buildPixPlate({ M, text }: ModelCtx, p: PixPlateParams): ModelOutput {
+  if (!p.key.trim()) throw new MissingInput("Preencha a chave Pix para ver a placa.");
   const payload = pixPayload({ key: p.key, name: p.name, city: p.city, amount: p.amount > 0 ? p.amount : undefined });
   const W = p.width;
   const m = W * 0.08; // margem

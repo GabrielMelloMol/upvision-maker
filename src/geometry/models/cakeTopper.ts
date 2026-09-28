@@ -1,5 +1,5 @@
 import { fitInto, scoped } from "../shape2d";
-import { backing, size2, slab, type ModelCtx, type ModelOutput } from "./common";
+import { backing, size2, slab, type ModelCtx, type ModelOutput, MissingInput } from "./common";
 
 export type CakeTopperParams = {
   line1: string;
@@ -36,7 +36,7 @@ const LINE2_RATIO = 0.45;
 export function buildCakeTopper({ M, text }: ModelCtx, p: CakeTopperParams): ModelOutput {
   return scoped((k) => {
     const raw1 = text(p.line1, 100);
-    if (!raw1) throw new Error("Digite o texto do topo.");
+    if (!raw1) throw new MissingInput("Digite o texto do topo.");
     const l1 = k(fitInto(k(raw1), p.width, 1e6, 0));
     const h1 = size2(l1)[1];
     const raw2 = text(p.line2, h1 * LINE2_RATIO);

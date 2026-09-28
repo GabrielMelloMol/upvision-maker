@@ -1,5 +1,5 @@
 import { fitInto, scoped } from "../shape2d";
-import { moveMesh, size2, slab, solidMesh, type ModelCtx, type ModelOutput } from "./common";
+import { moveMesh, size2, slab, solidMesh, type ModelCtx, type ModelOutput, MissingInput } from "./common";
 
 export type WordDecorParams = {
   base: string;
@@ -38,7 +38,7 @@ export function buildWordDecor({ M, text }: ModelCtx, p: WordDecorParams): Model
   return scoped((k) => {
     const rawBase = text(p.base, p.baseHeight);
     const rawWord = text(p.word, p.wordHeight);
-    if (!rawBase || !rawWord) throw new Error("Digite a palavra base e a palavra de encaixe.");
+    if (!rawBase || !rawWord) throw new MissingInput("Digite a palavra base e a palavra de encaixe.");
     const letters = k(fitInto(k(rawBase), 1e6, p.baseHeight, 0));
     const b = letters.bounds();
     const bar = k(k(M.CrossSection.square([b.max[0] - b.min[0], BAR_H], true)).translate([(b.min[0] + b.max[0]) / 2, b.min[1] + BAR_H / 2]));

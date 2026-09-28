@@ -9,13 +9,15 @@ import { buildStamp, DEFAULT_STAMP } from "../../geometry/models/stamp";
 import { buildTrophy, DEFAULT_TROPHY } from "../../geometry/models/trophy";
 import { parseMoney } from "../../ui/parse";
 import { as, color, num, text, type ModelDef, type Params } from "./fields";
+import { GIFTS_SPORT_MODELS } from "./giftsSport";
 import { TEXT_KITCHEN_MODELS } from "./textKitchen";
 
-export type { FieldDef, ModelDef, Params, Section } from "./fields";
+export { CATEGORIES, type Category, type FieldDef, type ModelDef, type Params, type Section } from "./fields";
 
 const CORE_MODELS: ModelDef[] = [
   {
     id: "pix",
+    category: "plates",
     label: "Placa Pix",
     blurb: "Placa de balcão com QR do Pix, título e nome; suporte inclinado.",
     icon: QrCode,
@@ -34,6 +36,7 @@ const CORE_MODELS: ModelDef[] = [
   },
   {
     id: "cake",
+    category: "party",
     label: "Topo de bolo",
     blurb: "Nome e frase em relevo, fundo contornado e palitos.",
     icon: Cake,
@@ -47,6 +50,7 @@ const CORE_MODELS: ModelDef[] = [
   },
   {
     id: "stamp",
+    category: "kitchen",
     label: "Carimbo",
     blurb: "Para brigadeiro, biscoito e sabonete: arte espelhada e cabo de encaixe.",
     icon: Stamp,
@@ -61,6 +65,7 @@ const CORE_MODELS: ModelDef[] = [
   },
   {
     id: "bookmark",
+    category: "home",
     label: "Marca-página",
     blurb: "Tira com furo para cordão, texto ao longo e desenho no topo.",
     icon: Bookmark,
@@ -75,6 +80,7 @@ const CORE_MODELS: ModelDef[] = [
   },
   {
     id: "pen",
+    category: "home",
     label: "Porta-caneta",
     blurb: "Copo redondo, sextavado ou quadrado com nome em relevo.",
     icon: PencilRuler,
@@ -88,6 +94,7 @@ const CORE_MODELS: ModelDef[] = [
   },
   {
     id: "spinner",
+    category: "keychains",
     label: "Chaveiro giratório",
     blurb: "Disco que gira dentro da moldura, impresso já montado.",
     icon: Disc3,
@@ -101,6 +108,7 @@ const CORE_MODELS: ModelDef[] = [
   },
   {
     id: "nfc",
+    category: "keychains",
     label: "Chaveiro NFC",
     blurb: "Bolsão para tag NFC com pausa no 3MF para colocar a tag.",
     icon: Nfc,
@@ -115,6 +123,7 @@ const CORE_MODELS: ModelDef[] = [
   },
   {
     id: "trophy",
+    category: "party",
     label: "Troféu",
     blurb: "Placa com texto e imagem que encaixa numa base com degrau.",
     icon: Trophy,
@@ -129,7 +138,7 @@ const CORE_MODELS: ModelDef[] = [
   },
 ];
 
-export const MODELS: ModelDef[] = [...CORE_MODELS, ...TEXT_KITCHEN_MODELS];
+export const MODELS: ModelDef[] = [...CORE_MODELS, ...TEXT_KITCHEN_MODELS, ...GIFTS_SPORT_MODELS];
 
 /** Números dentro dos limites (os campos fora da faixa ficam marcados e não geram o modelo). */
 export function validParams(def: ModelDef, p: Params): boolean {

@@ -1,5 +1,5 @@
 import { fitInto, scoped, shrinkToFit } from "../shape2d";
-import { roundedRect, slab, type ModelCtx, type ModelOutput } from "./common";
+import { roundedRect, slab, type ModelCtx, type ModelOutput, MissingInput } from "./common";
 
 export type BookmarkParams = {
   text: string;
@@ -46,7 +46,7 @@ export function buildBookmark({ M, text, art }: ModelCtx, p: BookmarkParams): Mo
       const cy = -L / 2 + MARGIN + room / 2;
       slots.push(k(shrinkToFit(k(fitInto(turned, (W - 2 * MARGIN) * 0.7, room, cy)), inner)));
     }
-    if (!slots.length) throw new Error("Digite um texto ou envie um desenho.");
+    if (!slots.length) throw new MissingInput("Digite um texto ou envie um desenho.");
     return {
       models: [
         {

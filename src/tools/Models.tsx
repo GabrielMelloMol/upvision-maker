@@ -16,8 +16,12 @@ import Toggle from "../ui/Toggle";
 import { errorText } from "../ui/Toast";
 import { useModelBuilder } from "../ui/useModelBuilder";
 import { DESIGN_ACCEPT, designFromSvg, fileToSvg } from "./designInput";
-import { MODELS, validParams, type FieldDef, type Params } from "./models/defs";
+import { MissingInput } from "../geometry/models/common";
+import { CATEGORIES, MODELS, validParams, type Category, type FieldDef, type Params } from "./models/defs";
 import "../styles/features.css";
+
+/** Minúsculas e sem acento, para a busca. */
+const normalize = (s: string) => s.normalize("NFD").replace(/\p{M}/gu, "").toLowerCase();
 
 const ART_WIDTH_MM = 100; // o desenho é reescalado por cada modelo; aqui só normaliza
 
@@ -28,7 +32,17 @@ export default function Models() {
   const [font, setFont] = useState<FontId>("hanken");
   const [art, setArt] = useState<{ svg: string; name: string } | null>(null);
   const [artError, setArtError] = useState<string | null>(null);
+  const [category, setCategory] = useState<Category>(MODELS[0].category);
+  const [query, setQuery] = useState("");
+  const [missing, setMissing] = useState<string | null>(null);
   const def = MODELS.find((m) => m.id === id)!;
+  const q = normalize(query.trim());
+  const shown = q ? MODELS.filter((m) => normalize(`${m.label} ${m.blurb}`).includes(q)) : MODELS.filter((m) => m.category === category);
+  function pickCategory(c: Category) {
+    setCategory(c);
+    setQuery("");
+    if (def.category !== c) setId(MODELS.find((m) => m.category === c)!.id);
+  }
   const p = all[id];
   const set = (k: string) => (v: string | number | boolean) => setAll((a) => ({ ...a, [id]: { ...a[id], [k]: v } }));
 
@@ -59,7 +73,16 @@ export default function Models() {
     const f = await loadFont(font);
     const design = useArt ? await designFromSvg(useArt.svg, ART_WIDTH_MM, false, true) : null;
     try {
-      const out = def.build({ M, art: design?.cs ?? null, artLayers: design?.layers, text: (s, h) => (s.trim() ? textToCrossSection(M, f, s, h) : null) }, p);
+      let out;
+      try {
+        out = def.build({ M, art: design?.cs ?? null, artLayers: design?.layers, text: (s, h) => (s.trim() ? textToCrossSection(M, f, s, h) : null) }, p);
+      } catch (e) {
+        // dado obrigatório faltando não é erro: vira o texto da prévia vazia
+        if (!(e instanceof MissingInput)) throw e;
+        setMissing(e.message);
+        return null;
+      }
+      setMissing(null);
       return { models: out.models, warnings: out.warnings ?? [], pauses: out.pauses };
     } finally {
       design?.cs.delete();
@@ -71,13 +94,20 @@ export default function Models() {
     <div className="page">
       <h1>Modelos prontos</h1>
       <p className="lead">Escolha um modelo, ajuste texto, tamanho e cores e salve o 3MF já separado por cor.</p>
-      <div className="model-gallery" role="group" aria-label="Modelo">
-        {MODELS.map((m) => (
+      <div className="model-picker">
+        <div className="row">
+          <Segmented label="Categoria" value={category} options={CATEGORIES} onChange={pickCategory} />
+          <input type="search" placeholder="Buscar modelo" aria-label="Buscar modelo" value={query} onChange={(e) => setQuery(e.target.value)} />
+        </div>
+        <div className="model-gallery" role="group" aria-label="Modelo">
+        {shown.map((m) => (
           <button key={m.id} type="button" aria-pressed={m.id === id} onClick={() => setId(m.id)} title={m.blurb}>
             <m.icon aria-hidden />
             <span>{m.label}</span>
           </button>
         ))}
+        {!shown.length && <span className="muted">Nenhum modelo com “{query}”.</span>}
+        </div>
       </div>
       <div className="tool-layout">
         <div className="controls">
@@ -117,7 +147,7 @@ export default function Models() {
           <ExportButtons models={models} name={`${def.label}-${String(p.text ?? p.line1 ?? p.title ?? p.base ?? "")}`} busy={busy} pauses={pauses} />
         </div>
         <div className="preview-col">
-          <Preview3D models={models} busy={busy} busyText={`Gerando ${def.label.toLowerCase()}…`} error={error} emptyText={!valid ? "Corrija os campos em vermelho." : undefined} />
+          <Preview3D models={models} busy={busy} busyText={`Gerando ${def.label.toLowerCase()}…`} error={error} emptyText={!valid ? "Corrija os campos em vermelho." : (missing ?? undefined)} />
           {warnings.map((w) => (
             <Alert key={w} kind="info">
               {w}

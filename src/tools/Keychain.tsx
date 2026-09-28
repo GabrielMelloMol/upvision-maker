@@ -12,7 +12,7 @@ import NumField, { inRange } from "../ui/NumField";
 import Preview3D from "../ui/Preview3D";
 import { useModelBuilder } from "../ui/useModelBuilder";
 import { clearHandoff, peekHandoff } from "./handoff";
-import { DESIGN_ACCEPT, designFromSvg, fileToSvg } from "./designInput";
+import { DESIGN_ACCEPT, designFromSvg, fileToSvg, svgFillColors } from "./designInput";
 import { errorText } from "../ui/Toast";
 
 const PLATE_MM = 256;
@@ -35,6 +35,7 @@ export default function Keychain() {
   const set = <K extends keyof KeychainParams>(k: K) => (v: KeychainParams[K]) => setP((o) => ({ ...o, [k]: v }));
 
   const list = batch ? parseNames(names).slice(0, MAX_BATCH) : [text.trim()].filter(Boolean);
+  const logoMulti = !!logo && svgFillColors(logo.svg).length > 1;
   const valid = inRange(textH, 5, 60) && inRange(p.base, 0.8, 8) && inRange(p.relief, 0.4, 5) && inRange(p.border, 1, 10) && inRange(logoH, 5, 80);
 
   async function onLogo(f: File) {
@@ -135,6 +136,7 @@ export default function Keychain() {
                 <button className="link danger" onClick={() => setLogo(null)}>Remover logo</button>
               </div>
             )}
+            {logoMulti && <span className="hint">Logo colorido: cada cor dele sai com o próprio filamento; a “Cor do texto” vale só para o nome.</span>}
           </div>
           <div className="card stack">
             <h3>Base</h3>

@@ -19,6 +19,7 @@ const logoFields = (maxW: number) => [
 export const TEXT_KITCHEN_MODELS: ModelDef[] = [
   {
     id: "logoKeychain",
+    category: "keychains",
     label: "Chaveiro de logo",
     blurb: "Base no contorno do logo, argola e a arte em relevo (colorida sai uma parte por cor).",
     icon: KeyRound,
@@ -29,6 +30,7 @@ export const TEXT_KITCHEN_MODELS: ModelDef[] = [
   },
   {
     id: "adaptivePlate",
+    category: "plates",
     label: "Placa adaptável",
     blurb: "Placa que segue o contorno do desenho, para parede ou mesa.",
     icon: Frame,
@@ -39,6 +41,7 @@ export const TEXT_KITCHEN_MODELS: ModelDef[] = [
   },
   {
     id: "pencilTopper",
+    category: "keychains",
     label: "Topo de lápis",
     blurb: "Nome em relevo que encaixa na ponta do lápis.",
     icon: Pencil,
@@ -61,6 +64,7 @@ export const TEXT_KITCHEN_MODELS: ModelDef[] = [
   },
   {
     id: "sign",
+    category: "plates",
     label: "Placa de sinalização",
     blurb: "Placa retangular com ícone vazado num painel e texto em relevo.",
     icon: Signpost,
@@ -86,6 +90,7 @@ export const TEXT_KITCHEN_MODELS: ModelDef[] = [
   },
   {
     id: "wordDecor",
+    category: "home",
     label: "Decoração de palavras",
     blurb: "Palavra grossa em pé com outra palavra encaixada na frente (ex.: AMOR + Família).",
     icon: WholeWord,
@@ -111,6 +116,7 @@ export const TEXT_KITCHEN_MODELS: ModelDef[] = [
   },
   {
     id: "ejector",
+    category: "kitchen",
     label: "Ejetor de brigadeiro",
     blurb: "Forma no contorno do desenho e êmbolo que empurra o doce para fora.",
     icon: Candy,
@@ -133,6 +139,7 @@ export const TEXT_KITCHEN_MODELS: ModelDef[] = [
   },
   {
     id: "bagClip",
+    category: "kitchen",
     label: "Clipe de saco",
     blurb: "Forquilha que fecha saco de café ou salgadinho, com o desenho na ponta.",
     icon: Paperclip,
@@ -155,6 +162,7 @@ export const TEXT_KITCHEN_MODELS: ModelDef[] = [
   },
   {
     id: "cutterStamp",
+    category: "kitchen",
     label: "Cortador + carimbo",
     blurb: "Uma peça só: corta o biscoito e marca o desenho na mesma apertada.",
     icon: Cookie,

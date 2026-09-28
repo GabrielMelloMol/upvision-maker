@@ -1,6 +1,6 @@
 import type { CS } from "../manifold";
 import { fitInto, scoped, shrinkToFit } from "../shape2d";
-import { roundedRect, slab, solidMesh, moveMesh, type ModelCtx, type ModelOutput } from "./common";
+import { roundedRect, slab, solidMesh, moveMesh, type ModelCtx, type ModelOutput, MissingInput } from "./common";
 
 export type StampParams = {
   shape: "circle" | "square";
@@ -40,7 +40,7 @@ export function buildStamp({ M, text, art }: ModelCtx, p: StampParams): ModelOut
     const outline = k(p.shape === "circle" ? M.CrossSection.circle(p.size / 2, 96) : roundedRect(M, p.size, p.size, 3));
     const inner = k(outline.offset(-MARGIN, "Round"));
     const src: CS | null = art ? art : (() => { const t = text(p.text, 100); return t && k(t); })();
-    if (!src) throw new Error("Envie um desenho ou digite um texto.");
+    if (!src) throw new MissingInput("Envie um desenho ou digite um texto.");
     const inside = p.size - 2 * MARGIN;
     const mirrored = k(src.scale([-1, 1]));
     const placed = k(shrinkToFit(k(fitInto(mirrored, inside * 0.85, inside * 0.85, 0)), inner));

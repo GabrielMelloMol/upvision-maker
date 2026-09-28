@@ -13,8 +13,18 @@ export type FieldDef =
 
 export type Section = { title: string; fields: FieldDef[] };
 
+export const CATEGORIES = [
+  ["keychains", "Chaveiros"],
+  ["plates", "Placas"],
+  ["party", "Festa e esporte"],
+  ["home", "Casa"],
+  ["kitchen", "Cozinha"],
+] as const;
+export type Category = (typeof CATEGORIES)[number][0];
+
 export type ModelDef = {
   id: string;
+  category: Category;
   label: string;
   blurb: string;
   icon: LucideIcon;

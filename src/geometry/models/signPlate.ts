@@ -1,5 +1,5 @@
 import { fitInto, scoped, shrinkToFit } from "../shape2d";
-import { roundedRect, slab, solidMesh, type ModelCtx, type ModelOutput } from "./common";
+import { roundedRect, slab, solidMesh, type ModelCtx, type ModelOutput, MissingInput } from "./common";
 
 export type SignPlateParams = {
   text: string;
@@ -51,7 +51,7 @@ export function buildSignPlate({ M, text, art }: ModelCtx, p: SignPlateParams): 
       const t = k(fitInto(k(raw), maxW, p.height * TEXT_H_FRAC, 0));
       parts.push({ name: "Texto", color: p.accentColor, mesh: slab(k(t.translate([textLeft + maxW / 2, 0])), p.relief, p.thickness) });
     }
-    if (parts.length === 1) throw new Error("Digite o texto ou envie um desenho.");
+    if (parts.length === 1) throw new MissingInput("Digite o texto ou envie um desenho.");
     return { models: [{ name: "Placa", parts }] };
   });
 }
