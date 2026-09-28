@@ -1,3 +1,7 @@
+use tauri::Manager;
+
+mod vibrancy;
+
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     tauri::Builder::default()
@@ -7,6 +11,12 @@ pub fn run() {
         .plugin(tauri_plugin_process::init())
         .plugin(tauri_plugin_opener::init())
         .plugin(tauri_plugin_updater::Builder::new().build())
+        .setup(|app| {
+            let window = app.get_webview_window("main").expect("janela principal");
+            app.manage(vibrancy::Applied(vibrancy::apply(&window)));
+            Ok(())
+        })
+        .invoke_handler(tauri::generate_handler![vibrancy::window_style])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
 }

@@ -17,6 +17,8 @@ export type TauriMock = {
   /** Resposta de ask()/confirm(). */
   askAnswer: boolean;
   calls: string[];
+  /** Resposta do comando window_style (material nativo). */
+  windowStyle: { effect: "mica" | "sidebar" | "none"; overlayTitlebar: boolean };
 };
 
 const INIT = () => {
@@ -89,6 +91,8 @@ function handler(m: TauriMock, cmd: string, a: Record<string, unknown> | null, h
       return "0.2.0";
     case "plugin:updater|check":
       return null;
+    case "window_style":
+      return m.windowStyle;
     case "plugin:opener|open_url":
       return null;
     default:
@@ -98,7 +102,7 @@ function handler(m: TauriMock, cmd: string, a: Record<string, unknown> | null, h
 
 export const test = base.extend<{ tauri: TauriMock }>({
   tauri: async ({ page }, provide) => {
-    const m: TauriMock = { db: new DatabaseSync(":memory:"), files: new Map(), nextOpen: null, savePath: null, askAnswer: true, calls: [] };
+    const m: TauriMock = { db: new DatabaseSync(":memory:"), files: new Map(), nextOpen: null, savePath: null, askAnswer: true, calls: [], windowStyle: { effect: "none", overlayTitlebar: false } };
     await page.exposeFunction("__tauriInvoke", (cmd: string, a: Record<string, unknown> | null, h: Record<string, string> | null) => {
       m.calls.push(cmd);
       try {

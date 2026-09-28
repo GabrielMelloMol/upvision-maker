@@ -1,5 +1,5 @@
 /* Janela: sidebar translúcida + área principal com toolbar sticky (large title → título pequeno ao rolar). */
-.app { display: grid; grid-template-columns: 248px 1fr; height: 100vh; overflow: hidden; background: var(--bg); }
+.app { display: grid; grid-template-columns: 248px 1fr; height: 100vh; overflow: hidden; background: var(--window); }
 
 .sidebar {
   display: flex; flex-direction: column; min-height: 0;
@@ -29,7 +29,7 @@
 .nav.accent svg { color: var(--brand-orange); }
 .nav .dot { margin-left: auto; width: 7px; height: 7px; border-radius: 50%; background: var(--brand-orange); }
 
-main { position: relative; overflow: auto; min-width: 0; scroll-padding-top: 64px; }
+main { position: relative; overflow: auto; min-width: 0; scroll-padding-top: 64px; background: var(--bg); }
 
 .toolbar {
   position: sticky; top: 0; z-index: 10; height: 52px; display: flex; align-items: center; gap: var(--space-3); padding: 0 var(--space-10);
@@ -51,3 +51,10 @@ main { position: relative; overflow: auto; min-width: 0; scroll-padding-top: 64p
   .app { grid-template-columns: 220px 1fr; }
   .toolbar, .view { padding-inline: var(--space-6); }
 }
+
+/* Com material nativo o vidro vem do sistema: sem blur de CSS (evita fundo preto em alguns WebViews). */
+:root[data-vibrancy] .sidebar { -webkit-backdrop-filter: none; backdrop-filter: none; }
+/* macOS: barra de título sobreposta — espaço para os semáforos e área de arrastar. */
+.drag { height: 0; }
+:root[data-titlebar="overlay"] .sidebar .drag { height: 30px; flex: none; }
+:root[data-titlebar="overlay"] .sidebar .brand { padding-top: 6px; }

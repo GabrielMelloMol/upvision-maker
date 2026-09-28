@@ -4,14 +4,14 @@
   font-size: var(--text-md);
   line-height: var(--leading);
   color: var(--text);
-  background: var(--bg);
+  background: var(--window);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   font-synthesis-weight: none;
   text-rendering: optimizeLegibility;
 }
 * { box-sizing: border-box; }
-body { margin: 0; background: var(--bg); }
+body { margin: 0; background: var(--window); }
 ::selection { background: var(--accent-soft); }
 
 h1, h2, h3 { font-family: var(--font-display); color: var(--text); text-wrap: balance; }

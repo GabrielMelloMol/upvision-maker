@@ -17,6 +17,7 @@ type Props = {
 export default function Sidebar({ pages, current, onNavigate, onNews, onSuggest, onBackup, onRestore }: Props) {
   return (
     <nav className="sidebar" aria-label="Navegação principal">
+      <div className="drag" data-tauri-drag-region />
       <button className="brand" onClick={() => onNavigate("home")}>
         <img src={logo} alt="" />
         <span>

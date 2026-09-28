@@ -9,6 +9,9 @@ import "@fontsource/pacifico/400.css";
 import "@fontsource/playfair-display/800.css";
 import "./styles.css";
 import { ToastProvider } from "./ui/Toast";
+import { applyWindowStyle } from "./ui/windowStyle";
+
+void applyWindowStyle();
 
 ReactDOM.createRoot(document.getElementById("root") as HTMLElement).render(
   <React.StrictMode>

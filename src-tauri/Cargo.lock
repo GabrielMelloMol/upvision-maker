@@ -5213,6 +5213,7 @@ dependencies = [
  "tauri-plugin-process",
  "tauri-plugin-sql",
  "tauri-plugin-updater",
+ "window-vibrancy",
 ]
 
 [[package]]
