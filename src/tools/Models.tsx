@@ -1,3 +1,4 @@
+import { Search, SearchX } from "lucide-react";
 import { useEffect, useState } from "react";
 import { getDb } from "../db";
 import { loadCompany } from "../db/customersRepo";
@@ -6,6 +7,7 @@ import { getManifold } from "../geometry/manifold";
 import { textToCrossSection } from "../geometry/text";
 import Alert from "../ui/Alert";
 import Dropzone from "../ui/Dropzone";
+import EmptyState from "../ui/EmptyState";
 import ExportButtons from "../ui/ExportButtons";
 import Field from "../ui/Field";
 import MoneyField from "../ui/MoneyField";
@@ -96,8 +98,19 @@ export default function Models() {
       <p className="lead">Escolha um modelo, ajuste texto, tamanho e cores e salve o 3MF já separado por cor.</p>
       <div className="model-picker">
         <div className="row">
-          <Segmented label="Categoria" value={category} options={CATEGORIES} onChange={pickCategory} />
-          <input type="search" placeholder="Buscar modelo" aria-label="Buscar modelo" value={query} onChange={(e) => setQuery(e.target.value)} />
+          {/* buscando, os resultados são de todas as categorias: nenhuma fica marcada */}
+          <Segmented label="Categoria" value={(q ? "" : category) as Category} options={CATEGORIES} onChange={pickCategory} />
+          <div className="affix has-prefix">
+            <Search className="prefix" size={16} aria-hidden />
+            <input
+              type="search"
+              placeholder="Buscar modelo"
+              aria-label="Buscar modelo"
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+              onKeyDown={(e) => e.key === "Escape" && setQuery("")}
+            />
+          </div>
         </div>
         <div className="model-gallery" role="group" aria-label="Modelo">
         {shown.map((m) => (
@@ -106,8 +119,11 @@ export default function Models() {
             <span>{m.label}</span>
           </button>
         ))}
-        {!shown.length && <span className="muted">Nenhum modelo com “{query}”.</span>}
+
         </div>
+        {!shown.length && (
+          <EmptyState icon={SearchX} title={`Nenhum modelo com “${query.trim()}”`} action={<button onClick={() => setQuery("")}>Limpar busca</button>} />
+        )}
       </div>
       <div className="tool-layout">
         <div className="controls">

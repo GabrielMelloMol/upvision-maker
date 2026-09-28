@@ -45,9 +45,16 @@ describe("Modelos prontos", () => {
     renderWithApp(<Models />);
     await user.type(screen.getByRole("searchbox", { name: "Buscar modelo" }), "trofeu");
     expect(gallery().getAllByRole("button").map((b) => b.textContent)).toEqual(["Troféu", "Troféu elegante", "Troféu adaptável"]);
-    await user.clear(screen.getByRole("searchbox", { name: "Buscar modelo" }));
+    // buscando, nenhuma categoria fica marcada
+    const cats = within(screen.getByRole("group", { name: "Categoria" })).getAllByRole("button");
+    expect(cats.every((b) => b.getAttribute("aria-pressed") === "false")).toBe(true);
+    await user.keyboard("{Escape}");
+    expect(screen.getByRole("searchbox", { name: "Buscar modelo" })).toHaveValue("");
+    expect(cats.some((b) => b.getAttribute("aria-pressed") === "true")).toBe(true);
     await user.type(screen.getByRole("searchbox", { name: "Buscar modelo" }), "xyz");
-    expect(screen.getByText("Nenhum modelo com “xyz”.")).toBeInTheDocument();
+    expect(screen.getByText("Nenhum modelo com “xyz”")).toBeInTheDocument();
+    await user.click(screen.getByRole("button", { name: "Limpar busca" }));
+    expect(screen.getByRole("searchbox", { name: "Buscar modelo" })).toHaveValue("");
   });
 
   test("dado obrigatório faltando aparece como prévia vazia, não como erro", async () => {
