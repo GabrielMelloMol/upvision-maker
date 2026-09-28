@@ -64,9 +64,9 @@ export default function ImageToSvg({ go }: { go: Go }) {
     }
   }
 
-  async function apply() {
+  async function apply(next: TraceOptions = opts) {
     if (!raster) return;
-    const o = { ...opts, widthMm: opts.widthMm > 0 ? opts.widthMm : DEFAULT_TRACE.widthMm };
+    const o = { ...next, widthMm: next.widthMm > 0 ? next.widthMm : DEFAULT_TRACE.widthMm };
     job.current?.cancel();
     const j = trace(raster, o, null, setProgress);
     job.current = j;
@@ -150,6 +150,9 @@ export default function ImageToSvg({ go }: { go: Go }) {
               <input type="number" min={0} max={100} step={0.5} value={opts.minAreaMm2} onChange={(e) => set("minAreaMm2", Math.max(0, e.target.valueAsNumber || 0))} />
             </label>
             <label className="check">
+              <input type="checkbox" checked={opts.thicken} onChange={(e) => set("thicken", e.target.checked)} /> Engrossar traços finos (mín. 0,4 mm)
+            </label>
+            <label className="check">
               <input type="checkbox" checked={opts.removeBg} onChange={(e) => set("removeBg", e.target.checked)} /> Remover fundo automaticamente
             </label>
             <label className="check">
@@ -188,7 +191,7 @@ export default function ImageToSvg({ go }: { go: Go }) {
               </>
             ) : (
               <>
-                <button className="primary" disabled={!raster} onClick={apply}>
+                <button className="primary" disabled={!raster} onClick={() => apply()}>
                   <Play aria-hidden /> {result ? "Aplicar alterações" : "Aplicar"}
                 </button>
                 <span className={dirty ? "dirty" : "muted"}>
@@ -229,7 +232,21 @@ export default function ImageToSvg({ go }: { go: Go }) {
             </div>
           )}
           {result && result.thinCount > 0 && (
-            <Alert kind="warn">Trechos em vermelho ficam com menos de 0,4 mm nesta largura e podem não imprimir com bico 0,4. Aumente a largura ou o limiar.</Alert>
+            <Alert kind="warn">
+              <p>Trechos em vermelho ficam com menos de 0,4 mm nesta largura e podem não imprimir com bico 0,4.</p>
+              {!applied?.thicken && (
+                <button
+                  disabled={running}
+                  onClick={() => {
+                    const next = { ...opts, thicken: true };
+                    setOpts(next);
+                    apply(next);
+                  }}
+                >
+                  Engrossar traços finos automaticamente
+                </button>
+              )}
+            </Alert>
           )}
           {result && paths === 0 && <Alert kind="warn">Nenhuma forma encontrada. Ajuste o limiar ou marque “claro sobre fundo escuro”.</Alert>}
           {result && result.fillPct > MOSTLY_FILLED && <Alert kind="warn">Quase tudo ficou preenchido. Confira o limiar e a inversão.</Alert>}
