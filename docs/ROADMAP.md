@@ -44,7 +44,23 @@
 | Materiais extras com estoque, reposição e ajuste | §1.3 | ✅ | P | — |
 | Calculadora (§1.1): vários filamentos, extras, energia, mão de obra, manutenção %, quantidade na mesa, frete somado **depois** do multiplicador, preço por canal com margem líquida, detalhamento | §1.1 | ✅ | M | Arredondar só no fim (testado com o exemplo R$ 15,96 / 47,88 / 79,80) |
 
-## Fase 2 — Cadastros de venda
+## Fase 2 — Ferramentas 3D do dia a dia ⭐ PRIORIDADE ATUAL (definida em 2026-09-28)
+Motivo: é o que ela já faz hoje pedindo ao Claude (3MF de chaveiros e medalhas) e com SVG (cortador de biscoito). A gestão (antiga Fase 2 em diante) vem depois.
+Ordem de entrega: 0 → 1 → 2 primeiro, de ponta a ponta; depois 3 → 8.
+
+| # | Item | Ref. | Viável | Esforço | Riscos |
+|---|---|---|---|---|---|
+| 0 | Design system (azul #2563EB + laranja #F97316 da marca, Outfit/Work Sans, ícones Lucide), navegação Ferramentas / Gestão / Preferências, início com cards, **prévia 3D reutilizável** (three.js), estados de carregamento/erro | — | ✅ | P | — |
+| 1 | Imagem → SVG 1 cor: pipeline §F2.2 (EXIF, ampliar até 1200 px, luminância com alfa, limiar, vtracer `spline`, 1 `<path>` evenodd em mm) + **Otsu automático**, **remoção de fundo por inundação**, **aviso de traço < 0,4 mm** | §F2 | ✅ | M | Pacote `vectortracer` (MIT, núcleo visioncortex) usado no lugar de compilar o vtracer 1.0; sem modo colorido por ora |
+| 2 | Cortador de biscoito a partir do contorno: lâmina ~0,8 mm, altura ajustável, borda de apoio, **carimbo opcional** com o desenho interno; STL e 3MF | §F6 #32 | ✅ | M | Desenhos com partes soltas: o contorno usa a união; espelhamento para a massa sair na orientação certa |
+| 3 | Extrusão genérica SVG → STL/3MF (altura, base opcional, 2 cores) | §F2.5 | ✅ | P | SVG com auto-interseção: resolvido pela união do manifold |
+| 4 | Chaveiros: texto com fontes (texto → forma), logo, argola/furo, **2 cores como volumes** no 3MF (Bambu Studio/OrcaSlicer), **lote a partir de lista de nomes** | §F6 #17, #20 | ✅ | M | Metadados de cor do Bambu mudam entre versões: validar abrindo no Bambu Studio |
+| 5 | Medalhas: formato, texto, imagem central, furo para fita, cores por volume | §F6 #12 | ✅ | M | — |
+| 6 | **Pedir à IA**: chave Anthropic local (paga por uso, botão Testar), descrição → Claude gera OpenSCAD → openscad-wasm → prévia → ajustes em conversa → 3MF; tokens e custo por pedido | — | 🟡 | M | Custo por uso na conta dela; OpenSCAD gerado pode não compilar (repetir com o erro); openscad-wasm pesa ~10 MB (carregar sob demanda) |
+| 7 | Botão **Sugerir ferramenta** (mailto para `VITE_FEEDBACK_EMAIL` definido no build; fallback issue no GitHub) | — | ✅ | P | mailto não anexa arquivo: a imagem é anexada à mão |
+| 8 | Tela **O que há de novo** após cada atualização (`CHANGELOG.md`) | — | ✅ | P | — |
+
+## Fase 3 — Cadastros de venda
 | Item | Ref. | Viável | Esforço | Riscos |
 |---|---|---|---|---|
 | Produtos: composição (filamentos, extras, tempo, impressora, mão de obra), preço por canal ou manual, "Salvar produto" a partir da calculadora, recálculo quando insumo muda | §1.4 | ✅ | M | Decidir se preço salvo é congelado ou recalculado (proposta: custo sempre recalculado, preço manual opcional congela) |
@@ -55,7 +71,7 @@
 | Clientes (PF/PJ, contato, CEP com autopreenchimento, desconto padrão, ativo/inativo) | §1.3 | ✅ | P | CEP via ViaCEP/BrasilAPI precisa de internet; campo manual como fallback |
 | Dados da empresa + logo (cabeçalho de documentos) | §1.3 | ✅ | P | — |
 
-## Fase 3 — Vendas
+## Fase 4 — Vendas
 | Item | Ref. | Viável | Esforço | Riscos |
 |---|---|---|---|---|
 | Pedidos: cliente, itens, desconto por item, canal, prazo, forma de pagamento, observações, status (pendente → produção → concluído → entregue / cancelado) + histórico | §1.5 | ✅ | M | — |
@@ -65,7 +81,7 @@
 | Converter orçamento em pedido (uma vez só) | §1.6 | ✅ | P | — |
 | Contrato de consignação (mesmo motor A4, aviso jurídico) | §1.7 | ✅ | P | Texto jurídico próprio; revisar com advogado se for usar a sério |
 
-## Fase 4 — Resultado
+## Fase 5 — Resultado
 | Item | Ref. | Viável | Esforço | Riscos |
 |---|---|---|---|---|
 | Custos operacionais (categoria, valor, frequência único/semanal/mensal/anual, impressora opcional) | §1.3 | ✅ | P | Rateio de custos por mês a definir |
@@ -76,7 +92,7 @@
 | Catálogo PDF (12 produtos por A4, foto, nome, preço, logo) | §F7 | ✅ | P | — |
 | Exportação em massa Shopee (`.xlsx` no formato de upload) | §F7 | 🟡 | M | Formato da planilha muda sem aviso; campos fiscais (NCM, CFOP…) exigem cuidado. Fazer só se ela vender na Shopee |
 
-## Fase 5 — Ferramentas 2D
+## Fase 6 — Ferramentas 2D (o que sobrar após a Fase 2)
 | Item | Ref. | Viável | Esforço | Riscos |
 |---|---|---|---|---|
 | Gerador QR (Pix estático BR Code com CRC16, link, Wi-Fi, e-mail, telefone) → SVG; validação de CPF/CNPJ (inclusive alfanumérico) | §F3 | ✅ | P | Testar payload Pix em 2–3 apps de banco |
@@ -85,14 +101,14 @@
 | SVG colorido 2–4 cores (Lab, k-means, remove fundo, descarta antisserrilhado, `watershed + cutout`) | §F2.4 | ✅ | G | Ajuste fino de heurísticas; precisa de banco de imagens de teste |
 | Buscador de STLs (abrir 3dsearch.net / iframe) | §F7 | ✅ | P | Site de terceiros pode bloquear iframe → abrir no navegador |
 
-## Fase 6 — Ferramentas 3D base
+## Fase 7 — Ferramentas 3D base (o que sobrar após a Fase 2)
 | Item | Ref. | Viável | Esforço | Riscos |
 |---|---|---|---|---|
 | Extrusão SVG → **STL** e **3MF** (altura, base opcional, prévia three.js) | §F2.5 | ✅ | M | Malhas de SVG com auto-interseção: passar por manifold para limpar |
 | Gravador 3MF compatível Bambu Studio/OrcaSlicer (volumes por cor, `model_settings.config`, pausa na altura p/ NFC) | §F1 | 🟡 | M | Formato de metadados do Bambu é pouco documentado e muda entre versões |
 | QR Pix em 3MF (2 cores, módulos em relevo, aviso de tamanho mínimo) | §F3 | ✅ | P | — |
 
-## Fase 7 — Modelos paramétricos (33)
+## Fase 8 — Modelos paramétricos (33)
 Estratégia: gerador TypeScript + manifold-3d por modelo, reaproveitando os núcleos de SVG/texto/3MF. Partes mecânicas fixas (abridor, clicker, MOLLE) modeladas por nós do zero — **não copiar os 3MF-base da referência**.
 
 | Onda | Modelos | Viável | Esforço | Riscos |
@@ -103,7 +119,7 @@ Estratégia: gerador TypeScript + manifold-3d por modelo, reaproveitando os núc
 | 7d — mecânicos/NFC | Chaveiro Tag NFC, Anilha porta-joia NFC, Totem NFC, Chaveiro giratório, Abridor de garrafa, Abridor de lata, Clicker (switch), Chaveiro de nome articulado, Porta caneta, Porta chave, Luminária adaptável | 🟡 | G cada | Peças funcionais exigem impressão de teste e iteração física; pausa NFC depende do 3MF Bambu |
 | Editor comum | Prévia 2D/3D, pintar partes, relevo por região (0,6–4 mm), nivelada/relevo, apagar partes | ✅ | G | É a maior parte do esforço; fazer junto com 7a |
 
-## Fase 8 — Separador 3MF
+## Fase 9 — Separador 3MF
 | Item | Ref. | Viável | Esforço | Riscos |
 |---|---|---|---|---|
 | Ler 3MF com `paint_color`, separar por cor, corte planar com pino/cavidade, 4 estratégias de tampa, exportar multi-objeto | §F4 | 🟡 | GG | Formato de pintura do Bambu pouco documentado; malhas não-manifold; Bambu/Orca já cortam com conectores. **Fazer por último** |
