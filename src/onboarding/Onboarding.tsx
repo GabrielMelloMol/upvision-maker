@@ -4,7 +4,11 @@ import { getDb } from "../db";
 import { filaments, getSecret, loadSettings, printers, saveSettings, setSecret } from "../db/repo";
 import { MATERIAL_TYPES } from "../domain/entities";
 import { parseDecimal } from "../domain/format";
+import ColorDots from "../ui/ColorDots";
 import Field from "../ui/Field";
+import MassField from "../ui/MassField";
+import MoneyField from "../ui/MoneyField";
+import { parseMass, parseMoney } from "../ui/parse";
 import { fieldErrors } from "../ui/fieldErrors";
 import Sheet from "../ui/Sheet";
 import { useToast } from "../ui/Toast";
@@ -32,7 +36,8 @@ export function useFirstRun(): [boolean, () => void] {
   return [show, close];
 }
 
-type Step = { icon: LucideIcon; title: string; text: string; fields: { key: string; label: string; hint?: string; options?: readonly string[] }[] };
+type Kind = "money" | "mass" | "color" | "text" | "number" | "select";
+type Step = { icon: LucideIcon; title: string; text: string; fields: { key: string; label: string; kind: Kind; hint?: string; options?: readonly string[] }[] };
 
 const STEPS: Step[] = [
   {
@@ -40,8 +45,8 @@ const STEPS: Step[] = [
     title: "Seus custos",
     text: "Com isso a calculadora já inclui energia e mão de obra no preço. Dá para mudar depois em Preferências.",
     fields: [
-      { key: "kwhPrice", label: "Preço do kWh (R$)", hint: "Está na conta de luz: valor total ÷ kWh consumidos." },
-      { key: "laborHourCost", label: "Sua hora de trabalho (R$)", hint: "Use 0 se não quiser cobrar mão de obra." },
+      { key: "kwhPrice", label: "Preço do kWh", kind: "money", hint: "Na conta de luz: valor total ÷ kWh." },
+      { key: "laborHourCost", label: "Sua hora de trabalho", kind: "money", hint: "Use 0 se não quiser cobrar mão de obra." },
     ],
   },
   {
@@ -49,8 +54,8 @@ const STEPS: Step[] = [
     title: "Sua impressora",
     text: "A potência média entra no custo de energia de cada impressão.",
     fields: [
-      { key: "name", label: "Nome", hint: "Ex.: Bambu Lab A1" },
-      { key: "watts", label: "Potência média (W)", hint: "Veja no manual ou numa tomada medidora." },
+      { key: "name", label: "Nome", kind: "text", hint: "Ex.: Bambu Lab A1" },
+      { key: "watts", label: "Potência média (W)", kind: "number", hint: "Veja no manual ou numa tomada medidora." },
     ],
   },
   {
@@ -58,22 +63,23 @@ const STEPS: Step[] = [
     title: "Seu primeiro filamento",
     text: "O estoque avisa quando estiver acabando e o preço entra na calculadora.",
     fields: [
-      { key: "material", label: "Material", options: MATERIAL_TYPES },
-      { key: "color", label: "Cor" },
-      { key: "pricePerKg", label: "Preço por kg (R$)" },
-      { key: "stockG", label: "Quanto tem em estoque (g)" },
+      { key: "material", label: "Material", kind: "select", options: MATERIAL_TYPES },
+      { key: "color", label: "Cor", kind: "color" },
+      { key: "pricePerKg", label: "Preço por kg", kind: "money" },
+      { key: "stockG", label: "Quanto tem em estoque", kind: "mass" },
     ],
   },
 ];
 
-const DEFAULTS: Record<string, string> = { kwhPrice: "0,90", laborHourCost: "0", name: "", watts: "", material: "PLA", color: "", pricePerKg: "", stockG: "1000" };
+const DEFAULTS: Record<string, string> = { kwhPrice: "0,90", laborHourCost: "0", name: "", watts: "", material: "PLA", color: "", pricePerKg: "", stockG: "1 rolo" };
 
 async function saveStep(step: number, v: Record<string, string>) {
   const db = await getDb();
   const n = (k: string) => parseDecimal(v[k] ?? "");
-  if (step === 0) return saveSettings(db, { ...(await loadSettings(db)), kwhPrice: n("kwhPrice"), laborHourCost: n("laborHourCost") });
+  const m = (k: string) => parseMoney(v[k] ?? "");
+  if (step === 0) return saveSettings(db, { ...(await loadSettings(db)), kwhPrice: m("kwhPrice"), laborHourCost: m("laborHourCost") });
   if (step === 1) return printers.insert(db, { name: v.name, watts: n("watts") });
-  return filaments.insert(db, { material: v.material, color: v.color, brand: "", pricePerKg: n("pricePerKg"), spoolG: 1000, stockG: n("stockG"), minG: 200 });
+  return filaments.insert(db, { material: v.material, color: v.color, brand: "", pricePerKg: m("pricePerKg"), spoolG: 1000, stockG: parseMass(v.stockG ?? "", 1000), minG: 200 });
 }
 
 /** Apresentação de primeiro uso em 3 passos; cada passo pode ser pulado. */
@@ -142,7 +148,18 @@ export default function Onboarding({ onClose }: { onClose: () => void }) {
         </div>
         <p className="muted">{s.text}</p>
         <div className="grid two">
-          {s.fields.map((f, i) => (
+          {s.fields.map((f, i) => {
+            const common = { label: f.label, hint: f.hint, error: errors[f.key], value: values[f.key], onChange: (v: string) => setValues({ ...values, [f.key]: v }) };
+            const auto = i === 0 ? { "data-autofocus": "" } : {};
+            if (f.kind === "money") return <MoneyField key={f.key} {...common} {...auto} />;
+            if (f.kind === "mass") return <MassField key={f.key} {...common} />;
+            if (f.kind === "color")
+              return (
+                <div key={f.key} className="span-all">
+                  <ColorDots label={f.label} value={common.value} onChange={common.onChange} error={common.error} />
+                </div>
+              );
+            return (
             <Field key={f.key} label={f.label} hint={f.hint} error={errors[f.key]}>
               {f.options ? (
                 <select value={values[f.key]} onChange={(e) => setValues({ ...values, [f.key]: e.target.value })}>
@@ -160,7 +177,8 @@ export default function Onboarding({ onClose }: { onClose: () => void }) {
                 />
               )}
             </Field>
-          ))}
+            );
+          })}
         </div>
         {errors._ && <p className="error">{errors._}</p>}
       </div>

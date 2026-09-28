@@ -10,6 +10,10 @@ import { PAGES } from "./pages";
 import PageSkeleton from "./ui/PageSkeleton";
 import Sidebar from "./ui/Sidebar";
 import Toolbar from "./ui/Toolbar";
+import CommandPalette from "./ui/CommandPalette";
+import { setPendingOpen, type SearchItem } from "./ui/search";
+import { installShortcuts, modKey } from "./ui/shortcuts";
+import { Search } from "lucide-react";
 
 /** Rolagem a partir da qual o large title some e a toolbar mostra o título pequeno. */
 const TITLE_SCROLL_PX = 48;
@@ -24,12 +28,21 @@ export default function App() {
   const [afterUpdate, closeAfterUpdate] = useWhatsNewAfterUpdate();
   const [showAllNews, setShowAllNews] = useState(false);
   const [firstRun, closeFirstRun] = useFirstRun();
+  const [searching, setSearching] = useState(false);
   const toast = useToast();
   const page = PAGES.find((p) => p.id === pageId) ?? PAGES[0];
 
   useEffect(() => {
     findUpdate().then(setUpdate);
   }, []);
+  useEffect(() => installShortcuts({ openPalette: () => setSearching(true) }), []);
+
+  function pick(item: SearchItem) {
+    setSearching(false);
+    setPendingOpen(item.recordId !== undefined ? { pageId: item.pageId, recordId: item.recordId } : null);
+    navigate(item.pageId);
+    setReloadKey((k) => k + 1); // remonta mesmo se já estiver na página, para abrir o registro
+  }
 
   function navigate(id: string) {
     setPageId(id);
@@ -79,7 +92,12 @@ export default function App() {
         onRestore={onRestore}
       />
       <main key={`${page.id}-${reloadKey}`} onScroll={(e) => setScrolled(e.currentTarget.scrollTop > TITLE_SCROLL_PX)}>
-        <Toolbar title={page.label} icon={page.icon} scrolled={scrolled} />
+        <Toolbar title={page.label} icon={page.icon} scrolled={scrolled}>
+          <button className="ghost sm search-btn" onClick={() => setSearching(true)} aria-keyshortcuts="Meta+K Control+K">
+            <Search aria-hidden /> Buscar <kbd>{modKey()}</kbd>
+            <kbd>K</kbd>
+          </button>
+        </Toolbar>
         <div className="view">
           {update && (
             <div className="banner">
@@ -92,6 +110,7 @@ export default function App() {
           <Suspense fallback={<PageSkeleton />}>{page.render(navigate)}</Suspense>
         </div>
       </main>
+      {searching && <CommandPalette pages={PAGES} onPick={pick} onClose={() => setSearching(false)} />}
       {suggesting && <SuggestDialog onClose={() => setSuggesting(false)} />}
       {afterUpdate.length > 0 && <WhatsNewModal entries={afterUpdate} onClose={closeAfterUpdate} />}
       {showAllNews && <WhatsNewModal entries={CHANGELOG} onClose={() => setShowAllNews(false)} />}

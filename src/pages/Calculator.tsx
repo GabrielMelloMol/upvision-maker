@@ -6,6 +6,9 @@ import { calculate } from "../domain/calc";
 import { money, parseDecimal } from "../domain/format";
 import { DEFAULT_SETTINGS } from "../domain/settings";
 import { useData } from "../ui/useData";
+import MoneyField from "../ui/MoneyField";
+import { formatDuration, formatMoneyInput, parseDuration, parseMoney } from "../ui/parse";
+import TimeField from "../ui/TimeField";
 import SlicerImport, { type SlicerApply } from "./SlicerImport";
 import type { Go } from "../pages";
 import { setProductDraft } from "./products/draft";
@@ -23,6 +26,8 @@ const load = async (db: Db) => ({
 });
 
 const num = (s: string) => parseDecimal(s) || 0;
+/** Preço digitado ("R$ 1.234,56", "15,9") → número; vazio conta como 0. */
+const price = (s: string) => parseMoney(s) || 0;
 const newLine = (): Line => ({ ref: "", price: "", qty: "" });
 
 export default function Calculator({ go }: { go: Go }) {
@@ -30,34 +35,38 @@ export default function Calculator({ go }: { go: Go }) {
   const [fil, setFil] = useState<Line[]>([newLine()]);
   const [ext, setExt] = useState<Line[]>([]);
   const [printerId, setPrinterId] = useState("");
-  const [f, setF] = useState({ watts: "", hours: "", minutes: "", laborMin: "", quantity: "1", freight: "", margin: "" });
+  const [f, setF] = useState({ watts: "", time: "", labor: "", quantity: "1", freight: "", margin: "" });
+  const printMin = parseDuration(f.time) || 0;
+  const laborMin = parseDuration(f.labor, "min") || 0;
+  const setText = (k: keyof typeof f) => (v: string) => setF((cur) => ({ ...cur, [k]: v }));
   const set = (k: keyof typeof f) => (e: React.ChangeEvent<HTMLInputElement>) => setF({ ...f, [k]: e.target.value });
 
   const r = useMemo(
     () =>
       calculate(
         {
-          filaments: fil.map((l) => ({ pricePerKg: num(l.price), grams: num(l.qty) })),
-          extras: ext.map((l) => ({ unitPrice: num(l.price), qty: num(l.qty) })),
+          filaments: fil.map((l) => ({ pricePerKg: price(l.price), grams: num(l.qty) })),
+          extras: ext.map((l) => ({ unitPrice: price(l.price), qty: num(l.qty) })),
           printerWatts: num(f.watts),
-          printHours: num(f.hours) + num(f.minutes) / 60,
-          laborHours: num(f.laborMin) / 60,
+          printHours: printMin / 60,
+          laborHours: laborMin / 60,
           quantity: num(f.quantity),
-          freight: num(f.freight),
+          freight: price(f.freight),
           marketplaceMarginPct: f.margin === "" ? data.settings.marketplaceMarginPct : num(f.margin),
         },
         data.settings,
       ),
-    [fil, ext, f, data.settings],
+    [fil, ext, f, printMin, laborMin, data.settings],
   );
 
   /** Preenche a calculadora com o que o arquivo do fatiador informou. */
   function applySlicer(a: SlicerApply) {
     const str = (n: number) => String(n).replace(".", ",");
+    const brl = (n: number) => formatMoneyInput(String(n));
     setFil(
       a.filaments.map((x) => {
         const o = data.filaments.find((d) => d.id === x.filamentId);
-        return { ref: o ? String(o.id) : "", price: o ? str(o.price) : "", qty: str(x.grams) };
+        return { ref: o ? String(o.id) : "", price: o ? brl(o.price) : "", qty: str(x.grams) };
       }),
     );
     const p = data.printers.find((x) => x.id === a.printerId);
@@ -65,8 +74,7 @@ export default function Calculator({ go }: { go: Go }) {
     setF((cur) => ({
       ...cur,
       watts: p ? str(p.watts) : cur.watts,
-      hours: a.seconds !== undefined ? String(Math.floor(a.seconds / 3600)) : cur.hours,
-      minutes: a.seconds !== undefined ? String(Math.round((a.seconds % 3600) / 60)) : cur.minutes,
+      time: a.seconds !== undefined ? formatDuration(Math.round(a.seconds / 60)) : cur.time,
       quantity: a.pieces ? String(a.pieces) : cur.quantity,
     }));
   }
@@ -85,10 +93,10 @@ export default function Calculator({ go }: { go: Go }) {
         items: [],
       },
       printerId: printerId ? Number(printerId) : null,
-      printMinutes: num(f.hours) * 60 + num(f.minutes),
-      laborMinutes: num(f.laborMin),
+      printMinutes: printMin,
+      laborMinutes: laborMin,
       piecesPerPlate: Math.max(1, Math.floor(num(f.quantity)) || 1),
-      freight: num(f.freight),
+      freight: price(f.freight),
     });
     go("products");
   }
@@ -110,7 +118,7 @@ export default function Calculator({ go }: { go: Go }) {
             <h2 className="card-title">
               <Cylinder aria-hidden /> Filamentos
             </h2>
-            <Lines lines={fil} setLines={setFil} options={data.filaments} priceLabel="Preço por kg (R$)" qtyLabel="Gramas" addLabel="Adicionar filamento" />
+            <Lines lines={fil} setLines={setFil} options={data.filaments} priceLabel="Preço por kg" qtyLabel="Gramas" addLabel="Adicionar filamento" />
           </section>
 
           <section className="card">
@@ -140,9 +148,8 @@ export default function Calculator({ go }: { go: Go }) {
                   }}
                 />
               </label>
-              <label>Tempo de impressão (h)<input inputMode="decimal" value={f.hours} onChange={set("hours")} /></label>
-              <label>+ minutos<input inputMode="decimal" value={f.minutes} onChange={set("minutes")} /></label>
-              <label>Mão de obra (min)<input inputMode="decimal" value={f.laborMin} onChange={set("laborMin")} /></label>
+              <TimeField label="Tempo de impressão" value={f.time} onChange={setText("time")} />
+              <TimeField label="Mão de obra" bare="min" value={f.labor} onChange={setText("labor")} placeholder="15 min" hint="Ex.: 15 (minutos), 1h10" />
               <label>Peças na mesa<input inputMode="numeric" value={f.quantity} onChange={set("quantity")} /></label>
             </div>
           </section>
@@ -151,7 +158,7 @@ export default function Calculator({ go }: { go: Go }) {
             <h2 className="card-title">
               <Package aria-hidden /> Materiais extras
             </h2>
-            <Lines lines={ext} setLines={setExt} options={data.materials} priceLabel="Preço unitário (R$)" qtyLabel="Quantidade" addLabel="Adicionar material" />
+            <Lines lines={ext} setLines={setExt} options={data.materials} priceLabel="Preço unitário" qtyLabel="Quantidade" addLabel="Adicionar material" />
           </section>
 
           <section className="card">
@@ -159,7 +166,7 @@ export default function Calculator({ go }: { go: Go }) {
               <Store aria-hidden /> Venda
             </h2>
             <div className="grid">
-              <label>Frete absorvido por peça (R$)<input inputMode="decimal" value={f.freight} onChange={set("freight")} /></label>
+              <MoneyField label="Frete absorvido por peça" value={f.freight} onChange={setText("freight")} />
               <label>Margem em marketplace (%)<input inputMode="decimal" placeholder={String(data.settings.marketplaceMarginPct)} value={f.margin} onChange={set("margin")} /></label>
             </div>
           </section>
@@ -234,7 +241,7 @@ function Lines(props: { lines: Line[]; setLines: (l: Line[]) => void; options: O
   const update = (i: number, patch: Partial<Line>) => setLines(lines.map((l, j) => (j === i ? { ...l, ...patch } : l)));
   const pick = (i: number, ref: string) => {
     const o = options.find((x) => String(x.id) === ref);
-    update(i, { ref, price: o ? String(o.price).replace(".", ",") : lines[i].price });
+    update(i, { ref, price: o ? formatMoneyInput(String(o.price)) : lines[i].price });
   };
   return (
     <>
@@ -247,7 +254,7 @@ function Lines(props: { lines: Line[]; setLines: (l: Line[]) => void; options: O
               {options.map((o) => <option key={o.id} value={o.id}>{o.label}</option>)}
             </select>
           </label>
-          <label>{props.priceLabel}<input inputMode="decimal" value={l.price} onChange={(e) => update(i, { price: e.target.value, ref: "" })} /></label>
+          <MoneyField label={props.priceLabel} value={l.price} onChange={(v) => update(i, { price: v, ref: "" })} />
           <label>{props.qtyLabel}<input inputMode="decimal" value={l.qty} onChange={(e) => update(i, { qty: e.target.value })} /></label>
           <button className="link danger" onClick={() => setLines(lines.filter((_, j) => j !== i))}>Remover</button>
         </div>

@@ -8,11 +8,13 @@ import { fieldErrors } from "../ui/fieldErrors";
 import { useToast } from "../ui/Toast";
 import { useData } from "../ui/useData";
 import AiSettingsCard from "./AiSettingsCard";
+import MoneyField from "../ui/MoneyField";
+import { formatMoneyInput, parseMoney } from "../ui/parse";
 
 type NumKey = Exclude<keyof Settings, "channels">;
-const FIELDS: { key: NumKey; label: string }[] = [
-  { key: "kwhPrice", label: "Preço do kWh (R$)" },
-  { key: "laborHourCost", label: "Mão de obra (R$/hora)" },
+const FIELDS: { key: NumKey; label: string; money?: true; hint?: string }[] = [
+  { key: "kwhPrice", label: "Preço do kWh", money: true, hint: "Na conta de luz: valor total ÷ kWh." },
+  { key: "laborHourCost", label: "Sua hora de trabalho", money: true, hint: "Use 0 para não cobrar mão de obra." },
   { key: "maintenancePct", label: "Manutenção (%)" },
   { key: "multResale", label: "Multiplicador revenda (×)" },
   { key: "multConsumer", label: "Multiplicador consumidor final (×)" },
@@ -35,8 +37,8 @@ export default function Preferences() {
 const str = (n: number) => String(n).replace(".", ",");
 
 function PreferencesForm({ initial }: { initial: Settings }) {
-  const [nums, setNums] = useState(Object.fromEntries(FIELDS.map((f) => [f.key, str(initial[f.key])])));
-  const [channels, setChannels] = useState(initial.channels.map((c) => ({ name: c.name, feePct: str(c.feePct), feeFixed: str(c.feeFixed) })));
+  const [nums, setNums] = useState(Object.fromEntries(FIELDS.map((f) => [f.key, f.money ? formatMoneyInput(String(initial[f.key])) : str(initial[f.key])])));
+  const [channels, setChannels] = useState(initial.channels.map((c) => ({ name: c.name, feePct: str(c.feePct), feeFixed: formatMoneyInput(String(c.feeFixed)) })));
   const [errors, setErrors] = useState<Record<string, string>>({});
   const toast = useToast();
 
@@ -46,8 +48,8 @@ function PreferencesForm({ initial }: { initial: Settings }) {
   async function submit(e: React.FormEvent) {
     e.preventDefault();
     const s = {
-      ...Object.fromEntries(FIELDS.map((f) => [f.key, parseDecimal(nums[f.key])])),
-      channels: channels.map((c) => ({ name: c.name, feePct: parseDecimal(c.feePct), feeFixed: parseDecimal(c.feeFixed) })),
+      ...Object.fromEntries(FIELDS.map((f) => [f.key, f.money ? parseMoney(nums[f.key]) : parseDecimal(nums[f.key])])),
+      channels: channels.map((c) => ({ name: c.name, feePct: parseDecimal(c.feePct), feeFixed: parseMoney(c.feeFixed) })),
     } as Settings;
     try {
       await saveSettings(await getDb(), s);
@@ -65,13 +67,17 @@ function PreferencesForm({ initial }: { initial: Settings }) {
           <Coins aria-hidden /> Custos e preço
         </h2>
         <div className="grid">
-          {FIELDS.map((f) => (
-            <label key={f.key}>
-              {f.label}
-              <input inputMode="decimal" value={nums[f.key]} aria-invalid={!!errors[f.key]} onChange={(e) => setNums({ ...nums, [f.key]: e.target.value })} />
-              {errors[f.key] && <span className="error">{errors[f.key]}</span>}
-            </label>
-          ))}
+          {FIELDS.map((f) =>
+            f.money ? (
+              <MoneyField key={f.key} label={f.label} hint={f.hint} value={nums[f.key]} error={errors[f.key]} onChange={(v) => setNums({ ...nums, [f.key]: v })} />
+            ) : (
+              <label key={f.key}>
+                {f.label}
+                <input inputMode="decimal" value={nums[f.key]} aria-invalid={!!errors[f.key]} onChange={(e) => setNums({ ...nums, [f.key]: e.target.value })} />
+                {errors[f.key] && <span className="error">{errors[f.key]}</span>}
+              </label>
+            ),
+          )}
         </div>
       </div>
 
@@ -84,7 +90,7 @@ function PreferencesForm({ initial }: { initial: Settings }) {
           <div className="row line" key={i}>
             <label>Canal<input value={c.name} onChange={(e) => setChannel(i, "name", e.target.value)} /></label>
             <label>Comissão (%)<input inputMode="decimal" value={c.feePct} onChange={(e) => setChannel(i, "feePct", e.target.value)} /></label>
-            <label>Taxa fixa por venda (R$)<input inputMode="decimal" value={c.feeFixed} onChange={(e) => setChannel(i, "feeFixed", e.target.value)} /></label>
+            <MoneyField label="Taxa fixa por venda" value={c.feeFixed} onChange={(v) => setChannel(i, "feeFixed", v)} />
             <button type="button" className="link danger" onClick={() => setChannels(channels.filter((_, j) => j !== i))}>Remover</button>
           </div>
         ))}

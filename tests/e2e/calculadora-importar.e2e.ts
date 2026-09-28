@@ -14,16 +14,15 @@ test("calculadora: importa o 3MF fatiado do Bambu e preenche filamentos, tempo, 
   await expect(page.getByText("Bambu Lab A1")).toBeVisible();
   await expect(page.getByLabel("Gramas").nth(0)).toHaveValue("3,79");
   await expect(page.getByLabel("Gramas").nth(1)).toHaveValue("0,55");
-  await expect(page.getByLabel("Preço por kg (R$)").nth(0)).toHaveValue("120"); // azul casado
-  await expect(page.getByLabel("Preço por kg (R$)").nth(1)).toHaveValue("110"); // branco casado
-  await expect(page.getByLabel("Tempo de impressão (h)")).toHaveValue("0");
-  await expect(page.getByLabel("+ minutos")).toHaveValue("21");
+  await expect(page.getByLabel("Preço por kg").nth(0)).toHaveValue("120,00"); // azul casado
+  await expect(page.getByLabel("Preço por kg").nth(1)).toHaveValue("110,00"); // branco casado
+  await expect(page.getByLabel("Tempo de impressão")).toHaveValue("21 min");
   await expect(page.getByLabel("Peças na mesa")).toHaveValue("3");
   await expect(page.getByLabel("Potência (W)")).toHaveValue("110");
 
   // trocar o casamento de um filamento atualiza o preço da linha
   await page.getByLabel("Filamento cadastrado para o filamento 2").selectOption({ label: "PLA · Azul · Bambu" });
-  await expect(page.getByLabel("Preço por kg (R$)").nth(1)).toHaveValue("120");
+  await expect(page.getByLabel("Preço por kg").nth(1)).toHaveValue("120,00");
 });
 
 test("calculadora: 3MF sem fatiar explica o que fazer", async ({ page, tauri }) => {

@@ -62,7 +62,14 @@ export default function AiSettingsCard() {
   }
 
   return (
-    <div className="card stack">
+    <form
+      className="card stack"
+      noValidate
+      onSubmit={(e) => {
+        e.preventDefault();
+        void onSave();
+      }}
+    >
       <h2 className="card-title">
         <Bot aria-hidden /> Inteligência artificial (opcional)
       </h2>
@@ -102,18 +109,18 @@ export default function AiSettingsCard() {
       )}
       {status && <Alert kind={status.kind}>{status.text}</Alert>}
       <div className="row">
-        <button className="primary" onClick={onSave}>
+        <button className="primary" type="submit">
           <KeyRound aria-hidden /> Salvar
         </button>
-        <button onClick={onTest} disabled={testing}>
+        <button type="button" onClick={onTest} disabled={testing}>
           Testar chave
         </button>
         {saved && (
-          <button className="danger" onClick={onRemove}>
+          <button type="button" className="danger" onClick={onRemove}>
             Remover chave
           </button>
         )}
       </div>
-    </div>
+    </form>
   );
 }

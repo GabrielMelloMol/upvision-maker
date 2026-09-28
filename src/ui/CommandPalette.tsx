@@ -1,0 +1,113 @@
+import { CornerDownLeft, Search } from "lucide-react";
+import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
+import { getDb } from "../db";
+import type { PageDef } from "../pages";
+import { loadSearchItems, rank, type SearchItem } from "./search";
+
+type Props = { pages: PageDef[]; onPick: (item: SearchItem) => void; onClose: () => void };
+
+const MAX_RESULTS = 40;
+
+/** Busca global (Cmd/Ctrl+K): telas e registros. Setas navegam, Enter abre, Esc fecha. */
+export default function CommandPalette({ pages, onPick, onClose }: Props) {
+  const ref = useRef<HTMLDialogElement>(null);
+  const [q, setQ] = useState("");
+  const [records, setRecords] = useState<SearchItem[]>([]);
+  const [active, setActive] = useState(0);
+
+  useLayoutEffect(() => {
+    const d = ref.current!;
+    const opener = document.activeElement as HTMLElement | null;
+    if (!d.open) d.showModal();
+    return () => {
+      d.close();
+      opener?.focus?.();
+    };
+  }, []);
+
+  useEffect(() => {
+    getDb()
+      .then(loadSearchItems)
+      .then(setRecords)
+      .catch((e) => console.warn("Busca sem registros:", e));
+  }, []);
+
+  const results = useMemo(() => {
+    const screens: SearchItem[] = pages.map((p) => ({ id: `page-${p.id}`, title: p.label, subtitle: p.blurb, group: "Telas", icon: p.icon, pageId: p.id }));
+    return rank([...screens, ...records], q).slice(0, MAX_RESULTS);
+  }, [pages, records, q]);
+  const current = Math.min(active, results.length - 1);
+
+  function onKey(e: React.KeyboardEvent) {
+    if (e.key === "ArrowDown" || e.key === "ArrowUp") {
+      e.preventDefault();
+      const n = results.length;
+      if (n) setActive((current + (e.key === "ArrowDown" ? 1 : -1) + n) % n);
+    } else if (e.key === "Enter" && results[current]) {
+      e.preventDefault();
+      onPick(results[current]);
+    }
+  }
+
+  useEffect(() => {
+    ref.current?.querySelector(`[data-index="${current}"]`)?.scrollIntoView({ block: "nearest" });
+  }, [current]);
+
+  return (
+    <dialog
+      ref={ref}
+      className="palette"
+      aria-label="Buscar"
+      onCancel={(e) => {
+        e.preventDefault();
+        onClose();
+      }}
+      onMouseDown={(e) => e.target === e.currentTarget && onClose()}
+    >
+      <div className="palette-input">
+        <Search aria-hidden />
+        <input
+          autoFocus
+          role="combobox"
+          aria-expanded="true"
+          aria-controls="palette-list"
+          aria-activedescendant={results[current] ? `pal-${results[current].id}` : undefined}
+          placeholder="Buscar telas, filamentos, produtos…"
+          value={q}
+          onChange={(e) => {
+            setQ(e.target.value);
+            setActive(0);
+          }}
+          onKeyDown={onKey}
+        />
+        <kbd>esc</kbd>
+      </div>
+      <ul id="palette-list" role="listbox" aria-label="Resultados">
+        {results.length === 0 && <li className="palette-empty">Nada encontrado para “{q}”. Tente outra palavra.</li>}
+        {results.map((it, i) => {
+          const header = it.group !== results[i - 1]?.group ? it.group : null;
+          const Icon = it.icon;
+          return (
+            <li key={it.id} role="presentation">
+              {header && <div className="palette-group">{header}</div>}
+              <div
+                id={`pal-${it.id}`}
+                role="option"
+                aria-selected={i === current}
+                data-index={i}
+                className="palette-item"
+                onMouseMove={() => setActive(i)}
+                onClick={() => onPick(it)}
+              >
+                {Icon && <Icon aria-hidden />}
+                <span className="t">{it.title}</span>
+                {it.subtitle && <span className="s">{it.subtitle}</span>}
+                {i === current && <CornerDownLeft className="enter" aria-hidden />}
+              </div>
+            </li>
+          );
+        })}
+      </ul>
+    </dialog>
+  );
+}
