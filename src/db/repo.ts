@@ -42,7 +42,37 @@ function stockCrud<S extends z.ZodObject>(table: string, schema: S, stockCol: st
 }
 
 export const printers = crud("printers", PrinterInput);
-export const filaments = stockCrud("filaments", FilamentInput, "stockG", "pricePerKg");
+const round2g = (n: number) => Math.round(n * 100) / 100;
+
+async function filamentStock(db: Db, id: number): Promise<{ stockG: number; spoolG: number }> {
+  const [row] = await db.select<{ stockG: number; spoolG: number }>("SELECT stockG, spoolG FROM filaments WHERE id = ?", [id]);
+  if (!row) throw new Error("Filamento não encontrado.");
+  return row;
+}
+
+export const filaments = {
+  ...stockCrud("filaments", FilamentInput, "stockG", "pricePerKg"),
+  /** Baixa manual de gramas (ex.: leu o QR do rolo). Pode deixar o estoque negativo, como o consumo dos pedidos. Devolve o estoque novo. */
+  async consume(db: Db, id: number, grams: number): Promise<number> {
+    if (!Number.isFinite(grams) || grams <= 0) throw new Error("A quantidade precisa ser maior que zero.");
+    const { stockG } = await filamentStock(db, id);
+    const next = round2g(stockG - grams);
+    await db.execute("UPDATE filaments SET stockG = ? WHERE id = ?", [next, id]);
+    return next;
+  },
+  /**
+   * "Rolo acabou": tira o que ainda constava do rolo aberto. O cadastro é por tipo (não por rolo), então o rolo aberto
+   * é a sobra do estoque além dos rolos cheios; estoque redondo = o aberto era um rolo inteiro. Devolve o estoque novo.
+   * ponytail: sem tabela de rolos; se ela passar a pesar rolos individuais, criar `spools` com o peso de cada um.
+   */
+  async finishSpool(db: Db, id: number): Promise<number> {
+    const { stockG, spoolG } = await filamentStock(db, id);
+    const rest = round2g(stockG % spoolG);
+    const next = stockG <= 0 ? 0 : Math.max(0, round2g(stockG - (rest > 0 ? rest : spoolG)));
+    await db.execute("UPDATE filaments SET stockG = ? WHERE id = ?", [next, id]);
+    return next;
+  },
+};
 export const materials = stockCrud("materials", MaterialInput, "stock", "unitPrice");
 
 export async function loadSettings(db: Db): Promise<Settings> {
