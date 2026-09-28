@@ -21,6 +21,10 @@ export type TauriMock = {
   update: { rid: number; currentVersion: string; version: string; date: null; body: null; rawJson: object } | null;
   /** Resposta da API de releases do GitHub (interceptada; null = sem internet). */
   releases: unknown[] | null;
+  /** Links abertos pelo app (opener). */
+  opened: string[];
+  /** Linhas gravadas no registro de diagnóstico (log_append). */
+  log: string[];
   /** Backups automáticos "no disco": pasta → (nome → conteúdo). */
   autoBackups: Map<string, Map<string, string>>;
   /** Resposta do comando window_style (material nativo). */
@@ -137,6 +141,11 @@ function handler(m: TauriMock, cmd: string, a: Record<string, unknown> | null, h
       return 1;
     case "plugin:event|unlisten":
       return null;
+    case "log_append":
+      m.log.push(String(args.line));
+      return null;
+    case "log_read":
+      return m.log.length ? `${m.log.join("\n")}\n` : "";
     case "backup_default_dir":
       return "/dados-app/backups/auto";
     case "backup_write": {
@@ -160,6 +169,7 @@ function handler(m: TauriMock, cmd: string, a: Record<string, unknown> | null, h
       return json;
     }
     case "plugin:opener|open_url":
+      m.opened.push(String(args.url));
       return null;
     default:
       throw new Error(`comando Tauri sem mock: ${cmd}`);
@@ -168,7 +178,7 @@ function handler(m: TauriMock, cmd: string, a: Record<string, unknown> | null, h
 
 export const test = base.extend<{ tauri: TauriMock }>({
   tauri: async ({ page }, provide) => {
-    const m: TauriMock = { db: new DatabaseSync(":memory:"), files: new Map(), nextOpen: null, savePath: null, askAnswer: true, calls: [], update: null, releases: [], autoBackups: new Map(), windowStyle: { effect: "none", overlayTitlebar: false } };
+    const m: TauriMock = { db: new DatabaseSync(":memory:"), files: new Map(), nextOpen: null, savePath: null, askAnswer: true, calls: [], opened: [], log: [], update: null, releases: [], autoBackups: new Map(), windowStyle: { effect: "none", overlayTitlebar: false } };
     await page.exposeFunction("__tauriInvoke", (cmd: string, a: Record<string, unknown> | null, h: Record<string, string> | null) => {
       m.calls.push(cmd);
       try {

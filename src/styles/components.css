@@ -239,3 +239,8 @@ h3.subhead svg { width: 16px; height: 16px; color: var(--muted); }
 .about-missing h3 { margin: var(--space-2) 0; }
 .about-missing > ul { margin: 0; padding-left: 18px; display: grid; gap: 8px; }
 .about-missing ul ul { margin: 4px 0 0; padding-left: 16px; color: var(--muted); display: grid; gap: 2px; }
+
+/* Diagnóstico (#7) */
+.diagnostics { margin-top: var(--space-2); padding: var(--space-4); border-radius: var(--r); background: var(--surface-2); display: grid; gap: var(--space-2); }
+.diagnostics h3 { display: flex; align-items: center; gap: 8px; margin: 0; }
+.diagnostics h3 svg { width: 16px; height: 16px; color: var(--muted); }

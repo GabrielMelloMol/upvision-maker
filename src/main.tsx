@@ -10,8 +10,10 @@ import "@fontsource/playfair-display/800.css";
 import "./styles.css";
 import { ToastProvider } from "./ui/Toast";
 import { applyWindowStyle } from "./ui/windowStyle";
+import { installErrorLogging } from "./diagnostics/log";
 
 void applyWindowStyle();
+installErrorLogging();
 
 ReactDOM.createRoot(document.getElementById("root") as HTMLElement).render(
   <React.StrictMode>

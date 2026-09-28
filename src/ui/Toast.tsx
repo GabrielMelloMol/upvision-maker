@@ -1,4 +1,5 @@
 import { CircleAlert, CircleCheck } from "lucide-react";
+import { logError } from "../diagnostics/log";
 import { createContext, useCallback, useContext, useState, type ReactNode } from "react";
 
 type Kind = "ok" | "error";
@@ -23,6 +24,7 @@ export function ToastProvider({ children }: { children: ReactNode }) {
   }, []);
   const show = useCallback(
     (text: string, kind: Kind = "ok", action?: ToastAction) => {
+      if (kind === "error") logError("aviso", text); // o que ela viu de erro fica no registro de diagnóstico
       const id = nextId++;
       setItems((list) => [...list.slice(-(MAX - 1)), { id, text, kind, leaving: false, action }]);
       setTimeout(() => dismiss(id), action ? ACTION_MS : TOAST_MS);

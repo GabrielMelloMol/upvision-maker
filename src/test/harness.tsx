@@ -33,6 +33,8 @@ export type TauriState = {
   windowStyle: { effect: "mica" | "sidebar" | "none"; overlayTitlebar: boolean };
   /** Comandos chamados, em ordem. */
   calls: string[];
+  /** Linhas gravadas no registro de diagnóstico (log_append). */
+  log: string[];
   /** Backups automáticos "no disco": pasta → (nome → conteúdo). Pasta "" = padrão. */
   autoBackups: Map<string, Map<string, string>>;
   /** Resposta da API pública de releases do GitHub (fetch é interceptado; nada vai para a rede). null = sem internet. */
@@ -100,6 +102,11 @@ function handle(t: TauriState, cmd: string, a: unknown, headers?: Record<string,
       return 1;
     case "plugin:event|unlisten":
       return null;
+    case "log_append":
+      t.log.push(String(args.line));
+      return null;
+    case "log_read":
+      return t.log.length ? `${t.log.join("\n")}\n` : "";
     case "backup_default_dir":
       return "/dados-app/backups/auto";
     case "backup_write": {
@@ -129,13 +136,14 @@ function handle(t: TauriState, cmd: string, a: unknown, headers?: Record<string,
 
 /** Instala o mock do Tauri e um banco novo antes de cada teste do arquivo. */
 export function setupTauri(): TauriState {
-  const t = { files: new Map(), autoBackups: new Map(), savePath: null, openPath: null, askAnswer: true, calls: [], handlers: {}, windowStyle: { effect: "none", overlayTitlebar: false } } as unknown as TauriState;
+  const t = { files: new Map(), log: [], autoBackups: new Map(), savePath: null, openPath: null, askAnswer: true, calls: [], handlers: {}, windowStyle: { effect: "none", overlayTitlebar: false } } as unknown as TauriState;
   beforeEach(async () => {
     t.raw = new DatabaseSync(":memory:");
     t.db = wrap(t.raw);
     await migrate(t.db);
     t.files.clear();
     t.autoBackups.clear();
+    t.log.length = 0;
     t.calls.length = 0;
     t.savePath = null;
     t.openPath = null;

@@ -5,6 +5,7 @@ import { useState } from "react";
 import Alert from "../ui/Alert";
 import Sheet from "../ui/Sheet";
 import { errorText } from "../ui/Toast";
+import DiagnosticsBlock from "../diagnostics/DiagnosticsBlock";
 import { feedbackUrl } from "./feedback";
 
 const platform = () => (/Mac/i.test(navigator.userAgent) ? "macOS" : /Win/i.test(navigator.userAgent) ? "Windows" : "outro");
@@ -74,6 +75,7 @@ export default function SuggestDialog({ onClose }: { onClose: () => void }) {
             <span className="hint">{FEEDBACK_EMAIL ? "O e-mail" : "A página"} abre pronta; a imagem você anexa antes de enviar.</span>
           </label>
           {error && <Alert kind="error">{error}</Alert>}
+          <DiagnosticsBlock what={title || description} />
         </>
       )}
     </Sheet>

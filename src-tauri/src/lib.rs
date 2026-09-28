@@ -1,6 +1,7 @@
 use tauri::Manager;
 
 mod backup;
+mod diagnostics;
 mod bambu;
 mod stock;
 mod vibrancy;
@@ -15,6 +16,7 @@ pub fn run() {
         .plugin(tauri_plugin_opener::init())
         .plugin(tauri_plugin_updater::Builder::new().build())
         .setup(|app| {
+            diagnostics::install_panic_hook(app.handle());
             let window = app.get_webview_window("main").expect("janela principal");
             app.manage(vibrancy::Applied(vibrancy::apply(&window)));
             Ok(())
@@ -26,6 +28,8 @@ pub fn run() {
             backup::backup_write,
             backup::backup_list,
             backup::backup_read,
+            diagnostics::log_append,
+            diagnostics::log_read,
             bambu::bambu_project
         ])
         .run(tauri::generate_context!())
