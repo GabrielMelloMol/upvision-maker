@@ -47,10 +47,44 @@ const INIT = () => {
   };
 };
 
+type ApplyStockArgs = {
+  movements: { kind: "filament" | "material" | "product"; id: number; delta: number }[];
+  order: { orderId: number; expectApplied: boolean; setApplied: boolean; status: string; note: string; appliedPlan: string | null; deliveredAt: string | null; delete?: boolean } | null;
+};
+
+/** Mesmo contrato do comando Rust (src-tauri/src/stock.rs), numa transação do node:sqlite. */
+function applyStock(m: TauriMock, { movements, order }: ApplyStockArgs): null {
+  const col = { filament: ["filaments", "stockG"], material: ["materials", "stock"], product: ["products", "stock"] } as const;
+  m.db.exec("BEGIN");
+  try {
+    if (order) {
+      const row = m.db.prepare("SELECT stockApplied FROM orders WHERE id = ?").get(order.orderId) as { stockApplied: number } | undefined;
+      if (!row) throw "Pedido não encontrado.";
+      if ((row.stockApplied !== 0) !== order.expectApplied) throw "O estoque deste pedido já foi atualizado por outra ação.";
+    }
+    for (const mv of movements) {
+      const [t, c] = col[mv.kind];
+      if (m.db.prepare(`UPDATE ${t} SET ${c} = ${c} + ? WHERE id = ?`).run(mv.delta, mv.id).changes === 0) throw `Item de estoque não encontrado (${t} #${mv.id}).`;
+    }
+    if (order?.delete) for (const t of ["order_items WHERE orderId", "order_history WHERE orderId", "orders WHERE id"]) m.db.prepare(`DELETE FROM ${t} = ?`).run(order.orderId);
+    else if (order) {
+      m.db.prepare("UPDATE orders SET stockApplied = ?, status = ?, appliedPlan = ?, deliveredAt = ? WHERE id = ?").run(order.setApplied ? 1 : 0, order.status, order.appliedPlan, order.deliveredAt, order.orderId);
+      m.db.prepare("INSERT INTO order_history (orderId, status, note, at) VALUES (?, ?, ?, datetime('now'))").run(order.orderId, order.status, order.note);
+    }
+    m.db.exec("COMMIT");
+  } catch (e) {
+    m.db.exec("ROLLBACK");
+    throw e;
+  }
+  return null;
+}
+
 function handler(m: TauriMock, cmd: string, a: Record<string, unknown> | null, headers: Record<string, string> | null): unknown {
   const args = a ?? {};
   const params = (args.values as SQLInputValue[] | undefined) ?? [];
   switch (cmd) {
+    case "apply_stock":
+      return applyStock(m, args as unknown as ApplyStockArgs);
     case "plugin:sql|load":
       return args.db;
     case "plugin:sql|select":

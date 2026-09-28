@@ -25,3 +25,23 @@ label.button-like { display: inline-flex; cursor: pointer; }
 .btn-inline { display: inline-flex; align-items: center; gap: 6px; padding: 7px 12px; border-radius: var(--radius-sm); border: 1px solid var(--border-strong); background: var(--surface); color: var(--text); font-weight: 500; font-size: 14px; }
 label.button-like:hover .btn-inline { background: var(--surface-2); }
 .cep-field { display: flex; align-items: flex-start; gap: 4px; } .cep-field > label { flex: 1; } .cep-field > button { margin-top: 20px; }
+.order-line { align-items: flex-end; }
+.order-line .grow { flex: 1 1 180px; }
+.order-line .narrow { width: 90px; }
+.order-line .line-total { min-width: 84px; padding-bottom: 8px; font-weight: 600; }
+.span2 { grid-column: span 2; }
+table.totals { max-width: 320px; margin-left: auto; }
+.board { display: grid; grid-template-columns: repeat(4, minmax(200px, 1fr)); gap: 12px; align-items: start; overflow-x: auto; }
+.board-col { background: var(--surface-2); border-radius: var(--radius); padding: 10px; display: grid; gap: 8px; min-height: 160px; align-content: start; }
+.board-col.droppable { outline: 2px dashed var(--border-strong); outline-offset: -4px; }
+.board-col h2 { font-size: 13px; margin: 2px 4px 4px; display: flex; justify-content: space-between; }
+.order-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-sm); box-shadow: var(--shadow); display: grid; }
+.order-card.late { border-color: var(--danger); }
+.order-card .order-open { all: unset; cursor: pointer; display: grid; gap: 4px; padding: 10px; }
+.order-card .order-open:focus-visible { outline: 2px solid var(--primary); outline-offset: -2px; border-radius: var(--radius-sm); }
+.order-card > button:last-child { justify-self: end; margin: 0 6px 6px; }
+.order-meta { display: flex; justify-content: space-between; align-items: center; gap: 6px; }
+tr.clickable { cursor: pointer; }
+tr.clickable:hover td { background: var(--surface-2); }
+.timeline { margin: 0; padding-left: 18px; display: grid; gap: 4px; }
+.notes { white-space: pre-wrap; background: var(--surface-2); padding: 8px 10px; border-radius: var(--radius-sm); }

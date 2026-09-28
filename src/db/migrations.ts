@@ -28,6 +28,18 @@ export const MIGRATIONS: string[][] = [
       notes TEXT NOT NULL DEFAULT '')`,
     "CREATE TABLE company (id INTEGER PRIMARY KEY CHECK (id = 1), data TEXT NOT NULL)",
   ],
+  [
+    `CREATE TABLE orders (id INTEGER PRIMARY KEY, customerId INTEGER, customerName TEXT NOT NULL, channel TEXT NOT NULL,
+      status TEXT NOT NULL DEFAULT 'pending', dueDate TEXT, deliveredAt TEXT, paymentMethod TEXT NOT NULL DEFAULT '',
+      notes TEXT NOT NULL DEFAULT '', freight REAL NOT NULL DEFAULT 0, stockApplied INTEGER NOT NULL DEFAULT 0, appliedPlan TEXT,
+      createdAt TEXT NOT NULL, quoteId INTEGER)`,
+    `CREATE TABLE order_items (id INTEGER PRIMARY KEY, orderId INTEGER NOT NULL, position INTEGER NOT NULL, productId INTEGER,
+      description TEXT NOT NULL, qty REAL NOT NULL, unitPrice REAL NOT NULL, discountPct REAL NOT NULL DEFAULT 0,
+      unitCost REAL NOT NULL DEFAULT 0, printMinutes REAL NOT NULL DEFAULT 0)`,
+    "CREATE TABLE order_history (id INTEGER PRIMARY KEY, orderId INTEGER NOT NULL, status TEXT NOT NULL, note TEXT NOT NULL DEFAULT '', at TEXT NOT NULL)",
+    "CREATE INDEX order_items_order ON order_items (orderId)",
+    "CREATE INDEX order_history_order ON order_history (orderId)",
+  ],
 ];
 
 export const SCHEMA_VERSION = MIGRATIONS.length;

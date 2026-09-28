@@ -25,6 +25,13 @@ pub struct OrderChange {
     pub set_applied: bool,
     pub status: String,
     pub note: String,
+    /// Plano de consumo aplicado (JSON), guardado para o estorno devolver exatamente o que saiu.
+    pub applied_plan: Option<String>,
+    /// Data de entrega (YYYY-MM-DD) quando o status é "delivered"; senão None.
+    pub delivered_at: Option<String>,
+    /// Excluir o pedido (depois do estorno, na mesma transação).
+    #[serde(default)]
+    pub delete: bool,
 }
 
 /// Tabela e coluna de estoque por tipo: lista fechada, nada vindo do front vira SQL.
@@ -59,15 +66,21 @@ pub async fn apply(pool: &Pool<Sqlite>, movements: &[Movement], order: Option<&O
             return Err(format!("Item de estoque não encontrado ({table} #{}).", m.id));
         }
     }
-    if let Some(o) = order {
-        sqlx::query("UPDATE orders SET stockApplied = ?, status = ? WHERE id = ?")
+    if let Some(o) = order.filter(|o| o.delete) {
+        for sql in ["DELETE FROM order_items WHERE orderId = ?", "DELETE FROM order_history WHERE orderId = ?", "DELETE FROM orders WHERE id = ?"] {
+            sqlx::query(sql).bind(o.order_id).execute(&mut *tx).await.map_err(|e| e.to_string())?;
+        }
+    } else if let Some(o) = order {
+        sqlx::query("UPDATE orders SET stockApplied = ?, status = ?, appliedPlan = ?, deliveredAt = ? WHERE id = ?")
             .bind(o.set_applied as i64)
             .bind(&o.status)
+            .bind(&o.applied_plan)
+            .bind(&o.delivered_at)
             .bind(o.order_id)
             .execute(&mut *tx)
             .await
             .map_err(|e| e.to_string())?;
-        sqlx::query("INSERT INTO order_history (orderId, status, note, at) VALUES (?, ?, ?, datetime('now'))")
+        sqlx::query("INSERT INTO order_history (orderId, status, note, at) VALUES (?, ?, ?, datetime('now', 'localtime'))")
             .bind(o.order_id)
             .bind(&o.status)
             .bind(&o.note)
@@ -101,12 +114,14 @@ mod tests {
             "CREATE TABLE filaments (id INTEGER PRIMARY KEY, stockG REAL)",
             "CREATE TABLE materials (id INTEGER PRIMARY KEY, stock REAL)",
             "CREATE TABLE products (id INTEGER PRIMARY KEY, stock REAL)",
-            "CREATE TABLE orders (id INTEGER PRIMARY KEY, status TEXT, stockApplied INTEGER)",
+            "CREATE TABLE orders (id INTEGER PRIMARY KEY, status TEXT, stockApplied INTEGER, appliedPlan TEXT, deliveredAt TEXT)",
+            "CREATE TABLE order_items (id INTEGER PRIMARY KEY, orderId INTEGER)",
             "CREATE TABLE order_history (id INTEGER PRIMARY KEY, orderId INTEGER, status TEXT, note TEXT, at TEXT)",
             "INSERT INTO filaments VALUES (1, 1000)",
             "INSERT INTO materials VALUES (1, 10)",
             "INSERT INTO products VALUES (1, 5)",
-            "INSERT INTO orders VALUES (1, 'pending', 0)",
+            "INSERT INTO orders VALUES (1, 'pending', 0, NULL, NULL)",
+            "INSERT INTO order_items VALUES (1, 1)",
         ] {
             sqlx::query(sql).execute(&pool).await.unwrap();
         }
@@ -122,7 +137,20 @@ mod tests {
     }
 
     fn confirm(expect: bool, set: bool) -> OrderChange {
-        OrderChange { order_id: 1, expect_applied: expect, set_applied: set, status: "production".into(), note: "".into() }
+        OrderChange { order_id: 1, expect_applied: expect, set_applied: set, status: "production".into(), note: "".into(), applied_plan: Some("{}".into()), delivered_at: None, delete: false }
+    }
+
+    #[tokio::test]
+    async fn excluir_estorna_e_apaga_tudo_junto() {
+        let pool = db().await;
+        apply(&pool, &[mv("filament", 1, -100.0)], Some(&confirm(false, true))).await.unwrap();
+        let del = OrderChange { delete: true, expect_applied: true, set_applied: false, ..confirm(true, false) };
+        apply(&pool, &[mv("filament", 1, 100.0)], Some(&del)).await.unwrap();
+        assert_eq!(stock(&pool, "SELECT stockG FROM filaments").await, 1000.0);
+        for t in ["orders", "order_items", "order_history"] {
+            let n: i64 = sqlx::query_scalar(&format!("SELECT COUNT(*) FROM {t}")).fetch_one(&pool).await.unwrap();
+            assert_eq!(n, 0, "{t}");
+        }
     }
 
     #[tokio::test]

@@ -3,7 +3,17 @@ import type { ConsumptionPlan } from "../domain/products";
 import { DB_URL } from "./index";
 
 export type Movement = { kind: "filament" | "material" | "product"; id: number; delta: number };
-export type OrderChange = { orderId: number; expectApplied: boolean; setApplied: boolean; status: string; note: string };
+export type OrderChange = {
+  orderId: number;
+  expectApplied: boolean;
+  setApplied: boolean;
+  status: string;
+  note: string;
+  appliedPlan: string | null;
+  deliveredAt: string | null;
+  delete?: boolean;
+};
+export type ApplyStock = (movements: Movement[], order?: OrderChange) => Promise<void>;
 
 /** Plano de consumo → movimentos. `sign` -1 dá baixa; +1 estorna. */
 export function planToMovements(plan: ConsumptionPlan, sign: 1 | -1): Movement[] {
@@ -18,4 +28,4 @@ export function planToMovements(plan: ConsumptionPlan, sign: 1 | -1): Movement[]
 }
 
 /** Aplica tudo numa única transação no Rust (src-tauri/src/stock.rs). */
-export const applyStock = (movements: Movement[], order?: OrderChange) => invoke<void>("apply_stock", { dbUrl: DB_URL, movements, order: order ?? null });
+export const applyStock: ApplyStock = (movements, order) => invoke<void>("apply_stock", { dbUrl: DB_URL, movements, order: order ?? null });
