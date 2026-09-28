@@ -36,13 +36,19 @@ export function outerOnly(M: ManifoldToplevel, cs: CS): CS {
   return new M.CrossSection(cs.toPolygons().filter((p) => signedArea(p) > 0), "NonZero");
 }
 
-/** Converte coordenadas de SVG (px, Y para baixo) em mm (Y para cima), com a largura pedida, centralizado na origem. */
-export function fitWidth(cs: CS, widthMm: number, mirrorX = false): CS {
+/** Converte coordenadas de SVG/fonte (Y para baixo) em mm (Y para cima), no tamanho pedido, centralizado na origem. */
+function fit(cs: CS, axis: 0 | 1, sizeMm: number, mirrorX: boolean): CS {
   const b = cs.bounds();
-  const w = b.max[0] - b.min[0];
-  if (!(w > 0)) throw new Error("O desenho está vazio.");
-  const s = widthMm / w;
+  const size = b.max[axis] - b.min[axis];
+  if (!(size > 0)) throw new Error("O desenho está vazio.");
+  const s = sizeMm / size;
   const cx = (b.min[0] + b.max[0]) / 2;
   const cy = (b.min[1] + b.max[1]) / 2;
-  return cs.translate([-cx, -cy]).scale([mirrorX ? -s : s, -s]);
+  const moved = cs.translate([-cx, -cy]);
+  const out = moved.scale([mirrorX ? -s : s, -s]);
+  moved.delete();
+  return out;
 }
+
+export const fitWidth = (cs: CS, widthMm: number, mirrorX = false) => fit(cs, 0, widthMm, mirrorX);
+export const fitHeight = (cs: CS, heightMm: number, mirrorX = false) => fit(cs, 1, heightMm, mirrorX);
