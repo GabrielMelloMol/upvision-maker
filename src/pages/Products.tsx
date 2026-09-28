@@ -9,6 +9,7 @@ import "../styles/features.css";
 import Button from "../ui/Button";
 import EmptyState from "../ui/EmptyState";
 import { errorText, useToast } from "../ui/Toast";
+import { takePendingOpen } from "../ui/search";
 import { useData } from "../ui/useData";
 import { EMPTY_DATA, loadProductsData } from "./products/data";
 import { clearProductDraft, peekProductDraft } from "./products/draft";
@@ -17,7 +18,13 @@ import ProductEditor from "./products/ProductEditor";
 
 export default function Products() {
   const [data, reload] = useData(loadProductsData, EMPTY_DATA);
-  const [editing, setEditing] = useState<Partial<Product> | null>(() => peekProductDraft());
+  const [editingState, setEditingState] = useState<Partial<Product> | null>(() => peekProductDraft());
+  const [searchId, setSearchId] = useState(() => takePendingOpen("products")); // vindo da busca global
+  const editing = editingState ?? (searchId !== null ? (data.products.find((p) => p.id === searchId) ?? null) : null);
+  const setEditing = (p: Partial<Product> | null) => {
+    setSearchId(null);
+    setEditingState(p);
+  };
   const [producing, setProducing] = useState<Product | null>(null);
   const toast = useToast();
   useEffect(clearProductDraft, []);

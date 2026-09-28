@@ -1,4 +1,7 @@
-import { Cylinder, Package, Printer, ShoppingBag, type LucideIcon } from "lucide-react";
+import { ClipboardList, Cylinder, Package, Printer, ShoppingBag, Users, type LucideIcon } from "lucide-react";
+import { customersRepo } from "../db/customersRepo";
+import { ordersRepo } from "../db/ordersRepo";
+import { STATUS_LABEL } from "../domain/orders";
 import { productsRepo } from "../db/productsRepo";
 import { filaments, materials, printers } from "../db/repo";
 import type { Db } from "../db/types";
@@ -38,6 +41,28 @@ export const SEARCH_SOURCES: ((db: Db) => Promise<SearchItem[]>)[] = [
     (await printers.list(db)).map((p) => ({ id: `prn-${p.id}`, title: p.name, subtitle: `${p.watts} W`, group: "Impressoras", icon: Printer, pageId: "printers", recordId: p.id })),
   async (db) =>
     (await productsRepo.list(db)).map((p) => ({ id: `prd-${p.id}`, title: p.name, subtitle: p.sku || undefined, group: "Produtos", icon: ShoppingBag, pageId: "products", recordId: p.id, keywords: p.notes })),
+  async (db) =>
+    (await customersRepo.list(db)).map((c) => ({
+      id: `cli-${c.id}`,
+      title: c.name,
+      subtitle: [c.phone, c.city].filter(Boolean).join(" · ") || undefined,
+      group: "Clientes",
+      icon: Users,
+      pageId: "customers",
+      recordId: c.id,
+      keywords: [c.email, c.instagram, c.document].join(" "),
+    })),
+  async (db) =>
+    (await ordersRepo.list(db)).map((o) => ({
+      id: `ped-${o.id}`,
+      title: `Pedido #${o.id} · ${o.customerName}`,
+      subtitle: [STATUS_LABEL[o.status], o.dueDate && `prazo ${o.dueDate.split("-").reverse().join("/")}`].filter(Boolean).join(" · "),
+      group: "Pedidos",
+      icon: ClipboardList,
+      pageId: "orders",
+      recordId: o.id,
+      keywords: o.items.map((i) => i.description).join(" "),
+    })),
 ];
 
 export async function loadSearchItems(db: Db): Promise<SearchItem[]> {

@@ -12,6 +12,7 @@ import { fieldErrors } from "../ui/fieldErrors";
 import Segmented from "../ui/Segmented";
 import Sheet from "../ui/Sheet";
 import { errorText, useToast } from "../ui/Toast";
+import { takePendingOpen } from "../ui/search";
 import { useData } from "../ui/useData";
 import AddressFields from "./customers/AddressFields";
 
@@ -19,7 +20,14 @@ const norm = (s: string) => s.normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCa
 
 export default function Customers() {
   const [list, reload] = useData(customersRepo.list, [] as Customer[]);
-  const [editing, setEditing] = useState<Partial<Customer> | null>(null);
+  const data = list;
+  const [editingState, setEditingState] = useState<Partial<Customer> | null>(null);
+  const [searchId, setSearchId] = useState(() => takePendingOpen("customers")); // vindo da busca global
+  const editing = editingState ?? (searchId !== null ? (data.find((c) => c.id === searchId) ?? null) : null);
+  const setEditing = (c: Partial<Customer> | null) => {
+    setSearchId(null);
+    setEditingState(c);
+  };
   const [query, setQuery] = useState("");
   const toast = useToast();
   const q = norm(query.trim());

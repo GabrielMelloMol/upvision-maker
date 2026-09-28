@@ -7,6 +7,7 @@ import Button from "../ui/Button";
 import EmptyState from "../ui/EmptyState";
 import Segmented from "../ui/Segmented";
 import { errorText, useToast } from "../ui/Toast";
+import { takePendingOpen } from "../ui/search";
 import { useData } from "../ui/useData";
 import { EMPTY_ORDERS, loadOrdersData } from "./orders/data";
 import OrderDetail, { moveOrder } from "./orders/OrderDetail";
@@ -24,7 +25,7 @@ export default function Orders() {
   const [data, reload] = useData(loadOrdersData, EMPTY_ORDERS);
   const [view, setView] = useState<"board" | "list">("board");
   const [editing, setEditing] = useState<Order | "new" | null>(null);
-  const [openId, setOpenId] = useState<number | null>(null);
+  const [openId, setOpenId] = useState<number | null>(() => takePendingOpen("orders")); // vindo da busca global
   const [status, setStatus] = useState<"" | OrderStatus>("");
   const [query, setQuery] = useState("");
   const [dragging, setDragging] = useState<number | null>(null);
