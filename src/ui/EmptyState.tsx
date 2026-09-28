@@ -6,7 +6,7 @@ type Props = { icon: LucideIcon; title: string; children?: ReactNode; action?: R
 /** Estado vazio amigável: ilustração, frase humana e no máximo uma ação principal. */
 export default function EmptyState({ icon: Icon, title, children, action }: Props) {
   return (
-    <div className="empty" role="status">
+    <div className="empty-state" role="status">
       <div className="art" aria-hidden>
         <Icon />
       </div>

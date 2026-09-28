@@ -1,48 +1,84 @@
-/* Telas de gestão novas (produtos, pedidos, financeiro…). Usa só os tokens do design system. */
-.product-editor { display: grid; grid-template-columns: minmax(0, 1fr) 300px; gap: 16px; align-items: start; }
+/* Telas de gestão novas (produtos, clientes, pedidos, orçamentos, financeiro). Só usa tokens de tokens.css. */
+
+/* Cabeçalho de página com ações à direita */
+.page-head { display: flex; align-items: flex-start; justify-content: space-between; gap: var(--space-4); flex-wrap: wrap; }
+.page-head .lead { margin-bottom: var(--space-6); }
+.page-head .row { align-items: center; margin-top: 6px; }
+
+/* Grupos de campos (fieldset) no estilo dos cards */
+.product-editor { display: grid; grid-template-columns: minmax(0, 1fr) 300px; gap: var(--space-4); align-items: start; }
 @media (max-width: 900px) { .product-editor { grid-template-columns: 1fr; } }
-.product-editor fieldset { border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 10px 12px 12px; margin: 0; display: grid; gap: 10px; }
-.product-editor legend { font-size: 12px; font-weight: 600; color: var(--muted); padding: 0 4px; }
-.photo-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
-.photo-grid figure { position: relative; margin: 0; aspect-ratio: 1; border-radius: var(--radius-sm); overflow: hidden; border: 1px solid var(--border); background: var(--surface-2); }
+.product-editor fieldset, fieldset.plain { border: 0; border-radius: var(--r); padding: var(--space-4); margin: 0; display: grid; gap: var(--space-3); background: var(--surface-2); }
+.product-editor legend, fieldset.plain legend { float: left; width: 100%; font-size: var(--text-xs); font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: 0.05em; padding: 0; margin-bottom: 2px; }
+.span2 { grid-column: span 2; }
+
+/* Fotos de produto */
+.photo-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: var(--space-2); }
+.photo-grid figure { position: relative; margin: 0; aspect-ratio: 1; border-radius: var(--r); overflow: hidden; background: var(--surface-2); box-shadow: var(--shadow-1); animation: fade-up var(--dur) var(--ease-out) both; }
 .photo-grid img { width: 100%; height: 100%; object-fit: cover; display: block; }
-.photo-grid figcaption { position: absolute; right: 2px; top: 2px; display: flex; gap: 2px; }
-.photo-grid figcaption button { background: color-mix(in srgb, var(--surface) 85%, transparent); padding: 3px; }
-.photo-add { aspect-ratio: 1; border: 2px dashed var(--border-strong); border-radius: var(--radius-sm); display: grid; place-content: center; justify-items: center; gap: 2px; cursor: pointer; color: var(--muted); font-size: 12px; }
-.photo-add:hover { border-color: var(--primary); color: var(--primary); }
-.thumb { width: 40px; height: 40px; border-radius: 6px; object-fit: cover; background: var(--surface-2); border: 1px solid var(--border); display: block; }
-.thumb.empty { display: grid; place-items: center; color: var(--muted); }
-.list-actions { display: flex; justify-content: flex-end; gap: 4px; white-space: nowrap; }
-.page-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
-.page-head .row { align-items: center; }
-fieldset.plain { border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 10px 12px 12px; margin: 0; }
-fieldset.plain legend { font-size: 12px; font-weight: 600; color: var(--muted); padding: 0 4px; }
+.photo-grid figcaption { position: absolute; right: 4px; top: 4px; display: flex; gap: 2px; opacity: 0; transition: opacity var(--dur-fast) ease; }
+.photo-grid figure:hover figcaption, .photo-grid figure:focus-within figcaption { opacity: 1; }
+.photo-grid figcaption button { min-height: 26px; padding: 0 6px; background: var(--glass); -webkit-backdrop-filter: var(--blur); backdrop-filter: var(--blur); }
+.photo-add { aspect-ratio: 1; border: 1.5px dashed var(--border-strong); border-radius: var(--r); display: grid; place-content: center; justify-items: center; gap: 4px; cursor: pointer; color: var(--muted); font-size: var(--text-sm); background: var(--fill); transition: border-color var(--dur-fast) ease, color var(--dur-fast) ease, background var(--dur-fast) ease; }
+.photo-add:hover { border-color: var(--accent); color: var(--accent-text); background: var(--accent-soft); }
+.thumb { width: 40px; height: 40px; border-radius: var(--r-sm); object-fit: cover; background: var(--surface-2); box-shadow: inset 0 0 0 1px var(--border); display: block; }
+.thumb.empty { display: grid; place-items: center; color: var(--tertiary); }
+
+/* Listas */
+.list-actions { display: flex; justify-content: flex-end; gap: 2px; white-space: nowrap; }
 tr.muted td { color: var(--muted); }
-.qr-preview { width: 140px; height: 140px; background: #fff; border-radius: var(--radius-sm); border: 1px solid var(--border); padding: 4px; }
+tr.clickable { cursor: pointer; }
+tr.clickable:hover td { background: var(--fill); }
+.check-list { display: grid; gap: 6px; max-height: 280px; overflow: auto; padding: var(--space-2) var(--space-3); border-radius: var(--r); background: var(--surface-2); }
+
+/* Empresa / clientes */
+.qr-preview { width: 140px; height: 140px; background: #fff; border-radius: var(--r); box-shadow: var(--shadow-1); padding: 6px; }
 .qr-preview svg { width: 100%; height: 100%; }
-.logo-preview { max-width: 180px; max-height: 90px; object-fit: contain; background: #fff; border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 6px; }
+.logo-preview { max-width: 180px; max-height: 90px; object-fit: contain; background: #fff; border-radius: var(--r); box-shadow: var(--shadow-1); padding: 8px; }
 label.button-like { display: inline-flex; cursor: pointer; }
-.btn-inline { display: inline-flex; align-items: center; gap: 6px; padding: 7px 12px; border-radius: var(--radius-sm); border: 1px solid var(--border-strong); background: var(--surface); color: var(--text); font-weight: 500; font-size: 14px; }
+.btn-inline { display: inline-flex; align-items: center; gap: 7px; min-height: 34px; padding: 0 15px; border-radius: var(--r-sm); background: var(--surface-raised); box-shadow: var(--shadow-1); color: var(--text); font-weight: 550; font-size: var(--text-md); transition: background var(--dur-fast) ease; }
+.btn-inline svg { width: 16px; height: 16px; }
 label.button-like:hover .btn-inline { background: var(--surface-2); }
-.cep-field { display: flex; align-items: flex-start; gap: 4px; } .cep-field > label { flex: 1; } .cep-field > button { margin-top: 20px; }
+.cep-field { display: flex; align-items: flex-start; gap: var(--space-2); }
+.cep-field > label, .cep-field > .field { flex: 1; }
+.cep-field > button { margin-top: 22px; }
+
+/* Pedido: linhas de item e totais */
 .order-line { align-items: flex-end; }
 .order-line .grow { flex: 1 1 180px; }
 .order-line .narrow { width: 90px; }
-.order-line .line-total { min-width: 84px; padding-bottom: 8px; font-weight: 600; }
-.span2 { grid-column: span 2; }
-table.totals { max-width: 320px; margin-left: auto; }
-.board { display: grid; grid-template-columns: repeat(4, minmax(200px, 1fr)); gap: 12px; align-items: start; overflow-x: auto; }
-.board-col { background: var(--surface-2); border-radius: var(--radius); padding: 10px; display: grid; gap: 8px; min-height: 160px; align-content: start; }
-.board-col.droppable { outline: 2px dashed var(--border-strong); outline-offset: -4px; }
-.board-col h2 { font-size: 13px; margin: 2px 4px 4px; display: flex; justify-content: space-between; }
-.order-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-sm); box-shadow: var(--shadow); display: grid; }
-.order-card.late { border-color: var(--danger); }
-.order-card .order-open { all: unset; cursor: pointer; display: grid; gap: 4px; padding: 10px; }
-.order-card .order-open:focus-visible { outline: 2px solid var(--primary); outline-offset: -2px; border-radius: var(--radius-sm); }
-.order-card > button:last-child { justify-self: end; margin: 0 6px 6px; }
-.order-meta { display: flex; justify-content: space-between; align-items: center; gap: 6px; }
-tr.clickable { cursor: pointer; }
-tr.clickable:hover td { background: var(--surface-2); }
-.timeline { margin: 0; padding-left: 18px; display: grid; gap: 4px; }
-.notes { white-space: pre-wrap; background: var(--surface-2); padding: 8px 10px; border-radius: var(--radius-sm); }
-.check-list { display: grid; gap: 6px; max-height: 280px; overflow: auto; padding: 4px; border: 1px solid var(--border); border-radius: var(--radius-sm); }
+.order-line .line-total { min-width: 92px; padding-bottom: 9px; font-weight: 600; font-variant-numeric: tabular-nums; text-align: right; }
+table.totals { max-width: 340px; margin-left: auto; }
+table.totals tr:last-child th { font-size: var(--text-lg); }
+
+/* Quadro (kanban) de pedidos — cada coluna tem sua cor de status */
+.board { display: grid; grid-template-columns: repeat(4, minmax(220px, 1fr)); gap: var(--space-3); align-items: start; overflow-x: auto; padding-bottom: var(--space-2); }
+.board-col { --status: var(--tertiary); display: grid; gap: var(--space-2); align-content: start; min-height: 180px; padding: var(--space-3); border-radius: var(--r-lg); background: var(--fill); transition: background var(--dur) ease, box-shadow var(--dur) ease; }
+.board-col:nth-child(1) { --status: #8e8e93; }
+.board-col:nth-child(2) { --status: var(--accent); }
+.board-col:nth-child(3) { --status: var(--brand-orange); }
+.board-col:nth-child(4) { --status: #22a04b; }
+.board-col.droppable { box-shadow: inset 0 0 0 2px color-mix(in srgb, var(--status) 45%, transparent); }
+.board-col.droppable:hover { background: color-mix(in srgb, var(--status) 10%, var(--fill)); }
+.board-col h2 { display: flex; align-items: center; gap: 8px; margin: 2px 4px 6px; font-size: 13.5px; font-weight: 650; }
+.board-col h2::before { content: ""; width: 8px; height: 8px; border-radius: 50%; background: var(--status); }
+.board-col h2 .muted { margin-left: auto; min-width: 22px; padding: 0 7px; border-radius: var(--r-pill); background: var(--surface); text-align: center; font-weight: 600; font-variant-numeric: tabular-nums; }
+.order-card { position: relative; display: grid; background: var(--surface); border-radius: var(--r); box-shadow: var(--shadow-1); cursor: grab; transition: box-shadow var(--dur) var(--ease-out), transform var(--dur) var(--spring); animation: card-in var(--dur-slow) var(--ease-out) both; }
+.order-card:hover { box-shadow: var(--shadow-2); transform: translateY(-1px); }
+.order-card:active { cursor: grabbing; transform: scale(0.99); }
+.order-card.late { box-shadow: inset 3px 0 0 var(--danger), var(--shadow-1); }
+.order-card.late:hover { box-shadow: inset 3px 0 0 var(--danger), var(--shadow-2); }
+.order-card .order-open { all: unset; box-sizing: border-box; cursor: pointer; display: grid; gap: 5px; padding: 12px 14px 8px; border-radius: var(--r); }
+.order-card .order-open b { font-weight: 600; }
+.order-card .order-open .small { color: var(--muted); line-height: 1.35; }
+.order-card .order-open:focus-visible { box-shadow: 0 0 0 3px var(--focus-ring); }
+.order-card > button:last-child { justify-self: end; margin: 0 8px 8px; color: var(--accent-text); }
+.order-meta { display: flex; justify-content: space-between; align-items: center; gap: 6px; margin-top: 2px; }
+.order-meta > b { font-variant-numeric: tabular-nums; }
+.order-meta svg { vertical-align: -1px; }
+
+/* Detalhe do pedido */
+.timeline { margin: 0; padding-left: 18px; display: grid; gap: 6px; }
+.timeline li::marker { color: var(--accent); }
+.notes { white-space: pre-wrap; background: var(--surface-2); padding: 10px 12px; border-radius: var(--r); }
+.order-meta .badge { white-space: nowrap; }

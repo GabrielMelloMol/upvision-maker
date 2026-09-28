@@ -175,3 +175,32 @@
 @media (prefers-reduced-transparency: reduce) {
   :root[data-vibrancy] { --window: var(--bg); --sidebar: var(--surface-2); }
 }
+
+/*
+ * Gráficos (paleta validada com o validador da skill dataviz: CVD ΔE ≥ 8, visão normal ≥ 15, claro e escuro).
+ * Ordem fixa, nunca ciclar: 1 azul (marca), 2 laranja, 3 verde-água, 4 amarelo, 5 magenta.
+ * Com 3+ séries, rótulo direto ou tabela (slots 3–5 ficam < 3:1 no fundo claro).
+ * Status (lucro/prejuízo, em dia/atrasado) é separado e sempre vem com ícone + texto.
+ */
+:root {
+  --viz-1: #2563eb;
+  --viz-2: #eb6834;
+  --viz-3: #1baf7a;
+  --viz-4: #eda100;
+  --viz-5: #e87ba4;
+  --viz-grid: rgb(60 60 67 / 0.1);
+  --viz-axis: var(--muted);
+  --viz-good: #0ca30c;
+  --viz-bad: #d03b3b;
+  --viz-gap: var(--surface); /* 2 px entre barras/segmentos */
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --viz-1: #3987e5;
+    --viz-2: #d95926;
+    --viz-3: #199e70;
+    --viz-4: #c98500;
+    --viz-5: #d55181;
+    --viz-grid: rgb(255 255 255 / 0.08);
+  }
+}

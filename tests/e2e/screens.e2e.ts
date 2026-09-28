@@ -13,13 +13,33 @@ const PAGES = [
   ["chaveiros", "Chaveiros"],
   ["medalhas", "Medalhas"],
   ["extrusao", "Extrusão 3D"],
+  ["qr", "QR Code e Pix"],
   ["ia", "Pedir à IA"],
+  ["pedidos", "Pedidos"],
+  ["orcamentos", "Orçamentos"],
   ["calculadora", "Calculadora"],
+  ["clientes", "Clientes"],
+  ["produtos", "Produtos"],
   ["filamentos", "Filamentos"],
   ["materiais", "Materiais extras"],
   ["impressoras", "Impressoras"],
+  ["empresa", "Dados da empresa"],
   ["preferencias", "Preferências"],
 ] as const;
+
+/** Pedidos em todas as colunas do quadro, um atrasado. */
+const SEED_ORDERS = `
+  INSERT INTO products (name, kind, composition, piecesPerPlate, stock, manualPrice, sku) VALUES
+    ('Chaveiro com nome', 'simple', '{"filaments":[{"filamentId":1,"grams":8}],"materials":[],"items":[]}', 12, 30, 15, 'CHV-01'),
+    ('Topo de bolo', 'simple', '{"filaments":[{"filamentId":2,"grams":25}],"materials":[],"items":[]}', 2, 4, 39.9, 'TOP-02');
+  INSERT INTO customers (kind, name, discountPct, active, phone, city) VALUES ('pf', 'Ana Souza', 10, 1, '(21) 98888-1111', 'Niterói'), ('pj', 'Doces da Bia', 0, 1, '(21) 97777-2222', 'Rio de Janeiro');
+  INSERT INTO orders (customerId, customerName, channel, status, dueDate, createdAt) VALUES
+    (1, 'Ana Souza', 'WhatsApp', 'pending', '2026-10-05', '2026-09-26T10:00:00Z'),
+    (2, 'Doces da Bia', 'Instagram', 'production', '2026-09-20', '2026-09-18T10:00:00Z'),
+    (1, 'Ana Souza', 'Shopee', 'done', '2026-10-02', '2026-09-25T10:00:00Z'),
+    (2, 'Doces da Bia', 'Presencial', 'delivered', '2026-09-22', '2026-09-15T10:00:00Z');
+  INSERT INTO order_items (orderId, position, productId, description, qty, unitPrice, discountPct) VALUES
+    (1, 0, 1, 'Chaveiro com nome', 20, 15, 10), (2, 0, 2, 'Topo de bolo', 2, 39.9, 0), (3, 0, 1, 'Chaveiro com nome', 5, 15, 0), (4, 0, 2, 'Topo de bolo', 1, 39.9, 0);`;
 
 test.skip(!process.env.SHOTS, "só roda com SHOTS=antes|depois");
 
@@ -44,6 +64,7 @@ for (const scheme of ["light", "dark"] as const) {
       tauri.db.exec(`INSERT INTO printers (name, watts) VALUES ('Bambu Lab A1', 95), ('Ender 3 V3', 150)`);
       tauri.db.exec(`INSERT INTO filaments (material, color, brand, pricePerKg, spoolG, stockG, minG) VALUES ('PLA','Preto','Voolt',99.9,1000,850,200), ('PETG','Branco','3D Fila',119,1000,120,200)`);
       tauri.db.exec(`INSERT INTO materials (name, unit, unitPrice, stock, min) VALUES ('Argola de chaveiro','un',0.35,120,20), ('Saquinho kraft','un',0.9,8,10)`);
+      if (process.env.SHOTS !== "antes") tauri.db.exec(SEED_ORDERS);
       for (const [slug, label] of PAGES) {
         await go(page, label);
         await expect(page.locator("main h1").first()).toBeVisible();
