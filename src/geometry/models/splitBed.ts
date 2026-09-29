@@ -53,3 +53,41 @@ export function splitModelToBed(M: ManifoldToplevel, name: string, parts: { name
     return out;
   });
 }
+
+const PIN_LEN = 14; // metade para cada lado do corte
+const PIN_STEP = 4; // passo da busca por lugar para o pino
+const MAX_PINS = 2;
+
+/**
+ * Furos de pino atravessando cada corte que `splitToBed` fará (para um pedaço de filamento alinhar as partes na
+ * colagem): até 2 por corte, onde o furo inteiro cabe dentro da peça, na altura `z`. Devolve o sólido furado.
+ */
+export function pinHoles(M: ManifoldToplevel, solid: Solid, bed: number, r: number, z: number): Solid {
+  return scoped((k) => {
+    const b = solid.boundingBox();
+    const size = [b.max[0] - b.min[0], b.max[1] - b.min[1]];
+    const [nx, ny] = size.map((s) => Math.max(1, Math.ceil(s / (bed - BED_MARGIN))));
+    const probe = (axis: 0 | 1, at: number, along: number) => {
+      const c = k(M.Manifold.cylinder(PIN_LEN, r, r, 16, true));
+      const turned = k(c.rotate(axis === 0 ? [0, 90, 0] : [90, 0, 0]));
+      return k(turned.translate(axis === 0 ? [at, along, z] : [along, at, z]));
+    };
+    let out = solid;
+    const cuts: [0 | 1, number][] = [
+      ...Array.from({ length: nx - 1 }, (_, i) => [0, b.min[0] + ((i + 1) * size[0]) / nx] as [0, number]),
+      ...Array.from({ length: ny - 1 }, (_, j) => [1, b.min[1] + ((j + 1) * size[1]) / ny] as [1, number]),
+    ];
+    for (const [axis, at] of cuts) {
+      const lo = b.min[1 - axis], hi = b.max[1 - axis];
+      const fits: number[] = [];
+      for (let v = lo + r + 1; v <= hi - r - 1; v += PIN_STEP) {
+        const pin = probe(axis, at, v);
+        if (k(solid.intersect(pin)).volume() > pin.volume() * 0.999) fits.push(v);
+      }
+      // os mais afastados entre si
+      const chosen = fits.length <= MAX_PINS ? fits : [fits[0], fits[fits.length - 1]];
+      for (const v of chosen) out = k(out.subtract(probe(axis, at, v)));
+    }
+    return out === solid ? solid.translate([0, 0, 0]) : out.translate([0, 0, 0]);
+  });
+}

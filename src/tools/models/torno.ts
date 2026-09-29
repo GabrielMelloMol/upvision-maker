@@ -1,4 +1,4 @@
-import { Box, CaseUpper, LayoutGrid, Layers, Lightbulb, Image, Puzzle, Users } from "lucide-react";
+import { Box, CaseUpper, LayoutGrid, Layers, Lightbulb, Image, Puzzle, Type, Users } from "lucide-react";
 import { buildAlphabetCube, DEFAULT_ALPHABET_CUBE } from "../../geometry/models/alphabetCube";
 import { buildBigLetter, DEFAULT_BIG_LETTER } from "../../geometry/models/bigLetter";
 import { buildDeskOrganizer, DEFAULT_DESK_ORGANIZER } from "../../geometry/models/deskOrganizer";
@@ -6,6 +6,7 @@ import { buildLayeredSign, DEFAULT_LAYERED_SIGN } from "../../geometry/models/la
 import { buildLedLetter, DEFAULT_LED_LETTER } from "../../geometry/models/ledLetter";
 import { buildNamesPanel, DEFAULT_NAMES_PANEL } from "../../geometry/models/namesPanel";
 import { buildPhotoHolder, DEFAULT_PHOTO_HOLDER } from "../../geometry/models/photoHolder";
+import { buildWallLetters, DEFAULT_WALL_LETTERS } from "../../geometry/models/wallLetters";
 import { buildPuzzle, DEFAULT_PUZZLE } from "../../geometry/models/puzzle";
 import { as, bool, choice, color, font, num, text, textureFields, type ModelDef, type Section } from "./fields";
 
@@ -300,5 +301,33 @@ export const TORNO_MODELS: ModelDef[] = [
       },
     ],
     build: (ctx, p) => buildPhotoHolder(ctx, as(p)),
+  },
+  {
+    id: "wallLetters",
+    category: "party",
+    label: "Letras para parede",
+    blurb: "Uma peça por letra, em 1 a 3 camadas, divididas com pino quando passam da mesa, e gabarito para colar.",
+    icon: Type,
+    font: true,
+    defaults: { ...DEFAULT_WALL_LETTERS, layers: "2" },
+    sections: [
+      {
+        title: "Texto",
+        fields: [text("text", "Texto", 20), num("height", "Altura na parede", 40, 1000, { step: 5, hint: "Letras maiores que 256 mm saem em partes." }), bool("template", "Gabarito de posicionamento")],
+      },
+      {
+        title: "Camadas e cores",
+        fields: [
+          choice("layers", "Camadas", [["1", "1"], ["2", "2"], ["3", "3"]]),
+          num("offset", "Sobra de cada camada", 1, 20, { step: 0.5 }),
+          num("thickness", "Espessura da base", 3, 20),
+          num("layerThickness", "Espessura das camadas de cima", 1, 10),
+          color("color1", "Camada de baixo"),
+          color("color2", "Camada do meio"),
+          color("color3", "Camada de cima"),
+        ],
+      },
+    ],
+    build: (ctx, p) => buildWallLetters(ctx, as({ ...p, layers: Number(p.layers) })),
   },
 ];
