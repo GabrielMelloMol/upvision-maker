@@ -73,6 +73,17 @@ export const MIGRATIONS: string[][] = [
   ["CREATE TABLE calc_history (id INTEGER PRIMARY KEY, name TEXT NOT NULL DEFAULT '', data TEXT NOT NULL, at TEXT NOT NULL, grams REAL NOT NULL DEFAULT 0, hours REAL NOT NULL DEFAULT 0, price REAL NOT NULL DEFAULT 0)"],
   // Variações próprias dos modelos prontos (#26): campos + camadas livres em JSON; entra no backup.
   ["CREATE TABLE model_variants (id INTEGER PRIMARY KEY, modelId TEXT NOT NULL, label TEXT NOT NULL, data TEXT NOT NULL, createdAt TEXT NOT NULL)"],
+  // Anúncio e fiscal do produto, para a planilha de upload em massa dos marketplaces (#78). NULL = estimado/padrão.
+  [
+    "ALTER TABLE products ADD COLUMN description TEXT NOT NULL DEFAULT ''",
+    "ALTER TABLE products ADD COLUMN ncm TEXT NOT NULL DEFAULT ''",
+    "ALTER TABLE products ADD COLUMN origin TEXT NOT NULL DEFAULT '0'",
+    "ALTER TABLE products ADD COLUMN unit TEXT NOT NULL DEFAULT 'UN'",
+    "ALTER TABLE products ADD COLUMN weightG REAL",
+    "ALTER TABLE products ADD COLUMN boxL REAL",
+    "ALTER TABLE products ADD COLUMN boxW REAL",
+    "ALTER TABLE products ADD COLUMN boxH REAL",
+  ],
 ];
 
 export const SCHEMA_VERSION = MIGRATIONS.length;

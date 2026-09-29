@@ -6,6 +6,7 @@ import { renderWithApp, setupTauri, type TauriState } from "../test/harness";
 import { setPendingOpen } from "../ui/search";
 import Products from "./Products";
 import { setProductDraft } from "./products/draft";
+import { readWorkbook } from "../domain/marketplace/xlsx";
 
 const photo = vi.hoisted(() => ({ fail: false }));
 vi.mock("../ui/photo", () => ({
@@ -423,5 +424,57 @@ describe("Produtos: produzir", () => {
     expect(within(loop).getByRole("button", { name: "Registrar produção" })).toBeDisabled();
     await user.click(within(loop).getByRole("button", { name: "Cancelar" }));
     await waitFor(() => expect(screen.queryByRole("dialog")).not.toBeInTheDocument());
+  });
+});
+
+describe("Produtos: planilha de upload em massa (#78)", () => {
+  const seed = async () => {
+    await seedSupplies();
+    t.raw.exec(`INSERT INTO products (name, kind, composition, piecesPerPlate, sku, stock) VALUES ('Luminária de lua', 'simple', '${COMP([[1, 120]], [[1, 1]])}', 1, 'LUM-1', 3),
+      ('Chaveiro', 'simple', '${COMP([[1, 20]])}', 1, '', 10);`);
+  };
+
+  test("anúncio e fiscal no editor: gravados no produto; NCM com tamanho errado avisa", async () => {
+    await seed();
+    const user = userEvent.setup();
+    renderWithApp(<Products />);
+    await user.click(await screen.findByRole("button", { name: "Editar Luminária de lua" }));
+    const sheet = await dialog(/Luminária de lua/);
+    await user.click(within(sheet).getByText("Anúncio e fiscal (opcional)"));
+    expect(within(sheet).getByLabelText(/^Peso embalado/)).toHaveAttribute("placeholder", "120 g de filamento + embalagem");
+    await user.type(within(sheet).getByLabelText("Descrição do anúncio"), "Luminária impressa em 3D");
+    await user.type(within(sheet).getByLabelText(/^NCM/), "1234");
+    await user.click(within(sheet).getByRole("button", { name: /Salvar/ }));
+    expect(await within(sheet).findByText("O NCM tem 8 números.")).toBeInTheDocument();
+    await user.type(within(sheet).getByLabelText(/^NCM/), "5000");
+    await user.type(within(sheet).getByLabelText(/^Peso embalado/), "180");
+    await user.click(within(sheet).getByRole("button", { name: /Salvar/ }));
+    await waitFor(async () =>
+      expect((await t.db.select("SELECT description, ncm, weightG FROM products WHERE id = 1"))[0]).toEqual({ description: "Luminária impressa em 3D", ncm: "12345000", weightG: 180 }),
+    );
+  });
+
+  test("selecionar e exportar: prévia do que falta e planilha salva com uma linha por produto", async () => {
+    await seed();
+    const user = userEvent.setup();
+    renderWithApp(<Products />);
+    await user.click(await screen.findByRole("checkbox", { name: "Selecionar todos" }));
+    expect(screen.getByRole("status")).toHaveTextContent("2 selecionados");
+    await user.click(screen.getByRole("button", { name: "Exportar para marketplace" }));
+    const sheet = await dialog("Exportar para marketplace");
+    expect(within(sheet).getByLabelText("Preço do canal")).toHaveValue("Shopee");
+    expect(sheet).toHaveTextContent("2 produtos · faltando: descrição (2), NCM (2), categoria (2)");
+    await user.type(within(sheet).getByLabelText(/^Categoria/), "101152");
+    expect(sheet).toHaveTextContent("faltando: descrição (2), NCM (2)");
+    await user.click(within(sheet).getByRole("button", { name: "Salvar planilha" }));
+    expect(await screen.findByText(/Planilha salva em .*shopee-upload-em-massa-.*\.xlsx/)).toBeInTheDocument();
+    const [path, bytes] = [...t.files.entries()].find(([p]) => p.endsWith(".xlsx"))!;
+    expect(path).toMatch(/shopee/);
+    const rows = readWorkbook(bytes)[0].rows;
+    expect(rows).toHaveLength(3);
+    const lum = rows.find((r) => r[1] === "Luminária de lua")!;
+    expect(lum[0]).toBe("101152");
+    expect(lum[rows[0].indexOf("Preço")]).toBe("39.92");
+    expect(lum[rows[0].indexOf("Peso")]).toBe("0.15"); // 120 g + 30 g de embalagem
   });
 });

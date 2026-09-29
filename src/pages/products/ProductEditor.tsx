@@ -15,6 +15,8 @@ import Segmented from "../../ui/Segmented";
 import Sheet from "../../ui/Sheet";
 import { errorText, useToast } from "../../ui/Toast";
 import type { ProductsData } from "./data";
+import ListingFields, { fromListingForm, toListingForm } from "./ListingFields";
+import { productGrams } from "../../domain/marketplace/listing";
 import type { Printer } from "../../domain/entities";
 import PrinterCatalogButton from "../calculator/PrinterCatalogButton";
 
@@ -48,6 +50,7 @@ export default function ProductEditor({ initial, data, onClose, onSaved }: Props
     minStock: str(base.minStock),
     failure: str(base.failurePct),
   });
+  const [listing, setListing] = useState(() => toListingForm(base));
   const [fil, setFil] = useState<Line[]>(base.composition.filaments.map((l) => ({ id: String(l.filamentId), qty: str(l.grams) })));
   const [mat, setMat] = useState<Line[]>(base.composition.materials.map((l) => ({ id: String(l.materialId), qty: str(l.qty) })));
   const [items, setItems] = useState<Line[]>(base.composition.items.map((l) => ({ id: String(l.productId), qty: str(l.qty) })));
@@ -83,6 +86,7 @@ export default function ProductEditor({ initial, data, onClose, onSaved }: Props
     stock: num(n.stock) || 0,
     minStock: num(n.minStock) || 0,
     failurePct: n.failure.trim() === "" ? null : num(n.failure),
+    ...fromListingForm(listing),
     composition: {
       filaments: lines(fil).map((l) => ({ filamentId: Number(l.id), grams: num(l.qty) || 0 })),
       materials: lines(mat).map((l) => ({ materialId: Number(l.id), qty: num(l.qty) || 0 })),
@@ -192,6 +196,7 @@ export default function ProductEditor({ initial, data, onClose, onSaved }: Props
             <legend>Materiais extras (mesa inteira)</legend>
             <LineEditor lines={mat} setLines={setMat} options={data.materials.map((m) => ({ id: m.id, label: `${m.name} (${m.unit})` }))} qtyLabel="Quantidade" emptyLabel="Escolha o material" />
           </fieldset>
+          <ListingFields value={listing} onChange={setListing} errors={errors} estimatedG={productGrams({ ...input, id: initial.id ?? -1 }, data)} />
           <fieldset>
             <legend>Impressão</legend>
             <div className="grid">

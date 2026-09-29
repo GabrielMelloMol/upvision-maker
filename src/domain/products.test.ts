@@ -25,6 +25,14 @@ function product(id: number, p: Partial<Product>): Product {
     sku: "",
     notes: "",
     failurePct: null,
+    description: "",
+    ncm: "",
+    origin: "0",
+    unit: "UN",
+    weightG: null,
+    boxL: null,
+    boxW: null,
+    boxH: null,
     ...p,
   };
 }

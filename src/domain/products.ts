@@ -31,6 +31,17 @@ export const ProductInput = z.object({
   notes: z.string().trim().max(1000),
   /** Taxa de falha só deste produto (peças altas, finas); null = a do material ou a geral (#35). Padrão para backups antigos. */
   failurePct: z.number().min(0).max(90, "Use até 90%").nullable().default(null),
+  // Anúncio e fiscal (#78), para a planilha de upload em massa. Padrões para backups antigos.
+  description: z.string().trim().max(3000).default(""),
+  ncm: z.string().trim().regex(/^(\d{8})?$/, "O NCM tem 8 números.").default(""),
+  origin: z.enum(["0", "1", "2", "3", "4", "5", "6", "7", "8"]).default("0"),
+  unit: z.string().trim().min(1).max(6).default("UN"),
+  /** Peso da peça embalada (g); null = filamento + embalagem padrão. */
+  weightG: nonNeg.nullable().default(null),
+  /** Caixa (cm); null = caixa padrão da exportação. */
+  boxL: nonNeg.nullable().default(null),
+  boxW: nonNeg.nullable().default(null),
+  boxH: nonNeg.nullable().default(null),
 });
 export type ProductInput = z.infer<typeof ProductInput>;
 export type Product = ProductInput & { id: number };
@@ -51,6 +62,14 @@ export const EMPTY_PRODUCT: ProductInput = {
   sku: "",
   notes: "",
   failurePct: null,
+  description: "",
+  ncm: "",
+  origin: "0",
+  unit: "UN",
+  weightG: null,
+  boxL: null,
+  boxW: null,
+  boxH: null,
 };
 
 /** `fixedPerHour`: custos operacionais rateados (ver `fixedCostPerHour`); ausente = 0. */
