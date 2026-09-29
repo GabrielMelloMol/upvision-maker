@@ -27,6 +27,11 @@ import { COLLECTIONS, inCollection, VARIANTS, type Collection } from "./models/v
 import { EMOJI_FIELDS } from "./models/emoji";
 import { BATCH_FIELDS, layoutCopies, MAX_COPIES, parseBatch, PLATE_MM } from "./models/batch";
 import type { Model } from "../geometry/types";
+import { applyLayers } from "./models/applyLayers";
+import DecalGizmo from "./models/DecalGizmo";
+import LayersPanel, { layerValid } from "./models/LayersPanel";
+import { useModelLayers } from "./models/useModelLayers";
+import UserVariants from "./models/UserVariants";
 import "../styles/features.css";
 
 /** Minúsculas e sem acento, para a busca. */
@@ -66,6 +71,7 @@ export default function Models() {
   const [batchOn, setBatchOn] = useState(false);
   const [batchText, setBatchText] = useState<Record<string, string>>({});
   const def = MODELS.find((m) => m.id === id)!;
+  const lay = useModelLayers(id); // camadas livres (#26)
   const q = normalize(query.trim());
   const shown = q
     ? MODELS.filter((m) => normalize(`${m.label} ${m.blurb}`).includes(q))
@@ -195,12 +201,15 @@ export default function Models() {
         return null;
       }
       setMissing(null);
-      return { models: out.models, warnings: [...(textWarn ?? []), ...(out.warnings ?? [])], pauses: out.pauses };
+      // camadas livres (#26) vão por cima do modelo pronto, na peça principal
+      const layered = await applyLayers(M, out.models, lay.layers.filter(layerValid));
+      lay.setView({ face: layered.face, shapes: layered.shapes, byLayer: layered.byLayer });
+      return { models: layered.models, warnings: [...(textWarn ?? []), ...(out.warnings ?? []), ...layered.warnings], pauses: out.pauses };
     } finally {
       design?.cs.delete();
       design?.layers?.forEach((l) => l.cs.delete());
     }
-  }, [def, p, font, useArt, valid, batchOn, batchValue]);
+  }, [def, p, font, useArt, valid, batchOn, batchValue, lay.layers]);
 
   return (
     <div className="page">
@@ -268,6 +277,15 @@ export default function Models() {
               ))}
             </div>
           )}
+          <UserVariants
+            modelId={id}
+            params={p}
+            layers={lay.layers}
+            onApply={(params, layers) => {
+              setAll((a) => ({ ...a, [id]: { ...def.defaults, ...params } }));
+              lay.replace(layers);
+            }}
+          />
           {batchKeys && (
             <div className="card stack">
               <Toggle label="Lote: várias cópias na mesma mesa" checked={batchOn} onChange={setBatchOn} />
@@ -302,10 +320,31 @@ export default function Models() {
               )}
             </div>
           ))}
+          <LayersPanel
+            layers={lay.layers}
+            selected={lay.selected}
+            byLayer={lay.view.byLayer}
+            onSelect={lay.select}
+            onAddArt={lay.addArt}
+            onAddText={() => lay.addText(font)}
+            onChange={lay.change}
+            onMove={lay.move}
+            onDuplicate={lay.duplicate}
+            onRemove={lay.remove}
+            history={lay.history}
+            disabled={copies ? "No lote, os desenhos e textos livres ficam de fora: desligue o lote para usá-los." : undefined}
+          />
           <ExportButtons models={models} name={copies ? `${def.label}-lote` : `${def.label}-${String(p.text ?? p.line1 ?? p.title ?? p.base ?? "")}`} busy={busy} pauses={pauses} />
         </div>
         <div className="preview-col">
           <Preview3D models={models} busy={busy} busyText={`Gerando ${def.label.toLowerCase()}…`} error={error} emptyText={!valid ? "Corrija os campos em vermelho." : (missing ?? undefined)} />
+          {lay.view.face && lay.layers.length > 0 && !copies && (
+            <section className="card stack gizmo-card">
+              <h3>Vista de cima · {lay.view.face.part}</h3>
+              <DecalGizmo face={lay.view.face} layers={lay.layers} shapes={lay.view.shapes} selected={lay.selected} onSelect={lay.select} onCommit={lay.change} />
+              <p className="hint">Arraste para mover (gruda no centro e nas bordas; Alt solta), alça do canto para o tamanho, alça de cima para girar (Shift: 15°).</p>
+            </section>
+          )}
           {warnings.map((w) => (
             <Alert key={w} kind="info">
               {w}

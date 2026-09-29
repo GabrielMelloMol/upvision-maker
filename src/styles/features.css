@@ -144,4 +144,35 @@ g:hover > .viz-hit { fill: var(--fill); }
 .icon-button { width: 36px; min-height: 36px; padding: 0; display: grid; place-items: center; background: transparent; box-shadow: none; color: var(--muted); }
 .icon-button[aria-pressed="true"] { color: #e0a800; }
 .model-gallery button.has-thumb { flex-direction: column; align-items: stretch; padding: 6px; gap: 6px; text-align: center; }
-.model-gallery button.has-thumb img { width: 100%; aspect-ratio: 4 / 3; object-fit: cover; border-radius: calc(var(--r) - 2px); background: var(--fill); }
+.model-gallery button.has-thumb img { width: 100%; aspect-ratio: 4 / 3; object-fit: contain; border-radius: calc(var(--r) - 2px); background: var(--fill); }
+/* Camadas livres e vista de cima (#26) */
+.layers-head { align-items: center; gap: var(--space-1); }
+.layers-head h3 { flex: 1; margin: 0; }
+.layer-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 2px; }
+.layer-list li { display: flex; align-items: center; gap: 2px; padding: 2px; border-radius: var(--r-sm); }
+.layer-list li[data-selected] { background: var(--accent-soft); }
+.layer-list li[data-hidden] .layer-name { opacity: 0.5; }
+.layer-name { flex: 1; min-width: 0; display: flex; align-items: center; gap: var(--space-2); min-height: 32px; padding: 0 var(--space-2); background: none; box-shadow: none; color: var(--text); font-size: var(--text-sm); text-align: left; }
+.layer-name span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.layer-name i { flex: none; width: 12px; height: 12px; border-radius: 4px; box-shadow: inset 0 0 0 1px var(--border-strong); }
+.layer-name .warn-icon { flex: none; color: var(--warn); }
+.layer-editor { padding-top: var(--space-2); border-top: 1px solid var(--separator); }
+.decal-gizmo { display: block; width: 100%; max-height: 380px; border-radius: var(--r); background: var(--surface-2); touch-action: none; user-select: none; }
+.decal-gizmo:focus-visible { outline: 2px solid var(--focus-ring); outline-offset: 2px; }
+.gizmo-face { fill: var(--surface); stroke: var(--border-strong); stroke-width: 1; vector-effect: non-scaling-stroke; }
+.gizmo-others { fill: var(--fill-strong); pointer-events: none; }
+.gizmo-layer { cursor: move; }
+.gizmo-layer[data-mode="engraved"] path { fill: var(--muted); opacity: 0.55; }
+.gizmo-layer[data-mode="cut"] path { fill: var(--surface-2); stroke: var(--muted); stroke-width: 1; stroke-dasharray: 3 2; vector-effect: non-scaling-stroke; }
+.gizmo-layer path { opacity: 0.92; }
+.gizmo-layer[data-selected] path { opacity: 1; }
+.gizmo-box { fill: none; stroke: var(--accent); stroke-width: 1; stroke-dasharray: 4 3; vector-effect: non-scaling-stroke; }
+.gizmo-arm { stroke: var(--accent); stroke-width: 1; vector-effect: non-scaling-stroke; }
+.gizmo-handle { fill: var(--surface); stroke: var(--accent); stroke-width: 1.5; vector-effect: non-scaling-stroke; }
+.gizmo-handle.scale { cursor: nwse-resize; }
+.gizmo-handle.rotate { cursor: grab; }
+.gizmo-guide { stroke: var(--brand-orange); stroke-width: 1; stroke-dasharray: 5 3; vector-effect: non-scaling-stroke; pointer-events: none; }
+.gizmo-readout { fill: var(--muted); font-variant-numeric: tabular-nums; pointer-events: none; }
+.chip-with-x { display: inline-flex; align-items: stretch; }
+.chip-with-x > button:first-child { border-radius: var(--r-pill) 0 0 var(--r-pill); padding-right: 6px; }
+.chips .chip-with-x > .chip-x { border-radius: 0 var(--r-pill) var(--r-pill) 0; padding: 0 8px 0 4px; color: var(--muted); }

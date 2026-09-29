@@ -79,7 +79,7 @@ test("Modelos prontos (#10): brindes, esporte e peças funcionais geram prévia 
   await openApp(page);
   await go(page, "Modelos prontos");
   await pickModel(page, "Medalha adaptável");
-  await page.locator('input[type="file"]').setInputFiles(LOGO);
+  await page.locator('input[type="file"]').first() /* o do modelo; o das camadas livres (#26) vem depois */.setInputFiles(LOGO);
   const gallery = page.getByRole("group", { name: "Modelo" });
   for (const name of GIFTS_SPORT) {
     await pickModel(page, name);

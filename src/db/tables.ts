@@ -5,6 +5,7 @@ import { OperationalCostInput } from "../domain/finance";
 import { OrderInput, OrderItem, STATUSES } from "../domain/orders";
 import { ProductInput } from "../domain/products";
 import { CalcHistoryInput } from "./calcHistoryRepo";
+import { ModelVariantInput } from "./modelVariantsRepo";
 
 const id = z.number().int().positive();
 
@@ -42,6 +43,7 @@ export const TABLES = {
   quote_numbers: z.object({ id: z.number().int(), seq: z.number().int().min(0) }), // id = ano
   operational_costs: OperationalCostInput.extend({ id }),
   calc_history: CalcHistoryInput.extend({ id }),
+  model_variants: ModelVariantInput.extend({ id }),
 };
 
 export type TableName = keyof typeof TABLES;

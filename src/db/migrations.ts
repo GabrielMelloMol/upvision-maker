@@ -71,6 +71,8 @@ export const MIGRATIONS: string[][] = [
   ],
   // Histórico dos últimos cálculos da calculadora (#43); entra no backup.
   ["CREATE TABLE calc_history (id INTEGER PRIMARY KEY, name TEXT NOT NULL DEFAULT '', data TEXT NOT NULL, at TEXT NOT NULL, grams REAL NOT NULL DEFAULT 0, hours REAL NOT NULL DEFAULT 0, price REAL NOT NULL DEFAULT 0)"],
+  // Variações próprias dos modelos prontos (#26): campos + camadas livres em JSON; entra no backup.
+  ["CREATE TABLE model_variants (id INTEGER PRIMARY KEY, modelId TEXT NOT NULL, label TEXT NOT NULL, data TEXT NOT NULL, createdAt TEXT NOT NULL)"],
 ];
 
 export const SCHEMA_VERSION = MIGRATIONS.length;

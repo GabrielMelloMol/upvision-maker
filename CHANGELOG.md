@@ -4,6 +4,8 @@ Cada versão aparece para a usuária na tela "O que há de novo" depois da atual
 Formato: `## <versão> — <data>` e itens `- …` em linguagem simples.
 
 ## Próxima versão (vira "## 0.6.1 — data" ou "## 0.7.0 — data" ao publicar; até lá o app não mostra)
+- **Desenhos e textos livres nos Modelos prontos**: coloque seu SVG, uma imagem (vira vetor) ou um texto em cima de qualquer modelo. Na **vista de cima**, arraste para mover (gruda no centro e nas bordas), use a alça do canto para o tamanho e a de cima para girar, ou digite X, Y, largura e giro. Cada camada pode ser relevo (com a cor dela), gravada ou vazada, e dá para esconder, duplicar, mudar a ordem, excluir e desfazer (⌘Z). O app avisa se o desenho sair da peça, ficar fino demais ou encostar num furo.
+- **Salvar como variação**: guarde o modelo com seus campos e camadas com um nome e reaplique depois com um toque. Fica no backup.
 - **Mais fatiadores** no "Importar do fatiador": Creality Print, Anycubic Slicer Next, Elegoo Slicer e Simplify3D. G-code de outro fatiador também é lido quando traz tempo e peso (ou comprimento) nos comentários, com aviso para conferir.
 - **kWh pela média do estado**: sem a conta de luz em mãos, escolha o estado no primeiro uso ou em Preferências e o preço do kWh vem preenchido com uma estimativa (tarifa da ANEEL com ICMS e PIS/COFINS). Com a conta, o valor fica exato.
 - **Comparar cenários**: "Comparar com outro cenário" guarda a conta atual como A. Mude material, camada ou peças na mesa e veja A × B lado a lado (custo, preço, lucro por peça e por hora), com a diferença e se ficou melhor ou pior. "Trocar A e B" volta para a outra conta.
