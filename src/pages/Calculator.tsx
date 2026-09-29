@@ -27,6 +27,7 @@ import PrinterCatalogButton from "./calculator/PrinterCatalogButton";
 import AddToQuote from "./calculator/AddToQuote";
 import TestPrice from "./calculator/TestPrice";
 import QuantityTable from "./calculator/QuantityTable";
+import AdsCard from "./calculator/AdsCard";
 import { peekQuoteDraft } from "./quotes/draft";
 import { CostBreakdown, PriceHero } from "./calculator/Result";
 import { EMPTY_FORM, loadSaved, storeSaved, type CalcForm, type Line } from "./calculator/saved";
@@ -351,6 +352,9 @@ export default function Calculator({ go }: { go: Go }) {
             </div>
           </div>
         </ChannelTable>
+      )}
+      {mode === "full" && (
+        <AdsCard r={r} s={data.settings} rows={rows} freight={price(f.freight)} marginPct={f.margin === "" ? data.settings.marketplaceMarginPct : num(f.margin)} />
       )}
       {mode === "full" && (
         <QuantityTable

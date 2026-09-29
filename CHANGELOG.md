@@ -19,6 +19,7 @@ Formato: `## <versão> — <data>` e itens `- …` em linguagem simples.
 - **"Vou vender por"** no modo Rápido: digite um preço e veja o lucro, a margem, o lucro por hora e se dá prejuízo, no canal que escolher. No modo Completo o campo virou "Testar um preço (seu ou do concorrente)".
 - **Taxas por faixa de preço** nos canais (Preferências → Faixas de preço): taxa fixa que só vale abaixo de um valor, teto da comissão e frete por sua conta a partir de um preço. A calculadora acha o menor preço certo para cada faixa e avisa quando o frete entra.
 - **Preço por quantidade**: para pedidos de 10, 25, 50 ou 100 unidades (lembrancinhas), a calculadora divide o preparo do pedido (atender, fatiar, trocar filamento) pela quantidade, mostra o desconto que dá para dar e avisa quando a margem fica baixa. "Usar no orçamento" já leva a linha com a quantidade.
+- **Anúncios pagos** (modo Completo): por canal, até que ROAS o anúncio se paga, quanto do preço ele pode levar e o preço que mantém a sua margem pagando o anúncio. Dá para informar o ROAS esperado ou o custo por clique × cliques até uma venda.
 - **Catálogo de impressoras bem maior**: 167 modelos de 27 marcas (UltiMaker, Snapmaker, Artillery, Raise3D, GTMax3D, Sethi3D e outras), com volume de impressão e se é aberta ou fechada. Dá para escolher do catálogo também na Calculadora e no Produto: a impressora é cadastrada na hora. A busca acha "a1", "k1c" ou "ender3".
 - **Embalagem padrão** já aparece na calculadora, e o resultado mostra o custo por grama e por hora de impressão.
 

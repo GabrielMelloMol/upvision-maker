@@ -365,3 +365,22 @@ test("preço por quantidade (#32): preparo diluído, desconto em relação a 1 u
   expect(peekQuoteDraft()!.items[0]).toEqual({ productId: null, description: "Lembrancinha", qty: 50, unitPrice: 10.2, discountPct: 0, unitCost: 2.2, printMinutes: 30 });
   expect(screen.getByRole("button", { name: /1 item no orçamento em rascunho/ })).toBeInTheDocument();
 });
+
+test("anúncios pagos (#29): ROAS de equilíbrio, frase e preço com anúncio; ROAS baixo demais avisa", async () => {
+  localStorage.setItem("upvision:calculadora", JSON.stringify({ mode: "full", fil: [{ ref: "", price: "", qty: "" }], ext: [], printerId: "", f: {} }));
+  await t.db.execute(`INSERT OR REPLACE INTO settings (id, data) VALUES (1, '{"failurePct":0,"channels":[{"name":"Shopee","feePct":20,"feeFixed":4}]}')`);
+  const user = userEvent.setup();
+  renderWithApp(<Calculator go={() => {}} />);
+  await screen.findAllByRole("option", { name: /^Shopee/ });
+  await user.type(screen.getByLabelText("Preço por kg"), "100");
+  await user.type(screen.getByLabelText("Gramas"), "100"); // custo 10 → Shopee (10 + 4) ÷ 0,5 = 28, lucro 8,40
+  await user.click(screen.getByText("Anúncios pagos"));
+  expect(screen.getByText("Com ROAS 5, de cada R$ 100 vendidos, R$ 20 vão para o anúncio.")).toBeInTheDocument();
+  const ads = screen.getByText("Anúncios pagos").closest("details")!;
+  const shopee = within(within(ads).getByRole("row", { name: /^Shopee/ })).getAllByRole("cell").map((c) => c.textContent!.replace(/\u00a0/g, " "));
+  expect(shopee).toEqual(["Shopee", "3,33", "30%", "R$ 5,60", "R$ 2,80 ", "R$ 46,67"]); // (10 + 4) ÷ (1 − 0,2 − 0,3 − 0,2)
+  const roas = within(ads).getByLabelText("ROAS esperado");
+  await user.clear(roas);
+  await user.type(roas, "2");
+  expect(within(ads).getByRole("row", { name: /^Shopee/ })).toHaveTextContent("com este ROAS não há preço possível");
+});
