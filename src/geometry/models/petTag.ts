@@ -1,10 +1,10 @@
 import type { CS, ManifoldToplevel } from "../manifold";
 import { medalOutline } from "../medal";
 import { toMesh } from "../mesh";
-import { fitInto, scoped } from "../shape2d";
+import { fitInto, outerOnly, scoped } from "../shape2d";
 import { MissingInput, slab, type ModelCtx, type ModelOutput } from "./common";
 
-export type PetShape = "bone" | "paw" | "circle" | "heart" | "shield";
+export type PetShape = "bone" | "paw" | "circle" | "heart" | "shield" | "oval" | "wavy" | "fish" | "art";
 
 export type PetTagParams = {
   shape: PetShape;
@@ -28,11 +28,36 @@ const BACK_DEPTH = 0.6; // verso embutido rente à face de baixo (cor própria n
 
 type K = <D extends { delete(): void }>(o: D) => D;
 
-/** Contorno da tag com o maior lado = `d`, centrado. */
-function petOutline(M: ManifoldToplevel, k: K, shape: PetShape, d: number): CS {
+const OVAL_RATIO = 0.7; // altura/largura da oval
+const WAVES = 12; // ondas da oval ondulada
+const WAVE_AMP = 0.05; // fração do raio
+const SEG = 144;
+
+/** Contorno polar r(θ) de uma oval (largura 1), com ondas opcionais. */
+function oval(M: ManifoldToplevel, amp: number): CS {
+  const pts = Array.from({ length: SEG }, (_, i) => {
+    const t = (i / SEG) * 2 * Math.PI;
+    const r = 0.5 * (1 + amp * Math.sin(WAVES * t));
+    return [r * Math.cos(t), r * OVAL_RATIO * Math.sin(t)] as [number, number];
+  });
+  return new M.CrossSection([pts], "NonZero");
+}
+
+/** Contorno da tag com o maior lado = `d`, centrado. `art` = desenho enviado (formato "desenho"). */
+function petOutline(M: ManifoldToplevel, k: K, shape: PetShape, d: number, art: CS | null = null): CS {
   if (shape === "circle" || shape === "heart" || shape === "shield") return k(medalOutline(M, shape, d));
+  if (shape === "art") {
+    if (!art) throw new MissingInput("Envie o desenho do formato da tag.");
+    return k(outerOnly(M, k(fitInto(art, d, d, 0))));
+  }
   let cs: CS;
-  if (shape === "bone") {
+  if (shape === "oval" || shape === "wavy") cs = k(oval(M, shape === "wavy" ? WAVE_AMP : 0));
+  else if (shape === "fish") {
+    // corpo oval + rabo triangular à direita, sobrepostos
+    const body = k(k(oval(M, 0)).scale([0.78, 0.85]));
+    const tail = k(new M.CrossSection([[[0.3, 0], [0.62, 0.3], [0.62, -0.3]]], "NonZero"));
+    cs = k(M.CrossSection.union([body, tail]));
+  } else if (shape === "bone") {
     const h = d * 0.46;
     const bar = k(M.CrossSection.square([d * 0.72, h * 0.62], true));
     const knobs = [-1, 1].flatMap((sx) => [-1, 1].map((sy) => k(k(M.CrossSection.circle(h * 0.3, 48)).translate([sx * d * 0.36, sy * h * 0.22]))));
@@ -58,11 +83,11 @@ function petOutline(M: ManifoldToplevel, k: K, shape: PetShape, d: number): CS {
  * Plaquinha de identificação de pet: nome em relevo na frente; telefone e recado no verso, embutidos rente
  * à face de baixo em outra cor (sai liso, sem perder o texto com o uso). Argola no topo.
  */
-export function buildPetTag({ M, text }: ModelCtx, p: PetTagParams): ModelOutput {
+export function buildPetTag({ M, text, art }: ModelCtx, p: PetTagParams): ModelOutput {
   if (!p.name.trim()) throw new MissingInput("Digite o nome do pet.");
   if (p.thickness < BACK_DEPTH + 1.2) throw new Error("Espessura mínima: 1,8 mm (o verso é embutido).");
   return scoped((k) => {
-    const outline = petOutline(M, k, p.shape, p.size);
+    const outline = petOutline(M, k, p.shape, p.size, art);
     const b = outline.bounds();
     const w = b.max[0] - b.min[0], h = b.max[1] - b.min[1];
     // topo exatamente no eixo (coração e patinha têm um vão no meio: a argola precisa encostar nele)

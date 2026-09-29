@@ -95,6 +95,7 @@ export const STUDY_MODELS: ModelDef[] = [
     blurb: "Nome na frente; telefone e recado no verso, embutidos em outra cor.",
     icon: PawPrint,
     font: true,
+    art: "Desenho do formato (formato \"Desenho\")",
     defaults: DEFAULT_PET_TAG,
     sections: [
       { title: "Textos", fields: [text("name", "Nome do pet", 14), text("phone", "Telefone (verso)", 20), text("note", "Recado (verso, opcional)", 30)] },
@@ -107,6 +108,10 @@ export const STUDY_MODELS: ModelDef[] = [
             ["circle", "Redonda"],
             ["heart", "Coração"],
             ["shield", "Escudo"],
+            ["oval", "Oval"],
+            ["wavy", "Oval ondulada"],
+            ["fish", "Peixe"],
+            ["art", "Desenho"],
           ]),
           num("size", "Tamanho", 25, 70, { step: 1 }),
           num("thickness", "Espessura", 1.8, 5),
