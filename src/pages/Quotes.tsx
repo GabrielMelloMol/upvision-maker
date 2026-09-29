@@ -8,7 +8,6 @@ import { orderTotals, todayIso } from "../domain/orders";
 import { isExpired, quoteNumber, type Quote } from "../domain/quotes";
 import { loadPdfFonts } from "../pdf/fonts";
 import { quotePdf } from "../pdf/quote";
-import "../styles/features.css";
 import Alert from "../ui/Alert";
 import Button from "../ui/Button";
 import EmptyState from "../ui/EmptyState";

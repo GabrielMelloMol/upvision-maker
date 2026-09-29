@@ -5,7 +5,6 @@ import { loadCompany, saveCompany } from "../db/customersRepo";
 import { CompanyInput, type Company } from "../domain/customers";
 import { pixPayload, validPixKey } from "../domain/pix";
 import { qrSvg } from "../domain/qr";
-import "../styles/features.css";
 import Alert from "../ui/Alert";
 import Button from "../ui/Button";
 import { fieldErrors } from "../ui/fieldErrors";
@@ -133,7 +132,7 @@ function CompanyForm({ initial }: { initial: Company }) {
               <input value={v.pixCity} maxLength={40} onChange={set("pixCity")} placeholder={v.city} />
             </label>
           </div>
-          {qr && <div className="qr-preview" role="img" aria-label="Prévia do QR Pix" dangerouslySetInnerHTML={{ __html: qr }} />}
+          {qr && <div className="qr-thumb" role="img" aria-label="Prévia do QR Pix" dangerouslySetInnerHTML={{ __html: qr }} />}
         </div>
         <p className="hint">O orçamento gera um QR Pix com o valor exato. Teste lendo esta prévia com o app do banco.</p>
       </section>

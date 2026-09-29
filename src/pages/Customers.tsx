@@ -5,7 +5,6 @@ import { getDb } from "../db";
 import { customersRepo } from "../db/customersRepo";
 import { parseDecimal } from "../domain/format";
 import { EMPTY_CUSTOMER, formatDocument, type Customer, type CustomerInput } from "../domain/customers";
-import "../styles/features.css";
 import Button from "../ui/Button";
 import EmptyState from "../ui/EmptyState";
 import { fieldErrors } from "../ui/fieldErrors";

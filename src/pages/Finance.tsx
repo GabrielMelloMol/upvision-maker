@@ -11,7 +11,6 @@ import { money } from "../domain/format";
 import { lineTotal, orderTotals, todayIso, type Order } from "../domain/orders";
 import type { Product } from "../domain/products";
 import type { Printer } from "../domain/entities";
-import "../styles/features.css";
 import Button from "../ui/Button";
 import { HBars, MonthlyBars, ProfitBars, StatTile } from "../ui/charts";
 import Segmented from "../ui/Segmented";

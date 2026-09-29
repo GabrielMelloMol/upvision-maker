@@ -11,7 +11,6 @@ import { isLate, orderTotals, STATUS_LABEL, todayIso, type Order } from "../doma
 import { addDays } from "../domain/quotes";
 import type { Product } from "../domain/products";
 import type { Go } from "../pages";
-import "../styles/features.css";
 import Button from "../ui/Button";
 import { StatTile } from "../ui/charts";
 import { setPendingOpen } from "../ui/search";

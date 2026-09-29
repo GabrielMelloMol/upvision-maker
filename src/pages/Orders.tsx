@@ -2,7 +2,6 @@ import { CalendarClock, ClipboardList, Plus } from "lucide-react";
 import { useState } from "react";
 import { money } from "../domain/format";
 import { isLate, orderTotals, STATUS_LABEL, STATUSES, todayIso, type Order, type OrderStatus } from "../domain/orders";
-import "../styles/features.css";
 import Button from "../ui/Button";
 import EmptyState from "../ui/EmptyState";
 import Segmented from "../ui/Segmented";

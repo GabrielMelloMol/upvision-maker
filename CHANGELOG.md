@@ -3,6 +3,9 @@
 Cada versão aparece para a usuária na tela "O que há de novo" depois da atualização.
 Formato: `## <versão> — <data>` e itens `- …` em linguagem simples.
 
+## Próxima versão (vira "## 0.7.1 — data" ou "## 0.8.0 — data" ao publicar; até lá o app não mostra)
+- **Correção**: a prévia do QR Code podia aparecer espremida num quadradinho depois de abrir Dados da empresa. Agora ela sempre ocupa a coluna.
+
 ## 0.7.0 — 2026-09-29
 - **Posição dos textos nos modelos prontos**: o bloco de textos, o QR e os ícones agora saem centralizados, e você pode arrastar cada um (ou digitar a posição em mm), alinhar em cima, no meio ou embaixo, e usar "Centralizar tudo" ou "Restaurar". No cartão de visita dá para escolher onde fica o QR.
 - **Separador de 3MF por cor** (Ferramentas): abra um 3MF pintado no Bambu Studio, OrcaSlicer ou PrusaSlicer e ele separa cada cor em uma peça. Dá para cortar pelo plano com pino de encaixe (solto ou fixo), para imprimir cores separadas e colar ou encaixar depois.

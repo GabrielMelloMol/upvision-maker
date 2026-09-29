@@ -9,7 +9,6 @@ import type { Printer } from "../domain/entities";
 import { money } from "../domain/format";
 import { FREQUENCIES, FREQUENCY_LABEL, monthlyRecurring, type OperationalCost, type OperationalCostInput } from "../domain/finance";
 import { todayIso } from "../domain/orders";
-import "../styles/features.css";
 import Button from "../ui/Button";
 import EmptyState from "../ui/EmptyState";
 import { fieldErrors } from "../ui/fieldErrors";

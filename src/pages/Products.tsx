@@ -5,7 +5,6 @@ import { getDb } from "../db";
 import { productsRepo } from "../db/productsRepo";
 import { money } from "../domain/format";
 import { productPricing, salePrice, type Product } from "../domain/products";
-import "../styles/features.css";
 import Button from "../ui/Button";
 import EmptyState from "../ui/EmptyState";
 import { errorText, useToast } from "../ui/Toast";

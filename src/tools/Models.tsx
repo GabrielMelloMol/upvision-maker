@@ -32,7 +32,6 @@ import DecalGizmo from "./models/DecalGizmo";
 import LayersPanel, { layerValid } from "./models/LayersPanel";
 import { useModelLayers } from "./models/useModelLayers";
 import UserVariants from "./models/UserVariants";
-import "../styles/features.css";
 
 /** Minúsculas e sem acento, para a busca. */
 const normalize = (s: string) => s.normalize("NFD").replace(/\p{M}/gu, "").toLowerCase();

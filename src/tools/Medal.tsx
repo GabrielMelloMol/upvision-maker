@@ -15,7 +15,6 @@ import Slider from "../ui/Slider";
 import { errorText } from "../ui/Toast";
 import Toggle from "../ui/Toggle";
 import { useModelBuilder } from "../ui/useModelBuilder";
-import "../styles/features.css";
 import { DESIGN_ACCEPT, designFromSvg, fileToSvg, svgFillColors } from "./designInput";
 import { clearHandoff, peekHandoff } from "./handoff";
 import { parseBatch, PRESETS, RIMS, SHAPES, TEXTURES, type PresetId } from "./medalPresets";

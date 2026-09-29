@@ -4,6 +4,7 @@
 @import "./styles/layout.css";
 @import "./styles/components.css";
 @import "./styles/tools.css";
+@import "./styles/features.css"; /* global e depois de tools: ordem da cascata fixa, não depende das telas já abertas (#80) */
 
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation-duration: 0.01ms !important; animation-delay: 0ms !important; transition-duration: 0.01ms !important; scroll-behavior: auto !important; }

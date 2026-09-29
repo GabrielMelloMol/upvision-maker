@@ -9,7 +9,6 @@ import Dropzone from "../ui/Dropzone";
 import Field from "../ui/Field";
 import Toggle from "../ui/Toggle";
 import { errorText, useToast } from "../ui/Toast";
-import "../styles/features.css";
 
 const RECENT_KEY = "upvision.modelSearches";
 const SLICED = /\.(3mf|gcode|gco|g|bgcode)$/i;
