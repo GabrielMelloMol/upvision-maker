@@ -181,7 +181,7 @@ fn run(model: &[u8], pauses: &[f64], filaments: u32) -> Result<Vec<u8>, String> 
             .map_err(|e| format!("Não consegui rodar o Bambu Studio: {e}"))?;
         fs::read(tmp.join("projeto.3mf")).map_err(|_| {
             let log = String::from_utf8_lossy(&out.stderr);
-            let last = log.lines().filter(|l| !l.trim().is_empty()).last().unwrap_or("");
+            let last = log.lines().filter(|l| !l.trim().is_empty()).next_back().unwrap_or("");
             format!("O Bambu Studio não gerou o projeto (código {:?}). {last}", out.status.code())
         })
     })();
