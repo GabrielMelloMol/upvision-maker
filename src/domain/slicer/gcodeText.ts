@@ -85,12 +85,66 @@ function fromCura(text: string, kv: Map<string, string>): SlicerReport {
   };
 }
 
+/** Simplify3D: "Build Summary" no fim (tempo em texto, comprimento em mm e peso em g). */
+function fromSimplify3d(text: string): SlicerReport {
+  const grams = Number(/Plastic weight:\s*([\d.]+)\s*g/i.exec(text)?.[1]);
+  const mm = Number(/Filament length:\s*([\d.]+)\s*mm/i.exec(text)?.[1]);
+  if (!(grams > 0) && !(mm > 0)) throw new Error("Não encontrei o resumo de impressão (Build Summary) neste G-code do Simplify3D.");
+  const type = /printMaterial,\s*([A-Za-z]+)/.exec(text)?.[1]?.toUpperCase();
+  return {
+    source: "Simplify3D (G-code)",
+    seconds: parseDuration(/Build time:\s*([^\n]+)/i.exec(text)?.[1] ?? ""),
+    filaments: [{ index: 1, ...(type && { type }), ...(grams > 0 && { grams: round2(grams) }), ...(mm > 0 && { meters: round2(mm / 1000) }) }],
+    warnings: [],
+  };
+}
+
+const num = (m: RegExpExecArray | null) => (m ? Number(m[1]) : NaN);
+
+/**
+ * Fatiador desconhecido: procura tempo e consumo pelos nomes mais comuns nos comentários (#42). Peso direto quando
+ * houver; senão comprimento ou volume convertidos com a densidade do PLA. Sempre com aviso de "estimado".
+ */
+export function fromGeneric(text: string): SlicerReport {
+  const tSec = num(/^;\s*TIME:\s*(\d+)/im.exec(text));
+  const tText = /(?:estimated printing time|print(?:ing)? time|build time)[^:=\n]*[:=]\s*([^\n;]+)/i.exec(text)?.[1];
+  const seconds = tSec > 0 ? tSec : parseDuration(tText ?? "");
+  const g = num(/(?:weight|filament used)[^:=\n]*[:=]\s*([\d.]+)\s*g\b/i.exec(text));
+  const len = /(?:filament (?:used|length)|material#?\d* used)[^:=\n]*[:=]\s*([\d.]+)\s*(mm|m)\b/i.exec(text);
+  const meters = len ? Number(len[1]) / (len[2].toLowerCase() === "mm" ? 1000 : 1) : NaN;
+  const cm3 = num(/volume[^:=\n]*[:=]\s*([\d.]+)\s*(?:cm3|cm³|cc)\b/i.exec(text));
+  const grams = g > 0 ? g : meters > 0 ? gramsFromMeters(meters).grams : cm3 > 0 ? cm3 * DENSITY.PLA : NaN;
+  if (!(grams > 0)) throw new Error("Não encontrei os dados do fatiador neste G-code (tempo e consumo de filamento). Importe o 3MF do projeto ou digite os valores.");
+  const byWeight = g > 0;
+  return {
+    source: "Fatiador não reconhecido (G-code)",
+    seconds,
+    filaments: [{ index: 1, grams: round2(grams), ...(meters > 0 && { meters: round2(meters) }), ...(!byWeight && meters > 0 && { estimatedDiameterMm: DEFAULT_DIAMETER_MM }) }],
+    warnings: [
+      byWeight
+        ? "Fatiador não reconhecido: tempo e peso foram lidos dos comentários do arquivo. Confira."
+        : "Fatiador não reconhecido: as gramas foram estimadas pelo comprimento (ou volume) do filamento, como PLA. Confira.",
+    ],
+  };
+}
+
+/** Derivados do OrcaSlicer/PrusaSlicer com as mesmas chaves de estatística ("filament used [g]", "estimated printing time"). */
+const ORCA_FAMILY: [RegExp, string][] = [
+  [/Creality_Print|CrealityPrint/i, "Creality Print"],
+  [/AnycubicSlicer/i, "Anycubic Slicer Next"],
+  [/ElegooSlicer/i, "Elegoo Slicer"],
+];
+
 export function parseGcodeText(bytes: Uint8Array): SlicerReport {
   const dec = new TextDecoder();
   const text = bytes.length > 2 * HEAD_TAIL ? dec.decode(bytes.subarray(0, HEAD_TAIL)) + "\n" + dec.decode(bytes.subarray(bytes.length - HEAD_TAIL)) : dec.decode(bytes);
   const kv = keyValues(text);
-  if (/BambuStudio|OrcaSlicer/i.test(text.slice(0, 4096))) return fromBambu(text, kv);
+  const head = text.slice(0, 4096);
+  if (/BambuStudio|OrcaSlicer/i.test(head)) return fromBambu(text, kv);
+  const family = ORCA_FAMILY.find(([re]) => re.test(head));
+  if (family) return fromPrusaKeys(kv, `${family[1]} (G-code)`);
   if (/PrusaSlicer|SuperSlicer/i.test(text)) return fromPrusaKeys(kv, "PrusaSlicer (G-code)");
   if (/^;FLAVOR:|Cura_SteamEngine/m.test(text)) return fromCura(text, kv);
-  throw new Error("Não encontrei os dados do fatiador neste G-code (use Bambu Studio, OrcaSlicer, PrusaSlicer ou Cura).");
+  if (/Simplify3D/i.test(head)) return fromSimplify3d(text);
+  return fromGeneric(text);
 }

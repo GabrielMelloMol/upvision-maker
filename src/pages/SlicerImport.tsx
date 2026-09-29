@@ -103,7 +103,7 @@ export default function SlicerImport({ stock, printers, onApply, onStockAdded }:
           onClose={() => setCreating(null)}
         />
       )}
-      <Dropzone accept={SLICER_ACCEPT} label={file ?? "Arraste o .3mf fatiado ou o G-code"} hint="Bambu Studio, OrcaSlicer, PrusaSlicer (.gcode/.bgcode) ou Cura" onFile={onFile} />
+      <Dropzone accept={SLICER_ACCEPT} label={file ?? "Arraste o .3mf fatiado ou o G-code"} hint="Bambu, Orca, Prusa (.gcode/.bgcode), Cura, Creality Print, Anycubic, Elegoo e Simplify3D. Outros: tentamos ler o tempo e o peso." onFile={onFile} />
       {error && <Alert kind="error">{error}</Alert>}
       {report && (
         <div className="stack slicer-report">

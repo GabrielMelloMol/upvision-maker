@@ -1,6 +1,10 @@
 import { expect, go, openApp, test } from "./tauri";
 
-const kwh = (tauri: { db: { prepare: (s: string) => { get: () => unknown } } }) => JSON.parse((tauri.db.prepare("SELECT data FROM settings").get() as { data: string }).data).kwhPrice;
+// o registro de settings só aparece quando o app grava: antes disso, undefined (o poll tenta de novo)
+const kwh = (tauri: { db: { prepare: (s: string) => { get: () => unknown } } }) => {
+  const row = tauri.db.prepare("SELECT data FROM settings").get() as { data: string } | undefined;
+  return row ? JSON.parse(row.data).kwhPrice : undefined;
+};
 
 test("sem a conta de luz: média do estado no primeiro uso e nas Preferências, com fonte (#39)", async ({ page, tauri }) => {
   await openApp(page, { keepOnboarding: true });

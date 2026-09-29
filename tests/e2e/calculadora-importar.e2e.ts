@@ -44,3 +44,19 @@ test("calculadora: 3MF sem fatiar explica o que fazer", async ({ page, tauri }) 
   await page.locator(".card", { hasText: "Importar do fatiador" }).locator('input[type="file"]').setInputFiles(fixture("projeto-nao-fatiado.3mf"));
   await expect(page.getByText(/ainda não foi fatiado/)).toBeVisible();
 });
+
+test("calculadora: importa G-code do Simplify3D e do Creality Print (#42)", async ({ page, tauri }) => {
+  void tauri;
+  await openApp(page);
+  await go(page, "Calculadora");
+  await page.getByRole("button", { name: "Completo" }).click();
+  const input = page.locator(".card", { hasText: "Importar do fatiador" }).locator('input[type="file"]');
+  await input.setInputFiles(fixture("simplify3d-mk3s.gcode"));
+  await expect(page.getByText("Simplify3D (G-code)")).toBeVisible();
+  await expect(page.getByLabel("Gramas").first()).toHaveValue("16,87");
+  await expect(page.getByLabel("Tempo de impressão")).toHaveValue("2h40");
+
+  await input.setInputFiles(fixture("creality-print-k1.gcode"));
+  await expect(page.getByText("Creality Print (G-code)")).toBeVisible();
+  await expect(page.getByLabel("Gramas").first()).toHaveValue("0,12");
+});
