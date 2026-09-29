@@ -52,7 +52,7 @@ export const DEFAULT_SCREW_CASE: ScrewCaseParams = {
 const HEADROOM = 0.5; // folga entre o topo do gargalo e o teto da tampa
 const FLANK_DEG = 55; // flanco em relação à horizontal: imprime sem suporte
 const SEGMENTS = 128;
-const LAYER = 0.2; // divisões da torção: uma por camada
+const TWIST_STEP = 0.4; // mm entre divisões da torção (a hélice é linear entre elas)
 const EAR = 12;
 const EAR_HOLE = 4;
 const GAP = 10;
@@ -79,7 +79,7 @@ function threadSection(M: ManifoldToplevel, p: ScrewCaseParams, grow: number): C
   const rise = Math.min(0.45, p.threadDepth / Math.tan((FLANK_DEG * Math.PI) / 180) / p.pitch); // fração do passo
   const top = (1 - 2 * rise) / 2;
   const shape = (t: number) => (t < rise ? t / rise : t < rise + top ? 1 : t < 2 * rise + top ? 1 - (t - rise - top) / rise : 0);
-  const count = SEGMENTS * n * 2;
+  const count = SEGMENTS * n;
   const pts: [number, number][] = Array.from({ length: count }, (_, i) => {
     const a = (2 * Math.PI * i) / count;
     const t = ((a * n) / (2 * Math.PI)) % 1;
@@ -96,7 +96,7 @@ function thread(M: ManifoldToplevel, p: ScrewCaseParams, grow: number, z0: numbe
     const cs = k(threadSection(M, p, grow));
     const twist = (360 * h) / L.lead;
     const phase = (360 * z0) / L.lead;
-    return k(k(cs.extrude(h, Math.ceil(h / LAYER), twist)).rotate([0, 0, phase])).translate([0, 0, z0]);
+    return k(k(cs.extrude(h, Math.ceil(h / TWIST_STEP), twist)).rotate([0, 0, phase])).translate([0, 0, z0]);
   });
 }
 

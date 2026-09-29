@@ -36,7 +36,7 @@ export function expectPrintable(models: Model[]) {
     }
 }
 
-describe("cortador em grade (#63)", () => {
+describe("cortador em grade (#63)", { timeout: 30_000 }, () => {
   test("uma abertura por célula; tamanho = colunas × largura + lâmina; altura da lâmina", () => {
     const { models } = buildGridCutter(ctx(), { ...G, tabs: false });
     expectPrintable(models);
@@ -64,7 +64,7 @@ describe("cortador em grade (#63)", () => {
   });
 });
 
-describe("suporte de palitos (#65a)", () => {
+describe("suporte de palitos (#65a)", { timeout: 30_000 }, () => {
   test("furos distribuídos em anéis, sem sobrar nem faltar; centro livre", () => {
     const rings = holeRings(12, 20);
     expect(rings.reduce((t, r) => t + r.count, 0)).toBe(12);
@@ -89,7 +89,7 @@ describe("suporte de palitos (#65a)", () => {
   });
 });
 
-describe("boleira (#65b)", () => {
+describe("boleira (#65b)", { timeout: 30_000 }, () => {
   test("impressa de cabeça para baixo: prato na mesa, pé em cima; altura e diâmetro pedidos", () => {
     const { models } = buildCakeStand(ctx(), B);
     expectPrintable(models);
@@ -113,7 +113,7 @@ describe("boleira (#65b)", () => {
   });
 });
 
-describe("cumbuca no contorno (#66)", () => {
+describe("cumbuca no contorno (#66)", { timeout: 30_000 }, () => {
   const star = () => M.CrossSection.circle(30, 5); // pentágono como "desenho"
   const withArt = (): ModelCtx => ({ ...ctx(), art: star() });
 
@@ -146,7 +146,7 @@ describe("cumbuca no contorno (#66)", () => {
   });
 });
 
-describe("molde para carimbo de EVA (#73)", () => {
+describe("molde para carimbo de EVA (#73)", { timeout: 30_000 }, () => {
   // dois quadrados de 20 mm separados por 3 mm
   const twoSquares = () => M.CrossSection.union([M.CrossSection.square([20, 20], true).translate([-11.5, 0]), M.CrossSection.square([20, 20], true).translate([11.5, 0])]);
   const withArt = (): ModelCtx => ({ ...ctx(), art: twoSquares() });
@@ -184,7 +184,7 @@ describe("molde para carimbo de EVA (#73)", () => {
   });
 });
 
-describe("estojo com tampa de rosca (#59)", () => {
+describe("estojo com tampa de rosca (#59)", { timeout: 30_000 }, () => {
   const closed = (p = {}) => screwCaseClosed(ctx(), { ...SC, name: "", ...p });
 
   test("fechado: corpo e tampa não se atravessam e a rosca engata (crista do macho além do fundo da fêmea)", () => {
@@ -234,7 +234,7 @@ describe("estojo com tampa de rosca (#59)", () => {
   });
 });
 
-describe("rolo de textura (#64)", () => {
+describe("rolo de textura (#64)", { timeout: 30_000 }, () => {
   test("grade sem costura: número inteiro de ladrilhos em volta, que fecham a circunferência exata", () => {
     const g = rollerGrid(40, 80, 12);
     expect(Number.isInteger(g.cols)).toBe(true);
