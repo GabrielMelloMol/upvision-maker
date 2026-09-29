@@ -71,6 +71,18 @@ describe("Preferences", () => {
     expect(await settings()).toMatchObject({ failurePct: 10, taxPct: 6, includeFixedCosts: true, productiveHoursMonth: 80, multiplyLabor: true, packagingMaterialId: 1 });
   });
 
+  test("meta de lucro por hora (#30): dica em R$ por mês e salva", async () => {
+    const user = userEvent.setup();
+    renderWithApp(<Preferences />);
+    const meta = await screen.findByLabelText("Meta de lucro por hora de máquina");
+    await user.clear(meta);
+    await user.type(meta, "5");
+    expect(screen.getByText(/8 h por dia, R\$\s5,00\/h ≈ R\$\s1\.200,00 por mês/)).toBeInTheDocument();
+    await user.click(screen.getByRole("button", { name: "Salvar preferências" }));
+    expect(await screen.findByText("Preferências salvas.")).toBeInTheDocument();
+    expect((await settings()).targetProfitPerHour).toBe(5);
+  });
+
   test("calcular o kWh pela conta de luz (#2): total ÷ kWh + bandeira, usa, guarda histórico e salvar não apaga", async () => {
     vi.useFakeTimers({ toFake: ["Date"] });
     vi.setSystemTime(new Date(2026, 8, 15, 12));

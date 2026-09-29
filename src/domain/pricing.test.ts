@@ -1,6 +1,6 @@
 import { describe, expect, test } from "vitest";
 import { calculate, type CalcInput } from "./calc";
-import { compareChannels, competitorHint, markupText, roundPrice } from "./pricing";
+import { compareChannels, competitorHint, hourStatus, markupText, roundPrice } from "./pricing";
 import { DEFAULT_SETTINGS, type Settings } from "./settings";
 
 const s: Settings = { ...DEFAULT_SETTINGS, kwhPrice: 0.9, laborHourCost: 20, maintenancePct: 5, failurePct: 0, minMarginPct: 10 };
@@ -80,4 +80,32 @@ describe("impostos", () => {
 test("markup × margem explicados com os números do multiplicador", () => {
   expect(markupText(5)).toBe("markup 400 % · margem 80 % antes das taxas");
   expect(markupText(3)).toBe("markup 200 % · margem 66,7 % antes das taxas");
+});
+
+describe("lucro por hora de máquina e meta de R$/h (#30)", () => {
+  test("lucro por hora = lucro × peças ÷ horas da mesa, também no preço testado; sem tempo não há", () => {
+    const rows = compareChannels(r, s, 0, { rounding: "none", hours: 2, qty: 1, competitor: 20 });
+    expect(rows[0].profitPerHour).toBe(31.92); // 63,84 ÷ 2 h
+    expect(rows[2].profitPerHour).toBe(5.99); // Shopee 11,98 ÷ 2
+    expect(rows[0].atCompetitor?.profitPerHour).toBe(2.02); // 4,04 ÷ 2
+    const four = compareChannels(r, s, 0, { rounding: "none", hours: 2, qty: 4 });
+    expect(four[0].profitPerHour).toBe(127.68); // 4 peças na mesa
+    expect(compareChannels(r, s, 0, { rounding: "none" })[0].profitPerHour).toBeNull();
+  });
+
+  test("preço pela meta: (custo + meta × horas ÷ peças + taxa fixa + frete) ÷ (1 − taxa − imposto)", () => {
+    const st = { ...s, targetProfitPerHour: 10 };
+    const rows = compareChannels(r, st, 0, { rounding: "none", hours: 2, qty: 1 });
+    expect(rows[0].targetPrice).toBe(35.96); // 15,96 + 20
+    expect(rows[2].targetPrice).toBe(49.95); // (15,96 + 20 + 4) ÷ 0,8
+    expect(compareChannels(r, s, 0, { rounding: "none", hours: 2, qty: 1 })[0].targetPrice).toBeNull(); // meta desligada
+  });
+
+  test("semáforo da meta: < 50% vermelho, < meta amarelo, na meta verde; sem meta nada", () => {
+    expect(hourStatus(4, 10)).toBe("low");
+    expect(hourStatus(5, 10)).toBe("below");
+    expect(hourStatus(10, 10)).toBe("ok");
+    expect(hourStatus(10, 0)).toBeNull();
+    expect(hourStatus(null, 10)).toBeNull();
+  });
 });

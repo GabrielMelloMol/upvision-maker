@@ -24,6 +24,8 @@ export const SettingsSchema = z.object({
   productiveHoursMonth: z.number().positive(),
   /** Jeito antigo (até a v0.5): o multiplicador também multiplica a mão de obra. */
   multiplyLabor: z.boolean(),
+  /** Meta de lucro por hora de máquina (R$/h); 0 = desligada. */
+  targetProfitPerHour: z.number().min(0),
   /** Material que a calculadora já abre como embalagem (1 por peça). */
   packagingMaterialId: z.number().int().positive().nullable(),
   multResale: z.number().positive(),
@@ -48,6 +50,7 @@ export const DEFAULT_SETTINGS: Settings = {
   productiveHoursMonth: 120,
   multiplyLabor: false,
   packagingMaterialId: null,
+  targetProfitPerHour: 0,
   multResale: 3,
   multConsumer: 5,
   marketplaceMarginPct: 30,

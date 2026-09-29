@@ -241,12 +241,12 @@ test("calculadora: preço do concorrente mostra coluna, dica e prejuízo", async
   await openApp(page);
   tauri.db.exec(LEGACY);
   const card = await fillHomeExample(page);
-  await expect(card.getByRole("columnheader", { name: "Lucro no preço do concorrente" })).toHaveCount(0);
+  await expect(card.getByRole("columnheader", { name: "Lucro no preço testado" })).toHaveCount(0);
   await expect(card.getByText("Opcional: veja se o seu preço está longe do mercado.")).toBeVisible();
-  const competitor = card.getByLabel("Preço do concorrente");
+  const competitor = card.getByLabel("Testar um preço (seu ou do concorrente)");
 
   await competitor.fill("120");
-  await expect(card.getByRole("columnheader", { name: "Lucro no preço do concorrente" })).toBeVisible();
+  await expect(card.getByRole("columnheader", { name: "Lucro no preço testado" })).toBeVisible();
   // 79,80 vs 120 → 33,5% abaixo: ok (vende)
   await expect(card.getByText("34% abaixo do concorrente.")).toBeVisible();
   await expect(cells(card, /Venda direta/).nth(5)).toHaveText("R$ 104,04"); // 120 − 15,96
@@ -267,7 +267,7 @@ test("calculadora: preço do concorrente mostra coluna, dica e prejuízo", async
   await expect(cells(card, /Shopee/).nth(3).locator(".badge", { hasText: "prejuízo" })).toHaveCount(0);
 
   await competitor.fill("");
-  await expect(card.getByRole("columnheader", { name: "Lucro no preço do concorrente" })).toHaveCount(0);
+  await expect(card.getByRole("columnheader", { name: "Lucro no preço testado" })).toHaveCount(0);
 });
 
 test("calculadora: canais abaixo da margem mínima das Preferências ganham alerta", async ({ page, tauri }) => {

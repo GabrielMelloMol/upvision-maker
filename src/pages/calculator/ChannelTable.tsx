@@ -1,6 +1,6 @@
 import { Store, TriangleAlert, Trophy } from "lucide-react";
 import { money } from "../../domain/format";
-import { competitorHint, type ChannelRow } from "../../domain/pricing";
+import { competitorHint, hourStatus, type ChannelRow } from "../../domain/pricing";
 
 export function CompetitorHint({ ours, competitor }: { ours: number; competitor: number }) {
   const h = competitorHint(ours, competitor);
@@ -11,8 +11,10 @@ export function CompetitorHint({ ours, competitor }: { ours: number; competitor:
 const pct = (n: number) => `${n.toLocaleString("pt-BR", { maximumFractionDigits: 1 })}%`;
 
 /** Preço em cada canal lado a lado, com lucro líquido depois das taxas e alertas (nunca só por cor). */
-export default function ChannelTable({ rows, minMarginPct, children }: { rows: ChannelRow[]; minMarginPct: number; children: React.ReactNode }) {
+export default function ChannelTable({ rows, minMarginPct, target, children }: { rows: ChannelRow[]; minMarginPct: number; target: number; children: React.ReactNode }) {
   const comp = rows.some((x) => x.atCompetitor);
+  const perHour = rows.some((x) => x.profitPerHour !== null);
+  const byTarget = rows.some((x) => x.targetPrice !== null);
   return (
     <section className="card">
       <h2 className="card-title">
@@ -27,9 +29,11 @@ export default function ChannelTable({ rows, minMarginPct, children }: { rows: C
             <th className="num">Taxas e impostos</th>
             <th className="num">Lucro líquido</th>
             <th className="num">Margem</th>
+            {perHour && <th className="num" title="Lucro líquido × peças na mesa ÷ horas de impressão">Lucro por hora</th>}
+            {byTarget && <th className="num" title={`Preço que rende a meta de ${money(target)}/h de máquina (Preferências)`}>Preço pela meta</th>}
             {comp && (
-              <th className="num" title="Lucro líquido em cada canal vendendo pelo preço do concorrente, já descontadas as taxas">
-                Lucro no preço do concorrente
+              <th className="num" title="Lucro líquido em cada canal vendendo pelo preço testado, já descontadas as taxas">
+                Lucro no preço testado
               </th>
             )}
           </tr>
@@ -42,21 +46,36 @@ export default function ChannelTable({ rows, minMarginPct, children }: { rows: C
                 {c.belowMin && <span className="badge warn" title={`Margem mínima: ${pct(minMarginPct)} (Preferências)`}><TriangleAlert aria-hidden size={12} /> abaixo da margem mínima</span>}
               </td>
               {c.price === null ? (
-                <td className="num" colSpan={4}>Taxa + margem passam de 100%</td>
+                <td className="num" colSpan={perHour ? 5 : 4}>Taxa + margem passam de 100%</td>
               ) : (
                 <>
                   <td className="num">{money(c.price)}</td>
                   <td className="num">{money(c.fees)}</td>
                   <td className="num"><Profit value={c.profit} loss={c.loss} /></td>
                   <td className="num">{pct(c.marginPct)}</td>
+                  {perHour && <td className="num"><PerHour value={c.profitPerHour} target={target} /></td>}
                 </>
               )}
+              {byTarget && <td className="num">{c.targetPrice !== null && money(c.targetPrice)}</td>}
               {comp && <td className="num">{c.atCompetitor && <Profit value={c.atCompetitor.profit} loss={c.atCompetitor.loss} />}</td>}
             </tr>
           ))}
         </tbody>
       </table>
     </section>
+  );
+}
+
+const HOUR_BADGE = { low: ["", "menos da metade da meta"], below: ["warn", "abaixo da meta"], ok: ["ok", "na meta"] } as const;
+
+/** R$/h com o selo da meta (texto, nunca só cor). */
+export function PerHour({ value, target }: { value: number | null; target: number }) {
+  if (value === null) return null;
+  const st = hourStatus(value, target);
+  return (
+    <>
+      {money(value)}/h {st && <span className={`badge ${HOUR_BADGE[st][0]}`}>{HOUR_BADGE[st][1]}</span>}
+    </>
   );
 }
 

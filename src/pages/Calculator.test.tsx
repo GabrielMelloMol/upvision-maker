@@ -103,8 +103,8 @@ describe("Calculator", () => {
     const shopee = within(row(/^Shopee/)).getAllByRole("cell").map((c) => c.textContent!.replace(/\u00a0/g, " "));
     expect(shopee.slice(1, 4)).toEqual(["R$ 50,90", "R$ 14,18", "R$ 15,72"]); // taxas e lucro no preço arredondado
 
-    await user.type(screen.getByLabelText("Preço do concorrente"), "30");
-    expect(screen.getByRole("columnheader", { name: "Lucro no preço do concorrente" })).toBeInTheDocument();
+    await user.type(screen.getByLabelText("Testar um preço (seu ou do concorrente)"), "30");
+    expect(screen.getByRole("columnheader", { name: "Lucro no preço testado" })).toBeInTheDocument();
     expect(row(/^Shopee/)).toHaveTextContent(/-R\$\s1,00\s*prejuízo/); // 30 − (6 + 4) − 21
     expect(row(/^Venda direta/)).not.toHaveTextContent("prejuízo");
     expect(screen.getByText(/^\d+% acima do concorrente/)).toBeInTheDocument();
@@ -286,4 +286,49 @@ test("adicionar ao orçamento (#28): soma cálculos num rascunho com preço, cus
   await user.click(screen.getByRole("button", { name: /2 itens no orçamento em rascunho · Abrir/ }));
   expect(go).toHaveBeenCalledWith("quotes");
   expect(peekOpenQuoteDraft()).toBe(true);
+});
+
+describe("lucro por hora (#30) e testar um preço no Rápido (#37)", () => {
+  beforeEach(async () => {
+    localStorage.removeItem("upvision:calculadora");
+    await t.db.execute(`INSERT OR REPLACE INTO settings (id, data) VALUES (1, '{"failurePct":0,"targetProfitPerHour":10,"channels":[{"name":"Shopee","feePct":20,"feeFixed":4}]}')`);
+  });
+
+  async function fill(user: ReturnType<typeof userEvent.setup>) {
+    await screen.findAllByRole("option", { name: /^Shopee/ }); // preferências carregadas
+    await user.type(screen.getByLabelText("Preço por kg"), "100");
+    await user.type(screen.getByLabelText("Gramas"), "100"); // custo R$ 10
+    await user.type(screen.getByLabelText("Tempo de impressão"), "2h");
+  }
+
+  test("tabela de canais: lucro por hora com selo da meta e preço pela meta", async () => {
+    const user = userEvent.setup();
+    renderWithApp(<Calculator go={() => {}} />);
+    await waitFor(() => expect(screen.getByRole("button", { name: "Rápido" })).toBeInTheDocument());
+    await fill(user);
+    await user.click(screen.getByRole("button", { name: "Ver detalhes" }));
+    const row = (name: RegExp) => within(screen.getByRole("row", { name })).getAllByRole("cell").map((c) => c.textContent!.replace(/\u00a0/g, " "));
+    // direto: 50 − 10 = 40 de lucro em 2 h = 20/h (meta 10) → na meta; preço pela meta = 10 + 10 × 2 = 30
+    expect(row(/^Venda direta/)[5]).toBe("R$ 20,00/h na meta");
+    expect(row(/^Venda direta/)[6]).toBe("R$ 30,00");
+    // Shopee: (10 + 4) ÷ 0,5 = 28 → lucro 28 − 9,60 − 10 = 8,40 em 2 h = 4,20/h → menos da metade da meta
+    expect(row(/^Shopee/)[5]).toBe("R$ 4,20/h menos da metade da meta");
+    expect(row(/^Shopee/)[6]).toBe("R$ 42,50"); // (10 + 20 + 4) ÷ 0,8
+  });
+
+  test("Rápido: 'Vou vender por' mostra lucro, margem, lucro/h e selo; o valor segue para o Completo", async () => {
+    const user = userEvent.setup();
+    renderWithApp(<Calculator go={() => {}} />);
+    await fill(user);
+    await user.type(screen.getByLabelText("Vou vender por"), "20");
+    const out = () => screen.getByText(/^Lucro -?R\$/).textContent!.replace(/\u00a0/g, " ");
+    expect(out()).toBe("Lucro R$ 10,00 · margem 50% · R$ 5,00/h abaixo da meta ok");
+    await user.selectOptions(screen.getByLabelText("Onde"), "Shopee");
+    expect(out()).toBe("Lucro R$ 2,00 · margem 10% · R$ 1,00/h menos da metade da meta ok"); // 20 − (4 + 4) − 10
+    await user.clear(screen.getByLabelText("Vou vender por"));
+    await user.type(screen.getByLabelText("Vou vender por"), "15");
+    expect(out()).toBe("Lucro -R$ 2,00 · margem -13,3% · -R$ 1,00/h menos da metade da meta prejuízo"); // 15 − 7 − 10
+    await user.click(screen.getByRole("button", { name: "Ver detalhes" }));
+    expect(screen.getByLabelText("Testar um preço (seu ou do concorrente)")).toHaveValue("15,00");
+  });
 });

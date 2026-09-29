@@ -25,6 +25,7 @@ import ChannelTable, { CompetitorHint } from "./calculator/ChannelTable";
 import PlugSheet from "./calculator/PlugSheet";
 import PrinterCatalogButton from "./calculator/PrinterCatalogButton";
 import AddToQuote from "./calculator/AddToQuote";
+import TestPrice from "./calculator/TestPrice";
 import { CostBreakdown, PriceHero } from "./calculator/Result";
 import { EMPTY_FORM, loadSaved, storeSaved, type CalcForm, type Line } from "./calculator/saved";
 
@@ -103,7 +104,7 @@ export default function Calculator({ go }: { go: Go }) {
     data.settings,
   );
 
-  const rows = compareChannels(r, data.settings, price(f.freight), { rounding, competitor: price(competitor) });
+  const rows = compareChannels(r, data.settings, price(f.freight), { rounding, competitor: price(competitor), hours: printMin / 60, qty: num(f.quantity) });
 
   /** Preenche a calculadora com o que o arquivo do fatiador informou. */
   function applySlicer(a: SlicerApply) {
@@ -307,9 +308,12 @@ export default function Calculator({ go }: { go: Go }) {
         <aside className="calc-summary" aria-live="polite">
           <PriceHero r={r} s={data.settings} onSave={saveAsProduct} onPreferences={() => go("preferences")}>
             {mode === "quick" && (
-              <button type="button" className="sm" onClick={() => setMode("full")}>
-                Ver detalhes
-              </button>
+              <>
+                <TestPrice rows={rows} value={competitor} onChange={setCompetitor} minMarginPct={data.settings.minMarginPct} target={data.settings.targetProfitPerHour} />
+                <button type="button" className="sm" onClick={() => setMode("full")}>
+                  Ver detalhes
+                </button>
+              </>
             )}
           </PriceHero>
           <AddToQuote rows={rows} unitCost={r.unitCost} pieces={num(f.quantity)} printMinutes={printMin} onOpen={() => go("quotes")} />
@@ -318,7 +322,7 @@ export default function Calculator({ go }: { go: Go }) {
       </div>
 
       {mode === "full" && (
-        <ChannelTable rows={rows} minMarginPct={data.settings.minMarginPct}>
+        <ChannelTable rows={rows} minMarginPct={data.settings.minMarginPct} target={data.settings.targetProfitPerHour}>
           <div className="row" style={{ alignItems: "flex-start", flexWrap: "wrap", gap: "var(--space-4)", marginBottom: "var(--space-3)" }}>
             <div className="stack" style={{ gap: 6 }}>
               <span className="field-label">Arredondar preços</span>
@@ -326,7 +330,7 @@ export default function Calculator({ go }: { go: Go }) {
             </div>
             <div style={{ flex: "1 1 240px", maxWidth: 360 }}>
               <MoneyField
-                label="Preço do concorrente"
+                label="Testar um preço (seu ou do concorrente)"
                 value={competitor}
                 onChange={setCompetitor}
                 hint={<CompetitorHint ours={roundPrice(r.consumer, rounding)} competitor={price(competitor)} />}

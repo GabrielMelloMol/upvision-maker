@@ -30,6 +30,7 @@ const FIELDS: NumField[] = [
   { key: "multConsumer", label: "Multiplicador venda direta / consumidor final (×)" },
   { key: "marketplaceMarginPct", label: "Margem padrão em marketplace (%)" },
   { key: "minMarginPct", label: "Margem mínima (%)", hint: "A calculadora alerta canais abaixo disso." },
+  { key: "targetProfitPerHour", label: "Meta de lucro por hora de máquina", money: true, hint: "Use 0 para desligar. A calculadora mostra o lucro por hora de cada canal e o preço que chega na meta." },
 ];
 const EXTRA_FIELDS: NumField[] = [
   { key: "failurePct", label: "Taxa de falha (%)", hint: "De cada 100 impressões, quantas você perde? Esse custo entra no preço das que dão certo." },
@@ -37,6 +38,7 @@ const EXTRA_FIELDS: NumField[] = [
   { key: "productiveHoursMonth", label: "Horas de impressão por mês", hint: "Os custos operacionais mensais são divididos por essas horas." },
 ];
 const ALL_FIELDS = [...FIELDS, ...EXTRA_FIELDS];
+const HOURS_MONTH = 8 * 30; // exemplo da dica da meta: 8 h por dia
 
 const loadPrefs = async (db: Db) => ({ settings: await loadSettings(db), materials: await materials.list(db) });
 
@@ -108,7 +110,8 @@ function PreferencesForm({ initial, materials }: { initial: Settings; materials:
     const disabled = f.key === "productiveHoursMonth" && !flags.includeFixedCosts;
     const mult = f.key === "multResale" || f.key === "multConsumer" ? parseDecimal(nums[f.key]) : NaN;
     const who = f.key === "multResale" ? PRICE_NAMES.resale.help : PRICE_NAMES.consumer.help;
-    const hint = mult > 0 ? `${who} ${markupText(mult)}.` : f.hint;
+    const meta = f.key === "targetProfitPerHour" ? parseMoney(nums[f.key]) : NaN;
+    const hint = mult > 0 ? `${who} ${markupText(mult)}.` : meta > 0 ? `Com a impressora ocupada 8 h por dia, ${money(meta)}/h ≈ ${money(meta * HOURS_MONTH)} por mês.` : f.hint;
     if (f.key === "kwhPrice")
       return (
         <div key={f.key} className="stack" style={{ gap: 4 }}>
