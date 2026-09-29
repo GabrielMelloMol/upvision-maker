@@ -4,14 +4,7 @@ import { buildDeskOrganizer, DEFAULT_DESK_ORGANIZER } from "../../geometry/model
 import { buildLayeredSign, DEFAULT_LAYERED_SIGN } from "../../geometry/models/layeredSign";
 import { buildLedLetter, DEFAULT_LED_LETTER } from "../../geometry/models/ledLetter";
 import { buildPuzzle, DEFAULT_PUZZLE } from "../../geometry/models/puzzle";
-import { BG_TEXTURES } from "../../geometry/models/textures";
-import { as, bool, choice, color, font, num, text, type FieldDef, type ModelDef, type Section } from "./fields";
-
-const textureFields: FieldDef[] = [
-  choice("texture", "Textura do fundo", BG_TEXTURES),
-  num("texturePitch", "Tamanho do padrão", 3, 20, { step: 0.5 }),
-  num("textureDepth", "Rebaixo da textura", 0.4, 1, { step: 0.1 }),
-];
+import { as, bool, choice, color, font, num, text, textureFields, type ModelDef, type Section } from "./fields";
 
 const signLine = (i: number): Section => ({
   title: `Linha ${i}`,

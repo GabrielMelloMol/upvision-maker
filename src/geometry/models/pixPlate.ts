@@ -4,6 +4,7 @@ import { qrModel, QR_BASE_COLOR, QR_DARK_COLOR } from "../qr3d";
 import { fitInto, scoped } from "../shape2d";
 import type { Model } from "../types";
 import { MissingInput, moveMesh, plateStand, roundedRect, slab, type ModelCtx, type ModelOutput } from "./common";
+import { DEFAULT_TEXTURE, recessMesh, type TextureParams } from "./textures";
 
 export type PixPlateParams = {
   key: string;
@@ -18,7 +19,7 @@ export type PixPlateParams = {
   stand: boolean;
   plateColor: string;
   darkColor: string;
-};
+} & Partial<TextureParams>;
 
 export const DEFAULT_PIX_PLATE: PixPlateParams = {
   key: "",
@@ -33,6 +34,7 @@ export const DEFAULT_PIX_PLATE: PixPlateParams = {
   stand: true,
   plateColor: QR_BASE_COLOR,
   darkColor: QR_DARK_COLOR,
+  ...DEFAULT_TEXTURE,
 };
 
 
@@ -56,8 +58,10 @@ export function buildPixPlate({ M, text }: ModelCtx, p: PixPlateParams): ModelOu
       th ? k(fitInto(k(text(p.title, th)!), q, th, top - th / 2)) : null,
       sh ? k(fitInto(k(text(p.subtitle, sh)!), q, sh, qrCy - q / 2 - gap - sh / 2)) : null,
     ].filter((c) => c !== null);
+    // o QR (com a margem clara) e os textos ficam lisos; a textura só no resto da placa
+    const keep = k(M.CrossSection.union([k(k(M.CrossSection.square([q, q], true)).translate([0, qrCy])), ...labels]));
     const parts = [
-      { name: "Placa", color: p.plateColor, mesh: slab(k(roundedRect(M, W, H, W * 0.06)), p.thickness) },
+      { name: "Placa", color: p.plateColor, mesh: recessMesh(M, slab(k(roundedRect(M, W, H, W * 0.06)), p.thickness), keep, p) },
       { name: "QR", color: p.darkColor, mesh: moveMesh(qr.model.parts[1].mesh, 0, qrCy) },
     ];
     if (labels.length) parts.push({ name: "Texto", color: p.darkColor, mesh: slab(k(M.CrossSection.union(labels)), p.relief, p.thickness) });

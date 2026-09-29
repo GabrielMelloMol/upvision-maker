@@ -8,7 +8,7 @@ import { buildSpinner, DEFAULT_SPINNER } from "../../geometry/models/spinner";
 import { buildStamp, DEFAULT_STAMP } from "../../geometry/models/stamp";
 import { buildTrophy, DEFAULT_TROPHY } from "../../geometry/models/trophy";
 import { parseMoney } from "../../ui/parse";
-import { as, color, num, text, type ModelDef, type Params } from "./fields";
+import { as, color, num, text, textureFields, type ModelDef, type Params } from "./fields";
 import { GIFTS_SPORT_MODELS } from "./giftsSport";
 import { STUDY_MODELS } from "./studyModels";
 import { TEXT_KITCHEN_MODELS } from "./textKitchen";
@@ -30,7 +30,7 @@ const CORE_MODELS: ModelDef[] = [
     sections: [
       { title: "Pix", fields: [text("key", "Chave Pix", 77, "CPF, CNPJ, telefone, e-mail ou aleatória."), text("name", "Nome de quem recebe", 60), text("city", "Cidade", 40), { k: "amountText", kind: "money", label: "Valor fixo (opcional)", hint: "Vazio: quem paga digita." }] },
       { title: "Textos", fields: [text("title", "Título", 20), text("subtitle", "Embaixo do QR", 30)] },
-      { title: "Tamanho e cores", fields: [num("width", "Largura", 60, 200, { step: 1 }), num("thickness", "Espessura", 2, 6), num("relief", "Relevo", 0.4, 3), { k: "stand", kind: "bool", label: "Suporte para ficar em pé" }, color("plateColor", "Placa"), color("darkColor", "QR e textos")] },
+      { title: "Tamanho e cores", fields: [num("width", "Largura", 60, 200, { step: 1 }), num("thickness", "Espessura", 2, 6), num("relief", "Relevo", 0.4, 3), { k: "stand", kind: "bool", label: "Suporte para ficar em pé" }, color("plateColor", "Placa"), color("darkColor", "QR e textos"), ...textureFields] },
     ],
     build: (ctx, p) => {
       const amount = parseMoney(String(p.amountText));

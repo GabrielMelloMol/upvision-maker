@@ -1,3 +1,4 @@
+import { BG_TEXTURES } from "../../geometry/models/textures";
 import type { LucideIcon } from "lucide-react";
 import type { ModelCtx, ModelOutput } from "../../geometry/models/common";
 
@@ -49,4 +50,10 @@ export const text = (k: string, label: string, max = 30, hint?: string): FieldDe
 
 export const bool = (k: string, label: string): FieldDef => ({ k, kind: "bool", label });
 export const choice = (k: string, label: string, options: readonly (readonly [string, string])[]): FieldDef => ({ k, kind: "choice", label, options });
+/** Textura rebaixada no fundo de placas e letreiros (#50). */
+export const textureFields: FieldDef[] = [
+  choice("texture", "Textura do fundo", BG_TEXTURES),
+  num("texturePitch", "Tamanho do padrão", 3, 20, { step: 0.5 }),
+  num("textureDepth", "Rebaixo da textura", 0.4, 1, { step: 0.1 }),
+];
 export const font = (k: string, label: string, sample?: string): FieldDef => ({ k, kind: "font", label, sample });

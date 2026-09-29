@@ -1,5 +1,7 @@
 import type { CS, ManifoldToplevel, Solid } from "../manifold";
+import { toMesh } from "../mesh";
 import { scoped } from "../shape2d";
+import type { Mesh } from "../types";
 
 export type BgTexture = "none" | "stripes" | "waves" | "hexagons" | "dots" | "checker";
 
@@ -65,5 +67,27 @@ export function recessTexture(M: ManifoldToplevel, solid: Solid, region: CS, top
     k(pattern);
     if (pattern.isEmpty()) return solid.translate([0, 0, 0]);
     return solid.subtract(k(k(pattern.extrude(depth + 0.01)).translate([0, 0, top - depth])));
+  });
+}
+
+/** Campos de textura que os modelos acrescentam aos parâmetros (#50). */
+export type TextureParams = { texture: BgTexture; texturePitch: number; textureDepth: number };
+export const DEFAULT_TEXTURE: TextureParams = { texture: "none", texturePitch: 6, textureDepth: 0.6 };
+/** Faixa lisa entre a textura e a borda, o texto ou a arte. */
+export const TEX_MARGIN = 1.5;
+
+/**
+ * Textura rebaixada no topo de uma peça já pronta (malha), fora de `keepOut` (texto, arte, QR) e a
+ * TEX_MARGIN da borda. Sem textura, devolve a malha como está.
+ */
+export function recessMesh(M: ManifoldToplevel, mesh: Mesh, keepOut: CS | null, p: Partial<TextureParams>): Mesh {
+  const kind = p.texture ?? "none";
+  if (kind === "none") return mesh;
+  return scoped((k) => {
+    const solid = k(M.Manifold.ofMesh(new M.Mesh({ numProp: 3, vertProperties: mesh.positions, triVerts: mesh.indices })));
+    const top = solid.boundingBox().max[2];
+    const inner = k(k(solid.project()).offset(-TEX_MARGIN, "Round"));
+    const region = keepOut ? k(inner.subtract(k(keepOut.offset(TEX_MARGIN, "Round")))) : inner;
+    return toMesh(k(recessTexture(M, solid, region, top, kind, p.texturePitch ?? DEFAULT_TEXTURE.texturePitch, p.textureDepth ?? DEFAULT_TEXTURE.textureDepth)));
   });
 }
