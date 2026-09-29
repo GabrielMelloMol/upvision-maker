@@ -24,6 +24,7 @@ function product(id: number, p: Partial<Product>): Product {
     minStock: 0,
     sku: "",
     notes: "",
+    failurePct: null,
     ...p,
   };
 }
@@ -49,6 +50,13 @@ describe("preço do produto", () => {
     expect(result.machine).toBe(1.5); // R$ 0,60/h × 2,5 h
     expect(result.fixed).toBe(5);
     expect(result.unitCost).toBe(6.5);
+  });
+
+  test("falha do produto ou do material do filamento (#35)", () => {
+    const p = product(3, { composition: { filaments: [{ filamentId: 1, grams: 88 }], materials: [], items: [] } }); // 88 g × R$ 100 = 8,80
+    const base = { ...ctx([p], [{ ...filament(1, 100), material: "TPU" }]), settings: { ...DEFAULT_SETTINGS, maintenancePct: 0, failurePct: 0, failureByMaterial: { TPU: 12 } } };
+    expect(productPricing(p, base).result.failure).toBe(1.2); // 8,80 ÷ 0,88 − 8,80
+    expect(productPricing({ ...p, failurePct: 0 }, base).result.failure).toBe(0); // o produto manda
   });
 
   test("recalcula quando o preço do filamento muda", () => {

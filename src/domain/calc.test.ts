@@ -1,5 +1,5 @@
 import { describe, expect, test } from "vitest";
-import { calculate, channelFees, machineHourCost, type CalcInput } from "./calc";
+import { calculate, channelFees, failureFor, machineHourCost, type CalcInput } from "./calc";
 import { DEFAULT_SETTINGS, type Settings } from "./settings";
 
 // Casos antigos: manutenção 5% e sem taxa de falha, para isolar cada parcela.
@@ -217,4 +217,20 @@ test("custo extra por venda só daquele canal (#33): entra nas taxas e no preço
   );
   expect(r.channels[0]).toMatchObject({ price: 34, fees: 13.8, profit: 10.2, marginPct: 30 }); // (10 + 4 + 3) ÷ 0,5
   expect(r.consumer).toBe(50); // venda direta não paga a embalagem do marketplace
+});
+
+describe("taxa de falha por material ou por produto (#35)", () => {
+  const st = { ...settings, failurePct: 5, failureByMaterial: { TPU: 12, ABS: 10 } };
+  test("vale a maior entre os materiais da mesa; sem nenhum definido, a geral; a do produto manda", () => {
+    expect(failureFor(["PLA", "TPU", "ABS"], st)).toEqual({ pct: 12, source: "TPU" });
+    expect(failureFor(["PLA"], st)).toEqual({ pct: 5 });
+    expect(failureFor([], st)).toEqual({ pct: 5 });
+    expect(failureFor(["TPU"], st, 3)).toEqual({ pct: 3, source: "produto" });
+    expect(failureFor(["TPU"], st, null)).toEqual({ pct: 12, source: "TPU" });
+  });
+
+  test("calculate usa a taxa informada no lugar da geral", () => {
+    const r = calculate({ ...empty, filaments: [{ pricePerKg: 100, grams: 88 }], failurePct: 12 }, { ...st, maintenancePct: 0 });
+    expect(r.failure).toBe(1.2); // 8,80 ÷ 0,88 − 8,80
+  });
 });

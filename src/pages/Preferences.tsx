@@ -3,7 +3,7 @@ import { useState } from "react";
 import { getDb } from "../db";
 import { loadSettings, materials, saveSettings } from "../db/repo";
 import type { Db } from "../db/types";
-import type { Material } from "../domain/entities";
+import { MATERIAL_TYPES, type Material } from "../domain/entities";
 import { markupText, PRICE_NAMES } from "../domain/pricing";
 import { parseDecimal } from "../domain/format";
 import type { Settings } from "../domain/settings";
@@ -21,7 +21,7 @@ import { money } from "../domain/format";
 import KwhBillSheet from "./preferences/KwhBillSheet";
 import ChannelsCard, { fromChannelForm, toChannelForm } from "./preferences/ChannelsCard";
 
-type NumKey = Exclude<keyof Settings, "channels" | "kwhHistory" | "includeFixedCosts" | "multiplyLabor" | "packagingMaterialId">;
+type NumKey = Exclude<keyof Settings, "channels" | "kwhHistory" | "includeFixedCosts" | "multiplyLabor" | "packagingMaterialId" | "failureByMaterial">;
 type NumField = { key: NumKey; label: string; money?: true; hint?: string };
 const FIELDS: NumField[] = [
   { key: "kwhPrice", label: "Preço do kWh", money: true, hint: "Valor total da conta ÷ kWh consumidos." },
@@ -61,6 +61,7 @@ export default function Preferences() {
 const str = (n: number) => String(n).replace(".", ",");
 
 function PreferencesForm({ initial, materials }: { initial: Settings; materials: Material[] }) {
+  const [byMaterial, setByMaterial] = useState<Record<string, string>>(Object.fromEntries(Object.entries(initial.failureByMaterial).map(([k, v]) => [k, str(v)])));
   const [flags, setFlags] = useState({ includeFixedCosts: initial.includeFixedCosts, multiplyLabor: initial.multiplyLabor });
   const [packaging, setPackaging] = useState(initial.packagingMaterialId ? String(initial.packagingMaterialId) : "");
   const [nums, setNums] = useState(Object.fromEntries(ALL_FIELDS.map((f) => [f.key, f.money ? formatMoneyInput(String(initial[f.key])) : str(initial[f.key])])));
@@ -77,6 +78,7 @@ function PreferencesForm({ initial, materials }: { initial: Settings; materials:
       ...Object.fromEntries(ALL_FIELDS.map((f) => [f.key, f.money ? parseMoney(nums[f.key]) : parseDecimal(nums[f.key])])),
       ...flags,
       packagingMaterialId: packaging ? Number(packaging) : null,
+      failureByMaterial: Object.fromEntries(Object.entries(byMaterial).flatMap(([k, v]) => (v.trim() === "" ? [] : [[k, parseDecimal(v)]]))), // vazio = a geral
       channels: channels.map(fromChannelForm),
     } as Omit<Settings, "kwhHistory">;
     try {
@@ -150,6 +152,18 @@ function PreferencesForm({ initial, materials }: { initial: Settings; materials:
             </select>
           </Field>
         </div>
+        <details style={{ marginTop: "var(--space-3)" }}>
+          <summary>Taxa de falha por material{Object.values(byMaterial).some((v) => v.trim()) ? " (em uso)" : ""}</summary>
+          <p className="hint">TPU, ABS e peças difíceis falham mais que PLA. Vazio = a taxa geral. Na calculadora vale a maior entre os filamentos da mesa.</p>
+          <div className="grid">
+            {MATERIAL_TYPES.map((m) => (
+              <label key={m}>
+                Falha {m} (%)
+                <input inputMode="decimal" value={byMaterial[m] ?? ""} placeholder={nums.failurePct} onChange={(e) => setByMaterial({ ...byMaterial, [m]: e.target.value })} />
+              </label>
+            ))}
+          </div>
+        </details>
         <div className="stack" style={{ gap: 8, marginTop: 12 }}>
           <label className="check">
             <input type="checkbox" checked={flags.includeFixedCosts} onChange={(e) => setFlags({ ...flags, includeFixedCosts: e.target.checked })} /> Incluir custos fixos no preço

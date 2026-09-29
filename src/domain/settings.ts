@@ -30,6 +30,8 @@ export const SettingsSchema = z.object({
   maintenancePct: z.number().min(0),
   /** De cada 100 impressões, quantas se perdem. < 100 para não dividir por zero. */
   failurePct: z.number().min(0).max(90, "Use até 90%"),
+  /** Taxa de falha por tipo de material (ex.: TPU 12); o que não estiver aqui usa a geral (#35). */
+  failureByMaterial: z.record(z.string(), z.number().min(0).max(90, "Use até 90%")),
   /** Imposto sobre a venda (Simples); MEI deixa 0 e lança o DAS em Custos operacionais. */
   taxPct: pct,
   includeFixedCosts: z.boolean(),
@@ -58,6 +60,7 @@ export const DEFAULT_SETTINGS: Settings = {
   laborHourCost: 0,
   maintenancePct: 0,
   failurePct: 5,
+  failureByMaterial: {},
   taxPct: 0,
   includeFixedCosts: false,
   productiveHoursMonth: 120,

@@ -4,7 +4,7 @@ import { getDb } from "../db";
 import { costsRepo } from "../db/costsRepo";
 import { filaments, loadSettings, materials, printers } from "../db/repo";
 import type { Db } from "../db/types";
-import { calculate, machineHourCost } from "../domain/calc";
+import { calculate, failureFor, machineHourCost } from "../domain/calc";
 import { findCatalogPrinter, printerLabel } from "../domain/catalog/printers";
 import { staleChannelText } from "../domain/channels";
 import { fixedCostPerHour } from "../domain/finance";
@@ -92,6 +92,10 @@ export default function Calculator({ go }: { go: Go }) {
     if (m) setExt([{ ref: String(m.id), price: formatMoneyInput(String(m.price)), qty: f.quantity || "1" }]);
   }
 
+  const failure = failureFor(
+    fil.flatMap((l) => data.stock.find((x) => String(x.id) === l.ref)?.material ?? []),
+    data.settings,
+  );
   const r = calculate(
     {
       filaments: fil.map((l) => ({ pricePerKg: price(l.price), grams: num(l.qty) })),
@@ -105,6 +109,7 @@ export default function Calculator({ go }: { go: Go }) {
       machinePerHour,
       fixedPerHour: data.fixedPerHour,
       energyKwh: num(f.kwh),
+      failurePct: failure.pct,
     },
     data.settings,
   );
@@ -336,7 +341,7 @@ export default function Calculator({ go }: { go: Go }) {
             onAdded={setDraftCount}
             onOpen={() => go("quotes")}
           />
-          {mode === "full" && <CostBreakdown r={r} s={data.settings} machinePerHour={machinePerHour} fixedPerHour={data.fixedPerHour} />}
+          {mode === "full" && <CostBreakdown r={r} s={data.settings} machinePerHour={machinePerHour} fixedPerHour={data.fixedPerHour} failure={failure} />}
         </aside>
       </div>
 

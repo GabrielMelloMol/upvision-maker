@@ -46,6 +46,7 @@ export default function ProductEditor({ initial, data, onClose, onSaved }: Props
     consignmentPrice: base.consignmentPrice != null ? brl(base.consignmentPrice) : "",
     stock: str(base.stock),
     minStock: str(base.minStock),
+    failure: str(base.failurePct),
   });
   const [fil, setFil] = useState<Line[]>(base.composition.filaments.map((l) => ({ id: String(l.filamentId), qty: str(l.grams) })));
   const [mat, setMat] = useState<Line[]>(base.composition.materials.map((l) => ({ id: String(l.materialId), qty: str(l.qty) })));
@@ -81,6 +82,7 @@ export default function ProductEditor({ initial, data, onClose, onSaved }: Props
     consignmentPrice: optMoney(n.consignmentPrice),
     stock: num(n.stock) || 0,
     minStock: num(n.minStock) || 0,
+    failurePct: n.failure.trim() === "" ? null : num(n.failure),
     composition: {
       filaments: lines(fil).map((l) => ({ filamentId: Number(l.id), grams: num(l.qty) || 0 })),
       materials: lines(mat).map((l) => ({ materialId: Number(l.id), qty: num(l.qty) || 0 })),
@@ -219,6 +221,11 @@ export default function ProductEditor({ initial, data, onClose, onSaved }: Props
                 Peças na mesa
                 <input inputMode="numeric" value={n.pieces} aria-invalid={!!errors.piecesPerPlate} onChange={setNum("pieces")} />
                 {errors.piecesPerPlate && <span className="error">Use 1 ou mais.</span>}
+              </label>
+              <label>
+                Taxa de falha deste produto (%)
+                <input inputMode="decimal" value={n.failure} placeholder="a do material" aria-invalid={!!errors.failurePct} onChange={setNum("failure")} />
+                {errors.failurePct ? <span className="error">{errors.failurePct}</span> : <span className="hint">Vazio = a do material ou a geral.</span>}
               </label>
               <MoneyField label="Frete absorvido por peça" value={n.freight} onChange={setText("freight")} />
             </div>

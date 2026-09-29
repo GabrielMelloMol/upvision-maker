@@ -51,6 +51,8 @@ export const MIGRATIONS: string[][] = [
     "ALTER TABLE printers ADD COLUMN lifeHours REAL NOT NULL DEFAULT 5000",
     "ALTER TABLE printers ADD COLUMN upkeepPerHour REAL NOT NULL DEFAULT 0",
   ],
+  // Taxa de falha própria do produto (#35); NULL = a do material ou a geral.
+  ["ALTER TABLE products ADD COLUMN failurePct REAL"],
 ];
 
 export const SCHEMA_VERSION = MIGRATIONS.length;

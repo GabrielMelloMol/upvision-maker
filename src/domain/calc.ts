@@ -18,10 +18,23 @@ export interface CalcInput {
   marketplaceMarginPct: number;
   /** Depreciação + desgaste da impressora (R$/h), ver `machineHourCost`. */
   machinePerHour?: number;
+  /** Taxa de falha desta mesa (material ou produto, ver `failureFor`); ausente = a geral das Preferências. */
+  failurePct?: number;
   /** kWh medido na tomada para esta mesa: substitui W × horas. */
   energyKwh?: number;
   /** Custos operacionais rateados por hora de impressão (0 = desligado). */
   fixedPerHour?: number;
+}
+
+/**
+ * Taxa de falha de uma mesa (#35): a do produto, se tiver; senão a maior entre os materiais das linhas de filamento
+ * que tenham taxa própria; senão a geral. `source` diz de onde veio, para a linha "Falhas 12% (TPU)".
+ */
+export function failureFor(materials: string[], s: Settings, productPct?: number | null): { pct: number; source?: string } {
+  if (productPct != null) return { pct: productPct, source: "produto" };
+  const own = materials.filter((m) => s.failureByMaterial[m] !== undefined).map((m) => ({ pct: s.failureByMaterial[m], source: m }));
+  if (!own.length) return { pct: s.failurePct };
+  return own.reduce((a, b) => (b.pct > a.pct ? b : a));
 }
 
 /** R$ por hora de máquina: preço ÷ vida útil + desgaste. A1 de R$ 3.000 / 5000 h = R$ 0,60/h. */
@@ -93,7 +106,7 @@ export function calculate(input: CalcInput, s: Settings) {
   const machine = pos(input.machinePerHour) * hours;
   // Numa falha perde-se filamento, energia e máquina; a mão de obra e a embalagem não.
   const lost = filament + energy + machine;
-  const failure = lost / (1 - Math.min(pos(s.failurePct), 90) / 100) - lost;
+  const failure = lost / (1 - Math.min(pos(input.failurePct ?? s.failurePct), 90) / 100) - lost;
   const fixed = pos(input.fixedPerHour) * hours;
   const maintenance = machine > 0 ? 0 : (filament + extras + energy + labor) * (pos(s.maintenancePct) / 100);
   const batchCost = filament + extras + energy + labor + machine + failure + fixed + maintenance;

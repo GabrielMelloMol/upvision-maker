@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { calculate, machineHourCost, type CalcResult } from "./calc";
+import { calculate, failureFor, machineHourCost, type CalcResult } from "./calc";
 import type { Filament, Material, Printer } from "./entities";
 import type { Settings } from "./settings";
 
@@ -29,6 +29,8 @@ export const ProductInput = z.object({
   minStock: nonNeg,
   sku: z.string().trim().max(60),
   notes: z.string().trim().max(1000),
+  /** Taxa de falha só deste produto (peças altas, finas); null = a do material ou a geral (#35). Padrão para backups antigos. */
+  failurePct: z.number().min(0).max(90, "Use até 90%").nullable().default(null),
 });
 export type ProductInput = z.infer<typeof ProductInput>;
 export type Product = ProductInput & { id: number };
@@ -48,6 +50,7 @@ export const EMPTY_PRODUCT: ProductInput = {
   minStock: 0,
   sku: "",
   notes: "",
+  failurePct: null,
 };
 
 /** `fixedPerHour`: custos operacionais rateados (ver `fixedCostPerHour`); ausente = 0. */
@@ -62,9 +65,11 @@ function guard(p: Product, seen: Set<number>) {
 export function productPricing(p: Product, ctx: ProductCtx, seen = new Set<number>()): { result: CalcResult; warnings: string[] } {
   const inside = guard(p, seen);
   const warnings: string[] = [];
+  const materials: string[] = [];
   const filaments = p.composition.filaments.flatMap((l) => {
     const f = ctx.filaments.find((x) => x.id === l.filamentId);
     if (!f) warnings.push("Um filamento da composição foi excluído do cadastro.");
+    if (f) materials.push(f.material);
     return f ? [{ pricePerKg: f.pricePerKg, grams: l.grams }] : [];
   });
   const extras = p.composition.materials.flatMap((l) => {
@@ -95,6 +100,7 @@ export function productPricing(p: Product, ctx: ProductCtx, seen = new Set<numbe
       marketplaceMarginPct: ctx.settings.marketplaceMarginPct,
       machinePerHour: printer ? machineHourCost(printer) : 0,
       fixedPerHour: ctx.fixedPerHour,
+      failurePct: failureFor(materials, ctx.settings, p.failurePct).pct,
     },
     ctx.settings,
   );

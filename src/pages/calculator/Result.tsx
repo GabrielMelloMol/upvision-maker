@@ -60,7 +60,7 @@ const Row = ({ label, hint, value }: { label: string; hint?: string; value: numb
 );
 
 /** Parcelas do custo da mesa, com o parâmetro de cada uma em cinza. */
-export function CostBreakdown({ r, s, machinePerHour, fixedPerHour }: { r: CalcResult; s: Settings; machinePerHour: number; fixedPerHour: number }) {
+export function CostBreakdown({ r, s, machinePerHour, fixedPerHour, failure }: { r: CalcResult; s: Settings; machinePerHour: number; fixedPerHour: number; failure: { pct: number; source?: string } }) {
   return (
     <section className="card">
       <h2 className="card-title">Resultado por peça</h2>
@@ -70,7 +70,7 @@ export function CostBreakdown({ r, s, machinePerHour, fixedPerHour }: { r: CalcR
           <Row label="Materiais extras" value={r.extras} />
           <Row label="Energia" value={r.energy} />
           <Row label="Máquina" hint={machinePerHour > 0 ? `${money(machinePerHour)}/h` : "cadastre o preço da impressora"} value={r.machine} />
-          <Row label="Falhas" hint={pct(s.failurePct)} value={r.failure} />
+          <Row label="Falhas" hint={failure.source ? `${pct(failure.pct)} (${failure.source})` : pct(failure.pct)} value={r.failure} />
           <Row label="Mão de obra" value={r.labor} />
           {fixedPerHour > 0 && <Row label="Custos fixos" hint={`${money(fixedPerHour)}/h`} value={r.fixed} />}
           {r.maintenance > 0 && <Row label="Manutenção" hint={pct(s.maintenancePct)} value={r.maintenance} />}

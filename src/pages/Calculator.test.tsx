@@ -392,3 +392,14 @@ test("taxas conferidas há mais de 90 dias (#34): a linha do canal avisa", async
   await waitFor(() => expect(screen.getByRole("row", { name: /^Shopee/ })).toHaveTextContent(/Taxas da Shopee conferidas há \d+ meses: confira\./));
   expect(screen.getByRole("row", { name: /^Elo7/ })).not.toHaveTextContent("confira");
 });
+
+test("falha por material (#35): filamento TPU usa a taxa do TPU e a linha mostra a origem", async () => {
+  localStorage.setItem("upvision:calculadora", JSON.stringify({ mode: "full", fil: [{ ref: "", price: "", qty: "" }], ext: [], printerId: "", f: {} }));
+  await t.db.execute(`INSERT OR REPLACE INTO settings (id, data) VALUES (1, '{"failurePct":5,"failureByMaterial":{"TPU":12}}')`);
+  await t.db.execute("INSERT INTO filaments (material, color, brand, pricePerKg) VALUES ('TPU', 'Preto', '', 100)");
+  const user = userEvent.setup();
+  renderWithApp(<Calculator go={() => {}} />);
+  await user.selectOptions(await screen.findByLabelText("Cadastrado"), "TPU · Preto");
+  await user.type(screen.getByLabelText("Gramas"), "88"); // 8,80 → 8,80 ÷ 0,88 − 8,80 = 1,20
+  expect(screen.getByRole("row", { name: /^Falhas · 12\s%\s\(TPU\)/ })).toHaveTextContent(brl("1,20"));
+});

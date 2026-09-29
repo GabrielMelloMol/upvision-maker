@@ -118,6 +118,16 @@ describe("Preferences", () => {
     expect(byName["Mercado Livre (clássico)"]).not.toHaveProperty("checkedAt");
   });
 
+  test("falha por material (#35): só os preenchidos são gravados", async () => {
+    const user = userEvent.setup();
+    renderWithApp(<Preferences />);
+    await user.click(await screen.findByText(/^Taxa de falha por material/));
+    await user.type(screen.getByLabelText("Falha TPU (%)"), "12");
+    await user.click(screen.getByRole("button", { name: "Salvar preferências" }));
+    expect(await screen.findByText("Preferências salvas.")).toBeInTheDocument();
+    expect((await settings()).failureByMaterial).toEqual({ TPU: 12 });
+  });
+
   test("calcular o kWh pela conta de luz (#2): total ÷ kWh + bandeira, usa, guarda histórico e salvar não apaga", async () => {
     vi.useFakeTimers({ toFake: ["Date"] });
     vi.setSystemTime(new Date(2026, 8, 15, 12));

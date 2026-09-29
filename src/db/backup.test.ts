@@ -29,6 +29,14 @@ describe("backup", () => {
     expect(await db.select("SELECT * FROM printers")).toEqual([{ id: 1, name: "A1", watts: 95, price: 0, lifeHours: 5000, upkeepPerHour: 0 }]);
   });
 
+  test("backup antigo (produto sem taxa de falha) restaura com null (#35)", async () => {
+    const db = await seeded();
+    const b = await exportBackup(db);
+    const product = { id: 1, name: "Chaveiro", kind: "simple", composition: '{"filaments":[],"materials":[],"items":[]}', printerId: null, printMinutes: 0, laborMinutes: 0, piecesPerPlate: 1, freight: 0, manualPrice: null, consignmentPrice: null, stock: 0, minStock: 0, sku: "", notes: "" };
+    await restoreBackup(db, parseBackup(JSON.stringify({ ...b, schemaVersion: 10, tables: { ...b.tables, products: [product] } })));
+    expect(await db.select("SELECT name, failurePct FROM products")).toEqual([{ name: "Chaveiro", failurePct: null }]);
+  });
+
   test("rejeita arquivo que não é backup do app", () => {
     expect(() => parseBackup("{}")).toThrow(/não é um backup/i);
     expect(() => parseBackup("lixo")).toThrow(/não é um backup/i);
