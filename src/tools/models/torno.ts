@@ -1,6 +1,7 @@
-import { CaseUpper } from "lucide-react";
+import { CaseUpper, Puzzle } from "lucide-react";
 import { buildBigLetter, DEFAULT_BIG_LETTER } from "../../geometry/models/bigLetter";
-import { as, choice, color, num, text, type ModelDef } from "./fields";
+import { buildPuzzle, DEFAULT_PUZZLE } from "../../geometry/models/puzzle";
+import { as, bool, choice, color, num, text, type ModelDef } from "./fields";
 
 /** Modelos da fila do Torno (letra grande, quebra-cabeça, letreiros…). */
 export const TORNO_MODELS: ModelDef[] = [
@@ -46,5 +47,39 @@ export const TORNO_MODELS: ModelDef[] = [
       },
     ],
     build: (ctx, p) => buildBigLetter(ctx, as(p)),
+  },
+  {
+    id: "puzzle",
+    category: "home",
+    label: "Quebra-cabeça",
+    blurb: "Sua arte dividida em peças quadradas, com verso em outra cor, moldura e suporte opcionais.",
+    icon: Puzzle,
+    art: "Arte do quebra-cabeça (SVG ou imagem)",
+    defaults: DEFAULT_PUZZLE,
+    sections: [
+      {
+        title: "Peças",
+        fields: [
+          num("width", "Largura montado", 40, 250, { step: 1 }),
+          num("columns", "Peças por linha", 2, 16, { step: 1, unit: "", hint: "As linhas seguem a proporção da arte." }),
+          num("thickness", "Espessura", 2, 10),
+          num("inlay", "Profundidade da arte", 0.2, 2, { hint: "A arte fica embutida, rente à face." }),
+          num("clearance", "Folga entre peças", 0.1, 0.8, { step: 0.05 }),
+          choice("face", "Imprimir com a arte", [["up", "Para cima"], ["down", "Para baixo (face lisa)"]]),
+        ],
+      },
+      {
+        title: "Moldura e cores",
+        fields: [
+          bool("frame", "Moldura"),
+          bool("stand", "Suporte de mesa (com moldura)"),
+          color("pieceColor", "Peças"),
+          color("artColor", "Arte (1 cor)"),
+          color("backColor", "Verso"),
+          color("frameColor", "Moldura e suporte"),
+        ],
+      },
+    ],
+    build: (ctx, p) => buildPuzzle(ctx, as(p)),
   },
 ];
