@@ -13,10 +13,15 @@ const brl = (s: string) => new RegExp(`R\\$\\s${s}`);
 /** Valor da linha "Custo por peça" na tabela de resultado. */
 const unitCost = () => within(screen.getByRole("row", { name: /^Custo por peça/ })).getAllByRole("columnheader")[1];
 
-beforeEach(() => void clearProductDraft());
+beforeEach(async () => {
+  clearProductDraft();
+  // Casos antigos: modo Completo, manutenção 5% e sem taxa de falha (os números abaixo são desse jeito).
+  localStorage.setItem("upvision:calculadora", JSON.stringify({ mode: "full", fil: [{ ref: "", price: "", qty: "" }], ext: [], printerId: "", f: {} }));
+  await t.db.execute(`INSERT INTO settings (id, data) VALUES (1, '{"maintenancePct":5,"failurePct":0}')`);
+});
 
 describe("Calculator", () => {
-  test("filamento digitado à mão + manutenção padrão de 5% dão o custo por peça e os preços", async () => {
+  test("filamento digitado à mão + manutenção de 5% dão o custo por peça e os preços", async () => {
     const user = userEvent.setup();
     renderWithApp(<Calculator go={() => {}} />);
     await user.type(screen.getByLabelText("Preço por kg"), "100");
@@ -27,7 +32,7 @@ describe("Calculator", () => {
     await user.clear(qty);
     await user.type(qty, "2");
     expect(unitCost()).toHaveTextContent(brl("10,50"));
-    expect(screen.getByRole("row", { name: /^Revenda/ })).toHaveTextContent(brl("31,50"));
+    expect(screen.getByRole("row", { name: /^Para lojista/ })).toHaveTextContent(brl("31,50"));
     expect(screen.getByRole("row", { name: /^Shopee/ })).toBeInTheDocument();
   });
 
@@ -50,10 +55,10 @@ describe("Calculator", () => {
   });
 
   test("energia e mão de obra usam as preferências", async () => {
-    await t.db.execute(`INSERT INTO settings (id, data) VALUES (1, '{"kwhPrice":1,"laborHourCost":60,"maintenancePct":0,"multResale":2,"multConsumer":4,"marketplaceMarginPct":30,"channels":[]}')`);
+    await t.db.execute(`INSERT OR REPLACE INTO settings (id, data) VALUES (1, '{"kwhPrice":1,"laborHourCost":60,"maintenancePct":0,"multResale":2,"multConsumer":4,"marketplaceMarginPct":30,"channels":[],"failurePct":0}')`);
     const user = userEvent.setup();
     renderWithApp(<Calculator go={() => {}} />);
-    await screen.findByText("Manutenção (0%)");
+    await screen.findByText(/×4/);
     await user.type(screen.getByLabelText("Potência (W)"), "100");
     await user.type(screen.getByLabelText("Tempo de impressão"), "10");
     await user.type(screen.getByLabelText("Mão de obra"), "30");
@@ -90,7 +95,7 @@ describe("Calculator", () => {
     await user.type(screen.getByLabelText("Preço por kg"), "100");
     await user.type(screen.getByLabelText("Gramas"), "200"); // custo por peça R$ 21,00
     const row = (name: RegExp) => screen.getByRole("row", { name });
-    expect(row(/^Direto ao consumidor/)).toHaveTextContent("melhor lucro");
+    expect(row(/^Venda direta/)).toHaveTextContent("melhor lucro");
     expect(row(/^Shopee/)).toHaveTextContent(brl("50,00")); // (21 + 4) ÷ (1 − 20% − 30%)
 
     await user.click(screen.getByRole("button", { name: ",90" }));
@@ -100,17 +105,17 @@ describe("Calculator", () => {
     await user.type(screen.getByLabelText("Preço do concorrente"), "30");
     expect(screen.getByRole("columnheader", { name: "Lucro no preço do concorrente" })).toBeInTheDocument();
     expect(row(/^Shopee/)).toHaveTextContent(/-R\$\s1,00\s*prejuízo/); // 30 − (6 + 4) − 21
-    expect(row(/^Direto ao consumidor/)).not.toHaveTextContent("prejuízo");
+    expect(row(/^Venda direta/)).not.toHaveTextContent("prejuízo");
     expect(screen.getByText(/^\d+% acima do concorrente/)).toBeInTheDocument();
   });
 
   test("margem mínima das preferências marca o canal abaixo dela", async () => {
-    await t.db.execute(`INSERT INTO settings (id, data) VALUES (1, '{"multResale":1.05,"minMarginPct":10}')`);
+    await t.db.execute(`INSERT OR REPLACE INTO settings (id, data) VALUES (1, '{"multResale":1.05,"minMarginPct":10,"failurePct":0,"maintenancePct":5}')`);
     const user = userEvent.setup();
     renderWithApp(<Calculator go={() => {}} />);
     await user.type(await screen.findByLabelText("Preço por kg"), "100");
     await user.type(screen.getByLabelText("Gramas"), "200");
-    await waitFor(() => expect(screen.getByRole("row", { name: /^Revenda/ })).toHaveTextContent("abaixo da margem mínima"));
+    await waitFor(() => expect(screen.getByRole("row", { name: /^Para lojista/ })).toHaveTextContent("abaixo da margem mínima"));
   });
 
   test("salvar como produto leva só linhas cadastradas, avisa as puladas e abre Produtos", async () => {
@@ -153,5 +158,88 @@ describe("Calculator", () => {
     expect(screen.getByLabelText("Peças na mesa")).toHaveValue("3");
     expect(screen.getAllByLabelText("Gramas").map((i) => (i as HTMLInputElement).value)).toEqual(["3,79", "0,55"]);
     expect(screen.getAllByLabelText("Preço por kg").map((i) => (i as HTMLInputElement).value)).toEqual(["120,00", "110,00"]);
+  });
+});
+
+describe("Calculadora (#22)", () => {
+  beforeEach(async () => {
+    localStorage.removeItem("upvision:calculadora");
+    await t.db.execute("DELETE FROM settings"); // padrões: falha 5%, sem manutenção
+  });
+
+  test("abre no Rápido; 'Ver detalhes' leva os valores para o Completo e volta; lembra o último cálculo", async () => {
+    const user = userEvent.setup();
+    const first = renderWithApp(<Calculator go={() => {}} />);
+    expect(screen.getByRole("button", { name: "Rápido" })).toHaveAttribute("aria-pressed", "true");
+    expect(screen.queryByText("Materiais extras")).not.toBeInTheDocument();
+    await user.type(screen.getByLabelText("Preço por kg"), "100");
+    await user.type(screen.getByLabelText("Gramas"), "200");
+    await user.type(screen.getByLabelText("Tempo de impressão"), "2h");
+    await user.click(screen.getByRole("button", { name: "Ver detalhes" }));
+    expect(screen.getByRole("button", { name: "Completo" })).toHaveAttribute("aria-pressed", "true");
+    expect(screen.getByLabelText("Gramas")).toHaveValue("200");
+    expect(screen.getByLabelText("Tempo de impressão")).toHaveValue("2h");
+    expect(unitCost()).toHaveTextContent(brl("21,05")); // 20 + falha 5% (20 ÷ 0,95 − 20)
+    expect(screen.getByRole("row", { name: /^Falhas · 5 %/ })).toHaveTextContent(brl("1,05"));
+    first.unmount();
+
+    renderWithApp(<Calculator go={() => {}} />);
+    expect(screen.getByRole("button", { name: "Completo" })).toHaveAttribute("aria-pressed", "true");
+    expect(screen.getByLabelText("Gramas")).toHaveValue("200");
+    await user.click(screen.getByRole("button", { name: "Limpar" }));
+    expect(screen.getByLabelText("Gramas")).toHaveValue("");
+  });
+
+  test("impressora com preço cobra a máquina por hora; nomes dos preços explicados", async () => {
+    await t.db.execute("INSERT INTO printers (name, watts, price, lifeHours) VALUES ('Bambu Lab A1', 95, 3000, 5000)");
+    const user = userEvent.setup();
+    renderWithApp(<Calculator go={() => {}} />);
+    await user.click(screen.getByRole("button", { name: "Completo" }));
+    await user.selectOptions(await screen.findByLabelText("Impressora"), "Bambu Lab A1");
+    await user.type(screen.getByLabelText("Tempo de impressão"), "2h30");
+    expect(screen.getByRole("row", { name: /^Máquina · R\$\s0,60\/h/ })).toHaveTextContent(brl("1,50"));
+    expect(screen.getByText("Bambu Lab A1: 95 W (oficial)")).toBeInTheDocument();
+    expect(screen.getByText(/Para lojista \(revenda\) ×3/)).toBeInTheDocument();
+    expect(screen.getByText(/Venda direta \(consumidor final\) ×5/)).toBeInTheDocument();
+    expect(screen.getByText("markup 400 % · margem 80 % antes das taxas")).toBeInTheDocument();
+    await user.click(screen.getByText("Qual preço usar?"));
+    expect(screen.getByText(/loja, papelaria/)).toBeVisible();
+  });
+
+  test("medir com tomada inteligente: kWh início/fim + duração → W médio, gravado na impressora", async () => {
+    await t.db.execute("INSERT INTO printers (name, watts) VALUES ('Bambu Lab A1', 95)");
+    const user = userEvent.setup();
+    renderWithApp(<Calculator go={() => {}} />);
+    await user.click(screen.getByRole("button", { name: "Completo" }));
+    await user.selectOptions(await screen.findByLabelText("Impressora"), "Bambu Lab A1");
+    await user.click(screen.getByRole("button", { name: /Medir com tomada inteligente/ }));
+    const sheet = await screen.findByRole("dialog", { name: "Medir com tomada inteligente" });
+    await user.type(within(sheet).getByLabelText("kWh no início"), "52,16");
+    await user.type(within(sheet).getByLabelText("kWh no fim"), "52,46");
+    await user.type(within(sheet).getByLabelText("Duração da impressão"), "3h");
+    await user.click(within(sheet).getByRole("button", { name: "Usar 100 W" }));
+    expect(screen.getByLabelText("Potência (W)")).toHaveValue("100");
+    await waitFor(async () => expect(await t.db.select("SELECT watts FROM printers")).toEqual([{ watts: 100 }]));
+  });
+
+  test("kWh medido desta impressão substitui potência × tempo", async () => {
+    await t.db.execute(`INSERT INTO settings (id, data) VALUES (1, '{"kwhPrice":1,"failurePct":0}')`);
+    const user = userEvent.setup();
+    renderWithApp(<Calculator go={() => {}} />);
+    await user.click(screen.getByRole("button", { name: "Completo" }));
+    await user.type(screen.getByLabelText("Potência (W)"), "200");
+    await user.type(screen.getByLabelText("Tempo de impressão"), "5h");
+    await waitFor(() => expect(screen.getByRole("row", { name: /^Energia/ })).toHaveTextContent(brl("1,00")));
+    await user.type(screen.getByLabelText("kWh medido desta impressão"), "0,3");
+    expect(screen.getByRole("row", { name: /^Energia/ })).toHaveTextContent(brl("0,30"));
+  });
+
+  test("embalagem padrão das Preferências já entra nos materiais extras", async () => {
+    await t.db.execute("INSERT INTO materials (name, unit, unitPrice) VALUES ('Caixinha', 'un', 2)");
+    await t.db.execute(`INSERT INTO settings (id, data) VALUES (1, '{"packagingMaterialId":1}')`);
+    const user = userEvent.setup();
+    renderWithApp(<Calculator go={() => {}} />);
+    await user.click(screen.getByRole("button", { name: "Completo" }));
+    await waitFor(() => expect(screen.getByRole("row", { name: /^Materiais extras/ })).toHaveTextContent(brl("2,00")));
   });
 });

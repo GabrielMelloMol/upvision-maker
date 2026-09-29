@@ -50,3 +50,31 @@ describe("Impressoras: catálogo (#1)", () => {
     expect(screen.getByLabelText(/^Nome/)).toHaveValue("");
   });
 });
+
+test("preço e vida útil da impressora (#22): gravados, na tabela; desgaste só no formulário", async () => {
+  const user = userEvent.setup();
+  renderWithApp(<Printers />);
+  await user.type(await screen.findByLabelText(/^Nome/), "A1");
+  await user.type(screen.getByLabelText(/^Potência/), "95");
+  await user.type(screen.getByLabelText(/^Preço pago/), "3000");
+  expect(screen.getByLabelText(/^Vida útil/)).toHaveValue("5000");
+  await user.click(screen.getByRole("button", { name: /Adicionar/ }));
+  const row = await screen.findByRole("row", { name: /A1/ });
+  expect(row).toHaveTextContent("R$ 3.000,00");
+  expect(screen.queryByRole("columnheader", { name: /Desgaste/ })).not.toBeInTheDocument();
+  expect(await t.db.select("SELECT price, lifeHours, upkeepPerHour FROM printers")).toEqual([{ price: 3000, lifeHours: 5000, upkeepPerHour: 0 }]);
+});
+
+test("potência medida com tomada inteligente preenche o campo (#22)", async () => {
+  const user = userEvent.setup();
+  renderWithApp(<Printers />);
+  await user.click(await screen.findByRole("button", { name: "Medir com tomada inteligente" }));
+  const sheet = await screen.findByRole("dialog", { name: "Medir com tomada inteligente" });
+  expect(within(sheet).getByText(/não o Power \(W\)/)).toBeInTheDocument();
+  await user.type(within(sheet).getByLabelText("kWh no início"), "10");
+  await user.type(within(sheet).getByLabelText("kWh no fim"), "10,05");
+  await user.type(within(sheet).getByLabelText("Duração da impressão"), "30 min");
+  expect(within(sheet).getByText(/menos de 1 hora/)).toBeInTheDocument();
+  await user.click(within(sheet).getByRole("button", { name: "Usar 100 W" }));
+  expect(screen.getByLabelText(/^Potência/)).toHaveValue("100");
+});

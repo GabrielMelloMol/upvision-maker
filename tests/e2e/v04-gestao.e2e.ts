@@ -163,6 +163,7 @@ test("calculadora: filamento do fatiador sem cadastro vira cadastro e a linha pa
   tauri.db.exec(`INSERT INTO printers (name, watts) VALUES ('A1', 110);
     INSERT INTO filaments (material, color, brand, pricePerKg, spoolG, stockG, minG) VALUES ('PETG', 'Vermelho', 'Voolt', 100, 1000, 800, 200);`);
   await go(page, "Calculadora");
+  await page.getByRole("button", { name: "Completo" }).click(); // abre no Rápido (#22)
   await page.locator(".card", { hasText: "Importar do fatiador" }).locator('input[type="file"]').setInputFiles(fixture("bambu-a1-2cores-fatiado.3mf"));
   await expect(page.getByText("Lido de")).toBeVisible();
 
@@ -185,9 +186,13 @@ test("calculadora: filamento do fatiador sem cadastro vira cadastro e a linha pa
   await expect(main.getByLabel("Gramas").nth(0)).toHaveValue("3,79");
 });
 
+/** Preferências de antes da v0.6 (manutenção 5%, sem taxa de falha), para os números do exemplo da home. */
+const LEGACY = `INSERT INTO settings (id, data) VALUES (1, '{"maintenancePct":5,"failurePct":0}') ON CONFLICT(id) DO UPDATE SET data = excluded.data`;
+
 /** Exemplo da home: custo R$ 15,96, revenda 47,88, consumidor 79,80; canais padrão (Shopee 20% + 4, ML 14% + 6,75, TikTok 12% + 4) com 30% de margem. */
 async function fillHomeExample(page: import("@playwright/test").Page) {
   await go(page, "Calculadora");
+  await page.getByRole("button", { name: "Completo" }).click(); // abre no Rápido (#22)
   const main = page.getByRole("main");
   await main.getByLabel("Preço por kg").fill("85");
   await main.getByLabel("Gramas").fill("120");
@@ -201,17 +206,17 @@ async function fillHomeExample(page: import("@playwright/test").Page) {
 const cells = (card: import("@playwright/test").Locator, channel: RegExp) => card.getByRole("row", { name: channel }).getByRole("cell");
 
 test("calculadora: preço por canal com arredondamento e melhor lucro", async ({ page, tauri }) => {
-  void tauri;
   await openApp(page);
+  tauri.db.exec(LEGACY);
   const card = await fillHomeExample(page);
   // Shopee: (15,96 + 4) ÷ (1 − 20% − 30%) = 39,92; taxas 7,98 + 4 = 11,98; lucro 11,98
   await expect(cells(card, /Shopee/)).toHaveText([/^Shopee/, "R$ 39,92", "R$ 11,98", "R$ 11,98", "30%"]);
-  await expect(cells(card, /Direto ao consumidor/)).toHaveText([/Direto ao consumidor/, "R$ 79,80", "R$ 0,00", "R$ 63,84", "80%"]);
+  await expect(cells(card, /Venda direta/)).toHaveText([/Venda direta/, "R$ 79,80", "R$ 0,00", "R$ 63,84", "80%"]);
   await expect(cells(card, /Mercado Livre/).nth(1)).toHaveText("R$ 40,55");
   await expect(cells(card, /TikTok Shop/).nth(1)).toHaveText("R$ 34,41");
   // melhor lucro: direto (63,84)
   await expect(card.locator(".badge", { hasText: "melhor lucro" })).toHaveCount(1);
-  await expect(card.getByRole("row", { name: /Direto ao consumidor/ })).toContainText("melhor lucro");
+  await expect(card.getByRole("row", { name: /Venda direta/ })).toContainText("melhor lucro");
   await expect(card.locator(".badge", { hasText: "abaixo da margem mínima" })).toHaveCount(0);
 
   const seg = card.getByRole("group", { name: "Arredondar preços" });
@@ -225,16 +230,16 @@ test("calculadora: preço por canal com arredondamento e melhor lucro", async ({
     await seg.getByRole("button", { name: mode, exact: true }).click();
     await expect(seg.getByRole("button", { name: mode, exact: true })).toHaveAttribute("aria-pressed", "true");
     await expect(cells(card, /Shopee/).nth(1)).toHaveText(shopee);
-    await expect(cells(card, /Direto ao consumidor/).nth(1)).toHaveText(direct);
-    await expect(cells(card, /Revenda/).nth(1)).toHaveText(resale);
+    await expect(cells(card, /Venda direta/).nth(1)).toHaveText(direct);
+    await expect(cells(card, /Para lojista/).nth(1)).toHaveText(resale);
   }
   // Inteiro na Shopee: 40 → taxas 8 + 4 = 12; lucro 40 − 12 − 15,96 = 12,04
   await expect(cells(card, /Shopee/)).toHaveText([/^Shopee/, "R$ 40,00", "R$ 12,00", "R$ 12,04", "30,1%"]);
 });
 
 test("calculadora: preço do concorrente mostra coluna, dica e prejuízo", async ({ page, tauri }) => {
-  void tauri;
   await openApp(page);
+  tauri.db.exec(LEGACY);
   const card = await fillHomeExample(page);
   await expect(card.getByRole("columnheader", { name: "Lucro no preço do concorrente" })).toHaveCount(0);
   await expect(card.getByText("Opcional: veja se o seu preço está longe do mercado.")).toBeVisible();
@@ -244,7 +249,7 @@ test("calculadora: preço do concorrente mostra coluna, dica e prejuízo", async
   await expect(card.getByRole("columnheader", { name: "Lucro no preço do concorrente" })).toBeVisible();
   // 79,80 vs 120 → 33,5% abaixo: ok (vende)
   await expect(card.getByText("34% abaixo do concorrente.")).toBeVisible();
-  await expect(cells(card, /Direto ao consumidor/).nth(5)).toHaveText("R$ 104,04"); // 120 − 15,96
+  await expect(cells(card, /Venda direta/).nth(5)).toHaveText("R$ 104,04"); // 120 − 15,96
 
   await competitor.fill("78");
   await expect(card.getByText("Parecido com o concorrente.")).toBeVisible();
@@ -256,8 +261,8 @@ test("calculadora: preço do concorrente mostra coluna, dica e prejuízo", async
   await expect(shopeeAtComp).toContainText("3,96");
   await expect(shopeeAtComp).toContainText("-");
   await expect(shopeeAtComp.locator(".badge", { hasText: "prejuízo" }).locator("svg")).toBeVisible();
-  await expect(cells(card, /Direto ao consumidor/).nth(5)).toHaveText("R$ 4,04");
-  await expect(cells(card, /Direto ao consumidor/).nth(5).locator(".badge")).toHaveCount(0);
+  await expect(cells(card, /Venda direta/).nth(5)).toHaveText("R$ 4,04");
+  await expect(cells(card, /Venda direta/).nth(5).locator(".badge")).toHaveCount(0);
   // o preço sugerido do canal continua com lucro
   await expect(cells(card, /Shopee/).nth(3).locator(".badge", { hasText: "prejuízo" })).toHaveCount(0);
 
@@ -267,6 +272,7 @@ test("calculadora: preço do concorrente mostra coluna, dica e prejuízo", async
 
 test("calculadora: canais abaixo da margem mínima das Preferências ganham alerta", async ({ page, tauri }) => {
   await openApp(page);
+  tauri.db.exec(LEGACY);
   await go(page, "Preferências");
   await page.getByLabel("Margem mínima (%)").fill("50");
   await page.getByRole("button", { name: "Salvar preferências" }).click();
@@ -281,6 +287,6 @@ test("calculadora: canais abaixo da margem mínima das Preferências ganham aler
     await expect(badge).toHaveAttribute("title", "Margem mínima: 50% (Preferências)");
     await expect(badge.locator("svg")).toHaveCount(1);
   }
-  for (const ch of [/Direto ao consumidor/, /Revenda/]) await expect(card.getByRole("row", { name: ch })).not.toContainText("abaixo da margem mínima");
-  await expect(cells(card, /Revenda/).nth(4)).toHaveText("66,7%");
+  for (const ch of [/Venda direta/, /Para lojista/]) await expect(card.getByRole("row", { name: ch })).not.toContainText("abaixo da margem mínima");
+  await expect(cells(card, /Para lojista/).nth(4)).toHaveText("66,7%");
 });

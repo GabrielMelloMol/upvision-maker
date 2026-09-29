@@ -241,8 +241,8 @@ export default function ProductEditor({ initial, data, onClose, onSaved }: Props
                 <table>
                   <tbody>
                     <tr><td>Custo por peça</td><td className="num"><b>{money(pricing.result.unitCost)}</b></td></tr>
-                    <tr><td>Revenda (×{data.settings.multResale})</td><td className="num">{money(pricing.result.resale)}</td></tr>
-                    <tr><td>Consumidor (×{data.settings.multConsumer})</td><td className="num">{money(pricing.result.consumer)}</td></tr>
+                    <tr><td>Para lojista (×{data.settings.multResale})</td><td className="num">{money(pricing.result.resale)}</td></tr>
+                    <tr><td>Venda direta (×{data.settings.multConsumer})</td><td className="num">{money(pricing.result.consumer)}</td></tr>
                     {pricing.result.channels.map((c) => (
                       <tr key={c.name}>
                         <td>{c.name}</td>

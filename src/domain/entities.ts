@@ -6,7 +6,9 @@ const nonNeg = z.number().min(0, "Não pode ser negativo");
 
 export const MATERIAL_TYPES = ["PLA", "PETG", "ABS", "ASA", "TPU", "Nylon", "Resina", "Outro"] as const;
 
-export const PrinterInput = z.object({ name, watts: nonNeg });
+/** price/lifeHours/upkeepPerHour: depreciação e desgaste (custo de máquina por hora). */
+// Padrões: cadastros e backups anteriores à v0.6 não têm esses campos.
+export const PrinterInput = z.object({ name, watts: nonNeg, price: nonNeg.default(0), lifeHours: nonNeg.default(5000), upkeepPerHour: nonNeg.default(0) });
 export const FilamentInput = z.object({
   material: name,
   color: text,

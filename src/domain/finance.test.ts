@@ -120,3 +120,10 @@ test("custos recorrentes em vigor: ignora os que ainda não começaram, já term
   expect(monthlyRecurring([c("monthly", 100, "2026-01-01"), c("yearly", 1200, "2025-01-01"), c("once", 500, "2026-06-01")], today)).toBe(200);
   expect(monthlyRecurring([c("monthly", 100, "2027-01-01"), c("monthly", 50, "2026-01-01", "2026-05-31")], today)).toBe(0);
 });
+
+test("custos fixos por hora de impressão: mensal equivalente ÷ horas do mês; desligado = 0", async () => {
+  const { fixedCostPerHour } = await import("./finance");
+  const costs = [{ frequency: "monthly" as const, amount: 300, startDate: "2026-01-01", endDate: null }];
+  expect(fixedCostPerHour(costs, { includeFixedCosts: true, productiveHoursMonth: 120 }, "2026-06-15")).toBe(2.5);
+  expect(fixedCostPerHour(costs, { includeFixedCosts: false, productiveHoursMonth: 120 }, "2026-06-15")).toBe(0);
+});

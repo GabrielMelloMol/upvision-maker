@@ -256,7 +256,7 @@ describe("Catálogo em PDF", () => {
     await user.click(within(c).getByRole("checkbox", { name: /Ímã/ }));
     await user.click(within(c).getByRole("checkbox", { name: /Ímã/ }));
     expect(within(c).getByRole("button", { name: "Salvar PDF (1)" })).toBeEnabled();
-    await user.click(within(c).getByRole("button", { name: "Revenda (atacado)" }));
+    await user.click(within(c).getByRole("button", { name: "Para lojista (revenda)" }));
     const title = within(c).getByLabelText("Título");
     await user.clear(title);
     await user.type(title, "Natal 2026");

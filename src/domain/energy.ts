@@ -37,3 +37,22 @@ export function kwhWarning(price: number): string | null {
 export function addKwhHistory(history: KwhEntry[], e: KwhEntry): KwhEntry[] {
   return [e, ...history.filter((h) => h.month !== e.month)].slice(0, HISTORY_MAX);
 }
+
+const SHORT_PRINT_H = 1;
+/** Acima disso (±50%) a medição provavelmente pegou outra coisa: aquecimento, câmara, secador. */
+const FAR_FROM_CATALOG = 0.5;
+
+/**
+ * W médio medido com tomada inteligente: o contador Total (kWh) no início e no fim de uma impressão.
+ * O W instantâneo do app não serve: vai de ~6 W parada a 300 W+ aquecendo a mesa.
+ */
+export function plugWatts(m: { startKwh: number; endKwh: number; hours: number }, catalogWatts?: number): { watts: number | null; warnings: string[] } {
+  const kwh = m.endKwh - m.startKwh;
+  if (!(kwh > 0) || !(m.hours > 0)) return { watts: null, warnings: [] };
+  const watts = Math.round((kwh / m.hours) * 1000);
+  const warnings: string[] = [];
+  if (m.hours < SHORT_PRINT_H) warnings.push("Impressão de menos de 1 hora: o aquecimento da mesa pesa demais. Meça uma impressão mais longa.");
+  if (catalogWatts && Math.abs(watts - catalogWatts) / catalogWatts > FAR_FROM_CATALOG)
+    warnings.push(`Bem diferente do catálogo (${catalogWatts} W). Confira os números do app da tomada.`);
+  return { watts, warnings };
+}

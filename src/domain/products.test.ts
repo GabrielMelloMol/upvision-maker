@@ -5,7 +5,7 @@ import { DEFAULT_SETTINGS } from "./settings";
 
 const filament = (id: number, pricePerKg: number): Filament => ({ id, material: "PLA", color: "", brand: "", pricePerKg, spoolG: 1000, stockG: 1000, minG: 0 });
 const material = (id: number, unitPrice: number): Material => ({ id, name: "Embalagem", unit: "un", unitPrice, stock: 100, min: 0 });
-const printer: Printer = { id: 1, name: "A1", watts: 0 };
+const printer: Printer = { id: 1, name: "A1", watts: 0, price: 0, lifeHours: 5000, upkeepPerHour: 0 };
 
 function product(id: number, p: Partial<Product>): Product {
   return {
@@ -29,7 +29,7 @@ function product(id: number, p: Partial<Product>): Product {
 }
 
 function ctx(products: Product[], fil = [filament(1, 85)]): ProductCtx {
-  return { filaments: fil, materials: [material(1, 5)], printers: [printer], products, settings: { ...DEFAULT_SETTINGS, maintenancePct: 5 } };
+  return { filaments: fil, materials: [material(1, 5)], printers: [printer], products, settings: { ...DEFAULT_SETTINGS, maintenancePct: 5, failurePct: 0 } };
 }
 
 const luminaria = product(1, { composition: { filaments: [{ filamentId: 1, grams: 120 }], materials: [{ materialId: 1, qty: 1 }], items: [] } });
@@ -40,6 +40,15 @@ describe("preço do produto", () => {
     expect(result.unitCost).toBe(15.96);
     expect(result.resale).toBe(47.88);
     expect(result.consumer).toBe(79.8);
+  });
+
+  test("impressora com preço: máquina por hora e custos fixos rateados entram no custo", () => {
+    const a1: Printer = { ...printer, price: 3000 };
+    const p = product(2, { printerId: 1, printMinutes: 150 });
+    const { result } = productPricing(p, { ...ctx([p]), printers: [a1], fixedPerHour: 2 });
+    expect(result.machine).toBe(1.5); // R$ 0,60/h × 2,5 h
+    expect(result.fixed).toBe(5);
+    expect(result.unitCost).toBe(6.5);
   });
 
   test("recalcula quando o preço do filamento muda", () => {

@@ -43,7 +43,7 @@ const COMP = (f: [number, number][] = [], m: [number, number][] = [], items: [nu
 async function seedSupplies() {
   t.raw.exec(`INSERT INTO filaments (material, color, brand, pricePerKg, spoolG, stockG, minG) VALUES ('PLA', 'Azul', 'X', 85, 1000, 1000, 0);
     INSERT INTO materials (name, unit, unitPrice, stock, min) VALUES ('Embalagem', 'un', 5, 50, 0);
-    INSERT INTO settings (id, data) VALUES (1, '{"maintenancePct":5}');`);
+    INSERT INTO settings (id, data) VALUES (1, '{"maintenancePct":5,"failurePct":0}');`);
 }
 
 const dialog = (name: string | RegExp) => screen.findByRole("dialog", { name });

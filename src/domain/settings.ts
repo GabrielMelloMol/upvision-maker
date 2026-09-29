@@ -13,7 +13,19 @@ export type Channel = z.infer<typeof ChannelSchema>;
 export const SettingsSchema = z.object({
   kwhPrice: z.number().min(0),
   laborHourCost: z.number().min(0),
+  /** Legado: % sobre o subtotal, só vale quando a impressora não tem preço (a depreciação substitui). */
   maintenancePct: z.number().min(0),
+  /** De cada 100 impressões, quantas se perdem. < 100 para não dividir por zero. */
+  failurePct: z.number().min(0).max(90, "Use até 90%"),
+  /** Imposto sobre a venda (Simples); MEI deixa 0 e lança o DAS em Custos operacionais. */
+  taxPct: pct,
+  includeFixedCosts: z.boolean(),
+  /** Horas de impressão por mês, para ratear os custos operacionais. */
+  productiveHoursMonth: z.number().positive(),
+  /** Jeito antigo (até a v0.5): o multiplicador também multiplica a mão de obra. */
+  multiplyLabor: z.boolean(),
+  /** Material que a calculadora já abre como embalagem (1 por peça). */
+  packagingMaterialId: z.number().int().positive().nullable(),
   multResale: z.number().positive(),
   multConsumer: z.number().positive(),
   marketplaceMarginPct: pct,
@@ -29,7 +41,13 @@ export type Settings = z.infer<typeof SettingsSchema>;
 export const DEFAULT_SETTINGS: Settings = {
   kwhPrice: 0.9,
   laborHourCost: 0,
-  maintenancePct: 5,
+  maintenancePct: 0,
+  failurePct: 5,
+  taxPct: 0,
+  includeFixedCosts: false,
+  productiveHoursMonth: 120,
+  multiplyLabor: false,
+  packagingMaterialId: null,
   multResale: 3,
   multConsumer: 5,
   marketplaceMarginPct: 30,

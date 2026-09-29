@@ -64,6 +64,12 @@ export const MEASURE_TIP = "Para o valor exato: ligue a impressora numa tomada m
 /** Linha do catálogo: "95 W · dado oficial" ou "≈120 W · estimativa". */
 export const printerSubtitle = (p: CatalogPrinter) => (p.source === "oficial" ? `${p.watts} W · dado oficial` : `≈${p.watts} W · estimativa`);
 
+/** Impressora do catálogo com este nome ("Bambu Lab A1" ou só "A1"), para mostrar os watts de referência. */
+export const findCatalogPrinter = (name: string) => {
+  const n = name.trim().toLowerCase();
+  return n ? PRINTER_CATALOG.find((p) => printerLabel(p).toLowerCase() === n || p.model.toLowerCase() === n) : undefined;
+};
+
 /** Valores do formulário de impressora a partir do catálogo. */
 export function printerFromCatalog(id: string): { name: string; watts: string } {
   const p = PRINTER_CATALOG.find((x) => x.id === id);

@@ -8,10 +8,11 @@ test("calculadora: importa o 3MF fatiado do Bambu e preenche filamentos, tempo, 
   tauri.db.exec(`INSERT INTO printers (name, watts) VALUES ('A1', 110);
     INSERT INTO filaments (material, color, brand, pricePerKg, spoolG, stockG, minG) VALUES ('PLA', 'Azul', 'Bambu', 120, 1000, 800, 200), ('PLA', 'Branco', 'Bambu', 110, 1000, 900, 200);`);
   await go(page, "Calculadora");
+  await page.getByRole("button", { name: "Completo" }).click(); // abre no Rápido (#22)
   await page.locator(".card", { hasText: "Importar do fatiador" }).locator('input[type="file"]').setInputFiles(fixture("bambu-a1-2cores-fatiado.3mf"));
 
   await expect(page.getByText("Lido de")).toBeVisible();
-  await expect(page.getByText("Bambu Lab A1")).toBeVisible();
+  await expect(page.getByText("Bambu Lab A1", { exact: true })).toBeVisible();
   await expect(page.getByLabel("Gramas").nth(0)).toHaveValue("3,79");
   await expect(page.getByLabel("Gramas").nth(1)).toHaveValue("0,55");
   await expect(page.getByLabel("Preço por kg").nth(0)).toHaveValue("120,00"); // azul casado
@@ -29,6 +30,7 @@ test("calculadora: 3MF sem fatiar explica o que fazer", async ({ page, tauri }) 
   void tauri;
   await openApp(page);
   await go(page, "Calculadora");
+  await page.getByRole("button", { name: "Completo" }).click(); // abre no Rápido (#22)
   await page.locator(".card", { hasText: "Importar do fatiador" }).locator('input[type="file"]').setInputFiles(fixture("projeto-nao-fatiado.3mf"));
   await expect(page.getByText(/ainda não foi fatiado/)).toBeVisible();
 });

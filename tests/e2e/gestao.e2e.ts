@@ -32,7 +32,7 @@ test("preferências: salva e persiste valores; recusa valor inválido", async ({
 
   await page.getByLabel("Manutenção (%)").fill("abc");
   await page.getByRole("button", { name: "Salvar preferências" }).click();
-  await expect(page.locator("label", { hasText: "Manutenção (%)" }).locator(".error")).toBeVisible();
+  await expect(page.locator(".field", { hasText: "Manutenção (%)" }).locator(".error")).toBeVisible();
 });
 
 test("impressoras: adiciona, edita e exclui", async ({ page, tauri }) => {
@@ -106,19 +106,21 @@ test("materiais extras: cadastro com unidade e preço", async ({ page, tauri }) 
   await expect(page.getByRole("row", { name: /Argola/ })).toContainText("R$ 0,35");
 });
 
-test("calculadora: exemplo da home dá R$ 15,96 / 47,88 / 79,80", async ({ page, tauri }) => {
+test("calculadora: exemplo da home com os padrões (falha 5%) dá R$ 15,74 / 47,21 / 78,68", async ({ page, tauri }) => {
   void tauri;
   await openApp(page);
   await go(page, "Calculadora");
+  await page.getByRole("button", { name: "Completo" }).click(); // abre no Rápido (#22)
   const main = page.getByRole("main");
   await main.getByLabel("Preço por kg").fill("85");
   await main.getByLabel("Gramas").fill("120");
   await main.getByRole("button", { name: "Adicionar material" }).click();
   await main.getByLabel("Preço unitário").fill("5");
   await main.getByLabel("Quantidade").fill("1");
-  await expect(page.getByRole("row", { name: /Custo por peça/ })).toContainText("R$ 15,96");
-  await expect(page.getByRole("row", { name: /Revenda/ })).toContainText("R$ 47,88");
-  await expect(page.getByRole("row", { name: /Direto ao consumidor/ })).toContainText("R$ 79,80");
+  await expect(page.getByRole("row", { name: /Custo por peça/ })).toContainText("R$ 15,74");
+  await expect(page.getByRole("row", { name: /Falhas/ })).toContainText("R$ 0,54");
+  await expect(page.getByRole("row", { name: /Para lojista/ })).toContainText("R$ 47,21");
+  await expect(page.getByRole("row", { name: /Venda direta/ })).toContainText("R$ 78,68");
 });
 
 test("backup: salva JSON e restaura substituindo os dados (com cópia de segurança)", async ({ page, tauri }) => {
@@ -232,6 +234,7 @@ test("calculadora: tempo num campo só ('3h20') e mão de obra em minutos", asyn
   void tauri;
   await openApp(page);
   await go(page, "Calculadora");
+  await page.getByRole("button", { name: "Completo" }).click(); // abre no Rápido (#22)
   const main = page.getByRole("main");
   await main.getByLabel("Potência (W)").fill("1000");
   await main.getByLabel("Tempo de impressão").fill("3h20");

@@ -4,8 +4,9 @@ test("produtos: salvar da calculadora leva a composição e o preço acompanha o
   await openApp(page);
   tauri.db.exec(`INSERT INTO filaments (material, color, brand, pricePerKg, spoolG, stockG, minG) VALUES ('PLA', 'Azul', 'X', 85, 1000, 1000, 0);
     INSERT INTO materials (name, unit, unitPrice, stock, min) VALUES ('Embalagem', 'un', 5, 50, 0);
-    INSERT INTO settings (id, data) VALUES (1, '{"maintenancePct":5}') ON CONFLICT(id) DO UPDATE SET data = excluded.data;`);
+    INSERT INTO settings (id, data) VALUES (1, '{"maintenancePct":5,"failurePct":0}') ON CONFLICT(id) DO UPDATE SET data = excluded.data;`);
   await go(page, "Calculadora");
+  await page.getByRole("button", { name: "Completo" }).click(); // abre no Rápido (#22)
   const filCard = page.locator("section.card", { hasText: "Filamentos" }).first();
   await filCard.getByLabel("Cadastrado").selectOption({ label: "PLA · Azul · X" });
   await filCard.getByLabel("Gramas").fill("120");
@@ -28,6 +29,7 @@ test("produtos: salvar da calculadora leva a composição e o preço acompanha o
   // filamento mais caro → preço do produto sobe sozinho
   tauri.db.exec("UPDATE filaments SET pricePerKg = 100");
   await go(page, "Calculadora");
+  await page.getByRole("button", { name: "Completo" }).click(); // abre no Rápido (#22)
   await go(page, "Produtos");
   await expect(page.getByRole("row", { name: /Luminária/ })).toContainText("R$ 17,85");
 });

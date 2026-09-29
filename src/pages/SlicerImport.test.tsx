@@ -8,7 +8,7 @@ import type { Filament, Printer } from "../domain/entities";
 import SlicerImport, { type SlicerApply } from "./SlicerImport";
 
 const fixture = (name: string) => new File([readFileSync(resolve(__dirname, "../../tests/fixtures/slicer", name))], name);
-const A1: Printer = { id: 7, name: "A1", watts: 110 };
+const A1: Printer = { id: 7, name: "A1", watts: 110, price: 0, lifeHours: 5000, upkeepPerHour: 0 };
 const AZUL: Filament = { id: 1, material: "PLA", color: "Azul", brand: "Bambu", pricePerKg: 120, spoolG: 1000, stockG: 800, minG: 200 };
 const BRANCO: Filament = { id: 2, material: "PLA", color: "Branco", brand: "Bambu", pricePerKg: 110, spoolG: 1000, stockG: 900, minG: 200 };
 

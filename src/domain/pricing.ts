@@ -21,6 +21,12 @@ export function roundPrice(p: number, mode: Rounding): number {
   return round2(k + end >= p - EPS ? k + end : k + 1 + end);
 }
 
+/** Os dois preços do multiplicador, com nomes e explicação que a usuária entende (feedback real, #22). */
+export const PRICE_NAMES = {
+  consumer: { name: "Venda direta (consumidor final)", help: "Para quem compra de você para usar ou presentear: WhatsApp, feira, encomenda." },
+  resale: { name: "Para lojista (revenda)", help: "Para quem compra de você para revender: loja, papelaria. Precisa sobrar lucro para ele." },
+} as const;
+
 type Money = { price: number; fees: number; profit: number; marginPct: number; loss: boolean };
 
 export type ChannelRow = {
@@ -50,8 +56,8 @@ function at(price: number, feePct: number, feeFixed: number, unitCost: number, f
  */
 export function compareChannels(r: CalcResult, s: Settings, freight: number, opts: { rounding: Rounding; competitor?: number }): ChannelRow[] {
   const bases = [
-    { name: "Direto ao consumidor", suggested: r.consumer as number | null, feePct: 0, feeFixed: 0 },
-    { name: "Revenda", suggested: r.resale as number | null, feePct: 0, feeFixed: 0 },
+    { name: PRICE_NAMES.consumer.name, suggested: r.consumer as number | null, feePct: 0, feeFixed: 0 },
+    { name: PRICE_NAMES.resale.name, suggested: r.resale as number | null, feePct: 0, feeFixed: 0 },
     ...r.channels.map((c) => {
       const cfg = s.channels.find((x) => x.name === c.name);
       return { name: c.name, suggested: c.price, feePct: cfg?.feePct ?? 0, feeFixed: cfg?.feeFixed ?? 0 };
@@ -59,9 +65,10 @@ export function compareChannels(r: CalcResult, s: Settings, freight: number, opt
   ];
   const comp = opts.competitor && opts.competitor > 0 ? opts.competitor : undefined;
   const rows: ChannelRow[] = bases.map((b) => {
-    const atComp = comp !== undefined ? at(comp, b.feePct, b.feeFixed, r.unitCost, freight) : undefined;
+    const feePct = b.feePct + s.taxPct; // imposto sobre a venda conta como taxa em todo canal
+    const atComp = comp !== undefined ? at(comp, feePct, b.feeFixed, r.unitCost, freight) : undefined;
     if (b.suggested === null) return { name: b.name, price: null, fees: 0, profit: 0, marginPct: 0, loss: false, belowMin: false, best: false, atCompetitor: atComp };
-    const m = at(roundPrice(b.suggested, opts.rounding), b.feePct, b.feeFixed, r.unitCost, freight);
+    const m = at(roundPrice(b.suggested, opts.rounding), feePct, b.feeFixed, r.unitCost, freight);
     return { name: b.name, ...m, belowMin: !m.loss && m.marginPct < s.minMarginPct, best: false, atCompetitor: atComp };
   });
   const priced = rows.filter((x) => x.price !== null);
@@ -79,3 +86,8 @@ export function competitorHint(ours: number, competitor: number): { ok: boolean;
   if (pct <= SIMILAR_PCT) return { ok: true, text: "Parecido com o concorrente." };
   return rel < 0 ? { ok: true, text: `${pct}% abaixo do concorrente.` } : { ok: false, text: `${pct}% acima do concorrente (${money(competitor)}).` };
 }
+
+const pctText = (n: number) => `${n.toLocaleString("pt-BR", { maximumFractionDigits: 1 })} %`;
+
+/** "×5" explicado: markup = mult − 1, margem = 1 − 1/mult (a "margem 500%" de outras calculadoras é markup). */
+export const markupText = (mult: number) => `markup ${pctText((mult - 1) * 100)} · margem ${pctText((1 - 1 / mult) * 100)} antes das taxas`;

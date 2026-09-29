@@ -18,6 +18,7 @@ test("fluxo completo: fatiador → produto → orçamento → pedido → estoque
 
   // 1. Calculadora: importa o 3MF fatiado e salva como produto
   await go(page, "Calculadora");
+  await page.getByRole("button", { name: "Completo" }).click(); // abre no Rápido (#22)
   await page.locator(".card", { hasText: "Importar do fatiador" }).locator('input[type="file"]').setInputFiles(resolve("tests/fixtures/slicer", "bambu-a1-2cores-fatiado.3mf"));
   await expect(page.getByLabel("Gramas").nth(1)).toHaveValue("0,55");
   await expect(page.getByLabel("Preço por kg").nth(0)).toHaveValue("120,00");

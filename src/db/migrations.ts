@@ -45,6 +45,12 @@ export const MIGRATIONS: string[][] = [
     `CREATE TABLE operational_costs (id INTEGER PRIMARY KEY, description TEXT NOT NULL, category TEXT NOT NULL DEFAULT '',
       amount REAL NOT NULL, frequency TEXT NOT NULL, startDate TEXT NOT NULL, endDate TEXT, printerId INTEGER, notes TEXT NOT NULL DEFAULT '')`,
   ],
+  // Depreciação da impressora (#22): preço pago, vida útil em horas e desgaste por hora.
+  [
+    "ALTER TABLE printers ADD COLUMN price REAL NOT NULL DEFAULT 0",
+    "ALTER TABLE printers ADD COLUMN lifeHours REAL NOT NULL DEFAULT 5000",
+    "ALTER TABLE printers ADD COLUMN upkeepPerHour REAL NOT NULL DEFAULT 0",
+  ],
 ];
 
 export const SCHEMA_VERSION = MIGRATIONS.length;

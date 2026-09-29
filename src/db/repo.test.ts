@@ -18,6 +18,7 @@ describe("repositórios", () => {
   test("cria, lista, edita e exclui impressora", async () => {
     await printers.insert(db, { name: "A1", watts: 150 });
     const [p] = await printers.list(db);
+    expect(p).toMatchObject({ price: 0, lifeHours: 5000, upkeepPerHour: 0 }); // cadastro antigo, sem depreciação
     expect(p).toMatchObject({ name: "A1", watts: 150 });
     await printers.update(db, p.id, { name: "A1 mini", watts: 80 });
     expect((await printers.list(db))[0]).toMatchObject({ name: "A1 mini", watts: 80 });

@@ -1,9 +1,9 @@
 import { describe, expect, test } from "vitest";
 import { calculate, type CalcInput } from "./calc";
-import { compareChannels, competitorHint, roundPrice } from "./pricing";
+import { compareChannels, competitorHint, markupText, roundPrice } from "./pricing";
 import { DEFAULT_SETTINGS, type Settings } from "./settings";
 
-const s: Settings = { ...DEFAULT_SETTINGS, kwhPrice: 0.9, laborHourCost: 20, maintenancePct: 5, minMarginPct: 10 };
+const s: Settings = { ...DEFAULT_SETTINGS, kwhPrice: 0.9, laborHourCost: 20, maintenancePct: 5, failurePct: 0, minMarginPct: 10 };
 const input: CalcInput = { filaments: [{ pricePerKg: 85, grams: 120 }], extras: [{ unitPrice: 5, qty: 1 }], printerWatts: 0, printHours: 0, laborHours: 0, quantity: 1, freight: 0, marketplaceMarginPct: 30 };
 const r = calculate(input, s); // custo 15,96 · consumidor 79,80 · revenda 47,88 · Shopee 39,92
 
@@ -22,7 +22,7 @@ describe("arredondamento (sempre para cima: nunca come a margem)", () => {
 describe("canais lado a lado", () => {
   test("direto, revenda e marketplaces com lucro líquido depois das taxas; melhor lucro marcado", () => {
     const rows = compareChannels(r, s, input.freight, { rounding: "none" });
-    expect(rows.map((x) => x.name)).toEqual(["Direto ao consumidor", "Revenda", "Shopee", "Mercado Livre (clássico)", "TikTok Shop"]);
+    expect(rows.map((x) => x.name)).toEqual(["Venda direta (consumidor final)", "Para lojista (revenda)", "Shopee", "Mercado Livre (clássico)", "TikTok Shop"]);
     expect(rows[0]).toMatchObject({ price: 79.8, fees: 0, profit: 63.84, best: true, loss: false, belowMin: false });
     expect(rows[2]).toMatchObject({ price: 39.92, fees: 11.98, profit: 11.98, best: false });
     expect(rows.filter((x) => x.best)).toHaveLength(1);
@@ -46,7 +46,7 @@ describe("canais lado a lado", () => {
   test("margem mínima: canal abaixo dela é marcado", () => {
     const low = calculate(input, { ...s, multResale: 1.05 });
     const rows = compareChannels(low, { ...s, multResale: 1.05 }, 0, { rounding: "none" });
-    expect(rows[1]).toMatchObject({ name: "Revenda", belowMin: true, loss: false });
+    expect(rows[1]).toMatchObject({ name: "Para lojista (revenda)", belowMin: true, loss: false });
     expect(rows[0].belowMin).toBe(false);
   });
 
@@ -66,4 +66,18 @@ test("aviso do concorrente: parecido até ±5%, abaixo ok, acima pede atenção"
   expect(hint(79.8, 95)).toEqual({ ok: true, text: "16% abaixo do concorrente." });
   expect(hint(79.8, 78)).toEqual({ ok: true, text: "Parecido com o concorrente." });
   expect(hint(79.8, 0)).toBeNull();
+});
+
+describe("impostos", () => {
+  test("imposto entra nas taxas de todos os canais, inclusive o direto", () => {
+    const st = { ...s, taxPct: 6 };
+    const rows = compareChannels(calculate(input, st), st, 0, { rounding: "none" });
+    expect(rows[0]).toMatchObject({ price: 79.8, fees: 4.79, profit: 59.05 }); // 79,80 × 6%
+    expect(rows[2].marginPct).toBe(30); // Shopee continua com a margem pedida
+  });
+});
+
+test("markup × margem explicados com os números do multiplicador", () => {
+  expect(markupText(5)).toBe("markup 400 % · margem 80 % antes das taxas");
+  expect(markupText(3)).toBe("markup 200 % · margem 66,7 % antes das taxas");
 });

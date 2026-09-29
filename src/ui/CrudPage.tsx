@@ -1,5 +1,5 @@
 import { Plus, type LucideIcon } from "lucide-react";
-import { Fragment, useEffect, useRef, useState } from "react";
+import { Fragment, useEffect, useRef, useState, type ReactNode } from "react";
 import { getDb } from "../db";
 import type { Db } from "../db/types";
 import { money, parseDecimal } from "../domain/format";
@@ -23,6 +23,10 @@ export type Field = {
   options?: readonly string[];
   placeholder?: string;
   hint?: string;
+  /** Só no formulário, fora da tabela. */
+  formOnly?: true;
+  /** Ação embaixo do campo (ex.: assistente que preenche o valor). */
+  extra?: (set: (v: string) => void, form: Record<string, string>) => ReactNode;
 };
 
 type Row = { id: number } & Record<string, string | number>;
@@ -98,6 +102,7 @@ export default function CrudPage({ pageId, title, singular, lead, repo, fields, 
     if (errors[k]) setErrors((e) => Object.fromEntries(Object.entries(e).filter(([key]) => key !== k))); // o erro some assim que a pessoa mexe no campo
   };
   const visible = rows.filter((r) => !hidden.has(r.id));
+  const columns = fields.filter((f) => !f.formOnly);
 
   function focusForm() {
     formRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
@@ -219,7 +224,18 @@ export default function CrudPage({ pageId, title, singular, lead, repo, fields, 
     }
   }
 
-  function input(f: Field) {
+  function input(f: Field): ReactNode {
+    if (f.extra)
+      return (
+        <div key={f.key} className="stack" style={{ gap: 4 }}>
+          {plainInput(f)}
+          {f.extra((v) => set(f.key, v), form)}
+        </div>
+      );
+    return plainInput(f);
+  }
+
+  function plainInput(f: Field) {
     const common = { label: f.label, value: form[f.key] ?? "", onChange: (v: string) => set(f.key, v), error: errors[f.key], hint: f.hint, placeholder: f.placeholder };
     if (f.kind === "money") return <MoneyField key={f.key} {...common} />;
     if (f.kind === "mass") return <MassField key={f.key} {...common} spoolG={spoolOf(form)} />;
@@ -307,7 +323,7 @@ export default function CrudPage({ pageId, title, singular, lead, repo, fields, 
         <table>
           <thead>
             <tr>
-              {fields.map((f) => (
+              {columns.map((f) => (
                 <th key={f.key} className={isNum(f) ? "num" : ""}>
                   {f.label}
                 </th>
@@ -321,7 +337,7 @@ export default function CrudPage({ pageId, title, singular, lead, repo, fields, 
             {visible.map((r) => (
               <Fragment key={r.id}>
                 <tr className={editing === r.id ? "selected" : ""}>
-                  {fields.map((f, i) => (
+                  {columns.map((f, i) => (
                     <td key={f.key} className={isNum(f) ? "num" : ""}>
                       {i === 0 ? <strong>{show(f, r)}</strong> : show(f, r)} {i === 0 && isLow?.(r) && <span className="badge">estoque baixo</span>}
                     </td>

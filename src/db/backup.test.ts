@@ -21,6 +21,14 @@ describe("backup", () => {
     expect(await db.select("SELECT * FROM settings")).toEqual([{ id: 1, data: '{"kwhPrice":1}' }]);
   });
 
+  test("backup antigo (impressora sem preço/vida útil) restaura com os padrões", async () => {
+    const db = await seeded();
+    const b = await exportBackup(db);
+    const old = { ...b, schemaVersion: 9, tables: { ...b.tables, printers: [{ id: 1, name: "A1", watts: 95 }] } };
+    await restoreBackup(db, parseBackup(JSON.stringify(old)));
+    expect(await db.select("SELECT * FROM printers")).toEqual([{ id: 1, name: "A1", watts: 95, price: 0, lifeHours: 5000, upkeepPerHour: 0 }]);
+  });
+
   test("rejeita arquivo que não é backup do app", () => {
     expect(() => parseBackup("{}")).toThrow(/não é um backup/i);
     expect(() => parseBackup("lixo")).toThrow(/não é um backup/i);

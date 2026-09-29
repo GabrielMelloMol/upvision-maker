@@ -36,7 +36,7 @@ Arquitetura: React sem roteador (estado `pageId`), SQLite via `@tauri-apps/plugi
 
 | Spec | Cobre |
 |---|---|
-| `gestao.e2e.ts` | navegação por todas as páginas; Preferências (salvar, persistir, inválido); Impressoras (CRUD + validação); Filamentos (estoque baixo, reposição 100 g×R$100 + 900 g×R$120 → R$ 118,00/kg); Materiais; Calculadora (R$ 15,96 / 47,88 / 79,80); Backup (salvar, restaurar com cópia de segurança, arquivo inválido) |
+| `gestao.e2e.ts` | navegação por todas as páginas; Preferências (salvar, persistir, inválido); Impressoras (CRUD + validação); Filamentos (estoque baixo, reposição 100 g×R$100 + 900 g×R$120 → R$ 118,00/kg); Materiais; Calculadora (padrões da v0.6, falha 5%: R$ 15,74 / 47,21 / 78,68; os testes de canais em `v04-gestao.e2e.ts` usam as preferências antigas, manutenção 5% sem falha: R$ 15,96 / 47,88 / 79,80); Backup (salvar, restaurar com cópia de segurança, arquivo inválido) |
 | `ferramentas.e2e.ts` | Imagem→SVG com logo e desenho (salva SVG em mm); foto → sugestão do modo Silhueta → poucos contornos; handoff SVG → Cortador → 3MF + STL; SVG direto no cortador; cancelar o "Salvar como" |
 | `screens.e2e.ts` | `SHOTS=antes\|depois npm run e2e -- screens` grava todas as telas em 1280×800 e 1440×900, claro e escuro, em `docs/screenshots/` |
 

@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { calculate, type CalcResult } from "./calc";
+import { calculate, machineHourCost, type CalcResult } from "./calc";
 import type { Filament, Material, Printer } from "./entities";
 import type { Settings } from "./settings";
 
@@ -50,7 +50,8 @@ export const EMPTY_PRODUCT: ProductInput = {
   notes: "",
 };
 
-export type ProductCtx = { filaments: Filament[]; materials: Material[]; printers: Printer[]; products: Product[]; settings: Settings };
+/** `fixedPerHour`: custos operacionais rateados (ver `fixedCostPerHour`); ausente = 0. */
+export type ProductCtx = { filaments: Filament[]; materials: Material[]; printers: Printer[]; products: Product[]; settings: Settings; fixedPerHour?: number };
 
 function guard(p: Product, seen: Set<number>) {
   if (seen.has(p.id)) throw new Error(`O kit "${p.name}" está dentro de si mesmo.`);
@@ -92,6 +93,8 @@ export function productPricing(p: Product, ctx: ProductCtx, seen = new Set<numbe
       quantity: p.piecesPerPlate,
       freight: p.freight,
       marketplaceMarginPct: ctx.settings.marketplaceMarginPct,
+      machinePerHour: printer ? machineHourCost(printer) : 0,
+      fixedPerHour: ctx.fixedPerHour,
     },
     ctx.settings,
   );

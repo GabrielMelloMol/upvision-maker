@@ -187,5 +187,10 @@ export function monthlyRecurring(costs: Pick<OperationalCost, "frequency" | "amo
   return costs.reduce((s, c) => (c.startDate <= today && (!c.endDate || c.endDate >= today) ? s + c.amount * MONTHLY_FACTOR[c.frequency] : s), 0);
 }
 
+/** Custos operacionais rateados por hora de impressão (0 quando a opção está desligada). */
+export function fixedCostPerHour(costs: Parameters<typeof monthlyRecurring>[0], s: { includeFixedCosts: boolean; productiveHoursMonth: number }, today: string): number {
+  return s.includeFixedCosts && s.productiveHoursMonth > 0 ? round2(monthlyRecurring(costs, today) / s.productiveHoursMonth) : 0;
+}
+
 /** Variação percentual; null quando não há base de comparação. */
 export const change = (cur: number, prev: number): number | null => (prev === 0 ? null : round2(((cur - prev) / Math.abs(prev)) * 100));

@@ -1,8 +1,9 @@
 import { describe, expect, test } from "vitest";
-import { calculate, type CalcInput } from "./calc";
+import { calculate, machineHourCost, type CalcInput } from "./calc";
 import { DEFAULT_SETTINGS, type Settings } from "./settings";
 
-const settings: Settings = { ...DEFAULT_SETTINGS, kwhPrice: 0.9, laborHourCost: 20, maintenancePct: 5 };
+// Casos antigos: manutenção 5% e sem taxa de falha, para isolar cada parcela.
+const settings: Settings = { ...DEFAULT_SETTINGS, kwhPrice: 0.9, laborHourCost: 20, maintenancePct: 5, failurePct: 0 };
 
 const empty: CalcInput = {
   filaments: [],
@@ -16,7 +17,16 @@ const empty: CalcInput = {
 };
 
 describe("calculate", () => {
-  test("exemplo da home: luminária PLA 120 g a R$ 85/kg + embalagem R$ 5, manutenção 5%", () => {
+  test("exemplo da home com os padrões: falha 5% sobre o filamento, sem manutenção", () => {
+    const r = calculate({ ...empty, filaments: [{ pricePerKg: 85, grams: 120 }], extras: [{ unitPrice: 5, qty: 1 }] }, DEFAULT_SETTINGS);
+    expect(r.failure).toBe(0.54); // 10,20 ÷ 0,95 − 10,20
+    expect(r.maintenance).toBe(0);
+    expect(r.unitCost).toBe(15.74);
+    expect(r.resale).toBe(47.21);
+    expect(r.consumer).toBe(78.68);
+  });
+
+  test("exemplo antigo da home: luminária PLA 120 g a R$ 85/kg + embalagem R$ 5, manutenção 5%", () => {
     const r = calculate(
       { ...empty, filaments: [{ pricePerKg: 85, grams: 120 }], extras: [{ unitPrice: 5, qty: 1 }] },
       settings,
@@ -92,5 +102,73 @@ describe("calculate", () => {
       settings,
     );
     expect(r.unitCost).toBe(0);
+  });
+
+  test("máquina: A1 de R$ 3.000 com 5000 h custa R$ 0,60/h; 2,5 h = R$ 1,50 e a manutenção % deixa de valer", () => {
+    const perHour = machineHourCost({ price: 3000, lifeHours: 5000, upkeepPerHour: 0 });
+    expect(perHour).toBe(0.6);
+    const r = calculate({ ...empty, filaments: [{ pricePerKg: 120, grams: 50 }], printerWatts: 110, printHours: 2.5, machinePerHour: perHour }, settings);
+    expect(r.machine).toBe(1.5);
+    expect(r.energy).toBe(0.25); // 0,11 kW × 2,5 h × 0,90
+    expect(r.maintenance).toBe(0);
+    expect(r.unitCost).toBe(7.75); // 6 + 0,25 + 1,50
+  });
+
+  test("custo de máquina soma o desgaste por hora; vida útil 0 não divide por zero", () => {
+    expect(machineHourCost({ price: 3000, lifeHours: 5000, upkeepPerHour: 0.2 })).toBe(0.8);
+    expect(machineHourCost({ price: 3000, lifeHours: 0, upkeepPerHour: 0.2 })).toBe(0.2);
+  });
+
+  test("falha 10%: (filamento + energia + máquina) ÷ 0,9 − esse valor; mão de obra e extras ficam fora", () => {
+    const r = calculate(
+      { ...empty, filaments: [{ pricePerKg: 120, grams: 50 }], extras: [{ unitPrice: 5, qty: 1 }], printerWatts: 110, printHours: 2.5, laborHours: 0.5, machinePerHour: 0.6 },
+      { ...settings, failurePct: 10 },
+    );
+    // base 6 + 0,25 + 1,50 = 7,75 → 7,75 ÷ 0,9 − 7,75 = 0,861
+    expect(r.failure).toBe(0.86);
+    expect(r.unitCost).toBe(23.61); // 7,75 + 0,861 + 5 + 10 (mão de obra)
+  });
+
+  test("mão de obra entra depois do multiplicador (e pode voltar ao jeito antigo)", () => {
+    const input = { ...empty, filaments: [{ pricePerKg: 100, grams: 100 }], laborHours: 0.5 }; // 10 + 10
+    const r = calculate(input, { ...settings, maintenancePct: 0 });
+    expect(r.consumer).toBe(60); // 10 × 5 + 10
+    expect(r.resale).toBe(40); // 10 × 3 + 10
+    const old = calculate(input, { ...settings, maintenancePct: 0, multiplyLabor: true });
+    expect(old.consumer).toBe(100); // 20 × 5
+  });
+
+  test("custos fixos por hora entram no custo e somam depois do multiplicador", () => {
+    const r = calculate({ ...empty, filaments: [{ pricePerKg: 100, grams: 100 }], printHours: 2, fixedPerHour: 1.5 }, { ...settings, maintenancePct: 0 });
+    expect(r.fixed).toBe(3);
+    expect(r.unitCost).toBe(13);
+    expect(r.consumer).toBe(53); // 10 × 5 + 3
+  });
+
+  test("impostos entram no denominador dos canais e saem do lucro direto/revenda", () => {
+    const r = calculate(
+      { ...empty, filaments: [{ pricePerKg: 100, grams: 100 }], marketplaceMarginPct: 30 },
+      { ...settings, maintenancePct: 0, taxPct: 6, channels: [{ name: "Loja X", feePct: 20, feeFixed: 4 }] },
+    );
+    // (10 + 4) ÷ (1 − 0,20 − 0,06 − 0,30) = 31,82
+    const ch = r.channels[0];
+    expect(ch.price).toBe(31.82);
+    expect(ch.fees).toBe(12.27); // 31,82 × 26% + 4
+    expect(ch.marginPct).toBe(30);
+    expect(r.consumerProfit).toBe(37); // 50 − 3 (6%) − 10
+  });
+
+  test("custo por grama e por hora de impressão da mesa", () => {
+    const r = calculate({ ...empty, filaments: [{ pricePerKg: 100, grams: 200 }], printHours: 4, quantity: 2 }, { ...settings, maintenancePct: 0 });
+    expect(r.perGram).toBe(0.1);
+    expect(r.perHour).toBe(5);
+    const none = calculate(empty, settings);
+    expect(none.perGram).toBeNull();
+    expect(none.perHour).toBeNull();
+  });
+
+  test("kWh medido desta impressão substitui W × horas", () => {
+    const r = calculate({ ...empty, printerWatts: 200, printHours: 5, energyKwh: 0.3 }, settings);
+    expect(r.energy).toBe(0.27); // 0,3 kWh × 0,90
   });
 });

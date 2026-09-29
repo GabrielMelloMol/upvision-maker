@@ -78,8 +78,8 @@ export default function CatalogSheet({ data, company, onClose }: { data: Product
         label="Preço mostrado"
         value={price}
         options={[
-          ["consumer", "Consumidor final"],
-          ["resale", "Revenda (atacado)"],
+          ["consumer", "Venda direta (consumidor final)"],
+          ["resale", "Para lojista (revenda)"],
         ]}
         onChange={setPrice}
       />

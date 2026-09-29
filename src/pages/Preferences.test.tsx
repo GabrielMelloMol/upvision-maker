@@ -47,6 +47,30 @@ describe("Preferences", () => {
     expect(s.channels[2]).toEqual({ name: "Feira", feePct: 5, feeFixed: 1.5 });
   });
 
+  test("falhas, impostos e custos fixos (#22): horas só com custos fixos ligados; jeito antigo do multiplicador", async () => {
+    await t.db.execute("INSERT INTO materials (name, unit, unitPrice) VALUES ('Caixinha', 'un', 2)");
+    const user = userEvent.setup();
+    renderWithApp(<Preferences />);
+    const fail = await screen.findByLabelText("Taxa de falha (%)");
+    expect(fail).toHaveValue("5");
+    await user.clear(fail);
+    await user.type(fail, "10");
+    await user.clear(screen.getByLabelText("Impostos sobre a venda (%)"));
+    await user.type(screen.getByLabelText("Impostos sobre a venda (%)"), "6");
+    const hours = screen.getByLabelText("Horas de impressão por mês");
+    expect(hours).toBeDisabled();
+    await user.click(screen.getByRole("checkbox", { name: "Incluir custos fixos no preço" }));
+    expect(hours).toBeEnabled();
+    await user.clear(hours);
+    await user.type(hours, "80");
+    await user.click(screen.getByRole("checkbox", { name: /jeito antigo/ }));
+    await user.selectOptions(screen.getByLabelText(/^Embalagem padrão/), "Caixinha");
+    expect(screen.getByText(/loja, papelaria.*markup 200 %/)).toBeInTheDocument();
+    await user.click(screen.getByRole("button", { name: "Salvar preferências" }));
+    expect(await screen.findByText("Preferências salvas.")).toBeInTheDocument();
+    expect(await settings()).toMatchObject({ failurePct: 10, taxPct: 6, includeFixedCosts: true, productiveHoursMonth: 80, multiplyLabor: true, packagingMaterialId: 1 });
+  });
+
   test("calcular o kWh pela conta de luz (#2): total ÷ kWh + bandeira, usa, guarda histórico e salvar não apaga", async () => {
     vi.useFakeTimers({ toFake: ["Date"] });
     vi.setSystemTime(new Date(2026, 8, 15, 12));
@@ -97,7 +121,7 @@ describe("Preferences", () => {
   test("canal sem nome e número inválido mostram erros e não salvam", async () => {
     const user = userEvent.setup();
     renderWithApp(<Preferences />);
-    const mult = await screen.findByLabelText("Multiplicador revenda (×)");
+    const mult = await screen.findByLabelText("Multiplicador para lojista / revenda (×)");
     await user.clear(mult);
     await user.type(mult, "abc");
     await user.click(screen.getByRole("button", { name: "Adicionar canal" }));

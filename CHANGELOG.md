@@ -3,6 +3,16 @@
 Cada versão aparece para a usuária na tela "O que há de novo" depois da atualização.
 Formato: `## <versão> — <data>` e itens `- …` em linguagem simples.
 
+## Próxima versão (vira "## 0.6.0 — data" ao publicar; até lá o app não mostra)
+- **Calculadora rápida**: abre com só filamento, gramas, tempo, impressora e peças. "Ver detalhes" leva os mesmos valores para a calculadora completa, e o app lembra o último cálculo.
+- **Preço para lojista (revenda)** e **venda direta (consumidor final)**: nomes mais claros, com explicação e exemplo em R$ ao lado ("Qual preço usar?"). O multiplicador também mostra o markup e a margem de verdade.
+- **Mudança no preço sugerido**: a mão de obra agora é somada **depois** do multiplicador. Antes, com ×5, uma hora de trabalho de R$ 30 virava R$ 150 no preço. Quem preferir o jeito antigo liga em Preferências.
+- **Taxa de falha** (padrão 5%): o que se perde nas impressões que dão errado entra no preço das que dão certo.
+- **Custo da impressora**: cadastre quanto pagou e a vida útil, e a calculadora cobra a máquina por hora (uma A1 de R$ 3.000 dá R$ 0,60/h). Ela substitui a "manutenção %", que continua valendo só para impressora sem preço.
+- **Impostos sobre a venda** e **custos fixos por hora** (aluguel, internet, assinaturas dos Custos operacionais) no preço, se quiser.
+- **Medir com tomada inteligente**: anote o Total (kWh) do app da tomada no começo e no fim de uma impressão e o app calcula a potência média. Também dá para digitar os kWh de uma impressão.
+- **Embalagem padrão** já aparece na calculadora, e o resultado mostra o custo por grama e por hora de impressão.
+
 ## 0.5.0 — 2026-09-28
 - **13 modelos novos** em Modelos prontos: medalha e troféus no formato do seu desenho, troféu elegante com 2 linhas na base, chaveiro de anilha de academia, nome articulado (as letras balançam, já sai montado), chaveiro abridor de garrafa ou de lata, clicker com tecla de teclado, MOLLE tag, plaquinha de colorir, totem e porta-joia com tag NFC, porta-chave de parede e luminária.
 - Nas peças que encaixam (dobradiça, tampa, tecla, fenda), a **folga** é um campo: se ficar justo ou solto, ajuste e imprima de novo.
