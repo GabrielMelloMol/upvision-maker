@@ -3,7 +3,10 @@
 Cada versão aparece para a usuária na tela "O que há de novo" depois da atualização.
 Formato: `## <versão> — <data>` e itens `- …` em linguagem simples.
 
-## Próxima versão (vira "## 0.6.0 — data" ao publicar; até lá o app não mostra)
+## 0.6.0 — 2026-09-29
+- **Medalhas bem mais personalizáveis**: formatos novos, textos em arco, número de colocação, bordas e fundos com textura, imagem que você posiciona, verso com pinos de encaixe, modelos prontos (corrida, formatura, campeonato…) e medalhas em lote a partir de uma lista.
+- **8 modelos prontos novos**: placa QR (Wi-Fi, WhatsApp, Instagram, avaliação no Google, link), placa com vários QRs, desenho em pé, tag de pet, placa de profissão, cartão de visita com QR e NFC, chaveiro espelho e floco de neve com nome.
+- **Clipe de saco corrigido**: agora é uma pinça em U que prende de verdade (hastes flexíveis e dente de trava) e já abre com um coração de exemplo, sem precisar enviar desenho.
 - **56 fontes** para chaveiros, modelos prontos e Pedir à IA (cursivas, grossas, divertidas, infantis, elegantes, retrô e serifadas), todas funcionando sem internet. O **seletor de fonte** mostra o nome que você digitou em cada uma, com busca, categorias e **favoritas** (estrela).
 - **Importar fonte** do computador (.ttf ou .otf): fica salva no app e aparece em "Minhas".
 - **Aviso de impressão**: o app avisa quando a fonte fica com traço mais fino que 0,4 mm no tamanho escolhido, ou quando uma cursiva não une as letras.
