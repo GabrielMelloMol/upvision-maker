@@ -14,6 +14,7 @@ Formato: `## <versão> — <data>` e itens `- …` em linguagem simples.
 - **Número do orçamento por ano**: ORC-2026-001, ORC-2026-002… com o prefixo que você escolher em Dados da empresa. Aparece na lista, no PDF e no nome do arquivo; os orçamentos antigos foram numerados pela data.
 - **Cortador em grade** (Modelos prontos → Cozinha): corta massa e fondant em retângulos iguais de uma vez; você escolhe o tamanho da célula, linhas, colunas, cantos arredondados e abas de pega com nome.
 - **Suporte de palitos** e **boleira** (Modelos prontos → Cozinha): base com furos para pirulito e cake pop (leve, maciça ou com lugar para peso) e boleira com borda ondulada e nome na borda, impressa numa peça só, sem suporte.
+- **Cumbuca no contorno** (Modelos prontos → Casa): cestinha de lembrancinha no formato de qualquer desenho fechado, com fundo e borda arredondados e o desenho em relevo no fundo em outra cor.
 
 ## 0.6.0 — 2026-09-29
 - **Medalhas bem mais personalizáveis**: formatos novos, textos em arco, número de colocação, bordas e fundos com textura, imagem que você posiciona, verso com pinos de encaixe, modelos prontos (corrida, formatura, campeonato…) e medalhas em lote a partir de uma lista.

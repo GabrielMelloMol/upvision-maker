@@ -6,6 +6,7 @@ import type { Mesh, Model } from "../types";
 import type { ModelCtx } from "./common";
 import { buildCakeStand, buildStickStand, DEFAULT_CAKE_STAND as B, DEFAULT_STICK_STAND as S, holeRings } from "./confectionery";
 import { buildGridCutter, DEFAULT_GRID_CUTTER as G } from "./gridCutter";
+import { buildOutlineBowl, DEFAULT_OUTLINE_BOWL as O } from "./outlineBowl";
 
 let M: ManifoldToplevel;
 beforeAll(async () => {
@@ -106,5 +107,38 @@ describe("boleira (#65b)", () => {
   test("sem nome: uma peça só; prato maior que a mesa avisa", () => {
     expect(buildCakeStand(ctx(), { ...B, name: "" }).models[0].parts).toHaveLength(1);
     expect(buildCakeStand(ctx(), { ...B, diameter: 260 }).warnings?.join()).toMatch(/mesa/);
+  });
+});
+
+describe("cumbuca no contorno (#66)", () => {
+  const star = () => M.CrossSection.circle(30, 5); // pentágono como "desenho"
+  const withArt = (): ModelCtx => ({ ...ctx(), art: star() });
+
+  test("sem desenho: coração de exemplo; largura e altura pedidas; oca por dentro", () => {
+    const { models } = buildOutlineBowl(ctx(), { ...O, floorArt: false });
+    expectPrintable(models);
+    const [w, , z] = size(models);
+    expect(w).toBeCloseTo(O.width, 0);
+    expect(z).toBeCloseTo(O.height, 1);
+    const bowl = models[0].parts[0].mesh;
+    expect(volume(bowl)).toBeLessThan(O.width * O.width * O.height * 0.35); // casca, não bloco
+  });
+
+  test("contorno do desenho enviado; fundo arredondado: a base é menor que a boca", () => {
+    const { models } = buildOutlineBowl(withArt(), { ...O, floorArt: false, bottomRadius: 8 });
+    expectPrintable(models);
+    const s = solid(models[0].parts[0].mesh);
+    const foot = s.trimByPlane([0, 0, -1], -0.2).boundingBox(); // o que está abaixo de 0,2 mm
+    const all = s.boundingBox();
+    expect(foot.max[0] - foot.min[0]).toBeLessThan(all.max[0] - all.min[0] - 8);
+  });
+
+  test("desenho em relevo no fundo, em outra cor, apoiado no piso por dentro", () => {
+    const { models } = buildOutlineBowl(withArt(), O);
+    expectPrintable(models);
+    expect(models[0].parts.map((p) => p.name)).toEqual(["Cumbuca", "Desenho no fundo"]);
+    const b = meshBounds([models[0].parts[1].mesh])!;
+    expect(b.min[2]).toBeCloseTo(O.floor, 3);
+    expect(b.max[2]).toBeCloseTo(O.floor + O.relief, 3);
   });
 });

@@ -47,3 +47,10 @@ test("boleira (#65): nome embutido em outra cor, aviso do pé a 45° e 3MF", asy
   await expect(page.getByText(/O pé foi limitado/)).toBeVisible();
   await save3mf(page, tauri.files);
 });
+
+test("cumbuca no contorno (#66): abre com o coração de exemplo e o desenho no fundo; 3MF", async ({ page, tauri }) => {
+  await openModel(page, "Cumbuca no contorno");
+  await expect(page.locator(".legend")).toContainText("Desenho no fundo");
+  await page.screenshot({ path: "test-results/cumbuca.png" });
+  await save3mf(page, tauri.files);
+});

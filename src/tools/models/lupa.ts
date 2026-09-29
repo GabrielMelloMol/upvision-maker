@@ -1,4 +1,5 @@
-import { CakeSlice, Grid3x3, Lollipop } from "lucide-react";
+import { CakeSlice, Egg, Grid3x3, Lollipop } from "lucide-react";
+import { buildOutlineBowl, DEFAULT_OUTLINE_BOWL } from "../../geometry/models/outlineBowl";
 import { buildCakeStand, buildStickStand, DEFAULT_CAKE_STAND, DEFAULT_STICK_STAND } from "../../geometry/models/confectionery";
 import { buildGridCutter, DEFAULT_GRID_CUTTER } from "../../geometry/models/gridCutter";
 import { as, bool, choice, color, num, text, type ModelDef } from "./fields";
@@ -100,5 +101,38 @@ export const LUPA_MODELS: ModelDef[] = [
       },
     ],
     build: (ctx, p) => buildCakeStand(ctx, as(p)),
+  },
+  {
+    id: "outlineBowl",
+    category: "home",
+    label: "Cumbuca no contorno",
+    blurb: "Cestinha de lembrancinha no formato de qualquer desenho fechado, com o desenho em relevo no fundo.",
+    icon: Egg,
+    art: "Desenho fechado (o contorno vira a boca)",
+    defaults: DEFAULT_OUTLINE_BOWL,
+    sections: [
+      {
+        title: "Tamanho",
+        fields: [
+          num("width", "Largura", 30, 240, { step: 1 }),
+          num("height", "Altura", 10, 150, { step: 1 }),
+          num("shell", "Parede", 0.8, 5, { hint: "No modo vaso do fatiador, a parede vira 1 linha: desligue o desenho no fundo." }),
+          num("floor", "Fundo", 0.8, 5),
+          num("bottomRadius", "Arredondar o fundo", 0, 30, { step: 0.5 }),
+          num("rimRadius", "Arredondar a borda", 0, 2.5, { step: 0.1, hint: "Fuzzy skin fica bonito só na parede de fora." }),
+        ],
+      },
+      {
+        title: "Desenho no fundo e cores",
+        fields: [
+          bool("floorArt", "Desenho em relevo no fundo"),
+          num("floorArtScale", "Tamanho do desenho no fundo", 0.2, 0.8, { step: 0.05, unit: "×" }),
+          num("relief", "Relevo", 0.4, 3),
+          color("bowlColor", "Cumbuca"),
+          color("artColor", "Desenho"),
+        ],
+      },
+    ],
+    build: (ctx, p) => buildOutlineBowl(ctx, as(p)),
   },
 ];
