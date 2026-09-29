@@ -1,4 +1,4 @@
-import { Box, CaseUpper, LayoutGrid, Layers, Lightbulb, Image, Puzzle, Type, Users } from "lucide-react";
+import { Box, CaseUpper, LayoutGrid, Layers, Lightbulb, Image, Link2, Puzzle, Type, Users } from "lucide-react";
 import { buildAlphabetCube, DEFAULT_ALPHABET_CUBE } from "../../geometry/models/alphabetCube";
 import { buildBigLetter, DEFAULT_BIG_LETTER } from "../../geometry/models/bigLetter";
 import { buildDeskOrganizer, DEFAULT_DESK_ORGANIZER } from "../../geometry/models/deskOrganizer";
@@ -7,6 +7,7 @@ import { buildLedLetter, DEFAULT_LED_LETTER } from "../../geometry/models/ledLet
 import { buildNamesPanel, DEFAULT_NAMES_PANEL } from "../../geometry/models/namesPanel";
 import { buildPhotoHolder, DEFAULT_PHOTO_HOLDER } from "../../geometry/models/photoHolder";
 import { buildWallLetters, DEFAULT_WALL_LETTERS } from "../../geometry/models/wallLetters";
+import { buildNamePendants, DEFAULT_NAME_PENDANTS } from "../../geometry/models/namePendants";
 import { buildPuzzle, DEFAULT_PUZZLE } from "../../geometry/models/puzzle";
 import { as, bool, choice, color, font, num, text, textureFields, type ModelDef, type Section } from "./fields";
 
@@ -329,5 +330,32 @@ export const TORNO_MODELS: ModelDef[] = [
       },
     ],
     build: (ctx, p) => buildWallLetters(ctx, as({ ...p, layers: Number(p.layers) })),
+  },
+  {
+    id: "namePendants",
+    category: "keychains",
+    label: "Pingentes de nomes",
+    blurb: "Um pingente por pessoa ou pet, com ícone e furos para ligar com argolas ou corrente.",
+    icon: Link2,
+    font: true,
+    art: "Desenho para o ícone \"desenho\" (opcional)",
+    defaults: DEFAULT_NAME_PENDANTS,
+    sections: [
+      { title: "Pingentes", fields: [text("items", "Nomes e ícones", 600, "Separados por vírgula: Nome; ícone (coração, pata, estrela, desenho ou nenhum).")] },
+      {
+        title: "Tamanho e cores",
+        fields: [
+          num("width", "Largura", 40, 100, { step: 1 }),
+          num("base", "Espessura", 1.2, 5),
+          num("relief", "Relevo", 0.4, 3),
+          num("border", "Borda", 1, 8, { step: 0.5 }),
+          bool("holes", "Furos de ligação nas laterais"),
+          color("baseColor", "Base"),
+          color("textColor", "Nome"),
+          color("iconColor", "Ícone"),
+        ],
+      },
+    ],
+    build: (ctx, p) => buildNamePendants(ctx, as(p)),
   },
 ];
