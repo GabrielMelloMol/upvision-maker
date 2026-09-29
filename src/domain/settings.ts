@@ -7,6 +7,8 @@ export const ChannelSchema = z.object({
   name: z.string().trim().min(1),
   feePct: pct,
   feeFixed: z.number().min(0),
+  /** Custo por venda só deste canal: embalagem reforçada, etiqueta, brinde (#33). */
+  extraPerSale: z.number().min(0).optional(),
   // Faixas de preço (#31), todas opcionais: sem elas o canal é só comissão % + taxa fixa.
   /** A taxa fixa só vale para preço abaixo disto. */
   fixedBelow: z.number().positive().optional(),

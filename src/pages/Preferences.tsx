@@ -47,9 +47,11 @@ const BANDS = [
   ["freeShippingAbove", "Frete por sua conta a partir de"],
   ["shippingCost", "Custo desse frete"],
 ] as const;
-type BandKey = (typeof BANDS)[number][0];
+/** Campos opcionais do canal: vazio = não se aplica. */
+const OPTIONAL = [["extraPerSale", "Custo extra por venda"], ...BANDS] as const;
+type BandKey = (typeof OPTIONAL)[number][0];
 type ChannelForm = { name: string; feePct: string; feeFixed: string } & Record<BandKey, string>;
-const EMPTY_BANDS = Object.fromEntries(BANDS.map(([k]) => [k, ""])) as Record<BandKey, string>;
+const EMPTY_BANDS = Object.fromEntries(OPTIONAL.map(([k]) => [k, ""])) as Record<BandKey, string>;
 
 const loadPrefs = async (db: Db) => ({ settings: await loadSettings(db), materials: await materials.list(db) });
 
@@ -79,7 +81,7 @@ function PreferencesForm({ initial, materials }: { initial: Settings; materials:
       name: c.name,
       feePct: str(c.feePct),
       feeFixed: formatMoneyInput(String(c.feeFixed)),
-      ...Object.fromEntries(BANDS.map(([k]) => [k, c[k] === undefined ? "" : formatMoneyInput(String(c[k]))])),
+      ...Object.fromEntries(OPTIONAL.map(([k]) => [k, c[k] === undefined ? "" : formatMoneyInput(String(c[k]))])),
     }) as ChannelForm),
   );
   const [errors, setErrors] = useState<Record<string, string>>({});
@@ -100,7 +102,7 @@ function PreferencesForm({ initial, materials }: { initial: Settings; materials:
         name: c.name,
         feePct: parseDecimal(c.feePct),
         feeFixed: parseMoney(c.feeFixed),
-        ...Object.fromEntries(BANDS.flatMap(([k]) => (c[k].trim() === "" ? [] : [[k, parseMoney(c[k])]]))), // vazio = sem essa faixa
+        ...Object.fromEntries(OPTIONAL.flatMap(([k]) => (c[k].trim() === "" ? [] : [[k, parseMoney(c[k])]]))), // vazio = não se aplica
       })),
     } as Omit<Settings, "kwhHistory">;
     try {
@@ -199,6 +201,7 @@ function PreferencesForm({ initial, materials }: { initial: Settings; materials:
               <label>Canal<input value={c.name} onChange={(e) => setChannel(i, "name", e.target.value)} /></label>
               <label>Comissão (%)<input inputMode="decimal" value={c.feePct} onChange={(e) => setChannel(i, "feePct", e.target.value)} /></label>
               <MoneyField label="Taxa fixa por venda" value={c.feeFixed} onChange={(v) => setChannel(i, "feeFixed", v)} />
+              <MoneyField label="Custo extra por venda" value={c.extraPerSale} placeholder="0,00" hint="Só neste canal: embalagem reforçada, etiqueta, brinde." onChange={(v) => setChannel(i, "extraPerSale", v)} />
               <button type="button" className="link danger" onClick={() => setChannels(channels.filter((_, j) => j !== i))}>Remover</button>
             </div>
             <details style={{ marginBottom: "var(--space-3)" }}>

@@ -42,14 +42,14 @@ export interface ChannelPrice {
 const EPS = 1e-9;
 const shipsAt = (c: Channel, price: number) => c.freeShippingAbove !== undefined && price >= c.freeShippingAbove - EPS;
 
-/** Comissão (com teto), taxa fixa (só abaixo do limite), frete obrigatório (acima do limite) e imposto, num preço. */
+/** Comissão (com teto), taxa fixa (só abaixo do limite), frete obrigatório (acima do limite), custo extra por venda e imposto, num preço. */
 export const channelFees = (c: Channel, price: number, taxPct: number) => round2(feesAt(c, price, taxPct));
 
 function feesAt(c: Channel, price: number, taxPct: number): number {
   const commission = Math.min((price * pos(c.feePct)) / 100, c.feeCapPerItem ?? Infinity);
   const fixed = c.fixedBelow === undefined || price < c.fixedBelow - EPS ? pos(c.feeFixed) : 0;
   const shipping = shipsAt(c, price) ? pos(c.shippingCost) : 0;
-  return commission + fixed + shipping + (price * pos(taxPct)) / 100;
+  return commission + fixed + shipping + pos(c.extraPerSale) + (price * pos(taxPct)) / 100;
 }
 
 /**
@@ -71,7 +71,7 @@ export function channelPrice(c: Channel, cost: number, marginPct: number, taxPct
     const probe = to === Infinity ? from + 1 : (from + to) / 2; // estado das taxas dentro da faixa
     const capped = c.feeCapPerItem !== undefined && probe * rate >= c.feeCapPerItem;
     const a = (capped ? 0 : rate) + t;
-    const b = (capped ? c.feeCapPerItem! : 0) + (c.fixedBelow === undefined || probe < c.fixedBelow ? pos(c.feeFixed) : 0) + (shipsAt(c, probe) ? pos(c.shippingCost) : 0);
+    const b = pos(c.extraPerSale) + (capped ? c.feeCapPerItem! : 0) + (c.fixedBelow === undefined || probe < c.fixedBelow ? pos(c.feeFixed) : 0) + (shipsAt(c, probe) ? pos(c.shippingCost) : 0);
     const denom = 1 - a - m;
     if (denom > 0) {
       const p = (cost + b) / denom;

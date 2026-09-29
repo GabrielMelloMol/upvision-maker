@@ -89,10 +89,12 @@ describe("Preferences", () => {
     await user.click((await screen.findAllByText(/^Faixas de preço/))[0]); // Shopee
     await user.type(screen.getByLabelText("Frete por sua conta a partir de (Shopee)"), "79");
     await user.type(screen.getByLabelText("Custo desse frete (Shopee)"), "20");
+    await user.type(screen.getAllByLabelText(/^Custo extra por venda/)[0], "2,5"); // #33
     await user.click(screen.getByRole("button", { name: "Salvar preferências" }));
     expect(await screen.findByText("Preferências salvas.")).toBeInTheDocument();
     const shopee = (await settings()).channels[0];
-    expect(shopee).toEqual({ name: "Shopee", feePct: 20, feeFixed: 4, freeShippingAbove: 79, shippingCost: 20 });
+    expect(shopee).toEqual({ name: "Shopee", feePct: 20, feeFixed: 4, extraPerSale: 2.5, freeShippingAbove: 79, shippingCost: 20 });
+    expect((await settings()).channels[1]).not.toHaveProperty("extraPerSale");
   });
 
   test("calcular o kWh pela conta de luz (#2): total ÷ kWh + bandeira, usa, guarda histórico e salvar não apaga", async () => {

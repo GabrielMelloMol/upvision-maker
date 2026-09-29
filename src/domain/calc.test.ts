@@ -209,3 +209,12 @@ describe("taxas de canal por faixa de preço (#31)", () => {
     expect(r.channels[0]).toMatchObject({ price: 328.57, fees: 30, marginPct: 30 });
   });
 });
+
+test("custo extra por venda só daquele canal (#33): entra nas taxas e no preço", () => {
+  const r = calculate(
+    { ...empty, filaments: [{ pricePerKg: 100, grams: 100 }], marketplaceMarginPct: 30 },
+    { ...settings, maintenancePct: 0, channels: [{ name: "Loja X", feePct: 20, feeFixed: 4, extraPerSale: 3 }] },
+  );
+  expect(r.channels[0]).toMatchObject({ price: 34, fees: 13.8, profit: 10.2, marginPct: 30 }); // (10 + 4 + 3) ÷ 0,5
+  expect(r.consumer).toBe(50); // venda direta não paga a embalagem do marketplace
+});
