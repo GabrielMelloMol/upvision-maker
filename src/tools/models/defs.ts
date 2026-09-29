@@ -76,7 +76,15 @@ const CORE_MODELS: ModelDef[] = [
     art: "Desenho no topo (opcional)",
     defaults: DEFAULT_BOOKMARK,
     sections: [
-      { title: "Texto", fields: [text("text", "Texto", 30)] },
+      {
+        title: "Texto",
+        fields: [
+          text("text", "Texto", 30),
+          { k: "mode", kind: "choice", label: "Formato", options: [["strip", "Tira com texto"], ["side", "Nome na lateral"]] },
+          num("nameHeight", "Altura do nome (lateral)", 6, 30, { step: 1, hint: "Encolhe sozinho para caber no comprimento." }),
+          num("spacing", "Espaço entre letras (lateral)", 0, 6, { step: 0.5 }),
+        ],
+      },
       { title: "Tamanho e cores", fields: [num("length", "Comprimento", 80, 220, { step: 1 }), num("width", "Largura", 20, 70, { step: 1 }), num("thickness", "Espessura", 1, 4), num("relief", "Relevo", 0.4, 2), { k: "hole", kind: "bool", label: "Furo para cordão" }, color("baseColor", "Base"), color("textColor", "Texto")] },
     ],
     build: (ctx, p) => buildBookmark(ctx, as(p)),
