@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { isCursive, loadFont, type FontId } from "../geometry/fonts";
-import { buildKeychain, DEFAULT_KEYCHAIN, layoutOnPlate, parseNames, type KeychainParams } from "../geometry/keychain";
+import { buildKeychain, DEFAULT_KEYCHAIN, layoutOnPlate, parseNames, splitLines, stackLines, type KeychainParams, type KeychainShape } from "../geometry/keychain";
 import { modelsBounds } from "../geometry/bounds";
 import { getManifold, type CS } from "../geometry/manifold";
 import { scoped } from "../geometry/shape2d";
@@ -12,6 +12,7 @@ import Dropzone from "../ui/Dropzone";
 import ExportButtons from "../ui/ExportButtons";
 import NumField, { inRange } from "../ui/NumField";
 import Preview3D from "../ui/Preview3D";
+import Segmented from "../ui/Segmented";
 import { useModelBuilder } from "../ui/useModelBuilder";
 import { clearHandoff, peekHandoff } from "./handoff";
 import { DESIGN_ACCEPT, designFromSvg, fileToSvg, svgFillColors } from "./designInput";
@@ -21,6 +22,9 @@ const PLATE_MM = 256;
 const GAP_MM = 5;
 const LOGO_GAP_MM = 2;
 const MAX_BATCH = 60;
+const LINE_GAP = 0.25; // espaço entre as linhas, em fração da altura do texto
+const SHAPES = [["outline", "Contorno"], ["rect", "Retângulo"], ["silhouette", "Silhueta"]] as const;
+const LAYERS = [["2", "2 cores"], ["3", "3 cores"]] as const;
 
 export default function Keychain() {
   const [batch, setBatch] = useState(false);
@@ -37,8 +41,10 @@ export default function Keychain() {
   const set = <K extends keyof KeychainParams>(k: K) => (v: KeychainParams[K]) => setP((o) => ({ ...o, [k]: v }));
 
   const list = batch ? parseNames(names).slice(0, MAX_BATCH) : [text.trim()].filter(Boolean);
-  const logoMulti = !!logo && svgFillColors(logo.svg).length > 1;
-  const valid = inRange(textH, 5, 60) && inRange(p.base, 0.8, 8) && inRange(p.relief, 0.4, 5) && inRange(p.border, 1, 10) && inRange(logoH, 5, 80);
+  const silhouette = p.shape === "silhouette";
+  const logoMulti = !silhouette && !!logo && svgFillColors(logo.svg).length > 1;
+  const valid =
+    inRange(textH, 5, 60) && inRange(p.base, 0.8, 8) && inRange(p.relief, 0.4, 5) && inRange(p.border, 1, 10) && inRange(logoH, 5, 80) && (p.shape !== "rect" || inRange(p.rectWidth!, 30, 150));
 
   async function onLogo(f: File) {
     setLogoError(null);
@@ -50,7 +56,7 @@ export default function Keychain() {
   }
 
   const { models, warnings, busy, error } = useModelBuilder(async () => {
-    if (!valid || (!list.length && !logo)) return null;
+    if (!valid || (!list.length && !logo) || (silhouette && (!logo || !list.length))) return null;
     const M = await getManifold();
     const f = await loadFont(font);
     const design = logo ? await designFromSvg(logo.svg, 100, false, true) : null;
@@ -65,18 +71,29 @@ export default function Keychain() {
         const layersFit = design?.layers?.map((l) => ({ color: l.color, cs: k(l.cs.scale(s)) })) ?? null;
         const names = list.length ? list : [""];
         return names.map((name, i) => {
-          const txt = name ? k(textToCrossSection(M, f, name, textH)) : null;
+          // "Ana|Silva": uma linha por parte, empilhadas
+          const lines = splitLines(name).map((l) => k(textToCrossSection(M, f, l, textH)));
+          const txt = !lines.length ? null : lines.length === 1 ? lines[0] : k(stackLines(M, lines, textH * LINE_GAP));
           // traço fino / letras soltas: o primeiro nome basta (mesma fonte e altura em todos)
           if (txt && i === 0) textWarn = textWarnings(checkText(txt), name, isCursive(font));
           let art: CS;
           let dx = 0;
-          if (txt && logoFit) {
+          if (silhouette) art = txt!;
+          else if (txt && logoFit) {
             const tb = txt.bounds(), gb = logoFit.bounds();
             dx = tb.min[0] - LOGO_GAP_MM - gb.max[0];
             art = k(txt.add(k(logoFit.translate([dx, 0]))));
           } else art = (txt ?? logoFit)!;
-          const layers = layersFit?.map((l) => ({ color: l.color, cs: k(l.cs.translate([dx, 0])) })) ?? null;
-          return buildKeychain(M, art, p, name || "Chaveiro", layers);
+          let layers = silhouette ? null : (layersFit?.map((l) => ({ color: l.color, cs: k(l.cs.translate([dx, 0])) })) ?? null);
+          // etiqueta: o texto encolhe para caber na largura (a altura da etiqueta acompanha)
+          const ab = art.bounds();
+          const room = (p.rectWidth ?? 0) - 2 * p.border;
+          if (p.shape === "rect" && ab.max[0] - ab.min[0] > room) {
+            const fit = room / (ab.max[0] - ab.min[0]);
+            art = k(art.scale(fit));
+            layers = layers?.map((l) => ({ color: l.color, cs: k(l.cs.scale(fit)) })) ?? null;
+          }
+          return buildKeychain(M, art, p, name.replace(/\|/g, " ") || "Chaveiro", layers, silhouette ? logoFit : null);
         });
       });
       const placed = built.length > 1 ? layoutOnPlate(built, PLATE_MM - 2 * GAP_MM, GAP_MM) : built;
@@ -104,7 +121,7 @@ export default function Keychain() {
             </div>
             {batch ? (
               <label>
-                Nomes (um por linha ou separados por vírgula)
+                Nomes (um por linha ou separados por vírgula; | quebra em duas linhas)
                 <textarea value={names} onChange={(e) => setNames(e.target.value)} rows={5} />
                 <span className="hint">{parseNames(names).length} nomes · todos na mesma mesa</span>
               </label>
@@ -114,16 +131,22 @@ export default function Keychain() {
                 <input value={text} maxLength={40} onChange={(e) => setText(e.target.value)} />
               </label>
             )}
+            {!batch && <span className="hint">Use | para quebrar em duas linhas (ex.: Ana|Silva).</span>}
             <FontPicker value={font} onChange={setFont} sample={(batch ? parseNames(names)[0] : text) ?? ""} />
             <NumField label="Altura do texto" value={textH} onChange={setTextH} min={5} max={60} step={1} />
           </div>
           <div className="card stack">
-            <h3>Logo (opcional)</h3>
-            <Dropzone accept={DESIGN_ACCEPT} label={logo ? logo.name : "SVG ou imagem do logo"} hint="Fica à esquerda do texto" onFile={onLogo} />
+            <h3>{silhouette ? "Silhueta" : "Logo (opcional)"}</h3>
+            <Dropzone
+              accept={DESIGN_ACCEPT}
+              label={logo ? logo.name : silhouette ? "SVG ou imagem da silhueta" : "SVG ou imagem do logo"}
+              hint={silhouette ? "Vira o formato da base, com o nome por cima" : "Fica à esquerda do texto"}
+              onFile={onLogo}
+            />
             {logoError && <Alert kind="error">{logoError}</Alert>}
             {logo && (
               <div className="row">
-                <NumField label="Altura do logo" value={logoH} onChange={setLogoH} min={5} max={80} step={1} />
+                <NumField label={silhouette ? "Altura da silhueta" : "Altura do logo"} value={logoH} onChange={setLogoH} min={5} max={80} step={1} />
                 <button className="link danger" onClick={() => setLogo(null)}>Remover logo</button>
               </div>
             )}
@@ -131,7 +154,12 @@ export default function Keychain() {
           </div>
           <div className="card stack">
             <h3>Base</h3>
+            <span className="field-label">Formato</span>
+            <Segmented label="Formato" value={p.shape ?? "outline"} options={SHAPES} onChange={(v: KeychainShape) => set("shape")(v)} full />
+            <span className="field-label">Camadas</span>
+            <Segmented label="Camadas" value={String(p.layers ?? 2) as "2" | "3"} options={LAYERS} onChange={(v) => set("layers")(v === "3" ? 3 : 2)} full />
             <div className="grid two">
+              {p.shape === "rect" && <NumField label="Largura da etiqueta" value={p.rectWidth!} onChange={set("rectWidth")} min={30} max={150} step={1} />}
               <NumField label="Espessura" value={p.base} onChange={set("base")} min={0.8} max={8} />
               <NumField label="Relevo do texto" value={p.relief} onChange={set("relief")} min={0.4} max={5} />
               <NumField label="Borda" value={p.border} onChange={set("border")} min={1} max={10} step={0.5} />
@@ -144,16 +172,22 @@ export default function Keychain() {
                 Cor da base
                 <input type="color" value={p.baseColor} onChange={(e) => set("baseColor")(e.target.value)} />
               </label>
+              {p.layers === 3 && (
+                <label>
+                  Cor do meio
+                  <input type="color" value={p.midColor} onChange={(e) => set("midColor")(e.target.value)} />
+                </label>
+              )}
               <label>
                 Cor do texto
                 <input type="color" value={p.topColor} onChange={(e) => set("topColor")(e.target.value)} />
               </label>
             </div>
           </div>
-          <ExportButtons models={models} name={batch ? "chaveiros" : `chaveiro-${text || "logo"}`} busy={busy} />
+          <ExportButtons models={models} name={batch ? "chaveiros" : `chaveiro-${splitLines(text).join(" ") || "logo"}`} busy={busy} />
         </div>
         <div className="preview-col">
-          <Preview3D models={models} busy={busy} busyText="Gerando chaveiros…" error={error} emptyText={!valid ? "Corrija os campos em vermelho." : "Digite um nome para ver o chaveiro."} />
+          <Preview3D models={models} busy={busy} busyText="Gerando chaveiros…" error={error} emptyText={!valid ? "Corrija os campos em vermelho." : silhouette && !logo ? "Envie a silhueta (SVG ou imagem) para ver o chaveiro." : "Digite um nome para ver o chaveiro."} />
           {warnings.map((w) => (
             <Alert key={w} kind="warn">{w}</Alert>
           ))}

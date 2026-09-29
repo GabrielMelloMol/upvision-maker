@@ -1,5 +1,5 @@
 import { beforeAll, describe, expect, test } from "vitest";
-import { buildKeychain, DEFAULT_KEYCHAIN, layoutOnPlate, parseNames } from "./keychain";
+import { buildKeychain, DEFAULT_KEYCHAIN, layoutOnPlate, parseNames, splitLines, stackLines } from "./keychain";
 import { getManifold, type ManifoldToplevel } from "./manifold";
 import { csFromContours, scoped } from "./shape2d";
 import { modelSize, modelVolume, sq } from "./testUtil";
@@ -63,4 +63,53 @@ test("layoutOnPlate distribui sem sobrepor e dentro da mesa", () => {
   }
   const all = modelsBounds(placed)!;
   expect(all.max[0] - all.min[0]).toBeLessThanOrEqual(256);
+});
+
+describe("formatos e camadas (#67)", () => {
+  const noRing = { ...DEFAULT_KEYCHAIN, ring: false };
+
+  test("retângulo: largura mínima de 75 mm e altura do texto + borda", () => {
+    const m = scoped((k) => buildKeychain(M, k(letters()), { ...noRing, shape: "rect" }, "r"));
+    const [w, h] = modelSize(m);
+    expect(w).toBeCloseTo(75, 1);
+    expect(h).toBeCloseTo(10 + 2 * DEFAULT_KEYCHAIN.border, 1);
+  });
+
+  test("retângulo cresce se o texto for mais largo que a etiqueta", () => {
+    const m = scoped((k) => buildKeychain(M, k(letters()), { ...noRing, shape: "rect", rectWidth: 20 }, "r"));
+    expect(modelSize(m)[0]).toBeCloseTo(28 + 2 * DEFAULT_KEYCHAIN.border, 1);
+  });
+
+  test("silhueta: a base é a silhueta enviada unida ao contorno do nome", () => {
+    const m = scoped((k) => buildKeychain(M, k(letters()), { ...noRing, shape: "silhouette" }, "s", null, k(M.CrossSection.circle(30, 96))));
+    const [w, h] = modelSize(m);
+    expect(w).toBeCloseTo(60, 0);
+    expect(h).toBeCloseTo(60, 0);
+    expect(m.parts.map((p) => p.name)).toEqual(["Base", "Texto"]);
+  });
+
+  test("3 camadas: meio em volta do texto, texto por cima, altura base + 2 relevos", () => {
+    const m = scoped((k) => buildKeychain(M, k(letters()), { ...noRing, layers: 3 }, "t"));
+    expect(m.parts.map((p) => p.name)).toEqual(["Base", "Meio", "Texto"]);
+    expect(new Set(m.parts.map((p) => p.color)).size).toBe(3);
+    expect(modelSize(m)[2]).toBeCloseTo(DEFAULT_KEYCHAIN.base + 2 * DEFAULT_KEYCHAIN.relief);
+    const mid = modelVolume({ ...m, parts: [m.parts[1]] });
+    expect(mid).toBeGreaterThan(200 * DEFAULT_KEYCHAIN.relief); // maior que as letras (tem contorno)
+    const [bw] = modelSize({ ...m, parts: [m.parts[0]] });
+    expect(modelSize({ ...m, parts: [m.parts[1]] })[0]).toBeLessThan(bw); // e fica dentro da base
+  });
+});
+
+test("splitLines quebra na barra vertical", () => {
+  expect(splitLines("Ana | Silva")).toEqual(["Ana", "Silva"]);
+  expect(splitLines("Ana")).toEqual(["Ana"]);
+});
+
+test("stackLines empilha as linhas centradas com o espaço pedido", () => {
+  const cs = scoped((k) => stackLines(M, [k(csFromContours(M, [sq(5)], "NonZero")), k(csFromContours(M, [sq(3, 20, 7)], "NonZero"))], 2));
+  const b = cs.bounds();
+  expect(b.max[1] - b.min[1]).toBeCloseTo(10 + 2 + 6);
+  expect(b.min[1] + b.max[1]).toBeCloseTo(0);
+  expect(b.max[0] - b.min[0]).toBeCloseTo(10);
+  cs.delete();
 });

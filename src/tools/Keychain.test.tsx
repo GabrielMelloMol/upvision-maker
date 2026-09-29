@@ -116,4 +116,33 @@ describe("Chaveiros", () => {
     await user.click(screen.getByRole("button", { name: "Um nome" }));
     expect(screen.getByLabelText("Texto")).toHaveValue("Ana");
   }, 30_000);
+
+  test("etiqueta retangular com 3 cores e nome em duas linhas (#67)", async () => {
+    const user = userEvent.setup();
+    const { container } = renderWithApp(<Keychain />);
+    await waitFor(() => expect(hud(container)).toMatch(/mm$/), BUILD);
+    const size = () => hud(container).split(" × ").map(parseFloat);
+    const oneLineH = size()[1];
+    await user.click(screen.getByRole("button", { name: "Retângulo" }));
+    expect(screen.getByLabelText(/^Largura da etiqueta/)).toHaveValue(75);
+    await user.click(screen.getByRole("button", { name: "3 cores" }));
+    await waitFor(() => expect([...container.querySelectorAll(".legend span")].map((s) => s.textContent)).toEqual(["Base", "Meio", "Texto"]), BUILD);
+    await user.clear(screen.getByLabelText("Texto"));
+    await user.type(screen.getByLabelText("Texto"), "Ana|Silva");
+    await waitFor(() => expect(size()[1]).toBeGreaterThan(oneLineH * 1.5), BUILD);
+    await user.click(screen.getByRole("button", { name: /Salvar 3MF/ }));
+    await waitFor(() => expect(t.files.has("/saida/chaveiro-ana-silva.3mf")).toBe(true));
+  }, 30_000);
+
+  test("silhueta: pede o desenho e usa ele como base (#67)", async () => {
+    const user = userEvent.setup();
+    const { container } = renderWithApp(<Keychain />);
+    await user.click(screen.getByRole("button", { name: "Silhueta" }));
+    expect(await screen.findByText("Envie a silhueta (SVG ou imagem) para ver o chaveiro.", undefined, BUILD)).toBeInTheDocument();
+    await user.upload(container.querySelector<HTMLInputElement>('input[type="file"]')!, new File([LOGO_SVG], "gato.svg", { type: "image/svg+xml" }));
+    await user.clear(await screen.findByLabelText(/^Altura da silhueta/));
+    await user.type(screen.getByLabelText(/^Altura da silhueta/), "60");
+    await waitFor(() => expect(hud(container)).toMatch(/mm$/), BUILD);
+    await waitFor(() => expect(parseFloat(hud(container).split(" × ")[1])).toBeGreaterThan(55), BUILD);
+  }, 30_000);
 });
