@@ -69,6 +69,8 @@ export const MIGRATIONS: string[][] = [
     "CREATE TABLE quote_numbers (id INTEGER PRIMARY KEY, seq INTEGER NOT NULL)",
     ...QUOTE_NUMBER_BACKFILL,
   ],
+  // Histórico dos últimos cálculos da calculadora (#43); entra no backup.
+  ["CREATE TABLE calc_history (id INTEGER PRIMARY KEY, name TEXT NOT NULL DEFAULT '', data TEXT NOT NULL, at TEXT NOT NULL, grams REAL NOT NULL DEFAULT 0, hours REAL NOT NULL DEFAULT 0, price REAL NOT NULL DEFAULT 0)"],
 ];
 
 export const SCHEMA_VERSION = MIGRATIONS.length;

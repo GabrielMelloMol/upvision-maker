@@ -4,6 +4,7 @@ Cada versão aparece para a usuária na tela "O que há de novo" depois da atual
 Formato: `## <versão> — <data>` e itens `- …` em linguagem simples.
 
 ## Próxima versão (vira "## 0.6.1 — data" ou "## 0.7.0 — data" ao publicar; até lá o app não mostra)
+- **Últimos cálculos**: a calculadora guarda sozinha os 20 cálculos mais recentes (nome, data, gramas, tempo e preço). "Reabrir" volta todos os valores e "Apagar" tira da lista. Ficam no banco e entram no backup.
 - **Por que meu preço é diferente?**: um link no resumo da calculadora explica, com os seus números, as 4 escolhas que mais mudam o preço em relação a outras calculadoras: falhas divididas × somadas, consumo × potência da fonte, markup × margem e mão de obra fora do multiplicador.
 - **Para onde vai o preço**: no modo Completo da calculadora, uma barra mostra quanto do preço de cada canal vai para produção, mão de obra, taxas e impostos, frete e lucro, em R$ e %. Bom para mostrar ao cliente, e para ver quanto a Shopee leva.
 - **Potência da fonte × consumo**: se a potência da impressora for mais que o dobro do consumo médio dela (ex.: 350 W da etiqueta da A1, que gasta ~95 W imprimindo), a calculadora avisa e o botão "Usar 95 W" corrige a conta e o cadastro.

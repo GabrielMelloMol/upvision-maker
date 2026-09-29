@@ -29,6 +29,7 @@ import ChannelTable, { CompetitorHint } from "./calculator/ChannelTable";
 import PlugSheet from "./calculator/PlugSheet";
 import PrinterCatalogButton from "./calculator/PrinterCatalogButton";
 import AddToQuote from "./calculator/AddToQuote";
+import HistoryCard, { useCalcHistory } from "./calculator/History";
 import PriceSplit from "./calculator/PriceSplit";
 import PriceDiffLink from "./calculator/PriceDiffSheet";
 import TestPrice from "./calculator/TestPrice";
@@ -136,6 +137,21 @@ export default function Calculator({ go }: { go: Go }) {
     const t = staleChannelText(c, todayIso());
     return t ? [[c.name, t]] : [];
   }));
+  const history = useCalcHistory(
+    { mode, fil, ext, printerId, f },
+    { name: f.name.trim(), grams: fil.reduce((t, l) => t + num(l.qty), 0), hours: printMin / 60, price: r.consumer },
+    r.unitCost > 0,
+  );
+  function reopen(e: Parameters<typeof history.reopen>[0]) {
+    const s = history.reopen(e);
+    if (!s) return;
+    setFil(s.fil.length ? s.fil : [newLine()]);
+    setExt(s.ext);
+    setPrinterId(s.printerId);
+    setF(s.f);
+    setMode(s.mode);
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  }
   const rows = compareChannels(r, data.settings, price(f.freight), { rounding, competitor: price(competitor), hours: printMin / 60, qty: num(f.quantity) });
 
   /** Preenche a calculadora com o que o arquivo do fatiador informou. */
@@ -190,6 +206,7 @@ export default function Calculator({ go }: { go: Go }) {
     setPrinterId("");
     setF(EMPTY_FORM);
     setCompetitor("");
+    history.startNew();
   }
 
   /** W medido na tomada: vale para esta conta e, com impressora escolhida, fica gravado nela. */
@@ -426,6 +443,7 @@ export default function Calculator({ go }: { go: Go }) {
           onAdded={setDraftCount}
         />
       )}
+      <HistoryCard list={history.list} onReopen={reopen} onRemove={(id) => void history.remove(id)} />
     </div>
   );
 }

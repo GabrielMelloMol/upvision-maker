@@ -17,11 +17,20 @@ export type Saved = { mode: "quick" | "full"; fil: Line[]; ext: Line[]; printerI
 
 const KEY = "upvision:calculadora";
 
+/** Formulário guardado (JSON) → estado da calculadora; null se vier estragado. Campos novos ganham o padrão. */
+export function parseSaved(json: string | null): Saved | null {
+  try {
+    const v = Saved.safeParse(JSON.parse(json ?? "null"));
+    return v.success ? { ...v.data, f: { ...EMPTY_FORM, ...v.data.f } } : null;
+  } catch {
+    return null;
+  }
+}
+
 /** Último cálculo (só conveniência deste computador): some sem erro se o armazenamento falhar ou vier estragado. */
 export function loadSaved(): Saved | null {
   try {
-    const v = Saved.safeParse(JSON.parse(localStorage.getItem(KEY) ?? "null"));
-    return v.success ? { ...v.data, f: { ...EMPTY_FORM, ...v.data.f } } : null;
+    return parseSaved(localStorage.getItem(KEY));
   } catch {
     return null;
   }

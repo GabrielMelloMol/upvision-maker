@@ -79,8 +79,10 @@ test("número formatado com o prefixo da empresa; sem número (dado antigo) cai 
 
 test("migração numera os orçamentos que já existiam pelo ano de criação", async () => {
   const old = (await import("./testDb")).memoryDb();
-  for (const step of MIGRATIONS.slice(0, -1)) for (const sql of step) await old.execute(sql);
-  await old.execute(`PRAGMA user_version = ${MIGRATIONS.length - 1}`);
+  // banco parado logo antes da migração da numeração (#36), mesmo com migrações novas depois dela
+  const numbering = MIGRATIONS.findIndex((step) => step.some((sql) => sql.includes("CREATE TABLE quote_numbers")));
+  for (const step of MIGRATIONS.slice(0, numbering)) for (const sql of step) await old.execute(sql);
+  await old.execute(`PRAGMA user_version = ${numbering}`);
   for (const at of ["2025-12-30 10:00:00", "2026-01-02 10:00:00", "2026-02-01 10:00:00"])
     await old.execute("INSERT INTO quotes (data, createdAt, convertedOrderId) VALUES (?, ?, NULL)", [JSON.stringify(quote), at]);
   await migrate(old);
