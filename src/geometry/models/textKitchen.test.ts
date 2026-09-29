@@ -133,16 +133,9 @@ describe("culinária", () => {
     expect(plate.max[2]).toBeGreaterThan(DEFAULT_EJECTOR.height); // cabo passa da forma
   });
 
-  test("clipe de saco: fenda com a folga pedida atravessando a forquilha", () => {
+  test("clipe de saco: imprimível e com a arte enviada (detalhes em bagClip.test.ts)", () => {
     const { models } = buildBagClip(ctx(new M.CrossSection([sq(10)], "NonZero")), DEFAULT_BAG_CLIP);
     expectPrintable(models);
-    const clip = models[0].parts[0].mesh;
-    const cb = b(clip);
-    const s = M.Manifold.ofMesh(new M.Mesh({ numProp: 3, vertProperties: clip.positions, triVerts: clip.indices }));
-    const cy = (cb.min[1] + cb.max[1]) / 2;
-    const probe = (w: number) => M.Manifold.cube([10, w, 8], true).translate([cb.max[0] - 8, cy, 5]);
-    expect(s.intersect(probe(DEFAULT_BAG_CLIP.gap - 0.1)).volume()).toBeCloseTo(0, 2); // cabe na fenda
-    expect(s.intersect(probe(DEFAULT_BAG_CLIP.gap + 1)).volume()).toBeGreaterThan(1); // mais largo bate
     expect(models[0].parts.map((p) => p.name)).toEqual(["Clipe", "Arte"]);
   });
 
