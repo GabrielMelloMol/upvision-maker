@@ -31,6 +31,7 @@ export const BATCH_FIELDS: Record<string, string[]> = {
   deskOrganizer: ["name"],
   cakeStand: ["name"],
   photoHolder: ["text"],
+  stringArt: ["line1", "line2"],
   alphabetCube: ["kit"],
 };
 

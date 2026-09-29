@@ -6,5 +6,6 @@ export const EMOJI_FIELDS: Record<string, string[]> = {
   bigLetter: ["name"],
   deskOrganizer: ["name"],
   photoHolder: ["text"],
+  stringArt: ["line1", "line2"],
   alphabetCube: ["face1", "face2", "face3", "face4", "face5", "face6"],
 };

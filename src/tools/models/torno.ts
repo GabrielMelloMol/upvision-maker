@@ -1,4 +1,4 @@
-import { Box, CaseUpper, LayoutGrid, Layers, Lightbulb, Image, Link2, Puzzle, Type, Users } from "lucide-react";
+import { Box, CaseUpper, LayoutGrid, Layers, Lightbulb, Image, Link2, Puzzle, Spline, Type, Users } from "lucide-react";
 import { buildAlphabetCube, DEFAULT_ALPHABET_CUBE } from "../../geometry/models/alphabetCube";
 import { buildBigLetter, DEFAULT_BIG_LETTER } from "../../geometry/models/bigLetter";
 import { buildDeskOrganizer, DEFAULT_DESK_ORGANIZER } from "../../geometry/models/deskOrganizer";
@@ -8,6 +8,7 @@ import { buildNamesPanel, DEFAULT_NAMES_PANEL } from "../../geometry/models/name
 import { buildPhotoHolder, DEFAULT_PHOTO_HOLDER } from "../../geometry/models/photoHolder";
 import { buildWallLetters, DEFAULT_WALL_LETTERS } from "../../geometry/models/wallLetters";
 import { buildNamePendants, DEFAULT_NAME_PENDANTS } from "../../geometry/models/namePendants";
+import { buildStringArt, DEFAULT_STRING_ART } from "../../geometry/models/stringArt";
 import { buildPuzzle, DEFAULT_PUZZLE } from "../../geometry/models/puzzle";
 import { as, bool, choice, color, font, num, text, textureFields, type ModelDef, type Section } from "./fields";
 
@@ -357,5 +358,43 @@ export const TORNO_MODELS: ModelDef[] = [
       },
     ],
     build: (ctx, p) => buildNamePendants(ctx, as(p)),
+  },
+  {
+    id: "stringArt",
+    category: "home",
+    label: "String art",
+    blurb: "Moldura com texto e fios impressos (radial, vertical ou cruzado), ou tábua com furos para pregos.",
+    icon: Spline,
+    font: true,
+    art: "Desenho da moldura (formato \"Desenho\")",
+    defaults: DEFAULT_STRING_ART,
+    sections: [
+      {
+        title: "Moldura e texto",
+        fields: [
+          choice("frame", "Moldura", [["heart", "Coração"], ["rect", "Retângulo"], ["circle", "Círculo"], ["art", "Desenho"]]),
+          text("line1", "Linha 1", 16),
+          text("line2", "Linha 2 (opcional)", 16),
+          choice("mode", "Tipo", [["print", "Fios impressos"], ["nails", "Tábua para pregos"]]),
+          choice("pattern", "Padrão dos fios", [["radial", "Radial"], ["vertical", "Vertical"], ["crossed", "Cruzado"]]),
+        ],
+      },
+      {
+        title: "Tamanho e cores",
+        fields: [
+          num("size", "Tamanho", 60, 250, { step: 1 }),
+          num("frameWidth", "Largura da moldura", 2, 12),
+          num("spacing", "Espaço entre fios", 1.5, 12, { step: 0.5 }),
+          num("threadWidth", "Espessura do fio", 0.8, 2, { step: 0.05, hint: "Mínimo de 2 larguras de linha (0,84 mm com bico 0,4)." }),
+          num("height", "Altura da moldura", 1.5, 8),
+          num("threadHeight", "Altura dos fios", 0.6, 4),
+          bool("backing", "Fundo fino"),
+          color("frameColor", "Moldura"),
+          color("textColor", "Texto"),
+          color("threadColor", "Fios"),
+        ],
+      },
+    ],
+    build: (ctx, p) => buildStringArt(ctx, as(p)),
   },
 ];
