@@ -18,6 +18,7 @@ Formato: `## <versão> — <data>` e itens `- …` em linguagem simples.
 - **Suporte de palitos** e **boleira** (Modelos prontos → Cozinha): base com furos para pirulito e cake pop (leve, maciça ou com lugar para peso) e boleira com borda ondulada e nome na borda, impressa numa peça só, sem suporte.
 - **Cumbuca no contorno** (Modelos prontos → Casa): cestinha de lembrancinha no formato de qualquer desenho fechado, com fundo e borda arredondados e o desenho em relevo no fundo em outra cor.
 - **Molde para carimbo de EVA** (Modelos prontos → Casa): desenho ou texto rebaixado numa placa (ou em relevo, invertido), com opção de ligar partes soltas e um apoio de polegar que encaixa atrás. Aqueça o EVA, prense no molde e o carimbo sai pronto.
+- **Estojo com tampa de rosca** (Modelos prontos → Casa): porta-batom, pente de cílios ou chaveiro. Você dá o diâmetro e a altura de dentro; a rosca tem passo, folga e entradas ajustáveis, a tampa para alinhada com o corpo, e dá para pôr nome, ícone em mosaico e orelha de chaveiro. Imprime sem suporte.
 
 ## 0.6.0 — 2026-09-29
 - **Medalhas bem mais personalizáveis**: formatos novos, textos em arco, número de colocação, bordas e fundos com textura, imagem que você posiciona, verso com pinos de encaixe, modelos prontos (corrida, formatura, campeonato…) e medalhas em lote a partir de uma lista.

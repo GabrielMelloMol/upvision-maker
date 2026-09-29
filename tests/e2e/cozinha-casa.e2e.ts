@@ -63,3 +63,15 @@ test("molde para carimbo de EVA (#73): abre com o texto, apoio separado, inverte
   await expect(page.locator(".viewer .overlay")).toHaveCount(0);
   await save3mf(page, tauri.files);
 });
+
+test("estojo com tampa de rosca (#59): corpo e tampa, nome, mosaico e orelha; 3MF", async ({ page, tauri }) => {
+  await openModel(page, "Estojo com tampa de rosca");
+  await expect(page.locator(".legend")).toContainText("Tampa");
+  await expect(page.locator(".legend")).toContainText("Nome");
+  await page.getByRole("button", { name: "Ícone em mosaico" }).click();
+  await page.getByLabel(/^Orelha para chaveiro/).check();
+  await idle(page);
+  await expect(page.locator(".legend")).toContainText("Textura");
+  await page.screenshot({ path: "test-results/estojo.png" });
+  await save3mf(page, tauri.files);
+});

@@ -7,6 +7,7 @@ import type { ModelCtx } from "./common";
 import { buildCakeStand, buildStickStand, DEFAULT_CAKE_STAND as B, DEFAULT_STICK_STAND as S, holeRings } from "./confectionery";
 import { buildGridCutter, DEFAULT_GRID_CUTTER as G } from "./gridCutter";
 import { buildOutlineBowl, DEFAULT_OUTLINE_BOWL as O } from "./outlineBowl";
+import { buildScrewCase, caseLayout, DEFAULT_SCREW_CASE as SC, screwCaseClosed } from "./screwCase";
 import { buildStampMold, DEFAULT_STAMP_MOLD as SM, moldDesign } from "./stampMold";
 
 let M: ManifoldToplevel;
@@ -179,5 +180,55 @@ describe("molde para carimbo de EVA (#73)", () => {
     const plate = solid(models[0].parts[0].mesh);
     const socket = M.Manifold.cylinder(1, 3, 3).translate([SM.thumbX, SM.thumbY, 0.2]);
     expect(plate.intersect(socket).volume()).toBeLessThan(0.01); // furo no verso onde o pino entra
+  });
+});
+
+describe("estojo com tampa de rosca (#59)", () => {
+  const closed = (p = {}) => screwCaseClosed(ctx(), { ...SC, name: "", ...p });
+
+  test("fechado: corpo e tampa não se atravessam e a rosca engata (crista do macho além do fundo da fêmea)", () => {
+    const { body, lid } = closed();
+    expect(body.intersect(lid).volume()).toBeLessThan(0.5);
+    const L = caseLayout(SC);
+    expect(L.maleMajor).toBeGreaterThan(L.femaleMinor + 0.5);
+    expect(L.femaleMinor).toBeGreaterThan(L.maleMinor); // folga no fundo
+    body.delete();
+    lid.delete();
+  });
+
+  test("cabe o que foi pedido: cilindro de diâmetro e altura internos livre por dentro", () => {
+    const { body, lid } = closed();
+    const L = caseLayout(SC);
+    const inside = M.Manifold.cylinder(SC.innerHeight - 0.1, SC.innerDiameter / 2 - 0.05, SC.innerDiameter / 2 - 0.05, 64).translate([0, 0, L.floor + 0.05]);
+    expect(inside.intersect(body).volume() + inside.intersect(lid).volume()).toBeLessThan(0.5);
+    body.delete();
+    lid.delete();
+  });
+
+  test("tampa fechada fica rente ao corpo (mesmo diâmetro por fora)", () => {
+    const { body, lid } = closed();
+    const b = body.boundingBox(), l = lid.boundingBox();
+    expect(l.max[0] - l.min[0]).toBeCloseTo(b.max[0] - b.min[0], 1);
+    expect(l.min[2]).toBeCloseTo(caseLayout(SC).shoulder, 3); // encosta no ombro
+  });
+
+  test("para imprimir: corpo em pé e tampa de cabeça para baixo, lado a lado; nome em relevo em outra cor", () => {
+    const { models } = buildScrewCase(ctx(), SC);
+    expectPrintable(models);
+    expect(models.map((m) => m.name)).toEqual(["Corpo", "Tampa"]);
+    expect(models[0].parts.map((p) => p.name)).toEqual(["Corpo", "Nome"]);
+    const lid = meshBounds(models[1].parts.map((p) => p.mesh))!;
+    expect(lid.max[2] - lid.min[2]).toBeCloseTo(caseLayout(SC).lidHeight, 1);
+    expect(modelsBounds([models[1]])!.min[0]).toBeGreaterThan(modelsBounds([models[0]])!.max[0]);
+  });
+
+  test("nome gravado tira plástico; orelha de chaveiro alarga a tampa; mosaico põe relevo em volta", () => {
+    const vol = (p: object) => volume(buildScrewCase(ctx(), { ...SC, ...p }).models[0].parts[0].mesh);
+    expect(vol({ nameMode: "engraved" })).toBeLessThan(vol({ nameMode: "none" }));
+    const lidW = (p: object) => size([buildScrewCase(ctx(), { ...SC, ...p }).models[1]])[0];
+    expect(lidW({ keyring: true })).toBeGreaterThan(lidW({ keyring: false }) + 5);
+    const mosaic = buildScrewCase({ ...ctx(), art: M.CrossSection.circle(5, 6) }, { ...SC, nameMode: "none", texture: "mosaic" });
+    expectPrintable(mosaic.models);
+    expect(mosaic.models[0].parts.map((p) => p.name)).toEqual(["Corpo", "Textura"]);
   });
 });

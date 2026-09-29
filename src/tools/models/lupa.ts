@@ -1,4 +1,5 @@
-import { CakeSlice, Egg, Grid3x3, Lollipop, Stamp } from "lucide-react";
+import { CakeSlice, CircleDot, Egg, Grid3x3, Lollipop, Stamp } from "lucide-react";
+import { buildScrewCase, DEFAULT_SCREW_CASE } from "../../geometry/models/screwCase";
 import { buildStampMold, DEFAULT_STAMP_MOLD } from "../../geometry/models/stampMold";
 import { buildOutlineBowl, DEFAULT_OUTLINE_BOWL } from "../../geometry/models/outlineBowl";
 import { buildCakeStand, buildStickStand, DEFAULT_CAKE_STAND, DEFAULT_STICK_STAND } from "../../geometry/models/confectionery";
@@ -170,5 +171,56 @@ export const LUPA_MODELS: ModelDef[] = [
       },
     ],
     build: (ctx, p) => buildStampMold(ctx, as(p)),
+  },
+  {
+    id: "screwCase",
+    category: "home",
+    label: "Estojo com tampa de rosca",
+    blurb: "Porta-batom, pente de cílios ou chaveiro: você dá o tamanho de dentro e a tampa rosqueia e para alinhada.",
+    icon: CircleDot,
+    font: true,
+    art: "Ícone para o mosaico (opcional)",
+    defaults: DEFAULT_SCREW_CASE,
+    sections: [
+      {
+        title: "Nome",
+        fields: [
+          text("name", "Nome", 16),
+          choice("nameMode", "Nome", [["raised", "Em relevo"], ["engraved", "Gravado"], ["none", "Sem nome"]]),
+          num("relief", "Relevo / gravação", 0.4, 1.6),
+        ],
+      },
+      {
+        title: "Medidas de dentro",
+        fields: [
+          num("innerDiameter", "Diâmetro interno", 8, 80, { step: 0.5, hint: "Batom comum: 18 a 20 mm." }),
+          num("innerHeight", "Altura interna", 20, 180, { step: 1 }),
+          num("wall", "Parede", 1.2, 3),
+          num("floor", "Fundo", 1, 3),
+        ],
+      },
+      {
+        title: "Rosca",
+        fields: [
+          num("pitch", "Passo", 2, 5, { step: 0.5 }),
+          num("threadDepth", "Profundidade da rosca", 0.8, 2, { step: 0.1 }),
+          num("clearance", "Folga", 0.15, 0.8, { step: 0.05, hint: "0,35 costuma rosquear bem; aumente se ficar dura." }),
+          num("starts", "Entradas", 1, 3, { step: 1, unit: "", hint: "2 entradas fecham em menos voltas." }),
+          num("turns", "Voltas até fechar", 0.75, 4, { step: 0.25, unit: "" }),
+        ],
+      },
+      {
+        title: "Acabamento e cores",
+        fields: [
+          choice("texture", "Textura", [["smooth", "Lisa"], ["mosaic", "Ícone em mosaico"]]),
+          num("iconSize", "Tamanho do ícone", 4, 15, { step: 0.5 }),
+          bool("keyring", "Orelha para chaveiro na tampa"),
+          color("bodyColor", "Corpo"),
+          color("lidColor", "Tampa"),
+          color("accentColor", "Nome e textura"),
+        ],
+      },
+    ],
+    build: (ctx, p) => buildScrewCase(ctx, as({ ...p, starts: Number(p.starts) })),
   },
 ];
