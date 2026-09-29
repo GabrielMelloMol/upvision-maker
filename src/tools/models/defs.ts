@@ -8,7 +8,7 @@ import { buildSpinner, DEFAULT_SPINNER } from "../../geometry/models/spinner";
 import { buildStamp, DEFAULT_STAMP } from "../../geometry/models/stamp";
 import { buildTrophy, DEFAULT_TROPHY } from "../../geometry/models/trophy";
 import { parseMoney } from "../../ui/parse";
-import { as, color, num, text, textureFields, type ModelDef, type Params } from "./fields";
+import { as, color, num, resinFields, text, textureFields, type ModelDef, type Params } from "./fields";
 import { GIFTS_SPORT_MODELS } from "./giftsSport";
 import { STUDY_MODELS } from "./studyModels";
 import { TEXT_KITCHEN_MODELS } from "./textKitchen";
@@ -120,7 +120,7 @@ const CORE_MODELS: ModelDef[] = [
     sections: [
       { title: "Texto", fields: [text("text", "Texto", 12)] },
       { title: "Tag e impressão", fields: [num("tagDiameter", "Diâmetro da tag", 15, 35, { hint: "NTAG213/215 redonda: 25 mm." }), num("tagThickness", "Espessura da tag", 0.3, 2), num("layerHeight", "Altura de camada", 0.08, 0.32, { step: 0.02, hint: "A mesma do fatiador: define a camada da pausa." })] },
-      { title: "Tamanho e cores", fields: [{ k: "shape", kind: "choice", label: "Formato", options: [["circle", "Redondo"], ["square", "Quadrado"]] }, num("size", "Tamanho", 30, 70, { step: 1 }), num("relief", "Relevo", 0.4, 2), color("baseColor", "Base"), color("textColor", "Texto")] },
+      { title: "Tamanho e cores", fields: [{ k: "shape", kind: "choice", label: "Formato", options: [["circle", "Redondo"], ["square", "Quadrado"]] }, num("size", "Tamanho", 30, 70, { step: 1 }), num("relief", "Relevo", 0.4, 2), color("baseColor", "Base"), color("textColor", "Texto"), ...resinFields] },
     ],
     build: (ctx, p) => buildNfcKeychain(ctx, as(p)),
   },

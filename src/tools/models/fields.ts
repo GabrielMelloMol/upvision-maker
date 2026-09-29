@@ -51,6 +51,12 @@ export const text = (k: string, label: string, max = 30, hint?: string): FieldDe
 export const bool = (k: string, label: string): FieldDef => ({ k, kind: "bool", label });
 export const choice = (k: string, label: string, options: readonly (readonly [string, string])[]): FieldDef => ({ k, kind: "choice", label, options });
 /** Textura rebaixada no fundo de placas e letreiros (#50). */
+/** Cavidade para resina epóxi (#53). */
+export const resinFields: FieldDef[] = [
+  bool("resin", "Cavidade para resina"),
+  num("resinDepth", "Profundidade da resina", 0.6, 4),
+  num("resinWall", "Borda da resina", 1, 4),
+];
 export const textureFields: FieldDef[] = [
   choice("texture", "Textura do fundo", BG_TEXTURES),
   num("texturePitch", "Tamanho do padrão", 3, 20, { step: 0.5 }),

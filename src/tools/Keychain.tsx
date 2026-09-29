@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { isCursive, loadEmojiFont, loadFont, type FontId } from "../geometry/fonts";
+import { RESIN_TIP } from "../geometry/models/resin";
 import { buildKeychain, DEFAULT_KEYCHAIN, layoutOnPlate, parseNames, splitLines, stackLines, type KeychainParams, type KeychainShape } from "../geometry/keychain";
 import { modelsBounds } from "../geometry/bounds";
 import { getManifold, type CS } from "../geometry/manifold";
@@ -101,7 +102,7 @@ export default function Keychain() {
       });
       const placed = built.length > 1 ? layoutOnPlate(built, PLATE_MM - 2 * GAP_MM, GAP_MM) : built;
       const b = modelsBounds(placed);
-      const warn: string[] = [...textWarn];
+      const warn: string[] = [...textWarn, ...(p.resin ? [RESIN_TIP] : [])];
       if (b && b.max[1] - b.min[1] > PLATE_MM) warn.push("Os chaveiros não cabem numa mesa de 256 mm: divida a lista em mais arquivos.");
       if (batch && parseNames(names).length > MAX_BATCH) warn.push(`Só os primeiros ${MAX_BATCH} nomes foram gerados.`);
       return { models: placed, warnings: warn };
@@ -173,6 +174,10 @@ export default function Keychain() {
             <label className="check">
               <input type="checkbox" checked={p.ring} onChange={(e) => set("ring")(e.target.checked)} /> Argola com furo à esquerda
             </label>
+            <label className="check">
+              <input type="checkbox" checked={!!p.resin} onChange={(e) => set("resin")(e.target.checked)} /> Cavidade para resina (borda elevada)
+            </label>
+            {p.resin && <NumField label="Profundidade da resina" value={p.resinDepth ?? 1.5} onChange={set("resinDepth")} min={0.6} max={4} />}
             <div className="row">
               <label>
                 Cor da base

@@ -2,6 +2,7 @@ import { buildKeychain } from "../keychain";
 import { fitInto, followTransform, scoped } from "../shape2d";
 import { requireArt, type ModelCtx, type ModelOutput } from "./common";
 import { DEFAULT_TEXTURE, recessMesh, type TextureParams } from "./textures";
+import { RESIN_TIP, type ResinParams } from "./resin";
 
 export type LogoPlateParams = {
   width: number; // largura da arte
@@ -11,10 +12,11 @@ export type LogoPlateParams = {
   ring: boolean;
   baseColor: string;
   artColor: string;
-} & Partial<TextureParams>;
+} & Partial<TextureParams> &
+  ResinParams;
 
 export const DEFAULT_LOGO_KEYCHAIN: LogoPlateParams = { width: 40, base: 2.4, relief: 1, border: 2.4, ring: true, baseColor: "#1c1c1e", artColor: "#ffffff" };
-export const DEFAULT_ADAPTIVE_PLATE: LogoPlateParams = { width: 120, base: 3, relief: 1.2, border: 4, ring: false, baseColor: "#1c1c1e", artColor: "#ffffff", ...DEFAULT_TEXTURE };
+export const DEFAULT_ADAPTIVE_PLATE: LogoPlateParams = { width: 120, base: 3, relief: 1.2, border: 4, ring: false, baseColor: "#1c1c1e", artColor: "#ffffff", ...DEFAULT_TEXTURE, resin: false, resinDepth: 1.5, resinWall: 1.6 };
 
 const RING_OUTER = 4.5;
 const RING_HOLE = 2.2;
@@ -28,12 +30,12 @@ export function buildLogoPlate(ctx: ModelCtx, p: LogoPlateParams): ModelOutput {
     const model = buildKeychain(
       ctx.M,
       placed,
-      { base: p.base, relief: p.relief, border: p.border, ring: p.ring, ringOuter: RING_OUTER, ringHole: RING_HOLE, baseColor: p.baseColor, topColor: p.artColor },
+      { base: p.base, relief: p.relief, border: p.border, ring: p.ring, ringOuter: RING_OUTER, ringHole: RING_HOLE, baseColor: p.baseColor, topColor: p.artColor, resin: p.resin, resinDepth: p.resinDepth, resinWall: p.resinWall },
       p.ring ? "Chaveiro" : "Placa",
       layers,
     );
     // textura no fundo visível da base, fora da arte (#50)
     const parts = model.parts.map((x) => (x.name === "Texto" ? { ...x, name: "Arte" } : x.name === "Base" ? { ...x, mesh: recessMesh(ctx.M, x.mesh, placed, p) } : x));
-    return { models: [{ ...model, parts }] };
+    return { models: [{ ...model, parts }], warnings: p.resin ? [RESIN_TIP] : [] };
   });
 }

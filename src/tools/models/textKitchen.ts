@@ -6,7 +6,7 @@ import { buildLogoPlate, DEFAULT_ADAPTIVE_PLATE, DEFAULT_LOGO_KEYCHAIN } from ".
 import { buildPencilTopper, DEFAULT_PENCIL_TOPPER } from "../../geometry/models/pencilTopper";
 import { buildSignPlate, DEFAULT_SIGN_PLATE } from "../../geometry/models/signPlate";
 import { buildWordDecor, DEFAULT_WORD_DECOR } from "../../geometry/models/wordDecor";
-import { as, bool, choice, color, num, text, textureFields, type ModelDef } from "./fields";
+import { as, bool, choice, color, num, text, resinFields, textureFields, type ModelDef } from "./fields";
 
 const logoFields = (maxW: number) => [
   num("width", "Largura da arte", 15, maxW, { step: 1 }),
@@ -36,7 +36,7 @@ export const TEXT_KITCHEN_MODELS: ModelDef[] = [
     icon: Frame,
     art: "Desenho da placa (SVG ou imagem)",
     defaults: DEFAULT_ADAPTIVE_PLATE,
-    sections: [{ title: "Tamanho e cores", fields: [...logoFields(250), color("baseColor", "Base"), color("artColor", "Arte (1 cor)"), ...textureFields] }],
+    sections: [{ title: "Tamanho e cores", fields: [...logoFields(250), color("baseColor", "Base"), color("artColor", "Arte (1 cor)"), ...textureFields, ...resinFields] }],
     build: (ctx, p) => buildLogoPlate(ctx, as({ ...p, ring: false })),
   },
   {

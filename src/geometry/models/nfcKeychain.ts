@@ -1,5 +1,6 @@
 import { fitInto, scoped } from "../shape2d";
 import { roundedRect, slab, solidMesh, type ModelCtx, type ModelOutput } from "./common";
+import { DEFAULT_RESIN, RESIN_TIP, resinRim, type ResinParams } from "./resin";
 
 export type NfcKeychainParams = {
   shape: "circle" | "square";
@@ -11,7 +12,7 @@ export type NfcKeychainParams = {
   text: string;
   baseColor: string;
   textColor: string;
-};
+} & ResinParams;
 
 export const DEFAULT_NFC: NfcKeychainParams = {
   shape: "circle",
@@ -23,6 +24,7 @@ export const DEFAULT_NFC: NfcKeychainParams = {
   text: "Ana",
   baseColor: "#ffffff",
   textColor: "#2563eb",
+  ...DEFAULT_RESIN,
 };
 
 const TAG_CLEARANCE = 1.5; // folga no diâmetro
@@ -64,6 +66,9 @@ export function buildNfcKeychain({ M, text }: ModelCtx, p: NfcKeychainParams): M
     const parts = [{ name: "Base", color: p.baseColor, mesh: solidMesh(body) }];
     const raw = text(p.text, 100);
     if (raw) parts.push({ name: "Texto", color: p.textColor, mesh: slab(k(fitInto(k(raw), p.size * 0.72, p.size * 0.35, 0)), p.relief, L.height) });
+    // cavidade para resina sobre a tag e o texto (#53)
+    const rim = resinRim(outline, L.height, raw ? p.relief : 0, p, p.baseColor);
+    if (rim) parts.push(rim);
     const z = L.pauseZ.toFixed(2).replace(".", ",");
     return {
       models: [{ name: "Chaveiro NFC", parts }],
@@ -71,6 +76,7 @@ export function buildNfcKeychain({ M, text }: ModelCtx, p: NfcKeychainParams): M
       warnings: [
         `Pausa em Z = ${z} mm: a impressora para, você coloca a tag no bolsão e retoma.`,
         `OrcaSlicer e PrusaSlicer já abrem com a pausa. Para o Bambu Studio, use “Projeto do Bambu Studio (pausa pronta)”.`,
+        ...(p.resin ? [RESIN_TIP] : []),
       ],
     };
   });

@@ -113,3 +113,12 @@ test("stackLines empilha as linhas centradas com o espaço pedido", () => {
   expect(b.max[0] - b.min[0]).toBeCloseTo(10);
   cs.delete();
 });
+
+test("cavidade para resina: borda na beira da base, acima do relevo pela profundidade (#53)", () => {
+  const m = scoped((k) => buildKeychain(M, k(letters()), { ...DEFAULT_KEYCHAIN, ring: false, resin: true, resinDepth: 1.5, resinWall: 1.6 }, "r"));
+  const rim = m.parts.find((q) => q.name === "Borda da resina")!;
+  expect(rim.color).toBe(DEFAULT_KEYCHAIN.baseColor);
+  expect(modelSize({ ...m, parts: [rim] })[2]).toBeCloseTo(DEFAULT_KEYCHAIN.relief + 1.5);
+  expect(modelSize(m)[2]).toBeCloseTo(DEFAULT_KEYCHAIN.base + DEFAULT_KEYCHAIN.relief + 1.5);
+  expect(modelSize({ ...m, parts: [rim] })[0]).toBeCloseTo(modelSize({ ...m, parts: [m.parts[0]] })[0], 1);
+});

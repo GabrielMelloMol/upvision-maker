@@ -2,6 +2,7 @@ import type { CS, ManifoldToplevel } from "./manifold";
 import { layerParts, type ColorLayer2D } from "./extrude";
 import { toMesh } from "./mesh";
 import { roundedRect } from "./models/common";
+import { resinRim, type ResinParams } from "./models/resin";
 import { outerOnly, scoped } from "./shape2d";
 import type { Model } from "./types";
 
@@ -21,7 +22,7 @@ export type KeychainParams = {
   /** 3 camadas: base, contorno do texto (meio) e texto (topo). */
   layers?: 2 | 3;
   midColor?: string;
-};
+} & ResinParams;
 
 export type KeychainShape = "outline" | "rect" | "silhouette";
 
@@ -77,6 +78,7 @@ export function buildKeychain(M: ManifoldToplevel, art: CS, p: KeychainParams, n
         : shape === "silhouette" && silhouette
           ? k(outerOnly(M, k(k(outlineOf(M, art, p.border)).add(silhouette))))
           : k(outlineOf(M, art, p.border));
+    const outline = base; // contorno sem a argola: a borda da resina segue ele
     if (p.ring) {
       // ponto mais à esquerda na faixa central da altura: a argola fica centrada, não num "pé" de letra
       const pts = base.toPolygons().flat();
@@ -98,7 +100,13 @@ export function buildKeychain(M: ManifoldToplevel, art: CS, p: KeychainParams, n
     const top = rest.isEmpty() || (layers && rest.area() < art.area() * SLIVER_FRAC) ? [] : [{ name: "Texto", color: p.topColor, mesh: toMesh(k(k(rest.extrude(p.relief)).translate([0, 0, zTop]))) }];
     return {
       name,
-      parts: [{ name: "Base", color: p.baseColor, mesh: toMesh(k(base.extrude(p.base))) }, ...mid, ...top, ...(layers ? layerParts(layers, p.relief, zTop, "Logo") : [])],
+      parts: [
+        { name: "Base", color: p.baseColor, mesh: toMesh(k(base.extrude(p.base))) },
+        ...mid,
+        ...top,
+        ...(layers ? layerParts(layers, p.relief, zTop, "Logo") : []),
+        ...[resinRim(outline, p.base, zTop + p.relief - p.base, p, p.baseColor)].filter((q) => q !== null),
+      ],
     };
   });
 }
