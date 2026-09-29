@@ -31,7 +31,7 @@ describe("Impressoras: catálogo (#1)", () => {
     const sheet = await screen.findByRole("dialog", { name: "Catálogo de impressoras" });
     await user.type(within(sheet).getByRole("combobox", { name: "Buscar no catálogo" }), "creality k1");
     const opts = within(sheet).getAllByRole("option");
-    expect(opts.map((o) => o.querySelector(".t")!.textContent)).toEqual(["K1", "K1C", "K1 Max"]);
+    expect(opts.map((o) => o.querySelector(".t")!.textContent)).toEqual(["K1", "K1C", "K1 Max", "K1 SE"]);
     expect(within(sheet).getByText("Creality")).toHaveClass("palette-group");
     expect(opts[0]).toHaveTextContent("≈120 W · estimativa");
     await user.keyboard("{ArrowDown}{Enter}");

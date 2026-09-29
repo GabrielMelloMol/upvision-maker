@@ -4,7 +4,7 @@ import globals from "globals";
 import tseslint from "typescript-eslint";
 
 export default tseslint.config(
-  { ignores: ["dist", "src-tauri", "coverage", "test-results", "playwright-report"] },
+  { ignores: ["dist", "src-tauri", "coverage", "test-results", "playwright-report", "docs"] }, // docs: trechos de estudo, não é código do app
   {
     extends: [js.configs.recommended, ...tseslint.configs.recommended],
     files: ["**/*.{ts,tsx}"],

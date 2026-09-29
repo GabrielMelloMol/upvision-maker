@@ -15,6 +15,8 @@ import Segmented from "../../ui/Segmented";
 import Sheet from "../../ui/Sheet";
 import { errorText, useToast } from "../../ui/Toast";
 import type { ProductsData } from "./data";
+import type { Printer } from "../../domain/entities";
+import PrinterCatalogButton from "../calculator/PrinterCatalogButton";
 
 type Line = { id: string; qty: string };
 type Props = { initial: Partial<Product>; data: ProductsData; onClose: () => void; onSaved: () => void };
@@ -32,6 +34,9 @@ export default function ProductEditor({ initial, data, onClose, onSaved }: Props
   const [sku, setSku] = useState(base.sku);
   const [notes, setNotes] = useState(base.notes);
   const [printerId, setPrinterId] = useState(base.printerId ? String(base.printerId) : "");
+  // impressoras cadastradas pelo catálogo aqui mesmo (os dados da página só recarregam ao fechar)
+  const [added, setAdded] = useState<Printer[]>([]);
+  const printerList = [...data.printers, ...added];
   const [n, setN] = useState({
     time: base.printMinutes > 0 ? formatDuration(base.printMinutes) : "",
     labor: base.laborMinutes > 0 ? formatDuration(base.laborMinutes) : "",
@@ -83,7 +88,7 @@ export default function ProductEditor({ initial, data, onClose, onSaved }: Props
     },
   };
 
-  const pricing = livePricing(input, initial.id ?? -1, data);
+  const pricing = livePricing(input, initial.id ?? -1, { ...data, printers: printerList });
 
   async function addPhotos(files: FileList | null) {
     if (!files) return;
@@ -188,17 +193,26 @@ export default function ProductEditor({ initial, data, onClose, onSaved }: Props
           <fieldset>
             <legend>Impressão</legend>
             <div className="grid">
-              <label>
-                Impressora
-                <select value={printerId} onChange={(e) => setPrinterId(e.target.value)}>
-                  <option value="">Nenhuma</option>
-                  {data.printers.map((p) => (
-                    <option key={p.id} value={p.id}>
-                      {p.name}
-                    </option>
-                  ))}
-                </select>
-              </label>
+              <div className="stack" style={{ gap: 4 }}>
+                <label>
+                  Impressora
+                  <select value={printerId} onChange={(e) => setPrinterId(e.target.value)}>
+                    <option value="">Nenhuma</option>
+                    {printerList.map((p) => (
+                      <option key={p.id} value={p.id}>
+                        {p.name}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+                <PrinterCatalogButton
+                  printers={printerList}
+                  onPicked={(p) => {
+                    if (!printerList.some((x) => x.id === p.id)) setAdded((a) => [...a, p]);
+                    setPrinterId(String(p.id));
+                  }}
+                />
+              </div>
               <TimeField label="Tempo de impressão" value={n.time} onChange={setText("time")} />
               <TimeField label="Mão de obra" bare="min" value={n.labor} onChange={setText("labor")} placeholder="15 min" hint="Ex.: 15 (minutos), 1h10" />
               <label>

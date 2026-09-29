@@ -4,6 +4,9 @@ Cada versão aparece para a usuária na tela "O que há de novo" depois da atual
 Formato: `## <versão> — <data>` e itens `- …` em linguagem simples.
 
 ## Próxima versão (vira "## 0.6.0 — data" ao publicar; até lá o app não mostra)
+- **56 fontes** para chaveiros, modelos prontos e Pedir à IA (cursivas, grossas, divertidas, infantis, elegantes, retrô e serifadas), todas funcionando sem internet. O **seletor de fonte** mostra o nome que você digitou em cada uma, com busca, categorias e **favoritas** (estrela).
+- **Importar fonte** do computador (.ttf ou .otf): fica salva no app e aparece em "Minhas".
+- **Aviso de impressão**: o app avisa quando a fonte fica com traço mais fino que 0,4 mm no tamanho escolhido, ou quando uma cursiva não une as letras.
 - **Calculadora rápida**: abre com só filamento, gramas, tempo, impressora e peças. "Ver detalhes" leva os mesmos valores para a calculadora completa, e o app lembra o último cálculo.
 - **Preço para lojista (revenda)** e **venda direta (consumidor final)**: nomes mais claros, com explicação e exemplo em R$ ao lado ("Qual preço usar?"). O multiplicador também mostra o markup e a margem de verdade.
 - **Mudança no preço sugerido**: a mão de obra agora é somada **depois** do multiplicador. Antes, com ×5, uma hora de trabalho de R$ 30 virava R$ 150 no preço. Quem preferir o jeito antigo liga em Preferências.
@@ -11,6 +14,7 @@ Formato: `## <versão> — <data>` e itens `- …` em linguagem simples.
 - **Custo da impressora**: cadastre quanto pagou e a vida útil, e a calculadora cobra a máquina por hora (uma A1 de R$ 3.000 dá R$ 0,60/h). Ela substitui a "manutenção %", que continua valendo só para impressora sem preço.
 - **Impostos sobre a venda** e **custos fixos por hora** (aluguel, internet, assinaturas dos Custos operacionais) no preço, se quiser.
 - **Medir com tomada inteligente**: anote o Total (kWh) do app da tomada no começo e no fim de uma impressão e o app calcula a potência média. Também dá para digitar os kWh de uma impressão.
+- **Catálogo de impressoras bem maior**: 167 modelos de 27 marcas (UltiMaker, Snapmaker, Artillery, Raise3D, GTMax3D, Sethi3D e outras), com volume de impressão e se é aberta ou fechada. Dá para escolher do catálogo também na Calculadora e no Produto: a impressora é cadastrada na hora. A busca acha "a1", "k1c" ou "ender3".
 - **Embalagem padrão** já aparece na calculadora, e o resultado mostra o custo por grama e por hora de impressão.
 
 ## 0.5.0 — 2026-09-28

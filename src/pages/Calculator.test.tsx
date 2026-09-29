@@ -243,3 +243,19 @@ describe("Calculadora (#22)", () => {
     await waitFor(() => expect(screen.getByRole("row", { name: /^Materiais extras/ })).toHaveTextContent(brl("2,00")));
   });
 });
+
+test("impressora do catálogo na calculadora (#21): cadastra na hora e já preenche a potência; repetir não duplica", async () => {
+  localStorage.removeItem("upvision:calculadora");
+  const user = userEvent.setup();
+  renderWithApp(<Calculator go={() => {}} />);
+  await user.click(screen.getByRole("button", { name: "Completo" }));
+  for (let i = 0; i < 2; i++) {
+    await user.click(screen.getByRole("button", { name: "Escolher do catálogo" }));
+    const cat = await screen.findByRole("dialog", { name: "Catálogo de impressoras" });
+    await user.type(within(cat).getByRole("combobox", { name: "Buscar no catálogo" }), "k1c");
+    await user.keyboard("{Enter}");
+    await waitFor(() => expect(screen.getByLabelText("Impressora")).toHaveDisplayValue("Creality K1C"));
+  }
+  expect(screen.getByLabelText("Potência (W)")).toHaveValue("120");
+  expect(await t.db.select("SELECT name, watts FROM printers")).toEqual([{ name: "Creality K1C", watts: 120 }]);
+});

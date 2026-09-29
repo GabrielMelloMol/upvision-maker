@@ -144,6 +144,20 @@ describe("Produtos: lista", () => {
 });
 
 describe("Produtos: editor", () => {
+  test("impressora do catálogo no produto (#21): cadastra na hora, entra na energia e fica escolhida", async () => {
+    await seedSupplies();
+    const user = userEvent.setup();
+    renderWithApp(<Products />);
+    await user.click(await screen.findByRole("button", { name: "Novo produto" }));
+    const sheet = await dialog("Novo produto");
+    await user.click(within(sheet).getByRole("button", { name: "Escolher do catálogo" }));
+    const cat = await dialog("Catálogo de impressoras");
+    await user.type(within(cat).getByRole("combobox", { name: "Buscar no catálogo" }), "bambu a1 mini");
+    await user.keyboard("{Enter}");
+    await waitFor(() => expect(within(sheet).getByLabelText("Impressora")).toHaveDisplayValue("Bambu Lab A1 mini"));
+    expect(await t.db.select("SELECT name, watts FROM printers")).toEqual([{ name: "Bambu Lab A1 mini", watts: 80 }]);
+  });
+
   test("novo produto com filamento e material: preço ao vivo e composição gravada", async () => {
     await seedSupplies();
     t.raw.exec("INSERT INTO printers (name, watts) VALUES ('A1', 100)");

@@ -23,6 +23,7 @@ import { setProductDraft } from "./products/draft";
 import { errorText, useToast } from "../ui/Toast";
 import ChannelTable, { CompetitorHint } from "./calculator/ChannelTable";
 import PlugSheet from "./calculator/PlugSheet";
+import PrinterCatalogButton from "./calculator/PrinterCatalogButton";
 import { CostBreakdown, PriceHero } from "./calculator/Result";
 import { EMPTY_FORM, loadSaved, storeSaved, type CalcForm, type Line } from "./calculator/saved";
 
@@ -165,17 +166,27 @@ export default function Calculator({ go }: { go: Go }) {
   }
 
   const printerSelect = (
-    <label>
-      Impressora
-      <select value={printerId} onChange={(e) => pickPrinter(e.target.value)}>
-        <option value="">Digitar potência</option>
-        {data.printers.map((p) => (
-          <option key={p.id} value={p.id}>
-            {p.name}
-          </option>
-        ))}
-      </select>
-    </label>
+    <div className="stack" style={{ gap: 4 }}>
+      <label>
+        Impressora
+        <select value={printerId} onChange={(e) => pickPrinter(e.target.value)}>
+          <option value="">Digitar potência</option>
+          {data.printers.map((p) => (
+            <option key={p.id} value={p.id}>
+              {p.name}
+            </option>
+          ))}
+        </select>
+      </label>
+      <PrinterCatalogButton
+        printers={data.printers}
+        onPicked={(p) => {
+          setPrinterId(String(p.id));
+          setF((cur) => ({ ...cur, watts: str(p.watts) }));
+          reloadData();
+        }}
+      />
+    </div>
   );
   const timeField = <TimeField label="Tempo de impressão" value={f.time} onChange={setText("time")} />;
   const piecesField = <label>Peças na mesa<input inputMode="numeric" value={f.quantity} onChange={set("quantity")} /></label>;
