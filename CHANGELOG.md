@@ -21,6 +21,7 @@ Formato: `## <versão> — <data>` e itens `- …` em linguagem simples.
 - **Molde para carimbo de EVA** (Modelos prontos → Casa): desenho ou texto rebaixado numa placa (ou em relevo, invertido), com opção de ligar partes soltas e um apoio de polegar que encaixa atrás. Aqueça o EVA, prense no molde e o carimbo sai pronto.
 - **Estojo com tampa de rosca** (Modelos prontos → Casa): porta-batom, pente de cílios ou chaveiro. Você dá o diâmetro e a altura de dentro; a rosca tem passo, folga e entradas ajustáveis, a tampa para alinhada com o corpo, e dá para pôr nome, ícone em mosaico e orelha de chaveiro. Imprime sem suporte.
 - **Rolo de textura** (Modelos prontos → Cozinha): marca massa, argila e biscoito com um desenho em mosaico (com opção de tijolo) ou envolvente, alto ou baixo relevo, sem emenda. Furo para eixo ou cabos impressos; imprime em pé.
+- **Quadro de metas** (Modelos prontos → Casa): placa de mesa com título e uma grade de números em relevo para riscar conforme a meta avança (R$ 50, R$ 100… ou dias em contagem regressiva), arrumada sozinha, com suporte.
 
 ## 0.6.0 — 2026-09-29
 - **Medalhas bem mais personalizáveis**: formatos novos, textos em arco, número de colocação, bordas e fundos com textura, imagem que você posiciona, verso com pinos de encaixe, modelos prontos (corrida, formatura, campeonato…) e medalhas em lote a partir de uma lista.

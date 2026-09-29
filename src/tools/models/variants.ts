@@ -48,6 +48,7 @@ export const MODEL_COLLECTIONS: Record<string, Collection[]> = {
   stampMold: ["negocio", "maes"],
   screwCase: ["maes", "aniversario"],
   textureRoller: ["natal", "pascoa"],
+  goalBoard: ["negocio", "casamento"],
 };
 
 const PINK = "#f472b6", GOLD = "#f5c542", WHITE = "#f8f8f6", BLACK = "#1c1c1e", RED = "#d6262e", GREEN = "#22a04b", BLUE = "#2563eb", LILAC = "#7e3fd6", SKY = "#7cc4f5";

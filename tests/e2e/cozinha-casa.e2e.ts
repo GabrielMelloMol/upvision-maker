@@ -85,3 +85,15 @@ test("rolo de textura (#64): abre com o mosaico de exemplo, troca para cabos e b
   await expect(page.locator(".viewer .overlay")).toHaveCount(0);
   await save3mf(page, tauri.files);
 });
+
+test("quadro de metas (#75): grade de números com título e suporte; muitos números avisam; 3MF", async ({ page, tauri }) => {
+  await openModel(page, "Quadro de metas");
+  await expect(page.locator(".legend")).toContainText("Números e título");
+  await page.screenshot({ path: "test-results/metas.png" });
+  await page.getByLabel(/^De quanto em quanto/).fill("5");
+  await idle(page);
+  await expect(page.getByText(/primeiros 100 números/)).toBeVisible();
+  await page.getByLabel(/^De quanto em quanto/).fill("50");
+  await idle(page);
+  await save3mf(page, tauri.files);
+});

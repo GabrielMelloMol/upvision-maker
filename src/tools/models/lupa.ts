@@ -1,4 +1,5 @@
-import { CakeSlice, CircleDot, Cylinder, Egg, Grid3x3, Lollipop, Stamp } from "lucide-react";
+import { CakeSlice, CircleDot, Cylinder, Egg, Goal, Grid3x3, Lollipop, Stamp } from "lucide-react";
+import { buildGoalBoard, DEFAULT_GOAL_BOARD } from "../../geometry/models/goalBoard";
 import { buildTextureRoller, DEFAULT_TEXTURE_ROLLER } from "../../geometry/models/textureRoller";
 import { buildScrewCase, DEFAULT_SCREW_CASE } from "../../geometry/models/screwCase";
 import { buildStampMold, DEFAULT_STAMP_MOLD } from "../../geometry/models/stampMold";
@@ -257,5 +258,40 @@ export const LUPA_MODELS: ModelDef[] = [
       },
     ],
     build: (ctx, p) => buildTextureRoller(ctx, as(p)),
+  },
+  {
+    id: "goalBoard",
+    category: "home",
+    label: "Quadro de metas",
+    blurb: "Placa de mesa com números para riscar conforme a meta avança: economia, dias até um evento.",
+    icon: Goal,
+    font: true,
+    defaults: DEFAULT_GOAL_BOARD,
+    sections: [
+      {
+        title: "Meta",
+        fields: [
+          text("title", "Título", 30),
+          num("target", "Meta", 1, 1000000, { step: 1, unit: "" }),
+          num("step", "De quanto em quanto", 1, 100000, { step: 1, unit: "", hint: "O quadro mostra até 100 números." }),
+          text("prefix", "Antes do número (ex.: R$)", 6),
+          text("suffix", "Depois do número (ex.: K, dias)", 8),
+          bool("countdown", "Contagem regressiva (do maior para o menor)"),
+        ],
+      },
+      {
+        title: "Placa e cores",
+        fields: [
+          num("width", "Largura", 80, 250, { step: 1 }),
+          num("thickness", "Espessura", 2, 6),
+          num("relief", "Relevo", 0.4, 2),
+          bool("grid", "Linhas entre os números"),
+          bool("stand", "Suporte de mesa"),
+          color("plateColor", "Placa"),
+          color("textColor", "Números e título"),
+        ],
+      },
+    ],
+    build: (ctx, p) => buildGoalBoard(ctx, as(p)),
   },
 ];

@@ -7,6 +7,7 @@ import type { ModelCtx } from "./common";
 import { buildCakeStand, buildStickStand, DEFAULT_CAKE_STAND as B, DEFAULT_STICK_STAND as S, holeRings } from "./confectionery";
 import { buildGridCutter, DEFAULT_GRID_CUTTER as G } from "./gridCutter";
 import { buildOutlineBowl, DEFAULT_OUTLINE_BOWL as O } from "./outlineBowl";
+import { buildGoalBoard, DEFAULT_GOAL_BOARD as GB, goalLabels } from "./goalBoard";
 import { buildTextureRoller, DEFAULT_TEXTURE_ROLLER as TR, rollerGrid } from "./textureRoller";
 import { buildScrewCase, caseLayout, DEFAULT_SCREW_CASE as SC, screwCaseClosed } from "./screwCase";
 import { buildStampMold, DEFAULT_STAMP_MOLD as SM, moldDesign } from "./stampMold";
@@ -271,3 +272,28 @@ describe("rolo de textura (#64)", { timeout: 30_000 }, () => {
   });
 });
 
+describe("quadro de metas (#75)", { timeout: 30_000 }, () => {
+  test("números do passo até a meta, com prefixo e sufixo; contagem regressiva inverte", () => {
+    expect(goalLabels({ ...GB, target: 200, step: 50, prefix: "R$ ", suffix: "" }).labels).toEqual(["R$ 50", "R$ 100", "R$ 150", "R$ 200"]);
+    expect(goalLabels({ ...GB, target: 3000, step: 1000, prefix: "", suffix: "K", countdown: true }).labels).toEqual(["3.000K", "2.000K", "1.000K"]);
+    const many = goalLabels({ ...GB, target: 10000, step: 10 });
+    expect(many.labels).toHaveLength(100);
+    expect(many.clamped).toBe(true);
+  });
+
+  test("placa com a grade de números em relevo em outra cor, título e suporte de mesa", () => {
+    const { models, warnings } = buildGoalBoard(ctx(), GB);
+    expectPrintable(models);
+    expect(models.map((m) => m.name)).toEqual(["Quadro", "Suporte"]);
+    expect(models[0].parts.map((p) => p.name)).toEqual(["Placa", "Números e título"]);
+    const [w] = size([models[0]]);
+    expect(w).toBeCloseTo(GB.width, 0);
+    expect(warnings).toEqual([]);
+    const txt = meshBounds([models[0].parts[1].mesh])!;
+    expect(txt.min[2]).toBeCloseTo(GB.thickness, 3);
+  });
+
+  test("mais de 100 números: usa os 100 primeiros e avisa", () => {
+    expect(buildGoalBoard(ctx(), { ...GB, target: 10000, step: 10 }).warnings?.join()).toMatch(/100/);
+  });
+});
