@@ -181,3 +181,7 @@ g:hover > .viz-hit { fill: var(--fill); }
 .site-list li { display: flex; align-items: center; justify-content: space-between; gap: var(--space-3); padding: var(--space-3) var(--space-4); }
 .site-list .hint { margin: 2px 0 0; }
 .site-list button { flex: none; }
+
+/* elementos internos do modelo no gizmo (#79): tracejados, o escolhido em destaque */
+.gizmo-element { fill: transparent; stroke: var(--muted); stroke-width: 1; stroke-dasharray: 4 3; vector-effect: non-scaling-stroke; cursor: move; }
+.gizmo-element[data-selected] { stroke: var(--accent); }

@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState, type KeyboardEvent, type PointerEvent } from "react";
+import type { ElementBox } from "../../geometry/models/common";
 import type { FaceInfo, LayerShape } from "./applyLayers";
 import { normalizeRotation, rotatedHalf, snapPosition, type Guides, type Layer } from "./layers";
 
@@ -12,6 +13,8 @@ const NUDGE_BIG_MM = 5;
 const pathOf = (polys: [number, number][][]) => polys.map((p) => `M${p.map(([x, y]) => `${x} ${y}`).join("L")}Z`).join("");
 
 type Drag = { id: string; mode: "move" | "scale" | "rotate"; p0: [number, number]; start: Layer; draft: Partial<Layer>; guides: Guides };
+/** Arraste de um elemento interno do modelo (#79): `d` = deslocamento em mm desde o começo do gesto. */
+type ElDrag = { id: string; p0: [number, number]; box: ElementBox["box"]; d: [number, number]; guides: Guides };
 type Props = {
   face: FaceInfo;
   layers: Layer[];
@@ -20,16 +23,21 @@ type Props = {
   onSelect: (id: string | null) => void;
   /** Fim de um gesto (soltar o mouse, setas): um passo no desfazer. */
   onCommit: (id: string, patch: Partial<Layer>) => void;
+  /** Elementos internos do modelo (textos, QR…) que se movem arrastando (#79). */
+  elements?: ElementBox[];
+  onMoveElement?: (id: string, dx: number, dy: number) => void;
 };
 
 /**
  * Vista de cima da face principal (#26): arrastar move, a alça do canto escala, a alça de cima gira (Shift = 15°),
  * encaixe no centro/bordas com guias (Alt desliga). Setas movem 1 mm (Shift 5 mm). Coordenadas em mm, Y para cima.
  */
-export default function DecalGizmo({ face, layers, shapes, selected, onSelect, onCommit }: Props) {
+export default function DecalGizmo({ face, layers, shapes, selected, onSelect, onCommit, elements = [], onMoveElement }: Props) {
   const svg = useRef<SVGSVGElement>(null);
   const world = useRef<SVGGElement>(null);
   const [drag, setDrag] = useState<Drag | null>(null);
+  const [elSel, setElSel] = useState<string | null>(null);
+  const [elDrag, setElDrag] = useState<ElDrag | null>(null);
   const [mmPerPx, setMmPerPx] = useState(0.25);
   const { min, max } = face.bounds;
   const vb = { x: min[0] - PAD_MM, y: -(max[1] + PAD_MM), w: max[0] - min[0] + 2 * PAD_MM, h: max[1] - min[1] + 2 * PAD_MM };
@@ -46,7 +54,7 @@ export default function DecalGizmo({ face, layers, shapes, selected, onSelect, o
 
   /** Ponteiro → mm no sistema da peça (o grupo `world` já inverte o Y). */
   function toMm(e: { clientX: number; clientY: number }): [number, number] {
-    const m = world.current?.getScreenCTM();
+    const m = world.current?.getScreenCTM?.();
     if (!m) return [0, 0];
     const p = new DOMPoint(e.clientX, e.clientY).matrixTransform(m.inverse());
     return [p.x, p.y];
@@ -60,7 +68,26 @@ export default function DecalGizmo({ face, layers, shapes, selected, onSelect, o
     setDrag({ id: l.id, mode, p0: toMm(e), start: l, draft: {}, guides: { x: [], y: [] } });
   }
 
+  function beginEl(e: PointerEvent, el: ElementBox) {
+    e.stopPropagation();
+    e.preventDefault();
+    onSelect(null);
+    setElSel(el.id);
+    (e.currentTarget as Element).setPointerCapture?.(e.pointerId);
+    setElDrag({ id: el.id, p0: toMm(e), box: el.box, d: [0, 0], guides: { x: [], y: [] } });
+  }
+
   function move(e: PointerEvent) {
+    if (elDrag) {
+      // o centro da caixa gruda no centro/bordas da face, como as camadas
+      const p = toMm(e), b = elDrag.box;
+      const c0: [number, number] = [(b[0] + b[2]) / 2, (b[1] + b[3]) / 2];
+      const x = c0[0] + p[0] - elDrag.p0[0], y = c0[1] + p[1] - elDrag.p0[1];
+      const half = rotatedHalf(b[2] - b[0], b[3] - b[1], 0);
+      const s = e.altKey ? { x, y, guides: { x: [], y: [] } } : snapPosition(x, y, half, face.bounds);
+      setElDrag({ ...elDrag, d: [round1(s.x - c0[0]), round1(s.y - c0[1])], guides: s.guides });
+      return;
+    }
     if (!drag) return;
     const p = toMm(e);
     const s = drag.start;
@@ -81,18 +108,24 @@ export default function DecalGizmo({ face, layers, shapes, selected, onSelect, o
   }
 
   function end() {
+    if (elDrag && (elDrag.d[0] || elDrag.d[1])) onMoveElement?.(elDrag.id, elDrag.d[0], elDrag.d[1]);
+    setElDrag(null);
     if (drag && Object.keys(drag.draft).length) onCommit(drag.id, drag.draft);
     setDrag(null);
   }
 
   function onKey(e: KeyboardEvent) {
-    const l = layers.find((x) => x.id === selected);
-    if (!l) return;
     const step = e.shiftKey ? NUDGE_BIG_MM : NUDGE_MM;
     const d = { ArrowLeft: [-step, 0], ArrowRight: [step, 0], ArrowUp: [0, step], ArrowDown: [0, -step] }[e.key];
     if (!d) return;
-    e.preventDefault();
-    onCommit(l.id, { x: round1(l.x + d[0]), y: round1(l.y + d[1]) });
+    const l = layers.find((x) => x.id === selected);
+    if (l) {
+      e.preventDefault();
+      onCommit(l.id, { x: round1(l.x + d[0]), y: round1(l.y + d[1]) });
+    } else if (elSel && elements.some((x) => x.id === elSel)) {
+      e.preventDefault();
+      onMoveElement?.(elSel, d[0], d[1]);
+    }
   }
 
   const h = HANDLE_PX * mmPerPx;
@@ -107,13 +140,37 @@ export default function DecalGizmo({ face, layers, shapes, selected, onSelect, o
       aria-label={`Vista de cima de ${face.part}: arraste para mover, alça do canto para o tamanho, alça de cima para girar. Setas movem 1 mm.`}
       onPointerMove={move}
       onPointerUp={end}
-      onPointerCancel={() => setDrag(null)}
-      onPointerDown={() => onSelect(null)}
+      onPointerCancel={() => {
+        setDrag(null);
+        setElDrag(null);
+      }}
+      onPointerDown={() => {
+        onSelect(null);
+        setElSel(null);
+      }}
       onKeyDown={onKey}
     >
       <g ref={world} transform="scale(1 -1)">
         <path className="gizmo-face" d={pathOf(face.outline)} fillRule="evenodd" />
         {face.others.length > 0 && <path className="gizmo-others" d={pathOf(face.others)} fillRule="nonzero" />}
+        {elements.map((el) => {
+          const d = elDrag?.id === el.id ? elDrag.d : [0, 0];
+          const [x0, y0, x1, y1] = el.box;
+          return (
+            <rect
+              key={el.id}
+              className="gizmo-element"
+              data-selected={(el.id === elSel && !selected) || undefined}
+              x={x0 + d[0]}
+              y={y0 + d[1]}
+              width={x1 - x0}
+              height={y1 - y0}
+              onPointerDown={(e) => beginEl(e, el)}
+            >
+              <title>{`${el.label}: arraste para mover`}</title>
+            </rect>
+          );
+        })}
         {layers.map((l) => {
           const shape = shapes[l.id];
           if (!shape || l.visible === false) return null;
@@ -137,8 +194,8 @@ export default function DecalGizmo({ face, layers, shapes, selected, onSelect, o
             </g>
           );
         })}
-        {drag?.guides.x.map((x) => <line key={`gx${x}`} className="gizmo-guide" x1={x} x2={x} y1={min[1] - PAD_MM} y2={max[1] + PAD_MM} />)}
-        {drag?.guides.y.map((y) => <line key={`gy${y}`} className="gizmo-guide" y1={y} y2={y} x1={min[0] - PAD_MM} x2={max[0] + PAD_MM} />)}
+        {(drag ?? elDrag)?.guides.x.map((x) => <line key={`gx${x}`} className="gizmo-guide" x1={x} x2={x} y1={min[1] - PAD_MM} y2={max[1] + PAD_MM} />)}
+        {(drag ?? elDrag)?.guides.y.map((y) => <line key={`gy${y}`} className="gizmo-guide" y1={y} y2={y} x1={min[0] - PAD_MM} x2={max[0] + PAD_MM} />)}
       </g>
       {sel && drag && (
         <text className="gizmo-readout" x={vb.x + 2 * mmPerPx * 4} y={vb.y + vb.h - 3 * mmPerPx * 4} fontSize={12 * mmPerPx}>

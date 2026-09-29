@@ -163,6 +163,15 @@ export const STUDY_MODELS: ModelDef[] = [
     sections: [
       { title: "Textos", fields: [text("name", "Nome", 30), text("role", "Cargo ou negócio", 36), text("phone", "Telefone", 20), text("email", "E-mail ou site", 40), text("link", "Link do QR (vazio = sem QR)", 120)] },
       {
+        title: "Arrumação",
+        fields: [
+          choice("layout", "Arrumação", [["qrRight", "Texto + QR à direita"], ["qrLeft", "QR à esquerda"], ["qrTop", "QR em cima"], ["textOnly", "Só texto"]]),
+          choice("align", "Alinhamento das linhas", [["left", "Esquerda"], ["center", "Centro"], ["right", "Direita"]]),
+          choice("blockY", "Bloco de texto", [["top", "Em cima"], ["middle", "No meio"], ["bottom", "Embaixo"]]),
+          num("lineGap", "Espaço entre linhas", 0, 8, { step: 0.2 }),
+        ],
+      },
+      {
         title: "Pausas e cores",
         fields: [
           num("thickness", "Espessura", 1.2, 3),

@@ -39,6 +39,8 @@ const normalize = (s: string) => s.normalize("NFD").replace(/\p{M}/gu, "").toLow
 
 const ART_WIDTH_MM = 100; // o desenho é reescalado por cada modelo; aqui só normaliza
 const FAVORITES_KEY = "upvision.favoriteModels";
+/** Seção dos campos de posição (alinhamento, arrumação) que "Restaurar posição" volta ao padrão (#79). */
+const ARRANGE_SECTION = "Arrumação";
 
 /** Miniaturas geradas por `npm run thumbs` (src/assets/model-thumbs/<id>.jpg). */
 const THUMBS: Record<string, string> = Object.fromEntries(
@@ -159,7 +161,8 @@ export default function Models() {
       textWarn ??= textWarnings(checkText(cs), s, isCursive(String(p[k])));
       return cs;
     };
-    const run = (params: Params) => def.build({ M, art: design?.cs ?? null, artLayers: design?.layers, text, arc, fontText }, params);
+    const offset = (id: string) => lay.offsets[id] ?? [0, 0]; // elementos internos arrastados no gizmo (#79)
+    const run = (params: Params) => def.build({ M, art: design?.cs ?? null, artLayers: design?.layers, text, arc, fontText, offset }, params);
     try {
       if (copies) {
         // lote: uma geração por cópia, cada cópia arrumada como um bloco na mesa
@@ -203,13 +206,26 @@ export default function Models() {
       setMissing(null);
       // camadas livres (#26) vão por cima do modelo pronto, na peça principal
       const layered = await applyLayers(M, out.models, lay.layers.filter(layerValid));
-      lay.setView({ face: layered.face, shapes: layered.shapes, byLayer: layered.byLayer });
+      lay.setView({ face: layered.face, shapes: layered.shapes, byLayer: layered.byLayer, elements: out.elements ?? [] });
       return { models: layered.models, warnings: [...(textWarn ?? []), ...(out.warnings ?? []), ...layered.warnings], pauses: out.pauses };
     } finally {
       design?.cs.delete();
       design?.layers?.forEach((l) => l.cs.delete());
     }
-  }, [def, p, font, useArt, valid, batchOn, batchValue, lay.layers]);
+  }, [def, p, font, useArt, valid, batchOn, batchValue, lay.layers, lay.offsets]);
+
+  // posição dos elementos internos (#79): "Centralizar" põe no meio e zera os arrastes; "Restaurar" volta a arrumação padrão
+  function centerAll() {
+    lay.clearOffsets();
+    const middle = def.sections.flatMap((s) => s.fields).filter((f) => f.kind === "choice" && f.options.some(([v]) => v === "middle"));
+    if (middle.length) setAll((a) => ({ ...a, [id]: { ...a[id], ...Object.fromEntries(middle.map((f) => [f.k, "middle"])) } }));
+  }
+  function restorePosition() {
+    lay.clearOffsets();
+    const keys = def.sections.filter((s) => s.title === ARRANGE_SECTION).flatMap((s) => s.fields.map((f) => f.k));
+    if (keys.length) setAll((a) => ({ ...a, [id]: { ...a[id], ...Object.fromEntries(keys.map((k) => [k, def.defaults[k]])) } }));
+  }
+  const elements = copies ? [] : lay.view.elements;
 
   return (
     <div className="page">
@@ -338,11 +354,30 @@ export default function Models() {
         </div>
         <div className="preview-col">
           <Preview3D models={models} busy={busy} busyText={`Gerando ${def.label.toLowerCase()}…`} error={error} emptyText={!valid ? "Corrija os campos em vermelho." : (missing ?? undefined)} />
-          {lay.view.face && lay.layers.length > 0 && !copies && (
+          {lay.view.face && (lay.layers.length > 0 || elements.length > 0) && !copies && (
             <section className="card stack gizmo-card">
               <h3>Vista de cima · {lay.view.face.part}</h3>
-              <DecalGizmo face={lay.view.face} layers={lay.layers} shapes={lay.view.shapes} selected={lay.selected} onSelect={lay.select} onCommit={lay.change} />
+              <DecalGizmo
+                face={lay.view.face}
+                layers={lay.layers}
+                shapes={lay.view.shapes}
+                selected={lay.selected}
+                onSelect={lay.select}
+                onCommit={lay.change}
+                elements={elements}
+                onMoveElement={lay.moveElement}
+              />
               <p className="hint">Arraste para mover (gruda no centro e nas bordas; Alt solta), alça do canto para o tamanho, alça de cima para girar (Shift: 15°).</p>
+              {elements.length > 0 && (
+                <div className="row">
+                  <button type="button" onClick={centerAll}>
+                    Centralizar tudo
+                  </button>
+                  <button type="button" className="ghost" onClick={restorePosition}>
+                    Restaurar posição
+                  </button>
+                </div>
+              )}
             </section>
           )}
           {warnings.map((w) => (

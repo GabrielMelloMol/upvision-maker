@@ -18,14 +18,41 @@ export type ModelCtx = {
   arc?: (text: string, heightMm: number, radius: number, side: "top" | "bottom") => CS | null;
   /** Texto na fonte escolhida num campo "font" do modelo (ex.: a letra grande); ausente = use `text`. */
   fontText?: (fontField: string) => TextFn;
+  /** Deslocamento (mm) que a pessoa deu a um elemento interno arrastando no gizmo (#79); ausente = [0, 0]. */
+  offset?: (elementId: string) => [number, number];
 };
+
+/** Elemento interno que pode ser movido no gizmo (#79): caixa [x0, y0, x1, y1] em mm, Y para cima, já na posição final. */
+export type ElementBox = { id: string; label: string; box: [number, number, number, number] };
 
 export type ModelOutput = {
   models: Model[];
   /** Alturas (topo da camada) onde a impressora pausa — vão para o 3MF. */
   pauses?: number[];
   warnings?: string[];
+  /** Elementos internos móveis (textos, QR, ícone) para o gizmo (#79). */
+  elements?: ElementBox[];
 };
+
+export type AlignX = "left" | "center" | "right";
+export type AlignY = "top" | "middle" | "bottom";
+
+/**
+ * Deslocamento que leva a caixa `b` a ficar alinhada dentro de `area` (as duas [x0, y0, x1, y1]), mais o que a
+ * pessoa arrastou no gizmo para o elemento `id`. Padrão: centralizado (#79).
+ */
+export function placeIn(ctx: ModelCtx, id: string, b: [number, number, number, number], area: [number, number, number, number], ax: AlignX = "center", ay: AlignY = "middle"): [number, number] {
+  const dx = ax === "left" ? area[0] - b[0] : ax === "right" ? area[2] - b[2] : (area[0] + area[2]) / 2 - (b[0] + b[2]) / 2;
+  const dy = ay === "bottom" ? area[1] - b[1] : ay === "top" ? area[3] - b[3] : (area[1] + area[3]) / 2 - (b[1] + b[3]) / 2;
+  const [ox, oy] = ctx.offset?.(id) ?? [0, 0];
+  return [dx + ox, dy + oy];
+}
+
+/** Caixa [x0, y0, x1, y1] de uma região. */
+export function boxOf(cs: CS): [number, number, number, number] {
+  const b = cs.bounds();
+  return [b.min[0], b.min[1], b.max[0], b.max[1]];
+}
 
 /** Região extrudada de `z` a `z + h`, já como malha. */
 export function slab(cs: CS, h: number, z = 0): Mesh {

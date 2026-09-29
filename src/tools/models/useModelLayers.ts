@@ -1,22 +1,33 @@
 import { useEffect, useState } from "react";
 import { useHistory } from "../../ui/useHistory";
+import type { ElementBox } from "../../geometry/models/common";
 import type { FaceInfo, LayerShape } from "./applyLayers";
 import { duplicateLayer, moveLayer, newArtLayer, newTextLayer, removeLayer, updateLayer, type Layer } from "./layers";
 
-// referência fixa: "sem camadas" não pode virar uma lista nova a cada render (é dependência da geração)
+// referências fixas: "sem camadas"/"sem deslocamento" não podem virar objetos novos a cada render (são dependências da geração)
 const NONE: Layer[] = [];
+const NO_OFFSETS: Offsets = {};
 
-type View = { face: FaceInfo | null; shapes: Record<string, LayerShape>; byLayer: Record<string, string[]> };
+/** Deslocamento (mm) de cada elemento interno do modelo arrastado no gizmo (#79). */
+export type Offsets = Record<string, [number, number]>;
+type ModelEdit = { layers: Layer[]; offsets: Offsets };
 
-/** Camadas livres de cada modelo (#26), com desfazer/refazer (⌘Z / ⇧⌘Z fora de campos de texto) e a camada escolhida. */
+type View = { face: FaceInfo | null; shapes: Record<string, LayerShape>; byLayer: Record<string, string[]>; elements: ElementBox[] };
+
+/**
+ * Camadas livres de cada modelo (#26) e deslocamentos dos elementos internos (#79), no mesmo desfazer/refazer
+ * (⌘Z / ⇧⌘Z fora de campos de texto), e a camada escolhida.
+ */
 export function useModelLayers(modelId: string) {
-  const hist = useHistory<Record<string, Layer[]>>({});
-  const layers = hist.value[modelId] ?? NONE;
+  const hist = useHistory<Record<string, ModelEdit>>({});
+  const layers = hist.value[modelId]?.layers ?? NONE;
+  const offsets = hist.value[modelId]?.offsets ?? NO_OFFSETS;
   const [sel, setSel] = useState<{ model: string; id: string | null }>({ model: modelId, id: null });
   const selected = sel.model === modelId && layers.some((l) => l.id === sel.id) ? sel.id : null;
-  const [view, setView] = useState<View>({ face: null, shapes: {}, byLayer: {} });
+  const [view, setView] = useState<View>({ face: null, shapes: {}, byLayer: {}, elements: [] });
   const select = (id: string | null) => setSel({ model: modelId, id });
-  const edit = (fn: (l: Layer[]) => Layer[]) => hist.set((cur) => ({ ...cur, [modelId]: fn(cur[modelId] ?? []) }));
+  const edit = (fn: (l: Layer[]) => Layer[]) => hist.set((cur) => ({ ...cur, [modelId]: { offsets: cur[modelId]?.offsets ?? {}, layers: fn(cur[modelId]?.layers ?? []) } }));
+  const editOffsets = (fn: (o: Offsets) => Offsets) => hist.set((cur) => ({ ...cur, [modelId]: { layers: cur[modelId]?.layers ?? [], offsets: fn(cur[modelId]?.offsets ?? {}) } }));
   const { undo, redo } = hist;
 
   useEffect(() => {
@@ -35,6 +46,17 @@ export function useModelLayers(modelId: string) {
   const faceBounds = view.face?.bounds ?? null;
   return {
     layers,
+    offsets,
+    /** Soma (dx, dy) ao deslocamento do elemento interno `id` (um passo no desfazer). */
+    moveElement: (id: string, dx: number, dy: number) =>
+      editOffsets((o) => {
+        const [x, y] = o[id] ?? [0, 0];
+        return { ...o, [id]: [Math.round((x + dx) * 10) / 10, Math.round((y + dy) * 10) / 10] };
+      }),
+    /** Volta todos os elementos internos para a posição calculada pelo modelo. */
+    clearOffsets: () => {
+      if (Object.keys(offsets).length) editOffsets(() => ({}));
+    },
     selected,
     select,
     view,
