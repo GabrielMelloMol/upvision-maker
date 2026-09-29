@@ -132,6 +132,10 @@ with Reserved Font Name "Mr Dafoe"
 ## norican
 Copyright 2011 The Norican Project Authors (https://github.com/googlefonts/NoricanFont)
 
+## noto-emoji
+Copyright 2013 Google LLC
+(Noto Emoji monocromática, instanciada no peso 700; usada só como reserva para emoji nos textos)
+
 ## oleo-script
 Copyright (c) 2012, Soytutype (contact@soytutype.com.ar|soytutype@gmail.com), with Reserved Font Name "Oleo Script"
 

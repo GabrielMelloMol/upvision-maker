@@ -29,3 +29,18 @@ test("chaveiro: etiqueta retangular em 3 cores, nome em duas linhas, lote e silh
   await idle(page);
   await expect(hud(page)).toContainText("mm");
 });
+
+test("chaveiro com emoji: seletor insere no cursor e a peça sai com o desenho (#68)", async ({ page }) => {
+  await openApp(page);
+  await go(page, "Chaveiros");
+  await idle(page);
+  const before = parseFloat((await hud(page).textContent()) ?? "0");
+  await page.getByRole("button", { name: "Inserir emoji" }).click();
+  await expect(page.getByRole("dialog", { name: "Emojis" })).toBeVisible();
+  await page.getByRole("button", { name: "Emoji ⭐" }).click();
+  await expect(page.getByLabel("Texto", { exact: true })).toHaveValue("Ana⭐");
+  await page.keyboard.press("Escape");
+  await expect(page.getByRole("dialog", { name: "Emojis" })).toHaveCount(0);
+  await idle(page);
+  await expect.poll(async () => parseFloat((await hud(page).textContent()) ?? "0")).toBeGreaterThan(before + 5);
+});

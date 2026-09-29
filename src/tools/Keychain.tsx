@@ -1,14 +1,15 @@
-import { useEffect, useState } from "react";
-import { isCursive, loadFont, type FontId } from "../geometry/fonts";
+import { useEffect, useRef, useState } from "react";
+import { isCursive, loadEmojiFont, loadFont, type FontId } from "../geometry/fonts";
 import { buildKeychain, DEFAULT_KEYCHAIN, layoutOnPlate, parseNames, splitLines, stackLines, type KeychainParams, type KeychainShape } from "../geometry/keychain";
 import { modelsBounds } from "../geometry/bounds";
 import { getManifold, type CS } from "../geometry/manifold";
 import { scoped } from "../geometry/shape2d";
-import { textToCrossSection } from "../geometry/text";
+import { hasEmoji, textToCrossSection } from "../geometry/text";
 import { checkText, textWarnings } from "../geometry/textCheck";
 import FontPicker from "../ui/FontPicker";
 import Alert from "../ui/Alert";
 import Dropzone from "../ui/Dropzone";
+import EmojiPicker from "../ui/EmojiPicker";
 import ExportButtons from "../ui/ExportButtons";
 import NumField, { inRange } from "../ui/NumField";
 import Preview3D from "../ui/Preview3D";
@@ -29,6 +30,7 @@ const LAYERS = [["2", "2 cores"], ["3", "3 cores"]] as const;
 export default function Keychain() {
   const [batch, setBatch] = useState(false);
   const [text, setText] = useState("Ana");
+  const textRef = useRef<HTMLInputElement>(null);
   const [names, setNames] = useState("Ana\nBia\nCaio");
   const [font, setFont] = useState<FontId>("pacifico");
   const [textH, setTextH] = useState(14);
@@ -59,6 +61,7 @@ export default function Keychain() {
     if (!valid || (!list.length && !logo) || (silhouette && (!logo || !list.length))) return null;
     const M = await getManifold();
     const f = await loadFont(font);
+    const emoji = list.some(hasEmoji) ? await loadEmojiFont() : undefined;
     const design = logo ? await designFromSvg(logo.svg, 100, false, true) : null;
     const logoCs: CS | null = design?.cs ?? null;
     let textWarn: string[] = [];
@@ -72,7 +75,7 @@ export default function Keychain() {
         const names = list.length ? list : [""];
         return names.map((name, i) => {
           // "Ana|Silva": uma linha por parte, empilhadas
-          const lines = splitLines(name).map((l) => k(textToCrossSection(M, f, l, textH)));
+          const lines = splitLines(name).map((l) => k(textToCrossSection(M, f, l, textH, emoji)));
           const txt = !lines.length ? null : lines.length === 1 ? lines[0] : k(stackLines(M, lines, textH * LINE_GAP));
           // traço fino / letras soltas: o primeiro nome basta (mesma fonte e altura em todos)
           if (txt && i === 0) textWarn = textWarnings(checkText(txt), name, isCursive(font));
@@ -126,10 +129,13 @@ export default function Keychain() {
                 <span className="hint">{parseNames(names).length} nomes · todos na mesma mesa</span>
               </label>
             ) : (
-              <label>
-                Texto
-                <input value={text} maxLength={40} onChange={(e) => setText(e.target.value)} />
-              </label>
+              <div className="field-with-emoji">
+                <label>
+                  Texto
+                  <input ref={textRef} value={text} maxLength={40} onChange={(e) => setText(e.target.value)} />
+                </label>
+                <EmojiPicker inputRef={textRef} value={text} onChange={setText} />
+              </div>
             )}
             {!batch && <span className="hint">Use | para quebrar em duas linhas (ex.: Ana|Silva).</span>}
             <FontPicker value={font} onChange={setFont} sample={(batch ? parseNames(names)[0] : text) ?? ""} />

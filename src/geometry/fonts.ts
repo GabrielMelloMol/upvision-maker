@@ -132,6 +132,23 @@ export function loadFont(id: FontId): Promise<Font> {
   return f;
 }
 
+const EMOJI_FILE = "noto-emoji-700.ttf";
+let emoji: Promise<Font> | null = null;
+
+/** Fonte reserva de emoji (Noto Emoji monocromática, fora do seletor). Carregue só se o texto tiver emoji (hasEmoji). */
+export function loadEmojiFont(): Promise<Font> {
+  if (!emoji) {
+    emoji = fetch(fontUrl(EMOJI_FILE))
+      .then((r) => {
+        if (r.ok === false) throw new Error(`Não deu para abrir a fonte de emoji (${r.status}).`);
+        return r.arrayBuffer();
+      })
+      .then((b) => opentype.parse(b));
+    emoji.catch(() => (emoji = null));
+  }
+  return emoji;
+}
+
 const cssDone = new Map<FontId, Promise<void>>();
 
 /** Registra a fonte no CSS (prévia no seletor), uma vez por fonte. Sem FontFace (testes), não faz nada. */

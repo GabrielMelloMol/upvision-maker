@@ -145,4 +145,15 @@ describe("Chaveiros", () => {
     await waitFor(() => expect(hud(container)).toMatch(/mm$/), BUILD);
     await waitFor(() => expect(parseFloat(hud(container).split(" × ")[1])).toBeGreaterThan(55), BUILD);
   }, 30_000);
+
+  test("emoji no nome: usa a fonte reserva e gera o chaveiro (#68)", async () => {
+    const user = userEvent.setup();
+    const { container } = renderWithApp(<Keychain />);
+    await waitFor(() => expect(hud(container)).toMatch(/mm$/), BUILD);
+    const width = () => parseFloat(hud(container));
+    const before = width();
+    await user.click(screen.getByRole("button", { name: "Inserir emoji" }));
+    await user.click(screen.getByRole("button", { name: "Emoji 🐶" }));
+    await waitFor(() => expect(width()).toBeGreaterThan(before + 5), BUILD);
+  }, 30_000);
 });
