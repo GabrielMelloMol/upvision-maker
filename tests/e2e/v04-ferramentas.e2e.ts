@@ -136,8 +136,8 @@ test("Medalhas: imagem de 2 cores mostra a dica e o 3MF ganha as cores da imagem
   await page.locator('input[type="file"]').setInputFiles(svgFile);
   await expect(page.getByText("A imagem é colorida: cada cor dela sai com o próprio filamento.")).toBeVisible();
   await waitModel(page);
-  // base + borda/texto + 2 cores da imagem
-  expect(extruders(await save3mf(page, tauri)).size).toBe(4);
+  // base + borda + textos + 2 cores da imagem (#19 separou borda e textos)
+  expect(extruders(await save3mf(page, tauri)).size).toBe(5);
 });
 
 test("Chaveiros: logo de 2 cores sai com uma extrusora por cor", async ({ page, tauri }) => {

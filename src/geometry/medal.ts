@@ -5,7 +5,7 @@ import { fitInto, followTransform, scoped, shrinkToFit } from "./shape2d";
 import { flatten, parsePath } from "./svgPath";
 import type { Model } from "./types";
 
-export type MedalShape = "circle" | "hexagon" | "star" | "shield";
+export type MedalShape = "circle" | "oval" | "hexagon" | "octagon" | "star" | "star6" | "star8" | "shield" | "shieldPoints" | "heart" | "gear";
 
 export type MedalParams = {
   shape: MedalShape;
@@ -32,6 +32,33 @@ export const DEFAULT_MEDAL: MedalParams = {
 };
 
 const SHIELD = "M-1 1 L1 1 L1 0.1 Q1 -0.6 0 -1 Q-1 -0.6 -1 0.1 Z";
+const SHIELD_POINTS = "M-1 0.75 L-0.62 1 L0 0.82 L0.62 1 L1 0.75 L0.92 0 Q0.8 -0.62 0 -1 Q-0.8 -0.62 -0.92 0 Z";
+const HEART_STEPS = 96;
+const GEAR_TEETH = 16;
+
+/** Estrela de `n` pontas (raio 1), pontas arredondadas depois. */
+const starPts = (n: number, inner: number): [number, number][] =>
+  Array.from({ length: 2 * n }, (_, i) => {
+    const a = Math.PI / 2 + (i * Math.PI) / n;
+    const r = i % 2 ? inner : 1;
+    return [r * Math.cos(a), r * Math.sin(a)];
+  });
+
+/** Coração clássico (curva paramétrica), ponta para baixo. */
+const heartPts = (): [number, number][] =>
+  Array.from({ length: HEART_STEPS }, (_, i) => {
+    const t = (i / HEART_STEPS) * 2 * Math.PI;
+    return [16 * Math.sin(t) ** 3, 13 * Math.cos(t) - 5 * Math.cos(2 * t) - 2 * Math.cos(3 * t) - Math.cos(4 * t)];
+  });
+
+/** Engrenagem: dentes trapezoidais em volta de um círculo. */
+const gearPts = (): [number, number][] =>
+  Array.from({ length: GEAR_TEETH * 4 }, (_, i) => {
+    const tooth = Math.floor(i / 4), k = i % 4;
+    const a = ((tooth + [0, 0.18, 0.5, 0.68][k]) / GEAR_TEETH) * 2 * Math.PI;
+    const r = k === 1 || k === 2 ? 1 : 0.84;
+    return [r * Math.cos(a), r * Math.sin(a)];
+  });
 const STAR_ROUND = 1;
 const TAB_H = 12;
 const SLOT_H = 3.5;
@@ -39,18 +66,20 @@ const SLOT_H = 3.5;
 /** Contorno da medalha centrado na origem, com o maior lado = diâmetro. */
 export function medalOutline(M: ManifoldToplevel, shape: MedalShape, d: number): CS {
   return scoped((k) => {
+    const poly = (pts: [number, number][]) => k(new M.CrossSection([pts], "NonZero"));
+    const rounded = (cs0: CS, r: number) => k(k(cs0.offset(-r, "Round")).offset(r, "Round"));
     let cs: CS;
     if (shape === "circle") cs = k(M.CrossSection.circle(d / 2, 96));
+    else if (shape === "oval") cs = k(k(M.CrossSection.circle(d / 2, 96)).scale([0.78, 1]));
     else if (shape === "hexagon") cs = k(M.CrossSection.circle(d / 2, 6));
+    else if (shape === "octagon") cs = k(k(M.CrossSection.circle(d / 2, 8)).rotate(22.5));
     else if (shape === "shield") cs = k(new M.CrossSection(flatten(parsePath(SHIELD), 0.02), "NonZero"));
+    else if (shape === "shieldPoints") cs = k(new M.CrossSection(flatten(parsePath(SHIELD_POINTS), 0.02), "NonZero"));
+    else if (shape === "heart") cs = poly(heartPts());
+    else if (shape === "gear") cs = rounded(k(poly(gearPts()).scale(d / 2)), 0.5);
     else {
-      const pts: [number, number][] = Array.from({ length: 10 }, (_, i) => {
-        const a = Math.PI / 2 + (i * Math.PI) / 5;
-        const r = i % 2 ? 0.5 : 1;
-        return [r * Math.cos(a), r * Math.sin(a)];
-      });
-      const star = k(k(new M.CrossSection([pts], "NonZero")).scale(d / 2));
-      cs = k(k(star.offset(-STAR_ROUND, "Round")).offset(STAR_ROUND, "Round")); // pontas arredondadas
+      const [n, inner] = shape === "star6" ? [6, 0.6] : shape === "star8" ? [8, 0.7] : [5, 0.5];
+      cs = rounded(k(poly(starPts(n, inner)).scale(d / 2)), STAR_ROUND); // pontas arredondadas
     }
     const b = cs.bounds();
     const s = d / Math.max(b.max[0] - b.min[0], b.max[1] - b.min[1]);
