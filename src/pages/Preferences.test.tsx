@@ -83,6 +83,18 @@ describe("Preferences", () => {
     expect((await settings()).targetProfitPerHour).toBe(5);
   });
 
+  test("faixas de preço do canal (#31): só o que foi preenchido é gravado", async () => {
+    const user = userEvent.setup();
+    renderWithApp(<Preferences />);
+    await user.click((await screen.findAllByText(/^Faixas de preço/))[0]); // Shopee
+    await user.type(screen.getByLabelText("Frete por sua conta a partir de (Shopee)"), "79");
+    await user.type(screen.getByLabelText("Custo desse frete (Shopee)"), "20");
+    await user.click(screen.getByRole("button", { name: "Salvar preferências" }));
+    expect(await screen.findByText("Preferências salvas.")).toBeInTheDocument();
+    const shopee = (await settings()).channels[0];
+    expect(shopee).toEqual({ name: "Shopee", feePct: 20, feeFixed: 4, freeShippingAbove: 79, shippingCost: 20 });
+  });
+
   test("calcular o kWh pela conta de luz (#2): total ÷ kWh + bandeira, usa, guarda histórico e salvar não apaga", async () => {
     vi.useFakeTimers({ toFake: ["Date"] });
     vi.setSystemTime(new Date(2026, 8, 15, 12));

@@ -1,6 +1,6 @@
-import type { CalcResult } from "./calc";
+import { channelFees, channelPrice, type CalcResult } from "./calc";
 import { money, round2 } from "./format";
-import type { Settings } from "./settings";
+import type { Channel, Settings } from "./settings";
 
 export type Rounding = "none" | "90" | "99" | "int";
 export const ROUNDINGS: readonly (readonly [Rounding, string])[] = [
@@ -45,11 +45,13 @@ export type ChannelRow = {
   atCompetitor?: Money;
   /** Preço que rende a meta de R$/h (Preferências); null com meta desligada ou sem tempo. */
   targetPrice: number | null;
+  /** Neste preço entra o frete obrigatório do canal (faixas de preço, #31). */
+  shippingIncluded: boolean;
 };
 
 /** Taxas, lucro líquido e margem de um preço num canal. */
-function at(price: number, feePct: number, feeFixed: number, unitCost: number, freight: number, hoursPerUnit: number): Money {
-  const fees = round2((price * feePct) / 100 + feeFixed);
+function at(price: number, c: Channel, taxPct: number, unitCost: number, freight: number, hoursPerUnit: number): Money {
+  const fees = channelFees(c, price, taxPct);
   const profit = round2(price - fees - unitCost - freight);
   const profitPerHour = hoursPerUnit > 0 ? round2(profit / hoursPerUnit) : null;
   return { price, fees, profit, marginPct: price > 0 ? round2((profit / price) * 100) : 0, loss: profit < 0, profitPerHour };
@@ -68,24 +70,24 @@ export function hourStatus(profitPerHour: number | null, target: number): "low" 
 export function compareChannels(r: CalcResult, s: Settings, freight: number, opts: { rounding: Rounding; competitor?: number; hours?: number; qty?: number }): ChannelRow[] {
   const hoursPerUnit = opts.hours && opts.hours > 0 ? opts.hours / Math.max(1, Math.floor(opts.qty ?? 1) || 1) : 0;
   const target = s.targetProfitPerHour > 0 && hoursPerUnit > 0 ? s.targetProfitPerHour * hoursPerUnit : 0; // lucro por peça pedido pela meta
+  const direct = (name: string): Channel => ({ name, feePct: 0, feeFixed: 0 });
   const bases = [
-    { name: PRICE_NAMES.consumer.name, suggested: r.consumer as number | null, feePct: 0, feeFixed: 0 },
-    { name: PRICE_NAMES.resale.name, suggested: r.resale as number | null, feePct: 0, feeFixed: 0 },
-    ...r.channels.map((c) => {
-      const cfg = s.channels.find((x) => x.name === c.name);
-      return { name: c.name, suggested: c.price, feePct: cfg?.feePct ?? 0, feeFixed: cfg?.feeFixed ?? 0 };
-    }),
+    { name: PRICE_NAMES.consumer.name, suggested: r.consumer as number | null, cfg: direct(PRICE_NAMES.consumer.name) },
+    { name: PRICE_NAMES.resale.name, suggested: r.resale as number | null, cfg: direct(PRICE_NAMES.resale.name) },
+    ...r.channels.map((c) => ({ name: c.name, suggested: c.price, cfg: s.channels.find((x) => x.name === c.name) ?? direct(c.name) })),
   ];
   const comp = opts.competitor && opts.competitor > 0 ? opts.competitor : undefined;
+  const ships = (c: Channel, p: number) => c.freeShippingAbove !== undefined && p >= c.freeShippingAbove;
   const rows: ChannelRow[] = bases.map((b) => {
-    const feePct = b.feePct + s.taxPct; // imposto sobre a venda conta como taxa em todo canal
-    const atComp = comp !== undefined ? at(comp, feePct, b.feeFixed, r.unitCost, freight, hoursPerUnit) : undefined;
-    const denom = 1 - feePct / 100;
-    const targetPrice = target > 0 && denom > 0 ? roundPrice((r.unitCost + target + b.feeFixed + freight) / denom, opts.rounding) : null;
+    // imposto sobre a venda conta como taxa em todo canal
+    const atComp = comp !== undefined ? at(comp, b.cfg, s.taxPct, r.unitCost, freight, hoursPerUnit) : undefined;
+    const tp = target > 0 ? channelPrice(b.cfg, r.unitCost + target + freight, 0, s.taxPct) : null;
+    const targetPrice = tp === null ? null : roundPrice(tp, opts.rounding);
     if (b.suggested === null)
-      return { name: b.name, price: null, fees: 0, profit: 0, marginPct: 0, loss: false, profitPerHour: null, belowMin: false, best: false, atCompetitor: atComp, targetPrice };
-    const m = at(roundPrice(b.suggested, opts.rounding), feePct, b.feeFixed, r.unitCost, freight, hoursPerUnit);
-    return { name: b.name, ...m, belowMin: !m.loss && m.marginPct < s.minMarginPct, best: false, atCompetitor: atComp, targetPrice };
+      return { name: b.name, price: null, fees: 0, profit: 0, marginPct: 0, loss: false, profitPerHour: null, belowMin: false, best: false, atCompetitor: atComp, targetPrice, shippingIncluded: false };
+    const price = roundPrice(b.suggested, opts.rounding);
+    const m = at(price, b.cfg, s.taxPct, r.unitCost, freight, hoursPerUnit);
+    return { name: b.name, ...m, belowMin: !m.loss && m.marginPct < s.minMarginPct, best: false, atCompetitor: atComp, targetPrice, shippingIncluded: ships(b.cfg, price) };
   });
   const priced = rows.filter((x) => x.price !== null);
   const top = priced.reduce<ChannelRow | null>((a, b) => (!a || b.profit > a.profit ? b : a), null);

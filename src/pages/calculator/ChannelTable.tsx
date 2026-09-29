@@ -43,6 +43,7 @@ export default function ChannelTable({ rows, minMarginPct, target, children }: {
             <tr key={c.name}>
               <td>
                 {c.name} {c.best && <span className="badge ok"><Trophy aria-hidden size={12} /> melhor lucro</span>}
+                {c.shippingIncluded && <span className="badge warn" title="Neste preço o frete fica por sua conta (faixas de preço do canal, Preferências)"><TriangleAlert aria-hidden size={12} /> frete obrigatório neste preço</span>}
                 {c.belowMin && <span className="badge warn" title={`Margem mínima: ${pct(minMarginPct)} (Preferências)`}><TriangleAlert aria-hidden size={12} /> abaixo da margem mínima</span>}
               </td>
               {c.price === null ? (

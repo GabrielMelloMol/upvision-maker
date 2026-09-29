@@ -17,6 +17,7 @@ Formato: `## <versão> — <data>` e itens `- …` em linguagem simples.
 - **Calculadora → orçamento**: "Adicionar ao orçamento" junta vários cálculos (peças únicas que não viram produto) num orçamento em rascunho, com o preço do canal escolhido. O custo e o tempo de máquina vão junto, então o financeiro do pedido bate com a calculadora.
 - **Lucro por hora de máquina**: a tabela de canais mostra quanto a impressora ganha por hora em cada canal. Com uma **meta de R$/h** nas Preferências, aparece um selo (na meta, abaixo, menos da metade) e o preço que chega na meta.
 - **"Vou vender por"** no modo Rápido: digite um preço e veja o lucro, a margem, o lucro por hora e se dá prejuízo, no canal que escolher. No modo Completo o campo virou "Testar um preço (seu ou do concorrente)".
+- **Taxas por faixa de preço** nos canais (Preferências → Faixas de preço): taxa fixa que só vale abaixo de um valor, teto da comissão e frete por sua conta a partir de um preço. A calculadora acha o menor preço certo para cada faixa e avisa quando o frete entra.
 - **Catálogo de impressoras bem maior**: 167 modelos de 27 marcas (UltiMaker, Snapmaker, Artillery, Raise3D, GTMax3D, Sethi3D e outras), com volume de impressão e se é aberta ou fechada. Dá para escolher do catálogo também na Calculadora e no Produto: a impressora é cadastrada na hora. A busca acha "a1", "k1c" ou "ender3".
 - **Embalagem padrão** já aparece na calculadora, e o resultado mostra o custo por grama e por hora de impressão.
 

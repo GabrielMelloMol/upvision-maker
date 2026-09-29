@@ -109,3 +109,18 @@ describe("lucro por hora de máquina e meta de R$/h (#30)", () => {
     expect(hourStatus(null, 10)).toBeNull();
   });
 });
+
+test("faixas de preço (#31): arredondar para dentro da faixa do frete recalcula as taxas e sinaliza", () => {
+  const st = { ...s, maintenancePct: 0, channels: [{ name: "ML", feePct: 10, feeFixed: 0, freeShippingAbove: 40, shippingCost: 15 }] };
+  const res = calculate({ ...input, extras: [], filaments: [{ pricePerKg: 100, grams: 234 }] }, st); // custo 23,40 → 23,40 ÷ 0,6 = 39
+  const plain = compareChannels(res, st, 0, { rounding: "none" })[2];
+  expect(plain).toMatchObject({ price: 39, fees: 3.9, shippingIncluded: false });
+  const up = compareChannels(res, st, 0, { rounding: "int", competitor: 45 })[2];
+  expect(up).toMatchObject({ price: 39, shippingIncluded: false });
+  expect(up.atCompetitor).toMatchObject({ fees: 19.5, profit: 2.1 }); // 45: 4,50 + frete 15
+  const ninety = compareChannels(res, st, 0, { rounding: "90" })[2];
+  expect(ninety).toMatchObject({ price: 39.9, shippingIncluded: false });
+  // custo 23,60 → 39,33; inteiro sobe para 40 e cai na faixa do frete: 4 + 15 de taxas, prejuízo e aviso
+  const round40 = compareChannels(calculate({ ...input, extras: [], filaments: [{ pricePerKg: 100, grams: 236 }] }, st), st, 0, { rounding: "int" })[2];
+  expect(round40).toMatchObject({ price: 40, fees: 19, profit: -2.6, loss: true, shippingIncluded: true });
+});

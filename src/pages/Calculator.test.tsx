@@ -332,3 +332,16 @@ describe("lucro por hora (#30) e testar um preço no Rápido (#37)", () => {
     expect(screen.getByLabelText("Testar um preço (seu ou do concorrente)")).toHaveValue("15,00");
   });
 });
+
+test("canal com frete obrigatório acima de um preço (#31): o preço inclui o frete e a linha avisa", async () => {
+  localStorage.setItem("upvision:calculadora", JSON.stringify({ mode: "full", fil: [{ ref: "", price: "", qty: "" }], ext: [], printerId: "", f: {} }));
+  await t.db.execute(`INSERT OR REPLACE INTO settings (id, data) VALUES (1, '{"failurePct":0,"channels":[{"name":"ML","feePct":20,"feeFixed":0,"freeShippingAbove":100,"shippingCost":20}]}')`);
+  const user = userEvent.setup();
+  renderWithApp(<Calculator go={() => {}} />);
+  await screen.findAllByRole("option", { name: /^ML/ });
+  await user.type(screen.getByLabelText("Preço por kg"), "100");
+  await user.type(screen.getByLabelText("Gramas"), "600"); // custo 60 → (60 + 20) ÷ 0,5 = 160
+  const ml = screen.getByRole("row", { name: /^ML/ });
+  expect(ml).toHaveTextContent(brl("160,00"));
+  expect(ml).toHaveTextContent("frete obrigatório neste preço");
+});

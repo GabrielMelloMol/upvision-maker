@@ -1,5 +1,5 @@
 import { describe, expect, test } from "vitest";
-import { calculate, machineHourCost, type CalcInput } from "./calc";
+import { calculate, channelFees, machineHourCost, type CalcInput } from "./calc";
 import { DEFAULT_SETTINGS, type Settings } from "./settings";
 
 // Casos antigos: manutenção 5% e sem taxa de falha, para isolar cada parcela.
@@ -170,5 +170,42 @@ describe("calculate", () => {
   test("kWh medido desta impressão substitui W × horas", () => {
     const r = calculate({ ...empty, printerWatts: 200, printHours: 5, energyKwh: 0.3 }, settings);
     expect(r.energy).toBe(0.27); // 0,3 kWh × 0,90
+  });
+});
+
+describe("taxas de canal por faixa de preço (#31)", () => {
+  const base = { ...settings, maintenancePct: 0 };
+  const cost10 = { ...empty, filaments: [{ pricePerKg: 100, grams: 100 }], marketplaceMarginPct: 30 }; // custo R$ 10
+
+  test("taxas num preço: fixa só abaixo do limite, teto da comissão, frete obrigatório acima do limite, imposto à parte", () => {
+    const ch = { name: "X", feePct: 20, feeFixed: 5, fixedBelow: 80, feeCapPerItem: 30, freeShippingAbove: 80, shippingCost: 20 };
+    expect(channelFees(ch, 50, 0)).toBe(15); // 10 + 5
+    expect(channelFees(ch, 100, 0)).toBe(40); // 20 + frete 20, sem fixa
+    expect(channelFees(ch, 200, 6)).toBe(62); // teto 30 + frete 20 + imposto 12
+    expect(channelFees({ name: "Y", feePct: 10, feeFixed: 2 }, 50, 0)).toBe(7); // sem faixas: igual a antes
+  });
+
+  test("taxa fixa só abaixo de R$ X: fica com o menor preço coerente com a própria faixa", () => {
+    // abaixo de 30: (10 + 5) ÷ (1 − 0,2 − 0,3) = 30 → não é < 30; acima: 10 ÷ 0,5 = 20 → não é ≥ 30.
+    // Nenhuma faixa fecha sozinha: o preço fica no limite (30), onde a fixa já não vale.
+    const r = calculate(cost10, { ...base, channels: [{ name: "X", feePct: 20, feeFixed: 5, fixedBelow: 30 }] });
+    expect(r.channels[0]).toMatchObject({ price: 30, fees: 6, profit: 14, shippingIncluded: false });
+    const cheap = calculate(cost10, { ...base, channels: [{ name: "X", feePct: 20, feeFixed: 5, fixedBelow: 50 }] });
+    expect(cheap.channels[0]).toMatchObject({ price: 30, fees: 11, profit: 9, marginPct: 30 }); // (10 + 5) ÷ 0,5 = 30 < 50
+  });
+
+  test("frete obrigatório acima de R$ Y entra no preço e é sinalizado", () => {
+    // sem frete: 10 ÷ 0,5 = 20 < 25 ok → 20. Com custo maior, 60 ÷ 0,5 = 120 ≥ 100 → (60 + 20) ÷ 0,5 = 160
+    const ch = { name: "ML", feePct: 20, feeFixed: 0, freeShippingAbove: 100, shippingCost: 20 };
+    const low = calculate(cost10, { ...base, channels: [ch] });
+    expect(low.channels[0]).toMatchObject({ price: 20, shippingIncluded: false });
+    const high = calculate({ ...cost10, filaments: [{ pricePerKg: 100, grams: 600 }] }, { ...base, channels: [ch] });
+    expect(high.channels[0]).toMatchObject({ price: 160, fees: 52, profit: 48, marginPct: 30, shippingIncluded: true });
+  });
+
+  test("teto da comissão em R$ baixa o preço de peças caras", () => {
+    // sem teto: 200 ÷ 0,5 = 400 (comissão 80). Teto 30: (200 + 30) ÷ (1 − 0,3) = 328,57, comissão travada em 30
+    const r = calculate({ ...cost10, filaments: [{ pricePerKg: 100, grams: 2000 }] }, { ...base, channels: [{ name: "X", feePct: 20, feeFixed: 0, feeCapPerItem: 30 }] });
+    expect(r.channels[0]).toMatchObject({ price: 328.57, fees: 30, marginPct: 30 });
   });
 });

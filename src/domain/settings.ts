@@ -7,6 +7,15 @@ export const ChannelSchema = z.object({
   name: z.string().trim().min(1),
   feePct: pct,
   feeFixed: z.number().min(0),
+  // Faixas de preço (#31), todas opcionais: sem elas o canal é só comissão % + taxa fixa.
+  /** A taxa fixa só vale para preço abaixo disto. */
+  fixedBelow: z.number().positive().optional(),
+  /** Teto da comissão em R$ por item. */
+  feeCapPerItem: z.number().positive().optional(),
+  /** A partir deste preço o frete fica por conta de quem vende... */
+  freeShippingAbove: z.number().positive().optional(),
+  /** ...e custa isto. */
+  shippingCost: z.number().min(0).optional(),
 });
 export type Channel = z.infer<typeof ChannelSchema>;
 
