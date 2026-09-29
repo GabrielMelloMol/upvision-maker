@@ -1,5 +1,6 @@
+import type { CS } from "../manifold";
 import { fitInto, scoped, shrinkToFit } from "../shape2d";
-import { artParts, backing, roundedRect, size2, slab, union, type ModelCtx, type ModelOutput, MissingInput } from "./common";
+import { artParts, backing, boxOf, offsetOf, roundedRect, size2, slab, union, type ElementBox, type ModelCtx, type ModelOutput, MissingInput } from "./common";
 import { spacedText } from "./photoHolder";
 
 export type BookmarkParams = {
@@ -51,14 +52,21 @@ export function buildBookmark(ctx: ModelCtx, p: BookmarkParams): ModelOutput {
     const top = p.hole ? holeY - HOLE_R - MARGIN : L / 2 - MARGIN;
     const artH = art ? Math.min(W - 2 * MARGIN, L * 0.3) : 0;
     const slots = [];
-    if (art) slots.push(k(shrinkToFit(k(fitInto(art, W - 2 * MARGIN, artH, top - artH / 2)), inner)));
+    const elements: ElementBox[] = [];
+    // desenho e texto na posição calculada + o deslocamento do gizmo (#79)
+    const at = (id: string, label: string, cs: CS) => {
+      const moved = k(cs.translate(offsetOf(ctx, id)));
+      elements.push({ id, label, box: boxOf(moved) });
+      return moved;
+    };
+    if (art) slots.push(at("art", "Desenho", k(shrinkToFit(k(fitInto(art, W - 2 * MARGIN, artH, top - artH / 2)), inner))));
     const raw = text(p.text, 100);
     if (raw) {
       // texto deitado ao longo do comprimento, lido de baixo para cima
       const turned = k(k(raw).rotate(90));
       const room = top - (art ? artH + MARGIN : 0) - (-L / 2 + MARGIN);
       const cy = -L / 2 + MARGIN + room / 2;
-      slots.push(k(shrinkToFit(k(fitInto(turned, (W - 2 * MARGIN) * 0.7, room, cy)), inner)));
+      slots.push(at("text", "Texto", k(shrinkToFit(k(fitInto(turned, (W - 2 * MARGIN) * 0.7, room, cy)), inner))));
     }
     if (!slots.length) throw new MissingInput("Digite um texto ou envie um desenho.");
     return {
@@ -71,6 +79,7 @@ export function buildBookmark(ctx: ModelCtx, p: BookmarkParams): ModelOutput {
           ],
         },
       ],
+      elements,
     };
   });
 }

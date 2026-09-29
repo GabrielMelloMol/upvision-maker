@@ -2,7 +2,7 @@ import type { CS, ManifoldToplevel } from "../manifold";
 import { medalOutline } from "../medal";
 import { toMesh } from "../mesh";
 import { fitInto, outerOnly, scoped } from "../shape2d";
-import { MissingInput, slab, type ModelCtx, type ModelOutput } from "./common";
+import { boxOf, MissingInput, placeIn, slab, type ModelCtx, type ModelOutput } from "./common";
 
 export type PetShape = "bone" | "paw" | "circle" | "heart" | "shield" | "oval" | "wavy" | "fish" | "art";
 
@@ -83,7 +83,8 @@ function petOutline(M: ManifoldToplevel, k: K, shape: PetShape, d: number, art: 
  * Plaquinha de identificação de pet: nome em relevo na frente; telefone e recado no verso, embutidos rente
  * à face de baixo em outra cor (sai liso, sem perder o texto com o uso). Argola no topo.
  */
-export function buildPetTag({ M, text, art }: ModelCtx, p: PetTagParams): ModelOutput {
+export function buildPetTag(ctx: ModelCtx, p: PetTagParams): ModelOutput {
+  const { M, text, art } = ctx;
   if (!p.name.trim()) throw new MissingInput("Digite o nome do pet.");
   if (p.thickness < BACK_DEPTH + 1.2) throw new Error("Espessura mínima: 1,8 mm (o verso é embutido).");
   return scoped((k) => {
@@ -95,7 +96,11 @@ export function buildPetTag({ M, text, art }: ModelCtx, p: PetTagParams): ModelO
     const c: [number, number] = [0, top + TAB_R - 1.5];
     const body2d = k(k(outline.add(k(k(M.CrossSection.circle(TAB_R, 48)).translate(c)))).subtract(k(k(M.CrossSection.circle(HOLE_R, 32)).translate(c))));
     const inner = k(outline.offset(-2, "Round"));
-    const name = k(k(fitInto(k(text(p.name, 100)!), w * 0.72, h * 0.34, 0)).intersect(inner));
+    // nome centralizado na área útil (dentro da margem), com o deslocamento do gizmo (#79)
+    const name0 = k(fitInto(k(text(p.name, 100)!), w * 0.72, h * 0.34, 0));
+    const nb = boxOf(name0);
+    const [ndx, ndy] = placeIn(ctx, "name", nb, boxOf(inner));
+    const name = k(k(name0.translate([ndx, ndy])).intersect(inner));
     const lines = [p.phone, p.note].map((s) => s.trim()).filter(Boolean);
     const lh = Math.min(h * 0.16, 6);
     const back = lines
@@ -113,6 +118,7 @@ export function buildPetTag({ M, text, art }: ModelCtx, p: PetTagParams): ModelO
       { name: "Nome", color: p.textColor, mesh: slab(name, p.relief, p.thickness) },
     ];
     if (backCs) parts.push({ name: "Verso", color: p.backColor, mesh: slab(backCs, BACK_DEPTH) });
-    return { models: [{ name: p.name.trim(), parts }] };
+    const warnings = name.area() < name0.area() * 0.98 ? ["O nome encosta na borda da tag e foi cortado: arraste de volta ou use \"Centralizar tudo\"."] : [];
+    return { models: [{ name: p.name.trim(), parts }], warnings, elements: [{ id: "name", label: "Nome", box: [nb[0] + ndx, nb[1] + ndy, nb[2] + ndx, nb[3] + ndy] }] };
   });
 }

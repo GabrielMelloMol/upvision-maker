@@ -41,6 +41,7 @@ const ART_WIDTH_MM = 100; // o desenho é reescalado por cada modelo; aqui só n
 const FAVORITES_KEY = "upvision.favoriteModels";
 /** Seção dos campos de posição (alinhamento, arrumação) que "Restaurar posição" volta ao padrão (#79). */
 const ARRANGE_SECTION = "Arrumação";
+const MAX_SEGMENTS = 4; // acima disso a escolha vira pílulas (Segmented é para 2–4 opções)
 
 /** Miniaturas geradas por `npm run thumbs` (src/assets/model-thumbs/<id>.jpg). */
 const THUMBS: Record<string, string> = Object.fromEntries(
@@ -445,7 +446,18 @@ function ParamField({ f, value, onChange, sample = "", emoji }: ParamProps) {
       return (
         <div className="span-2">
           <span className="field-label">{f.label}</span>
-          <Segmented label={f.label} value={String(value)} options={f.options} onChange={onChange} full />
+          {f.options.length > MAX_SEGMENTS ? (
+            // muitas opções: pílulas que quebram linha (o Segmented é para 2–4)
+            <div className="chips" role="group" aria-label={f.label}>
+              {f.options.map(([v, text]) => (
+                <button key={v} type="button" aria-pressed={String(value) === v} onClick={() => onChange(v)}>
+                  {text}
+                </button>
+              ))}
+            </div>
+          ) : (
+            <Segmented label={f.label} value={String(value)} options={f.options} onChange={onChange} full />
+          )}
         </div>
       );
   }

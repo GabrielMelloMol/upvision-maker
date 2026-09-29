@@ -3,7 +3,8 @@ import { medalOutline } from "../medal";
 import { toMesh } from "../mesh";
 import { fitInto, scoped } from "../shape2d";
 import type { Model } from "../types";
-import { artParts, MissingInput, moveMesh, roundedRect, slab, type ModelCtx, type ModelOutput } from "./common";
+import { stackLines } from "../keychain";
+import { artParts, boxOf, MissingInput, moveMesh, placeIn, roundedRect, slab, type ElementBox, type ModelCtx, type ModelOutput } from "./common";
 
 export type ProfessionParams = {
   name: string;
@@ -54,6 +55,7 @@ export function buildProfessionPlaque(ctx: ModelCtx, p: ProfessionParams): Model
   const m = H * 0.12;
   const side = H - 2 * m;
   const models: Model[] = [];
+  const elements: ElementBox[] = [];
   const out = scoped((k) => {
     const panel = k(roundedRect(M, p.width, H, m));
     const tabW = p.width * 0.4;
@@ -61,20 +63,28 @@ export function buildProfessionPlaque(ctx: ModelCtx, p: ProfessionParams): Model
     const cx = -p.width / 2 + m + side / 2;
     const custom = !!ctx.art && !ctx.art.isEmpty();
     const src: CS = custom ? ctx.art! : k(medalOutline(M, "star", 100));
-    const symbol = k(k(fitInto(src, side * 0.9, side * 0.9, 0)).translate([cx, 0]));
+    const sym0 = k(fitInto(src, side * 0.9, side * 0.9, 0));
+    const [sx, sy] = placeIn(ctx, "symbol", boxOf(sym0), [cx - side / 2, -side / 2, cx + side / 2, side / 2]);
+    const symbol = k(sym0.translate([sx, sy]));
     const pocket = k(symbol.offset(p.fit, "Round"));
     const textX0 = cx + side / 2 + m;
     const tw = p.width / 2 - m - textX0;
     const lines = [
-      [p.name, H * 0.24, H * 0.12],
-      [p.role, H * 0.13, -H * 0.16],
+      [p.name, H * 0.24],
+      [p.role, H * 0.13],
     ] as const;
-    const texts = lines
-      .map(([s, h, cy]) => {
+    // nome e profissão empilhados; o bloco fica centralizado na coluna do texto (#79)
+    const shown = lines
+      .map(([s, h]) => {
         const raw = s.trim() ? text(s, h) : null;
-        return raw ? k(k(fitInto(k(raw), tw, h, cy)).translate([textX0 + tw / 2, 0])) : null;
+        return raw ? k(fitInto(k(raw), tw, h, 0)) : null;
       })
       .filter((c): c is CS => !!c);
+    const block = k(stackLines(M, shown, H * 0.09));
+    const tb = boxOf(block);
+    const [dx, dy] = placeIn(ctx, "texts", tb, [textX0, -H / 2 + m, p.width / 2 - m, H / 2 - m]);
+    const texts = [k(block.translate([dx, dy]))];
+    elements.push({ id: "texts", label: "Textos", box: [tb[0] + dx, tb[1] + dy, tb[2] + dx, tb[3] + dy] }, { id: "symbol", label: "Símbolo", box: boxOf(symbol) });
     const plateSolid = k(k(k(panel.add(tab)).extrude(p.thickness)).subtract(k(k(pocket.extrude(SYMBOL_DEPTH + 0.01)).translate([0, 0, p.thickness - SYMBOL_DEPTH]))));
     models.push({
       name: "Placa",
@@ -103,6 +113,7 @@ export function buildProfessionPlaque(ctx: ModelCtx, p: ProfessionParams): Model
   const z = out.pauses[0]?.toFixed(2).replace(".", ",");
   return {
     models,
+    elements,
     pauses: out.pauses,
     warnings: [
       "Três peças: cole o símbolo no rebaixo da placa e encaixe a placa na base.",

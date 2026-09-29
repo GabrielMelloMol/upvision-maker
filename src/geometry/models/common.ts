@@ -48,6 +48,9 @@ export function placeIn(ctx: ModelCtx, id: string, b: [number, number, number, n
   return [dx + ox, dy + oy];
 }
 
+/** Só o deslocamento do gizmo (para quem já calcula a posição sozinho). */
+export const offsetOf = (ctx: ModelCtx, id: string): [number, number] => ctx.offset?.(id) ?? [0, 0];
+
 /** Caixa [x0, y0, x1, y1] de uma região. */
 export function boxOf(cs: CS): [number, number, number, number] {
   const b = cs.bounds();

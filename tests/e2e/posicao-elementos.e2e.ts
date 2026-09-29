@@ -4,8 +4,6 @@ import { expect, go, openApp, test } from "./tauri";
 const idle = (page: Page) => expect(page.locator(".viewer .overlay.busy")).toHaveCount(0, { timeout: 60_000 });
 
 test("cartão de visita: arrastar o QR no gizmo, centralizar e trocar a arrumação (#79)", async ({ page }) => {
-  // a coluna da prévia é fixa (sticky): numa tela baixa o fim do gizmo fica fora de alcance
-  await page.setViewportSize({ width: 1280, height: 1300 });
   await openApp(page);
   await go(page, "Modelos prontos");
   await page.getByRole("searchbox", { name: "Buscar modelo" }).fill("Cartão");
@@ -14,6 +12,7 @@ test("cartão de visita: arrastar o QR no gizmo, centralizar e trocar a arrumaç
   const els = page.locator(".gizmo-element");
   await expect(els).toHaveCount(2, { timeout: 60_000 });
   // arrasta o QR bem para cima: sai da borda e o app avisa
+  await els.nth(1).scrollIntoViewIfNeeded();
   const box = (await els.nth(1).boundingBox())!;
   await page.mouse.move(box.x + box.width / 2, box.y + box.height / 2);
   await page.mouse.down();

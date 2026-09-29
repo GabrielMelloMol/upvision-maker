@@ -5,7 +5,7 @@ import type { CS } from "../manifold";
 import { qrModel } from "../qr3d";
 import { fitInto, scoped } from "../shape2d";
 import type { Model, Part } from "../types";
-import { MissingInput, moveMesh, plateStand, roundedRect, slab, type ModelCtx, type ModelOutput } from "./common";
+import { boxOf, MissingInput, moveMesh, offsetOf, plateStand, roundedRect, slab, type ElementBox, type ModelCtx, type ModelOutput } from "./common";
 
 export type QrKind = "wifi" | "whatsapp" | "instagram" | "review" | "link";
 
@@ -76,19 +76,29 @@ export function buildQrPlate(ctx: ModelCtx, p: QrPlateParams): ModelOutput {
   const H = m + th + gap + q + (sh && gap + sh) + m;
   const top = H / 2 - m;
   const qrCy = top - th - gap - q / 2;
-  const qr = qrAt(ctx, payload, q, p, 0, qrCy);
+  // cada elemento na posição calculada + o deslocamento do gizmo (#79)
+  const [qx, qy] = offsetOf(ctx, "qr");
+  const qr = qrAt(ctx, payload, q, p, qx, qrCy + qy);
+  const elements: ElementBox[] = [{ id: "qr", label: "QR", box: [-q / 2 + qx, qrCy - q / 2 + qy, q / 2 + qx, qrCy + q / 2 + qy] }];
   const plate = scoped((k) => {
+    const at = (id: string, label: string, parts: CS[]) => {
+      const off = offsetOf(ctx, id);
+      const moved = parts.map((c) => k(c.translate(off)));
+      elements.push({ id, label, box: boxOf(k(M.CrossSection.union(moved))) });
+      return moved;
+    };
     const icon = k(iconCs(M, ICON[p.kind], th));
     const title = p.title.trim() ? text(p.title, th * 0.8) : null;
-    const row: CS[] = [];
+    const head: CS[] = [];
     if (title) {
       const t = k(fitInto(k(title), q - th - gap, th * 0.8, 0));
       const tw = t.bounds().max[0] - t.bounds().min[0];
       const total = th + gap + tw;
-      row.push(k(icon.translate([-total / 2 + th / 2, top - th / 2])), k(t.translate([-total / 2 + th + gap + tw / 2, top - th / 2])));
-    } else row.push(k(icon.translate([0, top - th / 2])));
+      head.push(k(icon.translate([-total / 2 + th / 2, top - th / 2])), k(t.translate([-total / 2 + th + gap + tw / 2, top - th / 2])));
+    } else head.push(k(icon.translate([0, top - th / 2])));
+    const row = at("head", "Ícone e título", head);
     const sub = sh ? text(p.subtitle, sh) : null;
-    if (sub) row.push(k(fitInto(k(sub), q, sh, qrCy - q / 2 - gap - sh / 2)));
+    if (sub) row.push(...at("subtitle", "Texto de baixo", [k(fitInto(k(sub), q, sh, qrCy - q / 2 - gap - sh / 2))]));
     const parts: Part[] = [
       { name: "Placa", color: p.plateColor, mesh: slab(k(roundedRect(M, W, H, W * 0.06)), p.thickness) },
       { name: "QR", color: p.darkColor, mesh: qr.mesh },
@@ -98,7 +108,7 @@ export function buildQrPlate(ctx: ModelCtx, p: QrPlateParams): ModelOutput {
   });
   const models: Model[] = [plate];
   if (p.stand) models.push(plateStand(M, W, p.thickness, p.plateColor, -H / 2 - 25));
-  return { models, warnings: qr.warnings };
+  return { models, warnings: qr.warnings, elements };
 }
 
 export type QrListParams = {
