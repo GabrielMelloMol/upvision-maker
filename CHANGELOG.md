@@ -4,6 +4,7 @@ Cada versão aparece para a usuária na tela "O que há de novo" depois da atual
 Formato: `## <versão> — <data>` e itens `- …` em linguagem simples.
 
 ## Próxima versão (vira "## 0.6.1 — data" ou "## 0.7.0 — data" ao publicar; até lá o app não mostra)
+- **kWh pela média do estado**: sem a conta de luz em mãos, escolha o estado no primeiro uso ou em Preferências e o preço do kWh vem preenchido com uma estimativa (tarifa da ANEEL com ICMS e PIS/COFINS). Com a conta, o valor fica exato.
 - **Comparar cenários**: "Comparar com outro cenário" guarda a conta atual como A. Mude material, camada ou peças na mesa e veja A × B lado a lado (custo, preço, lucro por peça e por hora), com a diferença e se ficou melhor ou pior. "Trocar A e B" volta para a outra conta.
 - **Últimos cálculos**: a calculadora guarda sozinha os 20 cálculos mais recentes (nome, data, gramas, tempo e preço). "Reabrir" volta todos os valores e "Apagar" tira da lista. Ficam no banco e entram no backup.
 - **Por que meu preço é diferente?**: um link no resumo da calculadora explica, com os seus números, as 4 escolhas que mais mudam o preço em relação a outras calculadoras: falhas divididas × somadas, consumo × potência da fonte, markup × margem e mão de obra fora do multiplicador.

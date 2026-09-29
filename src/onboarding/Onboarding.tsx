@@ -13,6 +13,7 @@ import MoneyField from "../ui/MoneyField";
 import { parseMass, parseMoney } from "../ui/parse";
 import { fieldErrors } from "../ui/fieldErrors";
 import Sheet from "../ui/Sheet";
+import StateKwhSelect from "../ui/StateKwhSelect";
 import { useToast } from "../ui/Toast";
 
 const DONE_KEY = "onboarding_done";
@@ -154,6 +155,13 @@ export default function Onboarding({ onClose }: { onClose: () => void }) {
           {s.fields.map((f, i) => {
             const common = { label: f.label, hint: f.hint, error: errors[f.key], value: values[f.key], onChange: (v: string) => setValues({ ...values, [f.key]: v }) };
             const auto = i === 0 ? { "data-autofocus": "" } : {};
+            if (f.key === "kwhPrice")
+              return (
+                <div key={f.key} className="stack" style={{ gap: 6 }}>
+                  <MoneyField {...common} {...auto} />
+                  <StateKwhSelect onPick={(v) => setValues((cur) => ({ ...cur, kwhPrice: v }))} />
+                </div>
+              );
             if (f.kind === "money") return <MoneyField key={f.key} {...common} {...auto} />;
             if (f.kind === "mass") return <MassField key={f.key} {...common} />;
             if (f.kind === "color")

@@ -138,6 +138,10 @@ tr.restock > td { background: var(--surface-2); animation: fade-up var(--dur) va
 /* Calculadora: entradas + resumo fixo */
 .calc-layout { display: grid; grid-template-columns: 1fr minmax(300px, 380px); gap: var(--space-5); align-items: start; }
 .piece-name { max-width: 420px; margin-bottom: var(--space-4); }
+/* Média do kWh por estado (#39) */
+.state-kwh { font-size: var(--text-sm); }
+.state-kwh select { max-width: 240px; }
+
 /* Comparar cenários (#44) */
 .compare { margin-top: var(--space-5); overflow-x: auto; }
 .compare .compare-head { align-items: center; gap: var(--space-2); }

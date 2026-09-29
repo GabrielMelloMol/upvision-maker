@@ -19,6 +19,7 @@ import { formatMoneyInput, parseMoney } from "../ui/parse";
 import { addKwhHistory, type KwhEntry } from "../domain/energy";
 import { money } from "../domain/format";
 import KwhBillSheet from "./preferences/KwhBillSheet";
+import StateKwhSelect from "../ui/StateKwhSelect";
 import ChannelsCard, { fromChannelForm, toChannelForm } from "./preferences/ChannelsCard";
 
 type NumKey = Exclude<keyof Settings, "channels" | "kwhHistory" | "includeFixedCosts" | "multiplyLabor" | "packagingMaterialId" | "failureByMaterial">;
@@ -120,6 +121,7 @@ function PreferencesForm({ initial, materials }: { initial: Settings; materials:
           <button type="button" className="link" style={{ justifySelf: "start" }} onClick={() => setBillOpen(true)}>
             Calcular pela conta de luz
           </button>
+          <StateKwhSelect onPick={(v) => setNums((n) => ({ ...n, kwhPrice: v }))} />
         </div>
       );
     if (f.money) return <MoneyField key={f.key} label={f.label} hint={hint} value={nums[f.key]} error={errors[f.key]} onChange={(v) => setNums({ ...nums, [f.key]: v })} />;
