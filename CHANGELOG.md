@@ -3,7 +3,15 @@
 Cada versão aparece para a usuária na tela "O que há de novo" depois da atualização.
 Formato: `## <versão> — <data>` e itens `- …` em linguagem simples.
 
-## Próxima versão (vira "## 0.6.1 — data" ou "## 0.7.0 — data" ao publicar; até lá o app não mostra)
+## 0.7.0 — 2026-09-29
+- **Posição dos textos nos modelos prontos**: o bloco de textos, o QR e os ícones agora saem centralizados, e você pode arrastar cada um (ou digitar a posição em mm), alinhar em cima, no meio ou embaixo, e usar "Centralizar tudo" ou "Restaurar". No cartão de visita dá para escolher onde fica o QR.
+- **Separador de 3MF por cor** (Ferramentas): abra um 3MF pintado no Bambu Studio, OrcaSlicer ou PrusaSlicer e ele separa cada cor em uma peça. Dá para cortar pelo plano com pino de encaixe (solto ou fixo), para imprimir cores separadas e colar ou encaixar depois.
+- **20 modelos prontos novos**: letra grande com nome, letreiro em camadas (até 4 linhas, imagem, enfeite e QR ao lado), letra caixa para LED, letras soltas para parede com gabarito, painel de nomes, pingentes de nomes ligáveis, quebra-cabeça com arte, cubo alfabeto, string art, peça com janela (glitter, acetato ou tecido), porta-foto, organizador de mesa e os de cozinha e casa abaixo.
+- **Lote em qualquer modelo pronto**: uma cópia por linha (campos separados por ";"), arrumadas sozinhas na mesa, com aviso quando não cabe.
+- **Emoji nos textos** dos chaveiros e dos modelos prontos, com seletor de emoji.
+- **Chaveiro em etiqueta retangular** com 3 cores e nome em duas linhas; **abridor** com fenda que você posiciona e bolso NFC; **chaveiro NFC** em coração, hexágono e estrela; **tag de pet** em oval, peixe ou no formato do seu desenho; **marca-página** com o nome de pé na lateral.
+- **Cavidade para resina** no chaveiro, no NFC e na placa adaptável; **texturas no fundo** (listras, ondas, hexágonos, pontos, xadrez) nas placas e letreiros; **plaquinha de colorir** rebaixada, em 2 peças ou em marchetaria.
+- **Taxa de falha por material e por produto** (ex.: TPU mais alta que PLA), com a origem mostrada na linha do resultado.
 - **Buscar modelos 3D**: uma tela nova em Ferramentas abre a busca no Printables, MakerWorld, Thingiverse, Cults3D e Thangs (um de cada vez ou todos), lembra as últimas buscas e explica se a licença deixa vender a peça (NC = não comercial). Arraste o 3MF fatiado ou o G-code do modelo baixado e ele vai direto para a Calculadora.
 - **Desenhos e textos livres nos Modelos prontos**: coloque seu SVG, uma imagem (vira vetor) ou um texto em cima de qualquer modelo. Na **vista de cima**, arraste para mover (gruda no centro e nas bordas), use a alça do canto para o tamanho e a de cima para girar, ou digite X, Y, largura e giro. Cada camada pode ser relevo (com a cor dela), gravada ou vazada, e dá para esconder, duplicar, mudar a ordem, excluir e desfazer (⌘Z). O app avisa se o desenho sair da peça, ficar fino demais ou encostar num furo.
 - **Salvar como variação**: guarde o modelo com seus campos e camadas com um nome e reaplique depois com um toque. Fica no backup.
