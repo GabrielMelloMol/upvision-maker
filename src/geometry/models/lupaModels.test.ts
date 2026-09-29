@@ -4,6 +4,7 @@ import { getManifold, type ManifoldToplevel, type Solid } from "../manifold";
 import { volume } from "../testUtil";
 import type { Mesh, Model } from "../types";
 import type { ModelCtx } from "./common";
+import { buildCakeStand, buildStickStand, DEFAULT_CAKE_STAND as B, DEFAULT_STICK_STAND as S, holeRings } from "./confectionery";
 import { buildGridCutter, DEFAULT_GRID_CUTTER as G } from "./gridCutter";
 
 let M: ManifoldToplevel;
@@ -56,5 +57,54 @@ describe("cortador em grade (#63)", () => {
   test("grade maior que a mesa avisa", () => {
     const { warnings } = buildGridCutter(ctx(), { ...G, cols: 10, cellWidth: 30 });
     expect(warnings?.join()).toMatch(/mesa/);
+  });
+});
+
+describe("suporte de palitos (#65a)", () => {
+  test("furos distribuídos em anéis, sem sobrar nem faltar; centro livre", () => {
+    const rings = holeRings(12, 20);
+    expect(rings.reduce((t, r) => t + r.count, 0)).toBe(12);
+    for (const r of rings) expect((2 * Math.PI * r.radius) / r.count).toBeGreaterThanOrEqual(20 - 1e-6); // espaço entre furos
+    expect(rings[0].radius).toBeGreaterThan(0);
+  });
+
+  test("maciço: um furo por palito (genus) e a altura pedida", () => {
+    const { models } = buildStickStand(ctx(), { ...S, base: "solid" });
+    expectPrintable(models);
+    expect(size(models)[2]).toBeCloseTo(S.height, 1);
+    expect(solid(models[0].parts[0].mesh).volume()).toBeGreaterThan(0);
+  });
+
+  test("leve (oco por baixo) gasta menos plástico; com peso ganha bolsão e tampa separada", () => {
+    const vol = (base: "solid" | "light" | "weight") => volume(buildStickStand(ctx(), { ...S, base }).models[0].parts[0].mesh);
+    expect(vol("light")).toBeLessThan(vol("solid") * 0.7);
+    const weighted = buildStickStand(ctx(), { ...S, base: "weight" }).models;
+    expectPrintable(weighted);
+    expect(weighted.map((m) => m.name)).toEqual(["Suporte de palitos", "Tampa do peso"]);
+    expect(vol("weight")).toBeLessThan(vol("solid"));
+  });
+});
+
+describe("boleira (#65b)", () => {
+  test("impressa de cabeça para baixo: prato na mesa, pé em cima; altura e diâmetro pedidos", () => {
+    const { models } = buildCakeStand(ctx(), B);
+    expectPrintable(models);
+    const [w, , z] = size(models);
+    expect(w).toBeCloseTo(B.diameter + 2 * B.waveDepth, 0);
+    expect(z).toBeCloseTo(B.height, 1);
+    expect(models[0].parts.map((p) => p.name)).toEqual(["Boleira", "Nome"]);
+    const name = meshBounds([models[0].parts[1].mesh])!;
+    expect(name.min[2]).toBeCloseTo(0, 3); // nome embutido na face que fica na mesa (vira o topo do prato)
+  });
+
+  test("pé com rampa de no máximo 45° (sem suporte): pé largo demais para a altura é limitado e avisa", () => {
+    const { warnings, models } = buildCakeStand(ctx(), { ...B, height: 40, footDiameter: 200 });
+    expectPrintable(models);
+    expect(warnings?.join()).toMatch(/pé/);
+  });
+
+  test("sem nome: uma peça só; prato maior que a mesa avisa", () => {
+    expect(buildCakeStand(ctx(), { ...B, name: "" }).models[0].parts).toHaveLength(1);
+    expect(buildCakeStand(ctx(), { ...B, diameter: 260 }).warnings?.join()).toMatch(/mesa/);
   });
 });

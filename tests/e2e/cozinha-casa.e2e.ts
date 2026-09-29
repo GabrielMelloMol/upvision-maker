@@ -29,3 +29,21 @@ test("cortador em grade (#63): prévia com cortador e texto, aviso da mesa e 3MF
   await idle(page);
   await save3mf(page, tauri.files);
 });
+
+test("suporte de palitos (#65): base com peso ganha a tampa; 3MF", async ({ page, tauri }) => {
+  await openModel(page, "Suporte de palitos");
+  await page.getByRole("button", { name: "Com lugar para peso" }).click();
+  await idle(page);
+  await expect(page.locator(".legend")).toContainText("Tampa");
+  await save3mf(page, tauri.files);
+});
+
+test("boleira (#65): nome embutido em outra cor, aviso do pé a 45° e 3MF", async ({ page, tauri }) => {
+  await openModel(page, "Boleira");
+  await expect(page.locator(".legend")).toContainText("Nome");
+  await page.screenshot({ path: "test-results/boleira.png" });
+  await page.getByLabel("Altura (mm)", { exact: true }).fill("40");
+  await idle(page);
+  await expect(page.getByText(/O pé foi limitado/)).toBeVisible();
+  await save3mf(page, tauri.files);
+});
