@@ -3,6 +3,15 @@
 Cada versão aparece para a usuária na tela "O que há de novo" depois da atualização.
 Formato: `## <versão> — <data>` e itens `- …` em linguagem simples.
 
+## 0.5.0 — 2026-09-28
+- **13 modelos novos** em Modelos prontos: medalha e troféus no formato do seu desenho, troféu elegante com 2 linhas na base, chaveiro de anilha de academia, nome articulado (as letras balançam, já sai montado), chaveiro abridor de garrafa ou de lata, clicker com tecla de teclado, MOLLE tag, plaquinha de colorir, totem e porta-joia com tag NFC, porta-chave de parede e luminária.
+- Nas peças que encaixam (dobradiça, tampa, tecla, fenda), a **folga** é um campo: se ficar justo ou solto, ajuste e imprima de novo.
+- **Modelos prontos por categoria** (Chaveiros, Placas, Festa e esporte, Casa, Cozinha) e com **busca**. Quando falta algo, como a chave Pix ou o desenho, o app avisa sem mostrar erro.
+- **Etiqueta QR por rolo**: imprima etiquetas (folha A4 ou etiquetadora) ou uma plaquinha 3D com QR para cada filamento. Aponte a câmera (ou um leitor USB) para a etiqueta e dê **baixa das gramas usadas** ou marque **rolo acabou**.
+- **Litofania**: foto vira relevo que aparece contra a luz, plana, curva ou em caixa de luz. A prévia "Contra a luz" mostra como vai ficar antes de imprimir.
+- **Quadro por camadas** (estilo HueForge): foto colorida com 2 a 4 filamentos em camadas, com a lista de trocas de filamento. Sem AMS, a impressora pausa em cada troca; com AMS, sai uma parte por cor e o fatiador troca sozinho.
+- Correção: ao ligar "Uma parte por cor (AMS)", o botão de salvar podia gravar o arquivo antigo, com pausas. Agora ele espera o arquivo novo ficar pronto.
+
 ## 0.4.0 — 2026-09-28
 - **Backup automático**: o app guarda uma cópia por dia sozinho (ao abrir e ao fechar), mantém os últimos dias e deixa escolher a pasta, até no OneDrive ou Google Drive. Se passar uma semana sem backup, ele lembra.
 - **Sobre o app**: a versão aparece no rodapé do menu. A tela Sobre mostra quantas versões você está atrás, o que está perdendo e tem o botão **Atualizar agora**.
