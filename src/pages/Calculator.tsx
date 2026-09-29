@@ -29,6 +29,7 @@ import ChannelTable, { CompetitorHint } from "./calculator/ChannelTable";
 import PlugSheet from "./calculator/PlugSheet";
 import PrinterCatalogButton from "./calculator/PrinterCatalogButton";
 import AddToQuote from "./calculator/AddToQuote";
+import PriceSplit from "./calculator/PriceSplit";
 import TestPrice from "./calculator/TestPrice";
 import QuantityTable from "./calculator/QuantityTable";
 import AdsCard from "./calculator/AdsCard";
@@ -382,6 +383,7 @@ export default function Calculator({ go }: { go: Go }) {
             onOpen={() => go("quotes")}
           />
           {mode === "full" && <CostBreakdown r={r} s={data.settings} machinePerHour={machinePerHour} fixedPerHour={data.fixedPerHour} failure={failure} />}
+          {mode === "full" && <PriceSplit r={r} rows={rows} freight={price(f.freight)} />}
         </aside>
       </div>
 
