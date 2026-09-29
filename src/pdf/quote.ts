@@ -2,7 +2,7 @@ import type { Company, Customer } from "../domain/customers";
 import { lineTotal, orderTotals } from "../domain/orders";
 import { pixPayload } from "../domain/pix";
 import { qrMatrix } from "../domain/qr";
-import type { Quote } from "../domain/quotes";
+import { quoteNumber, type Quote } from "../domain/quotes";
 import { A4, COLOR, dateBr, MARGIN, moneyBr, Pdf, type PdfFonts } from "./doc";
 import { companyHeader } from "./header";
 
@@ -12,8 +12,9 @@ const BOX_RADIUS = 8;
 
 /** Orçamento em A4: itens, descontos, frete, total, validade, condições e QR Pix com o valor exato. */
 export async function quotePdf(fonts: PdfFonts, company: Company, q: Quote, customer?: Customer | null): Promise<{ bytes: Uint8Array; trace: string[]; pixError: string | null }> {
-  const pdf = await Pdf.create(fonts, `Orçamento ${q.id} - ${q.customerName}`);
-  await companyHeader(pdf, company, "Orçamento", [`Nº ${String(q.id).padStart(4, "0")}`, `Emitido em ${dateBr(q.createdAt)}`, `Válido até ${dateBr(q.validUntil)}`]);
+  const num = quoteNumber(q, company.quotePrefix);
+  const pdf = await Pdf.create(fonts, `Orçamento ${num} - ${q.customerName}`);
+  await companyHeader(pdf, company, "Orçamento", [`Nº ${num}`, `Emitido em ${dateBr(q.createdAt)}`, `Válido até ${dateBr(q.validUntil)}`]);
 
   pdf.text("Para", { size: 8.5, font: "semibold", color: COLOR.muted });
   pdf.text(q.customerName, { size: 12, font: "semibold" });
@@ -89,5 +90,5 @@ export async function quotePdf(fonts: PdfFonts, company: Company, q: Quote, cust
       pixError = e instanceof Error ? e.message : String(e);
     }
   }
-  return { bytes: await pdf.save(`${company.tradeName || company.name} · orçamento ${q.id}`), trace: pdf.trace, pixError };
+  return { bytes: await pdf.save(`${company.tradeName || company.name} · orçamento ${num}`), trace: pdf.trace, pixError };
 }

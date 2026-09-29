@@ -3,6 +3,9 @@
 Cada versão aparece para a usuária na tela "O que há de novo" depois da atualização.
 Formato: `## <versão> — <data>` e itens `- …` em linguagem simples.
 
+## Próxima versão (vira "## 0.6.1 — data" ou "## 0.7.0 — data" ao publicar; até lá o app não mostra)
+- **Número do orçamento por ano**: ORC-2026-001, ORC-2026-002… com o prefixo que você escolher em Dados da empresa. Aparece na lista, no PDF e no nome do arquivo; os orçamentos antigos foram numerados pela data.
+
 ## 0.6.0 — 2026-09-29
 - **Medalhas bem mais personalizáveis**: formatos novos, textos em arco, número de colocação, bordas e fundos com textura, imagem que você posiciona, verso com pinos de encaixe, modelos prontos (corrida, formatura, campeonato…) e medalhas em lote a partir de uma lista.
 - **8 modelos prontos novos**: placa QR (Wi-Fi, WhatsApp, Instagram, avaliação no Google, link), placa com vários QRs, desenho em pé, tag de pet, placa de profissão, cartão de visita com QR e NFC, chaveiro espelho e floco de neve com nome.

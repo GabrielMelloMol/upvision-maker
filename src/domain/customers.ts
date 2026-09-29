@@ -81,6 +81,8 @@ export const CompanyInput = z.object({
   pixCity: text(40),
   quoteValidityDays: z.number().int().min(1).max(365),
   quoteTerms: text(2000),
+  /** Prefixo do número do orçamento: ORC-2026-001 (#36). */
+  quotePrefix: z.string().trim().min(1, "Obrigatório").max(10).regex(/^[\p{L}\d]+$/u, "Só letras e números"),
 });
 export type Company = z.infer<typeof CompanyInput>;
 
@@ -105,6 +107,7 @@ export const DEFAULT_COMPANY: Company = {
   pixCity: "",
   quoteValidityDays: 7,
   quoteTerms: "Pagamento: 50% na aprovação e 50% na entrega.\nPrazo de produção contado a partir da aprovação.",
+  quotePrefix: "ORC",
 };
 
 export function formatDocument(d: string): string {

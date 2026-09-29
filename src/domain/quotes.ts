@@ -8,7 +8,12 @@ export const QuoteInput = OrderInput.extend({
   terms: z.string().trim().max(2000),
 });
 export type QuoteInput = z.infer<typeof QuoteInput>;
-export type Quote = QuoteInput & { id: number; createdAt: string; convertedOrderId: number | null };
+/** year/seq: número do orçamento no ano (#36); null só em dado antigo que ainda não foi numerado. */
+export type Quote = QuoteInput & { id: number; createdAt: string; convertedOrderId: number | null; year: number | null; seq: number | null };
+
+/** "ORC-2026-001"; sem número, "ORC-7" (o id). */
+export const quoteNumber = (q: Pick<Quote, "id" | "year" | "seq">, prefix: string) =>
+  q.year && q.seq ? `${prefix}-${q.year}-${String(q.seq).padStart(3, "0")}` : `${prefix}-${q.id}`;
 
 export const addDays = (iso: string, days: number) => {
   const d = new Date(`${iso}T12:00:00`);

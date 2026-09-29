@@ -18,14 +18,14 @@ test("orçamento: cria, salva PDF com Pix e vira pedido uma única vez", async (
   await sheet.getByLabel("Qtd").fill("10");
   await expect(sheet.getByLabel("Condições comerciais")).toHaveValue("50% na aprovação.");
   await sheet.getByRole("button", { name: "Criar orçamento" }).click();
-  await expect(toastWith(page, "Orçamento nº 1 criado.")).toBeVisible();
+  await expect(page.locator(".toast", { hasText: /Orçamento ORC-\d{4}-001 criado\./ })).toBeVisible();
 
   const row = page.getByRole("row", { name: /Ana Souza/ });
   await expect(row).toContainText("R$ 150,00");
   await row.getByRole("button", { name: "PDF" }).click();
   await expect(toastWith(page, "Orçamento salvo em")).toBeVisible();
   const pdf = [...tauri.files.entries()].find(([p]) => p.endsWith(".pdf"));
-  expect(pdf?.[0]).toMatch(/orcamento-1-ana-souza\.pdf$/);
+  expect(pdf?.[0]).toMatch(/ORC-\d{4}-001-ana-souza\.pdf$/);
   expect(pdf?.[1].subarray(0, 5).toString()).toBe("%PDF-");
 
   await row.getByRole("button", { name: "Virar pedido" }).click();

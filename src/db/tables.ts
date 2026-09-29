@@ -29,7 +29,16 @@ export const TABLES = {
   }),
   order_items: OrderItem.extend({ id, orderId: id, position: z.number().int() }),
   order_history: z.object({ id, orderId: id, status: z.string(), note: z.string(), at: z.string() }),
-  quotes: z.object({ id, data: z.string(), createdAt: z.string(), convertedOrderId: z.number().int().nullable() }),
+  quotes: z.object({
+    id,
+    data: z.string(),
+    createdAt: z.string(),
+    convertedOrderId: z.number().int().nullable(),
+    // backups antes do #36 não têm número: a restauração numera
+    year: z.number().int().nullable().default(null),
+    seq: z.number().int().nullable().default(null),
+  }),
+  quote_numbers: z.object({ id: z.number().int(), seq: z.number().int().min(0) }), // id = ano
   operational_costs: OperationalCostInput.extend({ id }),
 };
 

@@ -38,6 +38,23 @@ describe("Dados da empresa", () => {
     expect(await saved()).toMatchObject({ name: "UpVision 3D", city: "Rio de Janeiro", pixKey: "52998224725", quoteValidityDays: 7 });
   });
 
+  test("prefixo do número do orçamento (#36): prévia e salva; símbolo é recusado", async () => {
+    const user = userEvent.setup();
+    renderWithApp(<CompanyPage />);
+    await user.type(await screen.findByLabelText("Nome / razão social"), "UpVision 3D");
+    const prefix = screen.getByLabelText(/^Prefixo do número/);
+    expect(prefix).toHaveValue("ORC");
+    await user.clear(prefix);
+    await user.type(prefix, "UPV");
+    expect(screen.getByText(`Fica assim: UPV-${new Date().getFullYear()}-001`)).toBeInTheDocument();
+    await user.click(screen.getByRole("button", { name: "Salvar dados" }));
+    expect(await screen.findByText("Dados da empresa salvos.")).toBeInTheDocument();
+    expect((await saved()).quotePrefix).toBe("UPV");
+    await user.type(prefix, "/");
+    await user.click(screen.getByRole("button", { name: "Salvar dados" }));
+    expect(await screen.findByText("Só letras e números.")).toBeInTheDocument();
+  });
+
   test("Pix sem nome/cidade do recebedor explica o que falta", async () => {
     const user = userEvent.setup();
     renderWithApp(<CompanyPage />);

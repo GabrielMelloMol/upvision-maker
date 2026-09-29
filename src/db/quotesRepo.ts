@@ -2,7 +2,7 @@ import { QuoteInput, quoteToOrderInput, type Quote } from "../domain/quotes";
 import { ordersRepo } from "./ordersRepo";
 import type { Db } from "./types";
 
-type Row = { id: number; data: string; createdAt: string; convertedOrderId: number | null };
+type Row = { id: number; data: string; createdAt: string; convertedOrderId: number | null; year: number | null; seq: number | null };
 
 export const quotesRepo = {
   async list(db: Db): Promise<Quote[]> {
@@ -13,12 +13,17 @@ export const quotesRepo = {
         console.error(`Orçamento ${r.id} inválido no banco:`, p.error);
         return [];
       }
-      return [{ ...p.data, id: r.id, createdAt: r.createdAt, convertedOrderId: r.convertedOrderId }];
+      return [{ ...p.data, id: r.id, createdAt: r.createdAt, convertedOrderId: r.convertedOrderId, year: r.year, seq: r.seq }];
     });
   },
   async create(db: Db, input: unknown, now: string): Promise<number> {
     const v = QuoteInput.parse(input);
-    const r = await db.execute("INSERT INTO quotes (data, createdAt, convertedOrderId) VALUES (?, ?, NULL)", [JSON.stringify(v), now]);
+    // ponytail: contador e insert sem transação (pool do plugin); dois orçamentos no mesmo instante não acontecem num app de 1 pessoa
+    const parsed = Number(now.slice(0, 4));
+    const year = Number.isInteger(parsed) && parsed > 2000 ? parsed : new Date().getFullYear();
+    await db.execute("INSERT INTO quote_numbers (id, seq) VALUES (?, 1) ON CONFLICT(id) DO UPDATE SET seq = seq + 1", [year]);
+    const [{ seq }] = await db.select<{ seq: number }>("SELECT seq FROM quote_numbers WHERE id = ?", [year]);
+    const r = await db.execute("INSERT INTO quotes (data, createdAt, convertedOrderId, year, seq) VALUES (?, ?, NULL, ?, ?)", [JSON.stringify(v), now, year, seq]);
     return Number(r.lastInsertId);
   },
   async update(db: Db, q: Quote, input: unknown): Promise<void> {

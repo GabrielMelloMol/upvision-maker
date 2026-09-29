@@ -44,7 +44,9 @@ const quoteJson = (o: { name?: string; validUntil?: string; qty?: number }) =>
     items: [{ productId: 1, description: "Chaveiro", qty: o.qty ?? 10, unitPrice: 15, discountPct: 0, unitCost: 0, printMinutes: 0 }],
   });
 const insertQuote = (o: Parameters<typeof quoteJson>[0] = {}, convertedOrderId: number | null = null) =>
-  t.raw.prepare("INSERT INTO quotes (data, createdAt, convertedOrderId) VALUES (?, '2026-09-28 10:00:00', ?)").run(quoteJson(o), convertedOrderId);
+  t.raw
+    .prepare("INSERT INTO quotes (data, createdAt, convertedOrderId, year, seq) VALUES (?, '2026-09-28 10:00:00', ?, 2026, (SELECT COUNT(*) + 1 FROM quotes WHERE year = 2026))")
+    .run(quoteJson(o), convertedOrderId);
 
 const pdfs = () => [...t.files.entries()].filter(([p]) => p.endsWith(".pdf"));
 const isPdf = (b: Uint8Array) => new TextDecoder().decode(b.subarray(0, 5)) === "%PDF-";
@@ -74,7 +76,7 @@ describe("Orçamentos", () => {
     await user.type(within(sheet).getByLabelText("Condições comerciais"), "À vista.");
     await user.click(within(sheet).getByRole("button", { name: "Criar orçamento" }));
 
-    expect(await screen.findByText("Orçamento nº 1 criado.")).toBeInTheDocument();
+    expect(await screen.findByText(/^Orçamento ORC-\d{4}-001 criado\.$/)).toBeInTheDocument();
     const row = await screen.findByRole("row", { name: /Ana Souza/ });
     expect(row).toHaveTextContent("R$ 150,00");
     expect(row).toHaveTextContent("aberto");
@@ -90,8 +92,8 @@ describe("Orçamentos", () => {
     const { user } = setup();
     const row = await screen.findByRole("row", { name: /Ana Souza/ });
     expect(row).toHaveTextContent("vencido");
-    await user.click(within(row).getByRole("button", { name: "Editar orçamento 1" }));
-    const sheet = await screen.findByRole("dialog", { name: "Orçamento nº 1" });
+    await user.click(within(row).getByRole("button", { name: "Editar orçamento ORC-2026-001" }));
+    const sheet = await screen.findByRole("dialog", { name: "Orçamento ORC-2026-001" });
     const until = within(sheet).getByLabelText("Válido até");
     await user.clear(until);
     await user.type(until, "2099-12-31");
@@ -113,7 +115,7 @@ describe("Orçamentos", () => {
 
     t.savePath = (n) => `/saida/${n}`;
     await user.click(within(row).getByRole("button", { name: "PDF" }));
-    expect(await screen.findByText("Orçamento salvo em /saida/orcamento-1-ana-souza.pdf")).toBeInTheDocument();
+    expect(await screen.findByText("Orçamento salvo em /saida/ORC-2026-001-ana-souza.pdf")).toBeInTheDocument();
     expect(isPdf(pdfs()[0][1])).toBe(true);
   });
 
@@ -125,7 +127,7 @@ describe("Orçamentos", () => {
     await user.click(await screen.findByRole("button", { name: "Dados da empresa" }));
     expect(go).toHaveBeenCalledWith("company");
     await user.click(within(screen.getByRole("row", { name: /Ana Souza/ })).getByRole("button", { name: "PDF" }));
-    expect(await screen.findByText(/PDF salvo sem o QR Pix \(Informe o nome de quem recebe o Pix\.\) em \/saida\/orcamento-1/)).toBeInTheDocument();
+    expect(await screen.findByText(/PDF salvo sem o QR Pix \(Informe o nome de quem recebe o Pix\.\) em \/saida\/ORC-2026-001/)).toBeInTheDocument();
     expect(pdfs()).toHaveLength(1);
   });
 
@@ -144,11 +146,11 @@ describe("Orçamentos", () => {
     insertQuote({ qty: 3 });
     const { user, go } = setup();
     await user.click(within(await screen.findByRole("row", { name: /Ana Souza/ })).getByRole("button", { name: "Virar pedido" }));
-    expect(await screen.findByText("Orçamento nº 1 virou o pedido #1.")).toBeInTheDocument();
+    expect(await screen.findByText("Orçamento ORC-2026-001 virou o pedido #1.")).toBeInTheDocument();
     const row = await screen.findByRole("row", { name: /Ana Souza/ });
     await waitFor(() => expect(row).toHaveTextContent("virou o pedido #1"));
     expect(within(row).queryByRole("button", { name: "Virar pedido" })).not.toBeInTheDocument();
-    expect(within(row).queryByRole("button", { name: "Editar orçamento 1" })).not.toBeInTheDocument();
+    expect(within(row).queryByRole("button", { name: "Editar orçamento ORC-2026-001" })).not.toBeInTheDocument();
     expect(t.raw.prepare("SELECT customerName, quoteId, status FROM orders").all()).toEqual([{ customerName: "Ana Souza", quoteId: 1, status: "pending" }]);
     expect(t.raw.prepare("SELECT qty FROM order_items").all()).toEqual([{ qty: 3 }]);
     expect(t.raw.prepare("SELECT note FROM order_history").all()).toEqual([{ note: "Criado a partir do orçamento #1" }]);
@@ -173,18 +175,18 @@ describe("Orçamentos", () => {
     insertQuote({ name: "Caio" }, 5);
     const { user } = setup();
     t.askAnswer = false;
-    await user.click(await screen.findByRole("button", { name: "Excluir orçamento 1" }));
+    await user.click(await screen.findByRole("button", { name: "Excluir orçamento ORC-2026-001" }));
     await waitFor(() => expect(t.calls).toContain("plugin:dialog|message"));
     expect(t.raw.prepare("SELECT COUNT(*) AS n FROM quotes").get()).toEqual({ n: 2 });
     t.askAnswer = true;
-    await user.click(screen.getByRole("button", { name: "Excluir orçamento 2" }));
+    await user.click(screen.getByRole("button", { name: "Excluir orçamento ORC-2026-002" }));
     await waitFor(() => expect(screen.queryByRole("row", { name: /Caio/ })).not.toBeInTheDocument());
     expect(t.raw.prepare("SELECT id FROM quotes").all()).toEqual([{ id: 1 }]);
 
     t.handlers["plugin:sql|execute"] = () => {
       throw new Error("banco travado");
     };
-    await user.click(screen.getByRole("button", { name: "Excluir orçamento 1" }));
+    await user.click(screen.getByRole("button", { name: "Excluir orçamento ORC-2026-001" }));
     expect(await screen.findByText("Não foi possível excluir: banco travado")).toBeInTheDocument();
   });
 });

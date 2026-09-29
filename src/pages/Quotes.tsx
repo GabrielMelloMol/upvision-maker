@@ -5,7 +5,7 @@ import { getDb } from "../db";
 import { quotesRepo } from "../db/quotesRepo";
 import { money } from "../domain/format";
 import { orderTotals, todayIso } from "../domain/orders";
-import { isExpired, type Quote } from "../domain/quotes";
+import { isExpired, quoteNumber, type Quote } from "../domain/quotes";
 import { loadPdfFonts } from "../pdf/fonts";
 import { quotePdf } from "../pdf/quote";
 import "../styles/features.css";
@@ -32,11 +32,12 @@ export default function Quotes({ go }: { go: Go }) {
   const [sheet, setSheet] = useState<"contract" | "catalog" | null>(null);
   const toast = useToast();
   const today = todayIso();
+  const num = (q: Quote) => quoteNumber(q, data.company.quotePrefix);
 
   async function pdf(q: Quote) {
     try {
       const r = await quotePdf(await loadPdfFonts(), data.company, q, data.customers.find((c) => c.id === q.customerId));
-      const path = await saveFile(`orcamento-${q.id}-${slug(q.customerName)}.pdf`, r.bytes, "pdf", "PDF");
+      const path = await saveFile(`${num(q)}-${slug(q.customerName)}.pdf`, r.bytes, "pdf", "PDF");
       if (path) toast(r.pixError ? `PDF salvo sem o QR Pix (${r.pixError}) em ${path}` : `Orçamento salvo em ${path}`, r.pixError ? "error" : "ok");
     } catch (e) {
       toast(`Não foi possível gerar o PDF: ${errorText(e)}`, "error");
@@ -46,7 +47,7 @@ export default function Quotes({ go }: { go: Go }) {
   async function convert(q: Quote) {
     try {
       const id = await quotesRepo.convert(await getDb(), q);
-      toast(`Orçamento nº ${q.id} virou o pedido #${id}.`);
+      toast(`Orçamento ${num(q)} virou o pedido #${id}.`);
       reload();
     } catch (e) {
       toast(errorText(e), "error");
@@ -54,7 +55,7 @@ export default function Quotes({ go }: { go: Go }) {
   }
 
   async function remove(q: Quote) {
-    if (!(await ask(`Excluir o orçamento nº ${q.id}?`, { title: "Excluir orçamento", kind: "warning", okLabel: "Excluir orçamento", cancelLabel: "Cancelar" }))) return;
+    if (!(await ask(`Excluir o orçamento ${num(q)}?`, { title: "Excluir orçamento", kind: "warning", okLabel: "Excluir orçamento", cancelLabel: "Cancelar" }))) return;
     try {
       await quotesRepo.remove(await getDb(), q.id);
       reload();
@@ -121,7 +122,7 @@ export default function Quotes({ go }: { go: Go }) {
           <tbody>
             {data.quotes.map((q) => (
               <tr key={q.id}>
-                <td>{q.id}</td>
+                <td>{num(q)}</td>
                 <td>{q.customerName}</td>
                 <td>{dateBr(q.validUntil)}</td>
                 <td>
@@ -144,10 +145,10 @@ export default function Quotes({ go }: { go: Go }) {
                         <Button variant="ghost" size="sm" icon={ArrowRightLeft} onClick={() => convert(q)}>
                           Virar pedido
                         </Button>
-                        <Button variant="ghost" size="sm" icon={Pencil} aria-label={`Editar orçamento ${q.id}`} onClick={() => setEditing(q)} />
+                        <Button variant="ghost" size="sm" icon={Pencil} aria-label={`Editar orçamento ${num(q)}`} onClick={() => setEditing(q)} />
                       </>
                     )}
-                    <Button variant="ghost" size="sm" icon={Trash2} className="danger" aria-label={`Excluir orçamento ${q.id}`} onClick={() => remove(q)} />
+                    <Button variant="ghost" size="sm" icon={Trash2} className="danger" aria-label={`Excluir orçamento ${num(q)}`} onClick={() => remove(q)} />
                   </div>
                 </td>
               </tr>

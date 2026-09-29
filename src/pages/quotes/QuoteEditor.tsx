@@ -2,7 +2,7 @@ import { useState } from "react";
 import { getDb } from "../../db";
 import { quotesRepo } from "../../db/quotesRepo";
 import { todayIso, type OrderInput } from "../../domain/orders";
-import { addDays, type Quote } from "../../domain/quotes";
+import { addDays, quoteNumber, type Quote } from "../../domain/quotes";
 import { useToast } from "../../ui/Toast";
 import OrderEditor from "../orders/OrderEditor";
 import type { QuotesData } from "./data";
@@ -25,7 +25,8 @@ export default function QuoteEditor({ data, quote, draft, onClose, onSaved }: { 
       return quote.id;
     }
     const id = await quotesRepo.create(db, full, nowLocal());
-    toast(`Orçamento nº ${id} criado.`);
+    const created = (await quotesRepo.list(db)).find((q) => q.id === id);
+    toast(`Orçamento ${created ? quoteNumber(created, data.company.quotePrefix) : id} criado.`);
     return id;
   }
 
@@ -33,7 +34,7 @@ export default function QuoteEditor({ data, quote, draft, onClose, onSaved }: { 
     <OrderEditor
       data={data}
       draft={quote ?? draft}
-      title={quote ? `Orçamento nº ${quote.id}` : "Novo orçamento"}
+      title={quote ? `Orçamento ${quoteNumber(quote, data.company.quotePrefix)}` : "Novo orçamento"}
       submitLabel={quote ? "Salvar orçamento" : "Criar orçamento"}
       saveAs={saveAs}
       onClose={onClose}

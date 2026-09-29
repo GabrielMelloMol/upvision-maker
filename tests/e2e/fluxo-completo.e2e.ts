@@ -39,7 +39,7 @@ test("fluxo completo: fatiador → produto → orçamento → pedido → estoque
   await quoteSheet.getByLabel("Produto").selectOption({ label: "Chaveiro 2 cores" });
   await quoteSheet.getByLabel("Qtd").fill("6");
   await quoteSheet.getByRole("button", { name: "Criar orçamento" }).click();
-  await expect(toastWith(page, "Orçamento nº 1 criado.")).toBeVisible();
+  await expect(page.locator(".toast", { hasText: /Orçamento ORC-\d{4}-001 criado\./ })).toBeVisible();
   const quoteRow = page.getByRole("row", { name: /Ana Souza/ });
   await quoteRow.getByRole("button", { name: "PDF" }).click();
   await expect(toastWith(page, "Orçamento salvo em")).toBeVisible();

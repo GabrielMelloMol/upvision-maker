@@ -141,6 +141,11 @@ function CompanyForm({ initial }: { initial: Company }) {
       <section className="card stack">
         <h2 className="card-title">Orçamentos</h2>
         <label style={{ maxWidth: 220 }}>
+          Prefixo do número
+          <input value={v.quotePrefix} maxLength={10} aria-invalid={!!errors.quotePrefix} onChange={set("quotePrefix")} />
+          {errors.quotePrefix ? <span className="error">{errors.quotePrefix}</span> : <span className="hint">Fica assim: {v.quotePrefix || "ORC"}-{new Date().getFullYear()}-001</span>}
+        </label>
+        <label style={{ maxWidth: 220 }}>
           Validade padrão (dias)
           <input inputMode="numeric" value={validity} aria-invalid={!!errors.quoteValidityDays} onChange={(e) => setValidity(e.target.value)} />
           {errors.quoteValidityDays && <span className="error">Use de 1 a 365 dias.</span>}

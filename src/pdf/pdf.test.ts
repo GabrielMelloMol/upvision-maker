@@ -15,6 +15,8 @@ const PNG = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJA
 const company: Company = { ...DEFAULT_COMPANY, name: "UpVision 3D LTDA", tradeName: "UpVision 3D", city: "Rio de Janeiro", pixKey: "52998224725", phone: "21 99999-0000", logo: PNG };
 const quote = (items: number): Quote => ({
   id: 7,
+  year: 2026,
+  seq: 7,
   createdAt: "2026-09-28 10:00:00",
   convertedOrderId: null,
   customerId: null,

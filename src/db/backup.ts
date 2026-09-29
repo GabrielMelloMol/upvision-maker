@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { SCHEMA_VERSION } from "./migrations";
+import { QUOTE_NUMBER_BACKFILL, SCHEMA_VERSION } from "./migrations";
 import { TABLES, type TableName } from "./tables";
 import type { Db } from "./types";
 
@@ -55,4 +55,5 @@ export async function restoreBackup(db: Db, backup: Backup): Promise<void> {
       await db.execute(sql, cols.map((c) => row[c] ?? null));
     }
   }
+  for (const sql of QUOTE_NUMBER_BACKFILL) await db.execute(sql); // backup antigo: orçamentos sem número
 }

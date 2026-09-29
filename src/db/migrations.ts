@@ -1,5 +1,14 @@
 import type { Db } from "./types";
 
+/** Numera, pela ordem de criação em cada ano, os orçamentos sem número (migração e backup antigo) e acerta os contadores. */
+export const QUOTE_NUMBER_BACKFILL = [
+  "UPDATE quotes SET year = CAST(substr(createdAt, 1, 4) AS INTEGER) WHERE year IS NULL",
+  `UPDATE quotes SET seq = (SELECT COALESCE(MAX(q2.seq), 0) FROM quotes q2 WHERE q2.year = quotes.year AND q2.seq IS NOT NULL)
+    + (SELECT COUNT(*) FROM quotes q3 WHERE q3.year = quotes.year AND q3.seq IS NULL AND q3.id <= quotes.id) WHERE seq IS NULL`,
+  `INSERT INTO quote_numbers (id, seq) SELECT year, MAX(seq) FROM quotes WHERE year IS NOT NULL GROUP BY year
+    ON CONFLICT(id) DO UPDATE SET seq = MAX(seq, excluded.seq)`,
+];
+
 /** Cada item é uma versão do schema. Nunca editar um item já publicado: só acrescentar. */
 export const MIGRATIONS: string[][] = [
   ["CREATE TABLE settings (id INTEGER PRIMARY KEY CHECK (id = 1), data TEXT NOT NULL)"],
@@ -53,6 +62,13 @@ export const MIGRATIONS: string[][] = [
   ],
   // Taxa de falha própria do produto (#35); NULL = a do material ou a geral.
   ["ALTER TABLE products ADD COLUMN failurePct REAL"],
+  // Numeração de orçamentos por ano (#36): ORC-2026-001. quote_numbers.id = ano, seq = último número usado.
+  [
+    "ALTER TABLE quotes ADD COLUMN year INTEGER",
+    "ALTER TABLE quotes ADD COLUMN seq INTEGER",
+    "CREATE TABLE quote_numbers (id INTEGER PRIMARY KEY, seq INTEGER NOT NULL)",
+    ...QUOTE_NUMBER_BACKFILL,
+  ],
 ];
 
 export const SCHEMA_VERSION = MIGRATIONS.length;

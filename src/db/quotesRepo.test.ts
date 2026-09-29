@@ -1,5 +1,6 @@
 import { beforeEach, expect, test } from "vitest";
-import { addDays, isExpired, type QuoteInput } from "../domain/quotes";
+import { addDays, isExpired, quoteNumber, type QuoteInput } from "../domain/quotes";
+import { MIGRATIONS } from "./migrations";
 import { migrate } from "./migrations";
 import { ordersRepo } from "./ordersRepo";
 import { quotesRepo } from "./quotesRepo";
@@ -59,4 +60,31 @@ test("pedido criado mas orçamento não marcado (app fechou no meio): não dupli
   await expect(quotesRepo.convert(db, q)).rejects.toThrow(/já virou o pedido #1/);
   expect((await quotesRepo.list(db))[0].convertedOrderId).toBe(1);
   expect(await ordersRepo.list(db)).toHaveLength(1);
+});
+
+test("numeração por ano (#36): sequência própria de cada ano e nunca reaproveita número de orçamento excluído", async () => {
+  const a = await quotesRepo.create(db, quote, "2026-01-10 10:00:00");
+  const b = await quotesRepo.create(db, quote, "2026-03-01 10:00:00");
+  await quotesRepo.remove(db, b);
+  const c = await quotesRepo.create(db, quote, "2026-05-01 10:00:00");
+  const d = await quotesRepo.create(db, quote, "2027-01-02 10:00:00");
+  const byId = Object.fromEntries((await quotesRepo.list(db)).map((q) => [q.id, quoteNumber(q, "ORC")]));
+  expect(byId).toEqual({ [a]: "ORC-2026-001", [c]: "ORC-2026-003", [d]: "ORC-2027-001" });
+});
+
+test("número formatado com o prefixo da empresa; sem número (dado antigo) cai no id", () => {
+  expect(quoteNumber({ id: 7, year: 2026, seq: 12 }, "UPV")).toBe("UPV-2026-012");
+  expect(quoteNumber({ id: 7, year: null, seq: null }, "ORC")).toBe("ORC-7");
+});
+
+test("migração numera os orçamentos que já existiam pelo ano de criação", async () => {
+  const old = (await import("./testDb")).memoryDb();
+  for (const step of MIGRATIONS.slice(0, -1)) for (const sql of step) await old.execute(sql);
+  await old.execute(`PRAGMA user_version = ${MIGRATIONS.length - 1}`);
+  for (const at of ["2025-12-30 10:00:00", "2026-01-02 10:00:00", "2026-02-01 10:00:00"])
+    await old.execute("INSERT INTO quotes (data, createdAt, convertedOrderId) VALUES (?, ?, NULL)", [JSON.stringify(quote), at]);
+  await migrate(old);
+  expect((await quotesRepo.list(old)).map((q) => quoteNumber(q, "ORC")).sort()).toEqual(["ORC-2025-001", "ORC-2026-001", "ORC-2026-002"]);
+  const next = await quotesRepo.create(old, quote, "2026-03-01 10:00:00");
+  expect(quoteNumber((await quotesRepo.list(old)).find((q) => q.id === next)!, "ORC")).toBe("ORC-2026-003");
 });

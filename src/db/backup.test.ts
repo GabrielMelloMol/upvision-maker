@@ -37,6 +37,20 @@ describe("backup", () => {
     expect(await db.select("SELECT name, failurePct FROM products")).toEqual([{ name: "Chaveiro", failurePct: null }]);
   });
 
+  test("backup antigo sem número de orçamento: a restauração numera por ano (#36)", async () => {
+    const db = await seeded();
+    const b = await exportBackup(db);
+    const q = (id: number, createdAt: string) => ({ id, data: "{}", createdAt, convertedOrderId: null });
+    const old = { ...b, schemaVersion: 11, tables: { ...b.tables, quotes: [q(1, "2025-12-01 10:00:00"), q(2, "2026-01-05 10:00:00"), q(3, "2026-02-05 10:00:00")], quote_numbers: undefined } };
+    await restoreBackup(db, parseBackup(JSON.stringify(old)));
+    expect(await db.select("SELECT id, year, seq FROM quotes ORDER BY id")).toEqual([
+      { id: 1, year: 2025, seq: 1 },
+      { id: 2, year: 2026, seq: 1 },
+      { id: 3, year: 2026, seq: 2 },
+    ]);
+    expect(await db.select("SELECT id, seq FROM quote_numbers ORDER BY id")).toEqual([{ id: 2025, seq: 1 }, { id: 2026, seq: 2 }]);
+  });
+
   test("rejeita arquivo que não é backup do app", () => {
     expect(() => parseBackup("{}")).toThrow(/não é um backup/i);
     expect(() => parseBackup("lixo")).toThrow(/não é um backup/i);
