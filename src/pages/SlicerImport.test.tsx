@@ -77,4 +77,19 @@ describe("Importar do fatiador", () => {
     fireEvent.drop(screen.getByRole("button", { name: /Arraste/ }), { dataTransfer: { files: [new File(["oi"], "foto.txt")] } });
     expect(await screen.findByRole("alert")).toHaveTextContent("Use um arquivo 3MF, G-code ou G-code binário (.bgcode) do fatiador.");
   });
+
+  test("Cura (só metros, #47): gramas pela densidade do filamento escolhido na linha, e a linha diz qual", async () => {
+    const PETG: Filament = { id: 3, material: "PETG", color: "Preto", brand: "", pricePerKg: 130, spoolG: 1000, stockG: 900, minG: 0 };
+    const onApply = vi.fn<(a: SlicerApply) => void>();
+    render(<SlicerImport stock={[AZUL, PETG]} printers={[]} onApply={onApply} />);
+    await upload(fixture("cura-1cor.gcode"));
+    await waitFor(() => expect(onApply).toHaveBeenCalled());
+    const pick = screen.getByLabelText("Filamento cadastrado para o filamento 1");
+    await userEvent.selectOptions(pick, "PETG · Preto");
+    await waitFor(() => expect(onApply.mock.lastCall![0].filaments[0]).toEqual({ filamentId: 3, pricePerKg: 130, grams: 9.54 }));
+    expect(screen.getByText(/estimado: PETG 1,27 g\/cm³/)).toBeInTheDocument();
+    await userEvent.selectOptions(pick, "PLA · Azul · Bambu");
+    await waitFor(() => expect(onApply.mock.lastCall![0].filaments[0].grams).toBe(9.32));
+    expect(screen.getByText(/estimado: PLA 1,24 g\/cm³/)).toBeInTheDocument();
+  });
 });

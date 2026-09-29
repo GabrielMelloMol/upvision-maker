@@ -1,4 +1,5 @@
-export type SlicerFilament = { index: number; type?: string; color?: string; grams?: number; meters?: number };
+/** estimatedDiameterMm: as gramas vieram dos metros (fatiador sem peso); refazer com a densidade do material escolhido. */
+export type SlicerFilament = { index: number; type?: string; color?: string; grams?: number; meters?: number; estimatedDiameterMm?: number };
 
 /** O que foi lido de um arquivo de fatiador (tudo opcional: cada fatiador informa coisas diferentes). */
 export type SlicerReport = {

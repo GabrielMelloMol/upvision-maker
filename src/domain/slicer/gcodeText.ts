@@ -1,8 +1,20 @@
 import { numList, parseDuration, round2, splitList, type SlicerFilament, type SlicerReport } from "./types";
 
 const HEAD_TAIL = 256 * 1024; // estatísticas ficam no começo (Bambu/Cura) ou no fim (Prusa)
-const PLA_DENSITY = 1.24; // g/cm³
-const DIAMETER_CM = 0.175;
+/** Densidade típica (g/cm³) de cada material, para estimar gramas de quem só informa metros (#47). Varia ±3% por marca. */
+export const DENSITY: Record<string, number> = { PLA: 1.24, PETG: 1.27, ABS: 1.04, ASA: 1.07, TPU: 1.21, PC: 1.2, NYLON: 1.14 };
+const DEFAULT_DIAMETER_MM = 1.75;
+
+/** Gramas a partir dos metros de filamento: área do fio × comprimento × densidade do material (PLA se não souber). */
+export function gramsFromMeters(meters: number, material?: string, diameterMm = DEFAULT_DIAMETER_MM): { grams: number; density: number; material: string } {
+  const key = (material ?? "").trim().toUpperCase();
+  const known = key in DENSITY ? key : "PLA";
+  const density = DENSITY[known];
+  const areaCm2 = Math.PI * (diameterMm / 20) ** 2;
+  return { grams: round2(areaCm2 * meters * 100 * density), density, material: known === "NYLON" ? "Nylon" : known };
+}
+
+const dec = (n: number) => n.toLocaleString("pt-BR");
 
 /** Chaves "; chave = valor" ou "; chave : valor" do G-code (e INI do .bgcode). */
 export function keyValues(text: string): Map<string, string> {
@@ -60,15 +72,16 @@ function fromBambu(text: string, kv: Map<string, string>): SlicerReport {
 function fromCura(text: string, kv: Map<string, string>): SlicerReport {
   const meters = numList(kv.get("filament used")?.replace(/m\b/g, ""));
   if (!meters.length) throw new Error("Não encontrei o consumo de filamento neste G-code.");
-  const area = Math.PI * (DIAMETER_CM / 2) ** 2;
+  const diameter = Number(/material_diameter\s*=\s*(\d+(?:\.\d+)?)/.exec(text)?.[1]) || DEFAULT_DIAMETER_MM;
   const meshes = new Set([...text.matchAll(/^;MESH:(.+)$/gm)].map((m) => m[1].trim()).filter((m) => m !== "NONMESH"));
   return {
     source: "Cura (G-code)",
     printer: kv.get("target_machine.name") || undefined,
     seconds: kv.has("time") ? Math.round(Number(kv.get("time"))) : undefined,
     pieces: meshes.size || undefined,
-    filaments: meters.map((m, i) => ({ index: i + 1, meters: round2(m), grams: round2(area * m * 100 * PLA_DENSITY) })),
-    warnings: ["O Cura só informa metros: gramas estimadas para PLA 1,75 mm (1,24 g/cm³). Confira."],
+    // sem o tipo do material no arquivo: estima como PLA; a tela refaz com o filamento escolhido em cada linha
+    filaments: meters.map((m, i) => ({ index: i + 1, meters: m, grams: gramsFromMeters(m, undefined, diameter).grams, estimatedDiameterMm: diameter })), // metros sem arredondar: as gramas são refeitas deles
+    warnings: [`O Cura só informa metros: as gramas são estimadas pela densidade do material escolhido em cada linha (PLA 1,24 g/cm³ se não souber) e fio de ${dec(diameter)} mm. Confira.`],
   };
 }
 

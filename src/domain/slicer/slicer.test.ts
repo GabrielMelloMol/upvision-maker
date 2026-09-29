@@ -53,6 +53,22 @@ describe("importar arquivo do fatiador", () => {
     expect(r.warnings.join()).toMatch(/estimad/i);
   });
 
+  test("densidade por material (#47): metros → gramas pelo tipo e diâmetro; sem tipo conhecido, PLA", async () => {
+    const { gramsFromMeters } = await import("./gcodeText");
+    expect(gramsFromMeters(3.12345, "PLA")).toMatchObject({ grams: 9.32, density: 1.24, material: "PLA" });
+    expect(gramsFromMeters(3.12345, "PETG")).toMatchObject({ grams: 9.54, density: 1.27 }); // 7,513 cm³ × 1,27
+    expect(gramsFromMeters(3.12345, "petg")).toMatchObject({ density: 1.27 }); // o fatiador escreve de vários jeitos
+    expect(gramsFromMeters(1, "Madeira")).toMatchObject({ density: 1.24, material: "PLA" });
+    expect(gramsFromMeters(1, undefined, 2.85).grams).toBe(7.91); // π × 0,1425² × 100 × 1,24
+  });
+
+  test("Cura com diâmetro 2,85 mm nas configurações: estima com ele e marca as gramas como estimadas", () => {
+    const gcode = ";FLAVOR:Marlin\n;TIME:600\n;Filament used: 1m\n;Generated with Cura_SteamEngine 5.8.0\n;SETTING_3 {\"global_quality\": \"[values]\\nmaterial_diameter = 2.85\\n\"}\n";
+    const r = parseSlicerFile("peca.gcode", new TextEncoder().encode(gcode));
+    expect(r.filaments[0]).toMatchObject({ grams: 7.91, meters: 1, estimatedDiameterMm: 2.85 });
+    expect(r.warnings.join()).toMatch(/2,85 mm/);
+  });
+
   test("G-code binário da Prusa (.bgcode), com bloco comprimido", () => {
     const r = parse("prusa-coreone.bgcode");
     expect(r.printer).toBe("COREONE");

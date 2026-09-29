@@ -2,6 +2,8 @@ import { FileInput } from "lucide-react";
 import { useEffect, useState } from "react";
 import type { Filament, Printer } from "../domain/entities";
 import { parseSlicerFile, SLICER_ACCEPT, type SlicerReport } from "../domain/slicer";
+import { gramsFromMeters } from "../domain/slicer/gcodeText";
+import type { SlicerFilament } from "../domain/slicer/types";
 import { colorHex, filamentDraft, isCloseMatch, matchFilament, matchPrinter } from "../domain/slicer/match";
 import { FILAMENT_COLORS } from "../ui/ColorDots";
 import NewFilamentSheet from "./calculator/NewFilamentSheet";
@@ -44,12 +46,17 @@ export default function SlicerImport({ stock, printers, onApply, onStockAdded }:
   const [creating, setCreating] = useState<number | null>(null);
 
   const mapping = report ? report.filaments.map((f, i) => (i in overrides ? overrides[i] : matchFilament(f, stock))) : [];
+  /** Gramas da linha: as do arquivo ou, quando o fatiador só deu metros, pela densidade do filamento escolhido (#47). */
+  const weigh = (f: SlicerFilament, i: number) =>
+    f.estimatedDiameterMm !== undefined && f.meters !== undefined
+      ? gramsFromMeters(f.meters, stock.find((s) => s.id === mapping[i])?.material ?? f.type, f.estimatedDiameterMm)
+      : null;
   const mappingKey = JSON.stringify([mapping, stock.map((x) => [x.id, x.pricePerKg]), printers.map((p) => [p.id, p.watts])]);
 
   const apply = (r: SlicerReport, map: (number | null)[]) => {
     const printer = printers.find((p) => p.id === matchPrinter(r.printer, printers));
     onApply({
-      filaments: r.filaments.map((f, i) => ({ filamentId: map[i], pricePerKg: stock.find((s) => s.id === map[i])?.pricePerKg ?? null, grams: f.grams ?? 0 })),
+      filaments: r.filaments.map((f, i) => ({ filamentId: map[i], pricePerKg: stock.find((s) => s.id === map[i])?.pricePerKg ?? null, grams: weigh(f, i)?.grams ?? f.grams ?? 0 })),
       printerId: printer?.id ?? null,
       printerWatts: printer?.watts ?? null,
       seconds: r.seconds,
@@ -130,7 +137,15 @@ export default function SlicerImport({ stock, printers, onApply, onStockAdded }:
                   <td>
                     <span style={{ display: "inline-block", width: 12, height: 12, borderRadius: 3, border: "1px solid var(--border-strong)", verticalAlign: -1, background: colorHex(f.color) ?? "transparent" }} aria-hidden /> {f.index}. {f.type ?? "?"} {f.color ?? ""}
                   </td>
-                  <td className="num">{f.grams?.toLocaleString("pt-BR") ?? "—"}</td>
+                  <td className="num">
+                    {(weigh(f, i)?.grams ?? f.grams)?.toLocaleString("pt-BR") ?? "—"}
+                    {weigh(f, i) && (
+                      <span className="hint">
+                        {" "}
+                        (estimado: {weigh(f, i)!.material} {weigh(f, i)!.density.toLocaleString("pt-BR")} g/cm³)
+                      </span>
+                    )}
+                  </td>
                   <td>
                     <select value={mapping[i] ?? ""} onChange={(e) => remap(i, e.target.value)} aria-label={`Filamento cadastrado para o filamento ${f.index}`}>
                       <option value="">Nenhum (digitar preço)</option>
