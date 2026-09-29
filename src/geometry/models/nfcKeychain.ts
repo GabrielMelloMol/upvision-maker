@@ -1,9 +1,11 @@
 import { fitInto, scoped } from "../shape2d";
+import type { CS, ManifoldToplevel } from "../manifold";
 import { roundedRect, slab, solidMesh, type ModelCtx, type ModelOutput } from "./common";
+import { heart } from "./shapes";
 import { DEFAULT_RESIN, RESIN_TIP, resinRim, type ResinParams } from "./resin";
 
 export type NfcKeychainParams = {
-  shape: "circle" | "square";
+  shape: "circle" | "square" | "heart" | "hexagon" | "star" | "dodecagon";
   size: number;
   tagDiameter: number;
   tagThickness: number;
@@ -35,6 +37,31 @@ const TAB_R = 4.5;
 const TAB_HOLE_R = 2.2;
 export const NFC_MIN_WALL = 2;
 
+const STAR_INNER = 0.72; // estrela gorda: o miolo precisa caber a tag
+
+/** Contorno do chaveiro com largura ~`size`, centrado (#69: coração, hexágono, estrela e 12 lados). */
+function nfcOutline(M: ManifoldToplevel, shape: NfcKeychainParams["shape"], size: number): CS {
+  if (shape === "square") return roundedRect(M, size, size, 5);
+  if (shape === "hexagon") {
+    const c = M.CrossSection.circle(size / 2, 6);
+    const out = c.rotate(30);
+    c.delete();
+    return out;
+  }
+  if (shape === "dodecagon") return M.CrossSection.circle(size / 2, 12);
+  if (shape === "heart") return heart(M, size);
+  if (shape === "star")
+    return new M.CrossSection(
+      [Array.from({ length: 10 }, (_, i) => {
+        const r = (i % 2 ? STAR_INNER : 1) * (size / 2);
+        const a = Math.PI / 2 + (i * Math.PI) / 5;
+        return [r * Math.cos(a), r * Math.sin(a)] as [number, number];
+      })],
+      "NonZero",
+    );
+  return M.CrossSection.circle(size / 2, 96);
+}
+
 /** Arredonda para cima até um múltiplo da altura de camada (com tolerância numérica). */
 const toLayers = (mm: number, lh: number) => Math.ceil(mm / lh - 1e-6) * lh;
 const round3 = (n: number) => Math.round(n * 1000) / 1000;
@@ -57,11 +84,22 @@ export function buildNfcKeychain({ M, text }: ModelCtx, p: NfcKeychainParams): M
   if (p.size < hole + 2 * NFC_MIN_WALL) throw new Error(`Para uma tag de ${p.tagDiameter} mm o chaveiro precisa ter pelo menos ${Math.ceil(hole + 2 * NFC_MIN_WALL)} mm.`);
   const L = nfcLayout(p);
   return scoped((k) => {
-    const outline = k(p.shape === "circle" ? M.CrossSection.circle(p.size / 2, 96) : roundedRect(M, p.size, p.size, 5));
-    const ty = p.size / 2 + TAB_R - 1.5;
+    const outline = k(nfcOutline(M, p.shape, p.size));
+    // a tag (com folga) precisa caber no formato com parede mínima (coração e estrela têm miolo menor)
+    // centro do bolso: meio da região onde o círculo inteiro cabe (no coração fica acima do meio)
+    const fits = k(outline.offset(-(NFC_MIN_WALL + hole / 2), "Round"));
+    if (fits.isEmpty()) throw new Error(`Neste formato a tag de ${p.tagDiameter} mm não cabe: aumente o tamanho do chaveiro.`);
+    // qualquer ponto de `fits` serve; o do meio do maior pedaço (no coração há um por curva), e se o meio cair
+    // fora dele (pedaço côncavo), um vértice do próprio pedaço
+    const blob = fits.decompose().map(k).reduce((a, b) => (b.area() > a.area() ? b : a));
+    const fb = blob.bounds();
+    let pc: [number, number] = [(fb.min[0] + fb.max[0]) / 2, (fb.min[1] + fb.max[1]) / 2];
+    if (!k(k(k(M.CrossSection.circle(0.05, 8)).translate(pc)).subtract(blob)).isEmpty()) pc = blob.toPolygons()[0][0] as [number, number];
+    // topo no eixo (o coração tem um vão entre as curvas: a argola precisa encostar nele)
+    const ty = k(outline.intersect(k(M.CrossSection.square([0.6, 1e4], true)))).bounds().max[1] + TAB_R - 1.5;
     const tab = k(k(M.CrossSection.circle(TAB_R, 48)).translate([0, ty]));
     const body2d = k(k(outline.add(tab)).subtract(k(k(M.CrossSection.circle(TAB_HOLE_R, 32)).translate([0, ty]))));
-    const pocket = k(k(k(M.CrossSection.circle(hole / 2, 96)).extrude(L.top - L.bottom)).translate([0, 0, L.bottom]));
+    const pocket = k(k(k(M.CrossSection.circle(hole / 2, 96)).extrude(L.top - L.bottom)).translate([pc[0], pc[1], L.bottom]));
     const body = k(k(body2d.extrude(L.height)).subtract(pocket));
     const parts = [{ name: "Base", color: p.baseColor, mesh: solidMesh(body) }];
     const raw = text(p.text, 100);

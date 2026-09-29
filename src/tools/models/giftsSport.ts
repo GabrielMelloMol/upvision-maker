@@ -104,6 +104,18 @@ export const GIFTS_SPORT_MODELS: ModelDef[] = [
     sections: [
       { title: "Tipo", fields: [choice("kind", "Abre", [["bottle", "Garrafa"], ["can", "Lata"]]), text("text", "Texto (sem desenho)", 10)] },
       { title: "Espessura e cores", fields: [num("thickness", "Espessura", 5, 10, { hint: "Faz força: 6 mm ou mais." }), num("relief", "Relevo", 0.4, 2), color("bodyColor", "Corpo"), color("artColor", "Arte (1 cor)")] },
+      {
+        title: "Fenda (lata) e NFC",
+        fields: [
+          num("slotX", "Fenda: posição (→)", -30, 10, { step: 0.5 }),
+          num("slotY", "Fenda: posição (↑)", -12, 12, { step: 0.5 }),
+          num("slotAngle", "Fenda: giro", -90, 90, { step: 5, unit: "°" }),
+          bool("nfc", "Bolso para tag NFC (com pausa)"),
+          num("tagDiameter", "Diâmetro da tag", 12, 27),
+          num("tagThickness", "Espessura da tag", 0.3, 2),
+          num("layerHeight", "Altura de camada", 0.08, 0.32, { step: 0.02, hint: "A mesma do fatiador: define a camada da pausa." }),
+        ],
+      },
     ],
     build: (ctx, p) => buildOpener(ctx, as(p)),
   },
