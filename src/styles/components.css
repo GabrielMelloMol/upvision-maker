@@ -138,6 +138,11 @@ tr.restock > td { background: var(--surface-2); animation: fade-up var(--dur) va
 /* Calculadora: entradas + resumo fixo */
 .calc-layout { display: grid; grid-template-columns: 1fr minmax(300px, 380px); gap: var(--space-5); align-items: start; }
 .piece-name { max-width: 420px; margin-bottom: var(--space-4); }
+/* "Por que meu preço é diferente?" (#45) */
+.diff-list { margin: 0; padding-left: 1.2em; display: grid; gap: var(--space-4); }
+.diff-list h3 { margin: 0 0 4px; font-size: var(--title-3); }
+.diff-list p { margin: 0; }
+.diff-values { display: flex; flex-wrap: wrap; gap: var(--space-4); margin-top: 6px !important; font-size: var(--text-sm); font-variant-numeric: tabular-nums; }
 /* "Para onde vai o preço" (#38): barra empilhada, 2 px entre partes, pontas arredondadas */
 .viz-bg-1 { background: var(--viz-1); } .viz-bg-2 { background: var(--viz-2); } .viz-bg-3 { background: var(--viz-3); } .viz-bg-4 { background: var(--viz-4); } .viz-bg-5 { background: var(--viz-5); }
 .split-bar { display: flex; gap: 2px; height: 20px; }

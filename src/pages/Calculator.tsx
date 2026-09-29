@@ -30,6 +30,7 @@ import PlugSheet from "./calculator/PlugSheet";
 import PrinterCatalogButton from "./calculator/PrinterCatalogButton";
 import AddToQuote from "./calculator/AddToQuote";
 import PriceSplit from "./calculator/PriceSplit";
+import PriceDiffLink from "./calculator/PriceDiffSheet";
 import TestPrice from "./calculator/TestPrice";
 import QuantityTable from "./calculator/QuantityTable";
 import AdsCard from "./calculator/AdsCard";
@@ -372,6 +373,7 @@ export default function Calculator({ go }: { go: Go }) {
               </>
             )}
           </PriceHero>
+          <PriceDiffLink r={r} s={data.settings} failurePct={failure.pct} watts={num(f.watts)} />
           <AddToQuote
             rows={rows}
             unitCost={r.unitCost}
