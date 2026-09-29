@@ -1,7 +1,13 @@
-import { CaseUpper, Puzzle } from "lucide-react";
+import { CaseUpper, Layers, Puzzle } from "lucide-react";
 import { buildBigLetter, DEFAULT_BIG_LETTER } from "../../geometry/models/bigLetter";
+import { buildLayeredSign, DEFAULT_LAYERED_SIGN } from "../../geometry/models/layeredSign";
 import { buildPuzzle, DEFAULT_PUZZLE } from "../../geometry/models/puzzle";
-import { as, bool, choice, color, num, text, type ModelDef } from "./fields";
+import { as, bool, choice, color, num, text, type ModelDef, type Section } from "./fields";
+
+const signLine = (i: number): Section => ({
+  title: `Linha ${i}`,
+  fields: [text(`line${i}`, "Texto", 24), num(`h${i}`, "Altura", 6, 80, { step: 1 }), num(`dx${i}`, "Deslocamento (→)", -80, 80, { step: 1 }), color(`c${i}`, "Cor")],
+});
 
 /** Modelos da fila do Torno (letra grande, quebra-cabeça, letreiros…). */
 export const TORNO_MODELS: ModelDef[] = [
@@ -81,5 +87,45 @@ export const TORNO_MODELS: ModelDef[] = [
       },
     ],
     build: (ctx, p) => buildPuzzle(ctx, as(p)),
+  },
+  {
+    id: "layeredSign",
+    category: "party",
+    label: "Letreiro em camadas",
+    blurb: "Até 4 linhas sobrepostas, cada uma na sua cor, com imagem, enfeite e base contornada.",
+    icon: Layers,
+    font: true,
+    art: "Imagem ao lado do texto (opcional)",
+    defaults: DEFAULT_LAYERED_SIGN,
+    sections: [
+      signLine(1),
+      signLine(2),
+      signLine(3),
+      signLine(4),
+      {
+        title: "Camadas e enfeites",
+        fields: [
+          num("overlap", "Sobreposição das linhas", 0, 0.8, { step: 0.05, unit: "", hint: "Fração da altura da linha que sobe sobre a de cima." }),
+          num("relief", "Relevo", 0.4, 4),
+          num("layerStep", "Degrau entre linhas", 0, 3),
+          bool("fillHoles", "Preencher furos das letras"),
+          num("artHeight", "Altura da imagem", 10, 150, { step: 1 }),
+          color("artColor", "Imagem (1 cor)"),
+          choice("ornament", "Enfeite", [["none", "Nenhum"], ["heart", "Coração"], ["star", "Estrela"]]),
+          num("ornamentSize", "Tamanho do enfeite", 6, 60, { step: 1 }),
+          color("ornamentColor", "Enfeite"),
+        ],
+      },
+      {
+        title: "Base",
+        fields: [
+          num("border", "Borda", 1, 15, { step: 0.5 }),
+          num("baseThickness", "Espessura", 1.5, 8),
+          choice("mount", "Fixação", [["stand", "Suporte de mesa"], ["hang", "Furos para pendurar"], ["none", "Nenhuma"]]),
+          color("baseColor", "Base"),
+        ],
+      },
+    ],
+    build: (ctx, p) => buildLayeredSign(ctx, as(p)),
   },
 ];

@@ -1,0 +1,148 @@
+import type { CS } from "../manifold";
+import { fitInto, outerOnly, scoped } from "../shape2d";
+import type { Model, Part } from "../types";
+import { artParts, backing, MissingInput, plateStand, size2, slab, solidMesh, union, type ModelCtx, type ModelOutput } from "./common";
+import { ornament, type Ornament } from "./shapes";
+
+export type SignMount = "none" | "stand" | "hang";
+
+export type LayeredSignParams = {
+  line1: string;
+  line2: string;
+  line3: string;
+  line4: string;
+  h1: number;
+  h2: number;
+  h3: number;
+  h4: number;
+  dx1: number;
+  dx2: number;
+  dx3: number;
+  dx4: number;
+  c1: string;
+  c2: string;
+  c3: string;
+  c4: string;
+  overlap: number; // fração da altura da linha seguinte que sobe sobre a anterior
+  relief: number; // altura da 1ª linha sobre a base
+  layerStep: number; // cada linha seguinte sobe mais isto (fica por cima nas sobreposições)
+  fillHoles: boolean;
+  artHeight: number; // imagem ao lado do texto (se enviada)
+  artColor: string;
+  ornament: "none" | Ornament;
+  ornamentSize: number;
+  ornamentColor: string;
+  border: number;
+  baseThickness: number;
+  baseColor: string;
+  mount: SignMount;
+};
+
+export const DEFAULT_LAYERED_SIGN: LayeredSignParams = {
+  line1: "Feliz",
+  line2: "Aniversário",
+  line3: "",
+  line4: "",
+  h1: 28,
+  h2: 22,
+  h3: 16,
+  h4: 16,
+  dx1: 0,
+  dx2: 0,
+  dx3: 0,
+  dx4: 0,
+  c1: "#d6262e",
+  c2: "#1c1c1e",
+  c3: "#2563eb",
+  c4: "#16a34a",
+  overlap: 0.2,
+  relief: 1.2,
+  layerStep: 0.6,
+  fillHoles: false,
+  artHeight: 40,
+  artColor: "#c9a227",
+  ornament: "none",
+  ornamentSize: 16,
+  ornamentColor: "#d6262e",
+  border: 4,
+  baseThickness: 3,
+  baseColor: "#f8f8f6",
+  mount: "stand",
+};
+
+const LINES = [1, 2, 3, 4] as const;
+const GAP = 4; // entre imagem/enfeite e o texto
+const HANG_R = 2;
+const HANG_INSET = 5;
+const BED_MM = 256;
+
+/**
+ * Letreiro em camadas: até 4 linhas de texto, cada uma com cor, tamanho e deslocamento próprios, empilhadas com
+ * sobreposição (a linha de baixo fica por cima nas partes em que se cruzam), imagem opcional à esquerda, enfeite à
+ * direita e base com contorno automático. Um volume por cor; fica em pé (suporte) ou pendura (2 furos).
+ */
+export function buildLayeredSign(ctx: ModelCtx, p: LayeredSignParams): ModelOutput {
+  const { M, text } = ctx;
+  return scoped((k) => {
+    // linhas empilhadas de cima para baixo, com a sobreposição pedida
+    const lines: { cs: CS; color: string }[] = [];
+    let cursor = 0;
+    for (const i of LINES) {
+      const s = String(p[`line${i}`]);
+      const h = p[`h${i}`];
+      const raw = text(s, h);
+      if (!raw) continue;
+      let cs = k(raw);
+      if (p.fillHoles) cs = k(outerOnly(M, cs));
+      const b = cs.bounds();
+      const top = lines.length ? cursor + p.overlap * h : 0;
+      lines.push({ cs: k(cs.translate([p[`dx${i}`] - (b.min[0] + b.max[0]) / 2, top - b.max[1]])), color: p[`c${i}`] });
+      cursor = top - (b.max[1] - b.min[1]);
+    }
+    if (!lines.length) throw new MissingInput("Digite pelo menos uma linha de texto.");
+    const textAll = k(union(M, lines.map((l) => l.cs)));
+    const tb = textAll.bounds();
+    const cy = (tb.min[1] + tb.max[1]) / 2;
+
+    const parts: Part[] = [];
+    // cada linha: só o que não fica embaixo das linhas seguintes; as seguintes sobem layerStep a mais
+    lines.forEach((l, i) => {
+      const above = lines.slice(i + 1).map((x) => x.cs);
+      const visible = above.length ? k(l.cs.subtract(k(union(M, above)))) : l.cs;
+      if (!visible.isEmpty()) parts.push({ name: `Linha ${i + 1}`, color: l.color, mesh: slab(visible, p.relief + i * p.layerStep, p.baseThickness) });
+    });
+
+    const extras: CS[] = [];
+    if (ctx.art) {
+      const placed = k(fitInto(ctx.art, 1e6, p.artHeight, cy));
+      const [aw] = size2(placed);
+      const moved = k(placed.translate([tb.min[0] - GAP - aw / 2, 0]));
+      extras.push(moved);
+      parts.push(...artParts(ctx, moved, p.artColor, "Imagem", p.relief, p.baseThickness));
+    }
+    if (p.ornament !== "none") {
+      const o = k(ornament(M, p.ornament, p.ornamentSize));
+      const [ow] = size2(o);
+      const moved = k(o.translate([tb.max[0] + GAP + ow / 2, tb.max[1] - p.ornamentSize / 2]));
+      extras.push(moved);
+      parts.push({ name: "Enfeite", color: p.ornamentColor, mesh: slab(moved, p.relief, p.baseThickness) });
+    }
+
+    let base = k(backing(M, k(union(M, [textAll, ...extras])), p.border));
+    const warnings: string[] = [];
+    if (p.mount === "hang") {
+      const bb = base.bounds();
+      const y = bb.max[1] - HANG_INSET;
+      const holes = [0.25, 0.75].map((f) => k(M.CrossSection.circle(HANG_R, 32).translate([bb.min[0] + (bb.max[0] - bb.min[0]) * f, y])));
+      const room = k(base.offset(-(HANG_R + 1), "Round"));
+      const inside = holes.filter((h) => k(h.subtract(room)).isEmpty());
+      if (inside.length < 2) warnings.push("Não coube um furo de pendurar em cada lado da base: aumente a borda ou use o suporte.");
+      if (inside.length) base = k(base.subtract(k(union(M, inside))));
+    }
+    const models: Model[] = [{ name: "Letreiro", parts: [{ name: "Base", color: p.baseColor, mesh: solidMesh(k(base.extrude(p.baseThickness))) }, ...parts] }];
+    const [W, H] = size2(base);
+    if (p.mount === "stand") models.push(plateStand(M, W, p.baseThickness, p.baseColor, base.bounds().min[1] - 25));
+    if (Math.max(W, H) > BED_MM) warnings.push(`O letreiro tem ${Math.round(W)} × ${Math.round(H)} mm: passa da mesa de ${BED_MM} mm. Diminua as alturas das linhas.`);
+    return { models, warnings };
+  });
+}
