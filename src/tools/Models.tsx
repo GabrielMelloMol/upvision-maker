@@ -1,4 +1,4 @@
-import { Search, SearchX } from "lucide-react";
+import { Search, SearchX, Star } from "lucide-react";
 import { useEffect, useState } from "react";
 import { getDb } from "../db";
 import { loadCompany } from "../db/customersRepo";
@@ -22,12 +22,28 @@ import { useModelBuilder } from "../ui/useModelBuilder";
 import { DESIGN_ACCEPT, designFromSvg, fileToSvg } from "./designInput";
 import { MissingInput } from "../geometry/models/common";
 import { CATEGORIES, MODELS, validParams, type Category, type FieldDef, type Params, type Section } from "./models/defs";
+import { COLLECTIONS, inCollection, VARIANTS, type Collection } from "./models/variants";
 import "../styles/features.css";
 
 /** Minúsculas e sem acento, para a busca. */
 const normalize = (s: string) => s.normalize("NFD").replace(/\p{M}/gu, "").toLowerCase();
 
 const ART_WIDTH_MM = 100; // o desenho é reescalado por cada modelo; aqui só normaliza
+const FAVORITES_KEY = "upvision.favoriteModels";
+
+/** Miniaturas geradas por `npm run thumbs` (src/assets/model-thumbs/<id>.jpg). */
+const THUMBS: Record<string, string> = Object.fromEntries(
+  Object.entries(import.meta.glob("../assets/model-thumbs/*.jpg", { eager: true, query: "?url", import: "default" }) as Record<string, string>).map(([path, url]) => [path.replace(/^.*\/(.+)\.jpg$/, "$1"), url]),
+);
+
+function loadFavorites(): string[] {
+  try {
+    const v = JSON.parse(localStorage.getItem(FAVORITES_KEY) ?? "[]");
+    return Array.isArray(v) ? v.filter((x) => typeof x === "string") : [];
+  } catch {
+    return [];
+  }
+}
 
 /** Modelos paramétricos prontos: escolha na galeria, ajuste os campos, veja em 3D e salve o 3MF em cores. */
 export default function Models() {
@@ -39,14 +55,43 @@ export default function Models() {
   const [category, setCategory] = useState<Category>(MODELS[0].category);
   const [query, setQuery] = useState("");
   const [missing, setMissing] = useState<string | null>(null);
+  // ocasião ou favoritos: filtro que atravessa as categorias (como a busca)
+  const [occasion, setOccasion] = useState<Collection | "favorites" | null>(null);
+  const [favorites, setFavorites] = useState<string[]>(loadFavorites);
   const def = MODELS.find((m) => m.id === id)!;
   const q = normalize(query.trim());
-  const shown = q ? MODELS.filter((m) => normalize(`${m.label} ${m.blurb}`).includes(q)) : MODELS.filter((m) => m.category === category);
+  const shown = q
+    ? MODELS.filter((m) => normalize(`${m.label} ${m.blurb}`).includes(q))
+    : occasion === "favorites"
+      ? MODELS.filter((m) => favorites.includes(m.id))
+      : occasion
+        ? MODELS.filter((m) => inCollection(m.id, occasion))
+        : MODELS.filter((m) => m.category === category);
   function pickCategory(c: Category) {
     setCategory(c);
     setQuery("");
+    setOccasion(null);
     if (def.category !== c) setId(MODELS.find((m) => m.category === c)!.id);
   }
+  function pickOccasion(o: Collection | "favorites") {
+    const next = occasion === o ? null : o;
+    setOccasion(next);
+    setQuery("");
+    const list = next === "favorites" ? MODELS.filter((m) => favorites.includes(m.id)) : next ? MODELS.filter((m) => inCollection(m.id, next)) : [];
+    if (list.length && !list.some((m) => m.id === id)) setId(list[0].id);
+  }
+  function toggleFavorite() {
+    const next = favorites.includes(id) ? favorites.filter((x) => x !== id) : [...favorites, id];
+    setFavorites(next);
+    try {
+      localStorage.setItem(FAVORITES_KEY, JSON.stringify(next));
+    } catch {
+      // sem armazenamento local (modo privado): o favorito vale só nesta sessão
+    }
+  }
+  // variações do modelo; com uma ocasião escolhida, as dela vêm primeiro
+  const variants = [...(VARIANTS[id] ?? [])].sort((a, b) => Number(!!occasion && occasion !== "favorites" && !!b.collections?.includes(occasion)) - Number(!!occasion && occasion !== "favorites" && !!a.collections?.includes(occasion)));
+  const applyVariant = (patch: Params) => setAll((a) => ({ ...a, [id]: { ...def.defaults, ...patch } }));
   const p = all[id];
   const set = (k: string) => (v: string | number | boolean) => setAll((a) => ({ ...a, [id]: { ...a[id], [k]: v } }));
 
@@ -110,7 +155,7 @@ export default function Models() {
       <div className="model-picker">
         <div className="row">
           {/* buscando, os resultados são de todas as categorias: nenhuma fica marcada */}
-          <Segmented label="Categoria" value={(q ? "" : category) as Category} options={CATEGORIES} onChange={pickCategory} />
+          <Segmented label="Categoria" value={(q || occasion ? "" : category) as Category} options={CATEGORIES} onChange={pickCategory} />
           <div className="affix has-prefix">
             <Search className="prefix" size={16} aria-hidden />
             <input
@@ -123,22 +168,52 @@ export default function Models() {
             />
           </div>
         </div>
+        <div className="chips" role="group" aria-label="Ocasião">
+          <button type="button" aria-pressed={occasion === "favorites"} onClick={() => pickOccasion("favorites")}>
+            <Star aria-hidden size={14} /> Favoritos
+          </button>
+          {COLLECTIONS.map(([c, label]) => (
+            <button key={c} type="button" aria-pressed={occasion === c} onClick={() => pickOccasion(c)}>
+              {label}
+            </button>
+          ))}
+        </div>
         <div className="model-gallery" role="group" aria-label="Modelo">
         {shown.map((m) => (
-          <button key={m.id} type="button" aria-pressed={m.id === id} onClick={() => setId(m.id)} title={m.blurb}>
-            <m.icon aria-hidden />
+          <button key={m.id} type="button" data-id={m.id} aria-pressed={m.id === id} onClick={() => setId(m.id)} title={m.blurb} className={THUMBS[m.id] ? "has-thumb" : undefined}>
+            {THUMBS[m.id] ? <img src={THUMBS[m.id]} alt="" loading="lazy" /> : <m.icon aria-hidden />}
             <span>{m.label}</span>
           </button>
         ))}
 
         </div>
-        {!shown.length && (
+        {!shown.length && q && (
           <EmptyState icon={SearchX} title={`Nenhum modelo com “${query.trim()}”`} action={<button onClick={() => setQuery("")}>Limpar busca</button>} />
+        )}
+        {!shown.length && !q && occasion === "favorites" && (
+          <EmptyState icon={Star} title="Nenhum favorito ainda">
+            Abra um modelo e toque na estrela ao lado do nome para guardar aqui.
+          </EmptyState>
         )}
       </div>
       <div className="tool-layout">
         <div className="controls">
+          <div className="row model-head">
+            <h2>{def.label}</h2>
+            <button type="button" className="icon-button" aria-pressed={favorites.includes(id)} aria-label={favorites.includes(id) ? `Tirar ${def.label} dos favoritos` : `Favoritar ${def.label}`} onClick={toggleFavorite}>
+              <Star aria-hidden fill={favorites.includes(id) ? "currentColor" : "none"} />
+            </button>
+          </div>
           <p className="hint">{def.blurb}</p>
+          {variants.length > 0 && (
+            <div className="chips" role="group" aria-label="Variações prontas">
+              {variants.map((v) => (
+                <button key={v.label} type="button" onClick={() => applyVariant(v.patch)}>
+                  {v.label}
+                </button>
+              ))}
+            </div>
+          )}
           {def.sections.map((s) => (
             <div className="card stack" key={s.title}>
               <h3>{s.title}</h3>

@@ -134,3 +134,14 @@ g:hover > .viz-hit { fill: var(--fill); }
 .model-gallery button[aria-pressed="true"] svg { color: var(--accent-text); }
 .span-2 { grid-column: 1 / -1; display: grid; gap: 6px; }
 .order-line .money { width: 130px; }
+/* galeria de modelos (#24): ocasiões/variações em pílulas, estrela de favorito e cartão com miniatura */
+.chips { display: flex; flex-wrap: wrap; gap: 6px; }
+.chips button { display: inline-flex; align-items: center; gap: 4px; min-height: 28px; padding: 0 12px; border-radius: var(--r-pill); background: var(--fill); box-shadow: none; color: var(--text); font-size: var(--text-sm); font-weight: 500; }
+.chips button:hover:not(:disabled) { background: var(--fill-strong); }
+.chips button[aria-pressed="true"] { background: var(--accent); color: #fff; }
+.model-head { align-items: center; justify-content: space-between; flex-wrap: nowrap; }
+.model-head h2 { margin: 0; }
+.icon-button { width: 36px; min-height: 36px; padding: 0; display: grid; place-items: center; background: transparent; box-shadow: none; color: var(--muted); }
+.icon-button[aria-pressed="true"] { color: #e0a800; }
+.model-gallery button.has-thumb { flex-direction: column; align-items: stretch; padding: 6px; gap: 6px; text-align: center; }
+.model-gallery button.has-thumb img { width: 100%; aspect-ratio: 4 / 3; object-fit: cover; border-radius: calc(var(--r) - 2px); background: var(--fill); }

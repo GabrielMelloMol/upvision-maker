@@ -67,4 +67,42 @@ describe("Modelos prontos", () => {
     await user.click(gallery().getByRole("button", { name: "Placa adaptável" }));
     expect(await screen.findByText(/Envie um desenho/, undefined, BUILD)).toBeInTheDocument();
   }, 30_000);
+
+  test("ocasião filtra por todas as categorias e desmarca a categoria; clicar de novo volta", async () => {
+    const user = userEvent.setup();
+    renderWithApp(<Models />);
+    const occ = within(screen.getByRole("group", { name: "Ocasião" }));
+    await user.click(occ.getByRole("button", { name: "Dia das Mães" }));
+    const names = gallery().getAllByRole("button").map((b) => b.textContent);
+    expect(names).toEqual(expect.arrayContaining(["Topo de bolo", "Marca-página", "Luminária"]));
+    const cats = within(screen.getByRole("group", { name: "Categoria" })).getAllByRole("button");
+    expect(cats.every((b) => b.getAttribute("aria-pressed") === "false")).toBe(true);
+    await user.click(occ.getByRole("button", { name: "Dia das Mães" }));
+    expect(cats.some((b) => b.getAttribute("aria-pressed") === "true")).toBe(true);
+  });
+
+  test("favoritos: vazio no começo; a estrela guarda o modelo aberto (e fica salvo)", async () => {
+    localStorage.removeItem("upvision.favoriteModels");
+    const user = userEvent.setup();
+    renderWithApp(<Models />);
+    const occ = within(screen.getByRole("group", { name: "Ocasião" }));
+    await user.click(occ.getByRole("button", { name: /Favoritos/ }));
+    expect(screen.getByText("Nenhum favorito ainda")).toBeInTheDocument();
+    await user.click(occ.getByRole("button", { name: /Favoritos/ }));
+    await user.click(screen.getByRole("button", { name: `Favoritar ${MODELS[0].label}` }));
+    expect(JSON.parse(localStorage.getItem("upvision.favoriteModels")!)).toEqual([MODELS[0].id]);
+    await user.click(occ.getByRole("button", { name: /Favoritos/ }));
+    expect(gallery().getAllByRole("button").map((b) => b.textContent)).toEqual([MODELS[0].label]);
+  });
+
+  test("variação pronta preenche os campos do modelo", async () => {
+    const user = userEvent.setup();
+    renderWithApp(<Models />);
+    await user.type(screen.getByRole("searchbox", { name: "Buscar modelo" }), "topo de bolo");
+    await user.click(gallery().getByRole("button", { name: "Topo de bolo" }));
+    await user.click(within(screen.getByRole("group", { name: "Variações prontas" })).getByRole("button", { name: "Casamento" }));
+    expect(screen.getByLabelText("Linha principal")).toHaveValue("Ana & Leo");
+    expect(screen.getByLabelText(/Segunda linha/)).toHaveValue("12.12.2026");
+  });
 });
+

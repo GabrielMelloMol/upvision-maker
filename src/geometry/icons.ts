@@ -44,7 +44,7 @@ export function iconCs(M: ManifoldToplevel, kind: IconKind, size: number): CS {
       const lens = k(k(M.CrossSection.circle(0.24, 48)).subtract(k(M.CrossSection.circle(0.24 - W, 48))));
       cs = k(M.CrossSection.union([frame, lens, k(k(M.CrossSection.circle(0.06, 16)).translate([0.26, 0.26]))]));
     } else if (kind === "stars") {
-      cs = k(M.CrossSection.union([-0.4, -0.2, 0, 0.2, 0.4].map((x) => k(k(star(M, k, 0.1)).translate([x, 0])))));
+      cs = k(M.CrossSection.union([-0.4, -0.2, 0, 0.2, 0.4].map((x) => k(star(M, k, 0.1).translate([x, 0])))));
     } else if (kind === "link") {
       const ring = outlineOf(k, rrect(M, k, 0.62, 0.3, 0.15));
       cs = k(k(M.CrossSection.union([k(ring.translate([-0.17, 0])), k(ring.translate([0.17, 0]))])).rotate(-35));

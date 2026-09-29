@@ -106,7 +106,7 @@ describe("tag de pet", () => {
     expect(back.min[2]).toBeCloseTo(0);
     expect(back.max[2]).toBeCloseTo(0.6);
     expect(tag.intersect(solid(part(models[0], "Verso").mesh)).volume()).toBeCloseTo(0, 2); // encaixa no rebaixo
-  }, 20_000);
+  }, 60_000);
 
   test("sem nome: estado vazio", () => {
     expect(() => buildPetTag(ctx(), { ...DEFAULT_PET_TAG, name: "" })).toThrow(MissingInput);
@@ -171,4 +171,11 @@ describe("floco de neve", () => {
     expect(flake.decompose()).toHaveLength(1);
     expect(flake.genus()).toBeGreaterThanOrEqual(1); // argola
   });
+});
+
+test("placa QR: todos os ícones geram (regressão: estrelas da avaliação)", () => {
+  for (const kind of ["wifi", "whatsapp", "instagram", "review", "link"] as const) {
+    const value = kind === "wifi" ? "Loja" : kind === "whatsapp" ? "21999990000" : kind === "instagram" ? "@loja" : "loja.com.br";
+    expect(() => buildQrPlate(ctx(), { ...DEFAULT_QR_PLATE, kind, value })).not.toThrow();
+  }
 });

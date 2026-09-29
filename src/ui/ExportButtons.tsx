@@ -1,17 +1,44 @@
 import { Download } from "lucide-react";
+import { useState } from "react";
 import { bambuProject } from "../geometry/bambuProject";
+import { printPlan, type PrintMode } from "../geometry/printPlan";
 import { writeStl } from "../geometry/stl";
 import { write3mf } from "../geometry/threemf";
 import type { Model } from "../geometry/types";
+import Alert from "./Alert";
+import NumField, { inRange } from "./NumField";
 import { saveFile, slug } from "./saveFile";
+import Segmented from "./Segmented";
 import { errorText, useToast } from "./Toast";
 
-/** Botões padrão de exportação: 3MF com cores (principal) e STL por objeto. */
-export default function ExportButtons({ models, name, busy, pauses }: { models: Model[]; name: string; busy?: boolean; pauses?: number[] }) {
-  const toast = useToast();
-  const disabled = busy || models.length === 0;
+const MODES: [PrintMode, string][] = [
+  ["ams", "Multicor (AMS)"],
+  ["manual", "Trocando o filamento"],
+  ["single", "1 cor"],
+];
 
-  const hasPauses = !!pauses?.length;
+type Props = {
+  models: Model[];
+  name: string;
+  busy?: boolean;
+  pauses?: number[];
+  /** Mostra "Como vai imprimir" (1 cor / troca manual / AMS). Desligue onde a ferramenta já cuida disso. */
+  printModes?: boolean;
+};
+
+/** Botões padrão de exportação: 3MF com cores (principal) e STL por objeto, ajustados ao jeito de imprimir. */
+export default function ExportButtons({ models: input, name, busy, pauses: inputPauses, printModes = true }: Props) {
+  const toast = useToast();
+  const [mode, setMode] = useState<PrintMode>("ams");
+  const [layer, setLayer] = useState(0.2);
+  const colorCount = new Set(input.flatMap((m) => m.parts.map((p) => p.color.toLowerCase()))).size;
+  const showModes = printModes && colorCount > 1;
+  const plan = printPlan(input, showModes ? mode : "ams", inRange(layer, 0.04, 0.4) ? layer : 0.2, inputPauses ?? []);
+  const models = plan.models;
+  const pauses = plan.pauses;
+  const disabled = busy || models.length === 0 || !!plan.error || (showModes && mode === "manual" && !inRange(layer, 0.04, 0.4));
+
+  const hasPauses = pauses.length > 0;
 
   async function save(file: string, data: Uint8Array | (() => Promise<Uint8Array>), ext: string, label: string) {
     try {
@@ -24,6 +51,33 @@ export default function ExportButtons({ models, name, busy, pauses }: { models: 
 
   return (
     <div className="card stack">
+      {showModes && (
+        <>
+          <span className="field-label">Como vai imprimir</span>
+          <Segmented label="Como vai imprimir" value={mode} options={MODES} onChange={setMode} full />
+          {mode === "manual" && (
+            <>
+              <NumField label="Altura de camada" value={layer} onChange={setLayer} min={0.04} max={0.4} step={0.02} hint="A mesma do fatiador (e na 1ª camada)." />
+              {plan.error ? (
+                <Alert kind="warn">{plan.error}</Alert>
+              ) : (
+                <ol className="hint">
+                  {plan.swaps.map((s) => (
+                    <li key={s.z}>
+                      Z = {s.z.toFixed(2).replace(".", ",")} mm: a impressora pausa, troque para{" "}
+                      <span className="swatch-inline">
+                        <i style={{ background: s.color }} />
+                        {s.color}
+                      </span>
+                    </li>
+                  ))}
+                </ol>
+              )}
+            </>
+          )}
+          {mode === "single" && <span className="hint">Sai tudo num filamento só (as partes continuam separadas no arquivo).</span>}
+        </>
+      )}
       <button className="action" disabled={disabled} onClick={() => save(`${slug(name)}.3mf`, write3mf(models, { pauses }), "3mf", "3MF")}>
         <Download aria-hidden /> Salvar 3MF {hasPauses ? "(Orca / Prusa)" : "(Bambu / Orca / Prusa)"}
       </button>

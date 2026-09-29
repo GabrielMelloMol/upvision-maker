@@ -1,7 +1,8 @@
 // @vitest-environment happy-dom
 import { screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { expect, test } from "vitest";
+import { strFromU8, unzipSync } from "fflate";
+import { describe, expect, test } from "vitest";
 import type { Model } from "../geometry/types";
 import { renderWithApp, setupTauri } from "../test/harness";
 import ExportButtons from "./ExportButtons";
@@ -72,4 +73,38 @@ test("Bambu Studio não instalado: erro do comando vira toast", async () => {
 test("sem pausa não aparece o botão do Bambu Studio", () => {
   renderWithApp(<ExportButtons models={[model("A")]} name="x" />);
   expect(screen.queryByRole("button", { name: /Projeto do Bambu Studio/ })).not.toBeInTheDocument();
+});
+
+describe("como vai imprimir", () => {
+  const stacked = (z0: number, z1: number, x = 0) => ({ positions: new Float32Array([x, 0, z0, x + 1, 0, z0, x, 1, z1]), indices: new Uint32Array([0, 1, 2]) });
+  const two: Model = { name: "Placa", parts: [{ name: "Base", color: "#000000", mesh: stacked(0, 2) }, { name: "Texto", color: "#ffffff", mesh: stacked(2, 3) }] };
+  const side: Model = { name: "Placa", parts: [{ name: "A", color: "#000000", mesh: stacked(0, 2) }, { name: "B", color: "#ffffff", mesh: stacked(0, 2, 5) }] };
+  const extruders = (f: Uint8Array) => new Set([...strFromU8(unzipSync(f)["Metadata/model_settings.config"]).matchAll(/key="extruder" value="(\d)"/g)].map((m) => m[1]));
+
+  test("1 cor só aparece com 2+ cores; troca manual vira pausas e 1 filamento, com o projeto do Bambu", async () => {
+    const user = userEvent.setup();
+    const { rerender } = renderWithApp(<ExportButtons models={[model("A")]} name="x" />);
+    expect(screen.queryByRole("group", { name: "Como vai imprimir" })).not.toBeInTheDocument();
+    rerender(<ExportButtons models={[two]} name="placa" />);
+    await user.click(screen.getByRole("button", { name: "Trocando o filamento" }));
+    expect(screen.getByText(/Z = 2,20 mm: a impressora pausa, troque para/)).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /Projeto do Bambu Studio/ })).toBeInTheDocument();
+    await user.click(screen.getByRole("button", { name: /Salvar 3MF/ }));
+    await waitFor(() => expect(t.files.has("/saida/placa.3mf")).toBe(true));
+    const f = t.files.get("/saida/placa.3mf")!;
+    expect(extruders(f)).toEqual(new Set(["1"]));
+    expect(strFromU8(unzipSync(f)["Metadata/custom_gcode_per_layer.xml"])).toContain('top_z="2.2"');
+  });
+
+  test("troca manual com cores lado a lado: aviso e salvar bloqueado; 1 cor salva num filamento", async () => {
+    const user = userEvent.setup();
+    renderWithApp(<ExportButtons models={[side]} name="lado" />);
+    await user.click(screen.getByRole("button", { name: "Trocando o filamento" }));
+    expect(screen.getByText(/cores lado a lado/)).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /Salvar 3MF/ })).toBeDisabled();
+    await user.click(screen.getByRole("button", { name: "1 cor" }));
+    await user.click(screen.getByRole("button", { name: /Salvar 3MF/ }));
+    await waitFor(() => expect(t.files.has("/saida/lado.3mf")).toBe(true));
+    expect(extruders(t.files.get("/saida/lado.3mf")!)).toEqual(new Set(["1"]));
+  });
 });

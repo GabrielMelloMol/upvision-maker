@@ -160,7 +160,7 @@ export default function Lithophane() {
               <span className="hint">{layered.split ? "O fatiador troca de filamento sozinho em cada faixa; sem pausas, o 3MF abre direto no Bambu Studio, Orca ou Prusa." : "Sem AMS: a impressora pausa em cada troca para você trocar o filamento."}</span>
             </div>
           )}
-          <ExportButtons models={models.length ? exportModels : []} name={mode === "litho" ? "litofania" : "quadro-camadas"} busy={busy} pauses={pauses} />
+          <ExportButtons printModes={false} models={models.length ? exportModels : []} name={mode === "litho" ? "litofania" : "quadro-camadas"} busy={busy} pauses={pauses} />
         </div>
         <div className="preview-col">
           {mode === "litho" && <Segmented label="Prévia" value={view} options={VIEWS} onChange={setView} />}
