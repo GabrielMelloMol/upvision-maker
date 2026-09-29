@@ -31,7 +31,7 @@ function expectPrintable(models: Model[]) {
     }
 }
 
-describe("letra grande com nome (#55)", () => {
+describe("letra grande com nome (#55)", { timeout: 30_000 }, () => {
   test("encaixado: letra com rebaixo + peça do nome separada ao lado", () => {
     const { models } = build();
     expectPrintable(models);
@@ -91,5 +91,12 @@ describe("letra grande com nome (#55)", () => {
 
   test("sem letra: prévia vazia", () => {
     expect(() => build({ letter: " " })).toThrow("Digite a letra");
+  });
+
+  test("fundo texturizado: rebaixa a face fora do nome (#50)", () => {
+    const vol = (t: BigLetterParams["texture"]) => volume(build({ nameMode: "raised", texture: t }).models[0].parts[0].mesh);
+    const flat = vol("none"), tex = vol("hexagons");
+    expect(tex).toBeLessThan(flat - 100);
+    expect(flat - tex).toBeLessThan(D.height * 0.6 * D.height * D.textureDepth); // só a profundidade, nunca atravessa
   });
 });

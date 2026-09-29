@@ -3,7 +3,14 @@ import { buildBigLetter, DEFAULT_BIG_LETTER } from "../../geometry/models/bigLet
 import { buildLayeredSign, DEFAULT_LAYERED_SIGN } from "../../geometry/models/layeredSign";
 import { buildLedLetter, DEFAULT_LED_LETTER } from "../../geometry/models/ledLetter";
 import { buildPuzzle, DEFAULT_PUZZLE } from "../../geometry/models/puzzle";
-import { as, bool, choice, color, num, text, type ModelDef, type Section } from "./fields";
+import { BG_TEXTURES } from "../../geometry/models/textures";
+import { as, bool, choice, color, num, text, type FieldDef, type ModelDef, type Section } from "./fields";
+
+const textureFields: FieldDef[] = [
+  choice("texture", "Textura do fundo", BG_TEXTURES),
+  num("texturePitch", "Tamanho do padrão", 3, 20, { step: 0.5 }),
+  num("textureDepth", "Rebaixo da textura", 0.4, 1, { step: 0.1 }),
+];
 
 const signLine = (i: number): Section => ({
   title: `Linha ${i}`,
@@ -47,6 +54,7 @@ export const TORNO_MODELS: ModelDef[] = [
           num("resinHeight", "Altura da borda (resina)", 0.5, 6),
           num("materialThickness", "Espessura do material", 1, 6),
           choice("mount", "Fixação", [["none", "Nenhuma"], ["hang", "Furo para pendurar"], ["stand", "Suporte de mesa"]]),
+          ...textureFields,
           color("letterColor", "Letra"),
           color("nameColor", "Nome"),
           color("accentColor", "Borda e suporte"),
@@ -126,6 +134,7 @@ export const TORNO_MODELS: ModelDef[] = [
           num("border", "Borda", 1, 15, { step: 0.5 }),
           num("baseThickness", "Espessura", 1.5, 8),
           choice("mount", "Fixação", [["stand", "Suporte de mesa"], ["hang", "Furos para pendurar"], ["none", "Nenhuma"]]),
+          ...textureFields,
           color("baseColor", "Base"),
         ],
       },

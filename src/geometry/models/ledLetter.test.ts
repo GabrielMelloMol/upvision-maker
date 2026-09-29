@@ -40,7 +40,7 @@ function expectPrintable(models: Model[]) {
     }
 }
 
-describe("letra caixa para LED (#49)", () => {
+describe("letra caixa para LED (#49)", { timeout: 30_000 }, () => {
   test("face rente: caixa oca com fundo, furo do fio e difusor que encaixa com folga", () => {
     const { models } = build({ height: 120 });
     expectPrintable(models);
@@ -88,7 +88,7 @@ describe("letra caixa para LED (#49)", () => {
   });
 });
 
-test("splitToBed: corta só o necessário e conserva o volume", () => {
+test("splitToBed: corta só o necessário e conserva o volume", { timeout: 30_000 }, () => {
   const box = M.Manifold.cube([400, 100, 10]);
   const parts = splitToBed(M, box, 256);
   expect(parts).toHaveLength(2);

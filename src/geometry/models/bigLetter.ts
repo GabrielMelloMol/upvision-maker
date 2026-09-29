@@ -2,6 +2,7 @@ import { modelsBounds } from "../bounds";
 import type { CS } from "../manifold";
 import { fitInto, scoped } from "../shape2d";
 import type { Model, Part } from "../types";
+import { recessTexture, type BgTexture } from "./textures";
 import { MissingInput, moveModel, plateStand, size2, slab, solidMesh, type ModelCtx, type ModelOutput } from "./common";
 
 export type NameMode = "inlay" | "sunken" | "raised";
@@ -26,6 +27,10 @@ export type BigLetterParams = {
   resinHeight: number; // quanto a borda sobe acima da letra
   materialThickness: number; // EVA, feltro
   mount: LetterMount;
+  /** Textura rebaixada no fundo (#50). */
+  texture: BgTexture;
+  texturePitch: number;
+  textureDepth: number;
   letterColor: string;
   nameColor: string;
   accentColor: string; // borda, moldura, suporte
@@ -49,6 +54,9 @@ export const DEFAULT_BIG_LETTER: BigLetterParams = {
   resinHeight: 2,
   materialThickness: 2,
   mount: "none",
+  texture: "none",
+  texturePitch: 6,
+  textureDepth: 0.6,
   letterColor: "#f8f8f6",
   nameColor: "#d6262e",
   accentColor: "#c9a227",
@@ -60,7 +68,8 @@ const BACK_MM = 2; // fundo quando a letra leva material
 const TEMPLATE_MM = 0.6; // molde para cortar o EVA/feltro
 const HANG_R = 3; // furo de prego nas costas
 const HANG_FROM_TOP = 0.15; // fração da altura, a partir do topo
-const MIN_ON_LETTER = 0.5; // fração do nome que precisa ficar sobre a letra
+const MIN_ON_LETTER = 0.5;
+const TEX_MARGIN = 2; // faixa lisa em volta da textura // fração do nome que precisa ficar sobre a letra
 
 /** Ponto mais central, na faixa perto do topo, onde cabe o furo de pendurar inteiro dentro da letra. */
 function hangPoint(M: ModelCtx["M"], letter: CS): [number, number] | null {
@@ -112,6 +121,9 @@ export function buildBigLetter({ M, text, art }: ModelCtx, p: BigLetterParams): 
     } else {
       top = p.thickness;
       let body = k(letter.extrude(p.thickness));
+      // textura na face, longe da borda e do nome
+      const texRegion = k(letter.offset(-TEX_MARGIN, "Round"));
+      body = k(recessTexture(M, body, name ? k(texRegion.subtract(k(name.offset(TEX_MARGIN, "Round")))) : texRegion, p.thickness, p.texture, p.texturePitch, p.textureDepth));
       if (name && p.nameMode !== "raised") {
         const pocket = k(k(name.offset(p.nameMode === "inlay" ? p.clearance : 0, "Round")).intersect(letter));
         body = k(body.subtract(k(k(pocket.extrude(p.depth + 0.01)).translate([0, 0, p.thickness - p.depth]))));

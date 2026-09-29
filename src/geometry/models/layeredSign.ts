@@ -5,6 +5,7 @@ import { fitInto, outerOnly, scoped } from "../shape2d";
 import type { Model, Part } from "../types";
 import { artParts, backing, MissingInput, moveMesh, plateStand, size2, slab, solidMesh, union, type ModelCtx, type ModelOutput } from "./common";
 import { ornament, type Ornament } from "./shapes";
+import { recessTexture, type BgTexture } from "./textures";
 
 export type SignMount = "none" | "stand" | "hang";
 
@@ -41,6 +42,10 @@ export type LayeredSignParams = {
   baseThickness: number;
   baseColor: string;
   mount: SignMount;
+  /** Textura rebaixada no fundo (#50). */
+  texture: BgTexture;
+  texturePitch: number;
+  textureDepth: number;
 };
 
 export const DEFAULT_LAYERED_SIGN: LayeredSignParams = {
@@ -76,6 +81,9 @@ export const DEFAULT_LAYERED_SIGN: LayeredSignParams = {
   baseThickness: 3,
   baseColor: "#f8f8f6",
   mount: "stand",
+  texture: "none",
+  texturePitch: 6,
+  textureDepth: 0.6,
 };
 
 const LINES = [1, 2, 3, 4] as const;
@@ -83,6 +91,7 @@ const GAP = 4; // entre imagem/enfeite e o texto
 const HANG_R = 2;
 const HANG_INSET = 5;
 const BED_MM = 256;
+const TEX_MARGIN = 1.5;
 
 /**
  * Letreiro em camadas: até 4 linhas de texto, cada uma com cor, tamanho e deslocamento próprios, empilhadas com
@@ -156,7 +165,10 @@ export function buildLayeredSign(ctx: ModelCtx, p: LayeredSignParams): ModelOutp
       if (inside.length < 2) warnings.push("Não coube um furo de pendurar em cada lado da base: aumente a borda ou use o suporte.");
       if (inside.length) base = k(base.subtract(k(union(M, inside))));
     }
-    const models: Model[] = [{ name: "Letreiro", parts: [{ name: "Base", color: p.baseColor, mesh: solidMesh(k(base.extrude(p.baseThickness))) }, ...parts] }];
+    // textura no fundo visível da base (fora do texto, da imagem e do enfeite)
+    const texRegion = k(k(base.offset(-Math.min(TEX_MARGIN, p.border / 2), "Round")).subtract(k(k(union(M, [textAll, ...extras])).offset(TEX_MARGIN, "Round"))));
+    const baseSolid = k(recessTexture(M, k(base.extrude(p.baseThickness)), texRegion, p.baseThickness, p.texture, p.texturePitch, p.textureDepth));
+    const models: Model[] = [{ name: "Letreiro", parts: [{ name: "Base", color: p.baseColor, mesh: solidMesh(baseSolid) }, ...parts] }];
     const [W, H] = size2(base);
     if (p.mount === "stand") models.push(plateStand(M, W, p.baseThickness, p.baseColor, base.bounds().min[1] - 25));
     if (Math.max(W, H) > BED_MM) warnings.push(`O letreiro tem ${Math.round(W)} × ${Math.round(H)} mm: passa da mesa de ${BED_MM} mm. Diminua as alturas das linhas.`);

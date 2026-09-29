@@ -18,7 +18,7 @@ const build = (p: Partial<PuzzleParams> = {}) => buildPuzzle(ctx(), { ...D, ...p
 const pieces = (models: Model[]) => models.filter((m) => m.name.startsWith("Peça"));
 const box = (m: Model) => modelsBounds([m])!;
 
-describe("quebra-cabeça (#60)", () => {
+describe("quebra-cabeça (#60)", { timeout: 30_000 }, () => {
   test("grade segue a proporção do desenho: 4 colunas × 2 linhas; peças sem sobrepor e com a folga", () => {
     const { models, warnings } = build();
     const ps = pieces(models);

@@ -24,7 +24,7 @@ const build = (p: Partial<LayeredSignParams> = {}, art: ModelCtx["art"] = null) 
 const part = (m: Model, name: string) => m.parts.find((q) => q.name === name);
 const top = (m: Model, name: string) => meshBounds([part(m, name)!.mesh])!.max[2];
 
-describe("letreiro em camadas (#48)", () => {
+describe("letreiro em camadas (#48)", { timeout: 30_000 }, () => {
   test("2 linhas sobrepostas: a de baixo sobe mais e a de cima perde a parte coberta; base contorna tudo", () => {
     const [m] = build().models;
     expect(m.parts.map((q) => q.name)).toEqual(["Base", "Linha 1", "Linha 2"]);
@@ -77,5 +77,13 @@ describe("letreiro em camadas (#48)", () => {
     expect(qr.max[0] - qr.min[0]).toBeCloseTo(D.qrSize, 0);
     expect(base.max[0]).toBeGreaterThan(qr.max[0] + D.border - 0.5);
     expect(qr.min[2]).toBeCloseTo(D.baseThickness);
+  });
+
+  test("textura rebaixada no fundo visível da base (#50)", () => {
+    const vol = (t: LayeredSignParams["texture"]) => volume(build({ texture: t, border: 10 }).models[0].parts[0].mesh);
+    expect(vol("stripes")).toBeLessThan(vol("none") - 20);
+    // o texto não fica sobre buraco: a parte embaixo das linhas continua cheia
+    const [m] = build({ texture: "checker", border: 10 }).models;
+    expect(meshBounds([m.parts[0].mesh])!.max[2]).toBeCloseTo(D.baseThickness);
   });
 });

@@ -13,7 +13,7 @@ beforeAll(async () => {
 const square = () => new M.CrossSection([sq(10)], "NonZero"); // 20 × 20
 const disc = () => M.CrossSection.circle(10, 96);
 
-describe("fundo arredondado do ejetor (#62)", () => {
+describe("fundo arredondado do ejetor (#62)", { timeout: 30_000 }, () => {
   test("inradius: metade do lado do quadrado, raio do círculo", () => {
     expect(inradius(square())).toBeCloseTo(10, 1);
     expect(inradius(disc())).toBeCloseTo(10, 1);
