@@ -1,5 +1,6 @@
-import { CaseUpper, Layers, Lightbulb, Puzzle } from "lucide-react";
+import { CaseUpper, LayoutGrid, Layers, Lightbulb, Puzzle } from "lucide-react";
 import { buildBigLetter, DEFAULT_BIG_LETTER } from "../../geometry/models/bigLetter";
+import { buildDeskOrganizer, DEFAULT_DESK_ORGANIZER } from "../../geometry/models/deskOrganizer";
 import { buildLayeredSign, DEFAULT_LAYERED_SIGN } from "../../geometry/models/layeredSign";
 import { buildLedLetter, DEFAULT_LED_LETTER } from "../../geometry/models/ledLetter";
 import { buildPuzzle, DEFAULT_PUZZLE } from "../../geometry/models/puzzle";
@@ -178,5 +179,40 @@ export const TORNO_MODELS: ModelDef[] = [
       },
     ],
     build: (ctx, p) => buildLedLetter(ctx, as(p)),
+  },
+  {
+    id: "deskOrganizer",
+    category: "home",
+    label: "Organizador de mesa",
+    blurb: "Bandeja com compartimentos em fila ou em grade e o nome em relevo na frente.",
+    icon: LayoutGrid,
+    font: true,
+    fontSection: 1,
+    defaults: DEFAULT_DESK_ORGANIZER,
+    sections: [
+      {
+        title: "Compartimentos",
+        fields: [
+          choice("mode", "Arrumação", [["row", "Em fila"], ["grid", "Grade"]]),
+          text("widths", "Larguras em fila (proporções)", 20, "Ex.: 1, 1, 2 = dois estreitos e um largo (até 5)."),
+          num("cols", "Colunas (grade)", 1, 8, { step: 1, unit: "" }),
+          num("rows", "Linhas (grade)", 1, 6, { step: 1, unit: "" }),
+          bool("drain", "Furos de drenagem no fundo"),
+        ],
+      },
+      { title: "Nome", fields: [text("name", "Nome na frente", 20), num("nameHeight", "Altura do nome", 8, 60, { step: 1 }), num("relief", "Relevo", 0.4, 3), color("nameColor", "Nome")] },
+      {
+        title: "Tamanho",
+        fields: [
+          num("length", "Comprimento", 60, 250, { step: 1 }),
+          num("depth", "Profundidade", 40, 200, { step: 1 }),
+          num("height", "Altura", 20, 150, { step: 1 }),
+          num("wall", "Parede", 1.2, 4),
+          num("floor", "Fundo", 1.2, 5),
+          color("bodyColor", "Organizador"),
+        ],
+      },
+    ],
+    build: (ctx, p) => buildDeskOrganizer(ctx, as(p)),
   },
 ];
