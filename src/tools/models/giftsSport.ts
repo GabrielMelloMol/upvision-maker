@@ -156,7 +156,16 @@ export const GIFTS_SPORT_MODELS: ModelDef[] = [
     art: "Desenho (SVG ou imagem)",
     defaults: DEFAULT_COLORING_TILE,
     sections: [
-      { title: "Traços", fields: [choice("mode", "Traço", [["outline", "Contorno das áreas"], ["lines", "Linhas do desenho"]]), num("line", "Largura do traço", 0.8, 3, { step: 0.1 }), num("wall", "Altura do traço", 0.8, 4)] },
+      {
+        title: "Traços",
+        fields: [
+          choice("style", "Modo", [["raised", "Relevo"], ["recessed", "Rebaixado"], ["twoPiece", "2 peças"], ["marquetry", "Marchetaria"]]),
+          choice("mode", "Traço", [["outline", "Contorno das áreas"], ["lines", "Linhas do desenho"]]),
+          num("line", "Largura do traço", 0.8, 3, { step: 0.1 }),
+          num("wall", "Altura do traço", 0.8, 4),
+          num("clearance", "Folga dos encaixes", 0.1, 0.5, { step: 0.05 }),
+        ],
+      },
       { title: "Tamanho e cores", fields: [num("size", "Tamanho", 40, 200, { step: 1 }), num("thickness", "Placa", 1.2, 4), color("plateColor", "Placa"), color("lineColor", "Traços")] },
     ],
     build: (ctx, p) => buildColoringTile(ctx, as(p)),
