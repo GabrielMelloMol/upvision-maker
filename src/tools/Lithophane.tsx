@@ -157,7 +157,7 @@ export default function Lithophane() {
                 <NumField label="Altura de camada" value={layered.layerHeight} onChange={setQ("layerHeight")} min={0.04} max={0.32} step={0.02} hint="A mesma do fatiador, inclusive na 1ª camada." />
               </div>
               <Toggle label="Uma parte por cor (AMS / multimaterial)" checked={layered.split} onChange={setQ("split")} />
-              <span className="hint">{layered.split ? "O fatiador troca de filamento sozinho em cada faixa." : "Sem AMS: a impressora pausa em cada troca para você trocar o filamento."}</span>
+              <span className="hint">{layered.split ? "O fatiador troca de filamento sozinho em cada faixa; sem pausas, o 3MF abre direto no Bambu Studio, Orca ou Prusa." : "Sem AMS: a impressora pausa em cada troca para você trocar o filamento."}</span>
             </div>
           )}
           <ExportButtons models={models.length ? exportModels : []} name={mode === "litho" ? "litofania" : "quadro-camadas"} busy={busy} pauses={pauses} />

@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import type { Model } from "../geometry/types";
 import { errorText } from "./Toast";
 
@@ -7,6 +7,8 @@ const DEBOUNCE_MS = 200;
 /**
  * Reconstrói o modelo quando as entradas mudam (com debounce) e expõe estados de carregamento/erro.
  * `build` retorna null quando não há entrada suficiente.
+ * `busy` já fica true no instante em que uma entrada muda (não só depois do debounce): o modelo na tela
+ * é o antigo até a reconstrução terminar, então salvar precisa esperar.
  */
 export function useModelBuilder(build: () => Promise<{ models: Model[]; warnings: string[]; pauses?: number[] } | null>, deps: unknown[]) {
   const [models, setModels] = useState<Model[]>([]);
@@ -14,6 +16,12 @@ export function useModelBuilder(build: () => Promise<{ models: Model[]; warnings
   const [warnings, setWarnings] = useState<string[]>([]);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  // novo objeto a cada mudança de entrada; `built` guarda o da última reconstrução concluída
+  // deps vêm de quem chama (igual ao efeito abaixo)
+  // eslint-disable-next-line react-hooks/use-memo, react-hooks/exhaustive-deps
+  const token = useMemo(() => ({}), deps);
+  const [built, setBuilt] = useState<object | null>(null);
+  const stale = token !== built && models.length > 0;
 
   useEffect(() => {
     let alive = true;
@@ -31,7 +39,10 @@ export function useModelBuilder(build: () => Promise<{ models: Model[]; warnings
       } catch (e) {
         if (alive) setError(errorText(e));
       } finally {
-        if (alive) setBusy(false);
+        if (alive) {
+          setBusy(false);
+          setBuilt(token);
+        }
       }
     }, DEBOUNCE_MS);
     return () => {
@@ -41,5 +52,5 @@ export function useModelBuilder(build: () => Promise<{ models: Model[]; warnings
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, deps);
 
-  return { models, warnings, pauses, busy, error };
+  return { models, warnings, pauses, busy: busy || stale, error };
 }

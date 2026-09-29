@@ -76,4 +76,20 @@ describe("Litofania e quadro", () => {
     await user.click(screen.getByRole("button", { name: /Salvar 3MF/ }));
     await waitFor(() => expect(strFromU8(unzipSync(t.files.get("/saida/quadro-camadas.3mf")!)["Metadata/model_settings.config"]).match(/<part /g)).toHaveLength(3));
   }, 40_000);
+
+  test("ligar o AMS bloqueia salvar até o arquivo novo ficar pronto (não salva o de antes, com pausas)", async () => {
+    const { user } = await withPhoto();
+    await user.click(screen.getByRole("button", { name: "Quadro por camadas" }));
+    await screen.findByLabelText("Trocas de filamento", undefined, BUILD);
+    await waitFor(() => expect(screen.getByRole("button", { name: /Salvar 3MF/ })).toBeEnabled(), BUILD);
+    await user.click(screen.getByRole("switch", { name: /Uma parte por cor/ }));
+    // logo depois do clique o arquivo ainda é o antigo: salvar precisa esperar
+    expect(screen.getByRole("button", { name: /Salvar 3MF/ })).toBeDisabled();
+    await waitFor(() => expect(screen.getByRole("button", { name: /Salvar 3MF/ })).toBeEnabled(), BUILD);
+    await user.click(screen.getByRole("button", { name: /Salvar 3MF/ }));
+    await waitFor(() => expect(t.files.has("/saida/quadro-camadas.3mf")).toBe(true));
+    const files = unzipSync(t.files.get("/saida/quadro-camadas.3mf")!);
+    expect(strFromU8(files["Metadata/model_settings.config"]).match(/<part /g)).toHaveLength(3);
+    expect(files["Metadata/custom_gcode_per_layer.xml"]).toBeUndefined(); // com AMS, sem pausas
+  }, 40_000);
 });
