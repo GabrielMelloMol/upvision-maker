@@ -3,25 +3,33 @@ import { useState } from "react";
 import { money } from "../../domain/format";
 import type { ChannelRow } from "../../domain/pricing";
 import { itemFromCalc, orderChannelOf } from "../../domain/quotes";
-import { addToQuoteDraft, peekQuoteDraft, requestOpenQuoteDraft } from "../quotes/draft";
+import { addToQuoteDraft, requestOpenQuoteDraft } from "../quotes/draft";
 import { useToast } from "../../ui/Toast";
 
-type Props = { rows: ChannelRow[]; unitCost: number; pieces: number; printMinutes: number; onOpen: () => void };
+type Props = {
+  rows: ChannelRow[];
+  unitCost: number;
+  pieces: number;
+  printMinutes: number;
+  name: string;
+  onName: (v: string) => void;
+  /** Itens no rascunho (a tabela por quantidade também soma nele). */
+  count: number;
+  onAdded: (count: number) => void;
+  onOpen: () => void;
+};
 
 /** Soma o cálculo atual como item avulso num rascunho de orçamento (peças únicas que não viram produto). */
-export default function AddToQuote({ rows, unitCost, pieces, printMinutes, onOpen }: Props) {
+export default function AddToQuote({ rows, unitCost, pieces, printMinutes, name, onName, count, onAdded, onOpen }: Props) {
   const priced = rows.filter((r) => r.price !== null);
   const [choice, setChoice] = useState(priced[0]?.name ?? "");
-  const [name, setName] = useState("");
-  const [count, setCount] = useState(() => peekQuoteDraft()?.items.length ?? 0);
   const toast = useToast();
   const row = priced.find((r) => r.name === choice) ?? priced[0];
 
   function add() {
     if (!row || row.price === null || unitCost <= 0) return;
     const n = addToQuoteDraft(itemFromCalc({ description: name, pieces, unitPrice: row.price, unitCost, printMinutes }), orderChannelOf(row.name));
-    setCount(n);
-    setName("");
+    onAdded(n);
     toast(`Adicionado ao orçamento em rascunho (${n} ${n === 1 ? "item" : "itens"}).`);
   }
 
@@ -32,7 +40,7 @@ export default function AddToQuote({ rows, unitCost, pieces, printMinutes, onOpe
       </h2>
       <label>
         Nome da peça
-        <input value={name} maxLength={200} placeholder="Peça impressa em 3D" onChange={(e) => setName(e.target.value)} />
+        <input value={name} maxLength={200} placeholder="Peça impressa em 3D" onChange={(e) => onName(e.target.value)} />
       </label>
       <label>
         Preço

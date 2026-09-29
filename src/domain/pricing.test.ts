@@ -1,6 +1,6 @@
 import { describe, expect, test } from "vitest";
 import { calculate, type CalcInput } from "./calc";
-import { compareChannels, competitorHint, hourStatus, markupText, roundPrice } from "./pricing";
+import { compareChannels, competitorHint, hourStatus, markupText, prepCost, quantityTable, roundPrice } from "./pricing";
 import { DEFAULT_SETTINGS, type Settings } from "./settings";
 
 const s: Settings = { ...DEFAULT_SETTINGS, kwhPrice: 0.9, laborHourCost: 20, maintenancePct: 5, failurePct: 0, minMarginPct: 10 };
@@ -123,4 +123,28 @@ test("faixas de preço (#31): arredondar para dentro da faixa do frete recalcula
   // custo 23,60 → 39,33; inteiro sobe para 40 e cai na faixa do frete: 4 + 15 de taxas, prejuízo e aviso
   const round40 = compareChannels(calculate({ ...input, extras: [], filaments: [{ pricePerKg: 100, grams: 236 }] }, st), st, 0, { rounding: "int" })[2];
   expect(round40).toMatchObject({ price: 40, fees: 19, profit: -2.6, loss: true, shippingIncluded: true });
+});
+
+describe("preço por quantidade com preparo por pedido (#32)", () => {
+  // exemplo da home: custo 15,96, venda direta 79,80 (×5), Shopee 20% + R$ 4 com margem 30%
+  test("preparo = minutos × sua hora + fixo", () => {
+    expect(prepCost(30, 5, s)).toBe(15); // 0,5 h × R$ 20 + 5
+    expect(prepCost(0, 0, s)).toBe(0);
+  });
+
+  test("venda direta: preparo dividido pela quantidade, somado depois do multiplicador; desconto em relação a 1 unidade", () => {
+    const rows = quantityTable(r, s, { channel: "Venda direta (consumidor final)", prep: 15, freight: 0, rounding: "none" });
+    expect(rows.map((x) => x.qty)).toEqual([1, 10, 25, 50, 100]);
+    expect(rows[0]).toMatchObject({ unitCost: 30.96, price: 94.8, discountPct: 0 });
+    expect(rows[1]).toMatchObject({ unitCost: 17.46, price: 81.3, discountPct: 14.24 });
+    expect(rows[4]).toMatchObject({ unitCost: 16.11, price: 79.95 });
+  });
+
+  test("marketplace: preço do canal com o custo de cada quantidade; alerta de margem mínima", () => {
+    const rows = quantityTable(r, s, { channel: "Shopee", prep: 15, freight: 0, rounding: "none" });
+    expect(rows[0]).toMatchObject({ price: 69.92, marginPct: 30.01, belowMin: false }); // (30,96 + 4) ÷ 0,5; taxas no centavo
+    expect(rows[1]).toMatchObject({ price: 42.92, discountPct: 38.62 });
+    const strict = quantityTable(r, { ...s, minMarginPct: 40 }, { channel: "Shopee", prep: 15, freight: 0, rounding: "none" });
+    expect(strict[0].belowMin).toBe(true);
+  });
 });

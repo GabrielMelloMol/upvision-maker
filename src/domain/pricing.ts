@@ -109,3 +109,36 @@ const pctText = (n: number) => `${n.toLocaleString("pt-BR", { maximumFractionDig
 
 /** "×5" explicado: markup = mult − 1, margem = 1 − 1/mult (a "margem 500%" de outras calculadoras é markup). */
 export const markupText = (mult: number) => `markup ${pctText((mult - 1) * 100)} · margem ${pctText((1 - 1 / mult) * 100)} antes das taxas`;
+
+/** Preparo por pedido (atendimento, fatiar, trocar filamento): minutos × sua hora + um valor fixo. */
+export const prepCost = (minutes: number, fixed: number, s: Settings) => round2((Math.max(0, minutes) / 60) * s.laborHourCost + Math.max(0, fixed));
+
+export const QUANTITIES = [1, 10, 25, 50, 100] as const;
+
+export type QtyRow = { qty: number; unitCost: number; price: number | null; discountPct: number; marginPct: number; belowMin: boolean; loss: boolean };
+
+/**
+ * Preço por unidade em pedidos de 1, 10, 25, 50 e 100 unidades (#32): o preparo do pedido é dividido pela quantidade.
+ * Venda direta e lojista usam o multiplicador (o preparo é mão de obra: entra depois dele, salvo no jeito antigo);
+ * marketplaces usam o preço do canal com a margem pedida. Desconto = quanto a unidade sai mais barata que no pedido de 1.
+ */
+export function quantityTable(r: CalcResult, s: Settings, o: { channel: string; prep: number; freight: number; rounding: Rounding; marginPct?: number }): QtyRow[] {
+  const cfg = s.channels.find((c) => c.name === o.channel);
+  const mult = o.channel === PRICE_NAMES.resale.name ? s.multResale : s.multConsumer;
+  const suggested = o.channel === PRICE_NAMES.resale.name ? r.resale : r.consumer;
+  const priceAt = (extra: number): number | null => {
+    if (!cfg) return suggested + extra * (s.multiplyLabor ? mult : 1);
+    return channelPrice(cfg, r.unitCost + extra + o.freight, o.marginPct ?? s.marketplaceMarginPct, s.taxPct);
+  };
+  const fees = cfg ?? { name: o.channel, feePct: 0, feeFixed: 0 };
+  const rows = QUANTITIES.map((qty) => {
+    const extra = o.prep / qty;
+    const raw = priceAt(extra);
+    const price = raw === null ? null : roundPrice(raw, o.rounding);
+    const unitCost = round2(r.unitCost + extra);
+    const m = price === null ? null : at(price, fees, s.taxPct, unitCost, o.freight, 0);
+    return { qty, unitCost, price, marginPct: m?.marginPct ?? 0, belowMin: !!m && !m.loss && m.marginPct < s.minMarginPct, loss: !!m?.loss };
+  });
+  const first = rows[0].price;
+  return rows.map((x) => ({ ...x, discountPct: first && x.price !== null ? round2((1 - x.price / first) * 100) : 0 }));
+}

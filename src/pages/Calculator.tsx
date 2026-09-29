@@ -26,6 +26,8 @@ import PlugSheet from "./calculator/PlugSheet";
 import PrinterCatalogButton from "./calculator/PrinterCatalogButton";
 import AddToQuote from "./calculator/AddToQuote";
 import TestPrice from "./calculator/TestPrice";
+import QuantityTable from "./calculator/QuantityTable";
+import { peekQuoteDraft } from "./quotes/draft";
 import { CostBreakdown, PriceHero } from "./calculator/Result";
 import { EMPTY_FORM, loadSaved, storeSaved, type CalcForm, type Line } from "./calculator/saved";
 
@@ -67,6 +69,7 @@ export default function Calculator({ go }: { go: Go }) {
   const [rounding, setRounding] = useState<Rounding>("none");
   const [competitor, setCompetitor] = useState("");
   const [plugOpen, setPlugOpen] = useState(false);
+  const [draftCount, setDraftCount] = useState(() => peekQuoteDraft()?.items.length ?? 0);
   const toast = useToast();
   const printMin = parseDuration(f.time) || 0;
   const laborMin = parseDuration(f.labor, "min") || 0;
@@ -316,7 +319,17 @@ export default function Calculator({ go }: { go: Go }) {
               </>
             )}
           </PriceHero>
-          <AddToQuote rows={rows} unitCost={r.unitCost} pieces={num(f.quantity)} printMinutes={printMin} onOpen={() => go("quotes")} />
+          <AddToQuote
+            rows={rows}
+            unitCost={r.unitCost}
+            pieces={num(f.quantity)}
+            printMinutes={printMin}
+            name={f.name}
+            onName={setText("name")}
+            count={draftCount}
+            onAdded={setDraftCount}
+            onOpen={() => go("quotes")}
+          />
           {mode === "full" && <CostBreakdown r={r} s={data.settings} machinePerHour={machinePerHour} fixedPerHour={data.fixedPerHour} />}
         </aside>
       </div>
@@ -338,6 +351,22 @@ export default function Calculator({ go }: { go: Go }) {
             </div>
           </div>
         </ChannelTable>
+      )}
+      {mode === "full" && (
+        <QuantityTable
+          r={r}
+          s={data.settings}
+          rows={rows}
+          freight={price(f.freight)}
+          rounding={rounding}
+          marginPct={f.margin === "" ? data.settings.marketplaceMarginPct : num(f.margin)}
+          minutesPerPiece={printMin / Math.max(1, Math.floor(num(f.quantity)) || 1)}
+          name={f.name}
+          prepTime={f.prepTime}
+          prepFixed={f.prepFixed}
+          onPrep={(patch) => setF((cur) => ({ ...cur, ...patch }))}
+          onAdded={setDraftCount}
+        />
       )}
     </div>
   );

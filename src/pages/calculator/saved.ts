@@ -3,7 +3,7 @@ import { z } from "zod";
 const Line = z.object({ ref: z.string(), price: z.string(), qty: z.string() });
 export type Line = z.infer<typeof Line>;
 
-export const EMPTY_FORM = { watts: "", time: "", labor: "", quantity: "1", freight: "", margin: "", kwh: "" };
+export const EMPTY_FORM = { watts: "", time: "", labor: "", quantity: "1", freight: "", margin: "", kwh: "", name: "", prepTime: "", prepFixed: "" };
 export type CalcForm = typeof EMPTY_FORM;
 
 const Saved = z.object({

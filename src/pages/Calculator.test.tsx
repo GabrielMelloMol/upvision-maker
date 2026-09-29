@@ -282,7 +282,7 @@ test("adicionar ao orçamento (#28): soma cálculos num rascunho com preço, cus
   expect(d.channel).toBe("Consumidor final");
   expect(d.items).toHaveLength(2);
   expect(d.items[0]).toEqual({ productId: null, description: "Chaveiro coração", qty: 2, unitPrice: 52.5, discountPct: 0, unitCost: 10.5, printMinutes: 60 });
-  expect(d.items[1]).toMatchObject({ description: "Peça impressa em 3D", unitCost: 10.5, printMinutes: 60 });
+  expect(d.items[1]).toMatchObject({ description: "Chaveiro coração", unitPrice: 29, unitCost: 10.5, printMinutes: 60 }); // Shopee (10,50 + 4) ÷ 0,5; o nome fica
   await user.click(screen.getByRole("button", { name: /2 itens no orçamento em rascunho · Abrir/ }));
   expect(go).toHaveBeenCalledWith("quotes");
   expect(peekOpenQuoteDraft()).toBe(true);
@@ -344,4 +344,24 @@ test("canal com frete obrigatório acima de um preço (#31): o preço inclui o f
   const ml = screen.getByRole("row", { name: /^ML/ });
   expect(ml).toHaveTextContent(brl("160,00"));
   expect(ml).toHaveTextContent("frete obrigatório neste preço");
+});
+
+test("preço por quantidade (#32): preparo diluído, desconto em relação a 1 unidade e 'Usar no orçamento'", async () => {
+  localStorage.setItem("upvision:calculadora", JSON.stringify({ mode: "full", fil: [{ ref: "", price: "", qty: "" }], ext: [], printerId: "", f: {} }));
+  clearQuoteDraft();
+  await t.db.execute(`INSERT OR REPLACE INTO settings (id, data) VALUES (1, '{"failurePct":0,"laborHourCost":30,"channels":[]}')`);
+  const user = userEvent.setup();
+  renderWithApp(<Calculator go={() => {}} />);
+  await screen.findByText(/Venda direta \(consumidor final\) ×5/);
+  await user.type(screen.getByLabelText("Preço por kg"), "100");
+  await user.type(screen.getByLabelText("Gramas"), "20"); // custo R$ 2 por peça → R$ 10 direto
+  await user.type(screen.getByLabelText("Tempo de impressão"), "30 min");
+  await user.type(screen.getByLabelText("Nome da peça"), "Lembrancinha");
+  await user.type(screen.getByLabelText("Preparo por pedido"), "20"); // 20 min × R$ 30/h = R$ 10
+  const cells = (q: string) => within(screen.getByRole("row", { name: new RegExp(`^${q} R`) })).getAllByRole("cell").map((c) => c.textContent!.replace(/\u00a0/g, " "));
+  expect(cells("1").slice(0, 4)).toEqual(["1", "R$ 12,00", "R$ 20,00", "—"]); // 10 + preparo 10
+  expect(cells("10").slice(0, 4)).toEqual(["10", "R$ 3,00", "R$ 11,00", "45%"]);
+  await user.click(screen.getByRole("button", { name: "Usar 50 unidades no orçamento" }));
+  expect(peekQuoteDraft()!.items[0]).toEqual({ productId: null, description: "Lembrancinha", qty: 50, unitPrice: 10.2, discountPct: 0, unitCost: 2.2, printMinutes: 30 });
+  expect(screen.getByRole("button", { name: /1 item no orçamento em rascunho/ })).toBeInTheDocument();
 });
