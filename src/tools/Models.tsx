@@ -4,7 +4,7 @@ import { getDb } from "../db";
 import { loadCompany } from "../db/customersRepo";
 import { isCursive, loadFont, type FontId } from "../geometry/fonts";
 import { getManifold } from "../geometry/manifold";
-import { textToCrossSection } from "../geometry/text";
+import { arcTextToCrossSection, textToCrossSection } from "../geometry/text";
 import { checkText, textWarnings } from "../geometry/textCheck";
 import FontPicker from "../ui/FontPicker";
 import Alert from "../ui/Alert";
@@ -87,7 +87,8 @@ export default function Models() {
     try {
       let out;
       try {
-        out = def.build({ M, art: design?.cs ?? null, artLayers: design?.layers, text }, p);
+        const arc = (s: string, h: number, r: number, side: "top" | "bottom") => (s.trim() ? arcTextToCrossSection(M, f, s, h, r, side) : null);
+        out = def.build({ M, art: design?.cs ?? null, artLayers: design?.layers, text, arc }, p);
       } catch (e) {
         // dado obrigatório faltando não é erro: vira o texto da prévia vazia
         if (!(e instanceof MissingInput)) throw e;

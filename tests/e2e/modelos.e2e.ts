@@ -99,3 +99,21 @@ test("Modelos prontos: categorias filtram a galeria", async ({ page, tauri }) =>
   await expect(gallery.getByRole("button", { name: "Ejetor de brigadeiro" })).toBeVisible();
   await expect(gallery.getByRole("button", { name: "Placa Pix" })).toHaveCount(0);
 });
+
+const STUDY = ["Placa QR", "Placa com vários QRs", "Desenho em pé", "Tag de pet", "Placa de profissão", "Cartão de visita", "Chaveiro espelho", "Floco de neve com nome"];
+
+test("Modelos prontos (#23): cada modelo novo já abre com prévia 3D, sem precisar enviar nada", async ({ page, tauri }) => {
+  void tauri;
+  await openApp(page);
+  await go(page, "Modelos prontos");
+  const gallery = page.getByRole("group", { name: "Modelo" });
+  for (const name of STUDY) {
+    await pickModel(page, name);
+    await expect(gallery.getByRole("button", { name, exact: true })).toHaveAttribute("aria-pressed", "true");
+    await expect(page.locator(".viewer .overlay.busy")).toHaveCount(0, { timeout: 60_000 });
+    await expect(page.locator(".viewer .hud")).toContainText("mm", { timeout: 60_000 });
+    await expect(page.locator(".viewer .overlay")).toHaveCount(0);
+    if (process.env.SHOTS_DIR) await page.locator(".viewer").screenshot({ path: `${process.env.SHOTS_DIR}/study-${STUDY.indexOf(name)}.png` });
+  }
+});
+

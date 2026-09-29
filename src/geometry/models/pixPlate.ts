@@ -3,7 +3,7 @@ import { qrMatrix } from "../../domain/qr";
 import { qrModel, QR_BASE_COLOR, QR_DARK_COLOR } from "../qr3d";
 import { fitInto, scoped } from "../shape2d";
 import type { Model } from "../types";
-import { MissingInput, moveMesh, roundedRect, slab, solidMesh, type ModelCtx, type ModelOutput } from "./common";
+import { MissingInput, moveMesh, plateStand, roundedRect, slab, type ModelCtx, type ModelOutput } from "./common";
 
 export type PixPlateParams = {
   key: string;
@@ -35,8 +35,6 @@ export const DEFAULT_PIX_PLATE: PixPlateParams = {
   darkColor: QR_DARK_COLOR,
 };
 
-const SLOT_TILT_DEG = 12;
-const SLOT_CLEARANCE = 0.5;
 
 /** Placa de balcão: título, QR do Pix e nome em relevo escuro sobre placa clara; suporte inclinado opcional. */
 export function buildPixPlate({ M, text }: ModelCtx, p: PixPlateParams): ModelOutput {
@@ -66,18 +64,6 @@ export function buildPixPlate({ M, text }: ModelCtx, p: PixPlateParams): ModelOu
     return { name: "Placa Pix", parts } satisfies Model;
   });
   const models: Model[] = [plate];
-  if (p.stand) models.push(pixStand(M, p, -H / 2 - 25));
+  if (p.stand) models.push(plateStand(M, p.width, p.thickness, p.plateColor, -H / 2 - 25));
   return { models, warnings: qr.warnings };
-}
-
-/** Suporte: bloco com rasgo inclinado onde a placa encaixa em pé. */
-function pixStand({ Manifold }: ModelCtx["M"], p: PixPlateParams, y: number): Model {
-  const w = p.width * 0.7, d = 30, h = 12, depth = 8;
-  return scoped((k) => {
-    const block = k(k(Manifold.cube([w, d, h], true)).translate([0, 0, h / 2]));
-    const slotW = p.thickness + SLOT_CLEARANCE;
-    const slot = k(k(k(Manifold.cube([w + 10, slotW, 40], true)).translate([0, 0, 20])).rotate([-SLOT_TILT_DEG, 0, 0]));
-    const cut = k(block.subtract(k(slot.translate([0, 0, h - depth]))));
-    return { name: "Suporte", parts: [{ name: "Suporte", color: p.plateColor, mesh: moveMesh(solidMesh(cut), 0, y) }] };
-  });
 }

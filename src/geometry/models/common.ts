@@ -14,6 +14,8 @@ export type ModelCtx = {
   art: CS | null;
   /** Desenho colorido: uma região por cor, no mesmo sistema de `art` (null = 1 cor). */
   artLayers?: ColorLayer2D[] | null;
+  /** Texto em arco (linha de base no raio `r`, em cima ou embaixo); ausente = modelos usam texto reto. */
+  arc?: (text: string, heightMm: number, radius: number, side: "top" | "bottom") => CS | null;
 };
 
 export type ModelOutput = {
@@ -95,4 +97,18 @@ export class MissingInput extends Error {}
 export function requireArt(art: CS | null): CS {
   if (!art || art.isEmpty()) throw new MissingInput("Envie um desenho (SVG ou imagem) para ver o modelo.");
   return art;
+}
+
+const STAND_TILT_DEG = 12;
+const STAND_CLEARANCE = 0.5;
+
+/** Suporte de mesa: bloco com rasgo inclinado onde uma placa de espessura `t` encaixa em pé. */
+export function plateStand(M: ManifoldToplevel, width: number, t: number, color: string, y: number): Model {
+  const w = width * 0.7, d = 30, h = 12, depth = 8;
+  return scoped((k) => {
+    const block = k(k(M.Manifold.cube([w, d, h], true)).translate([0, 0, h / 2]));
+    const slot = k(k(k(M.Manifold.cube([w + 10, t + STAND_CLEARANCE, 40], true)).translate([0, 0, 20])).rotate([-STAND_TILT_DEG, 0, 0]));
+    const cut = k(block.subtract(k(slot.translate([0, 0, h - depth]))));
+    return { name: "Suporte", parts: [{ name: "Suporte", color, mesh: moveMesh(solidMesh(cut), 0, y) }] };
+  });
 }
