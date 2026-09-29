@@ -184,4 +184,4 @@ g:hover > .viz-hit { fill: var(--fill); }
 
 /* elementos internos do modelo no gizmo (#79): tracejados, o escolhido em destaque */
 .gizmo-element { fill: transparent; stroke: var(--muted); stroke-width: 1; stroke-dasharray: 4 3; vector-effect: non-scaling-stroke; cursor: move; }
-.gizmo-element[data-selected] { stroke: var(--accent); }
+.gizmo-element[data-selected] { stroke: var(--accent); fill: var(--accent-soft); }

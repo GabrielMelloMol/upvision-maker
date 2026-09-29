@@ -3,7 +3,8 @@
 .tool-layout > .controls { display: grid; gap: var(--space-3); }
 .tool-layout > .controls .card { margin: 0; }
 .tool-layout > .controls .card h3 { font-size: var(--text-xs); text-transform: uppercase; letter-spacing: 0.05em; color: var(--muted); font-weight: 600; }
-.preview-col { position: sticky; top: 64px; display: grid; gap: var(--space-3); }
+/* sticky com rolagem própria: prévia sempre à vista e o que vem abaixo dela (vista de cima, avisos) continua alcançável */
+.preview-col { position: sticky; top: 64px; display: grid; gap: var(--space-3); align-content: start; max-height: calc(100vh - 64px - var(--space-4)); overflow-y: auto; overscroll-behavior: contain; scrollbar-gutter: stable; }
 @media (max-width: 980px) { .tool-layout { grid-template-columns: 1fr; } .preview-col { position: static; } }
 
 /* Prévia 3D / 2D */

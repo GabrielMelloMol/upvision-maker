@@ -367,13 +367,16 @@ export default function Models() {
                 elements={elements}
                 onMoveElement={lay.moveElement}
               />
-              <p className="hint">Arraste para mover (gruda no centro e nas bordas; Alt solta), alça do canto para o tamanho, alça de cima para girar (Shift: 15°).</p>
+              <p className="hint">
+                Arraste para mover (gruda no centro e nas bordas; Alt solta; setas movem 1 mm).
+                {lay.layers.length > 0 && " Nos seus desenhos e textos, a alça do canto muda o tamanho e a de cima gira (Shift: 15°)."}
+              </p>
               {elements.length > 0 && (
                 <div className="row">
-                  <button type="button" onClick={centerAll}>
+                  <button type="button" className="sm" onClick={centerAll}>
                     Centralizar tudo
                   </button>
-                  <button type="button" className="ghost" onClick={restorePosition}>
+                  <button type="button" className="sm ghost" onClick={restorePosition}>
                     Restaurar posição
                   </button>
                 </div>
