@@ -53,4 +53,20 @@ describe("Separar 3MF por cor", () => {
     await user.upload(input, new File(["solid x"], "peca.stl"));
     expect(await screen.findByText(/STL não guarda a pintura/)).toBeInTheDocument();
   });
+
+  test("cortar com encaixe: parte A, parte B e pinos no arquivo", async () => {
+    const user = userEvent.setup();
+    const { container } = renderWithApp(<ColorSplit />);
+    await user.upload(container.querySelector<HTMLInputElement>('input[type="file"]')!, fixture("chaveiro-2-partes-bambu.3mf"));
+    await screen.findByLabelText("Cores encontradas", undefined, BUILD);
+    await user.click(screen.getByRole("switch", { name: /Cortar com encaixe/ }));
+    await user.click(screen.getByRole("button", { name: "Vertical (X)" }));
+    await waitFor(() => expect(screen.getByRole("button", { name: /Salvar 3MF/ })).toBeEnabled(), BUILD);
+    await user.click(screen.getByRole("button", { name: /Salvar 3MF/ }));
+    await waitFor(() => expect(t.files.has("/saida/chaveiro-2-partes-bambu-cores.3mf")).toBe(true));
+    const names = [...strFromU8(unzipSync(t.files.get("/saida/chaveiro-2-partes-bambu-cores.3mf")!)["3D/3dmodel.model"]).matchAll(/<object id="\d+" name="([^"]+)"/g)].map((m) => m[1]);
+    expect(names.some((n) => n.endsWith("parte A"))).toBe(true);
+    expect(names.some((n) => n.endsWith("parte B"))).toBe(true);
+  }, 60_000);
 });
+

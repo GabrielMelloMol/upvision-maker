@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { splitByColor, type SplitMode } from "../geometry/colorSplit";
 import { getManifold } from "../geometry/manifold";
+import { cutModels, DEFAULT_CUT, type CutAxis, type CutOptions, type PinMode, type PinShape } from "../geometry/planeCut";
 import { read3mf } from "../geometry/threemfRead";
 import Alert from "../ui/Alert";
 import Dropzone from "../ui/Dropzone";
@@ -8,11 +9,28 @@ import ExportButtons from "../ui/ExportButtons";
 import NumField, { inRange } from "../ui/NumField";
 import Preview3D from "../ui/Preview3D";
 import Segmented from "../ui/Segmented";
+import Slider from "../ui/Slider";
+import Toggle from "../ui/Toggle";
 import { useModelBuilder } from "../ui/useModelBuilder";
 
 const MODES: [SplitMode, string][] = [
   ["parts", "Partes (multicor)"],
   ["objects", "Objetos separados"],
+];
+const AXES: [CutAxis, string][] = [
+  ["z", "Horizontal (Z)"],
+  ["x", "Vertical (X)"],
+  ["y", "Vertical (Y)"],
+];
+const PINS: [PinShape, string][] = [
+  ["round", "Redondo"],
+  ["square", "Quadrado"],
+  ["triangle", "Triângulo"],
+  ["none", "Sem encaixe"],
+];
+const PIN_MODES: [PinMode, string][] = [
+  ["loose", "Pino solto"],
+  ["fixed", "Pino fixo na parte A"],
 ];
 const PLA_G_PER_CM3 = 1.24;
 const MAX_BYTES = 200 * 1024 * 1024;
@@ -23,6 +41,9 @@ export default function ColorSplit() {
   const [fileError, setFileError] = useState<string | null>(null);
   const [depth, setDepth] = useState(1);
   const [mode, setMode] = useState<SplitMode>("parts");
+  const [cutOn, setCutOn] = useState(false);
+  const [cut, setCut] = useState<CutOptions>(DEFAULT_CUT);
+  const setC = <K extends keyof CutOptions>(key: K) => (v: CutOptions[K]) => setCut((c) => ({ ...c, [key]: v }));
   const [colors, setColors] = useState<{ filament: number; color: string; volume: number }[]>([]);
 
   async function onFile(f: File) {
@@ -32,14 +53,16 @@ export default function ColorSplit() {
     setFile({ name: f.name.replace(/\.3mf$/i, ""), bytes: new Uint8Array(await f.arrayBuffer()) });
   }
 
-  const valid = inRange(depth, 0.2, 10);
+  const valid = inRange(depth, 0.2, 10) && (!cutOn || (inRange(cut.clearance, 0, 1) && (cut.size === 0 || inRange(cut.size, 2, 30))));
   const { models, warnings, busy, error } = useModelBuilder(async () => {
     if (!file || !valid) return null;
     const M = await getManifold();
     const out = splitByColor(M, read3mf(file.bytes), { depth, mode });
     setColors(out.colors);
-    return { models: out.models, warnings: out.warnings };
-  }, [file, depth, mode, valid]);
+    if (!cutOn) return { models: out.models, warnings: out.warnings };
+    const c = cutModels(M, out.models, cut);
+    return { models: c.models, warnings: [...out.warnings, ...c.warnings] };
+  }, [file, depth, mode, valid, cutOn, cut]);
 
   return (
     <div className="page">
@@ -59,6 +82,34 @@ export default function ColorSplit() {
               <Segmented label="Saída" value={mode} options={MODES} onChange={setMode} full />
             </div>
             <span className="hint">{mode === "parts" ? "Um objeto com uma parte por cor: o fatiador troca de filamento (AMS)." : "Cada cor vira um objeto separado, apoiado na mesa: imprime cada um na sua cor e cola."}</span>
+          </div>
+          <div className="card stack">
+            <Toggle label="Cortar com encaixe (peça maior que a mesa ou para montar)" checked={cutOn} onChange={setCutOn} />
+            {cutOn && (
+              <>
+                <div>
+                  <span className="field-label">Plano de corte</span>
+                  <Segmented label="Plano de corte" value={cut.axis} options={AXES} onChange={setC("axis")} full />
+                </div>
+                <Slider label="Posição do corte" min={5} max={95} value={Math.round(cut.at * 100)} display={(v) => `${v}%`} onChange={(v) => setC("at")(v / 100)} />
+                <div>
+                  <span className="field-label">Encaixe</span>
+                  <Segmented label="Encaixe" value={cut.pin} options={PINS} onChange={setC("pin")} full />
+                </div>
+                {cut.pin !== "none" && (
+                  <>
+                    <Segmented label="Tipo de pino" value={cut.mode} options={PIN_MODES} onChange={setC("mode")} full />
+                    <div className="grid two">
+                      <NumField label="Tamanho do pino" value={cut.size} onChange={setC("size")} min={0} max={30} step={0.5} hint="0 = automático" />
+                      <NumField label="Folga do encaixe" value={cut.clearance} onChange={setC("clearance")} min={0} max={1} step={0.05} hint="0,2 costuma entrar justo." />
+                    </div>
+                    <span className="hint">
+                      {cut.mode === "loose" ? "As duas partes vão com a face cortada na mesa; os pinos saem à parte." : "O pino sai da parte A, impressa em pé; a parte B tem o furo."}
+                    </span>
+                  </>
+                )}
+              </>
+            )}
           </div>
           {colors.length > 0 && models.length > 0 && (
             <div className="card stack" aria-label="Cores encontradas">
