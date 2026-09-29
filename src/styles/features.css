@@ -176,3 +176,8 @@ g:hover > .viz-hit { fill: var(--fill); }
 .chip-with-x { display: inline-flex; align-items: stretch; }
 .chip-with-x > button:first-child { border-radius: var(--r-pill) 0 0 var(--r-pill); padding-right: 6px; }
 .chips .chip-with-x > .chip-x { border-radius: 0 var(--r-pill) var(--r-pill) 0; padding: 0 8px 0 4px; color: var(--muted); }
+/* Buscar modelos (#77) */
+.site-list { list-style: none; margin: 0; padding: 0; display: grid; gap: var(--space-2); }
+.site-list li { display: flex; align-items: center; justify-content: space-between; gap: var(--space-3); padding: var(--space-3) var(--space-4); }
+.site-list .hint { margin: 2px 0 0; }
+.site-list button { flex: none; }

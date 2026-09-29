@@ -7,6 +7,7 @@ import type { SlicerFilament } from "../domain/slicer/types";
 import { colorHex, filamentDraft, isCloseMatch, matchFilament, matchPrinter } from "../domain/slicer/match";
 import { FILAMENT_COLORS } from "../ui/ColorDots";
 import NewFilamentSheet from "./calculator/NewFilamentSheet";
+import { takePendingSlicerFile } from "./calculator/pendingFile";
 import Alert from "../ui/Alert";
 import Card from "../ui/Card";
 import Dropzone from "../ui/Dropzone";
@@ -72,6 +73,12 @@ export default function SlicerImport({ stock, printers, onApply, onStockAdded }:
     if (report) apply(report, mapping);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [report, mappingKey]);
+
+  // arquivo trazido de outra tela (Buscar modelos): lê uma vez ao abrir
+  useEffect(() => {
+    const f = takePendingSlicerFile();
+    if (f) void onFile(f);
+  }, []);
 
   async function onFile(f: File) {
     setError(null);

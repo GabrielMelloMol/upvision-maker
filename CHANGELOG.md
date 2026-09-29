@@ -4,6 +4,7 @@ Cada versão aparece para a usuária na tela "O que há de novo" depois da atual
 Formato: `## <versão> — <data>` e itens `- …` em linguagem simples.
 
 ## Próxima versão (vira "## 0.6.1 — data" ou "## 0.7.0 — data" ao publicar; até lá o app não mostra)
+- **Buscar modelos 3D**: uma tela nova em Ferramentas abre a busca no Printables, MakerWorld, Thingiverse, Cults3D e Thangs (um de cada vez ou todos), lembra as últimas buscas e explica se a licença deixa vender a peça (NC = não comercial). Arraste o 3MF fatiado ou o G-code do modelo baixado e ele vai direto para a Calculadora.
 - **Desenhos e textos livres nos Modelos prontos**: coloque seu SVG, uma imagem (vira vetor) ou um texto em cima de qualquer modelo. Na **vista de cima**, arraste para mover (gruda no centro e nas bordas), use a alça do canto para o tamanho e a de cima para girar, ou digite X, Y, largura e giro. Cada camada pode ser relevo (com a cor dela), gravada ou vazada, e dá para esconder, duplicar, mudar a ordem, excluir e desfazer (⌘Z). O app avisa se o desenho sair da peça, ficar fino demais ou encostar num furo.
 - **Salvar como variação**: guarde o modelo com seus campos e camadas com um nome e reaplique depois com um toque. Fica no backup.
 - **Mais fatiadores** no "Importar do fatiador": Creality Print, Anycubic Slicer Next, Elegoo Slicer e Simplify3D. G-code de outro fatiador também é lido quando traz tempo e peso (ou comprimento) nos comentários, com aviso para conferir.
