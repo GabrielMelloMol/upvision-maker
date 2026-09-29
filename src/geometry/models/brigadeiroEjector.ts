@@ -1,16 +1,22 @@
 import { outerOnly, fitInto, scoped } from "../shape2d";
 import { moveMesh, requireArt, solidMesh, type ModelCtx, type ModelOutput } from "./common";
+import { dome, hasSharpFeatures, roundEdge, type EjectorBottom } from "./ejectorBottom";
 
 export type EjectorParams = {
   size: number; // largura do desenho
   height: number; // altura da forma
   wall: number;
   clearance: number; // folga entre o ejetor e a forma
+  /** Fundo do doce: plano, borda arredondada (raio) ou domo (altura e suavização). Ausente = plano. */
+  bottom?: EjectorBottom;
+  radius?: number;
+  domeHeight?: number;
+  smooth?: number;
   frameColor: string;
   ejectorColor: string;
 };
 
-export const DEFAULT_EJECTOR: EjectorParams = { size: 30, height: 18, wall: 1.6, clearance: 0.4, frameColor: "#f472b6", ejectorColor: "#f8f8f6" };
+export const DEFAULT_EJECTOR: EjectorParams = { size: 30, height: 18, wall: 1.6, clearance: 0.4, bottom: "flat", radius: 3, domeHeight: 4, smooth: 0.7, frameColor: "#f472b6", ejectorColor: "#f8f8f6" };
 
 const LIP_W = 3;
 const LIP_H = 1.6;
@@ -41,7 +47,15 @@ export function buildEjector({ M, art }: ModelCtx, p: EjectorParams): ModelOutpu
     const flare = k(k(M.Manifold.cylinder(FLARE_H, STEM_R, KNOB_R, 48)).translate([0, 0, stemH]));
     const knob = k(k(M.Manifold.cylinder(KNOB_H, KNOB_R, KNOB_R, 48)).translate([0, 0, stemH + FLARE_H]));
     const handle = k(k(M.Manifold.union([stem, flare, knob])).translate([c[0], c[1], PLATE_H]));
-    const ejector = k(k(plate.extrude(PLATE_H)).add(handle));
+    let ejector = k(k(plate.extrude(PLATE_H)).add(handle));
+    const warnings: string[] = [];
+    const bottom = p.bottom ?? "flat";
+    if (bottom !== "flat") {
+      const face = bottom === "round" ? roundEdge(M, plate, p.radius ?? 3) : dome(M, plate, p.domeHeight ?? 4, p.smooth ?? 0.7);
+      ejector = k(ejector.add(k(k(face).translate([0, 0, PLATE_H]))));
+      warnings.push("Fundo arredondado: imprima o êmbolo com altura de camada de 0,08 a 0,12 mm para a curva sair lisa.");
+      if (hasSharpFeatures(plate, bottom === "round" ? (p.radius ?? 3) : 2)) warnings.push("Esta forma tem ponta fina ou reentrância funda: ali o arredondado deforma. Prefira um desenho mais cheio ou raio menor.");
+    }
     const fb = frame.boundingBox();
     const eb = ejector.boundingBox();
     return {
@@ -49,6 +63,7 @@ export function buildEjector({ M, art }: ModelCtx, p: EjectorParams): ModelOutpu
         { name: "Forma", parts: [{ name: "Forma", color: p.frameColor, mesh: solidMesh(frame) }] },
         { name: "Ejetor", parts: [{ name: "Ejetor", color: p.ejectorColor, mesh: moveMesh(solidMesh(ejector), fb.max[0] - eb.min[0] + KNOB_R + GAP, 0) }] },
       ],
+      warnings,
     };
   });
 }

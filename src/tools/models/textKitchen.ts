@@ -6,7 +6,7 @@ import { buildLogoPlate, DEFAULT_ADAPTIVE_PLATE, DEFAULT_LOGO_KEYCHAIN } from ".
 import { buildPencilTopper, DEFAULT_PENCIL_TOPPER } from "../../geometry/models/pencilTopper";
 import { buildSignPlate, DEFAULT_SIGN_PLATE } from "../../geometry/models/signPlate";
 import { buildWordDecor, DEFAULT_WORD_DECOR } from "../../geometry/models/wordDecor";
-import { as, bool, color, num, text, type ModelDef } from "./fields";
+import { as, bool, choice, color, num, text, type ModelDef } from "./fields";
 
 const logoFields = (maxW: number) => [
   num("width", "Largura da arte", 15, maxW, { step: 1 }),
@@ -130,6 +130,10 @@ export const TEXT_KITCHEN_MODELS: ModelDef[] = [
           num("height", "Altura da forma", 8, 40, { step: 1 }),
           num("wall", "Parede", 1.2, 3),
           num("clearance", "Folga do êmbolo", 0.2, 1, { step: 0.05, hint: "0,4 costuma deslizar bem." }),
+          choice("bottom", "Fundo do doce", [["flat", "Plano"], ["round", "Borda arredondada"], ["dome", "Domo"]]),
+          num("radius", "Raio da borda", 0.5, 8, { hint: "Vale para a borda arredondada." }),
+          num("domeHeight", "Altura do domo", 1, 12, { hint: "Vale para o domo." }),
+          num("smooth", "Suavização do domo", 0, 1, { step: 0.05, unit: "", hint: "0 = cone, 1 = doce mais redondo." }),
           color("frameColor", "Forma"),
           color("ejectorColor", "Êmbolo"),
         ],
