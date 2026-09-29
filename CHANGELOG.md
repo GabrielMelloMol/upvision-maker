@@ -4,6 +4,7 @@ Cada versão aparece para a usuária na tela "O que há de novo" depois da atual
 Formato: `## <versão> — <data>` e itens `- …` em linguagem simples.
 
 ## Próxima versão (vira "## 0.6.1 — data" ou "## 0.7.0 — data" ao publicar; até lá o app não mostra)
+- **Potência da fonte × consumo**: se a potência da impressora for mais que o dobro do consumo médio dela (ex.: 350 W da etiqueta da A1, que gasta ~95 W imprimindo), a calculadora avisa e o botão "Usar 95 W" corrige a conta e o cadastro.
 - **Nome da peça** no topo da calculadora. Ao importar o arquivo do fatiador ele vem preenchido (nome do objeto no 3MF ou do arquivo, sem extensão). Vai junto para o produto e o orçamento.
 - **Gramas do Cura pela densidade certa**: o Cura só informa metros; agora as gramas usam a densidade do material do filamento escolhido (PETG, ABS, TPU…) e o diâmetro do fio, e a linha mostra qual densidade foi usada.
 - **Avisos de valor estranho** na calculadora: preço do kg, gramas, horas, potência, taxa de falha ou comissão fora do normal (quase sempre erro de digitação, como 1000 g no lugar de 100 g). O cálculo continua, e "Está certo" some com o aviso.

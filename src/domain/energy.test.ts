@@ -1,5 +1,5 @@
 import { expect, test } from "vitest";
-import { addKwhHistory, BILL_FLAGS, kwhFromBill, kwhWarning, plugWatts, type KwhEntry } from "./energy";
+import { addKwhHistory, BILL_FLAGS, kwhFromBill, kwhWarning, plugWatts, type KwhEntry, looksLikePsuWatts } from "./energy";
 
 test("preço do kWh = total ÷ kWh, somando o adicional da bandeira (ANEEL)", () => {
   expect(kwhFromBill(276, 300, "verde")).toBe(0.92);
@@ -42,4 +42,10 @@ test("tomada medidora: avisa impressão curta, valor longe do catálogo e leitur
   expect(plugWatts({ startKwh: 10, endKwh: 10.2, hours: 2 }, 95).warnings).toEqual([]); // 100 W, perto de 95
   expect(plugWatts({ startKwh: 10, endKwh: 9, hours: 2 }).watts).toBeNull();
   expect(plugWatts({ startKwh: 10, endKwh: 11, hours: 0 }).watts).toBeNull();
+});
+
+test("potência da fonte: só acima de 2× o consumo médio do catálogo (#40)", () => {
+  expect(looksLikePsuWatts(350, 95)).toBe(true);
+  expect(looksLikePsuWatts(190, 95)).toBe(false);
+  expect(looksLikePsuWatts(350, undefined)).toBe(false);
 });

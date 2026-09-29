@@ -7,6 +7,7 @@ import type { Db } from "../db/types";
 import { calculate, failureFor, machineHourCost } from "../domain/calc";
 import { findCatalogPrinter, printerLabel } from "../domain/catalog/printers";
 import { staleChannelText } from "../domain/channels";
+import { looksLikePsuWatts } from "../domain/energy";
 import { sanityWarnings } from "../domain/sanity";
 import Alert from "../ui/Alert";
 import { fixedCostPerHour } from "../domain/finance";
@@ -126,6 +127,9 @@ export default function Calculator({ go }: { go: Go }) {
     consumer: r.consumer,
     unitCost: r.unitCost,
   }).filter((w) => !dismissed.includes(w.key));
+  // potência da fonte (etiqueta) no lugar do consumo: com o catálogo dá para sugerir o valor certo (#40)
+  const psuFix = looksLikePsuWatts(num(f.watts), catalog?.watts) ? catalog : undefined;
+  const shownWarnings = psuFix ? warnings.filter((w) => !w.key.startsWith("w:")) : warnings;
   const staleFees = Object.fromEntries(data.settings.channels.flatMap((c) => {
     const t = staleChannelText(c, todayIso());
     return t ? [[c.name, t]] : [];
@@ -187,7 +191,7 @@ export default function Calculator({ go }: { go: Go }) {
   }
 
   /** W medido na tomada: vale para esta conta e, com impressora escolhida, fica gravado nela. */
-  async function usePlug(watts: number) {
+  async function applyWatts(watts: number) {
     setPlugOpen(false);
     setF((cur) => ({ ...cur, watts: String(watts) }));
     if (!printer) return;
@@ -239,7 +243,7 @@ export default function Calculator({ go }: { go: Go }) {
 
   return (
     <div className="page">
-      {plugOpen && <PlugSheet catalogWatts={catalog?.watts} onUse={usePlug} onClose={() => setPlugOpen(false)} />}
+      {plugOpen && <PlugSheet catalogWatts={catalog?.watts} onUse={applyWatts} onClose={() => setPlugOpen(false)} />}
       <h1>Calculadora de preço</h1>
       <div className="row" style={{ gap: "var(--space-3)", marginBottom: "var(--space-3)" }}>
         <Segmented label="Modo da calculadora" value={mode} onChange={setMode} options={MODES} />
@@ -341,7 +345,15 @@ export default function Calculator({ go }: { go: Go }) {
         </div>
 
         <aside className="calc-summary" aria-live="polite">
-          {warnings.map((w) => (
+          {psuFix && (
+            <Alert kind="warn">
+              {num(f.watts)} W parece a potência da fonte (a da etiqueta), não o consumo. Imprimindo, a {printerLabel(psuFix)} gasta em média ~{psuFix.watts} W.{" "}
+              <button type="button" className="link" onClick={() => void applyWatts(psuFix.watts)}>
+                Usar {psuFix.watts} W
+              </button>
+            </Alert>
+          )}
+          {shownWarnings.map((w) => (
             <Alert key={w.key} kind="warn">
               {w.text}{" "}
               <button type="button" className="link" onClick={() => setDismissed([...dismissed, w.key])}>

@@ -56,3 +56,8 @@ export function plugWatts(m: { startKwh: number; endKwh: number; hours: number }
     warnings.push(`Bem diferente do catálogo (${catalogWatts} W). Confira os números do app da tomada.`);
   return { watts, warnings };
 }
+
+/** Acima de 2× o consumo médio do catálogo, o número digitado quase sempre é o da fonte (etiqueta), não o consumo. */
+export const PSU_FACTOR = 2;
+export const looksLikePsuWatts = (typed: number, catalogWatts: number | undefined): catalogWatts is number =>
+  !!catalogWatts && catalogWatts > 0 && typed > PSU_FACTOR * catalogWatts;
