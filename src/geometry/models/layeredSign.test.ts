@@ -69,4 +69,13 @@ describe("letreiro em camadas (#48)", () => {
   test("sem texto: prévia vazia", () => {
     expect(() => build({ line1: "", line2: "" })).toThrow("Digite pelo menos uma linha");
   });
+
+  test("QR ao lado do texto, com a base cobrindo o quadrado do QR", () => {
+    const [m] = build({ qr: "https://exemplo.com" }).models;
+    const qr = meshBounds([part(m, "QR")!.mesh])!, txt = meshBounds([part(m, "Linha 2")!.mesh])!, base = meshBounds([m.parts[0].mesh])!;
+    expect(qr.min[0]).toBeGreaterThan(txt.max[0]);
+    expect(qr.max[0] - qr.min[0]).toBeCloseTo(D.qrSize, 0);
+    expect(base.max[0]).toBeGreaterThan(qr.max[0] + D.border - 0.5);
+    expect(qr.min[2]).toBeCloseTo(D.baseThickness);
+  });
 });

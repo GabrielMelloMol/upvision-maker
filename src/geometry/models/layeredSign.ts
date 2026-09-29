@@ -1,7 +1,9 @@
+import { qrMatrix } from "../../domain/qr";
 import type { CS } from "../manifold";
+import { qrModel } from "../qr3d";
 import { fitInto, outerOnly, scoped } from "../shape2d";
 import type { Model, Part } from "../types";
-import { artParts, backing, MissingInput, plateStand, size2, slab, solidMesh, union, type ModelCtx, type ModelOutput } from "./common";
+import { artParts, backing, MissingInput, moveMesh, plateStand, size2, slab, solidMesh, union, type ModelCtx, type ModelOutput } from "./common";
 import { ornament, type Ornament } from "./shapes";
 
 export type SignMount = "none" | "stand" | "hang";
@@ -29,6 +31,9 @@ export type LayeredSignParams = {
   fillHoles: boolean;
   artHeight: number; // imagem ao lado do texto (se enviada)
   artColor: string;
+  qr: string; // link ou texto do QR ao lado (vazio = sem QR)
+  qrSize: number;
+  qrColor: string;
   ornament: "none" | Ornament;
   ornamentSize: number;
   ornamentColor: string;
@@ -61,6 +66,9 @@ export const DEFAULT_LAYERED_SIGN: LayeredSignParams = {
   fillHoles: false,
   artHeight: 40,
   artColor: "#c9a227",
+  qr: "",
+  qrSize: 30,
+  qrColor: "#1c1c1e",
   ornament: "none",
   ornamentSize: 16,
   ornamentColor: "#d6262e",
@@ -113,6 +121,7 @@ export function buildLayeredSign(ctx: ModelCtx, p: LayeredSignParams): ModelOutp
     });
 
     const extras: CS[] = [];
+    const warnings: string[] = [];
     if (ctx.art) {
       const placed = k(fitInto(ctx.art, 1e6, p.artHeight, cy));
       const [aw] = size2(placed);
@@ -120,16 +129,24 @@ export function buildLayeredSign(ctx: ModelCtx, p: LayeredSignParams): ModelOutp
       extras.push(moved);
       parts.push(...artParts(ctx, moved, p.artColor, "Imagem", p.relief, p.baseThickness));
     }
+    let right = tb.max[0];
+    if (p.qr.trim()) {
+      const qr = qrModel(M, qrMatrix(p.qr.trim()), { sizeMm: p.qrSize, baseMm: p.baseThickness, reliefMm: p.relief, quiet: 0, qrColor: p.qrColor });
+      const x = right + GAP + p.qrSize / 2;
+      extras.push(k(M.CrossSection.square([p.qrSize, p.qrSize], true).translate([x, cy])));
+      parts.push({ name: "QR", color: p.qrColor, mesh: moveMesh(qr.model.parts[1].mesh, x, cy) });
+      warnings.push(...qr.warnings);
+      right = x + p.qrSize / 2;
+    }
     if (p.ornament !== "none") {
       const o = k(ornament(M, p.ornament, p.ornamentSize));
       const [ow] = size2(o);
-      const moved = k(o.translate([tb.max[0] + GAP + ow / 2, tb.max[1] - p.ornamentSize / 2]));
+      const moved = k(o.translate([right + GAP + ow / 2, tb.max[1] - p.ornamentSize / 2]));
       extras.push(moved);
       parts.push({ name: "Enfeite", color: p.ornamentColor, mesh: slab(moved, p.relief, p.baseThickness) });
     }
 
     let base = k(backing(M, k(union(M, [textAll, ...extras])), p.border));
-    const warnings: string[] = [];
     if (p.mount === "hang") {
       const bb = base.bounds();
       const y = bb.max[1] - HANG_INSET;
