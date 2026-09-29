@@ -20,6 +20,8 @@ export type SlicerApply = {
   printerWatts: number | null;
   seconds?: number;
   pieces?: number;
+  /** Nome da peça sugerido pelo arquivo. */
+  name?: string;
 };
 
 type Props = {
@@ -61,6 +63,7 @@ export default function SlicerImport({ stock, printers, onApply, onStockAdded }:
       printerWatts: printer?.watts ?? null,
       seconds: r.seconds,
       pieces: r.pieces,
+      name: r.name,
     });
   };
 

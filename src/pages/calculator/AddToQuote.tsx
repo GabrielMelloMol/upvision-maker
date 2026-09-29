@@ -11,8 +11,8 @@ type Props = {
   unitCost: number;
   pieces: number;
   printMinutes: number;
+  /** Vem do campo "Nome da peça" no topo da calculadora. */
   name: string;
-  onName: (v: string) => void;
   /** Itens no rascunho (a tabela por quantidade também soma nele). */
   count: number;
   onAdded: (count: number) => void;
@@ -20,7 +20,7 @@ type Props = {
 };
 
 /** Soma o cálculo atual como item avulso num rascunho de orçamento (peças únicas que não viram produto). */
-export default function AddToQuote({ rows, unitCost, pieces, printMinutes, name, onName, count, onAdded, onOpen }: Props) {
+export default function AddToQuote({ rows, unitCost, pieces, printMinutes, name, count, onAdded, onOpen }: Props) {
   const priced = rows.filter((r) => r.price !== null);
   const [choice, setChoice] = useState(priced[0]?.name ?? "");
   const toast = useToast();
@@ -38,10 +38,7 @@ export default function AddToQuote({ rows, unitCost, pieces, printMinutes, name,
       <h2 className="card-title">
         <FilePlus aria-hidden /> Orçamento
       </h2>
-      <label>
-        Nome da peça
-        <input value={name} maxLength={200} placeholder="Peça impressa em 3D" onChange={(e) => onName(e.target.value)} />
-      </label>
+      <p className="hint">Item: {name.trim() || "Peça impressa em 3D"} (o nome vem do topo da calculadora)</p>
       <label>
         Preço
         <select value={row?.name ?? ""} onChange={(e) => setChoice(e.target.value)}>

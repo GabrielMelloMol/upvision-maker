@@ -1,5 +1,5 @@
 import { Clock, Cylinder, Package, Plus, Store, Zap } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { getDb } from "../db";
 import { costsRepo } from "../db/costsRepo";
 import { filaments, loadSettings, materials, printers } from "../db/repo";
@@ -133,6 +133,8 @@ export default function Calculator({ go }: { go: Go }) {
   const rows = compareChannels(r, data.settings, price(f.freight), { rounding, competitor: price(competitor), hours: printMin / 60, qty: num(f.quantity) });
 
   /** Preenche a calculadora com o que o arquivo do fatiador informou. */
+  // nome que veio do último arquivo: um arquivo novo só troca o nome se a pessoa não digitou outro
+  const autoName = useRef("");
   function applySlicer(a: SlicerApply) {
     const brl = (n: number) => formatMoneyInput(String(n));
     setFil(
@@ -144,7 +146,9 @@ export default function Calculator({ go }: { go: Go }) {
       watts: a.printerWatts !== null ? str(a.printerWatts) : cur.watts,
       time: a.seconds !== undefined ? formatDuration(Math.round(a.seconds / 60)) : cur.time,
       quantity: a.pieces ? String(a.pieces) : cur.quantity,
+      name: a.name && (!cur.name.trim() || cur.name === autoName.current) ? a.name : cur.name,
     }));
+    if (a.name) autoName.current = a.name;
   }
 
   /** Leva a composição atual para um produto novo (só linhas com filamento/material cadastrado). */
@@ -163,6 +167,7 @@ export default function Calculator({ go }: { go: Go }) {
       laborMinutes: laborMin,
       piecesPerPlate: Math.max(1, Math.floor(num(f.quantity)) || 1),
       freight: price(f.freight),
+      ...(f.name.trim() && { name: f.name.trim() }),
     });
     go("products");
   }
@@ -249,6 +254,10 @@ export default function Calculator({ go }: { go: Go }) {
       </p>
       <div className="calc-layout">
         <div>
+          <label className="piece-name">
+            Nome da peça
+            <input value={f.name} maxLength={200} placeholder="Ex.: Chaveiro coração" onChange={set("name")} />
+          </label>
           {mode === "quick" ? (
             <section className="card">
               <h2 className="card-title">
@@ -356,7 +365,6 @@ export default function Calculator({ go }: { go: Go }) {
             pieces={num(f.quantity)}
             printMinutes={printMin}
             name={f.name}
-            onName={setText("name")}
             count={draftCount}
             onAdded={setDraftCount}
             onOpen={() => go("quotes")}

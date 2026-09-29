@@ -20,10 +20,20 @@ test("calculadora: importa o 3MF fatiado do Bambu e preenche filamentos, tempo, 
   await expect(page.getByLabel("Tempo de impressão")).toHaveValue("21 min");
   await expect(page.getByLabel("Peças na mesa")).toHaveValue("3");
   await expect(page.getByLabel("Potência (W)")).toHaveValue("110");
+  // #41: o nome da peça vem do arquivo (3 objetos com nomes diferentes → nome do arquivo, sem extensão e sem "-")
+  await expect(page.getByLabel("Nome da peça")).toHaveValue("bambu a1 2cores fatiado");
 
   // trocar o casamento de um filamento atualiza o preço da linha
   await page.getByLabel("Filamento cadastrado para o filamento 2").selectOption({ label: "PLA · Azul · Bambu" });
   await expect(page.getByLabel("Preço por kg").nth(1)).toHaveValue("120,00");
+
+  // nome digitado não é trocado ao importar de novo; e vai para o rascunho de produto
+  await page.getByLabel("Nome da peça").fill("Chaveiros da turma");
+  await page.locator(".card", { hasText: "Importar do fatiador" }).locator('input[type="file"]').setInputFiles(fixture("bambu-a1-2cores-fatiado.3mf"));
+  await expect(page.getByText("Lido de")).toBeVisible();
+  await expect(page.getByLabel("Nome da peça")).toHaveValue("Chaveiros da turma");
+  await page.getByRole("button", { name: "Salvar como produto" }).click();
+  await expect(page.getByRole("dialog").getByLabel("Nome", { exact: true })).toHaveValue("Chaveiros da turma");
 });
 
 test("calculadora: 3MF sem fatiar explica o que fazer", async ({ page, tauri }) => {

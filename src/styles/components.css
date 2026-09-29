@@ -137,6 +137,7 @@ tr.restock > td { background: var(--surface-2); animation: fade-up var(--dur) va
 
 /* Calculadora: entradas + resumo fixo */
 .calc-layout { display: grid; grid-template-columns: 1fr minmax(300px, 380px); gap: var(--space-5); align-items: start; }
+.piece-name { max-width: 420px; margin-bottom: var(--space-4); }
 .calc-summary { position: sticky; top: 64px; }
 .calc-summary .hero { display: grid; gap: 2px; background: linear-gradient(160deg, var(--surface), var(--surface-2)); }
 .calc-summary .big { font-family: var(--font-display); font-size: 40px; line-height: 1.1; font-weight: 700; letter-spacing: -0.03em; font-variant-numeric: tabular-nums; animation: fade-up var(--dur) var(--ease-out) both; }

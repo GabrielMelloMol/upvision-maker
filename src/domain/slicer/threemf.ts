@@ -1,5 +1,5 @@
 import { strFromU8, unzipSync } from "fflate";
-import { round2, type SlicerFilament, type SlicerReport } from "./types";
+import { pieceName, round2, type SlicerFilament, type SlicerReport } from "./types";
 
 const attrs = (tag: string) => Object.fromEntries([...tag.matchAll(/([\w-]+)="([^"]*)"/g)].map((m) => [m[1], m[2]]));
 
@@ -17,10 +17,13 @@ export function parse3mf(bytes: Uint8Array): SlicerReport {
   const byId = new Map<number, SlicerFilament>();
   let seconds = 0;
   let pieces = 0;
+  const names = new Set<string>();
   for (const plate of plates) {
     const meta = Object.fromEntries([...plate.matchAll(/<metadata\s+key="([^"]+)"\s+value="([^"]*)"/g)].map((m) => [m[1], m[2]]));
     seconds += Number(meta.prediction) || 0;
-    pieces += [...plate.matchAll(/<object\b([^>]*)\/?>/g)].filter((m) => attrs(m[1]).skipped !== "true").length;
+    const objects = [...plate.matchAll(/<object\b([^>]*)\/?>/g)].map((m) => attrs(m[1])).filter((a) => a.skipped !== "true");
+    pieces += objects.length;
+    for (const o of objects) if (o.name) names.add(pieceName(o.name));
     for (const m of plate.matchAll(/<filament\b([^>]*)\/?>/g)) {
       const a = attrs(m[1]);
       const id = Number(a.id);
@@ -37,5 +40,6 @@ export function parse3mf(bytes: Uint8Array): SlicerReport {
   } catch {
     printer = undefined;
   }
-  return { source: "Bambu Studio / OrcaSlicer (3MF)", printer, seconds: seconds || undefined, pieces: pieces || undefined, filaments, warnings: plates.length > 1 ? [`O projeto tem ${plates.length} mesas: os valores foram somados.`] : [] };
+  const [only] = names;
+  return { source: "Bambu Studio / OrcaSlicer (3MF)", name: names.size === 1 && only ? only : undefined, printer, seconds: seconds || undefined, pieces: pieces || undefined, filaments, warnings: plates.length > 1 ? [`O projeto tem ${plates.length} mesas: os valores foram somados.`] : [] };
 }

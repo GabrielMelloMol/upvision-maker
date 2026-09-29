@@ -1,7 +1,7 @@
 import { parseBgcode } from "./bgcode";
 import { parseGcodeText } from "./gcodeText";
 import { parse3mf } from "./threemf";
-import type { SlicerReport } from "./types";
+import { pieceName, type SlicerReport } from "./types";
 
 export type { SlicerFilament, SlicerReport } from "./types";
 export const SLICER_ACCEPT = ".3mf,.gcode,.gco,.g,.bgcode";
@@ -9,6 +9,11 @@ const MAX_BYTES = 200 * 1024 * 1024;
 
 /** Lê o consumo e o tempo de um arquivo de fatiador (.3mf fatiado, .gcode, .bgcode). */
 export function parseSlicerFile(name: string, bytes: Uint8Array): SlicerReport {
+  const r = parseByType(name, bytes);
+  return { ...r, name: r.name || pieceName(name) || undefined };
+}
+
+function parseByType(name: string, bytes: Uint8Array): SlicerReport {
   if (bytes.length > MAX_BYTES) throw new Error("Arquivo maior que 200 MB.");
   const ext = name.toLowerCase().split(".").pop();
   if (ext === "3mf") return parse3mf(bytes);

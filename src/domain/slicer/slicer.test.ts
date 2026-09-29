@@ -1,7 +1,9 @@
 import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
 import { describe, expect, test } from "vitest";
+import { strFromU8, strToU8, unzipSync, zipSync } from "fflate";
 import { parseSlicerFile } from "./index";
+import { pieceName } from "./types";
 
 const fx = (name: string) => new Uint8Array(readFileSync(resolve(__dirname, "../../../tests/fixtures/slicer", name)));
 const parse = (name: string) => parseSlicerFile(name, fx(name));
@@ -85,5 +87,24 @@ describe("importar arquivo do fatiador", () => {
     expect(() => parseSlicerFile("x.stl", new Uint8Array([1, 2, 3]))).toThrow(/3MF, G-code/);
     expect(() => parseSlicerFile("x.3mf", new Uint8Array([1, 2, 3]))).toThrow();
     expect(() => parseSlicerFile("x.gcode", new TextEncoder().encode("G1 X1\nG1 X2\n"))).toThrow(/não encontrei/i);
+  });
+});
+
+describe("nome da peça", () => {
+  test("nome do arquivo sem extensões de fatiador, com _ e - viram espaço", () => {
+    expect(pieceName("chaveiro_coracao-v2.gcode.3mf")).toBe("chaveiro coracao v2");
+    expect(pieceName("C:\\\\Downloads\\\\Topo__de-bolo.bgcode")).toBe("Topo de bolo");
+    expect(pieceName("vaso.stl.gcode")).toBe("vaso");
+  });
+
+  test("3MF com vários objetos de nomes diferentes usa o nome do arquivo", () => {
+    expect(parse("bambu-a1-2cores-fatiado.3mf").name).toBe("bambu a1 2cores fatiado");
+  });
+
+  test("3MF com um objeto só usa o nome do objeto", () => {
+    const zip = unzipSync(fx("bambu-a1-2cores-fatiado.3mf"));
+    const info = strFromU8(zip["Metadata/slice_info.config"]).replace(/name="(Ana|Bia|Caio)"/g, 'name="Chaveiro_Ana.stl"');
+    const one = zipSync({ ...zip, "Metadata/slice_info.config": strToU8(info) });
+    expect(parseSlicerFile("projeto.3mf", one).name).toBe("Chaveiro Ana");
   });
 });
