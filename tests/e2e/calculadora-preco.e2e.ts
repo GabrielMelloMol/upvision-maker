@@ -56,3 +56,30 @@ test("por que meu preço é diferente: 4 diferenças com os números da tela (#4
   await sheet.getByRole("button", { name: "Entendi" }).click();
   await expect(sheet).toBeHidden();
 });
+
+test("comparar cenários: guarda A, muda a tela (B), mostra a diferença e troca A ↔ B (#44)", async ({ page, tauri }) => {
+  await openApp(page);
+  tauri.db.exec(`INSERT INTO printers (name, watts) VALUES ('A1', 95);
+    INSERT INTO filaments (material, color, brand, pricePerKg, spoolG, stockG, minG) VALUES ('PLA', 'Azul', 'Bambu', 120, 1000, 800, 200), ('PLA', 'Branco', 'Bambu', 110, 1000, 900, 200);`);
+  await go(page, "Calculadora");
+  await page.getByRole("button", { name: "Completo" }).click();
+  await page.locator(".card", { hasText: "Importar do fatiador" }).locator('input[type="file"]').setInputFiles(resolve("tests/fixtures/slicer/bambu-a1-2cores-fatiado.3mf"));
+  await page.getByLabel("Nome da peça").fill("3 na mesa");
+  await page.getByRole("button", { name: /Comparar com outro cenário/ }).click();
+
+  const card = page.getByRole("region", { name: "Comparar cenários" });
+  await expect(card.locator("tbody tr").filter({ hasText: "Custo por peça" })).toContainText("igual");
+  await page.getByLabel("Nome da peça").fill("1 na mesa");
+  await page.getByLabel("Peças na mesa").fill("1");
+  const cost = card.locator("tbody tr").filter({ hasText: "Custo por peça" });
+  await expect(cost).toContainText("(pior)"); // 1 peça por mesa: custo por peça sobe
+  await expect(card.locator("thead")).toContainText("A · 3 na mesa");
+  await expect(card.locator("thead")).toContainText("B · 1 na mesa");
+  if (SHOTS) await card.screenshot({ path: `${SHOTS}/comparar-cenarios.png` });
+
+  await card.getByRole("button", { name: "Trocar A e B" }).click();
+  await expect(page.getByLabel("Peças na mesa")).toHaveValue("3");
+  await expect(cost).toContainText("(melhor)");
+  await card.getByRole("button", { name: "Fechar comparação" }).click();
+  await expect(card).toHaveCount(0);
+});

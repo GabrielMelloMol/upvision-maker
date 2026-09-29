@@ -138,6 +138,13 @@ tr.restock > td { background: var(--surface-2); animation: fade-up var(--dur) va
 /* Calculadora: entradas + resumo fixo */
 .calc-layout { display: grid; grid-template-columns: 1fr minmax(300px, 380px); gap: var(--space-5); align-items: start; }
 .piece-name { max-width: 420px; margin-bottom: var(--space-4); }
+/* Comparar cenários (#44) */
+.compare { margin-top: var(--space-5); overflow-x: auto; }
+.compare .compare-head { align-items: center; gap: var(--space-2); }
+.compare .compare-head h2 { flex: 1; margin: 0; }
+.compare table { margin-top: var(--space-2); }
+.diff-good { color: var(--ok); } .diff-bad { color: var(--danger); }
+.diff-good small, .diff-bad small { font-size: var(--text-xs); }
 /* Últimos cálculos (#43) */
 .calc-history { margin-top: var(--space-5); overflow-x: auto; }
 .calc-history td.actions > div { display: flex; gap: var(--space-1); justify-content: flex-end; white-space: nowrap; }

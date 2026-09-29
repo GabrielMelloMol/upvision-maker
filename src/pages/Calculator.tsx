@@ -1,4 +1,4 @@
-import { Clock, Cylinder, Package, Plus, Store, Zap } from "lucide-react";
+import { Clock, Columns2, Cylinder, Package, Store, Zap } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { getDb } from "../db";
 import { costsRepo } from "../db/costsRepo";
@@ -30,6 +30,10 @@ import PlugSheet from "./calculator/PlugSheet";
 import PrinterCatalogButton from "./calculator/PrinterCatalogButton";
 import AddToQuote from "./calculator/AddToQuote";
 import HistoryCard, { useCalcHistory } from "./calculator/History";
+import Compare from "./calculator/Compare";
+import Lines, { newLine } from "./calculator/Lines";
+import { scenarioSummary, type ScenarioSummary } from "../domain/scenario";
+import type { Saved } from "./calculator/saved";
 import PriceSplit from "./calculator/PriceSplit";
 import PriceDiffLink from "./calculator/PriceDiffSheet";
 import TestPrice from "./calculator/TestPrice";
@@ -39,7 +43,6 @@ import { peekQuoteDraft } from "./quotes/draft";
 import { CostBreakdown, PriceHero } from "./calculator/Result";
 import { EMPTY_FORM, loadSaved, storeSaved, type CalcForm, type Line } from "./calculator/saved";
 
-type Option = { id: number; label: string; price: number };
 type Mode = "quick" | "full";
 const MODES = [
   ["quick", "Rápido"],
@@ -62,7 +65,6 @@ async function load(db: Db) {
 const num = (s: string) => parseDecimal(s) || 0;
 /** Preço digitado ("R$ 1.234,56", "15,9") → número; vazio conta como 0. */
 const price = (s: string) => parseMoney(s) || 0;
-const newLine = (): Line => ({ ref: "", price: "", qty: "" });
 const str = (n: number) => String(n).replace(".", ",");
 const REFERENCE = "Ex.: Bambu A1 95 W · Ender-3 110 W";
 
@@ -78,6 +80,7 @@ export default function Calculator({ go }: { go: Go }) {
   const [competitor, setCompetitor] = useState("");
   const [plugOpen, setPlugOpen] = useState(false);
   const [dismissed, setDismissed] = useState<string[]>([]); // avisos de valor fora do normal marcados "está certo"
+  const [scenarioA, setScenarioA] = useState<{ snap: Saved; sum: ScenarioSummary } | null>(null); // #44
   const [draftCount, setDraftCount] = useState(() => peekQuoteDraft()?.items.length ?? 0);
   const toast = useToast();
   const printMin = parseDuration(f.time) || 0;
@@ -137,22 +140,24 @@ export default function Calculator({ go }: { go: Go }) {
     const t = staleChannelText(c, todayIso());
     return t ? [[c.name, t]] : [];
   }));
-  const history = useCalcHistory(
-    { mode, fil, ext, printerId, f },
-    { name: f.name.trim(), grams: fil.reduce((t, l) => t + num(l.qty), 0), hours: printMin / 60, price: r.consumer },
-    r.unitCost > 0,
-  );
-  function reopen(e: Parameters<typeof history.reopen>[0]) {
-    const s = history.reopen(e);
-    if (!s) return;
+  const snapshot: Saved = { mode, fil, ext, printerId, f };
+  const grams = fil.reduce((t, l) => t + num(l.qty), 0);
+  const history = useCalcHistory(snapshot, { name: f.name.trim(), grams, hours: printMin / 60, price: r.consumer }, r.unitCost > 0);
+  function loadSnapshot(s: Saved) {
     setFil(s.fil.length ? s.fil : [newLine()]);
     setExt(s.ext);
     setPrinterId(s.printerId);
     setF(s.f);
     setMode(s.mode);
+  }
+  function reopen(e: Parameters<typeof history.reopen>[0]) {
+    const s = history.reopen(e);
+    if (!s) return;
+    loadSnapshot(s);
     window.scrollTo({ top: 0, behavior: "smooth" });
   }
   const rows = compareChannels(r, data.settings, price(f.freight), { rounding, competitor: price(competitor), hours: printMin / 60, qty: num(f.quantity) });
+  const current = scenarioSummary(f.name.trim(), r, rows, grams, printMin / 60);
 
   /** Preenche a calculadora com o que o arquivo do fatiador informou. */
   // nome que veio do último arquivo: um arquivo novo só troca o nome se a pessoa não digitou outro
@@ -391,6 +396,11 @@ export default function Calculator({ go }: { go: Go }) {
             )}
           </PriceHero>
           <PriceDiffLink r={r} s={data.settings} failurePct={failure.pct} watts={num(f.watts)} />
+          {!scenarioA && r.unitCost > 0 && (
+            <button type="button" className="link" style={{ textAlign: "left" }} onClick={() => setScenarioA({ snap: snapshot, sum: current })}>
+              <Columns2 aria-hidden size={14} /> Comparar com outro cenário (guarda este como A)
+            </button>
+          )}
           <AddToQuote
             rows={rows}
             unitCost={r.unitCost}
@@ -405,6 +415,17 @@ export default function Calculator({ go }: { go: Go }) {
           {mode === "full" && <PriceSplit r={r} rows={rows} freight={price(f.freight)} />}
         </aside>
       </div>
+      {scenarioA && (
+        <Compare
+          a={scenarioA.sum}
+          b={current}
+          onSwap={() => {
+            setScenarioA({ snap: snapshot, sum: current });
+            loadSnapshot(scenarioA.snap);
+          }}
+          onClose={() => setScenarioA(null)}
+        />
+      )}
 
       {mode === "full" && (
         <ChannelTable rows={rows} minMarginPct={data.settings.minMarginPct} target={data.settings.targetProfitPerHour} stale={staleFees}>
@@ -447,37 +468,3 @@ export default function Calculator({ go }: { go: Go }) {
     </div>
   );
 }
-
-/** `single`: só a linha, sem adicionar/remover (modo rápido). */
-function Lines(props: { lines: Line[]; setLines: (l: Line[]) => void; options: Option[]; priceLabel: string; qtyLabel: string; addLabel: string; single?: boolean }) {
-  const { lines, setLines, options } = props;
-  const update = (i: number, patch: Partial<Line>) => setLines(lines.map((l, j) => (j === i ? { ...l, ...patch } : l)));
-  const pick = (i: number, ref: string) => {
-    const o = options.find((x) => String(x.id) === ref);
-    update(i, { ref, price: o ? formatMoneyInput(String(o.price)) : lines[i].price });
-  };
-  return (
-    <>
-      {lines.map((l, i) => (
-        <div className="row line" key={i}>
-          <label>
-            Cadastrado
-            <select value={l.ref} onChange={(e) => pick(i, e.target.value)}>
-              <option value="">Digitar preço</option>
-              {options.map((o) => <option key={o.id} value={o.id}>{o.label}</option>)}
-            </select>
-          </label>
-          <MoneyField label={props.priceLabel} value={l.price} onChange={(v) => update(i, { price: v, ref: "" })} />
-          <label>{props.qtyLabel}<input inputMode="decimal" value={l.qty} onChange={(e) => update(i, { qty: e.target.value })} /></label>
-          {!props.single && <button className="link danger" onClick={() => setLines(lines.filter((_, j) => j !== i))}>Remover</button>}
-        </div>
-      ))}
-      {!props.single && (
-        <button className="sm" onClick={() => setLines([...lines, newLine()])}>
-          <Plus aria-hidden /> {props.addLabel}
-        </button>
-      )}
-    </>
-  );
-}
-
