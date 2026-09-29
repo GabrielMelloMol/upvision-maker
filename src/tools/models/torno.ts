@@ -1,4 +1,5 @@
-import { CaseUpper, LayoutGrid, Layers, Lightbulb, Puzzle } from "lucide-react";
+import { Box, CaseUpper, LayoutGrid, Layers, Lightbulb, Puzzle } from "lucide-react";
+import { buildAlphabetCube, DEFAULT_ALPHABET_CUBE } from "../../geometry/models/alphabetCube";
 import { buildBigLetter, DEFAULT_BIG_LETTER } from "../../geometry/models/bigLetter";
 import { buildDeskOrganizer, DEFAULT_DESK_ORGANIZER } from "../../geometry/models/deskOrganizer";
 import { buildLayeredSign, DEFAULT_LAYERED_SIGN } from "../../geometry/models/layeredSign";
@@ -207,5 +208,33 @@ export const TORNO_MODELS: ModelDef[] = [
       },
     ],
     build: (ctx, p) => buildDeskOrganizer(ctx, as(p)),
+  },
+  {
+    id: "alphabetCube",
+    category: "home",
+    label: "Cubo alfabeto",
+    blurb: "Cubo de cantos arredondados com letra, número ou desenho em cada face, rente e em 2 cores; kit de nome.",
+    icon: Box,
+    font: true,
+    defaults: DEFAULT_ALPHABET_CUBE,
+    sections: [
+      {
+        title: "Faces",
+        fields: [
+          text("face1", "Frente", 2),
+          text("face2", "Direita", 2),
+          text("face3", "Trás", 2),
+          text("face4", "Esquerda", 2),
+          text("face5", "Topo", 2),
+          text("face6", "Baixo", 2),
+          text("kit", "Kit de nome (opcional)", 12, "Um cubo por letra, com a letra nas 6 faces. Ex.: ANA = 3 cubos."),
+        ],
+      },
+      {
+        title: "Tamanho e cores",
+        fields: [num("size", "Lado", 20, 80, { step: 1 }), num("radius", "Cantos", 0.5, 10), num("depth", "Profundidade do desenho", 0.6, 3), color("bodyColor", "Cubo"), color("faceColor", "Desenho")],
+      },
+    ],
+    build: (ctx, p) => buildAlphabetCube(ctx, as(p)),
   },
 ];

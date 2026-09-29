@@ -30,6 +30,7 @@ export const BATCH_FIELDS: Record<string, string[]> = {
   layeredSign: ["line1", "line2", "line3", "line4"],
   deskOrganizer: ["name"],
   cakeStand: ["name"],
+  alphabetCube: ["kit"],
 };
 
 export const MAX_COPIES = 30;
