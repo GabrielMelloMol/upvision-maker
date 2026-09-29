@@ -1,10 +1,11 @@
-import { Box, CaseUpper, LayoutGrid, Layers, Lightbulb, Puzzle, Users } from "lucide-react";
+import { Box, CaseUpper, LayoutGrid, Layers, Lightbulb, Image, Puzzle, Users } from "lucide-react";
 import { buildAlphabetCube, DEFAULT_ALPHABET_CUBE } from "../../geometry/models/alphabetCube";
 import { buildBigLetter, DEFAULT_BIG_LETTER } from "../../geometry/models/bigLetter";
 import { buildDeskOrganizer, DEFAULT_DESK_ORGANIZER } from "../../geometry/models/deskOrganizer";
 import { buildLayeredSign, DEFAULT_LAYERED_SIGN } from "../../geometry/models/layeredSign";
 import { buildLedLetter, DEFAULT_LED_LETTER } from "../../geometry/models/ledLetter";
 import { buildNamesPanel, DEFAULT_NAMES_PANEL } from "../../geometry/models/namesPanel";
+import { buildPhotoHolder, DEFAULT_PHOTO_HOLDER } from "../../geometry/models/photoHolder";
 import { buildPuzzle, DEFAULT_PUZZLE } from "../../geometry/models/puzzle";
 import { as, bool, choice, color, font, num, text, textureFields, type ModelDef, type Section } from "./fields";
 
@@ -264,5 +265,40 @@ export const TORNO_MODELS: ModelDef[] = [
       },
     ],
     build: (ctx, p) => buildNamesPanel(ctx, as(p)),
+  },
+  {
+    id: "photoHolder",
+    category: "home",
+    label: "Porta-foto com texto",
+    blurb: "Base com fenda para foto 10×15, polaroid ou medida livre e texto em relevo noutra cor.",
+    icon: Image,
+    font: true,
+    defaults: DEFAULT_PHOTO_HOLDER,
+    sections: [
+      {
+        title: "Foto e texto",
+        fields: [
+          choice("photo", "Foto", [["15x10", "15×10 deitada"], ["10x15", "10×15 em pé"], ["polaroid", "Polaroid"], ["custom", "Medida livre"]]),
+          num("photoWidth", "Largura da foto (medida livre)", 30, 230, { step: 1 }),
+          text("text", "Texto na frente", 30),
+          num("textHeight", "Altura do texto", 5, 40, { step: 1 }),
+          num("spacing", "Espaço entre letras", 0, 10, { step: 0.5 }),
+        ],
+      },
+      {
+        title: "Base e cores",
+        fields: [
+          num("depth", "Profundidade", 20, 80, { step: 1 }),
+          num("height", "Altura", 8, 40, { step: 1 }),
+          num("tilt", "Inclinação da foto", 0, 20, { step: 1, unit: "°" }),
+          num("photoThickness", "Espessura da foto", 0.1, 3, { step: 0.05 }),
+          num("clearance", "Folga da fenda", 0.2, 2, { step: 0.1 }),
+          num("textThickness", "Espessura do texto", 1, 5),
+          color("baseColor", "Base"),
+          color("textColor", "Texto"),
+        ],
+      },
+    ],
+    build: (ctx, p) => buildPhotoHolder(ctx, as(p)),
   },
 ];

@@ -5,5 +5,6 @@ export const EMOJI_FIELDS: Record<string, string[]> = {
   layeredSign: ["line1", "line2", "line3", "line4"],
   bigLetter: ["name"],
   deskOrganizer: ["name"],
+  photoHolder: ["text"],
   alphabetCube: ["face1", "face2", "face3", "face4", "face5", "face6"],
 };
