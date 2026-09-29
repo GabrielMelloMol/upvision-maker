@@ -1,6 +1,7 @@
-import { CaseUpper, Layers, Puzzle } from "lucide-react";
+import { CaseUpper, Layers, Lightbulb, Puzzle } from "lucide-react";
 import { buildBigLetter, DEFAULT_BIG_LETTER } from "../../geometry/models/bigLetter";
 import { buildLayeredSign, DEFAULT_LAYERED_SIGN } from "../../geometry/models/layeredSign";
+import { buildLedLetter, DEFAULT_LED_LETTER } from "../../geometry/models/ledLetter";
 import { buildPuzzle, DEFAULT_PUZZLE } from "../../geometry/models/puzzle";
 import { as, bool, choice, color, num, text, type ModelDef, type Section } from "./fields";
 
@@ -130,5 +131,43 @@ export const TORNO_MODELS: ModelDef[] = [
       },
     ],
     build: (ctx, p) => buildLayeredSign(ctx, as(p)),
+  },
+  {
+    id: "ledLetter",
+    category: "home",
+    label: "Letra caixa LED",
+    blurb: "Letra ou palavra oca para fita de LED: face rente, retroiluminada, tampa elevada ou face dupla.",
+    icon: Lightbulb,
+    font: true,
+    art: "Desenho no lugar do texto (opcional)",
+    defaults: DEFAULT_LED_LETTER,
+    sections: [
+      {
+        title: "Letra",
+        fields: [
+          text("text", "Letra ou palavra", 12),
+          num("height", "Altura", 60, 600, { step: 1, hint: "Acima de 256 mm a caixa sai em partes para colar." }),
+          choice("style", "Estilo", [["flush", "Face rente"], ["halo", "Retroiluminada"], ["raised", "Tampa elevada"], ["double", "Face dupla"]]),
+          text("overlay", "Nome sobreposto na frente (opcional)", 20),
+          num("overlayHeight", "Altura do nome", 10, 150, { step: 1 }),
+        ],
+      },
+      {
+        title: "Caixa e LED",
+        fields: [
+          num("depth", "Profundidade", 15, 80, { step: 1 }),
+          num("wall", "Parede", 1.2, 4),
+          num("stripWidth", "Largura da fita de LED", 3, 20, { step: 0.5 }),
+          num("wireHole", "Furo do fio", 2, 10, { step: 0.5 }),
+          num("diffuser", "Espessura do difusor", 0.4, 3),
+          num("clearance", "Folga do difusor/tampa", 0, 0.6, { step: 0.05 }),
+          num("standoff", "Afastamento da parede (retroiluminada)", 5, 40, { step: 1 }),
+          color("bodyColor", "Caixa"),
+          color("diffuserColor", "Difusor"),
+          color("overlayColor", "Nome"),
+        ],
+      },
+    ],
+    build: (ctx, p) => buildLedLetter(ctx, as(p)),
   },
 ];
