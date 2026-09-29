@@ -6,6 +6,7 @@ import { filaments, loadSettings, materials, printers } from "../db/repo";
 import type { Db } from "../db/types";
 import { calculate, machineHourCost } from "../domain/calc";
 import { findCatalogPrinter, printerLabel } from "../domain/catalog/printers";
+import { staleChannelText } from "../domain/channels";
 import { fixedCostPerHour } from "../domain/finance";
 import { parseDecimal } from "../domain/format";
 import { todayIso } from "../domain/orders";
@@ -108,6 +109,10 @@ export default function Calculator({ go }: { go: Go }) {
     data.settings,
   );
 
+  const staleFees = Object.fromEntries(data.settings.channels.flatMap((c) => {
+    const t = staleChannelText(c, todayIso());
+    return t ? [[c.name, t]] : [];
+  }));
   const rows = compareChannels(r, data.settings, price(f.freight), { rounding, competitor: price(competitor), hours: printMin / 60, qty: num(f.quantity) });
 
   /** Preenche a calculadora com o que o arquivo do fatiador informou. */
@@ -336,7 +341,7 @@ export default function Calculator({ go }: { go: Go }) {
       </div>
 
       {mode === "full" && (
-        <ChannelTable rows={rows} minMarginPct={data.settings.minMarginPct} target={data.settings.targetProfitPerHour}>
+        <ChannelTable rows={rows} minMarginPct={data.settings.minMarginPct} target={data.settings.targetProfitPerHour} stale={staleFees}>
           <div className="row" style={{ alignItems: "flex-start", flexWrap: "wrap", gap: "var(--space-4)", marginBottom: "var(--space-3)" }}>
             <div className="stack" style={{ gap: 6 }}>
               <span className="field-label">Arredondar preços</span>

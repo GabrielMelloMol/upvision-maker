@@ -21,6 +21,7 @@ Formato: `## <versão> — <data>` e itens `- …` em linguagem simples.
 - **Preço por quantidade**: para pedidos de 10, 25, 50 ou 100 unidades (lembrancinhas), a calculadora divide o preparo do pedido (atender, fatiar, trocar filamento) pela quantidade, mostra o desconto que dá para dar e avisa quando a margem fica baixa. "Usar no orçamento" já leva a linha com a quantidade.
 - **Anúncios pagos** (modo Completo): por canal, até que ROAS o anúncio se paga, quanto do preço ele pode levar e o preço que mantém a sua margem pagando o anúncio. Dá para informar o ROAS esperado ou o custo por clique × cliques até uma venda.
 - **Custo extra por venda** em cada canal (embalagem reforçada, etiqueta, brinde de marketplace): entra só no preço daquele canal.
+- **Canais prontos** para adicionar com um clique (Mercado Livre premium, Amazon, Elo7, Shein, Instagram/WhatsApp com maquininha) e a **data em que você conferiu as taxas** de cada canal; depois de 90 dias a calculadora lembra de conferir.
 - **Catálogo de impressoras bem maior**: 167 modelos de 27 marcas (UltiMaker, Snapmaker, Artillery, Raise3D, GTMax3D, Sethi3D e outras), com volume de impressão e se é aberta ou fechada. Dá para escolher do catálogo também na Calculadora e no Produto: a impressora é cadastrada na hora. A busca acha "a1", "k1c" ou "ender3".
 - **Embalagem padrão** já aparece na calculadora, e o resultado mostra o custo por grama e por hora de impressão.
 

@@ -384,3 +384,11 @@ test("anúncios pagos (#29): ROAS de equilíbrio, frase e preço com anúncio; R
   await user.type(roas, "2");
   expect(within(ads).getByRole("row", { name: /^Shopee/ })).toHaveTextContent("com este ROAS não há preço possível");
 });
+
+test("taxas conferidas há mais de 90 dias (#34): a linha do canal avisa", async () => {
+  localStorage.setItem("upvision:calculadora", JSON.stringify({ mode: "full", fil: [{ ref: "", price: "", qty: "" }], ext: [], printerId: "", f: {} }));
+  await t.db.execute(`INSERT OR REPLACE INTO settings (id, data) VALUES (1, '{"channels":[{"name":"Shopee","feePct":20,"feeFixed":4,"checkedAt":"2020-01-01"},{"name":"Elo7","feePct":18,"feeFixed":0,"checkedAt":"${new Date().toISOString().slice(0, 10)}"}]}')`);
+  renderWithApp(<Calculator go={() => {}} />);
+  await waitFor(() => expect(screen.getByRole("row", { name: /^Shopee/ })).toHaveTextContent(/Taxas da Shopee conferidas há \d+ meses: confira\./));
+  expect(screen.getByRole("row", { name: /^Elo7/ })).not.toHaveTextContent("confira");
+});

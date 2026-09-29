@@ -18,6 +18,8 @@ export const ChannelSchema = z.object({
   freeShippingAbove: z.number().positive().optional(),
   /** ...e custa isto. */
   shippingCost: z.number().min(0).optional(),
+  /** Quando a pessoa conferiu as taxas deste canal (AAAA-MM-DD); depois de 90 dias a calculadora avisa (#34). */
+  checkedAt: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).optional(),
 });
 export type Channel = z.infer<typeof ChannelSchema>;
 

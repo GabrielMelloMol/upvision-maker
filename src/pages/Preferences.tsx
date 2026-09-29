@@ -1,5 +1,5 @@
-import { Coins, Plus, Store } from "lucide-react";
-import { Fragment, useState } from "react";
+import { Coins } from "lucide-react";
+import { useState } from "react";
 import { getDb } from "../db";
 import { loadSettings, materials, saveSettings } from "../db/repo";
 import type { Db } from "../db/types";
@@ -19,6 +19,7 @@ import { formatMoneyInput, parseMoney } from "../ui/parse";
 import { addKwhHistory, type KwhEntry } from "../domain/energy";
 import { money } from "../domain/format";
 import KwhBillSheet from "./preferences/KwhBillSheet";
+import ChannelsCard, { fromChannelForm, toChannelForm } from "./preferences/ChannelsCard";
 
 type NumKey = Exclude<keyof Settings, "channels" | "kwhHistory" | "includeFixedCosts" | "multiplyLabor" | "packagingMaterialId">;
 type NumField = { key: NumKey; label: string; money?: true; hint?: string };
@@ -39,19 +40,6 @@ const EXTRA_FIELDS: NumField[] = [
 ];
 const ALL_FIELDS = [...FIELDS, ...EXTRA_FIELDS];
 const HOURS_MONTH = 8 * 30; // exemplo da dica da meta: 8 h por dia
-
-/** Faixas de preço opcionais de cada canal (#31). */
-const BANDS = [
-  ["fixedBelow", "Taxa fixa só abaixo de"],
-  ["feeCapPerItem", "Teto da comissão por item"],
-  ["freeShippingAbove", "Frete por sua conta a partir de"],
-  ["shippingCost", "Custo desse frete"],
-] as const;
-/** Campos opcionais do canal: vazio = não se aplica. */
-const OPTIONAL = [["extraPerSale", "Custo extra por venda"], ...BANDS] as const;
-type BandKey = (typeof OPTIONAL)[number][0];
-type ChannelForm = { name: string; feePct: string; feeFixed: string } & Record<BandKey, string>;
-const EMPTY_BANDS = Object.fromEntries(OPTIONAL.map(([k]) => [k, ""])) as Record<BandKey, string>;
 
 const loadPrefs = async (db: Db) => ({ settings: await loadSettings(db), materials: await materials.list(db) });
 
@@ -76,21 +64,12 @@ function PreferencesForm({ initial, materials }: { initial: Settings; materials:
   const [flags, setFlags] = useState({ includeFixedCosts: initial.includeFixedCosts, multiplyLabor: initial.multiplyLabor });
   const [packaging, setPackaging] = useState(initial.packagingMaterialId ? String(initial.packagingMaterialId) : "");
   const [nums, setNums] = useState(Object.fromEntries(ALL_FIELDS.map((f) => [f.key, f.money ? formatMoneyInput(String(initial[f.key])) : str(initial[f.key])])));
-  const [channels, setChannels] = useState(
-    initial.channels.map((c) => ({
-      name: c.name,
-      feePct: str(c.feePct),
-      feeFixed: formatMoneyInput(String(c.feeFixed)),
-      ...Object.fromEntries(OPTIONAL.map(([k]) => [k, c[k] === undefined ? "" : formatMoneyInput(String(c[k]))])),
-    }) as ChannelForm),
-  );
+  const [channels, setChannels] = useState(initial.channels.map(toChannelForm));
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [billOpen, setBillOpen] = useState(false);
   const [kwhHistory, setKwhHistory] = useState(initial.kwhHistory);
   const toast = useToast();
 
-  const setChannel = (i: number, k: keyof (typeof channels)[number], v: string) =>
-    setChannels(channels.map((c, j) => (j === i ? { ...c, [k]: v } : c)));
 
   async function submit(e: React.FormEvent) {
     e.preventDefault();
@@ -98,12 +77,7 @@ function PreferencesForm({ initial, materials }: { initial: Settings; materials:
       ...Object.fromEntries(ALL_FIELDS.map((f) => [f.key, f.money ? parseMoney(nums[f.key]) : parseDecimal(nums[f.key])])),
       ...flags,
       packagingMaterialId: packaging ? Number(packaging) : null,
-      channels: channels.map((c) => ({
-        name: c.name,
-        feePct: parseDecimal(c.feePct),
-        feeFixed: parseMoney(c.feeFixed),
-        ...Object.fromEntries(OPTIONAL.flatMap(([k]) => (c[k].trim() === "" ? [] : [[k, parseMoney(c[k])]]))), // vazio = não se aplica
-      })),
+      channels: channels.map(fromChannelForm),
     } as Omit<Settings, "kwhHistory">;
     try {
       const db = await getDb();
@@ -190,36 +164,7 @@ function PreferencesForm({ initial, materials }: { initial: Settings; materials:
         </div>
       </div>
 
-      <div className="card">
-        <h2 className="card-title">
-          <Store aria-hidden /> Canais de venda (taxas)
-        </h2>
-        <p className="hint" style={{ marginTop: -8, marginBottom: 16 }}>As taxas dos marketplaces mudam com frequência. Confira os valores atuais de cada canal.</p>
-        {channels.map((c, i) => (
-          <Fragment key={i}>
-            <div className="row line">
-              <label>Canal<input value={c.name} onChange={(e) => setChannel(i, "name", e.target.value)} /></label>
-              <label>Comissão (%)<input inputMode="decimal" value={c.feePct} onChange={(e) => setChannel(i, "feePct", e.target.value)} /></label>
-              <MoneyField label="Taxa fixa por venda" value={c.feeFixed} onChange={(v) => setChannel(i, "feeFixed", v)} />
-              <MoneyField label="Custo extra por venda" value={c.extraPerSale} placeholder="0,00" hint="Só neste canal: embalagem reforçada, etiqueta, brinde." onChange={(v) => setChannel(i, "extraPerSale", v)} />
-              <button type="button" className="link danger" onClick={() => setChannels(channels.filter((_, j) => j !== i))}>Remover</button>
-            </div>
-            <details style={{ marginBottom: "var(--space-3)" }}>
-              <summary>Faixas de preço{BANDS.some(([k]) => c[k].trim()) ? " (em uso)" : ""}</summary>
-              <p className="hint">Quando as taxas mudam com o preço: por exemplo, a taxa fixa só vale abaixo de um valor e, acima dele, o frete fica por sua conta. Deixe em branco o que não se aplica.</p>
-              <div className="grid">
-                {BANDS.map(([k, label]) => (
-                  <MoneyField key={k} label={`${label} (${c.name || "canal"})`} value={c[k]} placeholder="—" onChange={(v) => setChannel(i, k, v)} />
-                ))}
-              </div>
-            </details>
-          </Fragment>
-        ))}
-        <button type="button" className="sm" onClick={() => setChannels([...channels, { name: "", feePct: "0", feeFixed: "0", ...EMPTY_BANDS }])}>
-          <Plus aria-hidden /> Adicionar canal
-        </button>
-        {errors.channels && <p className="error">Confira os canais: nome obrigatório e comissão entre 0 e 100%.</p>}
-      </div>
+      <ChannelsCard channels={channels} setChannels={setChannels} error={errors.channels} />
       {errors._ && <p className="error">{errors._}</p>}
       <button className="primary" type="submit">Salvar preferências</button>
     </form>

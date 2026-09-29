@@ -11,7 +11,8 @@ export function CompetitorHint({ ours, competitor }: { ours: number; competitor:
 const pct = (n: number) => `${n.toLocaleString("pt-BR", { maximumFractionDigits: 1 })}%`;
 
 /** Preço em cada canal lado a lado, com lucro líquido depois das taxas e alertas (nunca só por cor). */
-export default function ChannelTable({ rows, minMarginPct, target, children }: { rows: ChannelRow[]; minMarginPct: number; target: number; children: React.ReactNode }) {
+/** `stale`: aviso de taxas não conferidas há mais de 90 dias, por nome de canal (#34). */
+export default function ChannelTable({ rows, minMarginPct, target, stale = {}, children }: { rows: ChannelRow[]; minMarginPct: number; target: number; stale?: Record<string, string>; children: React.ReactNode }) {
   const comp = rows.some((x) => x.atCompetitor);
   const perHour = rows.some((x) => x.profitPerHour !== null);
   const byTarget = rows.some((x) => x.targetPrice !== null);
@@ -43,6 +44,7 @@ export default function ChannelTable({ rows, minMarginPct, target, children }: {
             <tr key={c.name}>
               <td>
                 {c.name} {c.best && <span className="badge ok"><Trophy aria-hidden size={12} /> melhor lucro</span>}
+                {stale[c.name] && <span className="badge warn"><TriangleAlert aria-hidden size={12} /> {stale[c.name]}</span>}
                 {c.shippingIncluded && <span className="badge warn" title="Neste preço o frete fica por sua conta (faixas de preço do canal, Preferências)"><TriangleAlert aria-hidden size={12} /> frete obrigatório neste preço</span>}
                 {c.belowMin && <span className="badge warn" title={`Margem mínima: ${pct(minMarginPct)} (Preferências)`}><TriangleAlert aria-hidden size={12} /> abaixo da margem mínima</span>}
               </td>

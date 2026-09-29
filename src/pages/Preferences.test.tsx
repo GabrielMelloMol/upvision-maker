@@ -5,6 +5,7 @@ import { beforeEach, describe, expect, test, vi } from "vitest";
 import { renderWithApp, setupTauri } from "../test/harness";
 import AiSettingsCard from "./AiSettingsCard";
 import Preferences from "./Preferences";
+import { todayIso } from "../domain/orders";
 
 const testKey = vi.hoisted(() => vi.fn());
 vi.mock("../ai/claude", async (orig) => ({ ...(await orig<typeof import("../ai/claude")>()), testKey }));
@@ -44,7 +45,7 @@ describe("Preferences", () => {
     const s = await settings();
     expect(s).toMatchObject({ kwhPrice: 1.2, maintenancePct: 7.5 });
     expect(s.channels.map((c: { name: string }) => c.name)).toEqual(["Mercado Livre (clássico)", "TikTok Shop", "Feira"]);
-    expect(s.channels[2]).toEqual({ name: "Feira", feePct: 5, feeFixed: 1.5 });
+    expect(s.channels[2]).toEqual({ name: "Feira", feePct: 5, feeFixed: 1.5, checkedAt: expect.any(String) }); // mexer na taxa confere hoje (#34)
   });
 
   test("falhas, impostos e custos fixos (#22): horas só com custos fixos ligados; jeito antigo do multiplicador", async () => {
@@ -93,8 +94,28 @@ describe("Preferences", () => {
     await user.click(screen.getByRole("button", { name: "Salvar preferências" }));
     expect(await screen.findByText("Preferências salvas.")).toBeInTheDocument();
     const shopee = (await settings()).channels[0];
-    expect(shopee).toEqual({ name: "Shopee", feePct: 20, feeFixed: 4, extraPerSale: 2.5, freeShippingAbove: 79, shippingCost: 20 });
+    expect(shopee).toEqual({ name: "Shopee", feePct: 20, feeFixed: 4, extraPerSale: 2.5, freeShippingAbove: 79, shippingCost: 20, checkedAt: expect.any(String) });
     expect((await settings()).channels[1]).not.toHaveProperty("extraPerSale");
+  });
+
+  test("canais prontos e data de conferência (#34): adicionar, conferir hoje, mexer na taxa também confere", async () => {
+    const user = userEvent.setup();
+    renderWithApp(<Preferences />);
+    await user.selectOptions(await screen.findByLabelText("Adicionar canal pronto"), "Shein");
+    expect(screen.getByDisplayValue("Shein")).toBeInTheDocument();
+    expect(screen.getAllByText("Taxas ainda não conferidas por você.").length).toBeGreaterThan(1);
+    await user.click(screen.getByRole("button", { name: "Conferi hoje (Shopee)" }));
+    const tiktok = screen.getByDisplayValue("TikTok Shop").closest(".row")! as HTMLElement;
+    await user.clear(within(tiktok).getByLabelText("Comissão (%)"));
+    await user.type(within(tiktok).getByLabelText("Comissão (%)"), "13");
+    await user.click(screen.getByRole("button", { name: "Salvar preferências" }));
+    expect(await screen.findByText("Preferências salvas.")).toBeInTheDocument();
+    const byName = Object.fromEntries((await settings()).channels.map((c: { name: string }) => [c.name, c]));
+    const today = todayIso();
+    expect(byName.Shopee.checkedAt).toBe(today);
+    expect(byName["TikTok Shop"]).toMatchObject({ feePct: 13, checkedAt: today });
+    expect(byName.Shein).toEqual({ name: "Shein", feePct: 16, feeFixed: 0 });
+    expect(byName["Mercado Livre (clássico)"]).not.toHaveProperty("checkedAt");
   });
 
   test("calcular o kWh pela conta de luz (#2): total ÷ kWh + bandeira, usa, guarda histórico e salvar não apaga", async () => {
