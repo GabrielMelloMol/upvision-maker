@@ -23,6 +23,8 @@ import { DESIGN_ACCEPT, designFromSvg, fileToSvg } from "./designInput";
 import { MissingInput } from "../geometry/models/common";
 import { CATEGORIES, MODELS, validParams, type Category, type FieldDef, type Params, type Section } from "./models/defs";
 import { COLLECTIONS, inCollection, VARIANTS, type Collection } from "./models/variants";
+import { BATCH_FIELDS, layoutCopies, MAX_COPIES, parseBatch, PLATE_MM } from "./models/batch";
+import type { Model } from "../geometry/types";
 import "../styles/features.css";
 
 /** Minúsculas e sem acento, para a busca. */
@@ -58,6 +60,9 @@ export default function Models() {
   // ocasião ou favoritos: filtro que atravessa as categorias (como a busca)
   const [occasion, setOccasion] = useState<Collection | "favorites" | null>(null);
   const [favorites, setFavorites] = useState<string[]>(loadFavorites);
+  // lote (#76): uma linha por cópia, por modelo
+  const [batchOn, setBatchOn] = useState(false);
+  const [batchText, setBatchText] = useState<Record<string, string>>({});
   const def = MODELS.find((m) => m.id === id)!;
   const q = normalize(query.trim());
   const shown = q
@@ -115,6 +120,10 @@ export default function Models() {
   }
 
   const valid = validParams(def, p);
+  const batchKeys = BATCH_FIELDS[id];
+  const batchLabels = batchKeys?.map((k) => def.sections.flatMap((s) => s.fields).find((f) => f.k === k)?.label ?? k);
+  const batchValue = batchText[id] ?? (batchKeys ? batchKeys.map((k) => String(p[k] ?? "")).join("; ") : "");
+  const copies = batchOn && batchKeys ? parseBatch(batchValue, batchKeys) : null;
   const useArt = def.art ? art : null;
   const { models, warnings, pauses, busy, error } = useModelBuilder(async () => {
     if (!valid) return null;
@@ -129,11 +138,42 @@ export default function Models() {
       textWarn ??= textWarnings(checkText(cs), s, isCursive(font));
       return cs;
     };
+    const arc = (s: string, h: number, r: number, side: "top" | "bottom") => (s.trim() ? arcTextToCrossSection(M, f, s, h, r, side) : null);
+    const run = (params: Params) => def.build({ M, art: design?.cs ?? null, artLayers: design?.layers, text, arc }, params);
     try {
+      if (copies) {
+        // lote: uma geração por cópia, cada cópia arrumada como um bloco na mesa
+        if (!copies.length) {
+          setMissing("Digite uma linha por cópia.");
+          return null;
+        }
+        const done: { label: string; models: Model[] }[] = [];
+        const warn = new Set<string>();
+        const pauses = new Set<number>();
+        for (const [i, patch] of copies.slice(0, MAX_COPIES).entries()) {
+          try {
+            const out = run({ ...p, ...patch });
+            done.push({ label: Object.values(patch).find((v) => String(v).trim()) as string ?? `Cópia ${i + 1}`, models: out.models });
+            out.warnings?.forEach((w) => warn.add(w));
+            out.pauses?.forEach((z) => pauses.add(z));
+          } catch (e) {
+            if (!(e instanceof MissingInput)) throw e;
+            warn.add(`Cópia ${i + 1} ficou de fora: ${e.message}`);
+          }
+        }
+        if (!done.length) {
+          setMissing("Nenhuma cópia gerou modelo: confira as linhas do lote.");
+          return null;
+        }
+        const laid = layoutCopies(done);
+        if (!laid.fits) warn.add(`As cópias não cabem numa mesa de ${PLATE_MM} mm: divida o lote em mais arquivos.`);
+        if (copies.length > MAX_COPIES) warn.add(`Só as primeiras ${MAX_COPIES} cópias foram geradas.`);
+        setMissing(null);
+        return { models: laid.models, warnings: [...(textWarn ?? []), ...warn], pauses: [...pauses].sort((a, b) => a - b) };
+      }
       let out;
       try {
-        const arc = (s: string, h: number, r: number, side: "top" | "bottom") => (s.trim() ? arcTextToCrossSection(M, f, s, h, r, side) : null);
-        out = def.build({ M, art: design?.cs ?? null, artLayers: design?.layers, text, arc }, p);
+        out = run(p);
       } catch (e) {
         // dado obrigatório faltando não é erro: vira o texto da prévia vazia
         if (!(e instanceof MissingInput)) throw e;
@@ -146,7 +186,7 @@ export default function Models() {
       design?.cs.delete();
       design?.layers?.forEach((l) => l.cs.delete());
     }
-  }, [def, p, font, useArt, valid]);
+  }, [def, p, font, useArt, valid, batchOn, batchValue]);
 
   return (
     <div className="page">
@@ -214,6 +254,16 @@ export default function Models() {
               ))}
             </div>
           )}
+          {batchKeys && (
+            <div className="card stack">
+              <Toggle label="Lote: várias cópias na mesma mesa" checked={batchOn} onChange={setBatchOn} />
+              {batchOn && (
+                <Field label="Cópias (uma por linha)" hint={`${batchLabels!.join("; ")} · ${copies?.length ?? 0} cópias`}>
+                  <textarea rows={5} value={batchValue} onChange={(e) => setBatchText((b) => ({ ...b, [id]: e.target.value }))} />
+                </Field>
+              )}
+            </div>
+          )}
           {def.sections.map((s) => (
             <div className="card stack" key={s.title}>
               <h3>{s.title}</h3>
@@ -238,7 +288,7 @@ export default function Models() {
               )}
             </div>
           ))}
-          <ExportButtons models={models} name={`${def.label}-${String(p.text ?? p.line1 ?? p.title ?? p.base ?? "")}`} busy={busy} pauses={pauses} />
+          <ExportButtons models={models} name={copies ? `${def.label}-lote` : `${def.label}-${String(p.text ?? p.line1 ?? p.title ?? p.base ?? "")}`} busy={busy} pauses={pauses} />
         </div>
         <div className="preview-col">
           <Preview3D models={models} busy={busy} busyText={`Gerando ${def.label.toLowerCase()}…`} error={error} emptyText={!valid ? "Corrija os campos em vermelho." : (missing ?? undefined)} />
