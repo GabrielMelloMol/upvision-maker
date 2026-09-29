@@ -7,6 +7,7 @@ import { beforeEach, describe, expect, test, vi } from "vitest";
 import { renderWithApp, setupTauri } from "../test/harness";
 import Calculator from "./Calculator";
 import { clearProductDraft, peekProductDraft } from "./products/draft";
+import { clearQuoteDraft, peekOpenQuoteDraft, peekQuoteDraft } from "./quotes/draft";
 
 const t = setupTauri();
 const brl = (s: string) => new RegExp(`R\\$\\s${s}`);
@@ -258,4 +259,31 @@ test("impressora do catálogo na calculadora (#21): cadastra na hora e já preen
   }
   expect(screen.getByLabelText("Potência (W)")).toHaveValue("120");
   expect(await t.db.select("SELECT name, watts FROM printers")).toEqual([{ name: "Creality K1C", watts: 120 }]);
+});
+
+test("adicionar ao orçamento (#28): soma cálculos num rascunho com preço, custo e minutos por peça; Abrir vai para Orçamentos", async () => {
+  localStorage.removeItem("upvision:calculadora");
+  clearQuoteDraft();
+  const go = vi.fn();
+  const user = userEvent.setup();
+  renderWithApp(<Calculator go={go} />);
+  await user.type(screen.getByLabelText("Preço por kg"), "100");
+  await user.type(screen.getByLabelText("Gramas"), "200"); // mesa R$ 20 + manutenção 5% (preferências do beforeEach) = 21
+  await user.type(screen.getByLabelText("Tempo de impressão"), "2h");
+  await user.clear(screen.getByLabelText("Peças na mesa"));
+  await user.type(screen.getByLabelText("Peças na mesa"), "2");
+  await user.type(screen.getByLabelText("Nome da peça"), "Chaveiro coração");
+  expect(screen.getByLabelText("Preço")).toHaveDisplayValue(/^Venda direta \(consumidor final\) · R\$\s52,50$/);
+  await user.click(screen.getByRole("button", { name: "Adicionar ao orçamento" }));
+  await user.selectOptions(screen.getByLabelText("Preço"), "Shopee");
+  await user.click(screen.getByRole("button", { name: "Adicionar ao orçamento" }));
+
+  const d = peekQuoteDraft()!;
+  expect(d.channel).toBe("Consumidor final");
+  expect(d.items).toHaveLength(2);
+  expect(d.items[0]).toEqual({ productId: null, description: "Chaveiro coração", qty: 2, unitPrice: 52.5, discountPct: 0, unitCost: 10.5, printMinutes: 60 });
+  expect(d.items[1]).toMatchObject({ description: "Peça impressa em 3D", unitCost: 10.5, printMinutes: 60 });
+  await user.click(screen.getByRole("button", { name: /2 itens no orçamento em rascunho · Abrir/ }));
+  expect(go).toHaveBeenCalledWith("quotes");
+  expect(peekOpenQuoteDraft()).toBe(true);
 });

@@ -1,5 +1,7 @@
 import { z } from "zod";
-import { OrderInput, todayIso } from "./orders";
+import { round2 } from "./format";
+import { CONSUMER, OrderInput, RESALE, todayIso, type OrderItem } from "./orders";
+import { PRICE_NAMES } from "./pricing";
 
 export const QuoteInput = OrderInput.extend({
   validUntil: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "Data inválida"),
@@ -23,3 +25,21 @@ export function quoteToOrderInput(q: QuoteInput): OrderInput {
   void _t;
   return OrderInput.parse(order);
 }
+
+/** Item avulso vindo da calculadora (#28): a mesa vira `pieces` unidades com custo e minutos de máquina por peça. */
+export function itemFromCalc(c: { description: string; pieces: number; unitPrice: number; unitCost: number; printMinutes: number }): OrderItem {
+  const qty = Math.max(1, Math.floor(c.pieces) || 1);
+  return {
+    productId: null,
+    description: c.description.trim() || "Peça impressa em 3D",
+    qty,
+    unitPrice: round2(c.unitPrice),
+    discountPct: 0,
+    unitCost: round2(c.unitCost),
+    printMinutes: round2(c.printMinutes / qty),
+  };
+}
+
+/** Linha da tabela de preços da calculadora → canal do pedido (os dois preços do multiplicador têm nome próprio no pedido). */
+export const orderChannelOf = (priceName: string) =>
+  priceName === PRICE_NAMES.consumer.name ? CONSUMER : priceName === PRICE_NAMES.resale.name ? RESALE : priceName;

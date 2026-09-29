@@ -17,7 +17,8 @@ import type { OrdersData } from "./data";
 
 export const PAYMENT_METHODS = ["Pix", "Dinheiro", "Cartão de crédito", "Cartão de débito", "Transferência", "Pago no marketplace", "A combinar"];
 
-type Line = { productId: string; description: string; qty: string; unitPrice: string; discountPct: string; manualPrice: boolean };
+/** unitCost/printMinutes: custo e minutos guardados no item avulso (ex.: vindo da calculadora); item de produto recalcula. */
+type Line = { productId: string; description: string; qty: string; unitPrice: string; discountPct: string; manualPrice: boolean; unitCost?: number; printMinutes?: number };
 
 const str = (n: number) => String(n).replace(".", ",");
 const num = (s: string) => parseDecimal(s);
@@ -50,7 +51,7 @@ export default function OrderEditor({ data, order, draft, onClose, onSaved, save
   const [notes, setNotes] = useState(base.notes ?? "");
   const [freight, setFreight] = useState(base.freight ? brl(base.freight) : "");
   const [lines, setLines] = useState<Line[]>(
-    (base.items ?? []).map((i) => ({ productId: i.productId ? String(i.productId) : "", description: i.description, qty: str(i.qty), unitPrice: brl(i.unitPrice), discountPct: str(i.discountPct), manualPrice: true })),
+    (base.items ?? []).map((i) => ({ productId: i.productId ? String(i.productId) : "", description: i.description, qty: str(i.qty), unitPrice: brl(i.unitPrice), discountPct: str(i.discountPct), manualPrice: true, unitCost: i.unitCost, printMinutes: i.printMinutes })),
   );
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [saving, setSaving] = useState(false);
@@ -105,7 +106,7 @@ export default function OrderEditor({ data, order, draft, onClose, onSaved, save
   };
   const items = lines.map((l) => {
     const p = data.products.find((x) => String(x.id) === l.productId);
-    const unitCost = p ? costOf(p) : 0;
+    const unitCost = p ? costOf(p) : (l.unitCost ?? 0);
     return {
       productId: p ? p.id : null,
       description: l.description,
@@ -113,7 +114,7 @@ export default function OrderEditor({ data, order, draft, onClose, onSaved, save
       unitPrice: parseMoney(l.unitPrice),
       discountPct: num(l.discountPct) || 0,
       unitCost,
-      printMinutes: p ? p.printMinutes / p.piecesPerPlate : 0,
+      printMinutes: p ? p.printMinutes / p.piecesPerPlate : (l.printMinutes ?? 0),
     };
   });
   const input: OrderInput = {

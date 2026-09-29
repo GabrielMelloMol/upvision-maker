@@ -14,6 +14,7 @@ Formato: `## <versão> — <data>` e itens `- …` em linguagem simples.
 - **Custo da impressora**: cadastre quanto pagou e a vida útil, e a calculadora cobra a máquina por hora (uma A1 de R$ 3.000 dá R$ 0,60/h). Ela substitui a "manutenção %", que continua valendo só para impressora sem preço.
 - **Impostos sobre a venda** e **custos fixos por hora** (aluguel, internet, assinaturas dos Custos operacionais) no preço, se quiser.
 - **Medir com tomada inteligente**: anote o Total (kWh) do app da tomada no começo e no fim de uma impressão e o app calcula a potência média. Também dá para digitar os kWh de uma impressão.
+- **Calculadora → orçamento**: "Adicionar ao orçamento" junta vários cálculos (peças únicas que não viram produto) num orçamento em rascunho, com o preço do canal escolhido. O custo e o tempo de máquina vão junto, então o financeiro do pedido bate com a calculadora.
 - **Catálogo de impressoras bem maior**: 167 modelos de 27 marcas (UltiMaker, Snapmaker, Artillery, Raise3D, GTMax3D, Sethi3D e outras), com volume de impressão e se é aberta ou fechada. Dá para escolher do catálogo também na Calculadora e no Produto: a impressora é cadastrada na hora. A busca acha "a1", "k1c" ou "ender3".
 - **Embalagem padrão** já aparece na calculadora, e o resultado mostra o custo por grama e por hora de impressão.
 

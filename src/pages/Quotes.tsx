@@ -1,6 +1,6 @@
 import { ask } from "@tauri-apps/plugin-dialog";
 import { ArrowRightLeft, BookImage, FileDown, FileSignature, FileText, Pencil, Plus, Trash2 } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { getDb } from "../db";
 import { quotesRepo } from "../db/quotesRepo";
 import { money } from "../domain/format";
@@ -9,6 +9,7 @@ import { isExpired, type Quote } from "../domain/quotes";
 import { loadPdfFonts } from "../pdf/fonts";
 import { quotePdf } from "../pdf/quote";
 import "../styles/features.css";
+import Alert from "../ui/Alert";
 import Button from "../ui/Button";
 import EmptyState from "../ui/EmptyState";
 import { saveFile, slug } from "../ui/saveFile";
@@ -19,12 +20,15 @@ import CatalogSheet from "./quotes/CatalogSheet";
 import ContractSheet from "./quotes/ContractSheet";
 import { EMPTY_QUOTES, loadQuotesData } from "./quotes/data";
 import QuoteEditor from "./quotes/QuoteEditor";
+import { clearOpenQuoteDraft, clearQuoteDraft, peekOpenQuoteDraft, peekQuoteDraft } from "./quotes/draft";
 
 const dateBr = (iso: string) => iso.slice(0, 10).split("-").reverse().join("/");
 
 export default function Quotes({ go }: { go: Go }) {
   const [data, reload] = useData(loadQuotesData, EMPTY_QUOTES);
-  const [editing, setEditing] = useState<Quote | "new" | null>(null);
+  const [draft, setDraft] = useState(peekQuoteDraft);
+  const [editing, setEditing] = useState<Quote | "new" | "draft" | null>(() => (peekOpenQuoteDraft() && draft ? "draft" : null));
+  useEffect(clearOpenQuoteDraft, []);
   const [sheet, setSheet] = useState<"contract" | "catalog" | null>(null);
   const toast = useToast();
   const today = todayIso();
@@ -83,6 +87,30 @@ export default function Quotes({ go }: { go: Go }) {
           Dica: preencha os <button className="link" onClick={() => go("company")}>Dados da empresa</button> (logo, contatos e chave Pix) para o PDF sair completo.
         </p>
       )}
+      {draft && editing !== "draft" && (
+        <Alert kind="info">
+          <div className="row" style={{ justifyContent: "space-between", flexWrap: "wrap" }}>
+            <span>
+              Rascunho da calculadora: <b>{draft.items.length} {draft.items.length === 1 ? "item" : "itens"}</b>
+            </span>
+            <div className="row">
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => {
+                  clearQuoteDraft();
+                  setDraft(null);
+                }}
+              >
+                Descartar
+              </Button>
+              <Button variant="primary" size="sm" onClick={() => setEditing("draft")}>
+                Abrir rascunho
+              </Button>
+            </div>
+          </div>
+        </Alert>
+      )}
       {data.quotes.length === 0 ? (
         <EmptyState icon={FileText} title="Nenhum orçamento ainda" action={<Button variant="primary" icon={Plus} onClick={() => setEditing("new")}>Fazer um orçamento</Button>} />
       ) : (
@@ -130,9 +158,14 @@ export default function Quotes({ go }: { go: Go }) {
       {editing && (
         <QuoteEditor
           data={data}
-          quote={editing === "new" ? undefined : editing}
+          quote={editing === "new" || editing === "draft" ? undefined : editing}
+          draft={editing === "draft" && draft ? draft : undefined}
           onClose={() => setEditing(null)}
           onSaved={() => {
+            if (editing === "draft") {
+              clearQuoteDraft();
+              setDraft(null);
+            }
             setEditing(null);
             reload();
           }}

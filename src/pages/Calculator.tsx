@@ -24,6 +24,7 @@ import { errorText, useToast } from "../ui/Toast";
 import ChannelTable, { CompetitorHint } from "./calculator/ChannelTable";
 import PlugSheet from "./calculator/PlugSheet";
 import PrinterCatalogButton from "./calculator/PrinterCatalogButton";
+import AddToQuote from "./calculator/AddToQuote";
 import { CostBreakdown, PriceHero } from "./calculator/Result";
 import { EMPTY_FORM, loadSaved, storeSaved, type CalcForm, type Line } from "./calculator/saved";
 
@@ -101,6 +102,8 @@ export default function Calculator({ go }: { go: Go }) {
     },
     data.settings,
   );
+
+  const rows = compareChannels(r, data.settings, price(f.freight), { rounding, competitor: price(competitor) });
 
   /** Preenche a calculadora com o que o arquivo do fatiador informou. */
   function applySlicer(a: SlicerApply) {
@@ -309,12 +312,13 @@ export default function Calculator({ go }: { go: Go }) {
               </button>
             )}
           </PriceHero>
+          <AddToQuote rows={rows} unitCost={r.unitCost} pieces={num(f.quantity)} printMinutes={printMin} onOpen={() => go("quotes")} />
           {mode === "full" && <CostBreakdown r={r} s={data.settings} machinePerHour={machinePerHour} fixedPerHour={data.fixedPerHour} />}
         </aside>
       </div>
 
       {mode === "full" && (
-        <ChannelTable rows={compareChannels(r, data.settings, price(f.freight), { rounding, competitor: price(competitor) })} minMarginPct={data.settings.minMarginPct}>
+        <ChannelTable rows={rows} minMarginPct={data.settings.minMarginPct}>
           <div className="row" style={{ alignItems: "flex-start", flexWrap: "wrap", gap: "var(--space-4)", marginBottom: "var(--space-3)" }}>
             <div className="stack" style={{ gap: 6 }}>
               <span className="field-label">Arredondar preços</span>

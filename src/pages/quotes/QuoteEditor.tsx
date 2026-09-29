@@ -10,7 +10,8 @@ import type { QuotesData } from "./data";
 const nowLocal = () => new Date().toISOString().slice(0, 19).replace("T", " ");
 
 /** Orçamento = pedido + validade + condições. Reaproveita o formulário do pedido. */
-export default function QuoteEditor({ data, quote, onClose, onSaved }: { data: QuotesData; quote?: Quote; onClose: () => void; onSaved: (id: number) => void }) {
+/** `draft`: itens vindos da calculadora para um orçamento novo. */
+export default function QuoteEditor({ data, quote, draft, onClose, onSaved }: { data: QuotesData; quote?: Quote; draft?: Partial<OrderInput>; onClose: () => void; onSaved: (id: number) => void }) {
   const [validUntil, setValidUntil] = useState(quote?.validUntil ?? addDays(todayIso(), data.company.quoteValidityDays));
   const [terms, setTerms] = useState(quote?.terms ?? data.company.quoteTerms);
   const toast = useToast();
@@ -31,7 +32,7 @@ export default function QuoteEditor({ data, quote, onClose, onSaved }: { data: Q
   return (
     <OrderEditor
       data={data}
-      draft={quote}
+      draft={quote ?? draft}
       title={quote ? `Orçamento nº ${quote.id}` : "Novo orçamento"}
       submitLabel={quote ? "Salvar orçamento" : "Criar orçamento"}
       saveAs={saveAs}

@@ -8,6 +8,7 @@ import { todayIso } from "../domain/orders";
 import { addDays } from "../domain/quotes";
 import { renderWithApp, setupTauri } from "../test/harness";
 import Quotes from "./Quotes";
+import { addToQuoteDraft, clearQuoteDraft, peekQuoteDraft, requestOpenQuoteDraft } from "./quotes/draft";
 
 // As fontes vêm por fetch de URL do Vite no app; aqui lê direto do disco (igual a src/pdf/pdf.test.ts).
 const pdfFonts = vi.hoisted(() => ({ fail: false }));
@@ -283,5 +284,39 @@ describe("Catálogo em PDF", () => {
     await user.click(within(c).getByRole("button", { name: "Salvar PDF (2)" }));
     expect(await screen.findByText("Não foi possível gerar: fonte não encontrada")).toBeInTheDocument();
     pdfFonts.fail = false;
+  });
+});
+
+describe("Orçamentos: rascunho da calculadora (#28)", () => {
+  const item = { productId: null, description: "Chaveiro coração", qty: 2, unitPrice: 52.63, discountPct: 0, unitCost: 10.53, printMinutes: 60 };
+
+  test("Abrir na calculadora abre o editor com os itens; o orçamento guarda custo e minutos; o pedido convertido também", async () => {
+    seed();
+    clearQuoteDraft();
+    addToQuoteDraft(item, "Consumidor final");
+    requestOpenQuoteDraft();
+    const { user } = setup();
+    const sheet = await screen.findByRole("dialog", { name: "Novo orçamento" });
+    expect(within(sheet).getByDisplayValue("Chaveiro coração")).toBeInTheDocument();
+    await user.type(within(sheet).getByLabelText(/^Nome do cliente/), "Ana");
+    await user.click(within(sheet).getByRole("button", { name: "Criar orçamento" }));
+    await waitFor(() => expect(peekQuoteDraft()).toBeNull());
+    const [row] = await t.db.select<{ data: string }>("SELECT data FROM quotes");
+    expect(JSON.parse(row.data).items[0]).toMatchObject({ productId: null, unitCost: 10.53, printMinutes: 60, qty: 2, unitPrice: 52.63 });
+
+    await user.click(await screen.findByRole("button", { name: "Virar pedido" }));
+    await waitFor(async () => expect(await t.db.select("SELECT unitCost, printMinutes FROM order_items")).toEqual([{ unitCost: 10.53, printMinutes: 60 }]));
+  });
+
+  test("sem pedir para abrir, mostra a faixa do rascunho; Descartar apaga", async () => {
+    seed();
+    clearQuoteDraft();
+    addToQuoteDraft(item, "Consumidor final");
+    const { user } = setup();
+    expect(await screen.findByText(/Rascunho da calculadora/)).toHaveTextContent("1 item");
+    expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
+    await user.click(screen.getByRole("button", { name: "Descartar" }));
+    expect(peekQuoteDraft()).toBeNull();
+    expect(screen.queryByText(/Rascunho da calculadora/)).not.toBeInTheDocument();
   });
 });
