@@ -11,6 +11,7 @@ export type LetterMount = "none" | "hang" | "stand";
 
 export type BigLetterParams = {
   letter: string;
+  letterFont: string; // fonte da letra (o nome usa a fonte principal)
   height: number; // altura da letra (mm)
   thickness: number;
   name: string;
@@ -38,6 +39,7 @@ export type BigLetterParams = {
 
 export const DEFAULT_BIG_LETTER: BigLetterParams = {
   letter: "A",
+  letterFont: "anton",
   height: 150,
   thickness: 8,
   name: "Alice",
@@ -93,9 +95,9 @@ function hangPoint(M: ModelCtx["M"], letter: CS): [number, number] | null {
  * rebaixado ou em relevo. Acabamentos: liso, borda para resina ou fundo para material (fundo com moldura + molde
  * para cortar o EVA). Pendurar (furo nas costas) ou suporte de mesa.
  */
-export function buildBigLetter({ M, text, art }: ModelCtx, p: BigLetterParams): ModelOutput {
+export function buildBigLetter({ M, text, art, fontText }: ModelCtx, p: BigLetterParams): ModelOutput {
   return scoped((k) => {
-    const raw = art ?? text([...p.letter.trim()][0] ?? "", p.height);
+    const raw = art ?? (fontText?.("letterFont") ?? text)([...p.letter.trim()][0] ?? "", p.height);
     if (!raw || raw.isEmpty()) throw new MissingInput("Digite a letra ou envie um desenho.");
     const letter = k(fitInto(art ? raw : k(raw), 1e6, p.height, 0));
     const [W, H] = size2(letter);

@@ -5,7 +5,7 @@ import { buildLayeredSign, DEFAULT_LAYERED_SIGN } from "../../geometry/models/la
 import { buildLedLetter, DEFAULT_LED_LETTER } from "../../geometry/models/ledLetter";
 import { buildPuzzle, DEFAULT_PUZZLE } from "../../geometry/models/puzzle";
 import { BG_TEXTURES } from "../../geometry/models/textures";
-import { as, bool, choice, color, num, text, type FieldDef, type ModelDef, type Section } from "./fields";
+import { as, bool, choice, color, font, num, text, type FieldDef, type ModelDef, type Section } from "./fields";
 
 const textureFields: FieldDef[] = [
   choice("texture", "Textura do fundo", BG_TEXTURES),
@@ -15,7 +15,7 @@ const textureFields: FieldDef[] = [
 
 const signLine = (i: number): Section => ({
   title: `Linha ${i}`,
-  fields: [text(`line${i}`, "Texto", 24), num(`h${i}`, "Altura", 6, 80, { step: 1 }), num(`dx${i}`, "Deslocamento (→)", -80, 80, { step: 1 }), color(`c${i}`, "Cor")],
+  fields: [text(`line${i}`, "Texto", 24), num(`h${i}`, "Altura", 6, 80, { step: 1 }), num(`dx${i}`, "Deslocamento (→)", -80, 80, { step: 1 }), color(`c${i}`, "Cor"), font(`font${i}`, `Fonte da linha ${i}`, `line${i}`)],
 });
 
 /** Modelos da fila do Torno (letra grande, quebra-cabeça, letreiros…). */
@@ -34,6 +34,7 @@ export const TORNO_MODELS: ModelDef[] = [
         title: "Letra e nome",
         fields: [
           text("letter", "Letra", 2, "Um caractere. Ou envie um desenho."),
+          font("letterFont", "Fonte da letra", "letter"),
           text("name", "Nome", 20),
           choice("nameMode", "Nome", [["inlay", "Encaixado"], ["sunken", "Rebaixado"], ["raised", "Em relevo"]]),
           num("nameHeight", "Altura do nome", 8, 120, { step: 1 }),
@@ -104,7 +105,6 @@ export const TORNO_MODELS: ModelDef[] = [
     label: "Letreiro em camadas",
     blurb: "Até 4 linhas sobrepostas, cada uma na sua cor, com imagem, enfeite e base contornada.",
     icon: Layers,
-    font: true,
     art: "Imagem ao lado do texto (opcional)",
     defaults: DEFAULT_LAYERED_SIGN,
     sections: [

@@ -1,14 +1,15 @@
 import { Search, SearchX, Star } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { getDb } from "../db";
 import { loadCompany } from "../db/customersRepo";
-import { isCursive, loadFont, type FontId } from "../geometry/fonts";
+import { isCursive, loadEmojiFont, loadFont, type FontId } from "../geometry/fonts";
 import { getManifold } from "../geometry/manifold";
-import { arcTextToCrossSection, textToCrossSection } from "../geometry/text";
+import { arcTextToCrossSection, hasEmoji, textToCrossSection } from "../geometry/text";
 import { checkText, textWarnings } from "../geometry/textCheck";
 import FontPicker from "../ui/FontPicker";
 import Alert from "../ui/Alert";
 import Dropzone from "../ui/Dropzone";
+import EmojiPicker from "../ui/EmojiPicker";
 import EmptyState from "../ui/EmptyState";
 import ExportButtons from "../ui/ExportButtons";
 import Field from "../ui/Field";
@@ -23,6 +24,7 @@ import { DESIGN_ACCEPT, designFromSvg, fileToSvg } from "./designInput";
 import { MissingInput } from "../geometry/models/common";
 import { CATEGORIES, MODELS, validParams, type Category, type FieldDef, type Params, type Section } from "./models/defs";
 import { COLLECTIONS, inCollection, VARIANTS, type Collection } from "./models/variants";
+import { EMOJI_FIELDS } from "./models/emoji";
 import { BATCH_FIELDS, layoutCopies, MAX_COPIES, parseBatch, PLATE_MM } from "./models/batch";
 import type { Model } from "../geometry/types";
 import "../styles/features.css";
@@ -129,17 +131,29 @@ export default function Models() {
     if (!valid) return null;
     const M = await getManifold();
     const f = await loadFont(font);
+    const fields = def.sections.flatMap((s) => s.fields);
+    // emoji: a fonte reserva só é carregada se algum texto tiver emoji
+    const texts = [...fields.filter((x) => x.kind === "text").map((x) => String(p[x.k] ?? "")), batchOn ? batchValue : ""];
+    const emoji = texts.some(hasEmoji) ? await loadEmojiFont() : undefined;
+    // fontes próprias de partes do modelo (campos "font")
+    const extra = Object.fromEntries(await Promise.all(fields.filter((x) => x.kind === "font").map(async (x) => [x.k, await loadFont(String(p[x.k]))] as const)));
     const design = useArt ? await designFromSvg(useArt.svg, ART_WIDTH_MM, false, true) : null;
     // traço fino / letras soltas: checa o primeiro texto do modelo (o principal)
     let textWarn: string[] | null = null;
     const text = (s: string, h: number) => {
       if (!s.trim()) return null;
-      const cs = textToCrossSection(M, f, s, h);
+      const cs = textToCrossSection(M, f, s, h, emoji);
       textWarn ??= textWarnings(checkText(cs), s, isCursive(font));
       return cs;
     };
-    const arc = (s: string, h: number, r: number, side: "top" | "bottom") => (s.trim() ? arcTextToCrossSection(M, f, s, h, r, side) : null);
-    const run = (params: Params) => def.build({ M, art: design?.cs ?? null, artLayers: design?.layers, text, arc }, params);
+    const arc = (s: string, h: number, r: number, side: "top" | "bottom") => (s.trim() ? arcTextToCrossSection(M, f, s, h, r, side, emoji) : null);
+    const fontText = (k: string) => (s: string, h: number) => {
+      if (!s.trim()) return null;
+      const cs = textToCrossSection(M, extra[k] ?? f, s, h, emoji);
+      textWarn ??= textWarnings(checkText(cs), s, isCursive(String(p[k])));
+      return cs;
+    };
+    const run = (params: Params) => def.build({ M, art: design?.cs ?? null, artLayers: design?.layers, text, arc, fontText }, params);
     try {
       if (copies) {
         // lote: uma geração por cópia, cada cópia arrumada como um bloco na mesa
@@ -269,7 +283,7 @@ export default function Models() {
               <h3>{s.title}</h3>
               <div className="grid two">
                 {s.fields.map((f) => (
-                  <ParamField key={f.k} f={f} value={p[f.k]} onChange={set(f.k)} />
+                  <ParamField key={f.k} f={f} value={p[f.k]} onChange={set(f.k)} sample={f.kind === "font" && f.sample ? String(p[f.sample] ?? "") : ""} emoji={!!EMOJI_FIELDS[id]?.includes(f.k)} />
                 ))}
               </div>
               {s === def.sections[def.fontSection ?? 0] && def.font && (
@@ -307,11 +321,33 @@ export default function Models() {
 const firstText = (sections: Section[], p: Params) =>
   sections.flatMap((s) => s.fields).map((f) => (f.kind === "text" ? String(p[f.k] ?? "").trim() : "")).find(Boolean) ?? "";
 
-function ParamField({ f, value, onChange }: { f: FieldDef; value: Params[string]; onChange: (v: string | number | boolean) => void }) {
+type ParamProps = { f: FieldDef; value: Params[string]; onChange: (v: string | number | boolean) => void; sample?: string; emoji?: boolean };
+
+/** Texto com seletor de emoji ao lado (fora do <label>, para o rótulo nomear só o campo). */
+function EmojiText({ label, hint, max, value, onChange }: { label: string; hint?: string; max?: number; value: string; onChange: (v: string) => void }) {
+  const ref = useRef<HTMLInputElement>(null);
+  return (
+    <div className="field-with-emoji">
+      <Field label={label} hint={hint}>
+        <input ref={ref} value={value} maxLength={max} onChange={(e) => onChange(e.target.value)} />
+      </Field>
+      <EmojiPicker inputRef={ref} value={value} onChange={onChange} />
+    </div>
+  );
+}
+
+function ParamField({ f, value, onChange, sample = "", emoji }: ParamProps) {
   switch (f.kind) {
+    case "font":
+      return (
+        <div className="span-2">
+          <FontPicker label={f.label} value={String(value)} onChange={onChange} sample={sample} />
+        </div>
+      );
     case "num":
       return <NumField label={f.label} value={value as number} onChange={onChange} min={f.min} max={f.max} step={f.step} unit={f.unit} hint={f.hint} />;
     case "text":
+      if (emoji) return <EmojiText label={f.label} hint={f.hint} max={f.max} value={String(value)} onChange={onChange} />;
       return (
         <Field label={f.label} hint={f.hint}>
           <input value={String(value)} maxLength={f.max} onChange={(e) => onChange(e.target.value)} />

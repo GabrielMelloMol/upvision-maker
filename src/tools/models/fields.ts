@@ -9,7 +9,9 @@ export type FieldDef =
   | { k: string; kind: "money"; label: string; hint?: string }
   | { k: string; kind: "color"; label: string }
   | { k: string; kind: "bool"; label: string }
-  | { k: string; kind: "choice"; label: string; options: readonly (readonly [string, string])[] };
+  | { k: string; kind: "choice"; label: string; options: readonly (readonly [string, string])[] }
+  /** Fonte própria de uma parte do modelo (a letra, uma linha); `sample` = campo de texto da prévia. */
+  | { k: string; kind: "font"; label: string; sample?: string };
 
 export type Section = { title: string; fields: FieldDef[] };
 
@@ -47,3 +49,4 @@ export const text = (k: string, label: string, max = 30, hint?: string): FieldDe
 
 export const bool = (k: string, label: string): FieldDef => ({ k, kind: "bool", label });
 export const choice = (k: string, label: string, options: readonly (readonly [string, string])[]): FieldDef => ({ k, kind: "choice", label, options });
+export const font = (k: string, label: string, sample?: string): FieldDef => ({ k, kind: "font", label, sample });

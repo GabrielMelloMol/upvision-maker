@@ -22,6 +22,10 @@ export type LayeredSignParams = {
   dx2: number;
   dx3: number;
   dx4: number;
+  font1: string; // fonte de cada linha
+  font2: string;
+  font3: string;
+  font4: string;
   c1: string;
   c2: string;
   c3: string;
@@ -61,6 +65,10 @@ export const DEFAULT_LAYERED_SIGN: LayeredSignParams = {
   dx2: 0,
   dx3: 0,
   dx4: 0,
+  font1: "pacifico",
+  font2: "hanken",
+  font3: "hanken",
+  font4: "hanken",
   c1: "#d6262e",
   c2: "#1c1c1e",
   c3: "#2563eb",
@@ -99,7 +107,7 @@ const TEX_MARGIN = 1.5;
  * direita e base com contorno automático. Um volume por cor; fica em pé (suporte) ou pendura (2 furos).
  */
 export function buildLayeredSign(ctx: ModelCtx, p: LayeredSignParams): ModelOutput {
-  const { M, text } = ctx;
+  const { M } = ctx;
   return scoped((k) => {
     // linhas empilhadas de cima para baixo, com a sobreposição pedida
     const lines: { cs: CS; color: string }[] = [];
@@ -107,7 +115,7 @@ export function buildLayeredSign(ctx: ModelCtx, p: LayeredSignParams): ModelOutp
     for (const i of LINES) {
       const s = String(p[`line${i}`]);
       const h = p[`h${i}`];
-      const raw = text(s, h);
+      const raw = (ctx.fontText?.(`font${i}`) ?? ctx.text)(s, h);
       if (!raw) continue;
       let cs = k(raw);
       if (p.fillHoles) cs = k(outerOnly(M, cs));

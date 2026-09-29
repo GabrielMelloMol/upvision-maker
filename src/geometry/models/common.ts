@@ -16,6 +16,8 @@ export type ModelCtx = {
   artLayers?: ColorLayer2D[] | null;
   /** Texto em arco (linha de base no raio `r`, em cima ou embaixo); ausente = modelos usam texto reto. */
   arc?: (text: string, heightMm: number, radius: number, side: "top" | "bottom") => CS | null;
+  /** Texto na fonte escolhida num campo "font" do modelo (ex.: a letra grande); ausente = use `text`. */
+  fontText?: (fontField: string) => TextFn;
 };
 
 export type ModelOutput = {
