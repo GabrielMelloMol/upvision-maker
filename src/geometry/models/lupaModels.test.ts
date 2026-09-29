@@ -7,6 +7,7 @@ import type { ModelCtx } from "./common";
 import { buildCakeStand, buildStickStand, DEFAULT_CAKE_STAND as B, DEFAULT_STICK_STAND as S, holeRings } from "./confectionery";
 import { buildGridCutter, DEFAULT_GRID_CUTTER as G } from "./gridCutter";
 import { buildOutlineBowl, DEFAULT_OUTLINE_BOWL as O } from "./outlineBowl";
+import { buildStampMold, DEFAULT_STAMP_MOLD as SM, moldDesign } from "./stampMold";
 
 let M: ManifoldToplevel;
 beforeAll(async () => {
@@ -140,5 +141,43 @@ describe("cumbuca no contorno (#66)", () => {
     const b = meshBounds([models[0].parts[1].mesh])!;
     expect(b.min[2]).toBeCloseTo(O.floor, 3);
     expect(b.max[2]).toBeCloseTo(O.floor + O.relief, 3);
+  });
+});
+
+describe("molde para carimbo de EVA (#73)", () => {
+  // dois quadrados de 20 mm separados por 3 mm
+  const twoSquares = () => M.CrossSection.union([M.CrossSection.square([20, 20], true).translate([-11.5, 0]), M.CrossSection.square([20, 20], true).translate([11.5, 0])]);
+  const withArt = (): ModelCtx => ({ ...ctx(), art: twoSquares() });
+
+  test("desenho rebaixado na placa na profundidade pedida; placa = desenho + margem", () => {
+    const { models } = buildStampMold(withArt(), { ...SM, thumb: false });
+    expectPrintable(models);
+    const [w, h, z] = size(models);
+    expect(w).toBeCloseTo(SM.size + 2 * SM.margin, 0);
+    expect(h).toBeCloseTo((20 / 43) * SM.size + 2 * SM.margin, 0);
+    expect(z).toBeCloseTo(SM.thickness, 3);
+    const full = w * h * SM.thickness;
+    expect(full - volume(models[0].parts[0].mesh)).toBeGreaterThan(0.9 * 2 * (20 * SM.size / 43) ** 2 * SM.depth);
+  });
+
+  test("inverter: o desenho fica em relevo, mais alto que a placa", () => {
+    const { models } = buildStampMold(withArt(), { ...SM, invert: true, thumb: false });
+    expectPrintable(models);
+    expect(size(models)[2]).toBeCloseTo(SM.thickness + SM.depth, 3);
+  });
+
+  test("offset liga partes soltas: com ponte maior que o vão, vira uma peça só", () => {
+    const art = twoSquares();
+    expect(moldDesign(art, 80, 0).decompose().length).toBe(2);
+    expect(moldDesign(art, 80, 4).decompose().length).toBe(1); // vão de ~5,6 mm na escala 80
+  });
+
+  test("apoio de polegar: pino separado e encaixe cego no verso; sem desenho usa o texto", () => {
+    const { models } = buildStampMold(ctx(), SM);
+    expectPrintable(models);
+    expect(models.map((m) => m.name)).toEqual(["Molde", "Apoio de polegar"]);
+    const plate = solid(models[0].parts[0].mesh);
+    const socket = M.Manifold.cylinder(1, 3, 3).translate([SM.thumbX, SM.thumbY, 0.2]);
+    expect(plate.intersect(socket).volume()).toBeLessThan(0.01); // furo no verso onde o pino entra
   });
 });

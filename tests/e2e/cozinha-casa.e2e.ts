@@ -54,3 +54,12 @@ test("cumbuca no contorno (#66): abre com o coração de exemplo e o desenho no 
   await page.screenshot({ path: "test-results/cumbuca.png" });
   await save3mf(page, tauri.files);
 });
+
+test("molde para carimbo de EVA (#73): abre com o texto, apoio separado, inverter e 3MF", async ({ page, tauri }) => {
+  await openModel(page, "Molde para carimbo de EVA");
+  await expect(page.locator(".legend")).toContainText("Apoio");
+  await page.getByLabel(/^Inverter/).check();
+  await idle(page);
+  await expect(page.locator(".viewer .overlay")).toHaveCount(0);
+  await save3mf(page, tauri.files);
+});

@@ -1,4 +1,5 @@
-import { CakeSlice, Egg, Grid3x3, Lollipop } from "lucide-react";
+import { CakeSlice, Egg, Grid3x3, Lollipop, Stamp } from "lucide-react";
+import { buildStampMold, DEFAULT_STAMP_MOLD } from "../../geometry/models/stampMold";
 import { buildOutlineBowl, DEFAULT_OUTLINE_BOWL } from "../../geometry/models/outlineBowl";
 import { buildCakeStand, buildStickStand, DEFAULT_CAKE_STAND, DEFAULT_STICK_STAND } from "../../geometry/models/confectionery";
 import { buildGridCutter, DEFAULT_GRID_CUTTER } from "../../geometry/models/gridCutter";
@@ -134,5 +135,40 @@ export const LUPA_MODELS: ModelDef[] = [
       },
     ],
     build: (ctx, p) => buildOutlineBowl(ctx, as(p)),
+  },
+  {
+    id: "stampMold",
+    category: "home",
+    label: "Molde para carimbo de EVA",
+    blurb: "Aqueça o EVA (ou use massinha) e prense no molde: o carimbo sai com o desenho e carimba do jeito certo.",
+    icon: Stamp,
+    font: true,
+    art: "Desenho do carimbo (opcional)",
+    defaults: DEFAULT_STAMP_MOLD,
+    sections: [
+      {
+        title: "Desenho",
+        fields: [
+          text("text", "Texto (se não enviar desenho)", 20),
+          num("size", "Tamanho do desenho", 40, 300, { step: 1, hint: "Lado maior." }),
+          bool("invert", "Inverter: desenho em relevo (carimba o fundo)"),
+          num("bridge", "Ligar partes soltas", 0, 5, { step: 0.5, hint: "Fecha vãos de até o dobro deste valor entre letras e pedaços soltos." }),
+        ],
+      },
+      {
+        title: "Molde e apoio",
+        fields: [
+          num("depth", "Profundidade", 0.6, 5),
+          num("thickness", "Espessura da placa", 3, 10),
+          num("margin", "Margem", 2, 20, { step: 1 }),
+          bool("thumb", "Apoio de polegar (peça que encaixa atrás)"),
+          num("thumbSize", "Tamanho do apoio", 15, 45, { step: 1 }),
+          num("thumbX", "Posição do apoio (→)", -140, 140, { step: 1 }),
+          num("thumbY", "Posição do apoio (↑)", -140, 140, { step: 1 }),
+          color("color", "Cor"),
+        ],
+      },
+    ],
+    build: (ctx, p) => buildStampMold(ctx, as(p)),
   },
 ];
