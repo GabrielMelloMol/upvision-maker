@@ -1,4 +1,5 @@
-import { CakeSlice, CircleDot, Egg, Grid3x3, Lollipop, Stamp } from "lucide-react";
+import { CakeSlice, CircleDot, Cylinder, Egg, Grid3x3, Lollipop, Stamp } from "lucide-react";
+import { buildTextureRoller, DEFAULT_TEXTURE_ROLLER } from "../../geometry/models/textureRoller";
 import { buildScrewCase, DEFAULT_SCREW_CASE } from "../../geometry/models/screwCase";
 import { buildStampMold, DEFAULT_STAMP_MOLD } from "../../geometry/models/stampMold";
 import { buildOutlineBowl, DEFAULT_OUTLINE_BOWL } from "../../geometry/models/outlineBowl";
@@ -222,5 +223,39 @@ export const LUPA_MODELS: ModelDef[] = [
       },
     ],
     build: (ctx, p) => buildScrewCase(ctx, as({ ...p, starts: Number(p.starts) })),
+  },
+  {
+    id: "textureRoller",
+    category: "kitchen",
+    label: "Rolo de textura",
+    blurb: "Marca massa, argila e biscoito com um desenho em mosaico ou envolvente, sem emenda.",
+    icon: Cylinder,
+    art: "Desenho do padrão (opcional)",
+    defaults: DEFAULT_TEXTURE_ROLLER,
+    sections: [
+      {
+        title: "Padrão",
+        fields: [
+          choice("pattern", "Padrão", [["tiles", "Mosaico"], ["wrap", "Desenho envolvente"]]),
+          num("tileSize", "Tamanho do ladrilho", 6, 60, { step: 1, hint: "Ajustado para fechar a volta sem emenda." }),
+          bool("brick", "Fileiras em tijolo (meio ladrilho)"),
+          choice("relief", "Relevo", [["high", "Alto (desenho saltado)"], ["low", "Baixo (desenho rebaixado)"]]),
+          num("depth", "Profundidade", 0.6, 4),
+        ],
+      },
+      {
+        title: "Rolo",
+        fields: [
+          num("diameter", "Diâmetro", 20, 90, { step: 1 }),
+          num("width", "Largura", 20, 220, { step: 1 }),
+          choice("ends", "Pontas", [["axle", "Furo para eixo"], ["handles", "Cabos impressos"]]),
+          num("axleDiameter", "Diâmetro do eixo", 4, 20, { step: 0.1, hint: "Palito de churrasco ~4 mm, cabo de madeira 8 mm (+ folga)." }),
+          num("handleDiameter", "Diâmetro dos cabos", 10, 30, { step: 1 }),
+          num("handleLength", "Comprimento dos cabos", 15, 60, { step: 1 }),
+          color("color", "Cor"),
+        ],
+      },
+    ],
+    build: (ctx, p) => buildTextureRoller(ctx, as(p)),
   },
 ];

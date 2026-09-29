@@ -7,6 +7,7 @@ import type { ModelCtx } from "./common";
 import { buildCakeStand, buildStickStand, DEFAULT_CAKE_STAND as B, DEFAULT_STICK_STAND as S, holeRings } from "./confectionery";
 import { buildGridCutter, DEFAULT_GRID_CUTTER as G } from "./gridCutter";
 import { buildOutlineBowl, DEFAULT_OUTLINE_BOWL as O } from "./outlineBowl";
+import { buildTextureRoller, DEFAULT_TEXTURE_ROLLER as TR, rollerGrid } from "./textureRoller";
 import { buildScrewCase, caseLayout, DEFAULT_SCREW_CASE as SC, screwCaseClosed } from "./screwCase";
 import { buildStampMold, DEFAULT_STAMP_MOLD as SM, moldDesign } from "./stampMold";
 
@@ -232,3 +233,41 @@ describe("estojo com tampa de rosca (#59)", () => {
     expect(mosaic.models[0].parts.map((p) => p.name)).toEqual(["Corpo", "Textura"]);
   });
 });
+
+describe("rolo de textura (#64)", () => {
+  test("grade sem costura: número inteiro de ladrilhos em volta, que fecham a circunferência exata", () => {
+    const g = rollerGrid(40, 80, 12);
+    expect(Number.isInteger(g.cols)).toBe(true);
+    expect(g.cols * g.cellW).toBeCloseTo(Math.PI * 40, 6);
+    expect(g.rows * g.cellH).toBeCloseTo(80, 6);
+  });
+
+  test("alto relevo: desenho para fora até o diâmetro pedido; eixo passante (1 furo)", () => {
+    const { models } = buildTextureRoller(ctx(), { ...TR, relief: "high", ends: "axle" });
+    expectPrintable(models);
+    const [w, h, z] = size(models);
+    expect(w).toBeCloseTo(TR.diameter, 0);
+    expect(h).toBeCloseTo(TR.diameter, 0);
+    expect(z).toBeCloseTo(TR.width, 1);
+    const s = solid(models[0].parts[0].mesh);
+    expect(s.genus()).toBeGreaterThanOrEqual(1); // o furo do eixo
+    const core = Math.PI * ((TR.diameter / 2 - TR.depth) ** 2 - (TR.axleDiameter / 2) ** 2) * TR.width;
+    expect(s.volume()).toBeGreaterThan(core); // o relevo soma por fora
+  });
+
+  test("baixo relevo: desenho rebaixado no cilindro; cabos nas pontas aumentam a altura", () => {
+    const low = buildTextureRoller(ctx(), { ...TR, relief: "low", ends: "axle" }).models;
+    expectPrintable(low);
+    const full = Math.PI * ((TR.diameter / 2) ** 2 - (TR.axleDiameter / 2) ** 2) * TR.width;
+    expect(volume(low[0].parts[0].mesh)).toBeLessThan(full - 1);
+    const handles = buildTextureRoller(ctx(), { ...TR, ends: "handles" }).models;
+    expectPrintable(handles);
+    expect(size(handles)[2]).toBeCloseTo(TR.width + 2 * TR.handleLength, 1);
+  });
+
+  test("imagem envolvente: um desenho só esticado em volta", () => {
+    const { models } = buildTextureRoller({ ...ctx(), art: M.CrossSection.square([30, 10], true) }, { ...TR, pattern: "wrap" });
+    expectPrintable(models);
+  });
+});
+

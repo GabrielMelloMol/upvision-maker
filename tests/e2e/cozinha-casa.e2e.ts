@@ -75,3 +75,13 @@ test("estojo com tampa de rosca (#59): corpo e tampa, nome, mosaico e orelha; 3M
   await page.screenshot({ path: "test-results/estojo.png" });
   await save3mf(page, tauri.files);
 });
+
+test("rolo de textura (#64): abre com o mosaico de exemplo, troca para cabos e baixo relevo; 3MF", async ({ page, tauri }) => {
+  await openModel(page, "Rolo de textura");
+  await page.screenshot({ path: "test-results/rolo.png" });
+  await page.getByRole("button", { name: "Cabos impressos" }).click();
+  await page.getByRole("button", { name: "Baixo (desenho rebaixado)" }).click();
+  await idle(page);
+  await expect(page.locator(".viewer .overlay")).toHaveCount(0);
+  await save3mf(page, tauri.files);
+});
