@@ -13,6 +13,7 @@ import { GIFTS_SPORT_MODELS } from "./giftsSport";
 import { STUDY_MODELS } from "./studyModels";
 import { TEXT_KITCHEN_MODELS } from "./textKitchen";
 import { TORNO_MODELS } from "./torno";
+import { LUPA_MODELS } from "./lupa";
 
 export { CATEGORIES, type Category, type FieldDef, type ModelDef, type Params, type Section } from "./fields";
 
@@ -140,7 +141,7 @@ const CORE_MODELS: ModelDef[] = [
   },
 ];
 
-export const MODELS: ModelDef[] = [...CORE_MODELS, ...TEXT_KITCHEN_MODELS, ...GIFTS_SPORT_MODELS, ...STUDY_MODELS, ...TORNO_MODELS];
+export const MODELS: ModelDef[] = [...CORE_MODELS, ...TEXT_KITCHEN_MODELS, ...GIFTS_SPORT_MODELS, ...STUDY_MODELS, ...TORNO_MODELS, ...LUPA_MODELS];
 
 /** Números dentro dos limites (os campos fora da faixa ficam marcados e não geram o modelo). */
 export function validParams(def: ModelDef, p: Params): boolean {
