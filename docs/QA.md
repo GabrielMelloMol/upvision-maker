@@ -32,7 +32,7 @@ Arquitetura: React sem roteador (estado `pageId`), SQLite via `@tauri-apps/plugi
 
 ## E2E (Playwright + mock do IPC do Tauri)
 
-`tests/e2e/tauri.ts` instala `window.__TAURI_INTERNALS__` (mesmo contrato do `mockIPC`) e responde no Node: SQL num SQLite em memória (`node:sqlite`), diálogos controláveis e arquivos salvos numa `Map` que o teste inspeciona (3MF é zip, STL tem nº de triângulos coerente). Roda num Vite próprio na porta 1430, sem tocar no `tauri dev` da 1420.
+`tests/e2e/tauri.ts` instala `window.__TAURI_INTERNALS__` (mesmo contrato do `mockIPC`) e responde no Node: SQL num SQLite em memória (`node:sqlite`), diálogos controláveis e arquivos salvos numa `Map` que o teste inspeciona (3MF é zip, STL tem nº de triângulos coerente). Roda num Vite próprio numa porta livre escolhida a cada execução (worktrees em paralelo não se misturam); `E2E_PORT=1430 npm run e2e` fixa a porta e reaproveita um Vite já aberto nela. Não toca no `tauri dev` da 1420.
 
 | Spec | Cobre |
 |---|---|

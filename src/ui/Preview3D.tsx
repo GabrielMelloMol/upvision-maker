@@ -35,7 +35,7 @@ export default function Preview3D({ models, busy, busyText = "Gerando modelo…"
   const size = b && { x: b.max[0] - b.min[0], y: b.max[1] - b.min[1], z: b.max[2] - b.min[2] };
 
   return (
-    <div className="viewer" ref={host} role="img" aria-label="Prévia 3D do modelo">
+    <div className="viewer" ref={host} role="img" aria-label="Prévia 3D do modelo" aria-busy={busy || undefined}>
       {size && (
         <div className="hud">
           {size.x.toFixed(1)} × {size.y.toFixed(1)} × {size.z.toFixed(1)} mm
