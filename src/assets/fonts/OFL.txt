@@ -1,0 +1,298 @@
+Fontes embutidas no UpVision Maker (src/assets/fonts)
+=====================================================
+
+Todas vêm do Google Fonts (github.com/google/fonts), em versão estática com subconjunto latino
+(via Fontsource). Cada uma é licenciada pela SIL Open Font License 1.1, cujo texto segue no fim.
+
+## abril-fatface
+Copyright (c) 2011, TypeTogether (www.type-together.com), 
+with Reserved Font Names "Abril" and "Abril Fatface"
+
+## alex-brush
+Copyright 2011 The Alex Brush Project Authors (https://github.com/googlefonts/alex-brush)
+
+## alfa-slab-one
+Copyright 2016 The Alfa Slab One Project Authors (http://www.jmsole.cl | info@jmsole.cl), with Reserved Font Name "Alfa Slab".
+
+## allura
+Copyright 2010 The Allura Project Authors (https://github.com/googlefonts/allura)
+
+## anton
+Copyright 2020 The Anton Project Authors (https://github.com/googlefonts/AntonFont.git)
+
+## archivo-black
+Copyright 2017 The Archivo Black Project Authors (https://github.com/Omnibus-Type/ArchivoBlack)
+
+## audiowide
+Copyright (c) 2012, Brian J. Bonislawsky DBA Astigmatic (AOETI) (astigma@astigmatic.com), with Reserved Font Names "Audiowide"
+
+## bagel-fat-one
+Copyright 2022 The Bagel Fat Project Authors (https://github.com/JAMO-TYPEFACE/BagelFat)
+
+## baloo-2
+﻿Copyright 2019 The Baloo 2 Project Authors (https://github.com/EkType/Baloo2)
+
+## bangers
+Copyright 2010 The Bangers Project Authors (https://github.com/googlefonts/bangers)
+
+## bebas-neue
+Copyright © 2010 by Dharma Type.
+
+## black-ops-one
+Copyright 2022 The Black-Ops Project Authors (https://github.com/googlefonts/googlefonts-project-template)
+
+## boogaloo
+Copyright (c) 2011, John Vargas Beltr�n� (www.johnvargasbeltran.com|john.vargasbeltran@gmail.com),
+with Reserved Font Name Boogaloo.
+
+## bowlby-one-sc
+Copyright (c) 2011 by vernon adams (vern@newtypography.co.uk),
+with Reserved Font Names "Bowlby" "Bowlby One" and "Bowlby One SC"
+
+## bree-serif
+Copyright (c) 2011, TypeTogether (www.type-together.com), 
+with Reserved Font Names "Bree" and "Bree Serif"
+
+## bubblegum-sans
+Copyright (c) 2011 Angel Koziupa (sudtipos@sudtipos.com), 
+Copyright (c) 2011 Alejandro Paul (sudtipos@sudtipos.com), 
+with Reserved Font Name "Bubblegum Sans"
+
+## bungee
+Copyright 2023 The Bungee Project Authors (https://github.com/djrrb/Bungee)
+
+## cinzel-decorative
+Copyright (c) 2012 Natanael Gama (info@ndiscovered.com), with Reserved Font Name 'Cinzel'
+
+## cinzel
+Copyright 2020 The Cinzel Project Authors (https://github.com/NDISCOVER/Cinzel)
+
+## comic-neue
+Copyright 2014 The Comic Neue Project Authors (https://github.com/crozynski/comicneue)
+
+## cookie
+Copyright (c) 2011 by Ania Kruk (hello@aniakruk.com), 
+with Reserved Font Name "Cookie".
+
+## courgette
+Copyright (c) 2012 by Sorkin Type Co (www.sorkintype.com), with Reserved Font Name "Courgette".
+
+## damion
+Copyright 2014 The Damion Project Authors (https://github.com/googlefonts/damionFont)
+
+## dancing-script
+Copyright 2016 The Dancing Script Project Authors (https://github.com/googlefonts/DancingScript), with Reserved Font Name 'Dancing Script'.
+
+## fredoka
+Copyright 2016 The Fredoka Project Authors (https://github.com/hafontia/Fredoka-One)
+
+## grand-hotel
+Copyright (c) 2012 by Brian J. Bonislawsky and Jim Lyles DBA Astigmatic
+(AOETI) (astigma@astigmatic.com), with Reserved Font Name "Grand Hotel"
+
+## great-vibes
+Copyright 2015 The Great Vibes Pro Project Authors (https://github.com/googlefonts/great-vibes)
+
+## hanken-grotesk
+Copyright 2021 The Hanken Grotesk Project Authors (https://github.com/marcologous/hanken-grotesk)
+
+## kaushan-script
+Copyright (c) 2011, Pablo Impallari (www.impallari.com|impallari@gmail.com),
+Copyright (c) 2011, Igino Marini. (www.ikern.com|mail@iginomarini.com),
+with Reserved Font Name Kaushan Script.
+
+## knewave
+Copyright (c) 2010, Tyler Finck <hello@sursly.com>, with Reserved Font Name: "Knewave".
+
+## leckerli-one
+Copyright (c) 2011 Gesine Todt  (www.gesine-todt.de), with Reserved
+Font Names "Leckerli" and "Leckerli One".
+
+## lily-script-one
+Copyright (c) 2012-2013, Julia Petretta (www.juliapetretta.com julia.petretta@googlemail.com), with Reserved Font Name 'Lily'
+
+## lobster-two
+Copyright (c) 2011, Pablo Impallari (www.impallari.com|impallari@gmail.com),
+Copyright (c) 2011, Igino Marini. (www.ikern.com|mail@iginomarini.com),
+with Reserved Font Names "Lobster" and "Lobster Two".
+
+## lobster
+Copyright 2010 The Lobster Project Authors (https://github.com/impallari/The-Lobster-Font), with Reserved Font Name "Lobster".
+
+## merriweather
+Copyright 2020 The Merriweather Project Authors (https://github.com/EbenSorkin/Merriweather4) with Reserved Font Name "Merriweather".
+
+## montserrat
+Copyright 2024 The Montserrat.Git Project Authors (https://github.com/JulietaUla/Montserrat.git)
+
+## mr-dafoe
+Copyright (c) 2011 Alejandro Paul (sudtipos@sudtipos.com), 
+with Reserved Font Name "Mr Dafoe"
+
+## norican
+Copyright 2011 The Norican Project Authors (https://github.com/googlefonts/NoricanFont)
+
+## oleo-script
+Copyright (c) 2012, Soytutype (contact@soytutype.com.ar|soytutype@gmail.com), with Reserved Font Name "Oleo Script"
+
+## pacifico
+Copyright 2018 The Pacifico Project Authors (https://github.com/googlefonts/Pacifico)
+
+## parisienne
+Copyright (c) 2012 by Brian J. Bonislawsky DBA Astigmatic (AOETI)
+(astigma@astigmatic.com), with Reserved Font Names "Parisienne"
+
+## passion-one
+Copyright (c) 2011 Fontstage (info@fontstage.com), with Reserved Font Names, 'Passion'
+
+## playfair-display
+Copyright 2017 The Playfair Display Project Authors (https://github.com/clauseggers/Playfair-Display), with Reserved Font Name "Playfair Display"
+
+## poppins
+Copyright 2020 The Poppins Project Authors (https://github.com/itfoundry/Poppins)
+
+## press-start-2p
+Copyright 2012 The Press Start 2P Project Authors (cody@zone38.net), with Reserved Font Name "Press Start 2P".
+
+## righteous
+Copyright (c) 2011 by Brian J. Bonislawsky DBA Astigmatic (AOETI)
+(astigma@astigmatic.com), with Reserved Font Names "Righteous"
+
+## rubik-mono-one
+Copyright 2015 The Rubik Project Authors (mail@hubertfischer.com)
+
+## russo-one
+Copyright (c) 2011-2012, Jovanny Lemonad (jovanny.ru), with Reserved Font Name "Russo"
+
+## rye
+Copyright (c) 2011 by Sorkin Type Co (www.sorkintype.com),
+with Reserved Font Name "Rye".
+
+## sacramento
+Copyright (c) 2012, Brian J. Bonislawsky DBA Astigmatic (AOETI) (astigma@astigmatic.com), with Reserved Font Names 'Sacramento'
+
+## shrikhand
+Copyright (c) 2015 Jonny Pinhorn (jonpinhorn.typedesign@gmail.com)
+
+## sigmar-one
+Copyright 2011 The Sigmar One Project Authors (contact@sansoxygen.com)
+
+## sniglet
+Copyright (c) 2008, Haley Fiege (haley@kingdomofawesome.com), Copyright (c) 2012, Brenda Gallo (gbrenda1987@gmail.com), Copyright (c) 2013, Pablo Impallari (www.impallari.com|impallari@gmail.com)
+
+## spicy-rice
+Copyright (c) 2011 by Brian J. Bonislawsky DBA Astigmatic (AOETI)
+(astigma@astigmatic.com), with Reserved Font Names "Spicy Rice"
+
+## titan-one
+Copyright (c) 2011, Rodrigo Fuenzalida (www.rfuenzalida.com|hello@rfuenzalida.com),
+with Reserved Font Name Titan.
+
+## zilla-slab
+Copyright 2017, The Mozilla Foundation
+
+-----------------------------------------------------
+
+This Font Software is licensed under the SIL Open Font License, Version 1.1.
+	This license is copied below, and is also available with a FAQ at:
+	http://scripts.sil.org/OFL
+
+	Version 1.1 - 26 February 2007
+
+
+SIL Open Font License
+====================================================
+
+
+Preamble
+----------
+
+The goals of the Open Font License (OFL) are to stimulate worldwide
+development of collaborative font projects, to support the font creation
+efforts of academic and linguistic communities, and to provide a free and
+open framework in which fonts may be shared and improved in partnership
+with others.
+
+The OFL allows the licensed fonts to be used, studied, modified and
+redistributed freely as long as they are not sold by themselves. The
+fonts, including any derivative works, can be bundled, embedded, 
+redistributed and/or sold with any software provided that any reserved
+names are not used by derivative works. The fonts and derivatives,
+however, cannot be released under any other type of license. The
+requirement for fonts to remain under this license does not apply
+to any document created using the fonts or their derivatives.
+
+Definitions
+-------------
+
+`"Font Software"` refers to the set of files released by the Copyright
+Holder(s) under this license and clearly marked as such. This may
+include source files, build scripts and documentation.
+
+`"Reserved Font Name"` refers to any names specified as such after the
+copyright statement(s).
+
+`"Original Version"` refers to the collection of Font Software components as
+distributed by the Copyright Holder(s).
+
+`"Modified Version"` refers to any derivative made by adding to, deleting,
+or substituting -- in part or in whole -- any of the components of the
+Original Version, by changing formats or by porting the Font Software to a
+new environment.
+
+`"Author"` refers to any designer, engineer, programmer, technical
+writer or other person who contributed to the Font Software.
+
+Permission & Conditions
+------------------------
+
+Permission is hereby granted, free of charge, to any person obtaining
+a copy of the Font Software, to use, study, copy, merge, embed, modify,
+redistribute, and sell modified and unmodified copies of the Font
+Software, subject to the following conditions:
+
+1. Neither the Font Software nor any of its individual components,
+in Original or Modified Versions, may be sold by itself.
+
+2. Original or Modified Versions of the Font Software may be bundled,
+redistributed and/or sold with any software, provided that each copy
+contains the above copyright notice and this license. These can be
+included either as stand-alone text files, human-readable headers or
+in the appropriate machine-readable metadata fields within text or
+binary files as long as those fields can be easily viewed by the user.
+
+3. No Modified Version of the Font Software may use the Reserved Font
+Name(s) unless explicit written permission is granted by the corresponding
+Copyright Holder. This restriction only applies to the primary font name as
+presented to the users.
+
+4. The name(s) of the Copyright Holder(s) or the Author(s) of the Font
+Software shall not be used to promote, endorse or advertise any
+Modified Version, except to acknowledge the contribution(s) of the
+Copyright Holder(s) and the Author(s) or with their explicit written
+permission.
+
+5. The Font Software, modified or unmodified, in part or in whole,
+must be distributed entirely under this license, and must not be
+distributed under any other license. The requirement for fonts to
+remain under this license does not apply to any document created
+using the Font Software.
+
+Termination
+-----------
+
+This license becomes null and void if any of the above conditions are
+not met.
+
+
+	DISCLAIMER
+
+	THE FONT SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+	EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO ANY WARRANTIES OF
+	MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT
+	OF COPYRIGHT, PATENT, TRADEMARK, OR OTHER RIGHT. IN NO EVENT SHALL THE
+	COPYRIGHT HOLDER BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+	INCLUDING ANY GENERAL, SPECIAL, INDIRECT, INCIDENTAL, OR CONSEQUENTIAL
+	DAMAGES, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+	FROM, OUT OF THE USE OR INABILITY TO USE THE FONT SOFTWARE OR FROM
+	OTHER DEALINGS IN THE FONT SOFTWARE.

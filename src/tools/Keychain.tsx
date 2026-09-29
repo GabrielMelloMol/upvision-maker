@@ -1,10 +1,12 @@
 import { useEffect, useState } from "react";
-import { FONTS, loadFont, type FontId } from "../geometry/fonts";
+import { isCursive, loadFont, type FontId } from "../geometry/fonts";
 import { buildKeychain, DEFAULT_KEYCHAIN, layoutOnPlate, parseNames, type KeychainParams } from "../geometry/keychain";
 import { modelsBounds } from "../geometry/bounds";
 import { getManifold, type CS } from "../geometry/manifold";
 import { scoped } from "../geometry/shape2d";
 import { textToCrossSection } from "../geometry/text";
+import { checkText, textWarnings } from "../geometry/textCheck";
+import FontPicker from "../ui/FontPicker";
 import Alert from "../ui/Alert";
 import Dropzone from "../ui/Dropzone";
 import ExportButtons from "../ui/ExportButtons";
@@ -53,6 +55,7 @@ export default function Keychain() {
     const f = await loadFont(font);
     const design = logo ? await designFromSvg(logo.svg, 100, false, true) : null;
     const logoCs: CS | null = design?.cs ?? null;
+    let textWarn: string[] = [];
     try {
       const built = scoped((k) => {
         // logo no tamanho pedido (altura), reaproveitado em todos os chaveiros; logo colorido leva as camadas junto
@@ -61,8 +64,10 @@ export default function Keychain() {
         const logoFit = logoCs ? k(logoCs.scale(s)) : null;
         const layersFit = design?.layers?.map((l) => ({ color: l.color, cs: k(l.cs.scale(s)) })) ?? null;
         const names = list.length ? list : [""];
-        return names.map((name) => {
+        return names.map((name, i) => {
           const txt = name ? k(textToCrossSection(M, f, name, textH)) : null;
+          // traço fino / letras soltas: o primeiro nome basta (mesma fonte e altura em todos)
+          if (txt && i === 0) textWarn = textWarnings(checkText(txt), name, isCursive(font));
           let art: CS;
           let dx = 0;
           if (txt && logoFit) {
@@ -76,7 +81,7 @@ export default function Keychain() {
       });
       const placed = built.length > 1 ? layoutOnPlate(built, PLATE_MM - 2 * GAP_MM, GAP_MM) : built;
       const b = modelsBounds(placed);
-      const warn: string[] = [];
+      const warn: string[] = [...textWarn];
       if (b && b.max[1] - b.min[1] > PLATE_MM) warn.push("Os chaveiros não cabem numa mesa de 256 mm: divida a lista em mais arquivos.");
       if (batch && parseNames(names).length > MAX_BATCH) warn.push(`Só os primeiros ${MAX_BATCH} nomes foram gerados.`);
       return { models: placed, warnings: warn };
@@ -85,8 +90,6 @@ export default function Keychain() {
       design?.layers?.forEach((l) => l.cs.delete());
     }
   }, [batch, text, names, font, textH, logo, logoH, p, valid]);
-
-  const fontCss = FONTS.find((x) => x.id === font)!.css;
 
   return (
     <div className="page">
@@ -111,19 +114,7 @@ export default function Keychain() {
                 <input value={text} maxLength={40} onChange={(e) => setText(e.target.value)} />
               </label>
             )}
-            <label>
-              Fonte
-              <select value={font} onChange={(e) => setFont(e.target.value as FontId)}>
-                {FONTS.map((f) => (
-                  <option key={f.id} value={f.id}>
-                    {f.label}
-                  </option>
-                ))}
-              </select>
-              <span className="font-sample" style={{ fontFamily: fontCss }}>
-                {(batch ? parseNames(names)[0] : text) || "Exemplo"}
-              </span>
-            </label>
+            <FontPicker value={font} onChange={setFont} sample={(batch ? parseNames(names)[0] : text) ?? ""} />
             <NumField label="Altura do texto" value={textH} onChange={setTextH} min={5} max={60} step={1} />
           </div>
           <div className="card stack">

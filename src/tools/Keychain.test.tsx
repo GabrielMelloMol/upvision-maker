@@ -16,7 +16,7 @@ const LOGO_SVG = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 10 10"><c
 beforeAll(() => {
   vi.stubGlobal("fetch", async (u: string) => {
     const b = readFileSync(resolve(__dirname, "../..", `.${u}`));
-    return { arrayBuffer: async () => b.buffer.slice(b.byteOffset, b.byteOffset + b.byteLength) };
+    return { ok: true, arrayBuffer: async () => b.buffer.slice(b.byteOffset, b.byteOffset + b.byteLength) };
   });
 });
 
@@ -78,11 +78,15 @@ describe("Chaveiros", () => {
     await waitFor(() => expect(width()).toBeGreaterThan(before + 10), BUILD);
   }, 30_000);
 
-  test("altura do texto fora da faixa: não gera; fonte troca a amostra", async () => {
+  test("altura do texto fora da faixa: não gera; seletor de fonte troca a fonte", async () => {
     const user = userEvent.setup();
-    const { container } = renderWithApp(<Keychain />);
-    await user.selectOptions(screen.getByRole("combobox"), "lobster");
-    expect(container.querySelector<HTMLElement>(".font-sample")!.style.fontFamily).toContain("Lobster");
+    renderWithApp(<Keychain />);
+    await user.click(screen.getByRole("button", { name: /^Fonte: Pacifico/ }));
+    await user.click(screen.getByRole("button", { name: "Grossa" }));
+    expect(screen.queryByRole("button", { name: /^Lobster \(/ })).toBeNull();
+    await user.type(screen.getByRole("searchbox", { name: "Buscar fonte" }), "lobs");
+    await user.click(screen.getByRole("button", { name: "Lobster (Cursiva)" }));
+    expect(screen.getByRole("button", { name: /^Fonte: Lobster\./ })).toBeInTheDocument();
     await user.clear(screen.getByLabelText(/^Altura do texto/));
     await user.type(screen.getByLabelText(/^Altura do texto/), "99");
     expect(await screen.findByText("Corrija os campos em vermelho.", undefined, BUILD)).toBeInTheDocument();

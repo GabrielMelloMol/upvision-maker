@@ -177,7 +177,8 @@ function handler(m: TauriMock, cmd: string, a: Record<string, unknown> | null, h
 }
 
 export const test = base.extend<{ tauri: TauriMock }>({
-  tauri: async ({ page }, provide) => {
+  // auto: o mock do IPC entra mesmo em testes que não pedem `tauri` (sem ele o app nem abre)
+  tauri: [async ({ page }, provide) => {
     const m: TauriMock = { db: new DatabaseSync(":memory:"), files: new Map(), nextOpen: null, savePath: null, askAnswer: true, calls: [], opened: [], log: [], update: null, releases: [], autoBackups: new Map(), windowStyle: { effect: "none", overlayTitlebar: false } };
     await page.exposeFunction("__tauriInvoke", (cmd: string, a: Record<string, unknown> | null, h: Record<string, string> | null) => {
       m.calls.push(cmd);
@@ -193,7 +194,7 @@ export const test = base.extend<{ tauri: TauriMock }>({
     );
     await provide(m);
     m.db.close();
-  },
+  }, { auto: true }],
 });
 
 export { expect };

@@ -1,5 +1,6 @@
 import Anthropic from "@anthropic-ai/sdk";
 import { estimateCostUsd } from "./cost";
+import { scadFontList } from "./scadFonts";
 
 const MAX_TOKENS = 16000;
 
@@ -12,7 +13,9 @@ Regras do modelo:
 - Encaixes: folga de 0,2 a 0,3 mm entre peças que se encaixam.
 - Use $fn entre 48 e 96 em curvas. Evite minkowski e hull em formas complexas (ficam lentos).
 - Não use import(), include<> nem use<> de arquivos externos.
-- Fontes disponíveis para text(): "Hanken Grotesk ExtraBold" (padrão, sem serifa e grossa), "Fredoka SemiBold" (arredondada) e "Pacifico" (cursiva). Não use outras.
+- Fontes disponíveis para text(font="…"), com o nome exatamente assim (padrão: "Hanken Grotesk", sem serifa e grossa). Não use outras.
+  ${scadFontList()}
+  Para nomes em uma peça só, prefira cursivas que unem as letras ("Pacifico", "Lobster", "Norican"); evite as finas ("Great Vibes", "Allura", "Parisienne", "Alex Brush") abaixo de 15 mm de altura.
 
 Formato do código:
 - Defina tudo em módulos e NÃO escreva chamadas no nível de topo.

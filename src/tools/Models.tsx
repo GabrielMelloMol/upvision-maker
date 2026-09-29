@@ -2,9 +2,11 @@ import { Search, SearchX } from "lucide-react";
 import { useEffect, useState } from "react";
 import { getDb } from "../db";
 import { loadCompany } from "../db/customersRepo";
-import { FONTS, loadFont, type FontId } from "../geometry/fonts";
+import { isCursive, loadFont, type FontId } from "../geometry/fonts";
 import { getManifold } from "../geometry/manifold";
 import { textToCrossSection } from "../geometry/text";
+import { checkText, textWarnings } from "../geometry/textCheck";
+import FontPicker from "../ui/FontPicker";
 import Alert from "../ui/Alert";
 import Dropzone from "../ui/Dropzone";
 import EmptyState from "../ui/EmptyState";
@@ -19,7 +21,7 @@ import { errorText } from "../ui/Toast";
 import { useModelBuilder } from "../ui/useModelBuilder";
 import { DESIGN_ACCEPT, designFromSvg, fileToSvg } from "./designInput";
 import { MissingInput } from "../geometry/models/common";
-import { CATEGORIES, MODELS, validParams, type Category, type FieldDef, type Params } from "./models/defs";
+import { CATEGORIES, MODELS, validParams, type Category, type FieldDef, type Params, type Section } from "./models/defs";
 import "../styles/features.css";
 
 /** Minúsculas e sem acento, para a busca. */
@@ -74,10 +76,18 @@ export default function Models() {
     const M = await getManifold();
     const f = await loadFont(font);
     const design = useArt ? await designFromSvg(useArt.svg, ART_WIDTH_MM, false, true) : null;
+    // traço fino / letras soltas: checa o primeiro texto do modelo (o principal)
+    let textWarn: string[] | null = null;
+    const text = (s: string, h: number) => {
+      if (!s.trim()) return null;
+      const cs = textToCrossSection(M, f, s, h);
+      textWarn ??= textWarnings(checkText(cs), s, isCursive(font));
+      return cs;
+    };
     try {
       let out;
       try {
-        out = def.build({ M, art: design?.cs ?? null, artLayers: design?.layers, text: (s, h) => (s.trim() ? textToCrossSection(M, f, s, h) : null) }, p);
+        out = def.build({ M, art: design?.cs ?? null, artLayers: design?.layers, text }, p);
       } catch (e) {
         // dado obrigatório faltando não é erro: vira o texto da prévia vazia
         if (!(e instanceof MissingInput)) throw e;
@@ -85,7 +95,7 @@ export default function Models() {
         return null;
       }
       setMissing(null);
-      return { models: out.models, warnings: out.warnings ?? [], pauses: out.pauses };
+      return { models: out.models, warnings: [...(textWarn ?? []), ...(out.warnings ?? [])], pauses: out.pauses };
     } finally {
       design?.cs.delete();
       design?.layers?.forEach((l) => l.cs.delete());
@@ -137,15 +147,7 @@ export default function Models() {
                 ))}
               </div>
               {s === def.sections[def.fontSection ?? 0] && def.font && (
-                <Field label="Fonte">
-                  <select value={font} onChange={(e) => setFont(e.target.value as FontId)}>
-                    {FONTS.map((x) => (
-                      <option key={x.id} value={x.id}>
-                        {x.label}
-                      </option>
-                    ))}
-                  </select>
-                </Field>
+                <FontPicker value={font} onChange={setFont} sample={firstText(def.sections, p)} />
               )}
               {s === def.sections[0] && def.art && (
                 <>
@@ -174,6 +176,10 @@ export default function Models() {
     </div>
   );
 }
+
+/** Primeiro texto preenchido do modelo: é a prévia no seletor de fonte. */
+const firstText = (sections: Section[], p: Params) =>
+  sections.flatMap((s) => s.fields).map((f) => (f.kind === "text" ? String(p[f.k] ?? "").trim() : "")).find(Boolean) ?? "";
 
 function ParamField({ f, value, onChange }: { f: FieldDef; value: Params[string]; onChange: (v: string | number | boolean) => void }) {
   switch (f.kind) {
