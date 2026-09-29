@@ -403,3 +403,18 @@ test("falha por material (#35): filamento TPU usa a taxa do TPU e a linha mostra
   await user.type(screen.getByLabelText("Gramas"), "88"); // 8,80 → 8,80 ÷ 0,88 − 8,80 = 1,20
   expect(screen.getByRole("row", { name: /^Falhas · 12\s%\s\(TPU\)/ })).toHaveTextContent(brl("1,20"));
 });
+
+test("valores fora do normal (#46): avisa sem bloquear e 'Está certo' dispensa só aquele valor", async () => {
+  localStorage.setItem("upvision:calculadora", JSON.stringify({ mode: "full", fil: [{ ref: "", price: "", qty: "" }], ext: [], printerId: "", f: {} }));
+  const user = userEvent.setup();
+  renderWithApp(<Calculator go={() => {}} />);
+  await user.type(screen.getByLabelText("Preço por kg"), "1,2");
+  await user.type(screen.getByLabelText("Gramas"), "50");
+  expect(screen.getByText(/R\$\s1,20 por kg parece baixo demais/)).toBeInTheDocument();
+  expect(unitCost()).toHaveTextContent(brl("0,06")); // calcula mesmo assim
+  await user.click(screen.getByRole("button", { name: "Está certo" }));
+  expect(screen.queryByText(/por kg parece baixo demais/)).not.toBeInTheDocument();
+  await user.clear(screen.getByLabelText("Preço por kg"));
+  await user.type(screen.getByLabelText("Preço por kg"), "2"); // outro valor: avisa de novo
+  expect(screen.getByText(/R\$\s2,00 por kg parece baixo demais/)).toBeInTheDocument();
+});

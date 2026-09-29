@@ -7,6 +7,8 @@ import type { Db } from "../db/types";
 import { calculate, failureFor, machineHourCost } from "../domain/calc";
 import { findCatalogPrinter, printerLabel } from "../domain/catalog/printers";
 import { staleChannelText } from "../domain/channels";
+import { sanityWarnings } from "../domain/sanity";
+import Alert from "../ui/Alert";
 import { fixedCostPerHour } from "../domain/finance";
 import { parseDecimal } from "../domain/format";
 import { todayIso } from "../domain/orders";
@@ -71,6 +73,7 @@ export default function Calculator({ go }: { go: Go }) {
   const [rounding, setRounding] = useState<Rounding>("none");
   const [competitor, setCompetitor] = useState("");
   const [plugOpen, setPlugOpen] = useState(false);
+  const [dismissed, setDismissed] = useState<string[]>([]); // avisos de valor fora do normal marcados "está certo"
   const [draftCount, setDraftCount] = useState(() => peekQuoteDraft()?.items.length ?? 0);
   const toast = useToast();
   const printMin = parseDuration(f.time) || 0;
@@ -114,6 +117,15 @@ export default function Calculator({ go }: { go: Go }) {
     data.settings,
   );
 
+  const warnings = sanityWarnings({
+    filaments: fil.map((l) => ({ pricePerKg: price(l.price), grams: num(l.qty) })),
+    printHours: printMin / 60,
+    watts: num(f.watts),
+    failurePct: failure.pct,
+    channelFees: data.settings.channels,
+    consumer: r.consumer,
+    unitCost: r.unitCost,
+  }).filter((w) => !dismissed.includes(w.key));
   const staleFees = Object.fromEntries(data.settings.channels.flatMap((c) => {
     const t = staleChannelText(c, todayIso());
     return t ? [[c.name, t]] : [];
@@ -320,6 +332,14 @@ export default function Calculator({ go }: { go: Go }) {
         </div>
 
         <aside className="calc-summary" aria-live="polite">
+          {warnings.map((w) => (
+            <Alert key={w.key} kind="warn">
+              {w.text}{" "}
+              <button type="button" className="link" onClick={() => setDismissed([...dismissed, w.key])}>
+                Está certo
+              </button>
+            </Alert>
+          ))}
           <PriceHero r={r} s={data.settings} onSave={saveAsProduct} onPreferences={() => go("preferences")}>
             {mode === "quick" && (
               <>
