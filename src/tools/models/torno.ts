@@ -1,9 +1,10 @@
-import { Box, CaseUpper, LayoutGrid, Layers, Lightbulb, Puzzle } from "lucide-react";
+import { Box, CaseUpper, LayoutGrid, Layers, Lightbulb, Puzzle, Users } from "lucide-react";
 import { buildAlphabetCube, DEFAULT_ALPHABET_CUBE } from "../../geometry/models/alphabetCube";
 import { buildBigLetter, DEFAULT_BIG_LETTER } from "../../geometry/models/bigLetter";
 import { buildDeskOrganizer, DEFAULT_DESK_ORGANIZER } from "../../geometry/models/deskOrganizer";
 import { buildLayeredSign, DEFAULT_LAYERED_SIGN } from "../../geometry/models/layeredSign";
 import { buildLedLetter, DEFAULT_LED_LETTER } from "../../geometry/models/ledLetter";
+import { buildNamesPanel, DEFAULT_NAMES_PANEL } from "../../geometry/models/namesPanel";
 import { buildPuzzle, DEFAULT_PUZZLE } from "../../geometry/models/puzzle";
 import { as, bool, choice, color, font, num, text, textureFields, type ModelDef, type Section } from "./fields";
 
@@ -236,5 +237,32 @@ export const TORNO_MODELS: ModelDef[] = [
       },
     ],
     build: (ctx, p) => buildAlphabetCube(ctx, as(p)),
+  },
+  {
+    id: "namesPanel",
+    category: "plates",
+    label: "Painel de nomes",
+    blurb: "Placa com a lista de nomes (turma, família, equipe) em grade automática, título e furos.",
+    icon: Users,
+    font: true,
+    defaults: DEFAULT_NAMES_PANEL,
+    sections: [
+      { title: "Nomes", fields: [text("title", "Título (opcional)", 40), text("names", "Nomes", 1500, "Separados por vírgula. A letra se ajusta para caber.")] },
+      {
+        title: "Tamanho e cores",
+        fields: [
+          num("width", "Largura", 60, 600, { step: 1, hint: "Acima de 256 mm sai em partes para colar." }),
+          num("height", "Altura", 40, 600, { step: 1 }),
+          num("titleHeight", "Altura do título", 6, 60, { step: 1 }),
+          num("margin", "Margem", 3, 30, { step: 1 }),
+          num("thickness", "Espessura", 1.6, 6),
+          num("relief", "Relevo", 0.4, 3),
+          bool("holes", "Furos para pendurar"),
+          color("plateColor", "Placa"),
+          color("textColor", "Nomes"),
+        ],
+      },
+    ],
+    build: (ctx, p) => buildNamesPanel(ctx, as(p)),
   },
 ];
