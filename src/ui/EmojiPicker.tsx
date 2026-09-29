@@ -55,7 +55,8 @@ export default function EmojiPicker({ inputRef, value, onChange }: Props) {
         <div ref={pop} className="emoji-pop" role="dialog" aria-label="Emojis">
           {EMOJIS.map((em) => (
             <button key={em} type="button" className="ghost" aria-label={`Emoji ${em}`} onClick={() => insert(em)}>
-              {em}
+              {/* U+FE0F só na grade: ❤ ☀ ✏ ⚓ ✈ aparecem coloridos em vez de glifo de texto (o 3D ignora o seletor) */}
+              {em + "\uFE0F"}
             </button>
           ))}
         </div>

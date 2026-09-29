@@ -99,8 +99,9 @@ button.example svg { color: var(--brand-orange); }
 .emoji-pop {
   position: absolute; z-index: 20; top: calc(100% + 6px); right: 0; padding: 6px;
   display: grid; grid-template-columns: repeat(8, 36px); gap: 2px;
-  background: var(--surface-raised); box-shadow: var(--shadow-1); border-radius: var(--r);
+  background: var(--surface-raised); box-shadow: var(--shadow-2); border-radius: var(--r);
+  animation: fade-up var(--dur) var(--ease-out) both;
 }
-.emoji-pop button { width: 36px; min-height: 36px; padding: 0; font-size: 20px; line-height: 1; }
+.emoji-pop button { width: 36px; min-height: 36px; padding: 0; font-size: 20px; line-height: 1; border-radius: var(--r-sm); }
 .field-with-emoji { display: flex; gap: 6px; align-items: flex-end; }
 .field-with-emoji > label { flex: 1; min-width: 0; }
