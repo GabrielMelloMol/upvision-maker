@@ -1,4 +1,4 @@
-import { Box, CaseUpper, LayoutGrid, Layers, Lightbulb, Image, Link2, Puzzle, Spline, Type, Users } from "lucide-react";
+import { Box, CaseUpper, LayoutGrid, Layers, Lightbulb, Image, Link2, Puzzle, Sparkles, Spline, Type, Users } from "lucide-react";
 import { buildAlphabetCube, DEFAULT_ALPHABET_CUBE } from "../../geometry/models/alphabetCube";
 import { buildBigLetter, DEFAULT_BIG_LETTER } from "../../geometry/models/bigLetter";
 import { buildDeskOrganizer, DEFAULT_DESK_ORGANIZER } from "../../geometry/models/deskOrganizer";
@@ -9,6 +9,7 @@ import { buildPhotoHolder, DEFAULT_PHOTO_HOLDER } from "../../geometry/models/ph
 import { buildWallLetters, DEFAULT_WALL_LETTERS } from "../../geometry/models/wallLetters";
 import { buildNamePendants, DEFAULT_NAME_PENDANTS } from "../../geometry/models/namePendants";
 import { buildStringArt, DEFAULT_STRING_ART } from "../../geometry/models/stringArt";
+import { buildWindowFrame, DEFAULT_WINDOW_FRAME } from "../../geometry/models/windowFrame";
 import { buildPuzzle, DEFAULT_PUZZLE } from "../../geometry/models/puzzle";
 import { as, bool, choice, color, font, num, text, textureFields, type ModelDef, type Section } from "./fields";
 
@@ -396,5 +397,46 @@ export const TORNO_MODELS: ModelDef[] = [
       },
     ],
     build: (ctx, p) => buildStringArt(ctx, as(p)),
+  },
+  {
+    id: "windowFrame",
+    category: "party",
+    label: "Peça com janela (shaker)",
+    blurb: "Moldura com câmara de glitter e ranhura para acetato, ou aro com pausa para tecido; topo de bolo, em pé ou pendurar.",
+    icon: Sparkles,
+    font: true,
+    art: "Desenho da moldura (formato \"Desenho\")",
+    defaults: DEFAULT_WINDOW_FRAME,
+    sections: [
+      {
+        title: "Janela",
+        fields: [
+          choice("kind", "Tipo", [["shaker", "Glitter + acetato"], ["acetate", "Só acetato"], ["fabric", "Tecido (tule)"]]),
+          choice("shape", "Formato", [["circle", "Redondo"], ["rect", "Retangular"], ["text", "Contorno de texto"], ["art", "Desenho"]]),
+          text("shapeText", "Texto do contorno", 6, "Para o formato \"Contorno de texto\" (ex.: um número)."),
+          text("name", "Nome (peça à parte, cola na frente)", 20),
+          num("nameHeight", "Altura do nome", 6, 40, { step: 1 }),
+          choice("mount", "Saída", [["topper", "Topo de bolo"], ["stand", "Em pé (suporte)"], ["hang", "Pendurar"]]),
+        ],
+      },
+      {
+        title: "Medidas e impressão",
+        fields: [
+          num("size", "Tamanho", 30, 200, { step: 1 }),
+          num("wall", "Parede", 2, 10),
+          num("back", "Fundo", 0.8, 4),
+          num("chamber", "Câmara do glitter", 1, 10),
+          num("sheet", "Espessura do acetato", 0.1, 0.8, { step: 0.05 }),
+          num("clearance", "Folga da ranhura", 0.1, 0.5, { step: 0.05 }),
+          num("lip", "Aba sobre a folha", 0.6, 3),
+          num("fabricAt", "Altura da pausa do tecido", 0.4, 4),
+          num("relief", "Espessura do nome", 0.6, 4),
+          num("layerHeight", "Altura de camada", 0.08, 0.32, { step: 0.02, hint: "A mesma do fatiador: define a camada da pausa." }),
+          color("frameColor", "Moldura"),
+          color("textColor", "Nome"),
+        ],
+      },
+    ],
+    build: (ctx, p) => buildWindowFrame(ctx, as(p)),
   },
 ];
