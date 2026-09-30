@@ -1,6 +1,7 @@
-import { Box, CircleDot, Egg, Flower2, Goal, Image, LayoutGrid, Lightbulb, Spline, Stamp } from "lucide-react";
+import { Box, CircleDot, Egg, Flower2, Goal, Grid2x2, Grid3x3, Image, LayoutGrid, Lightbulb, Spline, Stamp } from "lucide-react";
 import { buildAlphabetCube, DEFAULT_ALPHABET_CUBE } from "../../../geometry/models/alphabetCube";
 import { buildDeskOrganizer, DEFAULT_DESK_ORGANIZER } from "../../../geometry/models/deskOrganizer";
+import { buildGridBase, buildGridBin, DEFAULT_GRID_BASE, DEFAULT_GRID_BIN } from "../../../geometry/models/gridfinity";
 import { buildGoalBoard, DEFAULT_GOAL_BOARD } from "../../../geometry/models/goalBoard";
 import { buildLedLetter, DEFAULT_LED_LETTER } from "../../../geometry/models/ledLetter";
 import { buildOutlineBowl, DEFAULT_OUTLINE_BOWL } from "../../../geometry/models/outlineBowl";
@@ -373,5 +374,63 @@ export const HOME_PROJECT_MODELS: ModelDef[] = [
       },
     ],
     build: (ctx, p) => buildVase(ctx, as(p)),
+  },
+  {
+    id: "gridBin",
+    category: "home",
+    label: "Gridfinity: caixinha",
+    blurb: "Caixinha do sistema de grade de 42 mm, com divisórias, aba e etiqueta, ímãs e borda empilhável.",
+    icon: Grid2x2,
+    font: true,
+    defaults: DEFAULT_GRID_BIN,
+    sections: [
+      {
+        title: "Tamanho",
+        fields: [
+          num("unitsX", "Largura (casas de 42 mm)", 1, 6, { step: 1, unit: "" }),
+          num("unitsY", "Profundidade (casas)", 1, 6, { step: 1, unit: "" }),
+          num("unitsZ", "Altura (unidades de 7 mm)", 2, 20, { step: 1, unit: "" }),
+          num("dividersX", "Compartimentos na largura", 1, 8, { step: 1, unit: "" }),
+          num("dividersY", "Compartimentos na profundidade", 1, 8, { step: 1, unit: "" }),
+        ],
+      },
+      {
+        title: "Detalhes",
+        fields: [
+          bool("lip", "Borda empilhável"),
+          bool("labelTab", "Aba de etiqueta"),
+          bool("scoop", "Rampa para pegar"),
+          bool("magnets", "Furos de ímã 6×2 mm"),
+          bool("screws", "Furos de parafuso"),
+          num("wall", "Parede", 0.8, 3),
+          num("floor", "Fundo", 0.8, 3),
+          text("label", "Etiqueta impressa (opcional)", 30),
+          color("binColor", "Caixinha"),
+          color("labelColor", "Etiqueta"),
+          color("textColor", "Texto da etiqueta"),
+        ],
+      },
+    ],
+    build: (ctx, p) => buildGridBin(ctx, as(p)),
+  },
+  {
+    id: "gridBase",
+    category: "home",
+    label: "Gridfinity: base",
+    blurb: "Base com um encaixe por casa de 42 mm; grande, sai em pedaços que cabem na mesa.",
+    icon: Grid3x3,
+    defaults: DEFAULT_GRID_BASE,
+    sections: [
+      {
+        title: "Base",
+        fields: [
+          num("unitsX", "Largura (casas)", 1, 20, { step: 1, unit: "" }),
+          num("unitsY", "Profundidade (casas)", 1, 20, { step: 1, unit: "" }),
+          bool("magnets", "Fundo com furos de ímã"),
+          color("color", "Cor"),
+        ],
+      },
+    ],
+    build: (ctx, p) => buildGridBase(ctx, as(p)),
   },
 ];

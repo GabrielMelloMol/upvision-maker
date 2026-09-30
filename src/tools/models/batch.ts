@@ -33,6 +33,7 @@ export const BATCH_FIELDS: Record<string, string[]> = {
   photoHolder: ["text"],
   stringArt: ["line1", "line2"],
   windowFrame: ["name"],
+  gridBin: ["label"],
   alphabetCube: ["kit"],
 };
 
