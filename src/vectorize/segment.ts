@@ -3,6 +3,7 @@ import loaderUrl from "@mediapipe/tasks-vision/vision_wasm_internal.js?url";
 import wasmUrl from "@mediapipe/tasks-vision/vision_wasm_internal.wasm?url";
 import deeplabUrl from "../assets/models/deeplab_v3.tflite?url";
 import selfieUrl from "../assets/models/selfie_segmenter.tflite?url";
+import { onReleaseHeavy } from "../ui/heavy";
 
 /** O que a IA local deve recortar. "plain" = sem IA (fundo liso, por inundação da borda). */
 export type Subject = "person" | "pet" | "plain";
@@ -25,6 +26,12 @@ function segmenter(subject: Exclude<Subject, "plain">): Promise<ImageSegmenter> 
     );
     s.catch(() => cache.delete(subject));
     cache.set(subject, s);
+    const mine = s;
+    // ao sair da tela: fecha o modelo (solta a memória do WASM do MediaPipe)
+    onReleaseHeavy(() => {
+      if (cache.get(subject) === mine) cache.delete(subject);
+      mine.then((seg) => seg.close(), () => {});
+    });
   }
   return s;
 }

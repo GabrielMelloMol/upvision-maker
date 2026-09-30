@@ -1,3 +1,4 @@
+import { onReleaseHeavy } from "../ui/heavy";
 import type { TraceOptions } from "./pipeline";
 import type { TraceDone, TraceMessage, TraceRequest } from "./vectorize.worker";
 
@@ -44,7 +45,15 @@ export type TraceJob = { result: Promise<TraceDone>; cancel: () => void };
 
 /** Vetoriza no worker. `cancel()` encerra o worker na hora (um novo é criado no próximo pedido). */
 export function trace(r: Raster, options: TraceOptions, seg: Uint8Array | null, onProgress?: (p: TraceProgress) => void): TraceJob {
-  worker ??= new Worker(new URL("./vectorize.worker.ts", import.meta.url), { type: "module" });
+  if (!worker) {
+    const created = new Worker(new URL("./vectorize.worker.ts", import.meta.url), { type: "module" });
+    worker = created;
+    // ao sair da tela: encerra o worker (e o WASM do vtracer dentro dele); o próximo pedido cria outro
+    onReleaseHeavy(() => {
+      created.terminate();
+      if (worker === created) worker = null;
+    });
+  }
   const w = worker;
   const id = ++seq;
   let finish: (err?: Error, done?: TraceDone) => void = () => {};

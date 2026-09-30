@@ -11,6 +11,7 @@
     "test": "vitest run",
     "lint": "eslint .",
     "typecheck": "tsc --noEmit",
+    "perf": "playwright test -c playwright.perf.config.ts",
     "e2e": "playwright test",
     "thumbs": "THUMBS=1 playwright test tests/e2e/thumbs.e2e.ts && mkdir -p src/assets/model-thumbs && cp test-results/model-thumbs/*.jpg src/assets/model-thumbs/",
     "coverage": "vitest run --coverage"

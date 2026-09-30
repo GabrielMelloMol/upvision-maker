@@ -129,3 +129,21 @@ Cobertura: tudo em `src` conta, menos workers e MediaPipe (só rodam no navegado
 | C16 | Info | Testes | `vectorize/regression.test.ts` (limite de 8 s) às vezes estoura só na rodada com cobertura (instrumentação + 85 arquivos em paralelo); isolado < 1 s | Aberto (sugerido ao Lupa pular o tempo sob cobertura) |
 
 Pendências: conferir vibrancy/Mica e o fallback num Windows 10/11 real; o Bambu Studio só lê pausa de 3MF gerado por ele (chaveiro NFC: a tela ensina a pausa manual; o Orca lê).
+
+# Desempenho — v0.8.0 (#88)
+
+`npm run perf` (`playwright.perf.config.ts`, `tests/perf/desempenho.perf.ts`): build de produção no `vite preview`, CPU 4× mais lenta (aproxima um i3), mock do IPC dos E2E. Mede a abertura a frio (até a barra lateral, mediana de 3) e a memória: heap JS depois de coletar o lixo e o RSS dos processos de página do Chromium (onde ficam JS, workers e WASM), parado, em cada ferramenta e ao voltar para o Início. Resultado em `test-results/perf.json`. No Mac (M-series), 29/09/2026:
+
+| | Antes | Depois |
+|---|---|---|
+| Abertura a frio (CPU 4× mais lenta) | 355 ms | 320 ms |
+| Carregamento inicial (JS + CSS) | 580 KB | 541 KB (apresentação de 1º uso e catálogo de impressoras sob demanda) |
+| Página parada | 205 MB | 200 MB |
+| Depois de Imagem → SVG e voltar ao Início | 278 MB | 241 MB (worker do vtracer encerrado) |
+| Depois de Litofania e voltar ao Início | 557 MB | 247 MB (instância do manifold e MediaPipe soltas) |
+| Depois de Modelos prontos e voltar ao Início | 596 MB | 284 MB |
+| Instalador (v0.7.0) | Windows 15 MB (.exe) / 16 MB (.msi), Mac 31 MB (universal) | — |
+
+- Já eram sob demanda (conferido no build): vtracer, manifold, openscad-wasm, MediaPipe, three.js, fontes e miniaturas da galeria (`loading="lazy"`). O inicial é React (223 KB), zod dos esquemas do banco (96 KB) e o app.
+- Novo: `src/ui/heavy.ts`. Cada motor pesado se registra ao carregar e o App solta todos ao trocar de tela; a próxima ferramenta carrega de novo (~0,1 s para o manifold). Fotos já tinham limite de resolução (`MAX_SIDE`/`MAX_PIXELS` no SVG, `MAX_COLS` na litofania) e prévias 3D prontas depois de sair da tela são descartadas.
+- Os números do navegador de teste não são os do WebView2: a medição real fica com **Sobre → Copiar informações** (abertura e memória JS) e o Gerenciador de Tarefas. Checklist em `docs/QA-windows.md`.

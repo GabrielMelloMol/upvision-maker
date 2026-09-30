@@ -207,22 +207,28 @@ function handler(m: TauriMock, cmd: string, a: Record<string, unknown> | null, h
   }
 }
 
+/** Instala o mock do IPC numa página (o fixture `tauri` faz isso sozinho; o teste de desempenho usa em páginas próprias). */
+export async function installTauriMock(page: Page): Promise<TauriMock> {
+  const m: TauriMock = { db: new DatabaseSync(":memory:"), files: new Map(), nextOpen: null, savePath: null, askAnswer: true, calls: [], opened: [], log: [], update: null, releases: [], autoBackups: new Map(), lan: { running: false, url: "", code: "", phones: 0, locked: false }, windowStyle: { effect: "none", overlayTitlebar: false } };
+  await page.exposeFunction("__tauriInvoke", (cmd: string, a: Record<string, unknown> | null, h: Record<string, string> | null) => {
+    m.calls.push(cmd);
+    try {
+      return { ok: handler(m, cmd, a, h) };
+    } catch (e) {
+      return { err: e instanceof Error ? e.message : String(e) };
+    }
+  });
+  await page.addInitScript(INIT);
+  await page.route("https://api.github.com/**", (route) =>
+    m.releases === null ? route.abort("internetdisconnected") : route.fulfill({ json: m.releases, headers: { "access-control-allow-origin": "*" } }),
+  );
+  return m;
+}
+
 export const test = base.extend<{ tauri: TauriMock }>({
   // auto: o mock do IPC entra mesmo em testes que não pedem `tauri` (sem ele o app nem abre)
   tauri: [async ({ page }, provide) => {
-    const m: TauriMock = { db: new DatabaseSync(":memory:"), files: new Map(), nextOpen: null, savePath: null, askAnswer: true, calls: [], opened: [], log: [], update: null, releases: [], autoBackups: new Map(), lan: { running: false, url: "", code: "", phones: 0, locked: false }, windowStyle: { effect: "none", overlayTitlebar: false } };
-    await page.exposeFunction("__tauriInvoke", (cmd: string, a: Record<string, unknown> | null, h: Record<string, string> | null) => {
-      m.calls.push(cmd);
-      try {
-        return { ok: handler(m, cmd, a, h) };
-      } catch (e) {
-        return { err: e instanceof Error ? e.message : String(e) };
-      }
-    });
-    await page.addInitScript(INIT);
-    await page.route("https://api.github.com/**", (route) =>
-      m.releases === null ? route.abort("internetdisconnected") : route.fulfill({ json: m.releases, headers: { "access-control-allow-origin": "*" } }),
-    );
+    const m = await installTauriMock(page);
     await provide(m);
     m.db.close();
   }, { auto: true }],

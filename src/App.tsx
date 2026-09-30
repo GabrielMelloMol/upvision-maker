@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState, Suspense } from "react";
+import { lazy, useCallback, useEffect, useRef, useState, Suspense } from "react";
 import { loadBackup, saveBackup } from "./backupActions";
 import { errorText, useToast } from "./ui/Toast";
 import AboutSheet from "./about/AboutSheet";
@@ -9,9 +9,13 @@ import SuggestDialog from "./feedback/SuggestDialog";
 import SyncBanner from "./sync/SyncBanner";
 import { installPhoneBridge } from "./phone/api";
 import { CHANGELOG, useWhatsNewAfterUpdate, WhatsNewModal } from "./whatsnew/WhatsNew";
-import Onboarding, { useFirstRun } from "./onboarding/Onboarding";
+import { useFirstRun } from "./onboarding/firstRun";
+// só na primeira abertura: fora do carregamento inicial (#88)
+const Onboarding = lazy(() => import("./onboarding/Onboarding"));
 import { PAGES } from "./pages";
 import PageSkeleton from "./ui/PageSkeleton";
+import { releaseHeavy } from "./ui/heavy";
+import { markStartup } from "./about/perf";
 import Sidebar from "./ui/Sidebar";
 import Toolbar from "./ui/Toolbar";
 import CommandPalette from "./ui/CommandPalette";
@@ -46,6 +50,7 @@ export default function App() {
   useEffect(() => {
     pageRef.current = pageId;
   }, [pageId]);
+  useEffect(markStartup, []); // tempo de abertura para o Copiar informações (#88)
   useEffect(() => installPhoneBridge(), []); // respostas para o celular na rede de casa (#16)
   useEffect(() => installShortcuts({ openPalette: () => setSearching(true), openHelp: () => void (articleFor(pageRef.current) && openHelp(pageRef.current)) }), []);
 
@@ -60,6 +65,7 @@ export default function App() {
   }
 
   function navigate(id: string) {
+    if (id !== pageId) releaseHeavy(); // solta motores WASM e workers da tela que saiu (#88)
     setPageId(id);
     setScrolled(false);
   }
@@ -159,12 +165,14 @@ export default function App() {
       {afterUpdate.length > 0 && <WhatsNewModal entries={afterUpdate} onClose={closeAfterUpdate} />}
       {showAllNews && <WhatsNewModal entries={CHANGELOG} onClose={() => setShowAllNews(false)} />}
       {firstRun && afterUpdate.length === 0 && (
-        <Onboarding
-          onClose={() => {
-            closeFirstRun();
-            setReloadKey((k) => k + 1); // a página atual relê o que foi cadastrado
-          }}
-        />
+        <Suspense fallback={null}>
+          <Onboarding
+            onClose={() => {
+              closeFirstRun();
+              setReloadKey((k) => k + 1); // a página atual relê o que foi cadastrado
+            }}
+          />
+        </Suspense>
       )}
     </div>
   );

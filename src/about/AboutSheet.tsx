@@ -1,3 +1,4 @@
+import { perfLine } from "./perf";
 import { openUrl } from "@tauri-apps/plugin-opener";
 import { CircleCheck, Copy, Download, ExternalLink, Info, RefreshCw, Sparkles, WifiOff } from "lucide-react";
 import { useEffect, useState } from "react";
@@ -38,6 +39,7 @@ export default function AboutSheet(p: Props) {
     `UpVision Maker v${p.version ?? "?"} (build ${__BUILD_DATE__})`,
     system,
     p.status === "available" ? `Atualização disponível: v${latestVersion(p) ?? "?"}` : p.status === "current" ? "Na versão mais recente" : null,
+    perfLine(),
   ]
     .filter(Boolean)
     .join("\n");

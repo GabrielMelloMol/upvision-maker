@@ -1,7 +1,7 @@
 import { Cylinder, Printer, Sparkles, Zap, type LucideIcon } from "lucide-react";
-import { useEffect, useState, type FormEvent } from "react";
+import { useState, type FormEvent } from "react";
 import { getDb } from "../db";
-import { filaments, getSecret, loadSettings, printers, saveSettings, setSecret } from "../db/repo";
+import { filaments, loadSettings, printers, saveSettings } from "../db/repo";
 import { PRINTER_CATALOG_ITEMS, printerFromCatalog } from "../domain/catalog/printers";
 import { MATERIAL_TYPES } from "../domain/entities";
 import { parseDecimal } from "../domain/format";
@@ -16,28 +16,7 @@ import Sheet from "../ui/Sheet";
 import StateKwhSelect from "../ui/StateKwhSelect";
 import { useToast } from "../ui/Toast";
 
-const DONE_KEY = "onboarding_done";
-
-/** true na primeira abertura (sem impressora nem filamento e sem ter visto a apresentação). */
-export function useFirstRun(): [boolean, () => void] {
-  const [show, setShow] = useState(false);
-  useEffect(() => {
-    (async () => {
-      const db = await getDb();
-      if (await getSecret(db, DONE_KEY)) return;
-      const empty = (await printers.list(db)).length === 0 && (await filaments.list(db)).length === 0;
-      if (empty) setShow(true);
-      else await setSecret(db, DONE_KEY, "1"); // quem já usava o app não precisa da apresentação
-    })().catch((e) => console.warn("Não foi possível verificar o primeiro uso:", e));
-  }, []);
-  const close = () => {
-    setShow(false);
-    getDb()
-      .then((db) => setSecret(db, DONE_KEY, "1"))
-      .catch((e) => console.warn("Não foi possível registrar a apresentação:", e));
-  };
-  return [show, close];
-}
+export { useFirstRun } from "./firstRun";
 
 type Kind = "money" | "mass" | "color" | "text" | "number" | "select";
 type Step = { icon: LucideIcon; title: string; text: string; fields: { key: string; label: string; kind: Kind; hint?: string; options?: readonly string[] }[] };

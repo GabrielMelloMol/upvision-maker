@@ -67,3 +67,9 @@ Marque na issue #6. Em cada item, se algo sair diferente, abra **Sugerir ferrame
 ### Atualização
 - [ ] Clicar na versão (rodapé) → **Sobre** → **Verificar atualizações**: mostra "Em dia" ou "Você está N versões atrás".
 - [ ] Quando sair a próxima versão: aparece o selo **Atualização disponível**; **Atualizar agora** baixa, instala e reinicia sozinho, e o rodapé mostra a versão nova.
+
+### Desempenho (#88) — anotar os números
+- [ ] Com o computador recém-ligado, abrir o app e cronometrar até a barra lateral aparecer. **Meta: menos de 2 s.**
+- [ ] **Sobre → Copiar informações**: a última linha traz "Abertura: X s · memória JS: Y MB". Colar aqui.
+- [ ] Gerenciador de Tarefas → Processos → **UpVision Maker** (expandir: o app + os processos "WebView2"): somar a coluna Memória com o app parado na tela Início. **Meta: menos de 250 MB.**
+- [ ] Usar **Imagem → SVG**, **Litofania** (com uma foto) e **Modelos prontos**, voltar para **Início**, esperar 5 s e somar de novo: a memória deve voltar perto da do app parado.
