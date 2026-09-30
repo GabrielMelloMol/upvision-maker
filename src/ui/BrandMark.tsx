@@ -9,7 +9,11 @@ export default function BrandMark({ className = "" }: { className?: string }) {
 export function Wordmark({ className = "" }: { className?: string }) {
   return (
     <span className={`wordmark ${className}`}>
-      <span className="wm-up">Up</span>Vision <span className="wm-maker">Maker</span>
+      {/* as cores quebram o nome em pedaços; o leitor de tela lê o nome inteiro */}
+      <span aria-hidden>
+        <span className="wm-up">Up</span>Vision <span className="wm-maker">Maker</span>
+      </span>
+      <span className="sr-only">UpVision Maker</span>
     </span>
   );
 }
