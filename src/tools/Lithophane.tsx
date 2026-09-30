@@ -124,6 +124,7 @@ export default function Lithophane() {
       <div className="tool-layout">
         <div className="controls">
           <div className="card stack">
+            <h3>Foto</h3>
             <Segmented label="Tipo" value={mode} options={MODES} onChange={setMode} full />
             <Dropzone accept={IMAGE_ACCEPT} label={file ? file.name : "Arraste uma foto ou clique"} hint="Rostos e paisagens com bom contraste ficam melhores." onFile={setFile} />
             <NumField label="Largura" value={width} onChange={setWidth} min={20} max={250} step={1} />

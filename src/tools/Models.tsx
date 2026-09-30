@@ -271,6 +271,7 @@ export default function Models() {
           />
           {batchKeys && (
             <div className="card stack">
+              <h3>Lote</h3>
               <Toggle label="Lote: várias cópias na mesma mesa" checked={batchOn} onChange={setBatchOn} />
               {batchOn && (
                 <Field label="Cópias (uma por linha)" hint={`${batchLabels!.join("; ")} · ${copies?.length ?? 0} cópias`}>

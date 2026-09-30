@@ -4,7 +4,9 @@ import { loadFont } from "../geometry/fonts";
 import { getManifold } from "../geometry/manifold";
 import { buildPixelArt, colorCounts, DEFAULT_PIXEL_OPTIONS, MAX_SIZE, MIN_SIZE, pixelate, replaceColor, type PixelGrid, type PixelOptions, type PixelOutput } from "../geometry/pixelArt";
 import { textToCrossSection } from "../geometry/text";
+import { Grid3x3 } from "lucide-react";
 import Alert from "../ui/Alert";
+import EmptyState from "../ui/EmptyState";
 import Dropzone from "../ui/Dropzone";
 import ExportButtons from "../ui/ExportButtons";
 import NumField, { inRange } from "../ui/NumField";
@@ -111,6 +113,7 @@ export default function PixelArt() {
       <div className="tool-layout">
         <div className="controls">
           <div className="card stack">
+            <h3>Imagem</h3>
             <Dropzone accept={IMAGE_ACCEPT} label={file ? file.name : "Arraste uma imagem ou clique"} hint="Desenhos simples, ícones e personagens próprios ficam melhores." onFile={(f) => void makeGrid(f)} />
             <div className="grid two">
               <NumField label="Pixels no lado maior" value={size} onChange={setSize} min={MIN_SIZE} max={MAX_SIZE} step={1} unit="" />
@@ -120,13 +123,17 @@ export default function PixelArt() {
               <button type="button" disabled={!file || !valid} onClick={() => void makeGrid(file)}>
                 Refazer a grade
               </button>
-              <button type="button" className="ghost" disabled={!valid} onClick={blank}>
-                Começar em branco
-              </button>
+              {/* sem grade, o "Começar em branco" fica no estado vazio da prévia */}
+              {grid && (
+                <button type="button" className="ghost" disabled={!valid} onClick={blank}>
+                  Começar em branco
+                </button>
+              )}
             </div>
             <span className="hint">Refazer apaga o que você pintou (dá para desfazer).</span>
           </div>
           <div className="card stack">
+            <h3>Peça</h3>
             <Segmented label="Saída" value={opts.output} options={OUTPUTS} onChange={setO("output")} full />
             <NumField label="Pixel" value={opts.pixel} onChange={setO("pixel")} min={3} max={20} step={0.5} />
             <span className="hint">
@@ -169,8 +176,9 @@ export default function PixelArt() {
         <div className="preview-col">
           <Segmented label="Prévia" value={view} options={VIEWS} onChange={setView} />
           {view === "grid" ? (
+            grid ? (
             <div className="card stack">
-              {grid ? <PixelEditor grid={grid} brush={brush} onChange={(g) => setGrid(g)} /> : <span className="muted">Envie uma imagem ou comece em branco.</span>}
+              <PixelEditor grid={grid} brush={brush} onChange={(g) => setGrid(g)} />
               <span className="field-label">Pincel</span>
               <div className="chips" role="group" aria-label="Pincel">
                 {palette.map((f) => (
@@ -186,6 +194,20 @@ export default function PixelArt() {
                 </button>
               </div>
             </div>
+            ) : (
+              // sem grade ainda (#polimento): estado vazio com o próximo passo, não um card em branco
+              <EmptyState
+                icon={Grid3x3}
+                title="Nenhuma grade ainda"
+                action={
+                  <button type="button" className="primary" disabled={!valid} onClick={blank}>
+                    Começar em branco
+                  </button>
+                }
+              >
+                Envie uma imagem ou comece em branco.
+              </EmptyState>
+            )
           ) : (
             <Preview3D models={models} busy={busy} busyText="Gerando peças…" error={error} emptyText={!valid ? "Corrija os campos em vermelho." : "Envie uma imagem ou pinte a grade."} />
           )}

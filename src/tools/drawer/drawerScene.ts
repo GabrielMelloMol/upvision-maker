@@ -7,6 +7,7 @@ import { drawerShape, type Dim } from "./drawerShape";
 export type DrawerView = { width: number; depth: number; height: number; focus: Dim | null; organizer: Model[]; trays?: Model[]; slide?: boolean };
 
 const DROP_MS = 900;
+const EDGE_ANGLE = 40; // graus: só as quinas das peças, não a malha toda
 const VIEW_DIR = new THREE.Vector3(0.55, -1.25, 1.05).normalize();
 const cssVar = (name: string) => getComputedStyle(document.documentElement).getPropertyValue(name).trim() || "#888";
 const reducedMotion = () => matchMedia("(prefers-reduced-motion: reduce)").matches;
@@ -148,8 +149,10 @@ export function createDrawerScene(el: HTMLElement, labels: HTMLElement) {
     }
   }
 
+  /** Peças com contorno fino no tom da grade: filamento escuro (preto, cinza) não some no fundo escuro. */
   function fill(g: THREE.Group, models: Model[]) {
     disposeGroup(g);
+    const outline = cssVar("--grid-major");
     for (const model of models)
       for (const p of model.parts) {
         const geo = new THREE.BufferGeometry();
@@ -157,6 +160,7 @@ export function createDrawerScene(el: HTMLElement, labels: HTMLElement) {
         geo.setIndex(new THREE.BufferAttribute(p.mesh.indices, 1));
         geo.computeVertexNormals();
         g.add(new THREE.Mesh(geo, new THREE.MeshStandardMaterial({ color: p.color, roughness: 0.6, flatShading: true })));
+        g.add(new THREE.LineSegments(new THREE.EdgesGeometry(geo, EDGE_ANGLE), new THREE.LineBasicMaterial({ color: outline })));
       }
   }
 
@@ -186,7 +190,11 @@ export function createDrawerScene(el: HTMLElement, labels: HTMLElement) {
   ro?.observe(el);
   const scheme = matchMedia("(prefers-color-scheme: dark)");
   const onScheme = () => {
-    if (last) build(last);
+    if (last) {
+      build(last);
+      fill(org, last.organizer);
+      fill(tray, last.trays ?? []);
+    }
     render();
   };
   scheme.addEventListener("change", onScheme);

@@ -1,4 +1,5 @@
 import { Search, SearchX, Star } from "lucide-react";
+import { useState } from "react";
 import EmptyState from "../../ui/EmptyState";
 import Segmented from "../../ui/Segmented";
 import { CATEGORIES, MODELS, type Category } from "./defs";
@@ -22,6 +23,19 @@ type Props = {
   favorites: string[];
 };
 
+const VISIBLE_OCCASIONS = 5;
+const USE_KEY = "upvision.occasionUse";
+
+/** Quantas vezes cada ocasião foi escolhida neste computador (para mostrar as mais usadas primeiro). */
+function loadUse(): Record<string, number> {
+  try {
+    const v = JSON.parse(localStorage.getItem(USE_KEY) ?? "{}");
+    return v && typeof v === "object" ? v : {};
+  } catch {
+    return {};
+  }
+}
+
 /** Texto que a busca olha: nome e descrição do modelo, mais o nome da família e da variação ("anilha" → Chaveiro). */
 const searchText = (id: string) => {
   const m = modelOf(id), f = familyOf(id);
@@ -34,6 +48,12 @@ const searchText = (id: string) => {
  */
 export default function ModelGallery({ id, onPick, category, onCategory, query, onQuery, occasion, onOccasion, favorites }: Props) {
   const q = normalize(query.trim());
+  const [use, setUse] = useState(loadUse);
+  const [allOccasions, setAllOccasions] = useState(false);
+  // as 5 mais usadas (empate: a ordem de sempre) e a escolhida, se estiver entre as outras
+  const ranked = [...COLLECTIONS].map((c, i) => ({ c, i })).sort((a, b) => (use[b.c[0]] ?? 0) - (use[a.c[0]] ?? 0) || a.i - b.i).map((x) => x.c);
+  const top = ranked.slice(0, VISIBLE_OCCASIONS);
+  const shownOccasions = allOccasions ? ranked : occasion && occasion !== "favorites" && !top.some(([c]) => c === occasion) ? [...top, ranked.find(([c]) => c === occasion)!] : top;
   const models = q
     ? MODELS.filter((m) => searchText(m.id).includes(q))
     : occasion === "favorites"
@@ -52,6 +72,15 @@ export default function ModelGallery({ id, onPick, category, onCategory, query, 
   }
   function pickOccasion(o: Exclude<Occasion, null>) {
     const next = occasion === o ? null : o;
+    if (next && next !== "favorites") {
+      const u = { ...use, [next]: (use[next] ?? 0) + 1 };
+      setUse(u);
+      try {
+        localStorage.setItem(USE_KEY, JSON.stringify(u));
+      } catch {
+        // sem armazenamento local: a ordem vale só nesta sessão
+      }
+    }
     onOccasion(next);
     onQuery("");
     const list = next === "favorites" ? MODELS.filter((m) => favorites.includes(m.id)) : next ? MODELS.filter((m) => inCollection(m.id, next)) : [];
@@ -78,11 +107,16 @@ export default function ModelGallery({ id, onPick, category, onCategory, query, 
         <button type="button" aria-pressed={occasion === "favorites"} onClick={() => pickOccasion("favorites")}>
           <Star aria-hidden size={14} /> Favoritos
         </button>
-        {COLLECTIONS.map(([c, label]) => (
+        {shownOccasions.map(([c, label]) => (
           <button key={c} type="button" aria-pressed={occasion === c} onClick={() => pickOccasion(c)}>
             {label}
           </button>
         ))}
+        {COLLECTIONS.length > VISIBLE_OCCASIONS && (
+          <button type="button" className="chips-more" aria-expanded={allOccasions} onClick={() => setAllOccasions((v) => !v)}>
+            {allOccasions ? "Menos" : `Mais (${COLLECTIONS.length - VISIBLE_OCCASIONS})`}
+          </button>
+        )}
       </div>
       {models ? (
         <div className="model-gallery" role="group" aria-label="Modelo">
