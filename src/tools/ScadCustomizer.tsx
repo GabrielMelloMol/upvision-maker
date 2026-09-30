@@ -61,7 +61,9 @@ export default function ScadCustomizer() {
   const args = invalid.length ? null : defineArgs(params, scadValues as Record<string, ScadValue>);
   const argsKey = JSON.stringify(args);
 
+  const hasAssembly = !!scad && /\bmodule\s+mw_assembly_view\s*\(/.test(scad.text);
   const [models, setModels] = useState<Model[]>([]);
+  const [assembly, setAssembly] = useState<Model | null>(null); // prévia montada (mw_assembly_view), fora do 3MF
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   useEffect(() => {
@@ -73,10 +75,19 @@ export default function ScadCustomizer() {
       const run = plates.length
         ? (() => {
             // ponytail: cada mesa renderiza o arquivo inteiro + mw_plate_N(); geometria solta no topo sai em todas
-            const r = renderPrograms(plates.map((m) => `${scad.text}\n\n${m}();\n`), { args, files });
-            return { result: r.result.then((stls) => stls.map((stl, i): Model => ({ name: `Mesa ${i + 1}`, parts: [{ name: `Mesa ${i + 1}`, color: PLATE_COLOR, mesh: readBinaryStl(stl) }] }))), cancel: r.cancel };
+            const calls = [...plates, ...(hasAssembly ? ["mw_assembly_view"] : [])];
+            const r = renderPrograms(calls.map((m) => `${scad.text}\n\n${m}();\n`), { args, files });
+            const asModel = (stl: Uint8Array, name: string): Model => ({ name, parts: [{ name, color: PLATE_COLOR, mesh: readBinaryStl(stl) }] });
+            return {
+              result: r.result.then((stls) => {
+                setAssembly(hasAssembly ? asModel(stls[plates.length], "Montado") : null);
+                return plates.map((_, i) => asModel(stls[i], `Mesa ${i + 1}`));
+              }),
+              cancel: r.cancel,
+            };
           })()
         : (() => {
+            setAssembly(null);
             const r = renderScad(scad.text, scad.name, { args, files });
             return { result: r.result.then((m) => [m]), cancel: r.cancel };
           })();
@@ -95,7 +106,7 @@ export default function ScadCustomizer() {
     };
     // args vão pela chave em texto (mesmo conteúdo = mesma renderização)
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [scad, argsKey, imports, plates, missing.length]);
+  }, [scad, argsKey, imports, plates, hasAssembly, missing.length]);
 
   async function onScad(f: File) {
     setFileError(null);
@@ -212,8 +223,8 @@ export default function ScadCustomizer() {
           <ExportButtons models={busy ? [] : models} name={scad?.name ?? "openscad"} busy={busy} onSaved={tool.exported} />
         </div>
         <div className="preview-col">
-          <Preview3D models={models} busy={busy} busyText="Renderizando no OpenSCAD…" error={error} emptyText={!scad ? "Envie um .scad para começar." : missing.length ? `Envie ${missing.join(", ")}.` : undefined} />
-          {plates.length > 0 && <span className="hint">{plates.length} mesas do MakerWorld (mw_plate_N): cada uma sai como um objeto no 3MF.</span>}
+          <Preview3D models={assembly ? [assembly] : models} busy={busy} busyText="Renderizando no OpenSCAD…" error={error} emptyText={!scad ? "Envie um .scad para começar." : missing.length ? `Envie ${missing.join(", ")}.` : undefined} />
+          {plates.length > 0 && <span className="hint">{plates.length} mesas do MakerWorld (mw_plate_N): cada uma sai como um objeto no 3MF.{assembly ? " A prévia mostra a peça montada (mw_assembly_view)." : ""}</span>}
           <span className="hint">OpenSCAD é software livre (GPL-2.0); roda separado do app, só nesta tela e no Pedir à IA.</span>
         </div>
       </div>

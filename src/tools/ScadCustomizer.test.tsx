@@ -68,13 +68,14 @@ test("licença NC avisa que não pode vender; guardar em Meus modelos só com li
   expect(await screen.findByRole("button", { name: "caixa" })).toBeInTheDocument();
 });
 
-test("mesas do MakerWorld (mw_plate_N): um objeto por mesa", async () => {
-  await open(`n = 2; // [1:5]\nmodule mw_plate_1() { cube(n); }\nmodule mw_plate_2() { sphere(n); }\n`, "mesas.scad");
+test("mesas do MakerWorld (mw_plate_N): um objeto por mesa; mw_assembly_view só na prévia", async () => {
+  await open(`n = 2; // [1:5]\nmodule mw_plate_1() { cube(n); }\nmodule mw_plate_2() { sphere(n); }\nmodule mw_assembly_view() { mw_plate_1(); }\n`, "mesas.scad");
   await waitFor(() => expect(programsMock).toHaveBeenCalled());
   const programs = programsMock.mock.calls[0][0];
-  expect(programs).toHaveLength(2);
+  expect(programs).toHaveLength(3);
   expect(programs[1]).toMatch(/mw_plate_2\(\);\s*$/);
-  expect(await screen.findByText(/2 mesas do MakerWorld/)).toBeInTheDocument();
+  expect(programs[2]).toMatch(/mw_assembly_view\(\);\s*$/);
+  expect(await screen.findByText(/2 mesas do MakerWorld.*peça montada/)).toBeInTheDocument();
 });
 
 test("arquivo importado pelo .scad: pede o envio antes de renderizar", async () => {

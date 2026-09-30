@@ -25,3 +25,13 @@ test("OpenSCAD personalizável: .scad do Customizer vira formulário e o OpenSCA
   await page.getByRole("button", { name: /Salvar 3MF/ }).click();
   await expect(toastWith(page, "Arquivo salvo em")).toBeVisible();
 });
+
+test("OpenSCAD personalizável: .scad com include <BOSL2/std.scad> renderiza com a BOSL2 embutida (#96)", async ({ page }) => {
+  const src = `include <BOSL2/std.scad>\n// Lado do cubo\nlado = 30; // [10:5:80]\ncuboid([lado, lado, 10], rounding = 2, edges = "Z", anchor = BOTTOM);\n`;
+  await openApp(page);
+  await go(page, "OpenSCAD personalizável");
+  await page.locator('input[type="file"]').first().setInputFiles({ name: "cubo.scad", mimeType: "text/plain", buffer: Buffer.from(src) });
+  await expect(hud(page)).toContainText("30", { timeout: 90_000 });
+  await page.getByLabel(/Lado do cubo/).fill("50");
+  await expect(hud(page)).toContainText("50", { timeout: 90_000 });
+});
