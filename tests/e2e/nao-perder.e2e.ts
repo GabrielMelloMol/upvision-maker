@@ -49,3 +49,23 @@ test("chaveiro: desfazer/refazer, rascunho guardado (Continuar / Começar do zer
   await expect(page.getByText(/Você tem um trabalho guardado/)).toHaveCount(0);
   await expect.poll(() => tauri.db.prepare("SELECT COUNT(*) AS n FROM tool_state WHERE id = 'keychain'").get()).toEqual({ n: 0 });
 });
+
+test("litofania: a foto volta junto no Continuar; medalha tem desfazer (#85)", async ({ page, tauri }) => {
+  await openApp(page);
+  await go(page, "Litofania e quadro");
+  await page.locator('input[type="file"]').setInputFiles("tests/fixtures/foto-pessoa.jpg");
+  await expect(page.getByRole("img", { name: "Simulação da litofania contra a luz" })).toBeVisible({ timeout: 90_000 });
+  await expect.poll(() => (tauri.db.prepare("SELECT data FROM tool_state WHERE id = 'lithophane'").get() as { data?: string } | undefined)?.data ?? "", { timeout: 15_000 }).toContain("data:image/jpeg;base64");
+  await page.reload();
+  await go(page, "Litofania e quadro");
+  await page.getByRole("button", { name: "Continuar de onde parou" }).click();
+  await expect(page.getByRole("img", { name: "Simulação da litofania contra a luz" })).toBeVisible({ timeout: 90_000 });
+
+  await go(page, "Medalhas");
+  const size = page.getByLabel(/^Tamanho/).first();
+  const before = await size.inputValue();
+  await size.fill("80");
+  await page.locator("h1").click();
+  await page.getByRole("button", { name: "Desfazer" }).click();
+  await expect(size).toHaveValue(before);
+});

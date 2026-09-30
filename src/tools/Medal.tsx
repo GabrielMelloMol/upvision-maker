@@ -18,6 +18,8 @@ import Toggle from "../ui/Toggle";
 import { useModelBuilder } from "../ui/useModelBuilder";
 import { DESIGN_ACCEPT, designFromSvg, fileToSvg, svgFillColors } from "./designInput";
 import { clearHandoff, peekHandoff } from "./handoff";
+import ToolSessionBar from "./ToolSessionBar";
+import { useToolState } from "./useToolState";
 import { parseBatch, PRESETS, RIMS, SHAPES, TEXTURES, type PresetId } from "./medalPresets";
 
 type Field = Exclude<MedalTextField, "back">;
@@ -75,15 +77,24 @@ function Choice<T extends string>({ label, value, options, onChange }: { label: 
 
 /** Medalhas (#19): formatos, textos em arco, bordas, fundo, imagem, alça, verso, presets e lote. */
 export default function Medal() {
-  const [p, setP] = useState<MedalDesign>(DEFAULT_MEDAL_DESIGN);
-  const [fonts, setFonts] = useState<Fonts>({ top: "hanken", bottom: "hanken", center: "hanken", rank: "hanken", date: "hanken", back: "hanken" });
-  // SVG vindo do Imagem → SVG (pode ser colorido)
-  const [art, setArt] = useState<{ svg: string; name: string } | null>(() => peekHandoff());
+  // estado de trabalho: desfazer, rascunho guardado e últimos projetos (#85)
+  const tool = useToolState(
+    "medal",
+    () => ({
+      p: DEFAULT_MEDAL_DESIGN as MedalDesign,
+      fonts: { top: "hanken", bottom: "hanken", center: "hanken", rank: "hanken", date: "hanken", back: "hanken" } as Fonts,
+      // SVG vindo do Imagem → SVG (pode ser colorido)
+      art: peekHandoff() as { svg: string; name: string } | null,
+      batch: false,
+      names: "Ana; 1º LUGAR\nBia; 2º LUGAR\nCaio; 3º LUGAR",
+    }),
+    { label: "Medalha" },
+  );
+  const { p, fonts, art, batch, names } = tool.state;
+  const [setP, setFonts, setArt, setBatch, setNames] = [tool.field("p"), tool.field("fonts"), tool.field("art"), tool.field("batch"), tool.field("names")];
   useEffect(clearHandoff, []);
   const [artError, setArtError] = useState<string | null>(null);
-  const [batch, setBatch] = useState(false);
-  const [names, setNames] = useState("Ana; 1º LUGAR\nBia; 2º LUGAR\nCaio; 3º LUGAR");
-  const set = <K extends keyof MedalDesign>(k: K) => (v: MedalDesign[K]) => setP((o) => ({ ...o, [k]: v }));
+  const set = <K extends keyof MedalDesign>(k: K) => (v: MedalDesign[K]) => tool.set((cur) => ({ ...cur, p: { ...cur.p, [k]: v } }), `p.${String(k)}`);
 
   async function onArt(f: File) {
     setArtError(null);
@@ -143,6 +154,7 @@ export default function Medal() {
     <div className="page">
       <h1>Medalhas</h1>
       <p className="lead">Formato, textos em arco, borda, fundo, imagem, alça e verso. Cada parte sai com a sua cor no 3MF.</p>
+      <ToolSessionBar tool={tool} />
       <div className="tool-layout">
         <div className="controls">
           <div className="card stack">
@@ -258,7 +270,7 @@ export default function Medal() {
               </label>
             )}
           </div>
-          <ExportButtons models={models} name={batch ? "medalhas" : `medalha-${p.center || "sem-texto"}`} busy={busy} profile={DEFAULT_PROFILE} />
+          <ExportButtons models={models} name={batch ? "medalhas" : `medalha-${p.center || "sem-texto"}`} busy={busy} profile={DEFAULT_PROFILE} onSaved={tool.exported} />
         </div>
         <div className="preview-col">
           <Preview3D models={models} busy={busy} busyText="Gerando medalha…" error={error} emptyText={!valid ? "Corrija os campos em vermelho." : batch ? "Digite os nomes do lote." : undefined} />

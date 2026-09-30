@@ -17,6 +17,9 @@ import { useData } from "../ui/useData";
 import { useModelBuilder } from "../ui/useModelBuilder";
 import { IMAGE_ACCEPT, loadRaster } from "../vectorize/client";
 import { exampleFile, useExample } from "../help/helpStore";
+import { restoreFile, storeFile, type StoredFile } from "./storedFile";
+import ToolSessionBar from "./ToolSessionBar";
+import { useToolState } from "./useToolState";
 import { filamentColors, loadFilaments } from "./filamentColors";
 
 type Mode = "litho" | "layered";
@@ -53,15 +56,23 @@ function toDataUrl(rgba: Uint8ClampedArray<ArrayBuffer>, w: number, h: number): 
   return c.toDataURL();
 }
 
+const initialState = () => ({ mode: "litho" as Mode, file: null as File | null, width: 100, cell: 0.3, litho: DEFAULT_LITHO, layered: { ...DEFAULT_LAYERED, colors: [] as string[] } });
+type LithoState = ReturnType<typeof initialState>;
+
 /** Foto → litofania (relevo que aparece contra a luz) ou quadro por camadas de filamento (estilo HueForge). */
 export default function Lithophane() {
-  const [mode, setMode] = useState<Mode>("litho");
-  const [file, setFile] = useState<File | null>(null);
+  // estado de trabalho: desfazer, rascunho guardado (a foto vai junto até 4 MB) e últimos projetos (#85)
+  const tool = useToolState("lithophane", initialState, {
+    label: "Litofania",
+    save: async (s) => ({ ...s, file: await storeFile(s.file) }),
+    load: async (raw) => {
+      const r = raw as Omit<LithoState, "file"> & { file?: StoredFile | null };
+      return { ...r, file: await restoreFile(r.file) };
+    },
+  });
+  const { mode, file, width, cell, litho, layered } = tool.state;
+  const [setMode, setFile, setWidth, setCell, setLitho, setLayered] = [tool.field("mode"), tool.field("file"), tool.field("width"), tool.field("cell"), tool.field("litho"), tool.field("layered")];
   useExample("lithophane", () => void exampleFile("landscape").then(setFile)); // "Usar exemplo" da ajuda (#84)
-  const [width, setWidth] = useState(100);
-  const [cell, setCell] = useState(0.3);
-  const [litho, setLitho] = useState(DEFAULT_LITHO);
-  const [layered, setLayered] = useState({ ...DEFAULT_LAYERED, colors: [] as string[] });
   const [swaps, setSwaps] = useState<ColorSwap[]>([]);
   const [view, setView] = useState<View>("light");
   const [backlit, setBacklit] = useState<string | null>(null);
@@ -112,6 +123,7 @@ export default function Lithophane() {
     <div className="page">
       <h1>Litofania e quadro</h1>
       <p className="lead">Transforma uma foto em relevo: litofania para ver contra a luz ou quadro colorido por camadas de filamento.</p>
+      <ToolSessionBar tool={tool} />
       <div className="tool-layout">
         <div className="controls">
           <div className="card stack">
@@ -166,7 +178,7 @@ export default function Lithophane() {
               <span className="hint">{layered.split ? "O fatiador troca de filamento sozinho em cada faixa; sem pausas, o 3MF abre direto no Bambu Studio, Orca ou Prusa." : "Sem AMS: a impressora pausa em cada troca para você trocar o filamento."}</span>
             </div>
           )}
-          <ExportButtons printModes={false} models={models.length ? exportModels : []} name={mode === "litho" ? "litofania" : "quadro-camadas"} busy={busy} pauses={pauses} profile={mode === "litho" ? LITHO_PROFILE : { ...LAYERED_PROFILE, layerHeight: layered.layerHeight }} />
+          <ExportButtons printModes={false} models={models.length ? exportModels : []} name={mode === "litho" ? "litofania" : "quadro-camadas"} busy={busy} pauses={pauses} profile={mode === "litho" ? LITHO_PROFILE : { ...LAYERED_PROFILE, layerHeight: layered.layerHeight }} onSaved={tool.exported} />
         </div>
         <div className="preview-col">
           {mode === "litho" && <Segmented label="Prévia" value={view} options={VIEWS} onChange={setView} />}

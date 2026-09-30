@@ -20,7 +20,9 @@ type Options<T> = {
   load?: (raw: unknown) => T | null | Promise<T | null>;
 };
 
-const same = (a: unknown, b: unknown) => JSON.stringify(a) === JSON.stringify(b);
+// File vira "{}" no JSON: compara pelo nome, tamanho e data para duas fotos diferentes não parecerem iguais
+const fileKey = (_k: string, v: unknown) => (typeof File !== "undefined" && v instanceof File ? `file:${v.name}:${v.size}:${v.lastModified}` : v);
+const same = (a: unknown, b: unknown) => JSON.stringify(a, fileKey) === JSON.stringify(b, fileKey);
 
 /**
  * Estado de uma ferramenta que não se perde (#85): desfazer/refazer (⌘Z / ⇧⌘Z fora de campos de texto), rascunho
@@ -114,8 +116,13 @@ export function useToolState<T extends object>(toolId: string, initial: T | (() 
   }, [undo, redo]);
 
   const set = hist.set;
-  /** onChange de um campo: um passo de desfazer por campo (digitar seguido conta uma vez). */
-  const field = useCallback(<K extends keyof T>(k: K) => (v: T[K]) => set((cur) => ({ ...cur, [k]: v }), String(k)), [set]);
+  /** Setter de um campo (valor ou função do valor anterior, como o do useState): digitar seguido no mesmo campo é um passo só. */
+  const field = useCallback(
+    <K extends keyof T>(k: K) =>
+      (v: T[K] | ((prev: T[K]) => T[K])) =>
+        set((cur) => ({ ...cur, [k]: typeof v === "function" ? (v as (prev: T[K]) => T[K])(cur[k]) : v }), String(k)),
+    [set],
+  );
 
   async function reload() {
     setProjects(await toolProjects.list(await getDb(), toolId));
