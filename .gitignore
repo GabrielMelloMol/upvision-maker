@@ -32,3 +32,6 @@ dist-ssr
 coverage
 test-results
 playwright-report
+
+# regressão visual (#142): referências ficam nos artefatos do CI (scripts/visual-refs baixa)
+tests/visual/referencia/

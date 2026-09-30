@@ -1,14 +1,29 @@
 #!/bin/sh
-# Traz para o repositório as referências visuais e a lista de problemas conhecidos geradas no CI (#142).
-#   scripts/visual-refs <id da execução do workflow "visual" rodado com "atualizar">
+# Referências visuais aprovadas (#142). Ficam nos artefatos do workflow "visual" rodado com "atualizar" (não no git:
+# são ~40 MB por aprovação). Baixa para tests/visual/referencia/ (ignorada pelo git) e atualiza as listas de
+# problemas conhecidos (essas vão para o git).
+#   scripts/visual-refs                 a aprovação mais recente
+#   scripts/visual-refs <id>            uma execução específica
+#   scripts/visual-refs --so windows    só uma plataforma (usado pelo CI)
 set -e
 cd "$(dirname "$0")/.."
-[ -n "$1" ] || { echo "uso: scripts/visual-refs <id-da-execução>" >&2; exit 2; }
-tmp=$(mktemp -d)
-gh run download "$1" -p "referencias-*" -D "$tmp"
-for d in "$tmp"/referencias-*; do
-  cp -R "$d"/referencia/. tests/visual/referencia/ 2>/dev/null || true
-  cp -R "$d"/conhecidos/. tests/visual/conhecidos/ 2>/dev/null || true
+pattern="referencias-*"
+[ "$1" = "--so" ] && { pattern="referencias-$2"; shift 2; }
+ids="$1"
+[ -n "$ids" ] || ids=$(gh run list --workflow visual.yml --event workflow_dispatch --status success --limit 30 --json databaseId --jq '.[].databaseId')
+for id in $ids; do
+  tmp=$(mktemp -d)
+  if gh run download "$id" -p "$pattern" -D "$tmp" 2>/dev/null && ls "$tmp"/*/referencia >/dev/null 2>&1; then
+    for d in "$tmp"/*; do
+      mkdir -p tests/visual/referencia tests/visual/conhecidos
+      cp -R "$d"/referencia/. tests/visual/referencia/
+      cp -R "$d"/conhecidos/. tests/visual/conhecidos/ 2>/dev/null || true
+    done
+    rm -rf "$tmp"
+    echo "referências da execução $id"
+    exit 0
+  fi
+  rm -rf "$tmp"
 done
-rm -rf "$tmp"
-git status --short tests/visual
+echo "nenhuma aprovação com referências (rode Actions → visual com 'atualizar')" >&2
+exit 1
