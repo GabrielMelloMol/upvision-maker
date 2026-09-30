@@ -12,7 +12,9 @@ export type FieldDef =
   | { k: string; kind: "bool"; label: string }
   | { k: string; kind: "choice"; label: string; options: readonly (readonly [string, string])[] }
   /** Fonte própria de uma parte do modelo (a letra, uma linha); `sample` = campo de texto da prévia. */
-  | { k: string; kind: "font"; label: string; sample?: string };
+  | { k: string; kind: "font"; label: string; sample?: string }
+  /** Perfil por pontos de controle (raios de baixo para cima, "40, 55, 48"), com editor de arrastar (#92). */
+  | { k: string; kind: "profile"; label: string; min: number; max: number };
 
 export type Section = { title: string; fields: FieldDef[] };
 
@@ -62,6 +64,7 @@ export const textureFields: FieldDef[] = [
   num("texturePitch", "Tamanho do padrão", 3, 20, { step: 0.5 }),
   num("textureDepth", "Rebaixo da textura", 0.4, 1, { step: 0.1 }),
 ];
+export const profile = (k: string, label: string, min: number, max: number): FieldDef => ({ k, kind: "profile", label, min, max });
 export const font = (k: string, label: string, sample?: string): FieldDef => ({ k, kind: "font", label, sample });
 
 /** Grupos de campos repetidos entre modelos. */

@@ -18,9 +18,13 @@ export const MODEL_PROFILES: Record<string, PrintProfile> = {
   snowflake: { walls: 2 },
 };
 
+const VASE_SPIRAL: PrintProfile = { spiral: true, walls: 1, infill: 0, topLayers: 0, bottomLayers: 3, notes: ["Modo vaso: bico 0,4 e parede única; para uma parede mais firme, use largura de linha 0,6 no fatiador."] };
+
 /** Modelo com campo "Altura de camada" (pausa para inserir tag/ímã): o fatiador usa a mesma camada. */
 export function profileFor(id: string, p: Params): PrintProfile {
   const base = mergeProfiles(DEFAULT_PROFILE, MODEL_PROFILES[id]);
   const layer = Number(p.layerHeight);
-  return layer > 0 ? { ...base, layerHeight: layer } : base;
+  const out = layer > 0 ? { ...base, layerHeight: layer } : base;
+  // vaso em modo espiral (#92): o fatiador sobe uma parede só, sem preenchimento nem topo
+  return id === "vase" && p.mode === "spiral" ? mergeProfiles(out, VASE_SPIRAL) : out;
 }

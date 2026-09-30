@@ -11,6 +11,8 @@ export type PrintProfile = {
   brim?: boolean;
   topLayers?: number;
   bottomLayers?: number;
+  /** Modo vaso (espiral): uma parede contínua subindo, sem topo (#92). */
+  spiral?: boolean;
   notes?: string[];
 };
 
@@ -38,6 +40,7 @@ export function bambuObjectSettings(p: PrintProfile): [string, string][] {
   if (p.brim) out.push(["brim_width", String(BRIM_MM)]); // o processo do A1 vem com largura 0: sem ela o brim não sai
   if (p.topLayers) out.push(["top_shell_layers", String(p.topLayers)]);
   if (p.bottomLayers) out.push(["bottom_shell_layers", String(p.bottomLayers)]);
+  if (p.spiral) out.push(["spiral_mode", "1"]);
   return out;
 }
 
@@ -46,6 +49,7 @@ const mm = (n: number) => `${r2(n).replace(".", ",")} mm`;
 /** "0,2 mm · 3 paredes · 15% · sem suporte" (para a tela). */
 export function profileSummary(p: PrintProfile): string {
   const parts: string[] = [];
+  if (p.spiral) parts.push("modo vaso (espiral)");
   if (p.layerHeight) parts.push(`camada ${mm(p.layerHeight)}`);
   if (p.walls) parts.push(`${p.walls} ${p.walls === 1 ? "parede" : "paredes"}`);
   if (p.infill !== undefined) parts.push(`${Math.round(p.infill)}% de preenchimento`);

@@ -1,4 +1,4 @@
-import { Box, CircleDot, Egg, Goal, Image, LayoutGrid, Lightbulb, Spline, Stamp } from "lucide-react";
+import { Box, CircleDot, Egg, Flower2, Goal, Image, LayoutGrid, Lightbulb, Spline, Stamp } from "lucide-react";
 import { buildAlphabetCube, DEFAULT_ALPHABET_CUBE } from "../../../geometry/models/alphabetCube";
 import { buildDeskOrganizer, DEFAULT_DESK_ORGANIZER } from "../../../geometry/models/deskOrganizer";
 import { buildGoalBoard, DEFAULT_GOAL_BOARD } from "../../../geometry/models/goalBoard";
@@ -8,7 +8,8 @@ import { buildPhotoHolder, DEFAULT_PHOTO_HOLDER } from "../../../geometry/models
 import { buildScrewCase, DEFAULT_SCREW_CASE } from "../../../geometry/models/screwCase";
 import { buildStampMold, DEFAULT_STAMP_MOLD } from "../../../geometry/models/stampMold";
 import { buildStringArt, DEFAULT_STRING_ART } from "../../../geometry/models/stringArt";
-import { as, bool, choice, color, num, text, type ModelDef } from "../fields";
+import { buildVase, DEFAULT_VASE } from "../../../geometry/models/vase";
+import { as, bool, choice, color, num, profile, text, type ModelDef } from "../fields";
 
 /** Casa, 2ª parte da galeria: letra LED, organizador, cubo, porta-foto, string art, cumbuca, molde, estojo, quadro de metas. */
 export const HOME_PROJECT_MODELS: ModelDef[] = [
@@ -339,5 +340,38 @@ export const HOME_PROJECT_MODELS: ModelDef[] = [
       },
     ],
     build: (ctx, p) => buildGoalBoard(ctx, as(p)),
+  },
+  {
+    id: "vase",
+    category: "home",
+    label: "Vaso paramétrico",
+    blurb: "Perfil por pontos, seção redonda, poligonal ou estrela, torção e ondulação; sai pronto para o modo vaso.",
+    icon: Flower2,
+    defaults: DEFAULT_VASE,
+    sections: [
+      { title: "Perfil", fields: [profile("profile", "Perfil (meia silhueta)", 5, 120), num("height", "Altura", 60, 300, { step: 1 })] },
+      {
+        title: "Forma",
+        fields: [
+          choice("shape", "Seção", [["circle", "Redonda"], ["polygon", "Polígono"], ["star", "Estrela"]]),
+          num("sides", "Lados ou pontas", 3, 12, { step: 1, unit: "" }),
+          num("starDepth", "Fundo das pontas (estrela)", 0.05, 0.5, { step: 0.05, unit: "" }),
+          num("twist", "Torção", 0, 360, { step: 5, unit: "°" }),
+          choice("wave", "Ondulação", [["none", "Nenhuma"], ["radial", "Em volta"], ["vertical", "Na altura"]]),
+          num("waveAmp", "Amplitude da onda", 0.5, 10, { step: 0.5 }),
+          num("waves", "Número de ondas", 1, 24, { step: 1, unit: "" }),
+        ],
+      },
+      {
+        title: "Impressão e cor",
+        fields: [
+          choice("mode", "Modo", [["spiral", "Modo vaso (espiral)"], ["walls", "Com paredes"]]),
+          num("wall", "Parede (com paredes)", 0.8, 5),
+          num("bottom", "Fundo (com paredes)", 0.8, 6),
+          color("color", "Cor"),
+        ],
+      },
+    ],
+    build: (ctx, p) => buildVase(ctx, as(p)),
   },
 ];

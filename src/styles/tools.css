@@ -124,3 +124,12 @@ button.example svg { color: var(--brand-orange); }
 .project-open img, .project-nothumb { width: 100%; aspect-ratio: 4 / 3; object-fit: contain; border-radius: var(--r-sm); background: var(--surface-2); display: block; }
 .project-open strong { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .project-grid li > .danger { position: absolute; top: 6px; right: 6px; background: var(--surface-raised); }
+
+/* editor do perfil do vaso (#92) */
+.profile-editor svg { width: 100%; max-width: 320px; height: auto; background: var(--surface-2); border-radius: var(--r); touch-action: none; }
+.profile-axis { stroke: var(--separator); stroke-dasharray: 3 3; }
+.profile-curve { fill: none; stroke: var(--accent); stroke-width: 2; }
+.profile-point { fill: var(--surface-raised); stroke: var(--accent); stroke-width: 2; cursor: ew-resize; }
+.profile-point[data-active], .profile-point:focus-visible { fill: var(--accent); outline: none; }
+.profile-text { flex: 1; }
+

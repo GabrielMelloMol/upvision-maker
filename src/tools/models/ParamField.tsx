@@ -7,6 +7,7 @@ import NumField from "../../ui/NumField";
 import Segmented from "../../ui/Segmented";
 import Toggle from "../../ui/Toggle";
 import type { FieldDef, Params, Section } from "./fields";
+import ProfileEditor from "./ProfileEditor";
 
 const MAX_SEGMENTS = 4; // acima disso a escolha vira pílulas (Segmented é para 2–4 opções)
 
@@ -31,6 +32,8 @@ function EmojiText({ label, hint, max, value, onChange }: { label: string; hint?
 
 export default function ParamField({ f, value, onChange, sample = "", emoji }: ParamProps) {
   switch (f.kind) {
+    case "profile":
+      return <ProfileEditor label={f.label} value={String(value)} onChange={onChange} min={f.min} max={f.max} />;
     case "font":
       return (
         <div className="span-2">
