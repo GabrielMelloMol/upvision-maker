@@ -3,6 +3,7 @@ import { expect, go, openApp, test, toastWith } from "./tauri";
 const SHOTS = process.env.SHOTS_DIR;
 
 test("chaveiro: desfazer/refazer, rascunho guardado (Continuar / Começar do zero), aviso ao sair e últimos projetos (#85)", async ({ page, tauri }) => {
+  test.slow(); // prévia 3D ida e volta: com a suíte inteira em paralelo passa de 60 s
   await openApp(page);
   await go(page, "Chaveiros");
   const text = page.getByLabel("Texto", { exact: true });
@@ -51,6 +52,7 @@ test("chaveiro: desfazer/refazer, rascunho guardado (Continuar / Começar do zer
 });
 
 test("litofania: a foto volta junto no Continuar; medalha tem desfazer (#85)", async ({ page, tauri }) => {
+  test.slow(); // prévia 3D ida e volta: com a suíte inteira em paralelo passa de 60 s
   await openApp(page);
   await go(page, "Litofania e quadro");
   await page.locator('input[type="file"]').setInputFiles("tests/fixtures/foto-pessoa.jpg");
@@ -71,6 +73,7 @@ test("litofania: a foto volta junto no Continuar; medalha tem desfazer (#85)", a
 });
 
 test("modelos prontos: continuar volta o mesmo modelo e os campos; desfazer vale para campo e camada juntos (#85)", async ({ page }) => {
+  test.slow(); // prévia 3D ida e volta: com a suíte inteira em paralelo passa de 60 s
   await openApp(page);
   await go(page, "Modelos prontos");
   await page.getByRole("searchbox", { name: "Buscar modelo" }).fill("Placa de sinalização");
