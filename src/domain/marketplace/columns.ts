@@ -24,7 +24,11 @@ export type ListingKey =
   | "ncm"
   | "origin"
   | "unit"
-  | "condition";
+  | "condition"
+  // variações (#82): mesmo número de integração para as linhas do mesmo produto
+  | "variationGroup"
+  | "variationName"
+  | "variationOption";
 
 export type Marketplace = "shopee" | "ml";
 
@@ -56,6 +60,9 @@ export const MARKETPLACES: Record<Marketplace, MarketplaceSpec> = {
       ncm: ["NCM"],
       origin: ["Origem"],
       unit: ["Unidade de Medida"],
+      variationGroup: ["Número de Integração de Variação", "Número de Integração da Variação"],
+      variationName: ["Nome da Variação 1"],
+      variationOption: ["Opção para Variação 1", "Opção da Variação 1"],
     },
   },
   ml: {
@@ -75,6 +82,7 @@ export const MARKETPLACES: Record<Marketplace, MarketplaceSpec> = {
       height: ["Altura da embalagem", "Altura"],
       ncm: ["NCM"],
       origin: ["Origem"],
+      variationOption: ["Cor"], // CONFERIR: no ML a cor é um atributo da categoria
     },
   },
 };

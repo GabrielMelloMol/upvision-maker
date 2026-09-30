@@ -22,6 +22,25 @@ test("salva produto com composição e relê igual", async () => {
   expect(p.composition.filaments).toEqual([{ filamentId: 1, grams: 120 }]);
 });
 
+test("variações (#82) salvam, relêem e voltam do backup", async () => {
+  const variants = [{ name: "Azul", sku: "CH-AZ", stock: 2, price: 19.9, swaps: [{ from: 1, to: 2 }] }];
+  const id = await productsRepo.insert(db, { ...EMPTY_PRODUCT, name: "Chaveiro", variationLabel: "Cor", variants });
+  expect((await productsRepo.list(db))[0].variants).toEqual(variants);
+  const json = JSON.stringify(await exportBackup(db));
+  await productsRepo.remove(db, id);
+  await restoreBackup(db, parseBackup(json));
+  expect((await productsRepo.list(db))[0]).toMatchObject({ variationLabel: "Cor", variants });
+});
+
+test("backup de antes das variações (sem as colunas) restaura com Cor e lista vazia", async () => {
+  const id = await productsRepo.insert(db, { ...EMPTY_PRODUCT, name: "Antigo" });
+  const backup = await exportBackup(db);
+  const old = { ...backup, tables: { ...backup.tables, products: backup.tables.products.map((r) => Object.fromEntries(Object.entries(r).filter(([k]) => k !== "variants" && k !== "variationLabel"))) } };
+  await productsRepo.remove(db, id);
+  await restoreBackup(db, parseBackup(JSON.stringify(old)));
+  expect((await productsRepo.list(db))[0]).toMatchObject({ name: "Antigo", variationLabel: "Cor", variants: [] });
+});
+
 test("recusa produto inválido", async () => {
   await expect(productsRepo.insert(db, { ...EMPTY_PRODUCT, name: "" })).rejects.toThrow();
   await expect(productsRepo.insert(db, { ...EMPTY_PRODUCT, name: "x", piecesPerPlate: 0 })).rejects.toThrow();

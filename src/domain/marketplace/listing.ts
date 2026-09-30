@@ -1,5 +1,6 @@
 import { round2 } from "../format";
 import { productPricing, salePrice, type Product, type ProductCtx } from "../products";
+import { spreadWarning, swapComposition, type Variant } from "../variants";
 import { PRICE_NAMES } from "../pricing";
 import { MARKETPLACES, type ListingKey, type Marketplace } from "./columns";
 import { fillTemplate, writeXlsx, type Cell } from "./xlsx";
@@ -15,7 +16,7 @@ export type ListingOptions = {
   box: { length: number; width: number; height: number };
 };
 
-export type ListingRow = { product: Product; values: Partial<Record<ListingKey, Cell>>; missing: string[] };
+export type ListingRow = { product: Product; variant?: Variant; values: Partial<Record<ListingKey, Cell>>; missing: string[] };
 
 const MAX_DEPTH = 10;
 
@@ -41,37 +42,53 @@ function channelPrice(p: Product, ctx: ProductCtx, channel: string): number | nu
   }
 }
 
-/** Uma linha por produto, já nas unidades do marketplace, e a lista do que falta preencher (para a prévia). */
+/** Produto como a variação o vende: filamento da cor trocado e o preço da variação no lugar do manual (#82). */
+const asVariant = (p: Product, v: Variant): Product => ({ ...p, composition: swapComposition(p.composition, v.swaps), manualPrice: v.price ?? p.manualPrice, sku: v.sku, stock: v.stock });
+
+/**
+ * Uma linha por produto (ou por variação, #82), já nas unidades do marketplace, e a lista do que falta preencher
+ * (para a prévia). As variações de um produto saem juntas, com o mesmo número de integração.
+ */
 export function listingRows(products: Product[], ctx: ProductCtx, o: ListingOptions): ListingRow[] {
-  const spec = MARKETPLACES[o.marketplace];
-  return products.map((p) => {
-    const grams = p.weightG ?? productGrams(p, ctx) + o.packagingG;
-    const price = channelPrice(p, ctx, o.channel);
-    const values: Partial<Record<ListingKey, Cell>> = {
-      category: o.categoryId.trim() || null,
-      name: p.name,
-      description: p.description.trim() || p.name,
-      skuParent: p.sku || null,
-      sku: p.sku || null,
-      price,
-      stock: Math.max(0, Math.floor(p.stock)),
-      weight: spec.weightUnit === "kg" ? round2(grams / 1000) : Math.round(grams),
-      length: Math.ceil(p.boxL ?? o.box.length),
-      width: Math.ceil(p.boxW ?? o.box.width),
-      height: Math.ceil(p.boxH ?? o.box.height),
-      ncm: p.ncm || null,
-      origin: p.origin,
-      unit: p.unit,
-      condition: "Novo",
-    };
-    const missing = [
-      ...(p.description.trim() ? [] : ["descrição"]),
-      ...(p.ncm ? [] : ["NCM"]),
-      ...(price === null ? ["preço no canal"] : []),
-      ...(spec.columns.category && !o.categoryId.trim() ? ["categoria"] : []),
-    ];
-    return { product: p, values, missing };
+  return products.flatMap((p) => {
+    if (!p.variants.length) return [productRow(p, p, ctx, o)];
+    const rows = p.variants.map((v) => {
+      const r = productRow(asVariant(p, v), p, ctx, o);
+      return { ...r, variant: v, values: { ...r.values, skuParent: p.sku || null, variationGroup: `UV${p.id}`, variationName: p.variationLabel, variationOption: v.name } };
+    });
+    const spread = spreadWarning(rows.flatMap((r) => (typeof r.values.price === "number" ? [r.values.price] : [])));
+    return spread && o.marketplace === "shopee" ? rows.map((r) => ({ ...r, missing: [...r.missing, "preços das variações (mais de 4× de diferença)"] })) : rows;
   });
+}
+
+function productRow(p: Product, parent: Product, ctx: ProductCtx, o: ListingOptions): ListingRow {
+  const spec = MARKETPLACES[o.marketplace];
+  const grams = p.weightG ?? productGrams(p, ctx) + o.packagingG;
+  const price = channelPrice(p, ctx, o.channel);
+  const values: Partial<Record<ListingKey, Cell>> = {
+    category: o.categoryId.trim() || null,
+    name: p.name,
+    description: p.description.trim() || p.name,
+    skuParent: p.sku || null,
+    sku: p.sku || null,
+    price,
+    stock: Math.max(0, Math.floor(p.stock)),
+    weight: spec.weightUnit === "kg" ? round2(grams / 1000) : Math.round(grams),
+    length: Math.ceil(p.boxL ?? o.box.length),
+    width: Math.ceil(p.boxW ?? o.box.width),
+    height: Math.ceil(p.boxH ?? o.box.height),
+    ncm: p.ncm || null,
+    origin: p.origin,
+    unit: p.unit,
+    condition: "Novo",
+  };
+  const missing = [
+    ...(p.description.trim() ? [] : ["descrição"]),
+    ...(p.ncm ? [] : ["NCM"]),
+    ...(price === null ? ["preço no canal"] : []),
+    ...(spec.columns.category && !o.categoryId.trim() ? ["categoria"] : []),
+  ];
+  return { product: parent, values, missing };
 }
 
 /**

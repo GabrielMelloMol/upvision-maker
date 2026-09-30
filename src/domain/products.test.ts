@@ -33,6 +33,8 @@ function product(id: number, p: Partial<Product>): Product {
     boxL: null,
     boxW: null,
     boxH: null,
+    variationLabel: "Cor",
+    variants: [],
     ...p,
   };
 }

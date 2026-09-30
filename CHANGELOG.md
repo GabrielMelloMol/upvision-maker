@@ -5,6 +5,7 @@ Formato: `## <versão> — <data>` e itens `- …` em linguagem simples.
 
 ## Próxima versão (vira "## 0.8.1 — data" ou "## 0.9.0 — data" ao publicar; até lá o app não mostra)
 - Correção: a **Cumbuca no contorno** com fundo arredondado saía com um pedaço da parede solto no ar (e no tamanho máximo o fatiador recusava). Agora a peça sai inteira, apoiada na mesa (#134).
+- **Variações por cor** (#82): no produto, em **Variações**, cadastre as cores (Azul, Rosa, Dourado…) com SKU, estoque pronto e, se quiser, preço próprio. Escolha o filamento de cada cor e o custo acompanha o preço daquele rolo. Ao exportar para a Shopee ou o Mercado Livre, cada cor vira uma linha da mesma vitrine. O app avisa quando os preços passam de 4× de diferença, o que a Shopee recusa.
 
 ## 0.8.0 — 2026-09-30
 - **3MF já com a configuração de impressão**: cada modelo e ferramenta sai com a altura de camada, paredes, preenchimento e posição recomendados para o Bambu Studio e o OrcaSlicer (começando pela A1). A mesma recomendação aparece na tela para quem usa outro fatiador.

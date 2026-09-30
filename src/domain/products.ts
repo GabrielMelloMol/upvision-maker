@@ -2,6 +2,7 @@ import { z } from "zod";
 import { calculate, failureFor, machineHourCost, type CalcResult } from "./calc";
 import type { Filament, Material, Printer } from "./entities";
 import type { Settings } from "./settings";
+import { swapComposition, Variant } from "./variants";
 
 const id = z.number().int().positive();
 const nonNeg = z.number().min(0, "Não pode ser negativo");
@@ -42,6 +43,9 @@ export const ProductInput = z.object({
   boxL: nonNeg.nullable().default(null),
   boxW: nonNeg.nullable().default(null),
   boxH: nonNeg.nullable().default(null),
+  // Variações (#82), 1 nível: nome do nível (ex.: Cor) e as opções. Padrões para backups antigos.
+  variationLabel: z.string().trim().min(1).max(20).default("Cor"),
+  variants: z.array(Variant).max(50, "No máximo 50 variações.").default([]),
 });
 export type ProductInput = z.infer<typeof ProductInput>;
 export type Product = ProductInput & { id: number };
@@ -70,6 +74,8 @@ export const EMPTY_PRODUCT: ProductInput = {
   boxL: null,
   boxW: null,
   boxH: null,
+  variationLabel: "Cor",
+  variants: [],
 };
 
 /** `fixedPerHour`: custos operacionais rateados (ver `fixedCostPerHour`); ausente = 0. */
@@ -128,6 +134,13 @@ export function productPricing(p: Product, ctx: ProductCtx, seen = new Set<numbe
 
 /** Preço de venda ao consumidor: o manual, se definido, senão o calculado. */
 export const salePrice = (p: Product, r: CalcResult) => p.manualPrice ?? r.consumer;
+
+/** Custo e preço de uma variação (#82): o produto com o filamento da cor trocado; preço próprio ou o do produto. */
+export function variantPricing(p: Product, v: Variant, ctx: ProductCtx): { unitCost: number; price: number; warnings: string[] } {
+  const swapped = { ...p, composition: swapComposition(p.composition, v.swaps) };
+  const { result, warnings } = productPricing(swapped, ctx);
+  return { unitCost: result.unitCost, price: v.price ?? salePrice(swapped, result), warnings };
+}
 
 /** Quantidades a baixar: gramas por filamento, unidades por material e unidades de produto pronto. */
 export type ConsumptionPlan = { filaments: Record<number, number>; materials: Record<number, number>; products: Record<number, number> };

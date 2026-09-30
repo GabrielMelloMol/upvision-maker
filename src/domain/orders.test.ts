@@ -63,6 +63,8 @@ const product = (id: number, p: Partial<Product>): Product => ({
   boxL: null,
   boxW: null,
   boxH: null,
+  variationLabel: "Cor",
+  variants: [],
   ...p,
 });
 const ctx = (products: Product[]): ProductCtx => ({ filaments: [fil], materials: [], printers: [], products, settings: { ...DEFAULT_SETTINGS, maintenancePct: 0 } });

@@ -89,6 +89,8 @@ export const MIGRATIONS: string[][] = [
     "CREATE TABLE tool_state (id TEXT PRIMARY KEY, data TEXT NOT NULL, updatedAt TEXT NOT NULL)",
     "CREATE TABLE tool_projects (id INTEGER PRIMARY KEY, toolId TEXT NOT NULL, name TEXT NOT NULL DEFAULT '', data TEXT NOT NULL, thumb TEXT, at TEXT NOT NULL)",
   ],
+  // Variações de produto (#82): nível (ex.: Cor) e as opções em JSON na própria linha, como a composição.
+  ["ALTER TABLE products ADD COLUMN variationLabel TEXT NOT NULL DEFAULT 'Cor'", "ALTER TABLE products ADD COLUMN variants TEXT NOT NULL DEFAULT '[]'"],
 ];
 
 export const SCHEMA_VERSION = MIGRATIONS.length;

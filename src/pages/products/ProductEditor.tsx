@@ -6,7 +6,7 @@ import { money, parseDecimal } from "../../domain/format";
 import MoneyField from "../../ui/MoneyField";
 import { formatDuration, formatMoneyInput, parseDuration, parseMoney } from "../../ui/parse";
 import TimeField from "../../ui/TimeField";
-import { EMPTY_PRODUCT, productPricing, type Product, type ProductInput } from "../../domain/products";
+import { EMPTY_PRODUCT, productPricing, variantPricing, type Product, type ProductInput } from "../../domain/products";
 import Alert from "../../ui/Alert";
 import Button from "../../ui/Button";
 import { fieldErrors } from "../../ui/fieldErrors";
@@ -18,6 +18,8 @@ import type { ProductsData } from "./data";
 import ListingFields, { fromListingForm, toListingForm } from "./ListingFields";
 import { productGrams } from "../../domain/marketplace/listing";
 import type { Printer } from "../../domain/entities";
+import { spreadWarning, variantErrors } from "../../domain/variants";
+import VariantsFieldset, { toDraft, type VariantDraft } from "./VariantsFieldset";
 import PrinterCatalogButton from "../calculator/PrinterCatalogButton";
 
 type Line = { id: string; qty: string };
@@ -54,6 +56,10 @@ export default function ProductEditor({ initial, data, onClose, onSaved }: Props
   const [fil, setFil] = useState<Line[]>(base.composition.filaments.map((l) => ({ id: String(l.filamentId), qty: str(l.grams) })));
   const [mat, setMat] = useState<Line[]>(base.composition.materials.map((l) => ({ id: String(l.materialId), qty: str(l.qty) })));
   const [items, setItems] = useState<Line[]>(base.composition.items.map((l) => ({ id: String(l.productId), qty: str(l.qty) })));
+  // variações (#82): "de qual filamento" vem das variações salvas ou do 1º da composição
+  const [swapFrom, setSwapFrom] = useState(() => String(base.variants.flatMap((v) => v.swaps)[0]?.from ?? base.composition.filaments[0]?.filamentId ?? ""));
+  const [variationLabel, setVariationLabel] = useState(base.variationLabel);
+  const [variantDrafts, setVariantDrafts] = useState<VariantDraft[]>(() => base.variants.map((v) => toDraft(v, Number(swapFrom) || null)));
   const [photos, setPhotos] = useState<Photo[]>([]);
   const [pending, setPending] = useState<string[]>([]); // fotos de produto ainda não salvo
   const [errors, setErrors] = useState<Record<string, string>>({});
@@ -71,6 +77,10 @@ export default function ProductEditor({ initial, data, onClose, onSaved }: Props
   }, [initial.id, toast]);
 
   const lines = (ls: Line[]) => ls.filter((l) => l.id);
+  const filamentLabel = (fid: number) => {
+    const f = data.filaments.find((x) => x.id === fid);
+    return f ? [f.material, f.color, f.brand].filter(Boolean).join(" · ") : `Filamento ${fid}`;
+  };
   const input: ProductInput = {
     name,
     kind,
@@ -83,7 +93,16 @@ export default function ProductEditor({ initial, data, onClose, onSaved }: Props
     freight: parseMoney(n.freight) || 0,
     manualPrice: optMoney(n.manualPrice),
     consignmentPrice: optMoney(n.consignmentPrice),
-    stock: num(n.stock) || 0,
+    // com variações, o estoque pronto do produto é a soma delas
+    stock: variantDrafts.length ? variantDrafts.reduce((t, d) => t + (num(d.stock) || 0), 0) : num(n.stock) || 0,
+    variationLabel: variationLabel.trim() || "Cor",
+    variants: variantDrafts.map((d) => ({
+      name: d.name,
+      sku: d.sku,
+      stock: num(d.stock) || 0,
+      price: optMoney(d.price),
+      swaps: d.to && swapFrom && d.to !== swapFrom ? [{ from: Number(swapFrom), to: Number(d.to) }] : [],
+    })),
     minStock: num(n.minStock) || 0,
     failurePct: n.failure.trim() === "" ? null : num(n.failure),
     ...fromListingForm(listing),
@@ -95,6 +114,15 @@ export default function ProductEditor({ initial, data, onClose, onSaved }: Props
   };
 
   const pricing = livePricing(input, initial.id ?? -1, { ...data, printers: printerList });
+  const variantPriced = input.variants.map((v) => {
+    try {
+      const self: Product = { ...input, id: initial.id ?? -1, piecesPerPlate: Math.max(1, Math.floor(input.piecesPerPlate) || 1) };
+      return variantPricing(self, v, { ...data, printers: printerList, products: [...data.products.filter((x) => x.id !== self.id), self] });
+    } catch {
+      return null;
+    }
+  });
+  const variantWarning = spreadWarning(variantPriced.flatMap((x) => (x ? [x.price] : [])));
 
   async function addPhotos(files: FileList | null) {
     if (!files) return;
@@ -123,6 +151,8 @@ export default function ProductEditor({ initial, data, onClose, onSaved }: Props
 
   async function save(e: React.FormEvent) {
     e.preventDefault();
+    const bad = variantErrors(input.variants);
+    if (bad.length) return setErrors({ _: bad.join(" ") });
     setSaving(true);
     try {
       const db = await getDb();
@@ -190,7 +220,7 @@ export default function ProductEditor({ initial, data, onClose, onSaved }: Props
           )}
           <fieldset>
             <legend>Filamentos (mesa inteira)</legend>
-            <LineEditor lines={fil} setLines={setFil} options={data.filaments.map((f) => ({ id: f.id, label: [f.material, f.color, f.brand].filter(Boolean).join(" · ") }))} qtyLabel="Gramas" emptyLabel="Escolha o filamento" />
+            <LineEditor lines={fil} setLines={setFil} options={data.filaments.map((f) => ({ id: f.id, label: filamentLabel(f.id) }))} qtyLabel="Gramas" emptyLabel="Escolha o filamento" />
           </fieldset>
           <fieldset>
             <legend>Materiais extras (mesa inteira)</legend>
@@ -246,7 +276,15 @@ export default function ProductEditor({ initial, data, onClose, onSaved }: Props
                 hint="Vazio = preço calculado"
               />
               <MoneyField label="Repasse em consignação" value={n.consignmentPrice} onChange={setText("consignmentPrice")} />
-              <label>Estoque pronto (un)<input inputMode="decimal" value={n.stock} onChange={setNum("stock")} /></label>
+              {variantDrafts.length ? (
+                <label>
+                  Estoque pronto (un)
+                  <input value={String(input.stock).replace(".", ",")} readOnly aria-describedby="stock-sum" />
+                  <span className="hint" id="stock-sum">Soma das variações.</span>
+                </label>
+              ) : (
+                <label>Estoque pronto (un)<input inputMode="decimal" value={n.stock} onChange={setNum("stock")} /></label>
+              )}
               <label>Estoque mínimo (un)<input inputMode="decimal" value={n.minStock} onChange={setNum("minStock")} /></label>
             </div>
             <label>
@@ -254,6 +292,20 @@ export default function ProductEditor({ initial, data, onClose, onSaved }: Props
               <textarea value={notes} maxLength={1000} onChange={(e) => setNotes(e.target.value)} rows={2} />
             </label>
           </fieldset>
+          {kind === "simple" && (
+            <VariantsFieldset
+              label={variationLabel}
+              onLabel={setVariationLabel}
+              drafts={variantDrafts}
+              onDrafts={setVariantDrafts}
+              compositionFilaments={lines(fil).map((l) => ({ id: Number(l.id), label: filamentLabel(Number(l.id)) }))}
+              filaments={data.filaments.map((f) => ({ id: f.id, label: filamentLabel(f.id) }))}
+              swapFrom={swapFrom || lines(fil)[0]?.id || ""}
+              onSwapFrom={setSwapFrom}
+              priced={variantPriced}
+              warning={variantWarning}
+            />
+          )}
           {errors._ && <Alert kind="error">{errors._}</Alert>}
         </div>
 

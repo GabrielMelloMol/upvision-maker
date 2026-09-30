@@ -52,4 +52,32 @@ describe("linhas da planilha de upload em massa (#78)", () => {
     expect(sheet.rows[1].slice(0, 2)).toEqual(["101152", "Luminária de lua"]);
     expect(note).toMatch(/copie/);
   });
+
+  test("variações (#82): uma linha por cor com SKU, estoque e custo da cor, agrupadas pelo número de integração", () => {
+    const colored = { ...lum, variationLabel: "Cor", variants: [
+      { name: "Azul", sku: "LUM-AZ", stock: 2, price: null, swaps: [] },
+      { name: "Dourado", sku: "LUM-DO", stock: 1, price: null, swaps: [{ from: 1, to: 2 }] },
+    ] };
+    const c = { ...ctx([colored]), filaments: [fil(1, 85), fil(2, 185)] };
+    const rows = listingRows([colored], c, opts);
+    expect(rows).toHaveLength(2);
+    expect(rows[0].values).toMatchObject({ skuParent: "LUM-1", sku: "LUM-AZ", stock: 2, price: 39.92, variationGroup: "UV1", variationName: "Cor", variationOption: "Azul" });
+    expect(rows[1].values).toMatchObject({ sku: "LUM-DO", stock: 1, variationOption: "Dourado" });
+    expect(rows[1].values.price as number).toBeGreaterThan(39.92);
+    expect(rows.every((r) => r.product === colored)).toBe(true);
+    const [sheet] = readWorkbook(listingFile(rows, "shopee").bytes);
+    const head = sheet.rows[0];
+    expect(sheet.rows[2][head.indexOf("Opção para Variação 1")]).toBe("Dourado");
+    expect(sheet.rows[2][head.indexOf("Número de Integração de Variação")]).toBe("UV1");
+  });
+
+  test("variações com preços mais de 4× diferentes: aviso na Shopee, não no Mercado Livre", () => {
+    const colored = { ...lum, variants: [
+      { name: "P", sku: "", stock: 0, price: 10, swaps: [] },
+      { name: "G", sku: "", stock: 0, price: 90, swaps: [] },
+    ] };
+    const venda = "Venda direta (consumidor final)";
+    expect(listingRows([colored], ctx([colored]), { ...opts, channel: venda })[0].missing).toContain("preços das variações (mais de 4× de diferença)");
+    expect(listingRows([colored], ctx([colored]), { ...opts, marketplace: "ml", channel: venda })[0].missing).not.toContain("preços das variações (mais de 4× de diferença)");
+  });
 });

@@ -17,7 +17,7 @@ export const TABLES = {
   filaments: FilamentInput.extend({ id }),
   materials: MaterialInput.extend({ id }),
   // composição guardada como JSON (texto) na linha
-  products: ProductInput.extend({ id, composition: z.string() }),
+  products: ProductInput.extend({ id, composition: z.string(), variants: z.string().default("[]") }), // JSON na linha; backups antigos não têm
   product_photos: z.object({ id, productId: id, position: z.number().int().min(0), dataUrl: z.string().startsWith("data:image/") }),
   customers: CustomerInput.extend({ id, active: z.number().int() }), // booleano guardado como 0/1
   company: z.object({ id: z.literal(1), data: z.string() }),

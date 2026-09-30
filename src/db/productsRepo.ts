@@ -1,7 +1,9 @@
+import { z } from "zod";
 import { Composition, ProductInput, type Product } from "../domain/products";
+import { Variant } from "../domain/variants";
 import type { Db } from "./types";
 
-type Row = Omit<Product, "composition"> & { composition: string };
+type Row = Omit<Product, "composition" | "variants"> & { composition: string; variants: string };
 
 const COLS = Object.keys(ProductInput.shape) as (keyof ProductInput)[];
 export const MAX_PHOTOS = 8;
@@ -13,10 +15,17 @@ function fromRow(r: Row): Product {
   } catch (e) {
     console.error(`Composição inválida no produto ${r.id}:`, e);
   }
-  return { ...r, composition };
+  let variants: Product["variants"] = [];
+  try {
+    variants = z.array(Variant).parse(JSON.parse(r.variants || "[]"));
+  } catch (e) {
+    console.error(`Variações inválidas no produto ${r.id}:`, e);
+  }
+  return { ...r, composition, variants };
 }
 
-const values = (v: ProductInput) => COLS.map((c) => (c === "composition" ? JSON.stringify(v.composition) : v[c]));
+// composição e variações ficam como JSON na linha
+const values = (v: ProductInput) => COLS.map((c) => (c === "composition" || c === "variants" ? JSON.stringify(v[c]) : v[c]));
 
 export const productsRepo = {
   async list(db: Db): Promise<Product[]> {

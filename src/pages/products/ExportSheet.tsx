@@ -137,8 +137,9 @@ export default function ExportSheet({ products, data, onClose }: Props) {
       {!template && <p className="hint">Sem o modelo sai uma planilha simples com as mesmas colunas, para copiar e colar no modelo.</p>}
       <p aria-live="polite">
         <b>
-          {rows.length} {rows.length === 1 ? "produto" : "produtos"}
+          {products.length} {products.length === 1 ? "produto" : "produtos"}
         </b>
+        {rows.length !== products.length && ` em ${rows.length} linhas (uma por variação)`}
         {gaps.size > 0 ? ` · faltando: ${[...gaps].map(([k, n]) => `${k} (${n})`).join(", ")}` : " · tudo preenchido"}
       </p>
       <Alert kind="info">A planilha só aceita fotos por link: envie as fotos pelo Seller Center depois de subir a planilha.</Alert>
