@@ -16,7 +16,7 @@ Para cada modelo: valores **padrão**, todos os campos numéricos no **mínimo**
 "n/a" = o modelo precisa de uma entrada que o teste não dá (ex.: foto). "app:" = aviso que o próprio app mostra na tela.
 
 
-**Total:** 206 casos · 162 ok · 21 com aviso · 23 com falha · 0 n/a
+**Total:** 206 casos · 164 ok · 21 com aviso · 21 com falha · 0 n/a
 
 ## Forja
 
@@ -167,9 +167,9 @@ Para cada modelo: valores **padrão**, todos os campos numéricos no **mínimo**
 | Porta-joia NFC (nfcJewelry) | máximo | ✅ ok | 93 | 101,9 | 1 | 3,40 | app: Pausa em Z = 3,52 mm: coloque a tag no bolsão da tampa e retome. Se o pote estiver na mesma mesa, ele só espera junto.; app: A tampa imprime com o sulco para baixo (ponte curta) e encaixa na gola do pote. |
 | Porta-joia NFC (nfcJewelry) | mínimo | ✅ ok | 32 | 10,2 | 1 | 1,40 | app: Pausa em Z = 1,44 mm: coloque a tag no bolsão da tampa e retome. Se o pote estiver na mesma mesa, ele só espera junto.; app: A tampa imprime com o sulco para baixo (ponte curta) e encaixa na gola do pote. |
 | Porta-joia NFC (nfcJewelry) | padrão | ✅ ok | 36 | 25,2 | 1 | 2,00 | app: Pausa em Z = 2,00 mm: coloque a tag no bolsão da tampa e retome. Se o pote estiver na mesma mesa, ele só espera junto.; app: A tampa imprime com o sulco para baixo (ponte curta) e encaixa na gola do pote. |
-| Cumbuca no contorno (outlineBowl) | máximo | ❌ falha | – | – | – | – | "Cumbuca": 2 corpo(s) solto(s) no ar (Z 13,6, 30,0 mm); Bambu Studio: Failed slicing the model. Please verify the slicing of all plates on Bambu Studio before uploading. (código -100) |
+| Cumbuca no contorno (outlineBowl) | máximo | ✅ ok | 754 | 525,0 | 1 | – | – |
 | Cumbuca no contorno (outlineBowl) | mínimo | ✅ ok | 7 | 1,6 | 1 | – | – |
-| Cumbuca no contorno (outlineBowl) | padrão | ❌ falha | 47 | 31,3 | 1 | – | "Cumbuca": 1 corpo(s) solto(s) no ar (Z 2,0 mm) |
+| Cumbuca no contorno (outlineBowl) | padrão | ✅ ok | 47 | 32,2 | 1 | – | – |
 | Porta-caneta (pen) | máximo | ✅ ok | 438 | 356,0 | 1 | – | – |
 | Porta-caneta (pen) | mínimo | ✅ ok | 24 | 7,8 | 1 | – | – |
 | Porta-caneta (pen) | padrão | ✅ ok | 77 | 70,7 | 1 | – | – |

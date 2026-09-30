@@ -3,6 +3,9 @@
 Cada versão aparece para a usuária na tela "O que há de novo" depois da atualização.
 Formato: `## <versão> — <data>` e itens `- …` em linguagem simples.
 
+## Próxima versão (vira "## 0.8.1 — data" ou "## 0.9.0 — data" ao publicar; até lá o app não mostra)
+- Correção: a **Cumbuca no contorno** com fundo arredondado saía com um pedaço da parede solto no ar (e no tamanho máximo o fatiador recusava). Agora a peça sai inteira, apoiada na mesa (#134).
+
 ## 0.8.0 — 2026-09-30
 - **3MF já com a configuração de impressão**: cada modelo e ferramenta sai com a altura de camada, paredes, preenchimento e posição recomendados para o Bambu Studio e o OrcaSlicer (começando pela A1). A mesma recomendação aparece na tela para quem usa outro fatiador.
 - **Não perder trabalho** em todas as ferramentas (Chaveiros, Medalhas, Modelos prontos, QR, Cortador, Extrusão, Imagem → SVG, Litofania e Separar 3MF): o que você está fazendo fica guardado sozinho, com a foto ou o arquivo enviado junto, e, ao voltar, aparece "Continuar de onde parou" ou "Começar do zero". **Desfazer e refazer** (botões ou ⌘Z / ⇧⌘Z) e **Últimos projetos**: os 10 últimos arquivos salvos, com miniatura, para reabrir com um toque. Tudo entra no backup.

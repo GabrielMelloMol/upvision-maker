@@ -1,6 +1,7 @@
 import { beforeAll, describe, expect, test } from "vitest";
 import { meshBounds, modelsBounds } from "../bounds";
 import { getManifold, type ManifoldToplevel, type Solid } from "../manifold";
+import { checkModels } from "../../qa/checks";
 import { volume } from "../testUtil";
 import type { Mesh, Model } from "../types";
 import type { ModelCtx } from "./common";
@@ -135,6 +136,14 @@ describe("cumbuca no contorno (#66)", { timeout: 30_000 }, () => {
     const foot = s.trimByPlane([0, 0, -1], -0.2).boundingBox(); // o que está abaixo de 0,2 mm
     const all = s.boundingBox();
     expect(foot.max[0] - foot.min[0]).toBeLessThan(all.max[0] - all.min[0] - 8);
+  });
+
+  test("peça só apoiada na mesa, sem corpo solto no ar, no padrão e no máximo (#134)", () => {
+    const MAX = { ...O, width: 240, height: 150, shell: 5, floor: 5, bottomRadius: 30, rimRadius: 2.5, floorArtScale: 0.8, relief: 3 };
+    for (const p of [O, MAX]) {
+      const fails = checkModels(M, buildOutlineBowl(ctx(), p).models).filter((x) => x.kind === "fail");
+      expect(fails.map((f) => f.msg)).toEqual([]);
+    }
   });
 
   test("desenho em relevo no fundo, em outra cor, apoiado no piso por dentro", () => {

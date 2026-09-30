@@ -38,6 +38,8 @@ export const DEFAULT_OUTLINE_BOWL: OutlineBowlParams = {
 const STEP = 0.4;
 const EXAMPLE = 100;
 const MAX_ART_SCALE = 0.8;
+/** Sobreposição entre camadas do fundo arredondado (mm), bem abaixo do que a impressora enxerga. */
+const OVERLAP = 0.001;
 
 /**
  * Cumbuca no contorno de um desenho fechado (#66): a silhueta vira a boca, a parede tem a espessura da casca e o
@@ -51,18 +53,30 @@ export function buildOutlineBowl(ctx: ModelCtx, p: OutlineBowlParams): ModelOutp
     const H = p.height;
     const rb = Math.max(0, Math.min(p.bottomRadius, H / 2, p.width / 4));
     const layer = (cs: CS, h: number, z: number): Solid => k(k(cs.extrude(h)).translate([0, 0, z]));
+    const inner = k(outline.offset(-p.shell, "Round"));
+    const floor = Math.max(p.floor, STEP);
     const slices: Solid[] = [];
+    // a cavidade acompanha o fundo arredondado (#134): com a cavidade reta, onde o recuo passava da espessura da parede
+    // a camada da parede sumia e o resto da parede ficava solto no ar
+    const cavity: Solid[] = [layer(inner, H - Math.max(rb, floor), Math.max(rb, floor))];
     // fundo arredondado: a cada camada o contorno recua pelo quarto de círculo de raio rb
-    for (let z = 0; z < rb - 1e-9; z += STEP) {
+    // z pelo índice (somar 0,4 acumula erro e deixava uma fresta de 1e-13 mm entre as camadas); cada camada invade a de
+    // cima em OVERLAP: por fora e na cavidade, a de baixo cabe dentro da de cima, então só garante que fiquem coladas
+    for (let i = 0; i * STEP < rb - 1e-9; i++) {
+      const z = i * STEP;
       const h = Math.min(STEP, rb - z);
       const inset = rb - Math.sqrt(Math.max(0, rb * rb - (rb - z - h / 2) ** 2));
-      slices.push(layer(k(outline.offset(-inset, "Round")), h, z));
+      slices.push(layer(k(outline.offset(-inset, "Round")), h + OVERLAP, z));
+      const top = z + h;
+      if (top > floor + 1e-9) {
+        const from = Math.max(z, floor);
+        const hole = k(outline.offset(-(inset + p.shell), "Round"));
+        if (!hole.isEmpty()) cavity.push(layer(hole, top - from + OVERLAP, from));
+      }
     }
     slices.push(layer(outline, H - rb, rb));
     const outer = k(M.Manifold.union(slices));
-    const inner = k(outline.offset(-p.shell, "Round"));
-    const floor = Math.max(p.floor, STEP);
-    let body = k(outer.subtract(layer(inner, H, floor)));
+    let body = k(outer.subtract(k(M.Manifold.union(cavity))));
     // borda arredondada: tira os cantos de cima da parede em degraus (meia-cana de raio rr)
     const rr = Math.max(0, Math.min(p.rimRadius, p.shell / 2));
     if (rr > 0) {

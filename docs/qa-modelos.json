@@ -1992,12 +1992,12 @@
   "group": "home",
   "label": "Cumbuca no contorno (outlineBowl)",
   "variant": "máximo",
-  "status": "falha",
-  "reasons": [
-   "\"Cumbuca\": 2 corpo(s) solto(s) no ar (Z 13,6, 30,0 mm)",
-   "Bambu Studio: Failed slicing the model. Please verify the slicing of all plates on Bambu Studio before uploading. (código -100)"
-  ],
-  "date": "2026-09-30"
+  "status": "ok",
+  "reasons": [],
+  "date": "2026-09-30",
+  "minutes": 754,
+  "grams": 525,
+  "plates": 1
  },
  {
   "key": "outlineBowl:mínimo",
@@ -2018,13 +2018,11 @@
   "group": "home",
   "label": "Cumbuca no contorno (outlineBowl)",
   "variant": "padrão",
-  "status": "falha",
-  "reasons": [
-   "\"Cumbuca\": 1 corpo(s) solto(s) no ar (Z 2,0 mm)"
-  ],
+  "status": "ok",
+  "reasons": [],
   "date": "2026-09-30",
   "minutes": 47,
-  "grams": 31.3,
+  "grams": 32.2,
   "plates": 1
  },
  {
