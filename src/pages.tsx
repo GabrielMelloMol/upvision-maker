@@ -1,6 +1,6 @@
 import { Award, Bot, Calculator as CalcIcon, Cookie, Cylinder, KeyRound, Layers, House, ImageUp, Package, Palette, Printer, Settings, ShoppingBag, Users, Building2, ClipboardList, FileText, LayoutDashboard, LineChart, Receipt, QrCode as QrIcon, Split } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
-import { Braces, Globe, Grid3x3, Shapes, Sun, Tag } from "lucide-react";
+import { Braces, Globe, Grid3x3, LayoutGrid, Shapes, Sun, Tag } from "lucide-react";
 import { lazy, type ReactNode } from "react";
 import Home from "./pages/Home";
 
@@ -33,6 +33,7 @@ const ColorSplit = lazy(() => import("./tools/ColorSplit"));
 const ModelSearch = lazy(() => import("./tools/ModelSearch"));
 const ScadCustomizer = lazy(() => import("./tools/ScadCustomizer"));
 const PixelArt = lazy(() => import("./tools/PixelArt"));
+const DrawerOrganizer = lazy(() => import("./tools/DrawerOrganizer"));
 
 export type Go = (pageId: string) => void;
 export type PageDef = {
@@ -59,6 +60,7 @@ const ALL: PageDef[] = [
   { id: "spools", label: "Etiquetas de rolo", group: "Ferramentas", icon: Tag, blurb: "QR por rolo: baixa de gramas lendo a etiqueta.", render: () => <SpoolLabels /> },
   { id: "lithophane", label: "Litofania e quadro", group: "Ferramentas", icon: Sun, blurb: "Foto em relevo: litofania ou quadro por camadas.", render: () => <Lithophane /> },
   { id: "pixel", label: "Pixel art", group: "Ferramentas", icon: Grid3x3, blurb: "Imagem em pixels nas cores dos filamentos: mosaico, quebra-cabeça ou ímã.", render: () => <PixelArt /> },
+  { id: "drawer", label: "Organizador de gaveta", group: "Ferramentas", icon: LayoutGrid, blurb: "Meça a gaveta, desenhe as caixinhas e imprima base e módulos.", render: () => <DrawerOrganizer /> },
   { id: "colorsplit", label: "Separar 3MF por cor", group: "Ferramentas", icon: Split, blurb: "3MF pintado vira uma peça por cor.", render: () => <ColorSplit /> },
   { id: "scad", label: "OpenSCAD personalizável", group: "Ferramentas", icon: Braces, blurb: "Arquivo .scad do Customizer vira formulário e 3MF.", render: () => <ScadCustomizer /> },
   { id: "search3d", label: "Buscar modelos", group: "Ferramentas", icon: Globe, blurb: "Printables, MakerWorld, Thingiverse, Cults3D e Thangs; licenças.", render: (go) => <ModelSearch go={go} /> },

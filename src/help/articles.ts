@@ -97,6 +97,13 @@ export const ARTICLES: HelpArticle[] = [
     tips: ["No quebra-cabeça, cada casa tem o número da cor gravado e os pixels de cada cor saem num objeto próprio: imprima uma cor de cada vez, sem AMS.", "Pixel de 7 mm ou mais deixa os números legíveis."],
   },
   {
+    id: "drawer",
+    title: "Organizador de gaveta",
+    intro: "Meça a gaveta: o app calcula as casas de 42 mm (compatível com Gridfinity), a margem de cada lado, os pedaços da base e a altura que cabe.",
+    steps: ["Digite as medidas de dentro da gaveta (largura, profundidade e altura livre).", "Arraste na grade para criar cada caixinha; toque numa para ajustar altura, divisões, etiqueta e cor.", "Confira a gaveta montada em 3D e os avisos.", "Salve: a base e as caixinhas saem arrumadas em mesas de 256 mm."],
+    tips: ["Imprima antes o Gridfinity: teste de encaixe (Modelos prontos) para conferir a folga.", "Setas movem a caixinha, Shift + setas mudam o tamanho, ⌘D duplica e Delete apaga."],
+  },
+  {
     id: "scad",
     title: "OpenSCAD personalizável",
     intro: "Abra um .scad com parâmetros (formato do Customizer) e ajuste as medidas num formulário.",

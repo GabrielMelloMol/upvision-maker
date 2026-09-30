@@ -83,6 +83,8 @@ export type GridBaseParams = {
   align?: DrawerAlign;
   /** Quanto a mesa perde nas bordas (saia/brim): 4 mm dá 6 casas por pedaço na A1. */
   bedMargin?: number;
+  /** Afastamento entre os pedaços (0 = montada, como na gaveta). */
+  pieceGap?: number;
 };
 export const DEFAULT_GRID_BASE: GridBaseParams = { unitsX: 4, unitsY: 3, magnets: false, color: "#1c1c1e", mode: "cells", drawerW: 500, drawerD: 420, drawerH: 80, align: "center", bedMargin: BED_MARGIN };
 
@@ -255,7 +257,8 @@ export function buildGridBase({ M }: ModelCtx, p: GridBaseParams): ModelOutput {
           plate = k(plate.subtract(k(M.Manifold.union(mags))));
         }
         // pedaços na mesma ordem da gaveta, afastados 10 mm (cada um cabe na mesa)
-        const moved = k(plate.translate([ix * PIECE_GAP - totalW / 2, iy * PIECE_GAP - totalD / 2, 0]));
+        const gap = p.pieceGap ?? PIECE_GAP;
+        const moved = k(plate.translate([ix * gap - totalW / 2, iy * gap - totalD / 2, 0]));
         pieces.push({ name: many ? `Base ${pieces.length + 1}` : "Base", parts: [{ name: "Base", color: p.color, mesh: solidMesh(moved) }] });
       }),
     );
