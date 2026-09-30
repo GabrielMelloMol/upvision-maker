@@ -23,6 +23,11 @@ test("termo técnico pelo rótulo do campo, sem ligar para acento e maiúsculas"
   expect(termFor("Folga do encaixe")?.id).toBe("folga");
   expect(termFor("POTÊNCIA (W)")?.id).toBe("potencia");
   expect(termFor("Nome")).toBeNull();
+  // "margem" de lucro não vale para as margens de peça (mesa, base, borda, QR) (#143)
+  expect(termFor("Margem mínima (%)")?.id).toBe("margem");
+  expect(termFor("Margem da mesa")).toBeNull();
+  expect(termFor("Margem da base")).toBeNull();
+  expect(termFor("Altura de camada")?.id).toBe("camada");
 });
 
 test("exemplo pedido antes de a ferramenta abrir é carregado quando ela registra", () => {
