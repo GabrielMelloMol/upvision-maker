@@ -1,10 +1,11 @@
+import type { Page } from "@playwright/test";
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { expect, go, openApp, test } from "../e2e/tauri";
 import { contrast, focusVisible, overflow, smallTargets } from "./checks";
 import { SEED_BASE, SEED_ORDERS } from "./seed";
 
 /**
- * Regressão visual automática (#142): todas as telas da barra lateral, preenchidas, em claro e escuro, em 1100 e
+ * Regressão visual automática (#142): todas as telas (seções, sub-telas e ferramentas da galeria Criar), preenchidas, em claro e escuro, em 1100 e
  * 1440 px e em 1280 px com escala 125% e 150% (Windows). Cada tela é comparada com a referência aprovada da
  * plataforma (tests/visual/referencia/<plataforma>) e passa pelas checagens; problemas que já existiam ficam em
  * tests/visual/conhecidos/<plataforma>/*.json e só os novos falham. As referências e a lista vêm do CI (visual.yml).
@@ -24,13 +25,37 @@ const TODAY = new Date("2026-09-30T10:00:00-03:00");
 /** Por plataforma, como as referências: as fontes do sistema mudam o que transborda. */
 const KNOWN_DIR = `tests/visual/conhecidos/${process.platform}`;
 
-const slug = (s: string) =>
-  s
-    .normalize("NFD")
-    .replace(/[̀-ͯ]/g, "")
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/g, "-")
-    .replace(/^-|-$/g, "");
+type Screen = { id: string; section: string; via: "section" | "sub" | "link" | "model" };
+const ids = (els: Element[]) => els.map((e) => e.getAttribute("data-page") ?? "");
+
+/**
+ * Todas as telas pela navegação do redesign (#139): cada seção da barra (button.nav[data-page]), as telas dela
+ * (button.nav.sub[data-page]) e as ferramentas da galeria Criar (main a[data-page]). Tela nova entra sozinha.
+ */
+async function screens(page: Page): Promise<Screen[]> {
+  const nav = page.getByRole("navigation", { name: "Navegação principal" });
+  const sections = await nav.locator("button.nav[data-page]:not(.sub)").evaluateAll(ids);
+  const out: Screen[] = [];
+  for (const section of sections) {
+    await nav.locator(`button.nav[data-page="${section}"]:not(.sub)`).click();
+    await expect(page.locator("main h1").first()).toBeVisible(); // a tela carrega sob demanda: espera antes de ler os links
+    await page.waitForTimeout(300);
+    out.push({ id: section, section, via: "section" });
+    for (const id of await nav.locator("button.nav.sub[data-page]").evaluateAll(ids)) out.push({ id, section, via: "sub" });
+    for (const id of await page.locator("main a[data-page]").evaluateAll(ids)) out.push({ id, section, via: "link" });
+    // Modelos prontos abre pelos modelos da galeria (#models/<id>), não por data-page
+    if (await page.locator('main a[href^="#models/"]').count()) out.push({ id: "models", section, via: "model" });
+  }
+  return out.filter((x, i) => x.id && out.findIndex((y) => y.id === x.id) === i);
+}
+
+async function open(page: Page, s: Screen) {
+  const nav = page.getByRole("navigation", { name: "Navegação principal" });
+  await nav.locator(`button.nav[data-page="${s.section}"]:not(.sub)`).click();
+  if (s.via === "sub") await nav.locator(`button.nav.sub[data-page="${s.id}"]`).click();
+  if (s.via === "link") await page.locator(`main a[data-page="${s.id}"]`).click();
+  if (s.via === "model") await page.locator('main a[href^="#models/"]').first().click();
+}
 
 for (const size of SIZES) {
   for (const scheme of size.schemes) {
@@ -45,21 +70,22 @@ for (const size of SIZES) {
         await go(page, "Impressoras"); // cria o banco
         tauri.db.exec(SEED_BASE + SEED_ORDERS);
         const nav = page.getByRole("navigation", { name: "Navegação principal" });
-        const only = process.env.VISUAL_PAGES?.split(",").map((x) => x.trim()); // ex.: VISUAL_PAGES="Painel,Pedidos"
-        const labels = (await nav.locator(".scroll button.nav").allInnerTexts()).map((t) => t.trim()).filter((t) => t && (!only || only.includes(t)));
+        const only = process.env.VISUAL_PAGES?.split(",").map((x) => x.trim()); // ids das telas, ex.: VISUAL_PAGES="dashboard,orders"
+        const list = (await screens(page)).filter((x) => !only || only.includes(x.id));
         const problems: string[] = [];
         // sem referência desta plataforma ainda (antes da 1ª aprovação no CI): só as checagens
         const approving = ["all", "changed"].includes(test.info().config.updateSnapshots); // "--update-snapshots" sozinho = "changed"
         const compare = approving || existsSync(`tests/visual/referencia/${process.platform}`);
 
-        for (const label of labels) {
-          const id = slug(label);
-          await go(page, label);
+        for (const screen of list) {
+          const { id } = screen;
+          await open(page, screen);
           await expect(page.locator("main h1").first()).toBeVisible();
           await page.waitForTimeout(600); // listas e miniaturas carregam do banco
-          await nav.locator(".scroll").evaluate((el) => el.scrollTo(0, 0)); // a lista rola ao clicar: a foto não depende da ordem das telas
+          // listas roladas ao clicar: a foto não depende da ordem das telas
+          await nav.evaluate((n) => n.querySelectorAll("*").forEach((el) => el.scrollTop && el.scrollTo(0, 0)));
           const t0 = Date.now();
-          if (compare) await expect.soft(page, `tela ${label}`).toHaveScreenshot(`${id}-${tag}.png`, { mask: [page.locator(".viewer canvas"), page.locator("[data-visual-mask]")] });
+          if (compare) await expect.soft(page, `tela ${id}`).toHaveScreenshot(`${id}-${tag}.png`, { mask: [page.locator(".viewer canvas"), page.locator("[data-visual-mask]")] });
           const t1 = Date.now();
           const found = [...(await overflow(page)), ...(await smallTargets(page))];
           const t2 = Date.now();
