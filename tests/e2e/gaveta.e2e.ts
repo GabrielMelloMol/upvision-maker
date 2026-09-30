@@ -23,6 +23,20 @@ test("organizador de gaveta: 4 × 3 casas, 3 caixinhas desenhadas, ajuste e expo
   await go(page, "Organizador de gaveta");
   for (const [label, v] of [["Largura", "169"], ["Profundidade", "127"], ["Altura livre", "60"]] as const) await page.getByLabel(new RegExp(`^${label}`)).fill(v);
   await expect(page.getByText(/Cabem 4 × 3 casas.*A base sai em 1 pedaço\./)).toBeVisible();
+  // gaveta 3D ao vivo: o campo em foco acende a cota dele, com o número digitado
+  await page.getByLabel(/^Largura/).focus();
+  await expect(page.locator('.drawer-dim[data-dim="width"][data-focus]')).toHaveText("169 mm");
+  await expect(page.locator('.drawer-dim[data-dim="depth"]')).not.toHaveAttribute("data-focus");
+  await page.getByLabel(/^Altura livre/).focus();
+  await expect(page.locator('.drawer-dim[data-dim="height"][data-focus]')).toHaveText("60 mm");
+  if (SHOTS)
+    for (const scheme of ["light", "dark"] as const) {
+      await page.emulateMedia({ colorScheme: scheme });
+      await page.waitForTimeout(400);
+      await page.screenshot({ path: `${SHOTS}/gaveta-3d-${scheme}.png`, fullPage: true });
+    }
+  await page.emulateMedia({ colorScheme: "light" });
+  await page.getByRole("group", { name: "Prévia" }).getByRole("button", { name: "Grade", exact: true }).click();
   await dragCells(page, 4, 3, [0, 0], [1, 0]); // 2×1 na frente à esquerda
   await expect(page.getByRole("heading", { name: "Caixinha 2×1" })).toBeVisible();
   await page.getByLabel("Etiqueta (texto)").fill("Pregos");
@@ -42,7 +56,10 @@ test("organizador de gaveta: 4 × 3 casas, 3 caixinhas desenhadas, ajuste e expo
       await page.waitForTimeout(400); // transição do tema
       await page.screenshot({ path: `${SHOTS}/gaveta-${scheme}.png`, fullPage: true });
     }
-  await page.getByRole("group", { name: "Prévia" }).getByRole("button", { name: "3D", exact: true }).click();
+  // organizador montado dentro da gaveta
+  await page.getByRole("group", { name: "Prévia" }).getByRole("button", { name: "Gaveta", exact: true }).click();
+  await expect(page.getByRole("button", { name: "Ver montado" })).toBeVisible({ timeout: 90_000 });
+  await page.getByRole("group", { name: "Prévia" }).getByRole("button", { name: "Peças", exact: true }).click();
   await expect(page.locator(".viewer .hud")).toContainText("168.0 × 126.0", { timeout: 90_000 });
   await expect(page.locator(".viewer")).not.toHaveAttribute("aria-busy", "true", { timeout: 90_000 });
   await page.getByRole("button", { name: /Salvar 3MF/ }).click();
@@ -62,4 +79,15 @@ test("organizador de gaveta: 4 × 3 casas, 3 caixinhas desenhadas, ajuste e expo
   const plates = [...tauri.files.keys()].filter((p) => p.startsWith("/pasta/gaveta-mesa-"));
   expect(plates.length).toBeGreaterThanOrEqual(1);
   expect(objects3mf(tauri.files.get(plates[0])!)).toBeGreaterThanOrEqual(1);
+});
+
+test("sem régua em casa: régua 1:1 em PDF e régua 3D de 25 cm (#140)", async ({ page, tauri }) => {
+  await openApp(page);
+  await go(page, "Organizador de gaveta");
+  await page.getByRole("button", { name: "Régua em papel (PDF)" }).click();
+  await expect(toastWith(page, "regua-1-1.pdf")).toBeVisible();
+  expect(tauri.files.get("/saida/regua-1-1.pdf")!.subarray(0, 4).toString()).toBe("%PDF");
+  await page.getByRole("button", { name: "Régua 3D (25 cm)" }).click();
+  await expect(toastWith(page, "regua-25cm.3mf")).toBeVisible({ timeout: 30_000 });
+  expect(objects3mf(tauri.files.get("/saida/regua-25cm.3mf")!)).toBe(1);
 });

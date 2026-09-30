@@ -1,6 +1,7 @@
-import { Grid2x2, Grid3x3, Package, Ruler, TestTube } from "lucide-react";
+import { Grid2x2, Grid3x3, Package, Ruler, RulerDimensionLine, TestTube } from "lucide-react";
 import { buildGridBase, buildGridBin, buildGridTest, DEFAULT_GRID_BASE, DEFAULT_GRID_BIN } from "../../../geometry/models/gridfinity";
 import { buildLidBox, DEFAULT_LID_BOX } from "../../../geometry/models/lidBox";
+import { buildRuler3d, DEFAULT_RULER } from "../../../geometry/models/ruler3d";
 import { as, bool, choice, color, num, text, type ModelDef } from "../fields";
 
 /** Casa, organização: caixa com tampa e o sistema Gridfinity (caixinhas e base). */
@@ -148,5 +149,26 @@ export const HOME_STORAGE_MODELS: ModelDef[] = [
     defaults: { color: DEFAULT_GRID_BASE.color },
     sections: [{ title: "Teste", fields: [color("color", "Cor")] }],
     build: (ctx, p) => buildGridTest(ctx, as(p)),
+  },
+  {
+    id: "ruler3d",
+    category: "home",
+    label: "Régua de 25 cm",
+    blurb: "Régua fina com marcas de mm, para medir a gaveta; imprime em poucos minutos na A1.",
+    icon: RulerDimensionLine,
+    font: true,
+    defaults: DEFAULT_RULER,
+    sections: [
+      {
+        title: "Régua",
+        fields: [
+          num("length", "Comprimento", 100, 250, { step: 10 }),
+          num("thickness", "Espessura", 1, 3),
+          bool("split", "Em 2 partes (mesa pequena)"),
+          color("color", "Cor"),
+        ],
+      },
+    ],
+    build: (ctx, p) => buildRuler3d(ctx, as(p)),
   },
 ];

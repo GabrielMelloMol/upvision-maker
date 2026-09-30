@@ -166,3 +166,8 @@ button.example svg { color: var(--brand-orange); }
 .drawer-print .swatch-inline { display: flex; }
 .drawer-plates { list-style: none; margin: 0; padding: 0; display: grid; gap: var(--space-2); font-size: var(--text-sm); }
 .drawer-plates li { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: var(--space-2); padding: var(--space-2); border-radius: var(--r-sm); background: var(--fill); }
+.drawer-view { position: relative; }
+.drawer-dims { position: absolute; inset: 0; pointer-events: none; }
+.drawer-dim { position: absolute; left: 0; top: 0; padding: 2px var(--space-2); border-radius: var(--r-pill); background: var(--surface); color: var(--muted); font-size: var(--text-sm); font-variant-numeric: tabular-nums; box-shadow: var(--shadow-1); white-space: nowrap; }
+.drawer-dim[data-focus] { background: var(--accent); color: var(--on-accent); font-weight: 600; }
+.drawer-replay { position: absolute; right: var(--space-3); bottom: var(--space-3); }

@@ -16,7 +16,7 @@ Para cada modelo: valores **padrão**, todos os campos numéricos no **mínimo**
 "n/a" = o modelo precisa de uma entrada que o teste não dá (ex.: foto). "app:" = aviso que o próprio app mostra na tela.
 
 
-**Total:** 219 casos · 174 ok · 25 com aviso · 20 com falha · 0 n/a
+**Total:** 222 casos · 177 ok · 25 com aviso · 20 com falha · 0 n/a
 
 ## Forja
 
@@ -192,6 +192,9 @@ Para cada modelo: valores **padrão**, todos os campos numéricos no **mínimo**
 | Quebra-cabeça (puzzle) | máximo | ⚠️ aviso | 686 | 376,1 | 2 | – | o conjunto arrumado ocupa 294,2 × 294,2 mm: passa da mesa de 256 mm; não coube numa placa: 2 placas; app: Peças pequenas: não é brinquedo para menores de 3 anos (risco de engasgo).; app: As peças espalhadas ocupam 295 × 295 mm: passa da mesa de 256 mm. Diminua a largura. |
 | Quebra-cabeça (puzzle) | mínimo | ✅ ok | 7 | 3,7 | 1 | – | app: Peças pequenas: não é brinquedo para menores de 3 anos (risco de engasgo). |
 | Quebra-cabeça (puzzle) | padrão | ✅ ok | 64 | 42,0 | 1 | – | app: Peças pequenas: não é brinquedo para menores de 3 anos (risco de engasgo). |
+| Régua de 25 cm (ruler3d) | máximo | ✅ ok | 26 | 11,5 | 1 | – | app: Imprima deitada, com a face das marcas para cima; confira com uma régua de verdade ou com a régua de papel. |
+| Régua de 25 cm (ruler3d) | mínimo | ✅ ok | 7 | 2,0 | 1 | – | app: Imprima deitada, com a face das marcas para cima; confira com uma régua de verdade ou com a régua de papel. |
+| Régua de 25 cm (ruler3d) | padrão | ✅ ok | 16 | 4,8 | 1 | – | app: Imprima deitada, com a face das marcas para cima; confira com uma régua de verdade ou com a régua de papel. |
 | Estojo com tampa de rosca (screwCase) | máximo | ✅ ok | 532 | 324,9 | 1 | – | – |
 | Estojo com tampa de rosca (screwCase) | mínimo | ✅ ok | 13 | 3,2 | 1 | – | – |
 | Estojo com tampa de rosca (screwCase) | padrão | ✅ ok | 62 | 27,9 | 1 | – | – |

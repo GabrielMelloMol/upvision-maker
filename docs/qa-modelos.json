@@ -2359,6 +2359,51 @@
   "plates": 1
  },
  {
+  "key": "ruler3d:máximo",
+  "owner": "Torno",
+  "group": "home",
+  "label": "Régua de 25 cm (ruler3d)",
+  "variant": "máximo",
+  "status": "ok",
+  "reasons": [
+   "app: Imprima deitada, com a face das marcas para cima; confira com uma régua de verdade ou com a régua de papel."
+  ],
+  "date": "2026-09-30",
+  "minutes": 26,
+  "grams": 11.5,
+  "plates": 1
+ },
+ {
+  "key": "ruler3d:mínimo",
+  "owner": "Torno",
+  "group": "home",
+  "label": "Régua de 25 cm (ruler3d)",
+  "variant": "mínimo",
+  "status": "ok",
+  "reasons": [
+   "app: Imprima deitada, com a face das marcas para cima; confira com uma régua de verdade ou com a régua de papel."
+  ],
+  "date": "2026-09-30",
+  "minutes": 7,
+  "grams": 2,
+  "plates": 1
+ },
+ {
+  "key": "ruler3d:padrão",
+  "owner": "Torno",
+  "group": "home",
+  "label": "Régua de 25 cm (ruler3d)",
+  "variant": "padrão",
+  "status": "ok",
+  "reasons": [
+   "app: Imprima deitada, com a face das marcas para cima; confira com uma régua de verdade ou com a régua de papel."
+  ],
+  "date": "2026-09-30",
+  "minutes": 16,
+  "grams": 4.8,
+  "plates": 1
+ },
+ {
   "key": "screwCase:máximo",
   "owner": "Torno",
   "group": "home",

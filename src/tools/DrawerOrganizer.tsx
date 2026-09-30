@@ -15,6 +15,9 @@ import { useModelBuilder } from "../ui/useModelBuilder";
 import ColorPick from "./ColorPick";
 import { buildDrawer, planOf, type DrawerProject } from "./drawer/assemble";
 import DrawerEditor from "./drawer/DrawerEditor";
+import DrawerView from "./drawer/DrawerView";
+import type { Dim } from "./drawer/drawerShape";
+import RulerCard from "./drawer/RulerCard";
 import { duplicate, removeModules, resizeGrid, updateModules } from "./drawer/layout";
 import ModulePanel from "./drawer/ModulePanel";
 import PrintPlanCard from "./drawer/PrintPlanCard";
@@ -27,9 +30,11 @@ const ALIGNS = [
   ["corner", "Encostar no canto"],
 ] as const;
 const VIEWS = [
+  ["drawer", "Gaveta"],
   ["grid", "Grade"],
-  ["3d", "3D"],
+  ["3d", "Peças"],
 ] as const;
+type View = (typeof VIEWS)[number][0];
 const FONT = "hanken";
 
 function initialState(): DrawerProject {
@@ -43,7 +48,16 @@ export default function DrawerOrganizer() {
   const tool = useToolState("drawer", initialState, { label: "Organizador de gaveta" });
   const p = tool.state;
   const [selected, setSelected] = useState<string[]>([]);
-  const [view, setView] = useState<"grid" | "3d">("grid");
+  const [view, setView] = useState<View>("drawer");
+  const [focus, setFocus] = useState<Dim | null>(null);
+  // campo de medida em foco: mostra a gaveta e acende a cota dele
+  const measuring = (k: Dim) => ({
+    onFocusCapture: () => {
+      setFocus(k);
+      setView("drawer");
+    },
+    onBlurCapture: () => setFocus(null),
+  });
   const plan = useMemo(() => planOf(p), [p]);
   const setLayout = tool.field("layout");
   const setDim = (k: "width" | "depth" | "height") => (v: number) =>
@@ -82,9 +96,15 @@ export default function DrawerOrganizer() {
           <div className="card stack">
             <h3>Gaveta</h3>
             <div className="grid two">
-              <NumField label="Largura" value={p.width} onChange={setDim("width")} min={50} max={1500} step={1} />
-              <NumField label="Profundidade" value={p.depth} onChange={setDim("depth")} min={50} max={1500} step={1} />
-              <NumField label="Altura livre" value={p.height} onChange={setDim("height")} min={15} max={400} step={1} hint="Até o tampo ou a gaveta de cima." />
+              <div {...measuring("width")}>
+                <NumField label="Largura" value={p.width} onChange={setDim("width")} min={50} max={1500} step={1} />
+              </div>
+              <div {...measuring("depth")}>
+                <NumField label="Profundidade" value={p.depth} onChange={setDim("depth")} min={50} max={1500} step={1} />
+              </div>
+              <div {...measuring("height")}>
+                <NumField label="Altura livre" value={p.height} onChange={setDim("height")} min={15} max={400} step={1} hint="Com a gaveta fechada, do fundo até o tampo ou a gaveta de cima." />
+              </div>
             </div>
             <Segmented label="Sobra" value={p.align} options={ALIGNS} onChange={setAlign} full />
             {plan.nx > 0 && plan.ny > 0 && <span className="hint" aria-live="polite">{planSummary(plan, true, p.baseMagnets ? 3.2 : 0)}</span>}
@@ -106,6 +126,7 @@ export default function DrawerOrganizer() {
               <span className="hint">Arraste na grade para criar uma caixinha. Toque numa para ajustar; Shift ou ⌘ junta várias.</span>
             </div>
           )}
+          <RulerCard />
           <details className="advanced">
             <summary>Opções avançadas</summary>
             <div className="stack">
@@ -119,7 +140,9 @@ export default function DrawerOrganizer() {
         </div>
         <div className="preview-col">
           <Segmented label="Prévia" value={view} options={VIEWS} onChange={setView} />
-          {view === "grid" ? (
+          {view === "drawer" ? (
+            <DrawerView width={p.width} depth={p.depth} height={p.height} focus={focus} organizer={valid ? models : []} />
+          ) : view === "grid" ? (
             <div className="card">
               {plan.nx > 0 && plan.ny > 0 ? (
                 <DrawerEditor layout={p.layout} plan={plan} selected={selected} onChange={setLayout} onSelect={setSelected} />
