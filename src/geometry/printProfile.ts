@@ -17,6 +17,13 @@ export type PrintProfile = {
 /** Padrão de peça pequena decorativa. */
 export const DEFAULT_PROFILE: PrintProfile = { layerHeight: 0.2, walls: 3, infill: 15, support: false, brim: false };
 
+/** Ferramentas (#86). Litofania em pé, maciça (a luz passa pela espessura) e com brim para não tombar. */
+export const LITHO_PROFILE: PrintProfile = { layerHeight: 0.12, walls: 4, infill: 100, support: false, brim: true, notes: ["Imprima em pé, como sai no arquivo, e devagar nas camadas finas."] };
+/** Quadro por camadas: a altura de camada vem do campo da tela. */
+export const LAYERED_PROFILE: PrintProfile = { walls: 3, infill: 100, support: false, brim: false, notes: ["A 1ª camada também com essa altura: as trocas de cor contam camadas."] };
+/** Cortador: a lâmina tem 2 filetes de bico 0,4; sem suporte, deitado com a borda de apoio na mesa. */
+export const CUTTER_PROFILE: PrintProfile = { ...DEFAULT_PROFILE, walls: 2, notes: ["Lâmina fina: deixe ligado \"Detectar paredes finas\" no fatiador para ela não sumir."] };
+
 const BRIM_MM = 5;
 const r2 = (n: number) => String(Math.round(n * 100) / 100);
 

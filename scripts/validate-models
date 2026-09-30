@@ -1,0 +1,23 @@
+#!/bin/sh
+# Varredura de QA (#90): gera cada Modelo pronto / ferramenta (padrão, mínimo, máximo), confere a geometria, fatia no
+# Bambu Studio CLI (A1, PLA) e atualiza docs/QA-modelos.md (+ docs/qa-modelos.json).
+#
+#   scripts/validate-models                         tudo
+#   scripts/validate-models --groups keychains,plates,party,tools
+#   scripts/validate-models --ids nfc,opener --no-slice
+#   scripts/validate-models --owners Torno --jobs 4
+#
+# Grupos: keychains, plates, party, home, kitchen, tools. BAMBU_APP=/caminho/BambuStudio.app se não estiver em /Applications.
+set -e
+cd "$(dirname "$0")/.."
+while [ $# -gt 0 ]; do
+  case "$1" in
+    --ids) export QA_IDS="$2"; shift 2 ;;
+    --groups) export QA_GROUPS="$2"; shift 2 ;;
+    --owners) export QA_OWNERS="$2"; shift 2 ;;
+    --jobs) export QA_JOBS="$2"; shift 2 ;;
+    --no-slice) export QA_SLICE=0; shift ;;
+    *) echo "opção desconhecida: $1" >&2; exit 2 ;;
+  esac
+done
+QA=1 exec npx vitest run src/qa/validate.qa.test.ts --reporter=dot --silent=false

@@ -8,7 +8,7 @@ import { getManifold } from "../geometry/manifold";
 import Alert from "../ui/Alert";
 import Dropzone from "../ui/Dropzone";
 import ExportButtons from "../ui/ExportButtons";
-import { type PrintProfile } from "../geometry/printProfile";
+import { LAYERED_PROFILE, LITHO_PROFILE } from "../geometry/printProfile";
 import NumField, { inRange } from "../ui/NumField";
 import Preview3D from "../ui/Preview3D";
 import Segmented from "../ui/Segmented";
@@ -23,9 +23,6 @@ import { useToolState } from "./useToolState";
 import { filamentColors, loadFilaments } from "./filamentColors";
 
 type Mode = "litho" | "layered";
-/** #86: litofania em pé, maciça (a luz passa pela espessura) e com brim para não tombar. */
-const LITHO_PROFILE: PrintProfile = { layerHeight: 0.12, walls: 4, infill: 100, support: false, brim: true, notes: ["Imprima em pé, como sai no arquivo, e devagar nas camadas finas."] };
-const LAYERED_PROFILE: PrintProfile = { walls: 3, infill: 100, support: false, brim: false, notes: ["A 1ª camada também com essa altura: as trocas de cor contam camadas."] };
 const MODES: [Mode, string][] = [
   ["litho", "Litofania"],
   ["layered", "Quadro por camadas"],
