@@ -1,4 +1,4 @@
-import { Columns2, Cylinder } from "lucide-react";
+import { Columns2 } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { getDb } from "../db";
 import { costsRepo } from "../db/costsRepo";
@@ -275,18 +275,15 @@ export default function Calculator({ go }: { go: Go }) {
   return (
     <div className="page">
       {plugOpen && <PlugSheet catalogWatts={catalog?.watts} onUse={applyWatts} onClose={() => setPlugOpen(false)} />}
-      <h1>Calculadora de preço</h1>
-      <div className="row" style={{ gap: "var(--space-3)", marginBottom: "var(--space-3)" }}>
+      {/* redesign (#139): título com os controles da tela na mesma linha; subtítulo de 1 linha (#143) */}
+      <div className="title-row">
+        <h1>Calculadora de preço</h1>
         <Segmented label="Modo da calculadora" value={mode} onChange={setMode} options={MODES} />
         <button type="button" className="link" onClick={clear}>
           Limpar
         </button>
       </div>
-      <p className="lead">
-        {mode === "quick"
-          ? "Filamento, gramas, tempo e impressora: o resto vem das Preferências."
-          : "Informe os valores da mesa inteira. O custo é dividido pela quantidade de peças na mesa."}
-      </p>
+      <p className="lead">{mode === "quick" ? "O resto (energia, desgaste, margem) vem das Preferências." : "Valores da mesa inteira, divididos pelas peças."}</p>
       <div className="calc-layout">
         <div>
           <label className="piece-name">
@@ -295,9 +292,7 @@ export default function Calculator({ go }: { go: Go }) {
           </label>
           {mode === "quick" ? (
             <section className="card">
-              <h2 className="card-title">
-                <Cylinder aria-hidden /> Cálculo rápido
-              </h2>
+              <h2 className="card-title">Cálculo rápido</h2>
               {fillLine}
               {fil.length > 1 && <p className="hint">+{fil.length - 1} filamento(s) no modo Completo.</p>}
               <div className="grid">

@@ -183,6 +183,14 @@ tr.restock > td { background: var(--surface-2); animation: fade-up var(--dur) va
 .calc-summary .hero { display: grid; gap: 2px; }
 .calc-summary .big { font-family: var(--font-display); font-size: 40px; line-height: 1.1; font-weight: 700; letter-spacing: -0.03em; font-variant-numeric: tabular-nums; animation: fade-up var(--dur) var(--ease-out) both; }
 .calc-summary .prices { display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-3); margin-top: var(--space-4); padding-top: var(--space-4); border-top: 1px solid var(--separator); }
+/* preços como linhas (#139): nome e markup à esquerda, valor alinhado à direita */
+.calc-summary .price-rows { margin: var(--space-4) 0 0; }
+.calc-summary .price-rows > div { display: flex; justify-content: space-between; align-items: baseline; gap: var(--space-3); padding: var(--space-2) 0; border-top: 0.5px solid var(--separator); }
+.calc-summary .price-rows dt { font-weight: 500; font-size: var(--text-sm); color: var(--muted); }
+.calc-summary .price-rows dt .hint { display: block; font-weight: 400; }
+.calc-summary .price-rows dd { margin: 0; font-size: var(--text-lg); font-weight: 650; font-variant-numeric: tabular-nums; color: var(--text); white-space: nowrap; }
+.calc-summary .price-help > summary { cursor: pointer; list-style: none; color: var(--accent-text); font-size: var(--text-sm); }
+.calc-summary .price-help > summary::-webkit-details-marker { display: none; }
 .calc-summary .prices div { display: grid; }
 .calc-summary .prices b { font-size: var(--text-lg); font-variant-numeric: tabular-nums; }
 .row.line { display: grid; grid-template-columns: 1.4fr 1fr 1fr auto; margin-bottom: var(--space-3); }

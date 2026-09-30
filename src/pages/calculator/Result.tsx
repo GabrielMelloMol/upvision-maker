@@ -1,4 +1,4 @@
-import { CircleHelp, Save } from "lucide-react";
+import { Save } from "lucide-react";
 import type { CalcResult } from "../../domain/calc";
 import { money } from "../../domain/format";
 import { markupText, PRICE_NAMES } from "../../domain/pricing";
@@ -19,23 +19,26 @@ export function PriceHero({ r, s, onSave, onPreferences, children }: HeroProps) 
       <button className="primary sm" onClick={onSave}>
         <Save aria-hidden /> Salvar como produto
       </button>
-      <div className="prices">
+      {/* redesign (#139): os dois preços como linhas, valores alinhados à direita */}
+      <dl className="price-rows">
         <div>
-          <span className="hint">{PRICE_NAMES.resale.name} ×{s.multResale}</span>
-          <b>{money(r.resale)}</b>
-          <span className="hint">{markupText(s.multResale)}</span>
+          <dt>
+            {PRICE_NAMES.resale.name} ×{s.multResale}
+            <span className="hint">{markupText(s.multResale)}</span>
+          </dt>
+          <dd>{money(r.resale)}</dd>
         </div>
         <div>
-          <span className="hint">{PRICE_NAMES.consumer.name} ×{s.multConsumer}</span>
-          <b>{money(r.consumer)}</b>
-          <span className="hint">{markupText(s.multConsumer)}</span>
+          <dt>
+            {PRICE_NAMES.consumer.name} ×{s.multConsumer}
+            <span className="hint">{markupText(s.multConsumer)}</span>
+          </dt>
+          <dd>{money(r.consumer)}</dd>
         </div>
-      </div>
+      </dl>
       {laborAfter && <span className="hint">+ mão de obra somada depois do multiplicador</span>}
-      <details>
-        <summary>
-          <CircleHelp aria-hidden size={14} /> Qual preço usar?
-        </summary>
+      <details className="price-help">
+        <summary>Qual preço usar?</summary>
         <p><b>{PRICE_NAMES.resale.name}:</b> {PRICE_NAMES.resale.help}</p>
         <p><b>{PRICE_NAMES.consumer.name}:</b> {PRICE_NAMES.consumer.help}</p>
         <p className="hint">
