@@ -5,6 +5,17 @@ import { defineConfig } from "vite";
 import wasm from "vite-plugin-wasm";
 
 const host = process.env.TAURI_DEV_HOST;
+/** Testes que geram malhas com o manifold (3D): modelos, ferramentas 3D, a varredura de QA e a estimativa. */
+const GEOMETRY_TESTS = [
+  "src/geometry/**/*.test.{ts,tsx}",
+  "src/tools/**/*.test.{ts,tsx}",
+  "src/qa/**/*.test.{ts,tsx}",
+  "src/vectorize/regression.test.ts",
+  "src/domain/estimate.test.ts",
+  "src/ui/EstimateCard.test.tsx",
+  "src/ui/heavy.test.ts",
+  "src/App.test.tsx",
+];
 
 // https://vite.dev/config/
 export default defineConfig(() => ({
@@ -20,6 +31,12 @@ export default defineConfig(() => ({
   optimizeDeps: { entries: ["index.html", "phone.html", "src/**/*.tsx", "src/**/*.worker.ts"] },
   test: {
     setupFiles: ["src/test/setup.ts"],
+    // #127: geometria 3D (manifold) é pesada e, com a máquina carregada, passava dos 5 s. Fica num projeto com
+    // tempo maior; o resto do app continua com 5 s para teste lento comum ainda aparecer.
+    projects: [
+      { extends: true, test: { name: "geometria", include: GEOMETRY_TESTS, testTimeout: 60_000, hookTimeout: 60_000 } },
+      { extends: true, test: { name: "app", include: ["src/**/*.test.{ts,tsx}", "services/**/*.test.ts"], exclude: [...GEOMETRY_TESTS, "**/node_modules/**"] } },
+    ],
     coverage: {
       include: ["src/**/*.{ts,tsx}"],
       // Fora da cobertura unitária: workers e MediaPipe só rodam no navegador (cobertos pelos E2E), bootstrap e o próprio harness.
