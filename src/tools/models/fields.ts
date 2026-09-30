@@ -63,3 +63,20 @@ export const textureFields: FieldDef[] = [
   num("textureDepth", "Rebaixo da textura", 0.4, 1, { step: 0.1 }),
 ];
 export const font = (k: string, label: string, sample?: string): FieldDef => ({ k, kind: "font", label, sample });
+
+/** Grupos de campos repetidos entre modelos. */
+export const logoFields = (maxW: number) => [
+  num("width", "Largura da arte", 15, maxW, { step: 1 }),
+  num("base", "Base", 1.2, 8),
+  num("relief", "Relevo", 0.4, 4),
+  num("border", "Borda", 1, 10, { step: 0.5 }),
+];
+export const nfcFields: FieldDef[] = [
+  num("tagDiameter", "Diâmetro da tag", 15, 35, { hint: "NTAG213/215 redonda: 25 mm." }),
+  num("tagThickness", "Espessura da tag", 0.3, 2),
+  num("layerHeight", "Altura de camada", 0.08, 0.32, { step: 0.02, hint: "A mesma do fatiador: define a camada da pausa." }),
+];
+export const signLine = (i: number): Section => ({
+  title: `Linha ${i}`,
+  fields: [text(`line${i}`, "Texto", 24), num(`h${i}`, "Altura", 6, 80, { step: 1 }), num(`dx${i}`, "Deslocamento (→)", -80, 80, { step: 1 }), color(`c${i}`, "Cor"), font(`font${i}`, `Fonte da linha ${i}`, `line${i}`)],
+});
