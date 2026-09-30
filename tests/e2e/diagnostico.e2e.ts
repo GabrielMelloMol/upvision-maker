@@ -1,6 +1,12 @@
 import { expect, openApp, test } from "./tauri";
 
-test("erro visto vira registro; 'Enviar diagnóstico' leva versão, sistema e o erro, sem dados pessoais (#7)", async ({ page, tauri }) => {
+test("erro visto vira registro; o diagnóstico vai junto na mensagem, sem GitHub nem e-mail (#7, #83)", async ({ page, tauri }) => {
+  // guarda o que for copiado (o build de teste não tem endpoint nem WhatsApp: sobra 'Copiar texto')
+  await page.addInitScript(() => {
+    const w = window as unknown as { __copied: string[] };
+    w.__copied = [];
+    Object.defineProperty(navigator, "clipboard", { value: { writeText: async (s: string) => void w.__copied.push(s) }, configurable: true });
+  });
   await openApp(page);
   tauri.files.set("/Users/ana/Downloads/ruim.json", Buffer.from('{"foo": 1}'));
   tauri.nextOpen = "/Users/ana/Downloads/ruim.json";
@@ -10,12 +16,14 @@ test("erro visto vira registro; 'Enviar diagnóstico' leva versão, sistema e o 
 
   await page.getByRole("button", { name: "Sugerir ferramenta" }).click();
   const sheet = page.getByRole("dialog", { name: "Sugerir ferramenta" });
+  await expect(sheet.getByRole("button", { name: /GitHub|e-mail/i })).toHaveCount(0);
   await sheet.getByLabel("O que você queria que o app fizesse?").fill("Restaurar deu erro");
-  await sheet.getByRole("button", { name: "Enviar diagnóstico" }).click();
-  await expect.poll(() => tauri.opened.length).toBe(1);
-  const url = new URL(tauri.opened[0]);
-  expect(url.searchParams.get("title")).toBe("Diagnóstico: Restaurar deu erro");
-  const body = url.searchParams.get("body")!;
-  expect(body).toMatch(/UpVision Maker v0\.2\.0 \(build \d{4}-\d{2}-\d{2}\)/);
-  expect(body).toContain("não é um backup do UpVision Maker");
+  await sheet.getByRole("checkbox", { name: "Mandar junto o diagnóstico" }).check();
+  await sheet.getByRole("button", { name: "Copiar texto" }).click();
+  await expect(sheet.getByText(/Texto copiado\. Cole/)).toBeVisible();
+  const copied = await page.evaluate(() => (window as unknown as { __copied: string[] }).__copied[0]);
+  expect(copied).toMatch(/^\[UpVision Maker\] Sugestão: Restaurar deu erro/);
+  expect(copied).toMatch(/UpVision Maker v0\.2\.0 \(build \d{4}-\d{2}-\d{2}\)/);
+  expect(copied).toContain("não é um backup do UpVision Maker");
+  expect(tauri.opened).toHaveLength(0);
 });

@@ -5,6 +5,7 @@ Formato: `## <versão> — <data>` e itens `- …` em linguagem simples.
 
 ## Próxima versão (vira "## 0.7.1 — data" ou "## 0.8.0 — data" ao publicar; até lá o app não mostra)
 - **Correção**: a prévia do QR Code podia aparecer espremida num quadradinho depois de abrir Dados da empresa. Agora ela sempre ocupa a coluna.
+- **Sugestões chegam sem GitHub e sem e-mail**: o "Sugerir ferramenta" envia direto pelo app (com a imagem e, se quiser, o diagnóstico) e mostra "Recebido ✓". Também dá para mandar pelo WhatsApp com o texto pronto ou copiar o texto. O app guarda a lista do que você já enviou.
 
 ## 0.7.0 — 2026-09-29
 - **Posição dos textos nos modelos prontos**: o bloco de textos, o QR e os ícones agora saem centralizados, e você pode arrastar cada um (ou digitar a posição em mm), alinhar em cima, no meio ou embaixo, e usar "Centralizar tudo" ou "Restaurar". No cartão de visita dá para escolher onde fica o QR.
@@ -37,6 +38,7 @@ Formato: `## <versão> — <data>` e itens `- …` em linguagem simples.
 - **Rolo de textura** (Modelos prontos → Cozinha): marca massa, argila e biscoito com um desenho em mosaico (com opção de tijolo) ou envolvente, alto ou baixo relevo, sem emenda. Furo para eixo ou cabos impressos; imprime em pé.
 - **Quadro de metas** (Modelos prontos → Casa): placa de mesa com título e uma grade de números em relevo para riscar conforme a meta avança (R$ 50, R$ 100… ou dias em contagem regressiva), arrumada sozinha, com suporte.
 - **Exportar produtos para a Shopee e o Mercado Livre**: em Produtos, marque os produtos e salve a planilha de upload em massa com nome, descrição, preço do canal, estoque pronto, SKU, peso e medidas da caixa, NCM, origem e unidade. Com o modelo baixado do Seller Center, o app preenche o próprio modelo; sem ele, sai uma planilha simples para copiar e colar. As fotos continuam sendo enviadas pelo marketplace. O produto ganhou a parte "Anúncio e fiscal (opcional)".
+- **Sugestões chegam sem GitHub e sem e-mail**: o "Sugerir ferramenta" envia direto pelo app (com a imagem e, se quiser, o diagnóstico) e mostra "Recebido ✓". Também dá para mandar pelo WhatsApp com o texto pronto ou copiar o texto. O app guarda a lista do que você já enviou.
 
 ## 0.6.0 — 2026-09-29
 - **Medalhas bem mais personalizáveis**: formatos novos, textos em arco, número de colocação, bordas e fundos com textura, imagem que você posiciona, verso com pinos de encaixe, modelos prontos (corrida, formatura, campeonato…) e medalhas em lote a partir de uma lista.

@@ -2,7 +2,6 @@
 import { act, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, test } from "vitest";
-import SuggestDialog from "../feedback/SuggestDialog";
 import { renderWithApp, setupTauri } from "../test/harness";
 import { useToast } from "../ui/Toast";
 import DiagnosticsBlock from "./DiagnosticsBlock";
@@ -10,11 +9,6 @@ import { installErrorLogging, logError } from "./log";
 import { fullReport, REPORT_LOG_CHARS, shortReport } from "./report";
 
 const t = setupTauri();
-const opened = () => {
-  const urls: string[] = [];
-  t.handlers["plugin:opener|open_url"] = (a) => void urls.push(String(a.url));
-  return urls;
-};
 
 describe("registro de diagnóstico", () => {
   test("logError grava a linha sanitizada no registro do Rust", async () => {
@@ -63,52 +57,15 @@ describe("relatório", () => {
 });
 
 describe("DiagnosticsBlock", () => {
-  test("Enviar diagnóstico abre o link com os últimos erros (sem dados pessoais)", async () => {
-    const urls = opened();
-    logError("backup", new Error("C:\\Users\\Ana\\OneDrive sem permissão"));
-    await waitFor(() => expect(t.log).toHaveLength(1));
-    const user = userEvent.setup();
-    renderWithApp(<DiagnosticsBlock what="Backup não salva" />);
-    await user.click(screen.getByRole("button", { name: "Enviar diagnóstico" }));
-    await waitFor(() => expect(urls).toHaveLength(1));
-    const u = new URL(urls[0]);
-    expect(u.searchParams.get("title")).toBe("Diagnóstico: Backup não salva");
-    expect(u.searchParams.get("labels")).toBe("diagnóstico");
-    const body = u.searchParams.get("body")!;
-    expect(body).toContain("Backup não salva");
-    expect(body).toContain("C:\\Users\\<usuário>\\OneDrive sem permissão");
-    expect(body).not.toContain("Ana");
-  });
-
   test("Salvar registro completo grava o .txt", async () => {
     logError("x", "algo");
     await waitFor(() => expect(t.log).toHaveLength(1));
     const user = userEvent.setup();
-    renderWithApp(<DiagnosticsBlock />);
+    renderWithApp(<DiagnosticsBlock include={false} onInclude={() => {}} />);
     await user.click(screen.getByRole("button", { name: /Salvar registro completo/ }));
     await waitFor(() => expect([...t.files.keys()].some((p) => /upvision-diagnostico-\d{4}-\d{2}-\d{2}\.txt$/.test(p))).toBe(true));
     const txt = new TextDecoder().decode([...t.files.values()][0]);
     expect(txt).toMatch(/^UpVision Maker v0\.3\.0/);
     expect(txt).toContain("[error] x: algo");
-  });
-
-  test("falha ao abrir o link vira aviso", async () => {
-    t.handlers["plugin:opener|open_url"] = () => {
-      throw new Error("sem navegador");
-    };
-    const user = userEvent.setup();
-    renderWithApp(<DiagnosticsBlock />);
-    await user.click(screen.getByRole("button", { name: "Enviar diagnóstico" }));
-    expect(await screen.findByText(/Não consegui abrir o diagnóstico: sem navegador/)).toBeInTheDocument();
-  });
-
-  test("aparece dentro de Sugerir ferramenta e usa o título digitado", async () => {
-    const urls = opened();
-    const user = userEvent.setup();
-    renderWithApp(<SuggestDialog onClose={() => {}} />);
-    await user.type(screen.getByLabelText("O que você queria que o app fizesse?"), "Travou ao salvar PDF");
-    await user.click(screen.getByRole("button", { name: "Enviar diagnóstico" }));
-    await waitFor(() => expect(urls).toHaveLength(1));
-    expect(new URL(urls[0]).searchParams.get("title")).toBe("Diagnóstico: Travou ao salvar PDF");
   });
 });

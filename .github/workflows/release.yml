@@ -37,7 +37,10 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
           TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD }}
-          VITE_FEEDBACK_EMAIL: ${{ secrets.FEEDBACK_EMAIL }}
+          # Sugestões (#83): endpoint do Worker, token do app e WhatsApp. Vazios = o app só oferece o que estiver definido.
+          VITE_FEEDBACK_URL: ${{ secrets.FEEDBACK_URL }}
+          VITE_FEEDBACK_TOKEN: ${{ secrets.FEEDBACK_TOKEN }}
+          VITE_FEEDBACK_WHATSAPP: ${{ secrets.FEEDBACK_WHATSAPP }}
         with:
           tagName: ${{ github.ref_name }}
           releaseName: UpVision Maker ${{ github.ref_name }}

@@ -1,0 +1,23 @@
+# Exemplo de configuração do Worker de sugestões do UpVision Maker (#83). SEM SEGREDOS AQUI.
+# Os segredos vão com `npx wrangler secret put NOME` (veja o README desta pasta).
+name = "upvision-feedback"
+main = "src/index.ts"
+compatibility_date = "2026-09-01"
+
+# Contadores do limite de envio. Crie com `npx wrangler kv namespace create RATE` e cole o id devolvido.
+[[kv_namespaces]]
+binding = "RATE"
+id = "COLE_AQUI_O_ID_DO_KV"
+
+# Valores que não são segredo (pode editar aqui ou deixar em branco).
+[vars]
+# Repositório PRIVADO que recebe as issues (deixe vazio para só usar e-mail).
+GITHUB_REPO = ""
+# Quem recebe o e-mail e o remetente verificado no Resend.
+FEEDBACK_TO = ""
+FEEDBACK_FROM = ""
+
+# Segredos (NÃO escreva aqui):
+#   APP_TOKEN       — o mesmo valor do secret FEEDBACK_TOKEN do GitHub Actions do app
+#   RESEND_API_KEY  — chave da conta do Resend (se usar e-mail)
+#   GITHUB_TOKEN    — token fine-grained só com "Issues: read and write" no repositório privado (se usar issue)
