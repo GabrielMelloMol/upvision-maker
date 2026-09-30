@@ -226,7 +226,6 @@ g:hover > .viz-hit { fill: var(--fill); }
 .create-models strong { font-weight: 500; padding: 0 2px; }
 .create-tools a:hover, .create-tools a:focus-visible { background: var(--fill); }
 .create-models a:hover img { transform: scale(1.04); }
-.create-tools a:focus-visible, .create-models a:focus-visible { outline: none; box-shadow: 0 0 0 3px var(--focus-ring); }
 .create-empty { margin-top: var(--space-8); }
 /* Início (#139): ações em blocos planos e listas agrupadas no estilo dos Ajustes do macOS */
 .home { max-width: 880px; }
@@ -238,7 +237,8 @@ g:hover > .viz-hit { fill: var(--fill); }
 .home-actions button { all: unset; box-sizing: border-box; cursor: pointer; width: 100%; display: grid; gap: var(--space-3); align-content: space-between; min-height: 92px; padding: var(--space-4); border-radius: var(--r-lg); background: var(--surface); box-shadow: 0 0 0 0.5px var(--border); font-weight: 600; font-size: var(--text-md); transition: background var(--dur-fast) ease; }
 .home-actions svg { width: 22px; height: 22px; color: var(--accent-text); stroke-width: 1.75; }
 .home-actions button:hover { background: var(--surface-2); }
-.home-actions button:focus-visible, .home-list button:focus-visible { box-shadow: 0 0 0 3px var(--focus-ring); }
+.home-actions button:focus-visible { outline: 3px solid var(--focus-ring); outline-offset: 1px; }
+.home-list button:focus-visible { outline: 3px solid var(--focus-ring); outline-offset: -3px; } /* a lista corta o que passa da borda */
 .home-list { list-style: none; margin: 0; padding: 0; border-radius: var(--r-lg); background: var(--surface); box-shadow: 0 0 0 0.5px var(--border); overflow: hidden; }
 .home-list li + li button { box-shadow: inset 0 0.5px 0 var(--separator); }
 .home-list button { all: unset; box-sizing: border-box; cursor: pointer; width: 100%; display: grid; grid-template-columns: auto 1fr auto auto; align-items: center; gap: var(--space-3); min-height: 44px; padding: 0 var(--space-4); font-size: var(--text-md); transition: background var(--dur-fast) ease; }
