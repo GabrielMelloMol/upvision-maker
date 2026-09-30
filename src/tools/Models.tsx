@@ -83,6 +83,12 @@ export default function Models() {
   const [wanted] = useState(() => MODELS.find((m) => m.id === takeIntent<{ id: string }>("models")?.id));
   // a aba segue a família do modelo aberto (a família pode estar noutra categoria que o modelo, #141)
   const [category, setCategory] = useState<Category>(() => familyOf(wanted?.id ?? tool.state.id).category);
+  // o modelo mudou por fora (continuar rascunho, reabrir projeto, desfazer): a aba vai para a família dele
+  const [shownId, setShownId] = useState(id);
+  if (shownId !== id) {
+    setShownId(id);
+    setCategory(familyOf(id).category);
+  }
   useEffect(() => {
     if (wanted) adopt((cur) => ({ ...cur, id: wanted.id }));
   }, [adopt, wanted]);
