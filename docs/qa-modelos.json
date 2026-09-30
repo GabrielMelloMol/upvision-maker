@@ -1544,5 +1544,1394 @@
   "minutes": 8,
   "grams": 4,
   "plates": 1
+ },
+ {
+  "key": "alphabetCube:máximo",
+  "owner": "Torno",
+  "group": "home",
+  "label": "Cubo alfabeto (alphabetCube)",
+  "variant": "máximo",
+  "status": "ok",
+  "reasons": [
+   "app: Brinquedo: para menores de 3 anos, use cubos de 45 mm ou mais e confira se nada solta."
+  ],
+  "date": "2026-09-30",
+  "minutes": 139,
+  "grams": 132.7,
+  "plates": 1
+ },
+ {
+  "key": "alphabetCube:mínimo",
+  "owner": "Torno",
+  "group": "home",
+  "label": "Cubo alfabeto (alphabetCube)",
+  "variant": "mínimo",
+  "status": "ok",
+  "reasons": [
+   "app: Cubo pequeno: não é brinquedo para menores de 3 anos (risco de engasgo)."
+  ],
+  "date": "2026-09-30",
+  "minutes": 12,
+  "grams": 4.3,
+  "plates": 1
+ },
+ {
+  "key": "alphabetCube:padrão",
+  "owner": "Torno",
+  "group": "home",
+  "label": "Cubo alfabeto (alphabetCube)",
+  "variant": "padrão",
+  "status": "ok",
+  "reasons": [
+   "app: Cubo pequeno: não é brinquedo para menores de 3 anos (risco de engasgo)."
+  ],
+  "date": "2026-09-30",
+  "minutes": 33,
+  "grams": 22.1,
+  "plates": 1
+ },
+ {
+  "key": "bigLetter:máximo",
+  "owner": "Torno",
+  "group": "home",
+  "label": "Letra grande (bigLetter)",
+  "variant": "máximo",
+  "status": "falha",
+  "reasons": [
+   "\"A\" não cabe na mesa de 256 mm (272,4 × 280,0 × 30,0 mm)",
+   "\"Alice\" não cabe na mesa de 256 mm (120,0 × 379,9 × 6,0 mm)",
+   "o conjunto arrumado ocupa 402,4 × 469,9 mm: passa da mesa de 256 mm",
+   "Bambu Studio: One of the plate is empty or has no object fully inside it. Please check that the 3mf contains no empty plate in Bambu Studio before uploading. (código -50)",
+   "app: Boa parte do nome está fora da letra: mude a posição ou o tamanho do nome.",
+   "app: A letra tem 280 mm: passa da mesa de 256 mm. Diminua a altura ou corte em partes."
+  ],
+  "date": "2026-09-30"
+ },
+ {
+  "key": "bigLetter:mínimo",
+  "owner": "Torno",
+  "group": "home",
+  "label": "Letra grande (bigLetter)",
+  "variant": "mínimo",
+  "status": "falha",
+  "reasons": [
+   "Bambu Studio: One of the plate is empty or has no object fully inside it. Please check that the 3mf contains no empty plate in Bambu Studio before uploading. (código -50)",
+   "app: Boa parte do nome está fora da letra: mude a posição ou o tamanho do nome."
+  ],
+  "date": "2026-09-30"
+ },
+ {
+  "key": "bigLetter:padrão",
+  "owner": "Torno",
+  "group": "home",
+  "label": "Letra grande (bigLetter)",
+  "variant": "padrão",
+  "status": "ok",
+  "reasons": [],
+  "date": "2026-09-30",
+  "minutes": 73,
+  "grams": 59.2,
+  "plates": 1
+ },
+ {
+  "key": "bookmark:máximo",
+  "owner": "Torno",
+  "group": "home",
+  "label": "Marca-página (bookmark)",
+  "variant": "máximo",
+  "status": "ok",
+  "reasons": [],
+  "date": "2026-09-30",
+  "minutes": 59,
+  "grams": 45.2,
+  "plates": 1
+ },
+ {
+  "key": "bookmark:mínimo",
+  "owner": "Torno",
+  "group": "home",
+  "label": "Marca-página (bookmark)",
+  "variant": "mínimo",
+  "status": "ok",
+  "reasons": [],
+  "date": "2026-09-30",
+  "minutes": 5,
+  "grams": 2.1,
+  "plates": 1
+ },
+ {
+  "key": "bookmark:padrão",
+  "owner": "Torno",
+  "group": "home",
+  "label": "Marca-página (bookmark)",
+  "variant": "padrão",
+  "status": "ok",
+  "reasons": [],
+  "date": "2026-09-30",
+  "minutes": 20,
+  "grams": 12.7,
+  "plates": 1
+ },
+ {
+  "key": "deskOrganizer:máximo",
+  "owner": "Torno",
+  "group": "home",
+  "label": "Organizador de mesa (deskOrganizer)",
+  "variant": "máximo",
+  "status": "ok",
+  "reasons": [],
+  "date": "2026-09-30",
+  "minutes": 878,
+  "grams": 798.9,
+  "plates": 1
+ },
+ {
+  "key": "deskOrganizer:mínimo",
+  "owner": "Torno",
+  "group": "home",
+  "label": "Organizador de mesa (deskOrganizer)",
+  "variant": "mínimo",
+  "status": "ok",
+  "reasons": [],
+  "date": "2026-09-30",
+  "minutes": 18,
+  "grams": 10.5,
+  "plates": 1
+ },
+ {
+  "key": "deskOrganizer:padrão",
+  "owner": "Torno",
+  "group": "home",
+  "label": "Organizador de mesa (deskOrganizer)",
+  "variant": "padrão",
+  "status": "ok",
+  "reasons": [],
+  "date": "2026-09-30",
+  "minutes": 152,
+  "grams": 140,
+  "plates": 1
+ },
+ {
+  "key": "goalBoard:máximo",
+  "owner": "Torno",
+  "group": "home",
+  "label": "Quadro de metas (goalBoard)",
+  "variant": "máximo",
+  "status": "ok",
+  "reasons": [],
+  "date": "2026-09-30",
+  "minutes": 161,
+  "grams": 134.5,
+  "plates": 1
+ },
+ {
+  "key": "goalBoard:mínimo",
+  "owner": "Torno",
+  "group": "home",
+  "label": "Quadro de metas (goalBoard)",
+  "variant": "mínimo",
+  "status": "ok",
+  "reasons": [],
+  "date": "2026-09-30",
+  "minutes": 26,
+  "grams": 18,
+  "plates": 1
+ },
+ {
+  "key": "goalBoard:padrão",
+  "owner": "Torno",
+  "group": "home",
+  "label": "Quadro de metas (goalBoard)",
+  "variant": "padrão",
+  "status": "ok",
+  "reasons": [],
+  "date": "2026-09-30",
+  "minutes": 66,
+  "grams": 49.7,
+  "plates": 1
+ },
+ {
+  "key": "keyHolder:máximo",
+  "owner": "Torno",
+  "group": "home",
+  "label": "Porta-chave de parede (keyHolder)",
+  "variant": "máximo",
+  "status": "falha",
+  "reasons": [
+   "\"Porta-chave\" não cabe na mesa de 256 mm (235,0 × 271,3 × 20,0 mm)",
+   "Bambu Studio: One of the plate is empty or has no object fully inside it. Please check that the 3mf contains no empty plate in Bambu Studio before uploading. (código -50)",
+   "app: Furos de 4,5 mm para parafuso com bucha 6. Ganchos aguentam chaves; para bolsa, aumente a espessura."
+  ],
+  "date": "2026-09-30"
+ },
+ {
+  "key": "keyHolder:mínimo",
+  "owner": "Torno",
+  "group": "home",
+  "label": "Porta-chave de parede (keyHolder)",
+  "variant": "mínimo",
+  "status": "ok",
+  "reasons": [
+   "app: Furos de 4,5 mm para parafuso com bucha 6. Ganchos aguentam chaves; para bolsa, aumente a espessura."
+  ],
+  "date": "2026-09-30",
+  "minutes": 40,
+  "grams": 28.7,
+  "plates": 1
+ },
+ {
+  "key": "keyHolder:padrão",
+  "owner": "Torno",
+  "group": "home",
+  "label": "Porta-chave de parede (keyHolder)",
+  "variant": "padrão",
+  "status": "ok",
+  "reasons": [
+   "app: Furos de 4,5 mm para parafuso com bucha 6. Ganchos aguentam chaves; para bolsa, aumente a espessura."
+  ],
+  "date": "2026-09-30",
+  "minutes": 131,
+  "grams": 111.3,
+  "plates": 1
+ },
+ {
+  "key": "lamp:máximo",
+  "owner": "Torno",
+  "group": "home",
+  "label": "Luminária (lamp)",
+  "variant": "máximo",
+  "status": "aviso",
+  "reasons": [
+   "o conjunto arrumado ocupa 239,9 × 500,9 mm: passa da mesa de 256 mm",
+   "não coube numa placa: 2 placas",
+   "app: Use filamento branco no difusor (1ª camada). Cabe fita de LED de até 36 mm de altura."
+  ],
+  "date": "2026-09-30",
+  "minutes": 255,
+  "grams": 231.6,
+  "plates": 2
+ },
+ {
+  "key": "lamp:mínimo",
+  "owner": "Torno",
+  "group": "home",
+  "label": "Luminária (lamp)",
+  "variant": "mínimo",
+  "status": "ok",
+  "reasons": [
+   "app: Use filamento branco no difusor (1ª camada). Cabe fita de LED de até 11 mm de altura."
+  ],
+  "date": "2026-09-30",
+  "minutes": 35,
+  "grams": 26.3,
+  "plates": 1
+ },
+ {
+  "key": "lamp:padrão",
+  "owner": "Torno",
+  "group": "home",
+  "label": "Luminária (lamp)",
+  "variant": "padrão",
+  "status": "aviso",
+  "reasons": [
+   "o conjunto arrumado ocupa 160,0 × 337,9 mm: passa da mesa de 256 mm",
+   "não coube numa placa: 2 placas",
+   "app: Use filamento branco no difusor (1ª camada). Cabe fita de LED de até 18 mm de altura."
+  ],
+  "date": "2026-09-30",
+  "minutes": 112,
+  "grams": 94.2,
+  "plates": 2
+ },
+ {
+  "key": "ledLetter:máximo",
+  "owner": "Torno",
+  "group": "home",
+  "label": "Letra caixa LED (ledLetter)",
+  "variant": "máximo",
+  "status": "aviso",
+  "reasons": [
+   "o conjunto arrumado ocupa 194,6 × 3345,3 mm: passa da mesa de 256 mm",
+   "mais de 24 h de impressão",
+   "não coube numa placa: 14 placas",
+   "app: Maior que a mesa de 256 mm: a caixa saiu em 9 partes para colar.",
+   "app: Use filamento branco no difusor, com 2 a 3 camadas para a luz espalhar sem mostrar os pontos do LED."
+  ],
+  "date": "2026-09-30",
+  "minutes": 1970,
+  "grams": 1639.4,
+  "plates": 14
+ },
+ {
+  "key": "ledLetter:mínimo",
+  "owner": "Torno",
+  "group": "home",
+  "label": "Letra caixa LED (ledLetter)",
+  "variant": "mínimo",
+  "status": "ok",
+  "reasons": [
+   "app: Use filamento branco no difusor, com 2 a 3 camadas para a luz espalhar sem mostrar os pontos do LED."
+  ],
+  "date": "2026-09-30",
+  "minutes": 20,
+  "grams": 10.6,
+  "plates": 1
+ },
+ {
+  "key": "ledLetter:padrão",
+  "owner": "Torno",
+  "group": "home",
+  "label": "Letra caixa LED (ledLetter)",
+  "variant": "padrão",
+  "status": "aviso",
+  "reasons": [
+   "o conjunto arrumado ocupa 194,6 × 404,7 mm: passa da mesa de 256 mm",
+   "não coube numa placa: 2 placas",
+   "app: Use filamento branco no difusor, com 2 a 3 camadas para a luz espalhar sem mostrar os pontos do LED."
+  ],
+  "date": "2026-09-30",
+  "minutes": 181,
+  "grams": 157.9,
+  "plates": 2
+ },
+ {
+  "key": "lineArt:máximo",
+  "owner": "Torno",
+  "group": "home",
+  "label": "Desenho em pé (lineArt)",
+  "variant": "máximo",
+  "status": "aviso",
+  "reasons": [
+   "o conjunto arrumado ocupa 217,1 × 277,3 mm: passa da mesa de 256 mm"
+  ],
+  "date": "2026-09-30",
+  "minutes": 186,
+  "grams": 175.3,
+  "plates": 1
+ },
+ {
+  "key": "lineArt:mínimo",
+  "owner": "Torno",
+  "group": "home",
+  "label": "Desenho em pé (lineArt)",
+  "variant": "mínimo",
+  "status": "ok",
+  "reasons": [],
+  "date": "2026-09-30",
+  "minutes": 25,
+  "grams": 15.4,
+  "plates": 1
+ },
+ {
+  "key": "lineArt:padrão",
+  "owner": "Torno",
+  "group": "home",
+  "label": "Desenho em pé (lineArt)",
+  "variant": "padrão",
+  "status": "ok",
+  "reasons": [],
+  "date": "2026-09-30",
+  "minutes": 66,
+  "grams": 51.7,
+  "plates": 1
+ },
+ {
+  "key": "nfcJewelry:máximo",
+  "owner": "Torno",
+  "group": "home",
+  "label": "Porta-joia NFC (nfcJewelry)",
+  "variant": "máximo",
+  "status": "ok",
+  "reasons": [
+   "app: Pausa em Z = 3,52 mm: coloque a tag no bolsão da tampa e retome. Se o pote estiver na mesma mesa, ele só espera junto.",
+   "app: A tampa imprime com o sulco para baixo (ponte curta) e encaixa na gola do pote."
+  ],
+  "date": "2026-09-30",
+  "minutes": 93,
+  "grams": 101.9,
+  "plates": 1,
+  "pauses": "3,40"
+ },
+ {
+  "key": "nfcJewelry:mínimo",
+  "owner": "Torno",
+  "group": "home",
+  "label": "Porta-joia NFC (nfcJewelry)",
+  "variant": "mínimo",
+  "status": "ok",
+  "reasons": [
+   "app: Pausa em Z = 1,44 mm: coloque a tag no bolsão da tampa e retome. Se o pote estiver na mesma mesa, ele só espera junto.",
+   "app: A tampa imprime com o sulco para baixo (ponte curta) e encaixa na gola do pote."
+  ],
+  "date": "2026-09-30",
+  "minutes": 32,
+  "grams": 10.2,
+  "plates": 1,
+  "pauses": "1,40"
+ },
+ {
+  "key": "nfcJewelry:padrão",
+  "owner": "Torno",
+  "group": "home",
+  "label": "Porta-joia NFC (nfcJewelry)",
+  "variant": "padrão",
+  "status": "ok",
+  "reasons": [
+   "app: Pausa em Z = 2,00 mm: coloque a tag no bolsão da tampa e retome. Se o pote estiver na mesma mesa, ele só espera junto.",
+   "app: A tampa imprime com o sulco para baixo (ponte curta) e encaixa na gola do pote."
+  ],
+  "date": "2026-09-30",
+  "minutes": 36,
+  "grams": 25.2,
+  "plates": 1,
+  "pauses": "2,00"
+ },
+ {
+  "key": "outlineBowl:máximo",
+  "owner": "Torno",
+  "group": "home",
+  "label": "Cumbuca no contorno (outlineBowl)",
+  "variant": "máximo",
+  "status": "falha",
+  "reasons": [
+   "\"Cumbuca\": 2 corpo(s) solto(s) no ar (Z 13,6, 30,0 mm)",
+   "Bambu Studio: Failed slicing the model. Please verify the slicing of all plates on Bambu Studio before uploading. (código -100)"
+  ],
+  "date": "2026-09-30"
+ },
+ {
+  "key": "outlineBowl:mínimo",
+  "owner": "Torno",
+  "group": "home",
+  "label": "Cumbuca no contorno (outlineBowl)",
+  "variant": "mínimo",
+  "status": "ok",
+  "reasons": [],
+  "date": "2026-09-30",
+  "minutes": 7,
+  "grams": 1.6,
+  "plates": 1
+ },
+ {
+  "key": "outlineBowl:padrão",
+  "owner": "Torno",
+  "group": "home",
+  "label": "Cumbuca no contorno (outlineBowl)",
+  "variant": "padrão",
+  "status": "falha",
+  "reasons": [
+   "\"Cumbuca\": 1 corpo(s) solto(s) no ar (Z 2,0 mm)"
+  ],
+  "date": "2026-09-30",
+  "minutes": 47,
+  "grams": 31.3,
+  "plates": 1
+ },
+ {
+  "key": "pen:máximo",
+  "owner": "Torno",
+  "group": "home",
+  "label": "Porta-caneta (pen)",
+  "variant": "máximo",
+  "status": "ok",
+  "reasons": [],
+  "date": "2026-09-30",
+  "minutes": 438,
+  "grams": 356,
+  "plates": 1
+ },
+ {
+  "key": "pen:mínimo",
+  "owner": "Torno",
+  "group": "home",
+  "label": "Porta-caneta (pen)",
+  "variant": "mínimo",
+  "status": "ok",
+  "reasons": [],
+  "date": "2026-09-30",
+  "minutes": 24,
+  "grams": 7.8,
+  "plates": 1
+ },
+ {
+  "key": "pen:padrão",
+  "owner": "Torno",
+  "group": "home",
+  "label": "Porta-caneta (pen)",
+  "variant": "padrão",
+  "status": "ok",
+  "reasons": [],
+  "date": "2026-09-30",
+  "minutes": 77,
+  "grams": 70.7,
+  "plates": 1
+ },
+ {
+  "key": "photoHolder:máximo",
+  "owner": "Torno",
+  "group": "home",
+  "label": "Porta-foto com texto (photoHolder)",
+  "variant": "máximo",
+  "status": "ok",
+  "reasons": [
+   "app: A base sai de cabeça para baixo para a face de cima ficar lisa; o texto sai à parte para colar na frente.",
+   "app: O texto foi reduzido para caber na frente da base."
+  ],
+  "date": "2026-09-30",
+  "minutes": 165,
+  "grams": 164.5,
+  "plates": 1
+ },
+ {
+  "key": "photoHolder:mínimo",
+  "owner": "Torno",
+  "group": "home",
+  "label": "Porta-foto com texto (photoHolder)",
+  "variant": "mínimo",
+  "status": "ok",
+  "reasons": [
+   "app: A base sai de cabeça para baixo para a face de cima ficar lisa; o texto sai à parte para colar na frente."
+  ],
+  "date": "2026-09-30",
+  "minutes": 24,
+  "grams": 16.3,
+  "plates": 1
+ },
+ {
+  "key": "photoHolder:padrão",
+  "owner": "Torno",
+  "group": "home",
+  "label": "Porta-foto com texto (photoHolder)",
+  "variant": "padrão",
+  "status": "ok",
+  "reasons": [
+   "app: A base sai de cabeça para baixo para a face de cima ficar lisa; o texto sai à parte para colar na frente."
+  ],
+  "date": "2026-09-30",
+  "minutes": 53,
+  "grams": 44.1,
+  "plates": 1
+ },
+ {
+  "key": "puzzle:máximo",
+  "owner": "Torno",
+  "group": "home",
+  "label": "Quebra-cabeça (puzzle)",
+  "variant": "máximo",
+  "status": "aviso",
+  "reasons": [
+   "o conjunto arrumado ocupa 294,2 × 294,2 mm: passa da mesa de 256 mm",
+   "não coube numa placa: 2 placas",
+   "app: Peças pequenas: não é brinquedo para menores de 3 anos (risco de engasgo).",
+   "app: As peças espalhadas ocupam 295 × 295 mm: passa da mesa de 256 mm. Diminua a largura."
+  ],
+  "date": "2026-09-30",
+  "minutes": 686,
+  "grams": 376.1,
+  "plates": 2
+ },
+ {
+  "key": "puzzle:mínimo",
+  "owner": "Torno",
+  "group": "home",
+  "label": "Quebra-cabeça (puzzle)",
+  "variant": "mínimo",
+  "status": "ok",
+  "reasons": [
+   "app: Peças pequenas: não é brinquedo para menores de 3 anos (risco de engasgo)."
+  ],
+  "date": "2026-09-30",
+  "minutes": 7,
+  "grams": 3.7,
+  "plates": 1
+ },
+ {
+  "key": "puzzle:padrão",
+  "owner": "Torno",
+  "group": "home",
+  "label": "Quebra-cabeça (puzzle)",
+  "variant": "padrão",
+  "status": "ok",
+  "reasons": [
+   "app: Peças pequenas: não é brinquedo para menores de 3 anos (risco de engasgo)."
+  ],
+  "date": "2026-09-30",
+  "minutes": 64,
+  "grams": 42,
+  "plates": 1
+ },
+ {
+  "key": "screwCase:máximo",
+  "owner": "Torno",
+  "group": "home",
+  "label": "Estojo com tampa de rosca (screwCase)",
+  "variant": "máximo",
+  "status": "ok",
+  "reasons": [],
+  "date": "2026-09-30",
+  "minutes": 532,
+  "grams": 324.9,
+  "plates": 1
+ },
+ {
+  "key": "screwCase:mínimo",
+  "owner": "Torno",
+  "group": "home",
+  "label": "Estojo com tampa de rosca (screwCase)",
+  "variant": "mínimo",
+  "status": "ok",
+  "reasons": [],
+  "date": "2026-09-30",
+  "minutes": 13,
+  "grams": 3.2,
+  "plates": 1
+ },
+ {
+  "key": "screwCase:padrão",
+  "owner": "Torno",
+  "group": "home",
+  "label": "Estojo com tampa de rosca (screwCase)",
+  "variant": "padrão",
+  "status": "ok",
+  "reasons": [],
+  "date": "2026-09-30",
+  "minutes": 62,
+  "grams": 27.9,
+  "plates": 1
+ },
+ {
+  "key": "stampMold:máximo",
+  "owner": "Torno",
+  "group": "home",
+  "label": "Molde para carimbo de EVA (stampMold)",
+  "variant": "máximo",
+  "status": "falha",
+  "reasons": [
+   "\"Molde\" não cabe na mesa de 256 mm (331,9 × 340,0 × 10,0 mm)",
+   "o conjunto arrumado ocupa 386,9 × 340,0 mm: passa da mesa de 256 mm",
+   "app: O molde tem 340 mm: passa da mesa de 256 mm."
+  ],
+  "date": "2026-09-30",
+  "minutes": 15,
+  "grams": 6.3,
+  "plates": 1
+ },
+ {
+  "key": "stampMold:mínimo",
+  "owner": "Torno",
+  "group": "home",
+  "label": "Molde para carimbo de EVA (stampMold)",
+  "variant": "mínimo",
+  "status": "ok",
+  "reasons": [],
+  "date": "2026-09-30",
+  "minutes": 14,
+  "grams": 5.9,
+  "plates": 1
+ },
+ {
+  "key": "stampMold:padrão",
+  "owner": "Torno",
+  "group": "home",
+  "label": "Molde para carimbo de EVA (stampMold)",
+  "variant": "padrão",
+  "status": "ok",
+  "reasons": [],
+  "date": "2026-09-30",
+  "minutes": 40,
+  "grams": 26.1,
+  "plates": 1
+ },
+ {
+  "key": "stringArt:máximo",
+  "owner": "Torno",
+  "group": "home",
+  "label": "String art (stringArt)",
+  "variant": "máximo",
+  "status": "falha",
+  "reasons": [
+   "\"String art\" não cabe na mesa de 256 mm (275,9 × 249,2 × 8,0 mm)",
+   "app: Sem fundo, a peça fica presa só pelos fios: tire da mesa com cuidado (espátula fina)."
+  ],
+  "date": "2026-09-30",
+  "minutes": 175,
+  "grams": 104.1,
+  "plates": 1
+ },
+ {
+  "key": "stringArt:mínimo",
+  "owner": "Torno",
+  "group": "home",
+  "label": "String art (stringArt)",
+  "variant": "mínimo",
+  "status": "ok",
+  "reasons": [
+   "app: Sem fundo, a peça fica presa só pelos fios: tire da mesa com cuidado (espátula fina)."
+  ],
+  "date": "2026-09-30",
+  "minutes": 10,
+  "grams": 2.1,
+  "plates": 1
+ },
+ {
+  "key": "stringArt:padrão",
+  "owner": "Torno",
+  "group": "home",
+  "label": "String art (stringArt)",
+  "variant": "padrão",
+  "status": "ok",
+  "reasons": [
+   "app: Sem fundo, a peça fica presa só pelos fios: tire da mesa com cuidado (espátula fina)."
+  ],
+  "date": "2026-09-30",
+  "minutes": 44,
+  "grams": 19,
+  "plates": 1
+ },
+ {
+  "key": "vase:máximo",
+  "owner": "Torno",
+  "group": "home",
+  "label": "Vaso paramétrico (vase)",
+  "variant": "máximo",
+  "status": "falha",
+  "reasons": [
+   "\"Vaso\" não cabe na mesa de 256 mm (100,3 × 100,3 × 300,0 mm)",
+   "Bambu Studio: One of the plate is empty or has no object fully inside it. Please check that the 3mf contains no empty plate in Bambu Studio before uploading. (código -50)",
+   "app: Modo vaso: o 3MF já vai com o modo espiral ligado (uma parede contínua, sem topo). Use bico 0,4 e 1 perímetro."
+  ],
+  "date": "2026-09-30"
+ },
+ {
+  "key": "vase:mínimo",
+  "owner": "Torno",
+  "group": "home",
+  "label": "Vaso paramétrico (vase)",
+  "variant": "mínimo",
+  "status": "ok",
+  "reasons": [
+   "app: Modo vaso: o 3MF já vai com o modo espiral ligado (uma parede contínua, sem topo). Use bico 0,4 e 1 perímetro."
+  ],
+  "date": "2026-09-30",
+  "minutes": 46,
+  "grams": 21.1,
+  "plates": 1
+ },
+ {
+  "key": "vase:padrão",
+  "owner": "Torno",
+  "group": "home",
+  "label": "Vaso paramétrico (vase)",
+  "variant": "padrão",
+  "status": "ok",
+  "reasons": [
+   "app: Modo vaso: o 3MF já vai com o modo espiral ligado (uma parede contínua, sem topo). Use bico 0,4 e 1 perímetro."
+  ],
+  "date": "2026-09-30",
+  "minutes": 87,
+  "grams": 27.3,
+  "plates": 1
+ },
+ {
+  "key": "wordDecor:máximo",
+  "owner": "Torno",
+  "group": "home",
+  "label": "Decoração de palavras (wordDecor)",
+  "variant": "máximo",
+  "status": "falha",
+  "reasons": [
+   "\"AMOR\" não cabe na mesa de 256 mm (475,1 × 120,0 × 20,0 mm)",
+   "\"Família\" não cabe na mesa de 256 mm (355,0 × 80,0 × 6,0 mm)",
+   "o conjunto arrumado ocupa 475,1 × 208,0 mm: passa da mesa de 256 mm",
+   "Bambu Studio: One of the plate is empty or has no object fully inside it. Please check that the 3mf contains no empty plate in Bambu Studio before uploading. (código -50)",
+   "app: A palavra de encaixe sai separada: cole no rebaixo da palavra base (a folga é para ela entrar sem forçar)."
+  ],
+  "date": "2026-09-30"
+ },
+ {
+  "key": "wordDecor:mínimo",
+  "owner": "Torno",
+  "group": "home",
+  "label": "Decoração de palavras (wordDecor)",
+  "variant": "mínimo",
+  "status": "ok",
+  "reasons": [
+   "app: A palavra de encaixe sai separada: cole no rebaixo da palavra base (a folga é para ela entrar sem forçar)."
+  ],
+  "date": "2026-09-30",
+  "minutes": 17,
+  "grams": 7.2,
+  "plates": 1
+ },
+ {
+  "key": "wordDecor:padrão",
+  "owner": "Torno",
+  "group": "home",
+  "label": "Decoração de palavras (wordDecor)",
+  "variant": "padrão",
+  "status": "ok",
+  "reasons": [
+   "app: A palavra de encaixe sai separada: cole no rebaixo da palavra base (a folga é para ela entrar sem forçar)."
+  ],
+  "date": "2026-09-30",
+  "minutes": 70,
+  "grams": 40.4,
+  "plates": 1
+ },
+ {
+  "key": "namePendants:máximo",
+  "owner": "Torno",
+  "group": "keychains",
+  "label": "Pingentes de nomes (namePendants)",
+  "variant": "máximo",
+  "status": "ok",
+  "reasons": [],
+  "date": "2026-09-30",
+  "minutes": 52,
+  "grams": 30.8,
+  "plates": 1
+ },
+ {
+  "key": "namePendants:mínimo",
+  "owner": "Torno",
+  "group": "keychains",
+  "label": "Pingentes de nomes (namePendants)",
+  "variant": "mínimo",
+  "status": "ok",
+  "reasons": [],
+  "date": "2026-09-30",
+  "minutes": 6,
+  "grams": 1.7,
+  "plates": 1
+ },
+ {
+  "key": "namePendants:padrão",
+  "owner": "Torno",
+  "group": "keychains",
+  "label": "Pingentes de nomes (namePendants)",
+  "variant": "padrão",
+  "status": "ok",
+  "reasons": [],
+  "date": "2026-09-30",
+  "minutes": 14,
+  "grams": 5.9,
+  "plates": 1
+ },
+ {
+  "key": "bagClip:máximo",
+  "owner": "Torno",
+  "group": "kitchen",
+  "label": "Clipe de saco (bagClip)",
+  "variant": "máximo",
+  "status": "falha",
+  "reasons": [
+   "\"Clipe de saco\" não cabe na mesa de 256 mm (256,8 × 64,8 × 20,0 mm)",
+   "app: Na ponta a fenda fica com 1,8 mm, menor que o saco: é isso que aperta. Se não fechar, aumente a folga; se soltar, diminua.",
+   "app: Imprima deitado (como sai no arquivo), PLA ou PETG, 3 paredes."
+  ],
+  "date": "2026-09-30",
+  "minutes": 72,
+  "grams": 54.8,
+  "plates": 1
+ },
+ {
+  "key": "bagClip:mínimo",
+  "owner": "Torno",
+  "group": "kitchen",
+  "label": "Clipe de saco (bagClip)",
+  "variant": "mínimo",
+  "status": "ok",
+  "reasons": [
+   "app: Na ponta a fenda fica com 0,3 mm, menor que o saco: é isso que aperta. Se não fechar, aumente a folga; se soltar, diminua.",
+   "app: Imprima deitado (como sai no arquivo), PLA ou PETG, 3 paredes."
+  ],
+  "date": "2026-09-30",
+  "minutes": 5,
+  "grams": 2.2,
+  "plates": 1
+ },
+ {
+  "key": "bagClip:padrão",
+  "owner": "Torno",
+  "group": "kitchen",
+  "label": "Clipe de saco (bagClip)",
+  "variant": "padrão",
+  "status": "ok",
+  "reasons": [
+   "app: Na ponta a fenda fica com 0,5 mm, menor que o saco: é isso que aperta. Se não fechar, aumente a folga; se soltar, diminua.",
+   "app: Imprima deitado (como sai no arquivo), PLA ou PETG, 3 paredes."
+  ],
+  "date": "2026-09-30",
+  "minutes": 15,
+  "grams": 10.8,
+  "plates": 1
+ },
+ {
+  "key": "cakeStand:máximo",
+  "owner": "Torno",
+  "group": "kitchen",
+  "label": "Boleira (cakeStand)",
+  "variant": "máximo",
+  "status": "falha",
+  "reasons": [
+   "\"Boleira\" não cabe na mesa de 256 mm (270,0 × 270,0 × 200,0 mm)",
+   "Bambu Studio: One of the plate is empty or has no object fully inside it. Please check that the 3mf contains no empty plate in Bambu Studio before uploading. (código -50)",
+   "app: O prato tem 270 mm: passa da mesa de 256 mm. Diminua o diâmetro."
+  ],
+  "date": "2026-09-30"
+ },
+ {
+  "key": "cakeStand:mínimo",
+  "owner": "Torno",
+  "group": "kitchen",
+  "label": "Boleira (cakeStand)",
+  "variant": "mínimo",
+  "status": "ok",
+  "reasons": [],
+  "date": "2026-09-30",
+  "minutes": 30,
+  "grams": 15,
+  "plates": 1
+ },
+ {
+  "key": "cakeStand:padrão",
+  "owner": "Torno",
+  "group": "kitchen",
+  "label": "Boleira (cakeStand)",
+  "variant": "padrão",
+  "status": "ok",
+  "reasons": [],
+  "date": "2026-09-30",
+  "minutes": 152,
+  "grams": 106.7,
+  "plates": 1
+ },
+ {
+  "key": "cutterStamp:máximo",
+  "owner": "Torno",
+  "group": "kitchen",
+  "label": "Cortador + carimbo (cutterStamp)",
+  "variant": "máximo",
+  "status": "ok",
+  "reasons": [
+   "app: Sem desenho interno para marcar: sai só o cortador."
+  ],
+  "date": "2026-09-30",
+  "minutes": 62,
+  "grams": 51.5,
+  "plates": 1
+ },
+ {
+  "key": "cutterStamp:mínimo",
+  "owner": "Torno",
+  "group": "kitchen",
+  "label": "Cortador + carimbo (cutterStamp)",
+  "variant": "mínimo",
+  "status": "ok",
+  "reasons": [
+   "app: Sem desenho interno para marcar: sai só o cortador."
+  ],
+  "date": "2026-09-30",
+  "minutes": 7,
+  "grams": 1.8,
+  "plates": 1
+ },
+ {
+  "key": "cutterStamp:padrão",
+  "owner": "Torno",
+  "group": "kitchen",
+  "label": "Cortador + carimbo (cutterStamp)",
+  "variant": "padrão",
+  "status": "ok",
+  "reasons": [
+   "app: Sem desenho interno para marcar: sai só o cortador."
+  ],
+  "date": "2026-09-30",
+  "minutes": 13,
+  "grams": 5.9,
+  "plates": 1
+ },
+ {
+  "key": "ejector:máximo",
+  "owner": "Torno",
+  "group": "kitchen",
+  "label": "Ejetor de brigadeiro (ejector)",
+  "variant": "máximo",
+  "status": "ok",
+  "reasons": [],
+  "date": "2026-09-30",
+  "minutes": 62,
+  "grams": 38.7,
+  "plates": 1
+ },
+ {
+  "key": "ejector:mínimo",
+  "owner": "Torno",
+  "group": "kitchen",
+  "label": "Ejetor de brigadeiro (ejector)",
+  "variant": "mínimo",
+  "status": "ok",
+  "reasons": [],
+  "date": "2026-09-30",
+  "minutes": 12,
+  "grams": 2.7,
+  "plates": 1
+ },
+ {
+  "key": "ejector:padrão",
+  "owner": "Torno",
+  "group": "kitchen",
+  "label": "Ejetor de brigadeiro (ejector)",
+  "variant": "padrão",
+  "status": "ok",
+  "reasons": [],
+  "date": "2026-09-30",
+  "minutes": 21,
+  "grams": 7.3,
+  "plates": 1
+ },
+ {
+  "key": "gridCutter:máximo",
+  "owner": "Torno",
+  "group": "kitchen",
+  "label": "Cortador em grade (gridCutter)",
+  "variant": "máximo",
+  "status": "falha",
+  "reasons": [
+   "\"Cortador em grade\" não cabe na mesa de 256 mm (1534,0 × 1454,0 × 40,0 mm)",
+   "Bambu Studio: One of the plate is empty or has no object fully inside it. Please check that the 3mf contains no empty plate in Bambu Studio before uploading. (código -50)",
+   "app: A grade tem 1534 × 1454 mm: passa da mesa de 256 mm. Diminua as células ou as colunas."
+  ],
+  "date": "2026-09-30"
+ },
+ {
+  "key": "gridCutter:mínimo",
+  "owner": "Torno",
+  "group": "kitchen",
+  "label": "Cortador em grade (gridCutter)",
+  "variant": "mínimo",
+  "status": "ok",
+  "reasons": [],
+  "date": "2026-09-30",
+  "minutes": 4,
+  "grams": 0.7,
+  "plates": 1
+ },
+ {
+  "key": "gridCutter:padrão",
+  "owner": "Torno",
+  "group": "kitchen",
+  "label": "Cortador em grade (gridCutter)",
+  "variant": "padrão",
+  "status": "ok",
+  "reasons": [],
+  "date": "2026-09-30",
+  "minutes": 64,
+  "grams": 28.1,
+  "plates": 1
+ },
+ {
+  "key": "stamp:máximo",
+  "owner": "Torno",
+  "group": "kitchen",
+  "label": "Carimbo (stamp)",
+  "variant": "máximo",
+  "status": "ok",
+  "reasons": [],
+  "date": "2026-09-30",
+  "minutes": 69,
+  "grams": 39.8,
+  "plates": 1
+ },
+ {
+  "key": "stamp:mínimo",
+  "owner": "Torno",
+  "group": "kitchen",
+  "label": "Carimbo (stamp)",
+  "variant": "mínimo",
+  "status": "ok",
+  "reasons": [],
+  "date": "2026-09-30",
+  "minutes": 12,
+  "grams": 2,
+  "plates": 1
+ },
+ {
+  "key": "stamp:padrão",
+  "owner": "Torno",
+  "group": "kitchen",
+  "label": "Carimbo (stamp)",
+  "variant": "padrão",
+  "status": "ok",
+  "reasons": [],
+  "date": "2026-09-30",
+  "minutes": 24,
+  "grams": 9.4,
+  "plates": 1
+ },
+ {
+  "key": "stickStand:máximo",
+  "owner": "Torno",
+  "group": "kitchen",
+  "label": "Suporte de palitos (stickStand)",
+  "variant": "máximo",
+  "status": "falha",
+  "reasons": [
+   "\"Suporte de palitos\" não cabe na mesa de 256 mm (550,0 × 550,0 × 70,0 mm)",
+   "Bambu Studio: One of the plate is empty or has no object fully inside it. Please check that the 3mf contains no empty plate in Bambu Studio before uploading. (código -50)",
+   "app: O suporte tem 550 mm: passa da mesa de 256 mm. Diminua os furos ou o espaçamento."
+  ],
+  "date": "2026-09-30"
+ },
+ {
+  "key": "stickStand:mínimo",
+  "owner": "Torno",
+  "group": "kitchen",
+  "label": "Suporte de palitos (stickStand)",
+  "variant": "mínimo",
+  "status": "ok",
+  "reasons": [],
+  "date": "2026-09-30",
+  "minutes": 9,
+  "grams": 4.3,
+  "plates": 1
+ },
+ {
+  "key": "stickStand:padrão",
+  "owner": "Torno",
+  "group": "kitchen",
+  "label": "Suporte de palitos (stickStand)",
+  "variant": "padrão",
+  "status": "ok",
+  "reasons": [],
+  "date": "2026-09-30",
+  "minutes": 118,
+  "grams": 62,
+  "plates": 1
+ },
+ {
+  "key": "textureRoller:máximo",
+  "owner": "Torno",
+  "group": "kitchen",
+  "label": "Rolo de textura (textureRoller)",
+  "variant": "máximo",
+  "status": "ok",
+  "reasons": [],
+  "date": "2026-09-30",
+  "minutes": 413,
+  "grams": 347.8,
+  "plates": 1
+ },
+ {
+  "key": "textureRoller:mínimo",
+  "owner": "Torno",
+  "group": "kitchen",
+  "label": "Rolo de textura (textureRoller)",
+  "variant": "mínimo",
+  "status": "ok",
+  "reasons": [],
+  "date": "2026-09-30",
+  "minutes": 13,
+  "grams": 3.7,
+  "plates": 1
+ },
+ {
+  "key": "textureRoller:padrão",
+  "owner": "Torno",
+  "group": "kitchen",
+  "label": "Rolo de textura (textureRoller)",
+  "variant": "padrão",
+  "status": "ok",
+  "reasons": [],
+  "date": "2026-09-30",
+  "minutes": 76,
+  "grams": 37.6,
+  "plates": 1
+ },
+ {
+  "key": "layeredSign:máximo",
+  "owner": "Torno",
+  "group": "party",
+  "label": "Letreiro em camadas (layeredSign)",
+  "variant": "máximo",
+  "status": "falha",
+  "reasons": [
+   "\"Letreiro\" não cabe na mesa de 256 mm (771,2 × 179,9 × 15,0 mm)",
+   "\"Suporte\" não cabe na mesa de 256 mm (539,8 × 30,0 × 12,0 mm)",
+   "o conjunto arrumado ocupa 771,2 × 219,9 mm: passa da mesa de 256 mm",
+   "Bambu Studio: One of the plate is empty or has no object fully inside it. Please check that the 3mf contains no empty plate in Bambu Studio before uploading. (código -50)",
+   "app: O letreiro tem 771 × 180 mm: passa da mesa de 256 mm. Diminua as alturas das linhas."
+  ],
+  "date": "2026-09-30"
+ },
+ {
+  "key": "layeredSign:mínimo",
+  "owner": "Torno",
+  "group": "party",
+  "label": "Letreiro em camadas (layeredSign)",
+  "variant": "mínimo",
+  "status": "ok",
+  "reasons": [],
+  "date": "2026-09-30",
+  "minutes": 16,
+  "grams": 9.1,
+  "plates": 1
+ },
+ {
+  "key": "layeredSign:padrão",
+  "owner": "Torno",
+  "group": "party",
+  "label": "Letreiro em camadas (layeredSign)",
+  "variant": "padrão",
+  "status": "ok",
+  "reasons": [],
+  "date": "2026-09-30",
+  "minutes": 75,
+  "grams": 49.1,
+  "plates": 1
+ },
+ {
+  "key": "wallLetters:máximo",
+  "owner": "Torno",
+  "group": "party",
+  "label": "Letras para parede (wallLetters)",
+  "variant": "máximo",
+  "status": "falha",
+  "reasons": [
+   "o conjunto arrumado ocupa 3905,4 × 1600,0 mm: passa da mesa de 256 mm",
+   "Bambu Studio: Some objects are located over the boundary of the heated bed. (código -52)",
+   "app: 5 letra(s) passam da mesa de 256 mm e saíram em partes: una com cola e um pedaço de filamento de 1,75 mm nos furos.",
+   "app: Gabarito: cole a tira na parede com fita, alinhe cada letra entre os riscos dela e retire a tira depois."
+  ],
+  "date": "2026-09-30"
+ },
+ {
+  "key": "wallLetters:mínimo",
+  "owner": "Torno",
+  "group": "party",
+  "label": "Letras para parede (wallLetters)",
+  "variant": "mínimo",
+  "status": "ok",
+  "reasons": [
+   "app: Gabarito: cole a tira na parede com fita, alinhe cada letra entre os riscos dela e retire a tira depois."
+  ],
+  "date": "2026-09-30",
+  "minutes": 33,
+  "grams": 16.1,
+  "plates": 1
+ },
+ {
+  "key": "wallLetters:padrão",
+  "owner": "Torno",
+  "group": "party",
+  "label": "Letras para parede (wallLetters)",
+  "variant": "padrão",
+  "status": "aviso",
+  "reasons": [
+   "o conjunto arrumado ocupa 1167,6 × 483,0 mm: passa da mesa de 256 mm",
+   "não coube numa placa: 8 placas",
+   "app: 5 letra(s) passam da mesa de 256 mm e saíram em partes: una com cola e um pedaço de filamento de 1,75 mm nos furos.",
+   "app: Gabarito: cole a tira na parede com fita, alinhe cada letra entre os riscos dela e retire a tira depois."
+  ],
+  "date": "2026-09-30",
+  "minutes": 943,
+  "grams": 849.9,
+  "plates": 8
+ },
+ {
+  "key": "windowFrame:máximo",
+  "owner": "Torno",
+  "group": "party",
+  "label": "Peça com janela (shaker) (windowFrame)",
+  "variant": "máximo",
+  "status": "falha",
+  "reasons": [
+   "\"Janela\" não cabe na mesa de 256 mm (200,0 × 260,0 × 18,3 mm)",
+   "o conjunto arrumado ocupa 200,0 × 308,0 mm: passa da mesa de 256 mm",
+   "app: Pausa em 15.36 mm: coloque o glitter na câmara, deslize a folha de acetato na ranhura e continue."
+  ],
+  "date": "2026-09-30",
+  "minutes": 158,
+  "grams": 156.7,
+  "plates": 1,
+  "pauses": "15,24"
+ },
+ {
+  "key": "windowFrame:mínimo",
+  "owner": "Torno",
+  "group": "party",
+  "label": "Peça com janela (shaker) (windowFrame)",
+  "variant": "mínimo",
+  "status": "ok",
+  "reasons": [
+   "app: Pausa em 2 mm: coloque o glitter na câmara, deslize a folha de acetato na ranhura e continue."
+  ],
+  "date": "2026-09-30",
+  "minutes": 10,
+  "grams": 2.8,
+  "plates": 1,
+  "pauses": "1,96"
+ },
+ {
+  "key": "windowFrame:padrão",
+  "owner": "Torno",
+  "group": "party",
+  "label": "Peça com janela (shaker) (windowFrame)",
+  "variant": "padrão",
+  "status": "ok",
+  "reasons": [
+   "app: Pausa em 5.2 mm: coloque o glitter na câmara, deslize a folha de acetato na ranhura e continue."
+  ],
+  "date": "2026-09-30",
+  "minutes": 23,
+  "grams": 16.6,
+  "plates": 1,
+  "pauses": "5,20"
+ },
+ {
+  "key": "namesPanel:máximo",
+  "owner": "Torno",
+  "group": "plates",
+  "label": "Painel de nomes (namesPanel)",
+  "variant": "máximo",
+  "status": "aviso",
+  "reasons": [
+   "o conjunto arrumado ocupa 600,0 × 600,0 mm: passa da mesa de 256 mm",
+   "\"Painel 1\": parede/traço < 0,4 mm em Z 6,3, 8,1 mm",
+   "não coube numa placa: 9 placas",
+   "app: Maior que a mesa de 256 mm: o painel saiu em 9 partes para colar lado a lado."
+  ],
+  "date": "2026-09-30",
+  "minutes": 1394,
+  "grams": 1202,
+  "plates": 9
+ },
+ {
+  "key": "namesPanel:mínimo",
+  "owner": "Torno",
+  "group": "plates",
+  "label": "Painel de nomes (namesPanel)",
+  "variant": "mínimo",
+  "status": "ok",
+  "reasons": [
+   "app: Com 12 nomes a letra fica com 4.1 mm: aumente a placa para ler bem."
+  ],
+  "date": "2026-09-30",
+  "minutes": 8,
+  "grams": 5,
+  "plates": 1
+ },
+ {
+  "key": "namesPanel:padrão",
+  "owner": "Torno",
+  "group": "plates",
+  "label": "Painel de nomes (namesPanel)",
+  "variant": "padrão",
+  "status": "ok",
+  "reasons": [],
+  "date": "2026-09-30",
+  "minutes": 96,
+  "grams": 71.3,
+  "plates": 1
  }
 ]

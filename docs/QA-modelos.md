@@ -16,7 +16,7 @@ Para cada modelo: valores **padrão**, todos os campos numéricos no **mínimo**
 "n/a" = o modelo precisa de uma entrada que o teste não dá (ex.: foto). "app:" = aviso que o próprio app mostra na tela.
 
 
-**Total:** 110 casos · 90 ok · 13 com aviso · 7 com falha · 0 n/a
+**Total:** 206 casos · 162 ok · 21 com aviso · 23 com falha · 0 n/a
 
 ## Forja
 
@@ -132,3 +132,104 @@ Para cada modelo: valores **padrão**, todos os campos numéricos no **mínimo**
 | QR Code (ferramenta) | padrão | ✅ ok | 14 | 6,7 | 1 | – | – |
 | Plaquinhas de rolo (ferramenta) | máximo (30) | ⚠️ aviso | 226 | 117,8 | 2 | – | o conjunto arrumado ocupa 206,0 × 316,0 mm: passa da mesa de 256 mm; não coube numa placa: 2 placas |
 | Plaquinhas de rolo (ferramenta) | padrão | ✅ ok | 8 | 4,0 | 1 | – | – |
+
+## Torno
+
+| Modelo | Valores | Resultado | Tempo (min) | PLA (g) | Placas | Pausas (Z) | Motivo |
+|---|---|---|---:|---:|---:|---|---|
+| Cubo alfabeto (alphabetCube) | máximo | ✅ ok | 139 | 132,7 | 1 | – | app: Brinquedo: para menores de 3 anos, use cubos de 45 mm ou mais e confira se nada solta. |
+| Cubo alfabeto (alphabetCube) | mínimo | ✅ ok | 12 | 4,3 | 1 | – | app: Cubo pequeno: não é brinquedo para menores de 3 anos (risco de engasgo). |
+| Cubo alfabeto (alphabetCube) | padrão | ✅ ok | 33 | 22,1 | 1 | – | app: Cubo pequeno: não é brinquedo para menores de 3 anos (risco de engasgo). |
+| Letra grande (bigLetter) | máximo | ❌ falha | – | – | – | – | "A" não cabe na mesa de 256 mm (272,4 × 280,0 × 30,0 mm); "Alice" não cabe na mesa de 256 mm (120,0 × 379,9 × 6,0 mm); o conjunto arrumado ocupa 402,4 × 469,9 mm: passa da mesa de 256 mm; Bambu Studio: One of the plate is empty or has no object fully inside it. Please check that the 3mf contains no empty plate in Bambu Studio before uploading. (código -50); app: Boa parte do nome está fora da letra: mude a posição ou o tamanho do nome.; app: A letra tem 280 mm: passa da mesa de 256 mm. Diminua a altura ou corte em partes. |
+| Letra grande (bigLetter) | mínimo | ❌ falha | – | – | – | – | Bambu Studio: One of the plate is empty or has no object fully inside it. Please check that the 3mf contains no empty plate in Bambu Studio before uploading. (código -50); app: Boa parte do nome está fora da letra: mude a posição ou o tamanho do nome. |
+| Letra grande (bigLetter) | padrão | ✅ ok | 73 | 59,2 | 1 | – | – |
+| Marca-página (bookmark) | máximo | ✅ ok | 59 | 45,2 | 1 | – | – |
+| Marca-página (bookmark) | mínimo | ✅ ok | 5 | 2,1 | 1 | – | – |
+| Marca-página (bookmark) | padrão | ✅ ok | 20 | 12,7 | 1 | – | – |
+| Organizador de mesa (deskOrganizer) | máximo | ✅ ok | 878 | 798,9 | 1 | – | – |
+| Organizador de mesa (deskOrganizer) | mínimo | ✅ ok | 18 | 10,5 | 1 | – | – |
+| Organizador de mesa (deskOrganizer) | padrão | ✅ ok | 152 | 140,0 | 1 | – | – |
+| Quadro de metas (goalBoard) | máximo | ✅ ok | 161 | 134,5 | 1 | – | – |
+| Quadro de metas (goalBoard) | mínimo | ✅ ok | 26 | 18,0 | 1 | – | – |
+| Quadro de metas (goalBoard) | padrão | ✅ ok | 66 | 49,7 | 1 | – | – |
+| Porta-chave de parede (keyHolder) | máximo | ❌ falha | – | – | – | – | "Porta-chave" não cabe na mesa de 256 mm (235,0 × 271,3 × 20,0 mm); Bambu Studio: One of the plate is empty or has no object fully inside it. Please check that the 3mf contains no empty plate in Bambu Studio before uploading. (código -50); app: Furos de 4,5 mm para parafuso com bucha 6. Ganchos aguentam chaves; para bolsa, aumente a espessura. |
+| Porta-chave de parede (keyHolder) | mínimo | ✅ ok | 40 | 28,7 | 1 | – | app: Furos de 4,5 mm para parafuso com bucha 6. Ganchos aguentam chaves; para bolsa, aumente a espessura. |
+| Porta-chave de parede (keyHolder) | padrão | ✅ ok | 131 | 111,3 | 1 | – | app: Furos de 4,5 mm para parafuso com bucha 6. Ganchos aguentam chaves; para bolsa, aumente a espessura. |
+| Luminária (lamp) | máximo | ⚠️ aviso | 255 | 231,6 | 2 | – | o conjunto arrumado ocupa 239,9 × 500,9 mm: passa da mesa de 256 mm; não coube numa placa: 2 placas; app: Use filamento branco no difusor (1ª camada). Cabe fita de LED de até 36 mm de altura. |
+| Luminária (lamp) | mínimo | ✅ ok | 35 | 26,3 | 1 | – | app: Use filamento branco no difusor (1ª camada). Cabe fita de LED de até 11 mm de altura. |
+| Luminária (lamp) | padrão | ⚠️ aviso | 112 | 94,2 | 2 | – | o conjunto arrumado ocupa 160,0 × 337,9 mm: passa da mesa de 256 mm; não coube numa placa: 2 placas; app: Use filamento branco no difusor (1ª camada). Cabe fita de LED de até 18 mm de altura. |
+| Letra caixa LED (ledLetter) | máximo | ⚠️ aviso | 1970 | 1639,4 | 14 | – | o conjunto arrumado ocupa 194,6 × 3345,3 mm: passa da mesa de 256 mm; mais de 24 h de impressão; não coube numa placa: 14 placas; app: Maior que a mesa de 256 mm: a caixa saiu em 9 partes para colar.; app: Use filamento branco no difusor, com 2 a 3 camadas para a luz espalhar sem mostrar os pontos do LED. |
+| Letra caixa LED (ledLetter) | mínimo | ✅ ok | 20 | 10,6 | 1 | – | app: Use filamento branco no difusor, com 2 a 3 camadas para a luz espalhar sem mostrar os pontos do LED. |
+| Letra caixa LED (ledLetter) | padrão | ⚠️ aviso | 181 | 157,9 | 2 | – | o conjunto arrumado ocupa 194,6 × 404,7 mm: passa da mesa de 256 mm; não coube numa placa: 2 placas; app: Use filamento branco no difusor, com 2 a 3 camadas para a luz espalhar sem mostrar os pontos do LED. |
+| Desenho em pé (lineArt) | máximo | ⚠️ aviso | 186 | 175,3 | 1 | – | o conjunto arrumado ocupa 217,1 × 277,3 mm: passa da mesa de 256 mm |
+| Desenho em pé (lineArt) | mínimo | ✅ ok | 25 | 15,4 | 1 | – | – |
+| Desenho em pé (lineArt) | padrão | ✅ ok | 66 | 51,7 | 1 | – | – |
+| Porta-joia NFC (nfcJewelry) | máximo | ✅ ok | 93 | 101,9 | 1 | 3,40 | app: Pausa em Z = 3,52 mm: coloque a tag no bolsão da tampa e retome. Se o pote estiver na mesma mesa, ele só espera junto.; app: A tampa imprime com o sulco para baixo (ponte curta) e encaixa na gola do pote. |
+| Porta-joia NFC (nfcJewelry) | mínimo | ✅ ok | 32 | 10,2 | 1 | 1,40 | app: Pausa em Z = 1,44 mm: coloque a tag no bolsão da tampa e retome. Se o pote estiver na mesma mesa, ele só espera junto.; app: A tampa imprime com o sulco para baixo (ponte curta) e encaixa na gola do pote. |
+| Porta-joia NFC (nfcJewelry) | padrão | ✅ ok | 36 | 25,2 | 1 | 2,00 | app: Pausa em Z = 2,00 mm: coloque a tag no bolsão da tampa e retome. Se o pote estiver na mesma mesa, ele só espera junto.; app: A tampa imprime com o sulco para baixo (ponte curta) e encaixa na gola do pote. |
+| Cumbuca no contorno (outlineBowl) | máximo | ❌ falha | – | – | – | – | "Cumbuca": 2 corpo(s) solto(s) no ar (Z 13,6, 30,0 mm); Bambu Studio: Failed slicing the model. Please verify the slicing of all plates on Bambu Studio before uploading. (código -100) |
+| Cumbuca no contorno (outlineBowl) | mínimo | ✅ ok | 7 | 1,6 | 1 | – | – |
+| Cumbuca no contorno (outlineBowl) | padrão | ❌ falha | 47 | 31,3 | 1 | – | "Cumbuca": 1 corpo(s) solto(s) no ar (Z 2,0 mm) |
+| Porta-caneta (pen) | máximo | ✅ ok | 438 | 356,0 | 1 | – | – |
+| Porta-caneta (pen) | mínimo | ✅ ok | 24 | 7,8 | 1 | – | – |
+| Porta-caneta (pen) | padrão | ✅ ok | 77 | 70,7 | 1 | – | – |
+| Porta-foto com texto (photoHolder) | máximo | ✅ ok | 165 | 164,5 | 1 | – | app: A base sai de cabeça para baixo para a face de cima ficar lisa; o texto sai à parte para colar na frente.; app: O texto foi reduzido para caber na frente da base. |
+| Porta-foto com texto (photoHolder) | mínimo | ✅ ok | 24 | 16,3 | 1 | – | app: A base sai de cabeça para baixo para a face de cima ficar lisa; o texto sai à parte para colar na frente. |
+| Porta-foto com texto (photoHolder) | padrão | ✅ ok | 53 | 44,1 | 1 | – | app: A base sai de cabeça para baixo para a face de cima ficar lisa; o texto sai à parte para colar na frente. |
+| Quebra-cabeça (puzzle) | máximo | ⚠️ aviso | 686 | 376,1 | 2 | – | o conjunto arrumado ocupa 294,2 × 294,2 mm: passa da mesa de 256 mm; não coube numa placa: 2 placas; app: Peças pequenas: não é brinquedo para menores de 3 anos (risco de engasgo).; app: As peças espalhadas ocupam 295 × 295 mm: passa da mesa de 256 mm. Diminua a largura. |
+| Quebra-cabeça (puzzle) | mínimo | ✅ ok | 7 | 3,7 | 1 | – | app: Peças pequenas: não é brinquedo para menores de 3 anos (risco de engasgo). |
+| Quebra-cabeça (puzzle) | padrão | ✅ ok | 64 | 42,0 | 1 | – | app: Peças pequenas: não é brinquedo para menores de 3 anos (risco de engasgo). |
+| Estojo com tampa de rosca (screwCase) | máximo | ✅ ok | 532 | 324,9 | 1 | – | – |
+| Estojo com tampa de rosca (screwCase) | mínimo | ✅ ok | 13 | 3,2 | 1 | – | – |
+| Estojo com tampa de rosca (screwCase) | padrão | ✅ ok | 62 | 27,9 | 1 | – | – |
+| Molde para carimbo de EVA (stampMold) | máximo | ❌ falha | 15 | 6,3 | 1 | – | "Molde" não cabe na mesa de 256 mm (331,9 × 340,0 × 10,0 mm); o conjunto arrumado ocupa 386,9 × 340,0 mm: passa da mesa de 256 mm; app: O molde tem 340 mm: passa da mesa de 256 mm. |
+| Molde para carimbo de EVA (stampMold) | mínimo | ✅ ok | 14 | 5,9 | 1 | – | – |
+| Molde para carimbo de EVA (stampMold) | padrão | ✅ ok | 40 | 26,1 | 1 | – | – |
+| String art (stringArt) | máximo | ❌ falha | 175 | 104,1 | 1 | – | "String art" não cabe na mesa de 256 mm (275,9 × 249,2 × 8,0 mm); app: Sem fundo, a peça fica presa só pelos fios: tire da mesa com cuidado (espátula fina). |
+| String art (stringArt) | mínimo | ✅ ok | 10 | 2,1 | 1 | – | app: Sem fundo, a peça fica presa só pelos fios: tire da mesa com cuidado (espátula fina). |
+| String art (stringArt) | padrão | ✅ ok | 44 | 19,0 | 1 | – | app: Sem fundo, a peça fica presa só pelos fios: tire da mesa com cuidado (espátula fina). |
+| Vaso paramétrico (vase) | máximo | ❌ falha | – | – | – | – | "Vaso" não cabe na mesa de 256 mm (100,3 × 100,3 × 300,0 mm); Bambu Studio: One of the plate is empty or has no object fully inside it. Please check that the 3mf contains no empty plate in Bambu Studio before uploading. (código -50); app: Modo vaso: o 3MF já vai com o modo espiral ligado (uma parede contínua, sem topo). Use bico 0,4 e 1 perímetro. |
+| Vaso paramétrico (vase) | mínimo | ✅ ok | 46 | 21,1 | 1 | – | app: Modo vaso: o 3MF já vai com o modo espiral ligado (uma parede contínua, sem topo). Use bico 0,4 e 1 perímetro. |
+| Vaso paramétrico (vase) | padrão | ✅ ok | 87 | 27,3 | 1 | – | app: Modo vaso: o 3MF já vai com o modo espiral ligado (uma parede contínua, sem topo). Use bico 0,4 e 1 perímetro. |
+| Decoração de palavras (wordDecor) | máximo | ❌ falha | – | – | – | – | "AMOR" não cabe na mesa de 256 mm (475,1 × 120,0 × 20,0 mm); "Família" não cabe na mesa de 256 mm (355,0 × 80,0 × 6,0 mm); o conjunto arrumado ocupa 475,1 × 208,0 mm: passa da mesa de 256 mm; Bambu Studio: One of the plate is empty or has no object fully inside it. Please check that the 3mf contains no empty plate in Bambu Studio before uploading. (código -50); app: A palavra de encaixe sai separada: cole no rebaixo da palavra base (a folga é para ela entrar sem forçar). |
+| Decoração de palavras (wordDecor) | mínimo | ✅ ok | 17 | 7,2 | 1 | – | app: A palavra de encaixe sai separada: cole no rebaixo da palavra base (a folga é para ela entrar sem forçar). |
+| Decoração de palavras (wordDecor) | padrão | ✅ ok | 70 | 40,4 | 1 | – | app: A palavra de encaixe sai separada: cole no rebaixo da palavra base (a folga é para ela entrar sem forçar). |
+| Pingentes de nomes (namePendants) | máximo | ✅ ok | 52 | 30,8 | 1 | – | – |
+| Pingentes de nomes (namePendants) | mínimo | ✅ ok | 6 | 1,7 | 1 | – | – |
+| Pingentes de nomes (namePendants) | padrão | ✅ ok | 14 | 5,9 | 1 | – | – |
+| Clipe de saco (bagClip) | máximo | ❌ falha | 72 | 54,8 | 1 | – | "Clipe de saco" não cabe na mesa de 256 mm (256,8 × 64,8 × 20,0 mm); app: Na ponta a fenda fica com 1,8 mm, menor que o saco: é isso que aperta. Se não fechar, aumente a folga; se soltar, diminua.; app: Imprima deitado (como sai no arquivo), PLA ou PETG, 3 paredes. |
+| Clipe de saco (bagClip) | mínimo | ✅ ok | 5 | 2,2 | 1 | – | app: Na ponta a fenda fica com 0,3 mm, menor que o saco: é isso que aperta. Se não fechar, aumente a folga; se soltar, diminua.; app: Imprima deitado (como sai no arquivo), PLA ou PETG, 3 paredes. |
+| Clipe de saco (bagClip) | padrão | ✅ ok | 15 | 10,8 | 1 | – | app: Na ponta a fenda fica com 0,5 mm, menor que o saco: é isso que aperta. Se não fechar, aumente a folga; se soltar, diminua.; app: Imprima deitado (como sai no arquivo), PLA ou PETG, 3 paredes. |
+| Boleira (cakeStand) | máximo | ❌ falha | – | – | – | – | "Boleira" não cabe na mesa de 256 mm (270,0 × 270,0 × 200,0 mm); Bambu Studio: One of the plate is empty or has no object fully inside it. Please check that the 3mf contains no empty plate in Bambu Studio before uploading. (código -50); app: O prato tem 270 mm: passa da mesa de 256 mm. Diminua o diâmetro. |
+| Boleira (cakeStand) | mínimo | ✅ ok | 30 | 15,0 | 1 | – | – |
+| Boleira (cakeStand) | padrão | ✅ ok | 152 | 106,7 | 1 | – | – |
+| Cortador + carimbo (cutterStamp) | máximo | ✅ ok | 62 | 51,5 | 1 | – | app: Sem desenho interno para marcar: sai só o cortador. |
+| Cortador + carimbo (cutterStamp) | mínimo | ✅ ok | 7 | 1,8 | 1 | – | app: Sem desenho interno para marcar: sai só o cortador. |
+| Cortador + carimbo (cutterStamp) | padrão | ✅ ok | 13 | 5,9 | 1 | – | app: Sem desenho interno para marcar: sai só o cortador. |
+| Ejetor de brigadeiro (ejector) | máximo | ✅ ok | 62 | 38,7 | 1 | – | – |
+| Ejetor de brigadeiro (ejector) | mínimo | ✅ ok | 12 | 2,7 | 1 | – | – |
+| Ejetor de brigadeiro (ejector) | padrão | ✅ ok | 21 | 7,3 | 1 | – | – |
+| Cortador em grade (gridCutter) | máximo | ❌ falha | – | – | – | – | "Cortador em grade" não cabe na mesa de 256 mm (1534,0 × 1454,0 × 40,0 mm); Bambu Studio: One of the plate is empty or has no object fully inside it. Please check that the 3mf contains no empty plate in Bambu Studio before uploading. (código -50); app: A grade tem 1534 × 1454 mm: passa da mesa de 256 mm. Diminua as células ou as colunas. |
+| Cortador em grade (gridCutter) | mínimo | ✅ ok | 4 | 0,7 | 1 | – | – |
+| Cortador em grade (gridCutter) | padrão | ✅ ok | 64 | 28,1 | 1 | – | – |
+| Carimbo (stamp) | máximo | ✅ ok | 69 | 39,8 | 1 | – | – |
+| Carimbo (stamp) | mínimo | ✅ ok | 12 | 2,0 | 1 | – | – |
+| Carimbo (stamp) | padrão | ✅ ok | 24 | 9,4 | 1 | – | – |
+| Suporte de palitos (stickStand) | máximo | ❌ falha | – | – | – | – | "Suporte de palitos" não cabe na mesa de 256 mm (550,0 × 550,0 × 70,0 mm); Bambu Studio: One of the plate is empty or has no object fully inside it. Please check that the 3mf contains no empty plate in Bambu Studio before uploading. (código -50); app: O suporte tem 550 mm: passa da mesa de 256 mm. Diminua os furos ou o espaçamento. |
+| Suporte de palitos (stickStand) | mínimo | ✅ ok | 9 | 4,3 | 1 | – | – |
+| Suporte de palitos (stickStand) | padrão | ✅ ok | 118 | 62,0 | 1 | – | – |
+| Rolo de textura (textureRoller) | máximo | ✅ ok | 413 | 347,8 | 1 | – | – |
+| Rolo de textura (textureRoller) | mínimo | ✅ ok | 13 | 3,7 | 1 | – | – |
+| Rolo de textura (textureRoller) | padrão | ✅ ok | 76 | 37,6 | 1 | – | – |
+| Letreiro em camadas (layeredSign) | máximo | ❌ falha | – | – | – | – | "Letreiro" não cabe na mesa de 256 mm (771,2 × 179,9 × 15,0 mm); "Suporte" não cabe na mesa de 256 mm (539,8 × 30,0 × 12,0 mm); o conjunto arrumado ocupa 771,2 × 219,9 mm: passa da mesa de 256 mm; Bambu Studio: One of the plate is empty or has no object fully inside it. Please check that the 3mf contains no empty plate in Bambu Studio before uploading. (código -50); app: O letreiro tem 771 × 180 mm: passa da mesa de 256 mm. Diminua as alturas das linhas. |
+| Letreiro em camadas (layeredSign) | mínimo | ✅ ok | 16 | 9,1 | 1 | – | – |
+| Letreiro em camadas (layeredSign) | padrão | ✅ ok | 75 | 49,1 | 1 | – | – |
+| Letras para parede (wallLetters) | máximo | ❌ falha | – | – | – | – | o conjunto arrumado ocupa 3905,4 × 1600,0 mm: passa da mesa de 256 mm; Bambu Studio: Some objects are located over the boundary of the heated bed. (código -52); app: 5 letra(s) passam da mesa de 256 mm e saíram em partes: una com cola e um pedaço de filamento de 1,75 mm nos furos.; app: Gabarito: cole a tira na parede com fita, alinhe cada letra entre os riscos dela e retire a tira depois. |
+| Letras para parede (wallLetters) | mínimo | ✅ ok | 33 | 16,1 | 1 | – | app: Gabarito: cole a tira na parede com fita, alinhe cada letra entre os riscos dela e retire a tira depois. |
+| Letras para parede (wallLetters) | padrão | ⚠️ aviso | 943 | 849,9 | 8 | – | o conjunto arrumado ocupa 1167,6 × 483,0 mm: passa da mesa de 256 mm; não coube numa placa: 8 placas; app: 5 letra(s) passam da mesa de 256 mm e saíram em partes: una com cola e um pedaço de filamento de 1,75 mm nos furos.; app: Gabarito: cole a tira na parede com fita, alinhe cada letra entre os riscos dela e retire a tira depois. |
+| Peça com janela (shaker) (windowFrame) | máximo | ❌ falha | 158 | 156,7 | 1 | 15,24 | "Janela" não cabe na mesa de 256 mm (200,0 × 260,0 × 18,3 mm); o conjunto arrumado ocupa 200,0 × 308,0 mm: passa da mesa de 256 mm; app: Pausa em 15.36 mm: coloque o glitter na câmara, deslize a folha de acetato na ranhura e continue. |
+| Peça com janela (shaker) (windowFrame) | mínimo | ✅ ok | 10 | 2,8 | 1 | 1,96 | app: Pausa em 2 mm: coloque o glitter na câmara, deslize a folha de acetato na ranhura e continue. |
+| Peça com janela (shaker) (windowFrame) | padrão | ✅ ok | 23 | 16,6 | 1 | 5,20 | app: Pausa em 5.2 mm: coloque o glitter na câmara, deslize a folha de acetato na ranhura e continue. |
+| Painel de nomes (namesPanel) | máximo | ⚠️ aviso | 1394 | 1202,0 | 9 | – | o conjunto arrumado ocupa 600,0 × 600,0 mm: passa da mesa de 256 mm; "Painel 1": parede/traço < 0,4 mm em Z 6,3, 8,1 mm; não coube numa placa: 9 placas; app: Maior que a mesa de 256 mm: o painel saiu em 9 partes para colar lado a lado. |
+| Painel de nomes (namesPanel) | mínimo | ✅ ok | 8 | 5,0 | 1 | – | app: Com 12 nomes a letra fica com 4.1 mm: aumente a placa para ler bem. |
+| Painel de nomes (namesPanel) | padrão | ✅ ok | 96 | 71,3 | 1 | – | – |
