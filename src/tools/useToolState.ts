@@ -20,8 +20,17 @@ type Options<T> = {
   load?: (raw: unknown) => T | null | Promise<T | null>;
 };
 
-// File vira "{}" no JSON: compara pelo nome, tamanho e data para duas fotos diferentes não parecerem iguais
-const fileKey = (_k: string, v: unknown) => (typeof File !== "undefined" && v instanceof File ? `file:${v.name}:${v.size}:${v.lastModified}` : v);
+// File vira "{}" e bytes viram listas enormes no JSON: compara por identidade barata (nome, tamanho, data / tamanho)
+const byteIds = new WeakMap<Uint8Array, number>(); // mesmos bytes (mesma referência) = mesmo id
+let nextByteId = 0;
+const fileKey = (_k: string, v: unknown) => {
+  if (typeof File !== "undefined" && v instanceof File) return `file:${v.name}:${v.size}:${v.lastModified}`;
+  if (v instanceof Uint8Array) {
+    if (!byteIds.has(v)) byteIds.set(v, nextByteId++);
+    return `bytes:${v.length}:${byteIds.get(v)}`;
+  }
+  return v;
+};
 const same = (a: unknown, b: unknown) => JSON.stringify(a, fileKey) === JSON.stringify(b, fileKey);
 
 /**

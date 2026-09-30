@@ -17,6 +17,21 @@ export async function storeFile(f: File | null): Promise<StoredFile | null> {
   return f.size <= STORED_FILE_MAX ? { name: f.name, type: f.type, dataUrl: await readAsDataUrl(f) } : { name: f.name, type: f.type };
 }
 
+/** Bytes (ex.: 3MF lido) ↔ texto base64 para o rascunho; acima de STORED_FILE_MAX não guarda (null). */
+export function storeBytes(b: Uint8Array | null): string | null {
+  if (!b || b.length > STORED_FILE_MAX) return null;
+  let s = "";
+  for (let i = 0; i < b.length; i += 0x8000) s += String.fromCharCode(...b.subarray(i, i + 0x8000));
+  return btoa(s);
+}
+export function restoreBytes(s: string | null | undefined): Uint8Array | null {
+  if (!s) return null;
+  const bin = atob(s);
+  const out = new Uint8Array(bin.length);
+  for (let i = 0; i < bin.length; i++) out[i] = bin.charCodeAt(i);
+  return out;
+}
+
 /** JSON do rascunho → File (null se o conteúdo não foi guardado: a pessoa reenvia). */
 export async function restoreFile(s: StoredFile | null | undefined): Promise<File | null> {
   if (!s?.dataUrl) return null;

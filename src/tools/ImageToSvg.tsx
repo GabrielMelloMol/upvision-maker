@@ -17,6 +17,9 @@ import { useData } from "../ui/useData";
 import type { TraceDone } from "../vectorize/vectorize.worker";
 import { exampleFile, useExample } from "../help/helpStore";
 import { handoffSvg } from "./handoff";
+import { restoreFile, storeFile, type StoredFile } from "./storedFile";
+import ToolSessionBar from "./ToolSessionBar";
+import { useToolState } from "./useToolState";
 import TraceSettings from "./TraceSettings";
 
 const MANY_PATHS = 2000;
@@ -48,14 +51,27 @@ const progressText = (p: Progress | null) =>
           ? `Vetorizando… ${p.ticks} contornos`
           : "Vetorizando…";
 
+const initialState = () => ({ file: null as File | null, opts: DEFAULT_TRACE as TraceOptions, subject: "person" as Subject, useFilaments: true, recolor: {} as Record<number, string> });
+type SvgState = ReturnType<typeof initialState>;
+
 export default function ImageToSvg({ go }: { go: Go }) {
-  const [file, setFile] = useState<File | null>(null);
-  const [raster, setRaster] = useState<Raster | null>(null);
-  const [opts, setOpts] = useState<TraceOptions>(DEFAULT_TRACE);
+  // estado de trabalho: desfazer, rascunho guardado (a imagem vai junto até 4 MB) e últimos projetos (#85)
+  const tool = useToolState("svg", initialState, {
+    label: "Imagem → SVG",
+    save: async (s) => ({ ...s, file: await storeFile(s.file) }),
+    load: async (raw) => {
+      const r = raw as Omit<SvgState, "file"> & { file?: StoredFile | null };
+      return { ...r, file: await restoreFile(r.file) };
+    },
+  });
+  const { file, opts, subject, useFilaments, recolor } = tool.state;
+  const [setFile, setOpts, setSubject, setUseFilaments, setRecolor] = [tool.field("file"), tool.field("opts"), tool.field("subject"), tool.field("useFilaments"), tool.field("recolor")];
+  const [loadedRaster, setRaster] = useState<{ file: File; raster: Raster } | null>(null);
+  // a imagem carregada é a do arquivo atual (arquivo vindo de rascunho, projeto ou desfazer recarrega abaixo)
+  const raster = loadedRaster && loadedRaster.file === file ? loadedRaster.raster : null;
   const [applied, setApplied] = useState<TraceOptions | null>(null);
   const [result, setResult] = useState<TraceDone | null>(null);
   const [progress, setProgress] = useState<Progress | null>(null);
-  const [subject, setSubject] = useState<Subject>("person");
   const [appliedSubject, setAppliedSubject] = useState<Subject | null>(null);
   const segCache = useRef(new Map<Subject, Uint8Array | null>());
   const cancelled = useRef(false);
@@ -66,8 +82,6 @@ export default function ImageToSvg({ go }: { go: Go }) {
   const toast = useToast();
   const [filamentRows] = useData(loadFilaments, [] as Filament[]);
   const filColors = useMemo(() => filamentColors(filamentRows), [filamentRows]);
-  const [useFilaments, setUseFilaments] = useState(true);
-  const [recolor, setRecolor] = useState<Record<number, string>>({});
   const set = <K extends keyof TraceOptions>(k: K, v: TraceOptions[K]) => setOpts((o) => ({ ...o, [k]: v }));
 
   useEffect(() => () => job.current?.cancel(), []);
@@ -83,15 +97,36 @@ export default function ImageToSvg({ go }: { go: Go }) {
     segCache.current.clear();
     try {
       const r = await loadRaster(f, scaleFactor);
-      setFile(f);
       setRaster((old) => {
-        if (old) URL.revokeObjectURL(old.url);
-        return r;
+        if (old) URL.revokeObjectURL(old.raster.url);
+        return { file: f, raster: r };
       });
+      setFile(f);
     } catch (e) {
       setError(errorText(e));
     }
   }
+
+  // arquivo que voltou (Continuar, projeto reaberto, desfazer): carrega a imagem de novo; o traço pede Aplicar
+  useEffect(() => {
+    if (!file || loadedRaster?.file === file) return;
+    let alive = true;
+    loadRaster(file, scaleFactor)
+      .then((r) => {
+        if (!alive) return URL.revokeObjectURL(r.url);
+        segCache.current.clear();
+        setResult(null);
+        setApplied(null);
+        setRaster((old) => {
+          if (old) URL.revokeObjectURL(old.raster.url);
+          return { file, raster: r };
+        });
+      })
+      .catch((e) => alive && setError(errorText(e)));
+    return () => {
+      alive = false;
+    };
+  }, [file, loadedRaster]);
 
   async function apply(next: TraceOptions = opts) {
     if (!raster) return;
@@ -157,7 +192,10 @@ export default function ImageToSvg({ go }: { go: Go }) {
     if (!svg) return;
     try {
       const p = await saveFile(`${name}.svg`, svg, "svg", "SVG");
-      if (p) toast(`SVG salvo em ${p}`);
+      if (p) {
+        toast(`SVG salvo em ${p}`);
+        void tool.exported(name);
+      }
     } catch (e) {
       toast(`Não foi possível salvar: ${errorText(e)}`, "error");
     }
@@ -173,6 +211,7 @@ export default function ImageToSvg({ go }: { go: Go }) {
     <div className="page">
       <h1>Imagem → SVG</h1>
       <p className="lead">Transforma logo, desenho ou silhueta em um SVG liso, de 1 a 4 cores, já no tamanho de impressão.</p>
+      <ToolSessionBar tool={tool} />
       <div className="tool-layout">
         <div className="controls">
           <div className="card stack">

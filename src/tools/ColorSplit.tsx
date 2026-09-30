@@ -11,6 +11,9 @@ import Preview3D from "../ui/Preview3D";
 import Segmented from "../ui/Segmented";
 import Slider from "../ui/Slider";
 import Toggle from "../ui/Toggle";
+import { restoreBytes, storeBytes } from "./storedFile";
+import ToolSessionBar from "./ToolSessionBar";
+import { useToolState } from "./useToolState";
 import { useModelBuilder } from "../ui/useModelBuilder";
 
 const MODES: [SplitMode, string][] = [
@@ -35,14 +38,24 @@ const PIN_MODES: [PinMode, string][] = [
 const PLA_G_PER_CM3 = 1.24;
 const MAX_BYTES = 200 * 1024 * 1024;
 
+const initialState = () => ({ file: null as { name: string; bytes: Uint8Array } | null, depth: 1, mode: "parts" as SplitMode, cutOn: false, cut: DEFAULT_CUT as CutOptions });
+type SplitState = ReturnType<typeof initialState>;
+
 /** Separador 3MF por cor (#14): lê a pintura do Bambu Studio / OrcaSlicer / PrusaSlicer e separa em volumes por cor. */
 export default function ColorSplit() {
-  const [file, setFile] = useState<{ name: string; bytes: Uint8Array } | null>(null);
+  // estado de trabalho: desfazer, rascunho guardado (o 3MF vai junto até 4 MB) e últimos projetos (#85)
+  const tool = useToolState("colorsplit", initialState, {
+    label: "Separar 3MF",
+    save: (s) => ({ ...s, file: s.file && { name: s.file.name, bytes: storeBytes(s.file.bytes) } }),
+    load: (raw) => {
+      const r = raw as Omit<SplitState, "file"> & { file: { name: string; bytes: string | null } | null };
+      const bytes = restoreBytes(r.file?.bytes);
+      return { ...r, file: r.file && bytes ? { name: r.file.name, bytes } : null };
+    },
+  });
+  const { file, depth, mode, cutOn, cut } = tool.state;
+  const [setFile, setDepth, setMode, setCutOn, setCut] = [tool.field("file"), tool.field("depth"), tool.field("mode"), tool.field("cutOn"), tool.field("cut")];
   const [fileError, setFileError] = useState<string | null>(null);
-  const [depth, setDepth] = useState(1);
-  const [mode, setMode] = useState<SplitMode>("parts");
-  const [cutOn, setCutOn] = useState(false);
-  const [cut, setCut] = useState<CutOptions>(DEFAULT_CUT);
   const setC = <K extends keyof CutOptions>(key: K) => (v: CutOptions[K]) => setCut((c) => ({ ...c, [key]: v }));
   const [colors, setColors] = useState<{ filament: number; color: string; volume: number }[]>([]);
 
@@ -68,6 +81,7 @@ export default function ColorSplit() {
     <div className="page">
       <h1>Separar 3MF por cor</h1>
       <p className="lead">Abra um 3MF pintado no Bambu Studio, OrcaSlicer ou PrusaSlicer e cada cor vira uma peça sólida, pronta para multicor ou para imprimir separado.</p>
+      <ToolSessionBar tool={tool} />
       <div className="tool-layout">
         <div className="controls">
           <div className="card stack">
@@ -129,7 +143,7 @@ export default function ColorSplit() {
               </ul>
             </div>
           )}
-          <ExportButtons models={models} name={`${file?.name ?? "separado"}-cores`} busy={busy} />
+          <ExportButtons models={models} name={`${file?.name ?? "separado"}-cores`} busy={busy} onSaved={tool.exported} />
         </div>
         <div className="preview-col">
           <Preview3D models={models} busy={busy} busyText="Separando as cores…" error={error} emptyText={!valid ? "Corrija os campos em vermelho." : "Envie um 3MF pintado para separar as cores."} />
