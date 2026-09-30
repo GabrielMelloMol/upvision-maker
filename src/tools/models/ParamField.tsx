@@ -1,3 +1,4 @@
+import ColorPick from "../ColorPick";
 import { useRef } from "react";
 import EmojiPicker from "../../ui/EmojiPicker";
 import Field from "../../ui/Field";
@@ -52,12 +53,7 @@ export default function ParamField({ f, value, onChange, sample = "", emoji }: P
     case "money":
       return <MoneyField label={f.label} value={String(value)} onChange={onChange} hint={f.hint} />;
     case "color":
-      return (
-        <label>
-          {f.label}
-          <input type="color" value={String(value)} onChange={(e) => onChange(e.target.value)} />
-        </label>
-      );
+      return <ColorPick label={f.label} value={String(value)} onChange={onChange} />;
     case "bool":
       return <Toggle label={f.label} checked={Boolean(value)} onChange={onChange} />;
     case "choice":

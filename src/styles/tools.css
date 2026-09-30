@@ -133,3 +133,4 @@ button.example svg { color: var(--brand-orange); }
 .profile-point[data-active], .profile-point:focus-visible { fill: var(--accent); outline: none; }
 .profile-text { flex: 1; }
 
+.color-pick { display: grid; gap: 6px; align-content: start; }

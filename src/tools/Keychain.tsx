@@ -11,6 +11,7 @@ import FontPicker from "../ui/FontPicker";
 import Alert from "../ui/Alert";
 import Dropzone from "../ui/Dropzone";
 import EmojiPicker from "../ui/EmojiPicker";
+import ColorPick from "./ColorPick";
 import ExportButtons from "../ui/ExportButtons";
 import { DEFAULT_PROFILE } from "../geometry/printProfile";
 import NumField, { inRange } from "../ui/NumField";
@@ -192,20 +193,11 @@ export default function Keychain() {
             </label>
             {p.resin && <NumField label="Profundidade da resina" value={p.resinDepth ?? 1.5} onChange={set("resinDepth")} min={0.6} max={4} />}
             <div className="row">
-              <label>
-                Cor da base
-                <input type="color" value={p.baseColor} onChange={(e) => set("baseColor")(e.target.value)} />
-              </label>
+              <ColorPick label="Cor da base" value={p.baseColor} onChange={set("baseColor")} />
               {p.layers === 3 && (
-                <label>
-                  Cor do meio
-                  <input type="color" value={p.midColor} onChange={(e) => set("midColor")(e.target.value)} />
-                </label>
+                <ColorPick label="Cor do meio" value={p.midColor ?? "#ffffff"} onChange={set("midColor")} />
               )}
-              <label>
-                Cor do texto
-                <input type="color" value={p.topColor} onChange={(e) => set("topColor")(e.target.value)} />
-              </label>
+              <ColorPick label="Cor do texto" value={p.topColor} onChange={set("topColor")} />
             </div>
           </div>
           <ExportButtons models={models} name={batch ? "chaveiros" : `chaveiro-${splitLines(text).join(" ") || "logo"}`} busy={busy} profile={DEFAULT_PROFILE} onSaved={tool.exported} />

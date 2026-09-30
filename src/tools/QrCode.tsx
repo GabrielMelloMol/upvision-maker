@@ -6,6 +6,7 @@ import { qrMatrix, qrSvg } from "../domain/qr";
 import { getManifold } from "../geometry/manifold";
 import { QR_BASE_COLOR, QR_DARK_COLOR, qrModel } from "../geometry/qr3d";
 import Alert from "../ui/Alert";
+import ColorPick from "./ColorPick";
 import ExportButtons from "../ui/ExportButtons";
 import { DEFAULT_PROFILE } from "../geometry/printProfile";
 import Field from "../ui/Field";
@@ -171,14 +172,8 @@ export default function QrCode() {
               <NumField label="Margem" unit="módulos" value={p.quiet} onChange={setNum("quiet")} min={LIMITS.quiet[0]} max={LIMITS.quiet[1]} step={1} hint="2 lê bem em peça impressa." />
             </div>
             <div className="row">
-              <label>
-                Cor da base
-                <input type="color" value={colors[0]} onChange={(e) => setColors([e.target.value, colors[1]])} />
-              </label>
-              <label>
-                Cor do código
-                <input type="color" value={colors[1]} onChange={(e) => setColors([colors[0], e.target.value])} />
-              </label>
+              <ColorPick label="Cor da base" value={colors[0]} onChange={(c) => setColors([c, colors[1]])} />
+              <ColorPick label="Cor do código" value={colors[1]} onChange={(c) => setColors([colors[0], c])} />
             </div>
             <span className="hint">Código escuro sobre base clara: é o que a câmera do celular lê melhor.</span>
           </div>

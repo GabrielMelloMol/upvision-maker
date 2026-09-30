@@ -1,3 +1,4 @@
+import ColorPick from "../ColorPick";
 import { AlertTriangle, ChevronDown, ChevronUp, Copy, Eye, EyeOff, ImagePlus, Redo2, Trash2, Type, Undo2 } from "lucide-react";
 import { useRef, useState } from "react";
 import Alert from "../../ui/Alert";
@@ -157,10 +158,7 @@ function LayerEditor({ l, warnings, onChange }: { l: Layer; warnings: string[]; 
       <div className="grid two">
         {l.mode !== "cut" && <NumField label={l.mode === "raised" ? "Altura do relevo" : "Profundidade"} value={l.depth} onChange={(depth) => onChange({ depth })} min={LAYER_LIMITS.depth[0]} max={LAYER_LIMITS.depth[1]} />}
         {l.mode === "raised" && (
-          <label>
-            Cor
-            <input type="color" value={l.color} onChange={(e) => onChange({ color: e.target.value })} />
-          </label>
+          <ColorPick label="Cor" value={l.color} onChange={(color) => onChange({ color })} />
         )}
       </div>
       <Toggle label="Espelhar" checked={l.mirror} onChange={(mirror) => onChange({ mirror })} />

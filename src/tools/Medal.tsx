@@ -7,6 +7,7 @@ import { arcTextToCrossSection, textToCrossSection } from "../geometry/text";
 import type { Model } from "../geometry/types";
 import Alert from "../ui/Alert";
 import Dropzone from "../ui/Dropzone";
+import ColorPick from "./ColorPick";
 import ExportButtons from "../ui/ExportButtons";
 import { DEFAULT_PROFILE } from "../geometry/printProfile";
 import NumField, { inRange } from "../ui/NumField";
@@ -252,10 +253,7 @@ export default function Medal() {
             <h3>Cores</h3>
             <div className="row wrap">
               {COLORS.filter(([k]) => k !== "artColor" || (art && !artMulti)).map(([k, l]) => (
-                <label key={k}>
-                  {l}
-                  <input type="color" value={p[k]} onChange={(e) => set(k)(e.target.value)} />
-                </label>
+                <ColorPick key={k} label={l} value={p[k]} onChange={set(k)} />
               ))}
             </div>
             {artMulti && <span className="hint">A imagem é colorida: cada cor dela sai com o próprio filamento.</span>}

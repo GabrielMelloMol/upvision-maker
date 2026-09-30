@@ -3,6 +3,8 @@ import { screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { strFromU8, unzipSync } from "fflate";
 import { describe, expect, test } from "vitest";
+import { saveSettings } from "../db/repo";
+import { DEFAULT_SETTINGS } from "../domain/settings";
 import type { Model } from "../geometry/types";
 import { renderWithApp, setupTauri } from "../test/harness";
 import ExportButtons from "./ExportButtons";
@@ -119,4 +121,30 @@ test("com configuração recomendada: mostra na tela e grava por objeto no 3MF (
   const cfg = strFromU8(unzipSync(t.files.get("/saida/abridor.3mf")!)["Metadata/model_settings.config"]);
   expect(cfg).toContain('<metadata key="wall_loops" value="4"/>');
   expect(cfg).toContain('<metadata key="sparse_infill_density" value="40%"/>');
+});
+
+describe("Meu AMS no 3MF (#98)", () => {
+  const colored = (...colors: string[]): Model => ({ name: "Placa", parts: colors.map((color, i) => ({ name: `P${i}`, color, mesh })) });
+  const partExtruders = (file: string) => [...strFromU8(unzipSync(t.files.get(file)!)["Metadata/model_settings.config"]).matchAll(/<part[^>]*><metadata key="name" value="[^"]*"\/><metadata key="extruder" value="(\d+)"/g)].map((m) => Number(m[1]));
+
+  test("com filamentos no AMS: cada cor sai no slot dela; cor sem slot vai no mais parecido e a tela avisa", async () => {
+    await t.db.execute("INSERT INTO filaments (material, color, brand, pricePerKg) VALUES ('PLA', 'Branco', '', 110), ('PLA', 'Vermelho', '', 100)");
+    await saveSettings(t.db, { ...DEFAULT_SETTINGS, ams: { slots: 4, filaments: [null, 1, null, 2] } });
+    const user = userEvent.setup();
+    renderWithApp(<ExportButtons models={[colored("#f8f8f6", "#e01010")]} name="ams" />);
+    expect(await screen.findByLabelText("Cores sem filamento igual no AMS")).toHaveTextContent("#e01010 sai no slot 4 (PLA Vermelho)");
+    await user.click(screen.getByRole("button", { name: /Salvar 3MF/ }));
+    await waitFor(() => expect(t.files.has("/saida/ams.3mf")).toBe(true));
+    expect(partExtruders("/saida/ams.3mf")).toEqual([2, 4]);
+  });
+
+  test("AMS sem filamentos escolhidos e mais cores que slots: avisa e junta as mais parecidas se pedir", async () => {
+    const user = userEvent.setup();
+    renderWithApp(<ExportButtons models={[colored("#ffffff", "#f5f5f5", "#000000", "#ff0000", "#e00000", "#0000ff")]} name="seis" />);
+    expect(await screen.findByText(/usa 6 cores e seu AMS tem 4 slots/)).toBeInTheDocument();
+    await user.click(screen.getByRole("switch", { name: /Juntar as cores mais parecidas/ }));
+    await user.click(screen.getByRole("button", { name: /Salvar 3MF/ }));
+    await waitFor(() => expect(t.files.has("/saida/seis.3mf")).toBe(true));
+    expect(new Set(partExtruders("/saida/seis.3mf")).size).toBe(4);
+  });
 });

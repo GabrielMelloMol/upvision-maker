@@ -1,6 +1,7 @@
 import { BASE_COLOR, extrudeDesign, TOP_COLOR } from "../geometry/extrude";
 import Alert from "../ui/Alert";
 import Dropzone from "../ui/Dropzone";
+import ColorPick from "./ColorPick";
 import ExportButtons from "../ui/ExportButtons";
 import { DEFAULT_PROFILE } from "../geometry/printProfile";
 import NumField, { inRange } from "../ui/NumField";
@@ -67,16 +68,10 @@ export default function Extrude() {
             {multi && <p className="hint">Desenho com {svgColors.length} cores: cada uma sai como uma parte com o próprio filamento no 3MF.</p>}
             <div className="row">
               {(withBase || !multi) && (
-                <label>
-                  {withBase ? "Cor da base" : "Cor"}
-                  <input type="color" value={colors[0]} onChange={(e) => setColors([e.target.value, colors[1]])} />
-                </label>
+                <ColorPick label={withBase ? "Cor da base" : "Cor"} value={colors[0]} onChange={(c) => setColors([c, colors[1]])} />
               )}
               {withBase && !multi && (
-                <label>
-                  Cor do desenho
-                  <input type="color" value={colors[1]} onChange={(e) => setColors([colors[0], e.target.value])} />
-                </label>
+                <ColorPick label="Cor do desenho" value={colors[1]} onChange={(c) => setColors([colors[0], c])} />
               )}
             </div>
           </div>
