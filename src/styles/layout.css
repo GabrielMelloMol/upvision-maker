@@ -16,7 +16,7 @@
 .nav-section { display: grid; gap: 1px; }
 .subnav { display: grid; gap: 1px; padding: 1px 0 6px; animation: subnav-in var(--dur) var(--ease-out); }
 @keyframes subnav-in { from { opacity: 0; transform: translateY(-3px); } }
-.nav.sub { height: 28px; padding-left: 38px; font-size: 13px; font-weight: 450; color: var(--muted); }
+.nav.sub { height: 28px; padding-left: 38px; font-size: 13px; font-weight: 450; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; display: block; line-height: 28px; } /* nome longo não quebra em 2 linhas */
 .nav.sub.active { color: var(--accent-text); }
 .nav.open:not(.active) { font-weight: 600; }
 

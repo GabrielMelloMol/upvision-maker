@@ -150,19 +150,24 @@ export default function ExportButtons({ models: input, name, busy, pauses: input
           ))
         )}
       </div>
+      {/* polimento: uma linha à vista; o resto recolhido em "Dicas de impressão" (antes eram 4 a 6 linhas de parágrafo) */}
       {profile && (
-        <div className="stack" aria-label="Configuração recomendada">
-          <span className="hint">
-            <strong>Imprima com:</strong> {profileSummary(profile)}. Já vai no 3MF para o Bambu Studio e o OrcaSlicer.
-          </span>
-          {profile.notes?.map((n) => (
+        <span className="hint" aria-label="Configuração recomendada">
+          <strong>Imprima com:</strong> {profileSummary(profile)}.
+        </span>
+      )}
+      <details className="advanced export-tips">
+        <summary>Dicas de impressão</summary>
+        <div className="stack">
+          {profile && <span className="hint">A configuração já vai no 3MF para o Bambu Studio e o OrcaSlicer.</span>}
+          {profile?.notes?.map((n) => (
             <span key={n} className="hint">
               {n}
             </span>
           ))}
+          <span className="hint">{hasPauses ? "A pausa já vai no 3MF para Orca e Prusa; no Bambu Studio, use o projeto." : "Abre no Bambu Studio, Orca e Prusa com as cores separadas."}</span>
         </div>
-      )}
-      <span className="hint">{hasPauses ? "A pausa já vai no 3MF para Orca e Prusa; no Bambu Studio, use o projeto." : "Abre no Bambu Studio, Orca e Prusa com as cores separadas."}</span>
+      </details>
     </div>
   );
 }

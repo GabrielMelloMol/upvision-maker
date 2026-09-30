@@ -106,8 +106,8 @@ export default function CrudPage({ pageId, title, singular, lead, repo, fields, 
   const visible = rows.filter((r) => !hidden.has(r.id));
   const columns = fields.filter((f) => !f.formOnly);
 
-  function focusForm() {
-    formRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+  function focusForm(scroll = true) {
+    if (scroll) formRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
     formRef.current?.querySelector<HTMLElement>("input, select, button[role=radio]")?.focus({ preventScroll: true });
   }
 
@@ -117,7 +117,7 @@ export default function CrudPage({ pageId, title, singular, lead, repo, fields, 
     const open = takePendingOpen(pageId);
     const row = open !== null ? rows.find((r) => r.id === open) : undefined;
     if (row) edit(row);
-    else if (rows.length === 0) focusForm();
+    else if (rows.length === 0) focusForm(false); // sem rolar: a tela abre no topo (a barra de cima não esconde o título)
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [loading]);
   useEffect(
@@ -322,7 +322,7 @@ export default function CrudPage({ pageId, title, singular, lead, repo, fields, 
           ))}
         </div>
       ) : visible.length === 0 ? (
-        <EmptyState icon={empty.icon} title="Nada cadastrado ainda." action={<button onClick={focusForm}>Cadastrar {singular.toLowerCase()}</button>}>
+        <EmptyState icon={empty.icon} title="Nada cadastrado ainda." action={<button onClick={() => focusForm()}>Cadastrar {singular.toLowerCase()}</button>}>
           {empty.text}
         </EmptyState>
       ) : (
@@ -349,6 +349,7 @@ export default function CrudPage({ pageId, title, singular, lead, repo, fields, 
                     </td>
                   ))}
                   <td className="num actions">
+                    <div className="row-actions">
                     {restock && (
                       <button className="link" onClick={() => setRestocking({ id: r.id, qty: String(restock.defaultQty(r)), price: "" })}>
                         Repor
@@ -365,6 +366,7 @@ export default function CrudPage({ pageId, title, singular, lead, repo, fields, 
                     <button className="link danger" onClick={() => remove(r)}>
                       Excluir
                     </button>
+                    </div>
                   </td>
                 </tr>
                 {restock && restocking?.id === r.id && (

@@ -1,5 +1,5 @@
 import { openUrl } from "@tauri-apps/plugin-opener";
-import { ExternalLink, History, Scale, Search } from "lucide-react";
+import { ExternalLink, History, Search } from "lucide-react";
 import { useState, type FormEvent } from "react";
 import { LICENSES, pushRecent, safeModelUrl, siteOfUrl, SITES, type Site } from "../domain/modelSearch";
 import type { Go } from "../pages";
@@ -83,7 +83,7 @@ export default function ModelSearch({ go }: { go: Go }) {
               <Search className="prefix" size={16} aria-hidden />
               <input type="search" aria-label="O que você procura" placeholder="Ex.: vaso espiral, porta-copos, chaveiro de pet" value={query} onChange={(e) => setQuery(e.target.value)} />
             </div>
-            <Toggle label="Só modelos grátis (onde o site permite filtrar)" checked={onlyFree} onChange={setOnlyFree} />
+            <Toggle label="Só modelos grátis" checked={onlyFree} onChange={setOnlyFree} />
             {onlyFree && <span className="hint">O filtro vai junto no {SITES.filter((x) => x.free).map((x) => x.name).join(", ")}; nos outros, use o filtro da própria página.</span>}
             <button type="submit" className="primary" disabled={!q}>
               <ExternalLink aria-hidden size={16} /> Buscar em todos ({SITES.length} abas)
@@ -99,9 +99,10 @@ export default function ModelSearch({ go }: { go: Go }) {
               </div>
             )}
           </form>
-          <ul className="site-list" aria-label="Sites">
+          {/* polimento: os sites num grupo só, com linha fina entre eles (antes eram 5 cards soltos) */}
+          <ul className="site-list card" aria-label="Sites">
             {SITES.map((s) => (
-              <li key={s.id} className="card">
+              <li key={s.id}>
                 <div>
                   <b>{s.name}</b>
                   <p className="hint">{s.blurb}</p>
@@ -115,9 +116,7 @@ export default function ModelSearch({ go }: { go: Go }) {
         </div>
         <div className="preview-col stack">
           <section className="card stack" aria-label="Posso vender a peça?">
-            <h3>
-              <Scale aria-hidden size={16} /> Posso vender a peça?
-            </h3>
+            <h3>Posso vender a peça?</h3>
             <p className="hint">A licença fica na página de cada modelo. Muitos grátis são <b>NC (não comercial)</b>: dá para imprimir para você, não para vender.</p>
             <Field label="Licença do modelo">
               <select value={license} onChange={(e) => setLicense(e.target.value)}>

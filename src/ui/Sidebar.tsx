@@ -56,7 +56,7 @@ export default function Sidebar({ pages, current, onNavigate, onNews, onSuggest,
         {(children.length > 0 || (s.id === "settings" && actions.length > 0)) && (
           <div className="subnav">
             {children.map((p) => (
-              <button key={p.id} className={`nav sub ${p.id === current ? "active" : ""}`} aria-current={p.id === current ? "page" : undefined} data-page={p.id} onClick={() => onNavigate(p.id)}>
+              <button key={p.id} title={p.label} className={`nav sub ${p.id === current ? "active" : ""}`} aria-current={p.id === current ? "page" : undefined} data-page={p.id} onClick={() => onNavigate(p.id)}>
                 {p.label}
               </button>
             ))}

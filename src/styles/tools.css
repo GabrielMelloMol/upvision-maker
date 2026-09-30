@@ -171,7 +171,7 @@ button.example svg { color: var(--accent-text); }
 .drawer-dim[data-focus] { background: var(--accent); color: var(--on-accent); font-weight: 600; }
 .drawer-replay { position: absolute; right: var(--space-3); bottom: var(--space-3); }
 /* Template de ferramenta (#139): ajuste fino recolhido em "Opções avançadas" (disclosure do macOS) e formatos extras discretos */
-details.advanced { border-top: 0.5px solid var(--separator); padding-top: var(--space-3); }
+details.advanced { border-top: 0.5px solid var(--separator); padding: var(--space-3) var(--space-5) 0; } /* alinhado ao conteúdo dos cards (polimento) */
 details.advanced > summary { display: flex; align-items: center; gap: 6px; cursor: pointer; list-style: none; font-size: var(--text-md); font-weight: 500; color: var(--muted); border-radius: var(--r-xs); }
 details.advanced > summary::-webkit-details-marker { display: none; }
 details.advanced > summary::before { content: ""; width: 6px; height: 6px; border-right: 1.5px solid currentColor; border-bottom: 1.5px solid currentColor; transform: rotate(-45deg); transition: transform var(--dur) var(--ease-out); }
@@ -204,3 +204,13 @@ details.advanced[open] > .stack, details.advanced[open] > .grid { margin-top: va
 .model-variant-row button[aria-pressed="true"] > span:last-child { font-weight: 600; }
 .model-variant-row button:focus-visible { outline: 2px solid var(--focus-ring); outline-offset: 2px; }
 .model-variant-tool .model-variant-thumb { color: var(--accent-text); }
+
+/* polimento: dropzone sozinha num card vira o próprio grupo (sem card dentro de card) */
+.controls > .card:has(> .dropzone:first-child) { padding: 0; background: none; box-shadow: none; }
+/* miniaturas claras (fundo de estúdio) menos ofuscantes no tema escuro */
+@media (prefers-color-scheme: dark) { .model-families .model-thumb img, .model-variant-thumb img { filter: brightness(0.82); } }
+/* dentro do card de exportar o disclosure não precisa do recuo dos cards */
+.export-tips { padding-inline: 0; }
+@media (prefers-color-scheme: dark) {
+  .checker { background-color: #2a2c31; background-image: linear-gradient(45deg, #34363c 25%, transparent 25%), linear-gradient(-45deg, #34363c 25%, transparent 25%), linear-gradient(45deg, transparent 75%, #34363c 75%), linear-gradient(-45deg, transparent 75%, #34363c 75%); }
+}

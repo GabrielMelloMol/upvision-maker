@@ -52,7 +52,7 @@ table.totals { max-width: 340px; margin-left: auto; }
 table.totals tr:last-child th { font-size: var(--text-lg); }
 
 /* Quadro (kanban) de pedidos — cada coluna tem sua cor de status */
-.board { display: grid; grid-template-columns: repeat(4, minmax(220px, 1fr)); gap: var(--space-3); align-items: start; overflow-x: auto; padding-bottom: var(--space-2); }
+.board { display: grid; grid-template-columns: repeat(4, minmax(190px, 1fr)); gap: var(--space-3); align-items: start; overflow-x: auto; padding-bottom: var(--space-2); }
 .board-col { --status: var(--tertiary); display: grid; gap: var(--space-2); align-content: start; min-height: 180px; padding: var(--space-3); border-radius: var(--r-lg); background: var(--fill); transition: background var(--dur) ease, box-shadow var(--dur) ease; }
 .board-col:nth-child(1) { --status: #8e8e93; }
 .board-col:nth-child(2) { --status: var(--accent); }
@@ -96,12 +96,12 @@ table.totals tr:last-child th { font-size: var(--text-lg); }
 g:hover > .viz-hit { fill: var(--fill); }
 .viz-tip { position: absolute; top: 0; transform: translateX(-50%); background: var(--surface-raised); border-radius: var(--r-sm); box-shadow: var(--shadow-2); padding: 8px 10px; display: grid; gap: 2px; font-size: 12px; pointer-events: none; white-space: nowrap; z-index: 2; }
 .hbars { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; }
-.hbars li { display: grid; grid-template-columns: minmax(80px, 30%) 1fr auto; gap: 8px; align-items: center; font-size: 13px; }
+.hbars li { display: grid; grid-template-columns: minmax(80px, 30%) minmax(0, 1fr) auto; gap: 8px; align-items: center; font-size: 13px; }
 .hbars-label { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .hbars-track { height: 10px; }
 .hbars-bar { display: block; height: 100%; min-width: 2px; background: var(--viz-1); border-radius: 0 4px 4px 0; }
 .hbars-value { font-variant-numeric: tabular-nums; text-align: right; white-space: nowrap; color: var(--text); }
-.stats { display: grid; grid-template-columns: repeat(auto-fill, minmax(190px, 1fr)); gap: 12px; }
+.stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 12px; } /* ocupa a largura toda (polimento) */
 .stat { background: var(--surface-raised); box-shadow: var(--shadow-1); border-radius: var(--r-lg); padding: 14px 16px; display: grid; gap: 2px; align-content: start; }
 .stat-label { font-size: 12px; color: var(--muted); }
 .stat-value { font-size: 30px; font-weight: 700; font-variant-numeric: tabular-nums; letter-spacing: -0.02em; line-height: 1.15; }
@@ -109,7 +109,7 @@ g:hover > .viz-hit { fill: var(--fill); }
 .stat-delta { font-size: 12px; font-weight: 600; font-variant-numeric: tabular-nums; }
 .stat-delta.good { color: var(--viz-good); } .stat-delta.bad { color: var(--viz-bad); }
 .stat.bad .stat-value { color: var(--viz-bad); }
-.cols-3 { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 12px; }
+.cols-3 { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(260px, 100%), 1fr)); gap: 12px; }
 .filters { align-items: flex-end; } .filters label { min-width: 150px; }
 .dash-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; }
 .dash-list li { display: grid; grid-template-columns: 1fr auto; gap: 2px 8px; align-items: center; }
@@ -177,8 +177,9 @@ g:hover > .viz-hit { fill: var(--fill); }
 .chip-with-x > button:first-child { border-radius: var(--r-pill) 0 0 var(--r-pill); padding-right: 6px; }
 .chips .chip-with-x > .chip-x { border-radius: 0 var(--r-pill) var(--r-pill) 0; padding: 0 8px 0 4px; color: var(--muted); }
 /* Buscar modelos (#77) */
-.site-list { list-style: none; margin: 0; padding: 0; display: grid; gap: var(--space-2); }
-.site-list li { display: flex; align-items: center; justify-content: space-between; gap: var(--space-3); padding: var(--space-3) var(--space-4); }
+.site-list { list-style: none; margin: 0; padding: 0 var(--space-4); display: grid; }
+.site-list li { display: flex; align-items: center; justify-content: space-between; gap: var(--space-3); padding: var(--space-3) 0; }
+.site-list li + li { border-top: 0.5px solid var(--separator); }
 .site-list .hint { margin: 2px 0 0; }
 .site-list button { flex: none; }
 
@@ -218,7 +219,7 @@ g:hover > .viz-hit { fill: var(--fill); }
 .create-tools a > svg { flex: none; box-sizing: content-box; width: 20px; height: 20px; padding: 8px; border-radius: var(--r-sm); background: var(--fill); color: var(--text); stroke-width: 1.75; }
 .create-tools a > span { display: grid; min-width: 0; }
 .create-tools strong { font-size: var(--text-md); font-weight: 600; }
-.create-tools small { font-size: var(--text-sm); color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.create-tools small { font-size: var(--text-sm); color: var(--muted); display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; } /* 2 linhas: dá para ler (polimento) */
 .create-models { grid-template-columns: repeat(auto-fill, minmax(148px, 1fr)); gap: var(--space-4) var(--space-3); }
 .create-models a { display: grid; gap: var(--space-2); color: inherit; text-decoration: none; font-size: var(--text-sm); border-radius: var(--r); }
 .create-models .model-thumb { display: grid; place-items: center; color: var(--tertiary); aspect-ratio: 4 / 3; overflow: hidden; border-radius: var(--r); background: var(--fill); box-shadow: inset 0 0 0 0.5px var(--border); }
@@ -228,7 +229,7 @@ g:hover > .viz-hit { fill: var(--fill); }
 .create-models a:hover img { transform: scale(1.04); }
 .create-empty { margin-top: var(--space-8); }
 /* Início (#139): ações em blocos planos e listas agrupadas no estilo dos Ajustes do macOS */
-.home { max-width: 880px; }
+.home { max-width: 880px; margin-inline: 0; } /* alinhado à esquerda como as outras telas (polimento) */
 .home h1 { margin-bottom: var(--space-6); }
 .home h2 { margin: 0; font-size: var(--title-3); font-weight: 650; }
 .home section { margin-top: var(--space-8); display: grid; gap: var(--space-3); }
@@ -251,3 +252,5 @@ g:hover > .viz-hit { fill: var(--fill); }
 .home-list .due { font-size: var(--text-sm); font-weight: 600; font-variant-numeric: tabular-nums; }
 .home-list .due.late { color: var(--danger); }
 .create-search .prefix { width: 16px; height: 16px; }
+@media (prefers-color-scheme: dark) { .create-models img { filter: brightness(0.82); } }
+.cols-3 > * { min-width: 0; }
