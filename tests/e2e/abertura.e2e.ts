@@ -13,7 +13,7 @@ test("abertura (#139): impressão completa 1ª vez no dia, some quando o app mon
   await expect(splash).toHaveClass(/full/);
   await expect(splash.locator(".brand-mark.printing .layer")).toHaveCount(5);
   release();
-  await expect(page.getByRole("navigation", { name: "Navegação principal" })).toBeVisible();
+  await expect(page.getByRole("navigation", { name: "Navegação principal" })).toBeVisible({ timeout: 60_000 }); // Vite frio
   await expect(splash).toHaveCount(0); // app montou: saiu
 
   // mesmo dia: só o fade curto; com o app parado, é a tecla que fecha (antes da trava de 4 s)

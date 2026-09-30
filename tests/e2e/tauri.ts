@@ -244,9 +244,10 @@ export { expect };
 /** Abre o app (fecha a apresentação de primeiro uso, a menos que `keepOnboarding`). */
 export async function openApp(page: Page, { keepOnboarding = false } = {}) {
   await page.goto("/");
-  await expect(page.getByRole("navigation", { name: "Navegação principal" })).toBeVisible();
+  // 1º teste de cada worker: o Vite ainda compila o app do zero (lento com a máquina em carga)
+  await expect(page.getByRole("navigation", { name: "Navegação principal" })).toBeVisible({ timeout: 60_000 });
   const welcome = page.getByRole("dialog", { name: "Boas-vindas ao UpVision Maker" });
-  await expect(welcome).toBeVisible();
+  await expect(welcome).toBeVisible({ timeout: 60_000 }); // a apresentação é um chunk próprio: também compila no 1º teste
   if (!keepOnboarding) {
     await welcome.getByRole("button", { name: "Agora não" }).click();
     await expect(welcome).toBeHidden();
