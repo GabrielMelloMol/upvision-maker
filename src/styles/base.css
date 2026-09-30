@@ -29,7 +29,8 @@ svg { stroke-width: 1.75; }
 
 /* Foco sempre visível (anel suave estilo macOS) */
 :focus { outline: none; }
-:focus-visible { outline: none; box-shadow: 0 0 0 3px var(--focus-ring); }
+/* anel em outline (não box-shadow): nenhum componente que zera a sombra (.ghost, .link, chips…) apaga o foco (#142) */
+:focus-visible { outline: 3px solid var(--focus-ring); outline-offset: 1px; }
 
 /* Formulários */
 label, .field { display: grid; gap: 6px; align-content: start; font-size: var(--text-sm); color: var(--muted); font-weight: 500; }
@@ -44,9 +45,9 @@ input, select, textarea {
 }
 input::placeholder, textarea::placeholder { color: var(--tertiary); }
 input:hover, select:hover, textarea:hover { border-color: var(--fill-strong); }
-input:focus-visible, select:focus-visible, textarea:focus-visible { border-color: var(--accent); box-shadow: 0 0 0 3px var(--focus-ring); }
+input:focus-visible, select:focus-visible, textarea:focus-visible { border-color: var(--accent); outline-offset: 0; }
 input[aria-invalid="true"] { border-color: var(--danger); }
-input[aria-invalid="true"]:focus-visible { box-shadow: 0 0 0 3px var(--danger-soft); }
+input[aria-invalid="true"]:focus-visible { outline-color: var(--danger-soft); }
 input:disabled, select:disabled, textarea:disabled { opacity: 0.5; cursor: not-allowed; }
 input[type="number"] { font-variant-numeric: tabular-nums; }
 textarea { height: auto; min-height: 88px; padding: 9px 11px; resize: vertical; line-height: 1.45; }
@@ -94,7 +95,7 @@ input[type="range"]::-webkit-slider-thumb {
 }
 input[type="range"]:active::-webkit-slider-thumb { transform: scale(1.12); }
 input[type="range"]::-moz-range-thumb { width: 18px; height: 18px; border: 0; border-radius: 50%; background: #fff; box-shadow: 0 2px 6px rgb(0 0 0 / 0.25); }
-input[type="range"]:focus-visible { box-shadow: none; }
+input[type="range"]:focus-visible { outline: none; } /* o anel vai no botão do controle */
 input[type="range"]:focus-visible::-webkit-slider-thumb { box-shadow: 0 0 0 3px var(--focus-ring), 0 2px 6px rgb(0 0 0 / 0.2); }
 input[type="range"]:disabled { cursor: not-allowed; background: var(--fill-strong); opacity: 0.55; }
 input[type="range"]:disabled::-webkit-slider-thumb { background: var(--surface-2); box-shadow: 0 0 0 0.5px var(--border-strong); }

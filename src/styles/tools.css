@@ -41,7 +41,6 @@
 }
 .dropzone:hover, .dropzone.over { border-color: var(--accent); background: var(--accent-soft); }
 .dropzone.over { transform: scale(1.01); }
-.dropzone:focus-visible { box-shadow: 0 0 0 3px var(--focus-ring); }
 .dropzone > svg { width: 36px; height: 36px; padding: 8px; margin-bottom: 4px; border-radius: 50%; color: var(--brand-orange); background: var(--action-soft); transition: transform var(--dur) var(--spring); }
 .dropzone:hover > svg { transform: translateY(-2px); }
 .dropzone strong { color: var(--text); font-weight: 600; overflow-wrap: anywhere; }

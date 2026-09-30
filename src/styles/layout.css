@@ -7,7 +7,7 @@
   border-right: 1px solid var(--separator);
 }
 .sidebar .brand { all: unset; cursor: pointer; display: flex; align-items: center; gap: 11px; padding: 18px 18px 14px; border-radius: var(--r); }
-.sidebar .brand:focus-visible { box-shadow: inset 0 0 0 3px var(--focus-ring); }
+.sidebar .brand:focus-visible { outline: 3px solid var(--focus-ring); outline-offset: -3px; } /* por dentro: a barra lateral corta o que passa da borda */
 .sidebar .brand .brand-mark { width: 32px; height: 32px; }
 .sidebar .brand span { display: grid; font-family: var(--font-display); font-weight: 700; font-size: 15px; letter-spacing: -0.01em; line-height: 1.2; }
 .sidebar .brand small { font-family: var(--font); font-weight: 500; font-size: var(--text-xs); color: var(--muted); letter-spacing: 0; }
@@ -23,7 +23,7 @@
 .nav svg { width: 18px; height: 18px; color: var(--muted); flex: none; transition: color var(--dur-fast) ease, transform var(--dur) var(--spring); }
 .nav:hover { background: var(--fill); }
 .nav:active svg { transform: scale(0.88); }
-.nav:focus-visible { box-shadow: inset 0 0 0 2px var(--focus-ring); }
+.nav:focus-visible { outline: 2px solid var(--focus-ring); outline-offset: -2px; }
 .nav.active { background: var(--accent-soft); color: var(--accent-text); font-weight: 600; }
 .nav.active svg { color: var(--accent-text); }
 .nav.accent svg { color: var(--brand-orange); }
@@ -60,7 +60,7 @@ main { position: relative; overflow: auto; min-width: 0; scroll-padding-top: 64p
 :root[data-titlebar="overlay"] .sidebar .brand { padding-top: 6px; }
 
 /* Versão no rodapé da barra lateral (abre "Sobre") e selo de atualização (#18) */
-.sidebar .version { all: unset; box-sizing: border-box; display: flex; align-items: center; gap: 8px; margin: 6px 10px 0; padding: 4px 0; cursor: pointer; font-size: var(--text-xs); color: var(--tertiary); font-variant-numeric: tabular-nums; border-radius: var(--r-xs); }
-.sidebar .version:hover { color: var(--muted); }
-.sidebar .version:focus-visible { box-shadow: 0 0 0 2px var(--focus-ring); }
+.sidebar .version { all: unset; box-sizing: border-box; display: flex; align-items: center; gap: 8px; margin: 6px 10px 0; padding: 4px 0; cursor: pointer; font-size: var(--text-xs); color: var(--muted); font-variant-numeric: tabular-nums; border-radius: var(--r-xs); }
+.sidebar .version:hover { color: var(--text); }
+.sidebar .version:focus-visible { outline: 3px solid var(--focus-ring); outline-offset: 1px; }
 .sidebar .update-pill { padding: 1px 8px; border-radius: var(--r-pill); background: var(--action-soft); color: var(--action-text); font-weight: 600; animation: fade-up var(--dur) var(--ease-out) both; }

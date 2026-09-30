@@ -69,9 +69,9 @@ table.totals tr:last-child th { font-size: var(--text-lg); }
 .order-card.late { box-shadow: inset 3px 0 0 var(--danger), var(--shadow-1); }
 .order-card.late:hover { box-shadow: inset 3px 0 0 var(--danger), var(--shadow-2); }
 .order-card .order-open { all: unset; box-sizing: border-box; cursor: pointer; display: grid; gap: 5px; padding: 12px 14px 8px; border-radius: var(--r); }
+.order-card .order-open:focus-visible { outline: 3px solid var(--focus-ring); outline-offset: 1px; }
 .order-card .order-open b { font-weight: 600; }
 .order-card .order-open .small { color: var(--muted); line-height: 1.35; }
-.order-card .order-open:focus-visible { box-shadow: 0 0 0 3px var(--focus-ring); }
 .order-card > button:last-child { justify-self: end; margin: 0 8px 8px; color: var(--accent-text); }
 .order-meta { display: flex; justify-content: space-between; align-items: center; gap: 6px; margin-top: 2px; }
 .order-meta > b { font-variant-numeric: tabular-nums; }
