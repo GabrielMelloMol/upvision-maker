@@ -3,6 +3,7 @@ import { buildCutter, DEFAULT_CUTTER, type CutterParams, type ReliefMode } from 
 import Alert from "../ui/Alert";
 import Dropzone from "../ui/Dropzone";
 import ExportButtons from "../ui/ExportButtons";
+import { mergeProfiles, DEFAULT_PROFILE } from "../geometry/printProfile";
 import NumField, { inRange } from "../ui/NumField";
 import Preview3D from "../ui/Preview3D";
 import { useModelBuilder } from "../ui/useModelBuilder";
@@ -20,6 +21,9 @@ const LIMITS = {
   clearance: [0.2, 2],
   edgeMargin: [0, 6],
 } as const;
+
+/** #86: a lâmina tem 2 filetes de bico 0,4; sem suporte, deitado com a borda de apoio na mesa. */
+const CUTTER_PROFILE = mergeProfiles(DEFAULT_PROFILE, { walls: 2, notes: ["Lâmina fina: deixe ligado \"Detectar paredes finas\" no fatiador para ela não sumir."] });
 
 export default function CookieCutter() {
   const { svg, width, setWidth, loading, error: inputError, onFile } = useDesignInput(70);
@@ -88,7 +92,7 @@ export default function CookieCutter() {
               </>
             )}
           </div>
-          <ExportButtons models={models} name={svg ? `cortador-${svg.name}` : "cortador"} busy={busy} />
+          <ExportButtons models={models} name={svg ? `cortador-${svg.name}` : "cortador"} busy={busy} profile={CUTTER_PROFILE} />
         </div>
         <div className="preview-col">
           <Preview3D models={models} busy={busy || loading} busyText={loading ? "Lendo o desenho…" : "Gerando cortador…"} error={error} emptyText={svg && !valid ? "Corrija os campos em vermelho para ver o cortador." : "Envie um desenho para ver o cortador."} />

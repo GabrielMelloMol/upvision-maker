@@ -2,6 +2,7 @@ import { Download } from "lucide-react";
 import { useState } from "react";
 import { bambuProject } from "../geometry/bambuProject";
 import { printPlan, type PrintMode } from "../geometry/printPlan";
+import { profileSummary, type PrintProfile } from "../geometry/printProfile";
 import { writeStl } from "../geometry/stl";
 import { write3mf } from "../geometry/threemf";
 import type { Model } from "../geometry/types";
@@ -24,13 +25,15 @@ type Props = {
   pauses?: number[];
   /** Mostra "Como vai imprimir" (1 cor / troca manual / AMS). Desligue onde a ferramenta já cuida disso. */
   printModes?: boolean;
+  /** Configuração de impressão recomendada: vai no 3MF (Bambu/Orca) e aparece na tela. */
+  profile?: PrintProfile;
 };
 
 /** Botões padrão de exportação: 3MF com cores (principal) e STL por objeto, ajustados ao jeito de imprimir. */
-export default function ExportButtons({ models: input, name, busy, pauses: inputPauses, printModes = true }: Props) {
+export default function ExportButtons({ models: input, name, busy, pauses: inputPauses, printModes = true, profile }: Props) {
   const toast = useToast();
   const [mode, setMode] = useState<PrintMode>("ams");
-  const [layer, setLayer] = useState(0.2);
+  const [layer, setLayer] = useState(profile?.layerHeight ?? 0.2);
   const colorCount = new Set(input.flatMap((m) => m.parts.map((p) => p.color.toLowerCase()))).size;
   const showModes = printModes && colorCount > 1;
   const plan = printPlan(input, showModes ? mode : "ams", inRange(layer, 0.04, 0.4) ? layer : 0.2, inputPauses ?? []);
@@ -78,11 +81,11 @@ export default function ExportButtons({ models: input, name, busy, pauses: input
           {mode === "single" && <span className="hint">Sai tudo num filamento só (as partes continuam separadas no arquivo).</span>}
         </>
       )}
-      <button className="action" disabled={disabled} onClick={() => save(`${slug(name)}.3mf`, write3mf(models, { pauses }), "3mf", "3MF")}>
+      <button className="action" disabled={disabled} onClick={() => save(`${slug(name)}.3mf`, write3mf(models, { pauses, profile }), "3mf", "3MF")}>
         <Download aria-hidden /> Salvar 3MF {hasPauses ? "(Orca / Prusa)" : "(Bambu / Orca / Prusa)"}
       </button>
       {hasPauses && (
-        <button disabled={disabled} onClick={() => save(`${slug(name)}-bambu.3mf`, () => bambuProject(models, pauses!), "3mf", "Projeto do Bambu Studio")}>
+        <button disabled={disabled} onClick={() => save(`${slug(name)}-bambu.3mf`, () => bambuProject(models, pauses!, profile), "3mf", "Projeto do Bambu Studio")}>
           <Download aria-hidden /> Projeto do Bambu Studio (pausa pronta)
         </button>
       )}
@@ -96,6 +99,18 @@ export default function ExportButtons({ models: input, name, busy, pauses: input
             <button key={m.name} disabled={disabled} onClick={() => save(`${slug(`${name}-${m.name}`)}.stl`, writeStl([m]), "stl", "STL")}>
               <Download aria-hidden /> STL {m.name.toLowerCase()}
             </button>
+          ))}
+        </div>
+      )}
+      {profile && (
+        <div className="stack" aria-label="Configuração recomendada">
+          <span className="hint">
+            <strong>Imprima com:</strong> {profileSummary(profile)}. Já vai no 3MF para o Bambu Studio e o OrcaSlicer.
+          </span>
+          {profile.notes?.map((n) => (
+            <span key={n} className="hint">
+              {n}
+            </span>
           ))}
         </div>
       )}

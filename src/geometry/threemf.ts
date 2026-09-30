@@ -1,4 +1,5 @@
 import { strToU8, zipSync } from "fflate";
+import { bambuObjectSettings, type PrintProfile } from "./printProfile";
 import type { Mesh, Model } from "./types";
 
 const esc = (s: string) => s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
@@ -24,11 +25,13 @@ export const modelColors = (models: Model[]) => [...new Set(models.flatMap((m) =
  * 3MF com um objeto por modelo e uma parte (componente) por cor.
  * `Metadata/model_settings.config` diz ao Bambu Studio / OrcaSlicer qual extrusora (filamento) cada parte usa:
  * a extrusora é a posição da cor na lista de cores distintas (1ª cor = filamento 1).
+ * `profile`: configuração de impressão recomendada, gravada em cada objeto (o Bambu Studio e o OrcaSlicer aplicam ao abrir).
  * `pauses`: alturas (mm) do topo da camada ANTES da qual a impressora pausa (ex.: colocar ímã ou tag NFC).
  * O OrcaSlicer e o PrusaSlicer leem de qualquer 3MF (cada um no seu arquivo); o Bambu Studio só de projetos
  * gerados por ele: para ele use `bambuProject` (roda o CLI do Bambu Studio instalado).
  */
-export function write3mf(models: Model[], { pauses = [] }: { pauses?: number[] } = {}): Uint8Array {
+export function write3mf(models: Model[], { pauses = [], profile }: { pauses?: number[]; profile?: PrintProfile } = {}): Uint8Array {
+  const objectSettings = profile ? bambuObjectSettings(profile).map(([k, v]) => `<metadata key="${k}" value="${esc(v)}"/>`).join("") : "";
   const colors = modelColors(models);
   const extruder = (c: string) => colors.indexOf(c.toLowerCase()) + 1;
   let id = 1;
@@ -44,7 +47,7 @@ export function write3mf(models: Model[], { pauses = [] }: { pauses?: number[] }
     objects.push(`<object id="${objId}" name="${esc(m.name)}" type="model"><components>${partIds.map((p) => `<component objectid="${p}"/>`).join("")}</components></object>`);
     items.push(`<item objectid="${objId}" printable="1"/>`);
     config.push(
-      `<object id="${objId}"><metadata key="name" value="${esc(m.name)}"/><metadata key="extruder" value="${extruder(m.parts[0].color)}"/>` +
+      `<object id="${objId}"><metadata key="name" value="${esc(m.name)}"/><metadata key="extruder" value="${extruder(m.parts[0].color)}"/>${objectSettings}` +
         m.parts.map((p, i) => `<part id="${partIds[i]}" subtype="normal_part"><metadata key="name" value="${esc(p.name)}"/><metadata key="extruder" value="${extruder(p.color)}"/></part>`).join("") +
         `</object>`,
     );

@@ -8,6 +8,7 @@ import { getManifold } from "../geometry/manifold";
 import Alert from "../ui/Alert";
 import Dropzone from "../ui/Dropzone";
 import ExportButtons from "../ui/ExportButtons";
+import { type PrintProfile } from "../geometry/printProfile";
 import NumField, { inRange } from "../ui/NumField";
 import Preview3D from "../ui/Preview3D";
 import Segmented from "../ui/Segmented";
@@ -18,6 +19,9 @@ import { IMAGE_ACCEPT, loadRaster } from "../vectorize/client";
 import { filamentColors, loadFilaments } from "./filamentColors";
 
 type Mode = "litho" | "layered";
+/** #86: litofania em pé, maciça (a luz passa pela espessura) e com brim para não tombar. */
+const LITHO_PROFILE: PrintProfile = { layerHeight: 0.12, walls: 4, infill: 100, support: false, brim: true, notes: ["Imprima em pé, como sai no arquivo, e devagar nas camadas finas."] };
+const LAYERED_PROFILE: PrintProfile = { walls: 3, infill: 100, support: false, brim: false, notes: ["A 1ª camada também com essa altura: as trocas de cor contam camadas."] };
 const MODES: [Mode, string][] = [
   ["litho", "Litofania"],
   ["layered", "Quadro por camadas"],
@@ -160,7 +164,7 @@ export default function Lithophane() {
               <span className="hint">{layered.split ? "O fatiador troca de filamento sozinho em cada faixa; sem pausas, o 3MF abre direto no Bambu Studio, Orca ou Prusa." : "Sem AMS: a impressora pausa em cada troca para você trocar o filamento."}</span>
             </div>
           )}
-          <ExportButtons printModes={false} models={models.length ? exportModels : []} name={mode === "litho" ? "litofania" : "quadro-camadas"} busy={busy} pauses={pauses} />
+          <ExportButtons printModes={false} models={models.length ? exportModels : []} name={mode === "litho" ? "litofania" : "quadro-camadas"} busy={busy} pauses={pauses} profile={mode === "litho" ? LITHO_PROFILE : { ...LAYERED_PROFILE, layerHeight: layered.layerHeight }} />
         </div>
         <div className="preview-col">
           {mode === "litho" && <Segmented label="Prévia" value={view} options={VIEWS} onChange={setView} />}

@@ -12,6 +12,7 @@ import Alert from "../ui/Alert";
 import Dropzone from "../ui/Dropzone";
 import EmojiPicker from "../ui/EmojiPicker";
 import ExportButtons from "../ui/ExportButtons";
+import { DEFAULT_PROFILE } from "../geometry/printProfile";
 import NumField, { inRange } from "../ui/NumField";
 import Preview3D from "../ui/Preview3D";
 import Segmented from "../ui/Segmented";
@@ -195,7 +196,7 @@ export default function Keychain() {
               </label>
             </div>
           </div>
-          <ExportButtons models={models} name={batch ? "chaveiros" : `chaveiro-${splitLines(text).join(" ") || "logo"}`} busy={busy} />
+          <ExportButtons models={models} name={batch ? "chaveiros" : `chaveiro-${splitLines(text).join(" ") || "logo"}`} busy={busy} profile={DEFAULT_PROFILE} />
         </div>
         <div className="preview-col">
           <Preview3D models={models} busy={busy} busyText="Gerando chaveiros…" error={error} emptyText={!valid ? "Corrija os campos em vermelho." : silhouette && !logo ? "Envie a silhueta (SVG ou imagem) para ver o chaveiro." : "Digite um nome para ver o chaveiro."} />

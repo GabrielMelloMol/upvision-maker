@@ -108,3 +108,15 @@ describe("como vai imprimir", () => {
     expect(extruders(t.files.get("/saida/lado.3mf")!)).toEqual(new Set(["1"]));
   });
 });
+
+test("com configuração recomendada: mostra na tela e grava por objeto no 3MF (#86)", async () => {
+  const user = userEvent.setup();
+  renderWithApp(<ExportButtons models={[model("Abridor")]} name="abridor" profile={{ layerHeight: 0.2, walls: 4, infill: 40, support: false, notes: ["Faz força."] }} />);
+  expect(screen.getByLabelText("Configuração recomendada")).toHaveTextContent("Imprima com: camada 0,2 mm · 4 paredes · 40% de preenchimento · sem suporte");
+  expect(screen.getByText("Faz força.")).toBeInTheDocument();
+  await user.click(screen.getByRole("button", { name: /Salvar 3MF/ }));
+  await waitFor(() => expect(t.files.has("/saida/abridor.3mf")).toBe(true));
+  const cfg = strFromU8(unzipSync(t.files.get("/saida/abridor.3mf")!)["Metadata/model_settings.config"]);
+  expect(cfg).toContain('<metadata key="wall_loops" value="4"/>');
+  expect(cfg).toContain('<metadata key="sparse_infill_density" value="40%"/>');
+});

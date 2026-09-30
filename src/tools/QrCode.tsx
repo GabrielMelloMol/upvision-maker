@@ -7,6 +7,7 @@ import { getManifold } from "../geometry/manifold";
 import { QR_BASE_COLOR, QR_DARK_COLOR, qrModel } from "../geometry/qr3d";
 import Alert from "../ui/Alert";
 import ExportButtons from "../ui/ExportButtons";
+import { DEFAULT_PROFILE } from "../geometry/printProfile";
 import Field from "../ui/Field";
 import MoneyField from "../ui/MoneyField";
 import NumField, { inRange } from "../ui/NumField";
@@ -175,7 +176,7 @@ export default function QrCode() {
               </button>
             )}
           </div>
-          <ExportButtons models={models} name={name} busy={busy} />
+          <ExportButtons models={models} name={name} busy={busy} profile={DEFAULT_PROFILE} />
         </div>
 
         <div className="preview-col">

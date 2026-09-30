@@ -16,6 +16,7 @@ import Alert from "../ui/Alert";
 import { colorSwatch } from "../ui/ColorDots";
 import EmptyState from "../ui/EmptyState";
 import ExportButtons from "../ui/ExportButtons";
+import { DEFAULT_PROFILE } from "../geometry/printProfile";
 import NumField, { inRange } from "../ui/NumField";
 import Preview3D from "../ui/Preview3D";
 import { saveFile } from "../ui/saveFile";
@@ -156,7 +157,7 @@ export default function SpoolLabels() {
               </>
             )}
           </div>
-          <ExportButtons models={models} name="plaquinhas-de-rolo" busy={busy} />
+          <ExportButtons models={models} name="plaquinhas-de-rolo" busy={busy} profile={DEFAULT_PROFILE} />
         </div>
         <div className="preview-col">
           <Preview3D models={models} busy={busy} busyText="Gerando plaquinhas…" error={error} emptyText="Escolha filamentos para ver as plaquinhas 3D com QR." />
