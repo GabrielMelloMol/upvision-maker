@@ -8,3 +8,14 @@ export function takePendingSlicerFile(): File | null {
   pending = null;
   return f;
 }
+
+/** Estimativa de uma ferramenta 3D (#99) para preencher a calculadora ao abrir; lida uma vez. */
+let pendingEstimate: import("../SlicerImport").SlicerApply | null = null;
+export const setPendingEstimate = (a: import("../SlicerImport").SlicerApply) => {
+  pendingEstimate = a;
+};
+export function takePendingEstimate() {
+  const a = pendingEstimate;
+  pendingEstimate = null;
+  return a;
+}

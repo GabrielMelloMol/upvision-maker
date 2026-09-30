@@ -7,6 +7,7 @@ import { writeStl } from "../geometry/stl";
 import { write3mf } from "../geometry/threemf";
 import type { Model } from "../geometry/types";
 import Alert from "./Alert";
+import EstimateCard from "./EstimateCard";
 import NumField, { inRange } from "./NumField";
 import { saveFile, slug } from "./saveFile";
 import Segmented from "./Segmented";
@@ -59,6 +60,7 @@ export default function ExportButtons({ models: input, name, busy, pauses: input
 
   return (
     <div className="card stack">
+      <EstimateCard models={input} profile={profile} name={name} busy={busy} />
       {showModes && (
         <>
           <span className="field-label">Como vai imprimir</span>

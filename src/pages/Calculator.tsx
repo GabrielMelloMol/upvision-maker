@@ -18,6 +18,7 @@ import Segmented from "../ui/Segmented";
 import { useData } from "../ui/useData";
 import { formatDuration, formatMoneyInput, parseDuration, parseMoney } from "../ui/parse";
 import TimeField from "../ui/TimeField";
+import { takePendingEstimate } from "./calculator/pendingFile";
 import { type SlicerApply } from "./SlicerImport";
 import type { Go } from "../pages";
 import { setProductDraft } from "./products/draft";
@@ -98,6 +99,15 @@ export default function Calculator({ go }: { go: Go }) {
   const catalog = printer ? findCatalogPrinter(printer.name) : undefined;
 
   useEffect(() => storeSaved({ mode, fil, ext, printerId, f }), [mode, fil, ext, printerId, f]);
+  // estimativa trazida de uma ferramenta 3D (#99): gramas por filamento e tempo, na calculadora completa (uma vez, ao abrir)
+  const takeEstimate = useRef(() => {
+    const a = takePendingEstimate();
+    if (!a) return;
+    setMode("full");
+    applySlicer(a);
+    toast("Estimativa trazida da ferramenta 3D. Pode errar ±20%: se fatiar, importe o arquivo para o valor certo.");
+  });
+  useEffect(() => takeEstimate.current(), []);
 
   // Embalagem padrão (Preferências): a calculadora nova já abre com ela, 1 por peça na mesa.
   // (ajuste de estado durante o render, sem efeito: roda uma vez quando os dados chegam)
@@ -174,7 +184,7 @@ export default function Calculator({ go }: { go: Go }) {
     setFil(
       a.filaments.map((x) => ({ ref: x.filamentId ? String(x.filamentId) : "", price: x.pricePerKg !== null ? brl(x.pricePerKg) : "", qty: str(x.grams) })),
     );
-    setPrinterId(a.printerId ? String(a.printerId) : "");
+    if (a.printerId !== undefined) setPrinterId(a.printerId ? String(a.printerId) : "");
     setF((cur) => ({
       ...cur,
       watts: a.printerWatts !== null ? str(a.printerWatts) : cur.watts,

@@ -17,7 +17,8 @@ import { errorText } from "../ui/Toast";
  *  (a calculadora não busca de novo: evita usar um cadastro desatualizado). */
 export type SlicerApply = {
   filaments: { filamentId: number | null; pricePerKg: number | null; grams: number }[];
-  printerId: number | null;
+  /** undefined = mantém a impressora já escolhida (estimativa das ferramentas 3D, #99). */
+  printerId?: number | null;
   printerWatts: number | null;
   seconds?: number;
   pieces?: number;

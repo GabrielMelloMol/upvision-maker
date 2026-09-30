@@ -190,3 +190,8 @@ g:hover > .viz-hit { fill: var(--fill); }
 .phone-pair { display: flex; gap: var(--space-6); align-items: center; flex-wrap: wrap; }
 .phone-qr { width: 180px; height: 180px; padding: 8px; background: #fff; border-radius: var(--r-sm); }
 .pair-code { font-size: 36px; font-weight: 700; letter-spacing: 0.08em; font-variant-numeric: tabular-nums; }
+
+/* Estimativa sem fatiar nas ferramentas 3D (#99) */
+.estimate { display: grid; gap: var(--space-2); justify-items: start; padding-bottom: var(--space-3); border-bottom: 1px solid var(--separator); }
+.estimate-colors { list-style: none; margin: 0; padding: 0; display: grid; gap: 2px; font-size: var(--text-sm); }
+.estimate-colors i { display: inline-block; width: 10px; height: 10px; border-radius: 50%; margin-right: 4px; box-shadow: inset 0 0 0 1px var(--border-strong); }
