@@ -3,7 +3,16 @@
 Cada versão aparece para a usuária na tela "O que há de novo" depois da atualização.
 Formato: `## <versão> — <data>` e itens `- …` em linguagem simples.
 
-## Próxima versão (vira "## 0.8.1 — data" ou "## 0.9.0 — data" ao publicar; até lá o app não mostra)
+## 0.9.0 — 2026-09-30
+- **Organizador de gaveta** (novo, em Criar): digite a largura, a profundidade e a altura da gaveta (uma gaveta 3D mostra onde medir) e o app monta a base na medida, dividida para caber na mesa. Arraste as caixinhas no editor, veja tudo montado em 3D e salve um 3MF por mesa com gramas, tempo e custo. Sem régua? Imprima a régua em papel (com teste de escala) ou a régua rápida em 3D.
+- **Organizador de talheres em 2 andares**: talheres na bandeja de cima, que corre nos trilhos (ou sai por cima), e o que se usa menos embaixo.
+- **Caixinhas empilháveis** (compatíveis com Gridfinity): divisórias, rampa para os dedos, etiqueta em 2 cores e ímãs.
+- **Modelos prontos em famílias**: 24 cards no lugar de 60 itens soltos. Escolha a família (Placa, Chaveiro, Troféu…) e a variação pela miniatura. Seus rascunhos e variações salvos continuam abrindo.
+- **Vaso paramétrico** (perfil que você arrasta, torção, estrela ou polígono, modo espiral), **caixa com tampa** (encaixe ou deslizante, com divisórias) e **pixel art** (a imagem vira pixels nas cores dos seus filamentos, com editor, mosaico e quebra-cabeça).
+- **Quadro por camadas** com paletas prontas, destaque da pessoa ou do objeto e formatos (redondo, coração…).
+- **OpenSCAD personalizável**: abra um arquivo .scad no formato do Customizer e ele vira um formulário. No **Pedir à IA**, "Virar modelo" transforma a peça que deu certo num modelo com campos, e os próximos ajustes não gastam IA.
+- **Meu AMS**: cadastre o que está em cada slot e o 3MF já sai com cada cor no slot certo (ou no mais parecido), com aviso quando o modelo tem mais cores que o AMS.
+- **Gramas, tempo e R$ ao vivo** em cada ferramenta 3D, com "Levar para a Calculadora".
 - **Prévia 3D pelo teclado** (#144): com a prévia em foco (Tab), as setas giram e inclinam a peça, + e − aproximam e 0 volta ao começo. O leitor de tela (Narrador, VoiceOver) diz as medidas e as partes da peça.
 - **Texto maior** (#144): em Ajustes → Preferências → **Aparência**, escolha Normal, Grande ou Maior. O app inteiro aumenta sem quebrar as telas, e fica lembrado neste computador. **Ctrl +** e **Ctrl −** (⌘ no Mac) também dão zoom.
 - **Vidro (estilo macOS 26)** na barra de cima, nas janelas por cima (como Sobre e a busca) e no seletor de modo: translúcido, com borda de luz e um brilho que acompanha o mouse. No Windows ele também refrata de leve o que está atrás. Fica simples em computador mais fraco e opaco com **Reduzir transparência** ligado no sistema.
