@@ -15,9 +15,11 @@ for id in $ids; do
   tmp=$(mktemp -d)
   if gh run download "$id" -p "$pattern" -D "$tmp" 2>/dev/null && ls "$tmp"/*/referencia >/dev/null 2>&1; then
     for d in "$tmp"/*; do
-      mkdir -p tests/visual/referencia tests/visual/conhecidos
+      # cada artefato traz as listas das duas plataformas, mas só a da própria foi gerada nele
+      case "$d" in *-macos) so=darwin ;; *-windows) so=win32 ;; *) continue ;; esac
+      mkdir -p tests/visual/referencia tests/visual/conhecidos/$so
       cp -R "$d"/referencia/. tests/visual/referencia/
-      cp -R "$d"/conhecidos/. tests/visual/conhecidos/ 2>/dev/null || true
+      cp -R "$d"/conhecidos/$so/. tests/visual/conhecidos/$so/ 2>/dev/null || true
     done
     rm -rf "$tmp"
     echo "referências da execução $id"
