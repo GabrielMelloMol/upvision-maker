@@ -90,6 +90,13 @@ export const ARTICLES: HelpArticle[] = [
     steps: ["Arraste o 3MF pintado (Bambu Studio, OrcaSlicer ou PrusaSlicer).", "Confira as cores encontradas.", "Se quiser, corte pelo plano com pino de encaixe.", "Salve as peças e cole ou encaixe depois de imprimir."],
   },
   {
+    id: "scad",
+    title: "OpenSCAD personalizável",
+    intro: "Abra um .scad com parâmetros (formato do Customizer) e ajuste as medidas num formulário.",
+    steps: ["Arraste o arquivo .scad baixado do Thingiverse, Printables ou MakerWorld.", "Escolha a licença que o autor informou e dê o crédito.", "Ajuste os campos de cada aba e confira a prévia.", "Salve o 3MF ou guarde em Meus modelos para usar de novo."],
+    tips: ["Se o .scad lê um arquivo (desenho, foto), envie o seu no campo que aparece.", "NC = não comercial: pode imprimir para você, não para vender."],
+  },
+  {
     id: "search3d",
     title: "Buscar modelos 3D",
     intro: "Busca no Printables, MakerWorld, Thingiverse, Cults3D e Thangs, no navegador.",
