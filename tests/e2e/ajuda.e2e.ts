@@ -62,3 +62,22 @@ test("Comece por aqui: calcular um preço abre a calculadora com o exemplo; fech
   await page.reload();
   await expect(page.getByRole("region", { name: "Comece por aqui" })).toHaveCount(0);
 });
+
+test("ajuda com várias imagens: tutorial de como medir a gaveta em carrossel com legenda (#140)", async ({ page }) => {
+  await openApp(page);
+  await go(page, "Organizador de gaveta");
+  await page.getByRole("button", { name: "Ajuda: Organizador de gaveta" }).click();
+  const help = page.getByRole("dialog", { name: "Organizador de gaveta" });
+  const carousel = help.getByRole("region", { name: "Imagens: Organizador de gaveta" });
+  await expect(carousel.getByRole("group", { name: "1 de 5" })).toContainText("Largura");
+  // a imagem carregou de verdade (não é um quadro vazio)
+  await expect.poll(() => carousel.locator("img").evaluate((img: HTMLImageElement) => img.complete && img.naturalWidth)).toBeGreaterThan(0);
+  await carousel.getByRole("button", { name: "Próxima imagem" }).click();
+  await expect(carousel.getByRole("group", { name: "2 de 5" })).toContainText("Profundidade");
+  await carousel.getByRole("button", { name: "Próxima imagem" }).focus();
+  await page.keyboard.press("ArrowRight");
+  await expect(carousel.getByRole("group", { name: "3 de 5" })).toContainText("Altura livre");
+  await carousel.getByRole("button", { name: "Imagem 5 de 5" }).click();
+  await expect.poll(() => carousel.locator("img").evaluate((img: HTMLImageElement) => img.complete && img.naturalWidth)).toBeGreaterThan(0);
+  if (SHOTS) await help.screenshot({ path: `${SHOTS}/ajuda-carrossel.png` });
+});

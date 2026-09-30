@@ -4,6 +4,7 @@ Cada versão aparece para a usuária na tela "O que há de novo" depois da atual
 Formato: `## <versão> — <data>` e itens `- …` em linguagem simples.
 
 ## Próxima versão (vira "## 0.8.1 — data" ou "## 0.9.0 — data" ao publicar; até lá o app não mostra)
+- **Ajuda com várias imagens** (#84, #140): o botão **?** agora mostra um carrossel com legenda (setas, pontinhos ou ← →). No Organizador de gaveta, ele ensina a medir a largura, a profundidade e a altura livre com a própria gaveta 3D do app, e mostra a grade e a gaveta montada.
 - **Ícone novo** (#138): o app agora usa o símbolo da UpVision (a impressora-câmera imprimindo camadas do laranja ao azul) no Dock, no ⌘Tab, na barra de tarefas do Windows e no instalador, redesenhado em vetor. Dentro do app ele aparece na barra lateral, em Sobre e nas boas-vindas, e fica claro no tema escuro.
 - Correção: a **Cumbuca no contorno** com fundo arredondado saía com um pedaço da parede solto no ar (e no tamanho máximo o fatiador recusava). Agora a peça sai inteira, apoiada na mesa (#134).
 - **Variações por cor** (#82): no produto, em **Variações**, cadastre as cores (Azul, Rosa, Dourado…) com SKU, estoque pronto e, se quiser, preço próprio. Escolha o filamento de cada cor e o custo acompanha o preço daquele rolo. Ao exportar para a Shopee ou o Mercado Livre, cada cor vira uma linha da mesma vitrine. O app avisa quando os preços passam de 4× de diferença, o que a Shopee recusa.

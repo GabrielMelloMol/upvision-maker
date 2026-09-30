@@ -1,9 +1,11 @@
 /**
  * Ajuda dentro do app (#84): um artigo curto por tela (id = id da página em pages.tsx).
  * 3 a 5 passos, dicas de impressão e, onde existe, "Usar exemplo" (a ferramenta carrega um exemplo pronto).
- * Texto a partir do guia em PDF (docs/guia), mais curto. `image` = arquivo em src/assets/help.
+ * Texto a partir do guia em PDF (docs/guia), mais curto. `images` = arquivos em src/assets/help com legenda.
  */
-export type HelpArticle = { id: string; title: string; intro: string; steps: string[]; tips?: string[]; image?: string; example?: string };
+/** Imagem da ajuda: arquivo em src/assets/help e a legenda que aparece embaixo (com várias, vira carrossel). */
+export type HelpImage = { file: string; caption: string };
+export type HelpArticle = { id: string; title: string; intro: string; steps: string[]; tips?: string[]; images?: HelpImage[]; example?: string };
 
 export const ARTICLES: HelpArticle[] = [
   {
@@ -19,7 +21,7 @@ export const ARTICLES: HelpArticle[] = [
     intro: "Transforma um logo, desenho ou foto num contorno limpo, já no tamanho de impressão em mm.",
     steps: ["Arraste a imagem (PNG, JPG, WebP…).", "Escolha Logo / desenho (fundo liso) ou Silhueta (foto de pessoa, pet ou objeto).", "Em Cores, escolha de 1 a 4: cada cor vira uma camada que encaixa na outra.", "Ajuste a Largura final e clique em Aplicar alterações.", "Salve o SVG ou mande direto para o Cortador ou a Extrusão."],
     tips: ["Trechos em vermelho ficam com menos de 0,4 mm: use Engrossar traços finos ou aumente a largura."],
-    image: "svg-colorido.webp",
+    images: [{ file: "svg-colorido.webp", caption: "Logo em 3 cores: cada cor vira uma camada que encaixa na outra." }],
     example: "Usar um logo de exemplo",
   },
   {
@@ -36,7 +38,7 @@ export const ARTICLES: HelpArticle[] = [
     intro: "Nome com fonte bonita, logo opcional e argola. Base e texto saem em cores separadas.",
     steps: ["Digite o nome, ou escolha Lote de nomes e cole um por linha.", "Clique na fonte para ver as 56 fontes com o seu nome; marque as favoritas.", "Se quiser, envie um logo: ele fica à esquerda do texto.", "Ajuste base, relevo e argola e salve o 3MF."],
     tips: ["O app avisa se a fonte ficar fina demais para o bico 0,4 ou se a cursiva não unir as letras.", "No fatiador, cada cor já é uma parte: escolha o filamento de cada uma."],
-    image: "fontes.webp",
+    images: [{ file: "fontes.webp", caption: "Clique na fonte para ver o seu nome em todas elas." }],
   },
   {
     id: "medal",
@@ -72,7 +74,7 @@ export const ARTICLES: HelpArticle[] = [
     title: "Etiquetas de rolo",
     intro: "Um QR para cada rolo: aponte a câmera para dar baixa das gramas usadas.",
     steps: ["Marque os filamentos e salve as etiquetas (A4 ou etiquetadora 50×30) ou as plaquinhas 3D.", "Cole a etiqueta no carretel.", "Depois de imprimir, clique em Ler com a câmera e aponte para a etiqueta.", "Informe as gramas usadas ou marque Rolo acabou."],
-    image: "etiquetas.webp",
+    images: [{ file: "etiquetas.webp", caption: "Uma etiqueta com QR por rolo, para dar baixa lendo com o celular." }],
   },
   {
     id: "lithophane",
@@ -80,7 +82,7 @@ export const ARTICLES: HelpArticle[] = [
     intro: "Foto em relevo: litofania para ver contra a luz ou quadro colorido por camadas.",
     steps: ["Envie a foto: rostos e paisagens com bom contraste ficam melhores.", "Litofania: escolha plana, curva ou caixa de luz e as espessuras.", "Quadro: escolha uma paleta pronta ou marque 2 a 4 filamentos, do escuro ao claro.", "No quadro, escolha o formato, o furo para pendurar e, se quiser, o encaixe de ímã.", "Salve o 3MF."],
     tips: ["Litofania em PLA branco, em pé, com 100% de preenchimento.", "Sem AMS, o quadro pausa em cada troca de cor; com AMS, ligue Uma parte por cor.", "Cadastre o TD de cada filamento (em Filamentos) para as faixas ficarem na altura certa.", "Separe a pessoa ou o bicho para deixar o fundo liso numa cor ou recortar no contorno."],
-    image: "litofania.webp",
+    images: [{ file: "litofania.webp", caption: "Contra a luz, as partes finas clareiam e a foto aparece." }],
     example: "Usar uma foto de exemplo",
   },
   {
@@ -102,6 +104,14 @@ export const ARTICLES: HelpArticle[] = [
     intro: "Meça a gaveta: o app calcula as casas de 42 mm (compatível com Gridfinity), a margem de cada lado, os pedaços da base e a altura que cabe.",
     steps: ["Digite as medidas de dentro da gaveta (largura, profundidade e altura livre).", "Arraste na grade para criar cada caixinha; toque numa para ajustar altura, divisões, etiqueta e cor.", "Confira a gaveta montada em 3D e os avisos.", "Salve: a base e as caixinhas saem arrumadas em mesas de 256 mm."],
     tips: ["Imprima antes o Gridfinity: teste de encaixe (Modelos prontos) para conferir a folga.", "Setas movem a caixinha, Shift + setas mudam o tamanho, ⌘D duplica e Delete apaga."],
+    // tutorial ilustrado de como medir (#140): telas do próprio app (npm run help-shots)
+    images: [
+      { file: "gaveta-largura.webp", caption: "Largura: por dentro, de uma parede lateral à outra, no ponto mais estreito (trilhos contam)." },
+      { file: "gaveta-profundidade.webp", caption: "Profundidade: da parede de trás até a frente, por dentro." },
+      { file: "gaveta-altura.webp", caption: "Altura livre: do fundo até o que fica em cima com a gaveta fechada (tampo ou gaveta de cima)." },
+      { file: "gaveta-grade.webp", caption: "Arraste na grade para criar cada caixinha. A linha tracejada é a emenda entre os pedaços da base." },
+      { file: "gaveta-montada.webp", caption: "Em Gaveta, confira o organizador montado dentro antes de imprimir." },
+    ],
   },
   {
     id: "scad",
@@ -130,7 +140,7 @@ export const ARTICLES: HelpArticle[] = [
     intro: "Filamento, gramas, tempo e impressora: o resto vem das Preferências.",
     steps: ["Escolha o filamento (ou digite o preço do kg) e as gramas.", "Escolha a impressora e o tempo (3h20, 3:20 ou 200 min).", "Veja os preços para lojista e para venda direta.", "Salve como produto ou adicione ao orçamento."],
     tips: ["Arraste o 3MF fatiado ou o G-code: gramas, tempo e peças entram sozinhos.", "Em Completo: preço por canal, para onde vai o preço e comparar cenários."],
-    image: "calc-rapida.webp",
+    images: [{ file: "calc-rapida.webp", caption: "No modo Rápido bastam filamento, gramas, tempo e impressora." }],
     example: "Preencher um exemplo",
   },
   {
@@ -207,7 +217,7 @@ export const ARTICLES: HelpArticle[] = [
     intro: "Os números que entram em todos os cálculos.",
     steps: ["Preço do kWh: use Calcular pela conta de luz (ou a média do estado).", "Hora de trabalho, taxa de falha e impostos.", "Multiplicadores de lojista e venda direta.", "Taxas dos canais de venda (confira de tempos em tempos)."],
     tips: ["Ligue o Backup automático apontando para uma pasta do OneDrive ou Google Drive."],
-    image: "conta-luz.webp",
+    images: [{ file: "conta-luz.webp", caption: "O preço do kWh está na conta de luz, somando energia e bandeira." }],
   },
 ];
 

@@ -3,9 +3,8 @@ import Sheet from "../ui/Sheet";
 import { articleFor, type HelpArticle } from "./articles";
 import { GLOSSARY } from "./glossary";
 import { closeHelp, openHelp, requestExample, useHasExample, useOpenHelp } from "./helpStore";
+import HelpImages from "./HelpImages";
 
-const IMAGES = import.meta.glob<string>("../assets/help/*.webp", { query: "?url", import: "default", eager: true });
-const imageUrl = (file: string) => IMAGES[`../assets/help/${file}`];
 
 /** Ajuda aberta (botão "?", tecla ?, busca ⌘K): artigo da tela ou o glossário. */
 export default function HelpSheet() {
@@ -52,7 +51,7 @@ function Article({ a }: { a: HelpArticle }) {
             <li key={s}>{s}</li>
           ))}
         </ol>
-        {a.image && imageUrl(a.image) && <img className="help-image" src={imageUrl(a.image)} alt={`Exemplo: ${a.title}`} loading="lazy" />}
+        {a.images?.length ? <HelpImages images={a.images} title={a.title} /> : null}
         {a.tips?.length ? (
           <div className="help-tips">
             <Lightbulb aria-hidden size={16} />

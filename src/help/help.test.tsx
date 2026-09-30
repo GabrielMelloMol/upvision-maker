@@ -1,9 +1,11 @@
 // @vitest-environment happy-dom
-import { act, renderHook } from "@testing-library/react";
+import { act, fireEvent, render, renderHook, screen } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
 import { expect, test, vi } from "vitest";
 import { PAGES } from "../pages";
 import { ARTICLES, articleFor } from "./articles";
 import { termFor } from "./glossary";
+import HelpImages, { helpImageUrl } from "./HelpImages";
 import { hasExample, requestExample, useExample } from "./helpStore";
 
 test("toda tela (fora a interna de design) tem ajuda, com 3 a 5 passos (#84)", () => {
@@ -34,4 +36,39 @@ test("exemplo pedido antes de a ferramenta abrir é carregado quando ela registr
   expect(load).toHaveBeenCalledTimes(2);
   unmount();
   expect(hasExample("teste")).toBe(false);
+});
+
+test("imagens da ajuda existem e têm legenda; a gaveta tem o tutorial de como medir (#140)", () => {
+  for (const a of ARTICLES)
+    for (const im of a.images ?? []) {
+      expect(helpImageUrl(im.file), `${a.id}: ${im.file}`).toBeTruthy();
+      expect(im.caption.length, `${a.id}: ${im.file}`).toBeGreaterThan(10);
+    }
+  const drawer = articleFor("drawer")!;
+  expect(drawer.images!.map((i) => i.file)).toEqual(["gaveta-largura.webp", "gaveta-profundidade.webp", "gaveta-altura.webp", "gaveta-grade.webp", "gaveta-montada.webp"]);
+});
+
+test("carrossel: setas dão a volta, pontos pulam e ← → do teclado trocam a imagem e a legenda", async () => {
+  const user = userEvent.setup();
+  render(<HelpImages title="Gaveta" images={articleFor("drawer")!.images!} />);
+  const caption = () => screen.getByRole("group", { name: /de 5$/ }).querySelector("figcaption")!.textContent;
+  expect(screen.getByRole("region", { name: "Imagens: Gaveta" })).toBeInTheDocument();
+  expect(caption()).toMatch(/^Largura:/);
+  await user.click(screen.getByRole("button", { name: "Imagem anterior" }));
+  expect(screen.getByRole("group", { name: "5 de 5" })).toBeInTheDocument();
+  await user.click(screen.getByRole("button", { name: "Próxima imagem" }));
+  expect(screen.getByRole("button", { name: "Imagem 1 de 5" })).toHaveAttribute("aria-current", "true");
+  await user.click(screen.getByRole("button", { name: "Imagem 4 de 5" }));
+  expect(caption()).toMatch(/^Arraste na grade/);
+  fireEvent.keyDown(screen.getByRole("region"), { key: "ArrowRight" });
+  expect(caption()).toMatch(/^Em Gaveta/);
+  fireEvent.keyDown(screen.getByRole("region"), { key: "ArrowLeft" });
+  expect(screen.getByRole("group", { name: "4 de 5" })).toBeInTheDocument();
+});
+
+test("uma imagem só: figura com legenda, sem controles do carrossel", () => {
+  render(<HelpImages title="Chaveiros" images={articleFor("keychain")!.images!} />);
+  expect(screen.queryByRole("region")).not.toBeInTheDocument();
+  expect(screen.queryByRole("button")).not.toBeInTheDocument();
+  expect(screen.getByText(/Clique na fonte/)).toBeInTheDocument();
 });
