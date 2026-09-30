@@ -1,5 +1,4 @@
-import { useEffect, useState } from "react";
-import { useHistory } from "../../ui/useHistory";
+import { useState } from "react";
 import type { ElementBox } from "../../geometry/models/common";
 import type { FaceInfo, LayerShape } from "./applyLayers";
 import { duplicateLayer, moveLayer, newArtLayer, newTextLayer, removeLayer, updateLayer, type Layer } from "./layers";
@@ -10,38 +9,24 @@ const NO_OFFSETS: Offsets = {};
 
 /** Deslocamento (mm) de cada elemento interno do modelo arrastado no gizmo (#79). */
 export type Offsets = Record<string, [number, number]>;
-type ModelEdit = { layers: Layer[]; offsets: Offsets };
+export type ModelEdit = { layers: Layer[]; offsets: Offsets };
+export type ModelEdits = Record<string, ModelEdit>;
 
 type View = { face: FaceInfo | null; shapes: Record<string, LayerShape>; byLayer: Record<string, string[]>; elements: ElementBox[] };
 
 /**
- * Camadas livres de cada modelo (#26) e deslocamentos dos elementos internos (#79), no mesmo desfazer/refazer
- * (⌘Z / ⇧⌘Z fora de campos de texto), e a camada escolhida.
+ * Camadas livres de cada modelo (#26) e deslocamentos dos elementos internos (#79), e a camada escolhida.
+ * O estado (`edits`) mora no useToolState dos Modelos (#85): o mesmo desfazer vale para campos, camadas e posições.
  */
-export function useModelLayers(modelId: string) {
-  const hist = useHistory<Record<string, ModelEdit>>({});
-  const layers = hist.value[modelId]?.layers ?? NONE;
-  const offsets = hist.value[modelId]?.offsets ?? NO_OFFSETS;
+export function useModelLayers(modelId: string, edits: ModelEdits, setEdits: (fn: (cur: ModelEdits) => ModelEdits) => void) {
+  const layers = edits[modelId]?.layers ?? NONE;
+  const offsets = edits[modelId]?.offsets ?? NO_OFFSETS;
   const [sel, setSel] = useState<{ model: string; id: string | null }>({ model: modelId, id: null });
   const selected = sel.model === modelId && layers.some((l) => l.id === sel.id) ? sel.id : null;
   const [view, setView] = useState<View>({ face: null, shapes: {}, byLayer: {}, elements: [] });
   const select = (id: string | null) => setSel({ model: modelId, id });
-  const edit = (fn: (l: Layer[]) => Layer[]) => hist.set((cur) => ({ ...cur, [modelId]: { offsets: cur[modelId]?.offsets ?? {}, layers: fn(cur[modelId]?.layers ?? []) } }));
-  const editOffsets = (fn: (o: Offsets) => Offsets) => hist.set((cur) => ({ ...cur, [modelId]: { layers: cur[modelId]?.layers ?? [], offsets: fn(cur[modelId]?.offsets ?? {}) } }));
-  const { undo, redo } = hist;
-
-  useEffect(() => {
-    const onKey = (e: KeyboardEvent) => {
-      if (!(e.metaKey || e.ctrlKey) || e.key.toLowerCase() !== "z") return;
-      const t = e.target as HTMLElement | null;
-      if (t?.closest("input, textarea, select, [contenteditable]")) return; // desfazer do próprio campo
-      e.preventDefault();
-      if (e.shiftKey) redo();
-      else undo();
-    };
-    window.addEventListener("keydown", onKey);
-    return () => window.removeEventListener("keydown", onKey);
-  }, [undo, redo]);
+  const edit = (fn: (l: Layer[]) => Layer[]) => setEdits((cur) => ({ ...cur, [modelId]: { offsets: cur[modelId]?.offsets ?? {}, layers: fn(cur[modelId]?.layers ?? []) } }));
+  const editOffsets = (fn: (o: Offsets) => Offsets) => setEdits((cur) => ({ ...cur, [modelId]: { layers: cur[modelId]?.layers ?? [], offsets: fn(cur[modelId]?.offsets ?? {}) } }));
 
   const faceBounds = view.face?.bounds ?? null;
   return {
@@ -53,15 +38,10 @@ export function useModelLayers(modelId: string) {
         const [x, y] = o[id] ?? [0, 0];
         return { ...o, [id]: [Math.round((x + dx) * 10) / 10, Math.round((y + dy) * 10) / 10] };
       }),
-    /** Volta todos os elementos internos para a posição calculada pelo modelo. */
-    clearOffsets: () => {
-      if (Object.keys(offsets).length) editOffsets(() => ({}));
-    },
     selected,
     select,
     view,
     setView,
-    history: { undo, redo, canUndo: hist.canUndo, canRedo: hist.canRedo },
     addArt(svg: string, name: string) {
       const l = newArtLayer(svg, name, faceBounds);
       edit((list) => [...list, l]);

@@ -28,8 +28,10 @@ import type { Model } from "../geometry/types";
 import { applyLayers } from "./models/applyLayers";
 import DecalGizmo from "./models/DecalGizmo";
 import LayersPanel, { layerValid } from "./models/LayersPanel";
-import { useModelLayers } from "./models/useModelLayers";
+import { useModelLayers, type ModelEdits } from "./models/useModelLayers";
 import UserVariants from "./models/UserVariants";
+import ToolSessionBar from "./ToolSessionBar";
+import { useToolState } from "./useToolState";
 import ParamField, { firstText } from "./models/ParamField";
 
 /** Minúsculas e sem acento, para a busca. */
@@ -54,12 +56,33 @@ function loadFavorites(): string[] {
   }
 }
 
+const initialState = () => ({
+  id: MODELS[0].id,
+  all: Object.fromEntries(MODELS.map((m) => [m.id, m.defaults])) as Record<string, Params>,
+  font: "hanken" as FontId,
+  art: null as { svg: string; name: string } | null,
+  // lote (#76): uma linha por cópia, por modelo
+  batchOn: false,
+  batchText: {} as Record<string, string>,
+  edits: {} as ModelEdits,
+});
+type ModelsState = ReturnType<typeof initialState>;
+
 /** Modelos paramétricos prontos: escolha na galeria, ajuste os campos, veja em 3D e salve o 3MF em cores. */
 export default function Models() {
-  const [id, setId] = useState(MODELS[0].id);
-  const [all, setAll] = useState<Record<string, Params>>(() => Object.fromEntries(MODELS.map((m) => [m.id, m.defaults])));
-  const [font, setFont] = useState<FontId>("hanken");
-  const [art, setArt] = useState<{ svg: string; name: string } | null>(null);
+  // estado de trabalho (#85): modelo, campos de cada modelo, fonte, desenho, lote, camadas e posições no mesmo desfazer
+  const tool = useToolState("models", initialState, {
+    label: "Modelos prontos",
+    // modelos ou campos novos de uma versão mais nova do app ganham o padrão
+    load: (raw) => {
+      const r = raw as ModelsState;
+      const base = initialState();
+      return { ...base, ...r, id: MODELS.some((m) => m.id === r.id) ? r.id : base.id, all: Object.fromEntries(MODELS.map((m) => [m.id, { ...m.defaults, ...r.all?.[m.id] }])) };
+    },
+  });
+  const { id, all, font, art, batchOn, batchText } = tool.state;
+  const { adopt } = tool;
+  const [setId, setAll, setFont, setArt, setBatchOn, setBatchText] = [tool.field("id"), tool.field("all"), tool.field("font"), tool.field("art"), tool.field("batchOn"), tool.field("batchText")];
   const [artError, setArtError] = useState<string | null>(null);
   const [category, setCategory] = useState<Category>(MODELS[0].category);
   const [query, setQuery] = useState("");
@@ -67,11 +90,8 @@ export default function Models() {
   // ocasião ou favoritos: filtro que atravessa as categorias (como a busca)
   const [occasion, setOccasion] = useState<Collection | "favorites" | null>(null);
   const [favorites, setFavorites] = useState<string[]>(loadFavorites);
-  // lote (#76): uma linha por cópia, por modelo
-  const [batchOn, setBatchOn] = useState(false);
-  const [batchText, setBatchText] = useState<Record<string, string>>({});
   const def = MODELS.find((m) => m.id === id)!;
-  const lay = useModelLayers(id); // camadas livres (#26)
+  const lay = useModelLayers(id, tool.state.edits, (fn) => tool.set((cur) => ({ ...cur, edits: fn(cur.edits) }))); // camadas livres (#26)
   const q = normalize(query.trim());
   const shown = q
     ? MODELS.filter((m) => normalize(`${m.label} ${m.blurb}`).includes(q))
@@ -106,17 +126,16 @@ export default function Models() {
   const variants = [...(VARIANTS[id] ?? [])].sort((a, b) => Number(!!occasion && occasion !== "favorites" && !!b.collections?.includes(occasion)) - Number(!!occasion && occasion !== "favorites" && !!a.collections?.includes(occasion)));
   const applyVariant = (patch: Params) => setAll((a) => ({ ...a, [id]: { ...def.defaults, ...patch } }));
   const p = all[id];
-  const set = (k: string) => (v: string | number | boolean) => setAll((a) => ({ ...a, [id]: { ...a[id], [k]: v } }));
+  const set = (k: string) => (v: string | number | boolean) => tool.set((cur) => ({ ...cur, all: { ...cur.all, [id]: { ...cur.all[id], [k]: v } } }), `${id}.${k}`);
 
   // Placa Pix já vem com os dados da empresa (Preferências → Dados da empresa).
   useEffect(() => {
     getDb()
       .then(loadCompany)
-      .then((c) =>
-        setAll((a) => ({ ...a, pix: { ...a.pix, key: c.pixKey, name: c.pixName || c.tradeName || c.name, city: c.pixCity || c.city, subtitle: c.tradeName || c.name } })),
-      )
+      // preenchimento automático: não é passo de desfazer nem trabalho novo
+      .then((c) => adopt((s) => ({ ...s, all: { ...s.all, pix: { ...s.all.pix, key: c.pixKey, name: c.pixName || c.tradeName || c.name, city: c.pixCity || c.city, subtitle: c.tradeName || c.name } } })))
       .catch((e) => console.warn("Sem dados da empresa para a placa Pix:", e));
-  }, []);
+  }, [adopt]);
 
   async function onArt(f: File) {
     setArtError(null);
@@ -213,15 +232,16 @@ export default function Models() {
   }, [def, p, font, useArt, valid, batchOn, batchValue, lay.layers, lay.offsets]);
 
   // posição dos elementos internos (#79): "Centralizar" põe no meio e zera os arrastes; "Restaurar" volta a arrumação padrão
+  // zera os arrastes e ajusta os campos de arrumação num passo só do desfazer
+  const arrange = (patch: Params) =>
+    tool.set((cur) => ({ ...cur, all: { ...cur.all, [id]: { ...cur.all[id], ...patch } }, edits: { ...cur.edits, [id]: { layers: cur.edits[id]?.layers ?? [], offsets: {} } } }));
   function centerAll() {
-    lay.clearOffsets();
     const middle = def.sections.flatMap((s) => s.fields).filter((f) => f.kind === "choice" && f.options.some(([v]) => v === "middle"));
-    if (middle.length) setAll((a) => ({ ...a, [id]: { ...a[id], ...Object.fromEntries(middle.map((f) => [f.k, "middle"])) } }));
+    arrange(Object.fromEntries(middle.map((f) => [f.k, "middle"])));
   }
   function restorePosition() {
-    lay.clearOffsets();
     const keys = def.sections.filter((s) => s.title === ARRANGE_SECTION).flatMap((s) => s.fields.map((f) => f.k));
-    if (keys.length) setAll((a) => ({ ...a, [id]: { ...a[id], ...Object.fromEntries(keys.map((k) => [k, def.defaults[k]])) } }));
+    arrange(Object.fromEntries(keys.map((k) => [k, def.defaults[k]])));
   }
   const elements = copies ? [] : lay.view.elements;
 
@@ -229,6 +249,7 @@ export default function Models() {
     <div className="page">
       <h1>Modelos prontos</h1>
       <p className="lead">Escolha um modelo, ajuste texto, tamanho e cores e salve o 3MF já separado por cor.</p>
+      <ToolSessionBar tool={tool} />
       <div className="model-picker">
         <div className="row">
           {/* buscando, os resultados são de todas as categorias: nenhuma fica marcada */}
@@ -295,10 +316,10 @@ export default function Models() {
             modelId={id}
             params={p}
             layers={lay.layers}
-            onApply={(params, layers) => {
-              setAll((a) => ({ ...a, [id]: { ...def.defaults, ...params } }));
-              lay.replace(layers);
-            }}
+            onApply={(params, layers) =>
+              // campos e camadas da variação num passo só do desfazer
+              tool.set((cur) => ({ ...cur, all: { ...cur.all, [id]: { ...def.defaults, ...params } }, edits: { ...cur.edits, [id]: { layers, offsets: cur.edits[id]?.offsets ?? {} } } }))
+            }
           />
           {batchKeys && (
             <div className="card stack">
@@ -345,10 +366,10 @@ export default function Models() {
             onMove={lay.move}
             onDuplicate={lay.duplicate}
             onRemove={lay.remove}
-            history={lay.history}
+            history={{ undo: tool.undo, redo: tool.redo, canUndo: tool.canUndo, canRedo: tool.canRedo }}
             disabled={copies ? "No lote, os desenhos e textos livres ficam de fora: desligue o lote para usá-los." : undefined}
           />
-          <ExportButtons models={models} name={copies ? `${def.label}-lote` : `${def.label}-${String(p.text ?? p.line1 ?? p.title ?? p.base ?? "")}`} busy={busy} pauses={pauses} profile={profileFor(id, p)} />
+          <ExportButtons models={models} name={copies ? `${def.label}-lote` : `${def.label}-${String(p.text ?? p.line1 ?? p.title ?? p.base ?? "")}`} busy={busy} pauses={pauses} profile={profileFor(id, p)} onSaved={tool.exported} />
         </div>
         <div className="preview-col">
           <Preview3D models={models} busy={busy} busyText={`Gerando ${def.label.toLowerCase()}…`} error={error} emptyText={!valid ? "Corrija os campos em vermelho." : (missing ?? undefined)} />

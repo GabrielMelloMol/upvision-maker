@@ -69,3 +69,27 @@ test("litofania: a foto volta junto no Continuar; medalha tem desfazer (#85)", a
   await page.getByRole("button", { name: "Desfazer" }).click();
   await expect(size).toHaveValue(before);
 });
+
+test("modelos prontos: continuar volta o mesmo modelo e os campos; desfazer vale para campo e camada juntos (#85)", async ({ page }) => {
+  await openApp(page);
+  await go(page, "Modelos prontos");
+  await page.getByRole("searchbox", { name: "Buscar modelo" }).fill("Placa de sinalização");
+  await page.getByRole("group", { name: "Modelo" }).getByRole("button", { name: "Placa de sinalização", exact: true }).click();
+  const first = page.locator(".controls").getByLabel("Texto", { exact: true });
+  await first.fill("Caixa");
+  await page.getByRole("region", { name: "Camadas livres" }).getByRole("button", { name: "Adicionar texto" }).click();
+  await expect(page.getByRole("region", { name: "Camadas livres" }).getByRole("listitem")).toHaveCount(1);
+  await page.locator("h1").click();
+  await page.keyboard.press("ControlOrMeta+z"); // desfaz a camada
+  await expect(page.getByRole("region", { name: "Camadas livres" }).getByRole("listitem")).toHaveCount(0);
+  await page.keyboard.press("ControlOrMeta+z"); // desfaz o campo
+  await expect(first).not.toHaveValue("Caixa");
+  await page.keyboard.press("ControlOrMeta+Shift+z");
+  await expect(first).toHaveValue("Caixa");
+  await page.waitForTimeout(1500); // rascunho grava depois de parar de mexer
+  await page.reload();
+  await go(page, "Modelos prontos");
+  await page.getByRole("button", { name: "Continuar de onde parou" }).click();
+  await expect(page.getByRole("heading", { name: "Placa de sinalização", level: 2 })).toBeVisible();
+  await expect(page.locator(".controls").getByLabel("Texto", { exact: true })).toHaveValue("Caixa");
+});
