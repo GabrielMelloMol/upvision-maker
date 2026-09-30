@@ -29,7 +29,7 @@ const Z_TOL = 0.21; // mm: pausa no G-code até uma camada de distância do Z pe
 
 const wanted = (id: string, group: string, owner: string) => (!IDS || IDS.includes(id)) && (!GROUPS || GROUPS.includes(group)) && (!OWNERS || OWNERS.includes(owner));
 
-type Built = { c: QaCase; row: QaRow; file?: string; pauses: number[]; notes: string[] };
+type Built = { c: QaCase; row: QaRow; file?: string; pauses: number[]; notes: string[]; bedWarned: boolean };
 
 async function build(c: QaCase): Promise<Built> {
   const M = await getManifold();
@@ -39,11 +39,14 @@ async function build(c: QaCase): Promise<Built> {
     out = await c.build();
   } catch (e) {
     const na = e instanceof MissingInput;
-    return { c, row: { ...row, status: statusOf(na ? [] : ["x"], [], na), reasons: [na ? `pede entrada: ${e.message}` : `erro ao gerar: ${e instanceof Error ? e.message : String(e)}`] }, pauses: [], notes: [] };
+    return { c, row: { ...row, status: statusOf(na ? [] : ["x"], [], na), reasons: [na ? `pede entrada: ${e.message}` : `erro ao gerar: ${e instanceof Error ? e.message : String(e)}`] }, pauses: [], notes: [], bedWarned: false };
   }
   const problems = checkModels(M, out.models);
-  const fails = problems.filter((p) => p.kind === "fail").map((p) => p.msg);
-  const warns = problems.filter((p) => p.kind === "warn").map((p) => p.msg);
+  // peça maior que a mesa do A1 com o aviso do app na tela: não é bug (serve para impressoras de mesa maior), é aviso
+  const bedWarned = out.warnings.some((w) => /mesa/i.test(w));
+  const isBed = (msg: string) => /não cabe na mesa|passa da mesa/.test(msg);
+  const fails = problems.filter((p) => p.kind === "fail" && !(bedWarned && isBed(p.msg))).map((p) => p.msg);
+  const warns = problems.filter((p) => p.kind === "warn" || (bedWarned && isBed(p.msg))).map((p) => p.msg);
   const notes = out.warnings.map((w) => `app: ${w}`); // o que o app já mostra na tela: vai no relatório, não muda o resultado
   const bytes = write3mf(out.models, { pauses: out.pauses, profile: c.profile });
   const colors = new Set(out.models.flatMap((m) => m.parts.map((p) => p.color.toLowerCase())));
@@ -55,14 +58,19 @@ async function build(c: QaCase): Promise<Built> {
   mkdirSync(dir, { recursive: true });
   const file = join(dir, "modelo.3mf");
   writeFileSync(file, bytes);
-  return { c, row: { ...row, status: statusOf(fails, warns), reasons: [...fails, ...warns, ...notes] }, file, pauses: [...out.pauses].sort((a, b) => a - b), notes };
+  return { c, row: { ...row, status: statusOf(fails, warns), reasons: [...fails, ...warns, ...notes] }, file, pauses: [...out.pauses].sort((a, b) => a - b), notes, bedWarned };
 }
 
 function withSlice(b: Built, s: SliceResult): QaRow {
   const own = b.row.reasons.filter((r) => !b.notes.includes(r));
   const fails = b.row.status === "falha" ? own : [];
   const warns = b.row.status === "falha" ? [] : own;
-  if (!s.ok) return { ...b.row, status: "falha", reasons: [...fails, ...warns, s.error ?? "não fatiou", ...b.notes] };
+  if (!s.ok) {
+    // o Bambu recusa a peça que não cabe na mesa do A1; se o app já avisou, fica como aviso
+    const bedRefused = b.bedWarned && /no object fully inside|plate is empty/i.test(s.error ?? "");
+    const why = bedRefused ? "o Bambu Studio recusa na mesa de 256 mm do A1 (o app avisa)" : (s.error ?? "não fatiou");
+    return { ...b.row, status: bedRefused && !fails.length ? "aviso" : "falha", reasons: [...fails, ...warns, why, ...b.notes] };
+  }
   if (s.grams <= 0) fails.push("fatiou com 0 g de filamento");
   if (s.seconds > MAX_HOURS * 3600) warns.push(`mais de ${MAX_HOURS} h de impressão`);
   if (s.plates > 1) warns.push(`não coube numa placa: ${s.plates} placas`);
@@ -137,4 +145,6 @@ Para cada modelo: valores **padrão**, todos os campos numéricos no **mínimo**
 - **OrcaSlicer:** não instalado nas máquinas da equipe; o 3MF segue o mesmo formato (Metadata/model_settings.config).
 
 "n/a" = o modelo precisa de uma entrada que o teste não dá (ex.: foto). "app:" = aviso que o próprio app mostra na tela.
+Peça maior que a mesa de 256 mm do A1 conta como **aviso** quando o app avisa na tela (os campos vão além para
+impressoras de mesa maior); sem o aviso do app, é **falha**.
 `;

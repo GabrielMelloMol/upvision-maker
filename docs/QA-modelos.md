@@ -14,15 +14,17 @@ Para cada modelo: valores **padrão**, todos os campos numéricos no **mínimo**
 - **OrcaSlicer:** não instalado nas máquinas da equipe; o 3MF segue o mesmo formato (Metadata/model_settings.config).
 
 "n/a" = o modelo precisa de uma entrada que o teste não dá (ex.: foto). "app:" = aviso que o próprio app mostra na tela.
+Peça maior que a mesa de 256 mm do A1 conta como **aviso** quando o app avisa na tela (os campos vão além para
+impressoras de mesa maior); sem o aviso do app, é **falha**.
 
 
-**Total:** 222 casos · 186 ok · 17 com aviso · 19 com falha · 0 n/a
+**Total:** 222 casos · 186 ok · 23 com aviso · 13 com falha · 0 n/a
 
 ## Forja
 
 | Modelo | Valores | Resultado | Tempo (min) | PLA (g) | Placas | Pausas (Z) | Motivo |
 |---|---|---|---:|---:|---:|---|---|
-| Nome articulado (articulatedName) | máximo | ✅ ok | 46 | 23,6 | 1 | – | app: Dobradiça com folga de 0,6 mm: imprima um teste; se as letras grudarem, aumente a folga. |
+| Nome articulado (articulatedName) | máximo | ✅ ok | 47 | 23,6 | 1 | – | app: Dobradiça com folga de 0,6 mm: imprima um teste; se as letras grudarem, aumente a folga. |
 | Nome articulado (articulatedName) | mínimo | ✅ ok | 12 | 3,9 | 1 | – | app: Dobradiça com folga de 0,15 mm: imprima um teste; se as letras grudarem, aumente a folga. |
 | Nome articulado (articulatedName) | padrão | ✅ ok | 18 | 7,0 | 1 | – | app: Dobradiça com folga de 0,3 mm: imprima um teste; se as letras grudarem, aumente a folga. |
 | Clicker (clicker) | máximo | ✅ ok | 11 | 4,8 | 1 | – | app: Encaixe feito para chave tipo Cherry MX (e compatíveis). Imprima a chapa e a cruz primeiro: se ficar justo, aumente as folgas.; app: A chave entra por cima na chapa do corpo; a tecla encaixa na haste. |
@@ -58,7 +60,7 @@ Para cada modelo: valores **padrão**, todos os campos numéricos no **mínimo**
 | Troféu adaptável (adaptiveTrophy) | máximo | ⚠️ aviso | 182 | 175,6 | 1 | – | o conjunto arrumado ocupa 210,6 × 291,5 mm: passa da mesa de 256 mm; app: As 2 peças não cabem juntas na mesa de 256 mm: o fatiador vai usar mais de uma mesa (ou imprima uma de cada vez). |
 | Troféu adaptável (adaptiveTrophy) | mínimo | ✅ ok | 41 | 32,8 | 1 | – | – |
 | Troféu adaptável (adaptiveTrophy) | padrão | ✅ ok | 68 | 55,3 | 1 | – | – |
-| Topo de bolo (cake) | máximo | ❌ falha | – | – | – | – | "Ana" não cabe na mesa de 256 mm (266,0 × 290,6 × 9,0 mm); Bambu Studio: One of the plate is empty or has no object fully inside it. Please check that the 3mf contains no empty plate in Bambu Studio before uploading. (código -50); app: "Ana" tem 266 × 291 × 9 mm e passa da mesa de 256 mm: diminua o tamanho. |
+| Topo de bolo (cake) | máximo | ⚠️ aviso | – | – | – | – | "Ana" não cabe na mesa de 256 mm (266,0 × 290,6 × 9,0 mm); o Bambu Studio recusa na mesa de 256 mm do A1 (o app avisa); app: "Ana" tem 266 × 291 × 9 mm e passa da mesa de 256 mm: diminua o tamanho. |
 | Topo de bolo (cake) | mínimo | ✅ ok | 11 | 5,4 | 1 | – | – |
 | Topo de bolo (cake) | padrão | ✅ ok | 48 | 28,9 | 1 | – | – |
 | Floco de neve com nome (snowflake) | máximo | ✅ ok | 59 | 25,8 | 1 | – | – |
@@ -67,10 +69,10 @@ Para cada modelo: valores **padrão**, todos os campos numéricos no **mínimo**
 | Troféu (trophy) | máximo | ✅ ok | 119 | 95,9 | 1 | – | – |
 | Troféu (trophy) | mínimo | ⚠️ aviso | 19 | 10,2 | 1 | – | "Placa": parede/traço < 0,4 mm em Z 2,6 mm; app: "1º LUGAR" ficou com 2,2 mm de altura: os traços ficam com menos de 0,4 mm e somem na impressão. Aumente o texto ou a peça, encurte a linha ou use uma fonte mais grossa. |
 | Troféu (trophy) | padrão | ✅ ok | 36 | 24,7 | 1 | – | – |
-| Troféu elegante (trophyElegant) | máximo | ✅ ok | 118 | 100,9 | 1 | – | – |
-| Troféu elegante (trophyElegant) | mínimo | ✅ ok | 20 | 11,4 | 1 | – | – |
-| Troféu elegante (trophyElegant) | padrão | ✅ ok | 38 | 25,4 | 1 | – | – |
-| Placa adaptável (adaptivePlate) | máximo | ❌ falha | – | – | – | – | "Placa" não cabe na mesa de 256 mm (270,0 × 276,9 × 12,0 mm); Bambu Studio: One of the plate is empty or has no object fully inside it. Please check that the 3mf contains no empty plate in Bambu Studio before uploading. (código -50); app: "Placa" tem 270 × 277 × 12 mm e passa da mesa de 256 mm: diminua o tamanho. |
+| Troféu elegante (trophyElegant) | máximo | ✅ ok | 118 | 100,9 | 1 | – | app: "1º LUGAR" ficou com 3,2 mm de altura: os traços ficam com menos de 0,4 mm e somem na impressão. Aumente o texto ou a peça, encurte a linha ou use uma fonte mais grossa. |
+| Troféu elegante (trophyElegant) | mínimo | ✅ ok | 20 | 11,4 | 1 | – | app: "CAMPEONATO 2026" ficou com 1,9 mm de altura: os traços ficam com menos de 0,4 mm e somem na impressão. Aumente o texto ou a peça, encurte a linha ou use uma fonte mais grossa.; app: "1º LUGAR" ficou com 3,2 mm de altura: os traços ficam com menos de 0,4 mm e somem na impressão. Aumente o texto ou a peça, encurte a linha ou use uma fonte mais grossa. |
+| Troféu elegante (trophyElegant) | padrão | ✅ ok | 38 | 25,4 | 1 | – | app: "1º LUGAR" ficou com 3,2 mm de altura: os traços ficam com menos de 0,4 mm e somem na impressão. Aumente o texto ou a peça, encurte a linha ou use uma fonte mais grossa. |
+| Placa adaptável (adaptivePlate) | máximo | ⚠️ aviso | – | – | – | – | "Placa" não cabe na mesa de 256 mm (270,0 × 276,9 × 12,0 mm); o Bambu Studio recusa na mesa de 256 mm do A1 (o app avisa); app: "Placa" tem 270 × 277 × 12 mm e passa da mesa de 256 mm: diminua o tamanho. |
 | Placa adaptável (adaptivePlate) | mínimo | ✅ ok | 2 | 0,5 | 1 | – | – |
 | Placa adaptável (adaptivePlate) | padrão | ✅ ok | 41 | 32,4 | 1 | – | – |
 | Cartão de visita (businessCard) | máximo | ✅ ok | 19 | 15,2 | 1 | – | app: Cada módulo ficou com 1,03 mm: aumente a placa ou encurte o texto (mínimo recomendado 1,2 mm). |
@@ -92,27 +94,27 @@ Para cada modelo: valores **padrão**, todos os campos numéricos no **mínimo**
 | Placa de profissão (profession) | mínimo | ✅ ok | 88 | 32,5 | 1 | 8,04 | app: Três peças: cole o símbolo no rebaixo da placa e encaixe a placa na base.; app: Pausa em Z = 8,08 mm: coloque moedas ou arruelas nos 2 bolsões da base e retome (a base fica pesada e não tomba). |
 | Placa de profissão (profession) | padrão | ✅ ok | 74 | 56,6 | 1 | 8,20 | app: Três peças: cole o símbolo no rebaixo da placa e encaixe a placa na base.; app: Pausa em Z = 8,20 mm: coloque moedas ou arruelas nos 2 bolsões da base e retome (a base fica pesada e não tomba). |
 | Placa com vários QRs (qrList) | máximo | ✅ ok | 202 | 125,9 | 1 | – | – |
-| Placa com vários QRs (qrList) | mínimo | ✅ ok | 35 | 22,2 | 1 | – | app: Cada módulo ficou com 0,76 mm: aumente a placa ou encurte o texto (mínimo recomendado 1,2 mm).; app: Cada módulo ficou com 0,86 mm: aumente a placa ou encurte o texto (mínimo recomendado 1,2 mm). |
+| Placa com vários QRs (qrList) | mínimo | ✅ ok | 35 | 22,2 | 1 | – | app: Cada módulo ficou com 0,76 mm: aumente a placa ou encurte o texto (mínimo recomendado 1,2 mm).; app: Cada módulo ficou com 0,86 mm: aumente a placa ou encurte o texto (mínimo recomendado 1,2 mm).; app: "Instagram" ficou com 3,9 mm de altura: os traços ficam com menos de 0,4 mm e somem na impressão. Aumente o texto ou a peça, encurte a linha ou use uma fonte mais grossa.; app: "WhatsApp" ficou com 3,6 mm de altura: os traços ficam com menos de 0,4 mm e somem na impressão. Aumente o texto ou a peça, encurte a linha ou use uma fonte mais grossa. |
 | Placa com vários QRs (qrList) | padrão | ✅ ok | 75 | 49,3 | 1 | – | – |
-| Placa QR (qrPlate) | máximo | ❌ falha | 34 | 23,9 | 1 | – | "Wi-Fi" não cabe na mesa de 256 mm (200,0 × 260,0 × 9,0 mm); o conjunto arrumado ocupa 200,0 × 300,0 mm: passa da mesa de 256 mm; app: "Wi-Fi" tem 200 × 260 × 9 mm e passa da mesa de 256 mm: diminua o tamanho. |
+| Placa QR (qrPlate) | máximo | ⚠️ aviso | 34 | 23,9 | 1 | – | o conjunto arrumado ocupa 200,0 × 300,0 mm: passa da mesa de 256 mm; "Wi-Fi" não cabe na mesa de 256 mm (200,0 × 260,0 × 9,0 mm); app: "Wi-Fi" tem 200 × 260 × 9 mm e passa da mesa de 256 mm: diminua o tamanho. |
 | Placa QR (qrPlate) | mínimo | ⚠️ aviso | 30 | 18,6 | 1 | – | "Wi-Fi": parede/traço < 0,4 mm em Z 2,2 mm; app: "Aponte a câmera" ficou com 4,2 mm de altura: os traços ficam com menos de 0,4 mm e somem na impressão. Aumente o texto ou a peça, encurte a linha ou use uma fonte mais grossa. |
 | Placa QR (qrPlate) | padrão | ✅ ok | 61 | 39,7 | 1 | – | – |
-| Placa de sinalização (sign) | máximo | ❌ falha | – | – | – | – | "Placa" não cabe na mesa de 256 mm (300,0 × 120,0 × 10,0 mm); Bambu Studio: One of the plate is empty or has no object fully inside it. Please check that the 3mf contains no empty plate in Bambu Studio before uploading. (código -50); app: "Placa" tem 300 × 120 × 10 mm e passa da mesa de 256 mm: diminua o tamanho. |
+| Placa de sinalização (sign) | máximo | ⚠️ aviso | – | – | – | – | "Placa" não cabe na mesa de 256 mm (300,0 × 120,0 × 10,0 mm); o Bambu Studio recusa na mesa de 256 mm do A1 (o app avisa); app: "Placa" tem 300 × 120 × 10 mm e passa da mesa de 256 mm: diminua o tamanho. |
 | Placa de sinalização (sign) | mínimo | ✅ ok | 5 | 2,6 | 1 | – | – |
 | Placa de sinalização (sign) | padrão | ✅ ok | 30 | 20,2 | 1 | – | – |
 | Separar 3MF por cor (ferramenta) | corte com pino | ✅ ok | 12 | 5,6 | 1 | – | – |
 | Separar 3MF por cor (ferramenta) | máximo | ✅ ok | 13 | 4,2 | 1 | – | – |
 | Separar 3MF por cor (ferramenta) | mínimo | ✅ ok | 13 | 4,2 | 1 | – | – |
 | Separar 3MF por cor (ferramenta) | padrão | ✅ ok | 13 | 4,2 | 1 | – | – |
-| Cortador de biscoito (ferramenta) | máximo | ❌ falha | 133 | 128,1 | 1 | – | "Cortador" não cabe na mesa de 256 mm (286,0 × 292,8 × 40,0 mm); o conjunto arrumado ocupa 542,0 × 292,8 mm: passa da mesa de 256 mm; app: Sem desenho interno para o carimbo marcar: ele sai liso. |
+| Cortador de biscoito (ferramenta) | máximo | ⚠️ aviso | 133 | 128,1 | 1 | – | o conjunto arrumado ocupa 542,0 × 292,8 mm: passa da mesa de 256 mm; "Cortador" não cabe na mesa de 256 mm (286,0 × 292,8 × 40,0 mm); app: Sem desenho interno para o carimbo marcar: ele sai liso.; app: "Cortador" tem 286 × 293 × 40 mm e passa da mesa de 256 mm: diminua o tamanho. |
 | Cortador de biscoito (ferramenta) | mínimo | ✅ ok | 4 | 0,8 | 1 | – | app: Sem borda de apoio, a lâmina precisa de pelo menos 0,8 mm (2 filetes) para imprimir: saiu com 0,8 mm.; app: Sem desenho interno para o carimbo marcar: ele sai liso. |
 | Cortador de biscoito (ferramenta) | padrão | ✅ ok | 27 | 16,5 | 1 | – | app: Sem desenho interno para o carimbo marcar: ele sai liso. |
-| Extrusão de SVG (ferramenta) | máximo | ❌ falha | – | – | – | – | "Extrusão" não cabe na mesa de 256 mm (359,9 × 368,2 × 120,0 mm); Bambu Studio: One of the plate is empty or has no object fully inside it. Please check that the 3mf contains no empty plate in Bambu Studio before uploading. (código -50) |
+| Extrusão de SVG (ferramenta) | máximo | ⚠️ aviso | – | – | – | – | "Extrusão" não cabe na mesa de 256 mm (359,9 × 368,2 × 120,0 mm); o Bambu Studio recusa na mesa de 256 mm do A1 (o app avisa); app: "Extrusão" tem 360 × 368 × 120 mm e passa da mesa de 256 mm: diminua o tamanho. |
 | Extrusão de SVG (ferramenta) | mínimo | ✅ ok | 1 | 0,1 | 1 | – | – |
 | Extrusão de SVG (ferramenta) | padrão | ✅ ok | 9 | 5,7 | 1 | – | – |
 | Chaveiro (ferramenta) | 3 camadas | ✅ ok | 6 | 2,0 | 1 | – | – |
 | Chaveiro (ferramenta) | etiqueta | ✅ ok | 5 | 2,1 | 1 | – | – |
-| Chaveiro (ferramenta) | lote 30 | ✅ ok | 185 | 81,1 | 1 | – | – |
+| Chaveiro (ferramenta) | lote 30 | ✅ ok | 186 | 81,1 | 1 | – | – |
 | Chaveiro (ferramenta) | máximo | ✅ ok | 55 | 40,9 | 1 | – | – |
 | Chaveiro (ferramenta) | mínimo | ✅ ok | 1 | 0,2 | 1 | – | – |
 | Chaveiro (ferramenta) | padrão | ✅ ok | 4 | 1,7 | 1 | – | – |

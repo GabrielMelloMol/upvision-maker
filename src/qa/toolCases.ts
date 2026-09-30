@@ -17,6 +17,7 @@ import { buildSpoolTag, spoolTagsThatFit } from "../geometry/spoolTag";
 import { arcTextToCrossSection, textToCrossSection } from "../geometry/text";
 import { read3mf } from "../geometry/threemfRead";
 import type { Model } from "../geometry/types";
+import { bedWarnings } from "../tools/models/bedCheck";
 import { testArt, type QaCase } from "./cases";
 
 /**
@@ -92,8 +93,15 @@ export function toolCases(M: ManifoldToplevel): QaCase[] {
     return { models: [out.model], pauses: out.swaps.map((s) => s.z) };
   };
 
-  const cutter = (width: number, patch: Partial<CutterParams>): Out => buildCutter(M, artAt(M, width), { ...DEFAULT_CUTTER, ...patch });
-  const extrude = (width: number, height: number, base: { margin: number; thickness: number } | null): Out => ({ models: [extrudeDesign(M, artAt(M, width), { height, base })] });
+  // como as telas (#122): o aviso de mesa vem junto
+  const cutter = (width: number, patch: Partial<CutterParams>): Out => {
+    const out = buildCutter(M, artAt(M, width), { ...DEFAULT_CUTTER, ...patch });
+    return { ...out, warnings: [...out.warnings, ...bedWarnings(out.models, out.warnings)] };
+  };
+  const extrude = (width: number, height: number, base: { margin: number; thickness: number } | null): Out => {
+    const models = [extrudeDesign(M, artAt(M, width), { height, base })];
+    return { models, warnings: bedWarnings(models, []) };
+  };
 
   const qr = (p: { size: number; base: number; relief: number; quiet: number; corner: number }): Out => {
     const r = qrModel(M, qrMatrix("https://upvision.app/qa"), { sizeMm: p.size, baseMm: p.base, reliefMm: p.relief, quiet: p.quiet, cornerMm: p.corner }, "QR Code");
