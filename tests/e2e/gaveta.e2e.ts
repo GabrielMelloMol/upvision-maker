@@ -92,3 +92,28 @@ test("sem régua em casa: régua 1:1 em PDF e régua 3D de 25 cm (#140)", async 
   await expect(toastWith(page, "regua-25cm.3mf")).toBeVisible({ timeout: 30_000 });
   expect(objects3mf(tauri.files.get("/saida/regua-25cm.3mf")!)).toBe(1);
 });
+
+test("talheres em 2 andares: bandeja nos trilhos em cima, base e caixinhas embaixo, peças na lista (#140)", async ({ page }) => {
+  test.slow();
+  await page.setViewportSize({ width: 1024, height: 900 });
+  await openApp(page);
+  await go(page, "Organizador de gaveta");
+  for (const [label, v] of [["Largura", "500"], ["Profundidade", "500"], ["Altura livre", "110"]] as const) await page.getByLabel(new RegExp(`^${label}`)).fill(v);
+  await page.getByRole("switch", { name: "Dois andares: talheres em cima" }).check();
+  await expect(page.getByText(/Cabem 11 × 11 casas/)).toBeVisible();
+  await expect(page.getByText(/A bandeja desliza para o fundo nos trilhos/)).toBeVisible({ timeout: 90_000 });
+  await expect(page.getByRole("img", { name: /bandeja de talheres em cima, deslizando nos trilhos/ })).toBeVisible();
+  if (SHOTS)
+    for (const scheme of ["light", "dark"] as const) {
+      await page.emulateMedia({ colorScheme: scheme });
+      await page.waitForTimeout(1600); // transição do tema + animação da montagem
+      await page.screenshot({ path: `${SHOTS}/talheres-${scheme}.png`, fullPage: true });
+    }
+  const card = page.getByLabel("Impressão por mesa");
+  await expect(card.getByRole("row", { name: /Bandeja de talheres/ })).toBeVisible();
+  await expect(card.getByRole("row", { name: /Trilho esquerdo 1/ })).toBeVisible();
+  await expect(card.getByRole("row", { name: /Teste do trilho/ })).toBeVisible();
+  // gaveta rasa: a bandeja fica removível
+  await page.getByLabel(/^Profundidade/).fill("420");
+  await expect(page.getByText(/levanta pelas alças/)).toBeVisible({ timeout: 90_000 });
+});

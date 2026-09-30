@@ -42,3 +42,22 @@ test("módulo mais alto que a gaveta avisa; etiqueta com texto vira peça à par
   expect(out.warnings.join(" ")).toMatch(/passa da altura da gaveta: cabe até 3 unidades/);
   expect(out.groups[0].models.map((m) => m.name)).toEqual(["Caixinha 2×1×5 Pregos", "Etiqueta Pregos"]);
 });
+
+test("talheres em 2 andares: base entre os trilhos, caixinhas até o apoio da bandeja, bandejas em cima e peças para imprimir (#140)", () => {
+  const p = { ...project(), width: 500, depth: 500, height: 110, cutlery: true, layout: { cols: 11, rows: 11, modules: [] } };
+  const out = buildDrawer(ctx(), p);
+  expect(out.cutlery?.levels).toBe(2);
+  expect(out.plan.nx).toBe(11); // 500 − 2 × 12 de trilho = 476 → 11 casas
+  expect(out.plan.uMax).toBeLessThan(buildDrawer(ctx(), { ...p, cutlery: false }).plan.uMax);
+  expect(out.preview.filter((m) => m.name.startsWith("Trilho")).map((m) => m.name)).toEqual(["Trilho esquerdo", "Trilho direito"]);
+  expect(out.trays).toHaveLength(2);
+  // a bandeja fica em cima do andar de baixo, dentro da gaveta
+  const tb = modelsBounds(out.trays)!;
+  expect(tb.min[2]).toBeCloseTo(out.cutlery!.lowerHeight, 1);
+  expect(tb.max[0] - tb.min[0]).toBeLessThanOrEqual(500);
+  const names = out.extras.map((m) => m.name);
+  expect(names).toContain("Bandeja de talheres");
+  expect(names.filter((n) => n.startsWith("Trilho esquerdo")).length).toBeGreaterThanOrEqual(2);
+  expect(names).toContain("Teste do trilho");
+  expect(out.warnings.join(" ")).toMatch(/desliza/);
+});

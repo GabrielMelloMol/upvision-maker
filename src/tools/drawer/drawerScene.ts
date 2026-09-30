@@ -4,7 +4,7 @@ import type { Model } from "../../geometry/types";
 import { fitDistance } from "../../ui/viewerScene";
 import { drawerShape, type Dim } from "./drawerShape";
 
-export type DrawerView = { width: number; depth: number; height: number; focus: Dim | null; organizer: Model[] };
+export type DrawerView = { width: number; depth: number; height: number; focus: Dim | null; organizer: Model[]; trays?: Model[]; slide?: boolean };
 
 const DROP_MS = 900;
 const VIEW_DIR = new THREE.Vector3(0.55, -1.25, 1.05).normalize();
@@ -61,14 +61,16 @@ export function createDrawerScene(el: HTMLElement, labels: HTMLElement) {
   const sun = new THREE.DirectionalLight(0xffffff, 1.4);
   sun.position.set(300, -400, 700);
   scene.add(sun);
-  const drawer = new THREE.Group(), dims = new THREE.Group(), org = new THREE.Group();
-  scene.add(drawer, dims, org);
+  const drawer = new THREE.Group(), dims = new THREE.Group(), org = new THREE.Group(), tray = new THREE.Group();
+  scene.add(drawer, dims, org, tray);
   const camera = new THREE.PerspectiveCamera(35, 1, 1, 20000);
   camera.up.set(0, 0, 1);
   const controls = new OrbitControls(camera, renderer.domElement);
   controls.enableDamping = true;
   let raf = 0;
-  let drop: { t0: number; from: number } | null = null;
+  // movimentos curtos: o organizador desce para o lugar; depois a bandeja entra deslizando (ou desce, se removível)
+  type Move = { obj: THREE.Object3D; axis: "y" | "z"; from: number; t0: number };
+  let moves: Move[] = [];
   let last: DrawerView | null = null;
   let framedFor = "";
   let tags: { el: HTMLElement; at: THREE.Vector3 }[] = [];
@@ -86,14 +88,14 @@ export function createDrawerScene(el: HTMLElement, labels: HTMLElement) {
   };
   const tick = (now: number) => {
     raf = 0;
-    if (drop) {
-      const k = Math.min(1, (now - drop.t0) / DROP_MS);
-      org.position.z = drop.from * (1 - ease(k));
-      if (k === 1) drop = null;
+    for (const m of moves) {
+      const k = Math.min(1, Math.max(0, (now - m.t0) / DROP_MS));
+      m.obj.position[m.axis] = m.from * (1 - ease(k));
     }
+    moves = moves.filter((m) => now < m.t0 + DROP_MS);
     controls.update();
     render();
-    if (drop) raf = requestAnimationFrame(tick);
+    if (moves.length) raf = requestAnimationFrame(tick);
   };
   const wake = () => {
     if (!raf) raf = requestAnimationFrame(tick);
@@ -146,21 +148,30 @@ export function createDrawerScene(el: HTMLElement, labels: HTMLElement) {
     }
   }
 
-  function setOrganizer(models: Model[], animate: boolean) {
-    disposeGroup(org);
+  function fill(g: THREE.Group, models: Model[]) {
+    disposeGroup(g);
     for (const model of models)
       for (const p of model.parts) {
-        const g = new THREE.BufferGeometry();
-        g.setAttribute("position", new THREE.BufferAttribute(p.mesh.positions, 3));
-        g.setIndex(new THREE.BufferAttribute(p.mesh.indices, 1));
-        g.computeVertexNormals();
-        org.add(new THREE.Mesh(g, new THREE.MeshStandardMaterial({ color: p.color, roughness: 0.6, flatShading: true })));
+        const geo = new THREE.BufferGeometry();
+        geo.setAttribute("position", new THREE.BufferAttribute(p.mesh.positions, 3));
+        geo.setIndex(new THREE.BufferAttribute(p.mesh.indices, 1));
+        geo.computeVertexNormals();
+        g.add(new THREE.Mesh(geo, new THREE.MeshStandardMaterial({ color: p.color, roughness: 0.6, flatShading: true })));
       }
-    if (animate && models.length && !reducedMotion()) {
-      drop = { t0: performance.now(), from: (last?.height ?? 80) * 1.4 };
-      org.position.z = drop.from;
-      wake();
-    } else org.position.z = 0;
+  }
+
+  /** Organizador desce; em seguida a bandeja entra pela frente (desliza) ou desce nos trilhos (removível). */
+  function play(v: DrawerView) {
+    moves = [];
+    org.position.z = 0;
+    tray.position.set(0, 0, 0);
+    if (reducedMotion()) return;
+    const now = performance.now();
+    if (org.children.length) moves.push({ obj: org, axis: "z", from: v.height * 1.4, t0: now });
+    if (tray.children.length)
+      moves.push(v.slide ? { obj: tray, axis: "y", from: -(v.depth * 0.6), t0: now + DROP_MS * 0.7 } : { obj: tray, axis: "z", from: v.height, t0: now + DROP_MS * 0.7 });
+    for (const m of moves) m.obj.position[m.axis] = m.from;
+    wake();
   }
 
   const resize = () => {
@@ -184,23 +195,26 @@ export function createDrawerScene(el: HTMLElement, labels: HTMLElement) {
   return {
     update(v: DrawerView) {
       const organizerChanged = v.organizer !== last?.organizer;
-      const firstOrganizer = organizerChanged && v.organizer.length > 0 && !(last?.organizer.length);
+      const traysChanged = (v.trays ?? []) !== (last?.trays ?? []);
+      const first = (organizerChanged && v.organizer.length > 0 && !last?.organizer.length) || (traysChanged && !!v.trays?.length && !last?.trays?.length);
       build(v);
       frame(v);
-      if (organizerChanged) setOrganizer(v.organizer, firstOrganizer);
+      if (organizerChanged) fill(org, v.organizer);
+      if (traysChanged) fill(tray, v.trays ?? []);
       last = v;
+      if (first) play(v);
       render();
     },
-    /** Repete a descida do organizador (botão "Ver montado"). */
+    /** Repete a montagem (botão "Ver montado"). */
     replay() {
-      if (last) setOrganizer(last.organizer, true);
+      if (last) play(last);
     },
     dispose() {
       cancelAnimationFrame(raf);
       scheme.removeEventListener("change", onScheme);
       ro?.disconnect();
       controls.dispose();
-      for (const g of [drawer, dims, org]) disposeGroup(g);
+      for (const g of [drawer, dims, org, tray]) disposeGroup(g);
       renderer.dispose();
       renderer.domElement.remove();
       labels.replaceChildren();

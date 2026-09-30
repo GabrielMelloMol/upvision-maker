@@ -13,7 +13,7 @@ import Segmented from "../ui/Segmented";
 import Toggle from "../ui/Toggle";
 import { useModelBuilder } from "../ui/useModelBuilder";
 import ColorPick from "./ColorPick";
-import { buildDrawer, planOf, type DrawerProject } from "./drawer/assemble";
+import { buildDrawer, planOf, TRAY_COLOR, type DrawerProject } from "./drawer/assemble";
 import DrawerEditor from "./drawer/DrawerEditor";
 import DrawerView from "./drawer/DrawerView";
 import type { Dim } from "./drawer/drawerShape";
@@ -36,6 +36,7 @@ const VIEWS = [
 ] as const;
 type View = (typeof VIEWS)[number][0];
 const FONT = "hanken";
+const NO_MODELS: Model[] = [];
 
 function initialState(): DrawerProject {
   const p: DrawerProject = { width: 500, depth: 420, height: 80, align: "center", baseMagnets: false, baseColor: "#1c1c1e", bedMargin: 4, layout: { cols: 0, rows: 0, modules: [] } };
@@ -60,15 +61,18 @@ export default function DrawerOrganizer() {
   });
   const plan = useMemo(() => planOf(p), [p]);
   const setLayout = tool.field("layout");
-  const setDim = (k: "width" | "depth" | "height") => (v: number) =>
+  // o que muda a grade (medidas, 2 andares, obstáculo) refaz a grade junto, no mesmo passo de desfazer
+  const setGrid = <K extends "width" | "depth" | "height" | "cutlery" | "sideObstacle">(k: K) => (v: DrawerProject[K]) =>
     tool.set((s) => {
       const next = { ...s, [k]: v };
       const pl = planOf(next);
       return { ...next, layout: resizeGrid(s.layout, pl.nx, pl.ny) };
     }, k);
+  const [trays, setTrays] = useState<Model[]>([]);
+  const [slide, setSlide] = useState(false);
   const setAlign = (align: DrawerProject["align"]) => tool.set((s) => ({ ...s, align }), "align");
-  const set = <K extends "baseMagnets" | "baseColor" | "bedMargin">(k: K) => tool.field(k);
-  const valid = inRange(p.width, 50, 1500) && inRange(p.depth, 50, 1500) && inRange(p.height, 15, 400) && inRange(p.bedMargin, 0, 20);
+  const set = <K extends "baseMagnets" | "baseColor" | "bedMargin" | "trayColor">(k: K) => tool.field(k);
+  const valid = inRange(p.width, 50, 1500) && inRange(p.depth, 50, 1500) && inRange(p.height, 15, 400) && inRange(p.bedMargin, 0, 20) && inRange(p.sideObstacle ?? 0, 0, 40);
   const chosen = p.layout.modules.filter((m) => selected.includes(m.id));
 
   const [exportModels, setExportModels] = useState<Model[]>([]);
@@ -79,12 +83,17 @@ export default function DrawerOrganizer() {
     const labels = p.layout.modules.some((m) => m.labelTab && m.label.trim());
     const font = labels ? await loadFont(FONT) : null;
     const out = buildDrawer({ M, art: null, text: (s, h) => (font && s.trim() ? textToCrossSection(M, font, s, h) : null) }, p);
-    const pp = drawerPrint(out.basePieces, out.groups);
+    const pp = drawerPrint([...out.basePieces, ...out.extras], out.groups);
+    setTrays(out.trays);
+    setSlide(out.cutlery?.slide === "depth");
     // um 3MF com tudo (mesas lado a lado); cada mesa sozinha sai pela lista de impressão
     setExportModels(pp.plates.flatMap((plate, i) => plate.models.map((m) => moveModel(m, i * (256 + 20), 0))));
     setPrint(pp);
-    return { models: out.preview, warnings: out.warnings };
+    return { models: [...out.preview, ...out.trays], warnings: out.warnings };
   }, [p, valid]);
+
+  // a cena só remonta quando as peças mudam (não a cada tecla nas medidas)
+  const organizer = useMemo(() => models.filter((m) => !trays.includes(m)), [models, trays]);
 
   return (
     <div className="page">
@@ -97,16 +106,18 @@ export default function DrawerOrganizer() {
             <h3>Gaveta</h3>
             <div className="grid two">
               <div {...measuring("width")}>
-                <NumField label="Largura" value={p.width} onChange={setDim("width")} min={50} max={1500} step={1} />
+                <NumField label="Largura" value={p.width} onChange={setGrid("width")} min={50} max={1500} step={1} />
               </div>
               <div {...measuring("depth")}>
-                <NumField label="Profundidade" value={p.depth} onChange={setDim("depth")} min={50} max={1500} step={1} />
+                <NumField label="Profundidade" value={p.depth} onChange={setGrid("depth")} min={50} max={1500} step={1} />
               </div>
               <div {...measuring("height")}>
-                <NumField label="Altura livre" value={p.height} onChange={setDim("height")} min={15} max={400} step={1} hint="Com a gaveta fechada, do fundo até o tampo ou a gaveta de cima." />
+                <NumField label="Altura livre" value={p.height} onChange={setGrid("height")} min={15} max={400} step={1} hint="Com a gaveta fechada, do fundo até o tampo ou a gaveta de cima." />
               </div>
             </div>
             <Segmented label="Sobra" value={p.align} options={ALIGNS} onChange={setAlign} full />
+            <Toggle label="Dois andares: talheres em cima" checked={!!p.cutlery} onChange={setGrid("cutlery")} />
+            {p.cutlery && <span className="hint">Bandeja dos talheres nos trilhos; embaixo, a base e as caixinhas. Imprima em PETG: aguenta água quente e detergente.</span>}
             {plan.nx > 0 && plan.ny > 0 && <span className="hint" aria-live="polite">{planSummary(plan, true, p.baseMagnets ? 3.2 : 0)}</span>}
           </div>
           {chosen.length ? (
@@ -132,6 +143,8 @@ export default function DrawerOrganizer() {
             <div className="stack">
               <Toggle label="Base com fundo e furos de ímã" checked={p.baseMagnets} onChange={set("baseMagnets")} />
               <NumField label="Margem da mesa" value={p.bedMargin} onChange={set("bedMargin")} min={0} max={20} step={1} hint="4 mm: 6 casas por pedaço na A1. Aumente se usar brim." />
+              <NumField label="Obstáculo em cada lateral" value={p.sideObstacle ?? 0} onChange={setGrid("sideObstacle")} min={0} max={40} step={1} hint="Trilho metálico ou parafuso saindo da lateral da gaveta." />
+              {p.cutlery && <ColorPick label="Cor da bandeja" value={p.trayColor ?? TRAY_COLOR} onChange={set("trayColor")} />}
               <ColorPick label="Cor da base" value={p.baseColor} onChange={set("baseColor")} />
             </div>
           </details>
@@ -141,7 +154,7 @@ export default function DrawerOrganizer() {
         <div className="preview-col">
           <Segmented label="Prévia" value={view} options={VIEWS} onChange={setView} />
           {view === "drawer" ? (
-            <DrawerView width={p.width} depth={p.depth} height={p.height} focus={focus} organizer={valid ? models : []} />
+            <DrawerView width={p.width} depth={p.depth} height={p.height} focus={focus} organizer={valid ? organizer : NO_MODELS} trays={valid ? trays : NO_MODELS} slide={slide} />
           ) : view === "grid" ? (
             <div className="card">
               {plan.nx > 0 && plan.ny > 0 ? (
