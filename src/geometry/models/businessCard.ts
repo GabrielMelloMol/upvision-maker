@@ -2,7 +2,7 @@ import { qrMatrix } from "../../domain/qr";
 import { toMesh } from "../mesh";
 import { qrModel } from "../qr3d";
 import { fitInto, scoped } from "../shape2d";
-import { checkText } from "../textCheck";
+import { thinLineWarning } from "../textCheck";
 import type { CS } from "../manifold";
 import { boxOf, MissingInput, moveMesh, placeIn, roundedRect, slab, type AlignX, type AlignY, type ElementBox, type ModelCtx, type ModelOutput } from "./common";
 import { nfcLayout } from "./nfcKeychain";
@@ -100,12 +100,8 @@ export function buildBusinessCard(ctx: ModelCtx, p: BusinessCardParams): ModelOu
         const line = k(fitInto(k(raw), textW, h, y));
         const b = line.bounds();
         // confere o traço no tamanho final: a linha longa encolhe para caber (#126)
-        if (checkText(line).thin) {
-          const shown = s.length > 24 ? `${s.slice(0, 20)}…` : s;
-          const lh = (b.max[1] - b.min[1]).toFixed(1).replace(".", ",");
-          const shrunk = b.max[1] - b.min[1] < h * 0.95;
-          warnings.push(shrunk ? `"${shown}" ficou com ${lh} mm de altura para caber: os traços ficam finos demais para imprimir. Encurte a linha ou use o QR em cima.` : `"${shown}": nesta fonte os traços ficam com menos de 0,4 mm. Escolha uma fonte mais grossa.`);
-        }
+        const thin = thinLineWarning(line, s);
+        if (thin) warnings.push(thin);
         const x = align === "left" ? -b.min[0] : align === "right" ? -b.max[0] : -(b.min[0] + b.max[0]) / 2;
         block.push(k(line.translate([x, 0])));
         y -= h / 2;

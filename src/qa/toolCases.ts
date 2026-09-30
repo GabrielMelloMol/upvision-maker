@@ -76,8 +76,9 @@ export function toolCases(M: ManifoldToplevel): QaCase[] {
 
   const medal = async (patch: Partial<MedalDesign>): Promise<Out> => {
     const f = await loadFont("hanken");
-    const ctx = { M, art: null, artLayers: null, text: (s: string, h: number) => textToCrossSection(M, f, s, h), arc: (s: string, h: number, r: number, side: "top" | "bottom") => arcTextToCrossSection(M, f, s, h, r, side) };
-    return { models: buildMedalDesign(ctx, { ...DEFAULT_MEDAL_DESIGN, ...patch }) };
+    const warnings: string[] = [];
+    const ctx = { M, art: null, artLayers: null, warn: (m: string) => void warnings.push(m), text: (s: string, h: number) => textToCrossSection(M, f, s, h), arc: (s: string, h: number, r: number, side: "top" | "bottom") => arcTextToCrossSection(M, f, s, h, r, side) };
+    return { models: buildMedalDesign(ctx, { ...DEFAULT_MEDAL_DESIGN, ...patch }), warnings };
   };
   const medalSizes = (v: number) => ({ topSize: v, centerSize: v, rankSize: v, dateSize: v, bottomSize: v });
 

@@ -125,20 +125,25 @@ export default function Medal() {
     const loaded = Object.fromEntries(await Promise.all(Object.entries(fonts).map(async ([k, id]) => [k, await loadFont(id)] as const))) as Record<MedalTextField, Awaited<ReturnType<typeof loadFont>>>;
     const design = art ? await designFromSvg(art.svg, 100, false, true) : null;
     try {
+      const notes = new Set<string>(); // traço fino no tamanho final (#146); no lote, cada aviso uma vez
       const ctx = {
         M,
+        warn: (msg: string) => void notes.add(msg),
         art: design?.cs ?? null,
         artLayers: design?.layers,
         text: (s: string, h: number, f: MedalTextField) => textToCrossSection(M, loaded[f], s, h),
         arc: (s: string, h: number, r: number, side: "top" | "bottom", f: MedalTextField) => arcTextToCrossSection(M, loaded[f], s, h, r, side),
       };
-      if (!batch) return { models: buildMedalDesign(ctx, p), warnings: [] };
+      if (!batch) {
+        const models = buildMedalDesign(ctx, p);
+        return { models, warnings: [...notes] };
+      }
       // lote: uma medalha por pessoa (nome na linha central, colocação se tiver), todas na mesma mesa
       const all: Model[] = people
         .slice(0, MAX_BATCH)
         .flatMap((x) => buildMedalDesign(ctx, { ...p, center: x.name, rank: x.rank ?? p.rank }).map((m, i) => ({ ...m, name: i === 0 ? x.name : `${m.name} ${x.name}` })));
       const warn = people.length > MAX_BATCH ? [`Só as primeiras ${MAX_BATCH} medalhas foram geradas.`] : [];
-      return { models: layoutOnPlate(all, PLATE_MM - 2 * GAP_MM, GAP_MM), warnings: warn };
+      return { models: layoutOnPlate(all, PLATE_MM - 2 * GAP_MM, GAP_MM), warnings: [...notes, ...warn] };
     } finally {
       design?.cs.delete();
       design?.layers?.forEach((l) => l.cs.delete());

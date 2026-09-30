@@ -617,7 +617,8 @@
   "variant": "mínimo",
   "status": "aviso",
   "reasons": [
-   "\"Placa\": parede/traço < 0,4 mm em Z 2,6 mm"
+   "\"Placa\": parede/traço < 0,4 mm em Z 2,6 mm",
+   "app: \"1º LUGAR\" ficou com 2,2 mm de altura: os traços ficam com menos de 0,4 mm e somem na impressão. Aumente o texto ou a peça, encurte a linha ou use uma fonte mais grossa."
   ],
   "date": "2026-09-30",
   "minutes": 19,
@@ -1049,7 +1050,8 @@
   "variant": "mínimo",
   "status": "aviso",
   "reasons": [
-   "\"Wi-Fi\": parede/traço < 0,4 mm em Z 2,2 mm"
+   "\"Wi-Fi\": parede/traço < 0,4 mm em Z 2,2 mm",
+   "app: \"Aponte a câmera\" ficou com 4,2 mm de altura: os traços ficam com menos de 0,4 mm e somem na impressão. Aumente o texto ou a peça, encurte a linha ou use uma fonte mais grossa."
   ],
   "date": "2026-09-30",
   "minutes": 30,
@@ -1454,7 +1456,8 @@
   "variant": "mínimo",
   "status": "aviso",
   "reasons": [
-   "\"CAMPEÃ\": parede/traço < 0,4 mm em Z 1,7 mm"
+   "\"CAMPEÃ\": parede/traço < 0,4 mm em Z 1,7 mm",
+   "app: \"CAMPEÃ\" ficou com 2,0 mm de altura: os traços ficam com menos de 0,4 mm e somem na impressão. Aumente o texto ou a peça, encurte a linha ou use uma fonte mais grossa."
   ],
   "date": "2026-09-30",
   "minutes": 4,

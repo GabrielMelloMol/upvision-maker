@@ -2,6 +2,7 @@ import type { CS, ManifoldToplevel } from "./manifold";
 import { toMesh } from "./mesh";
 import { layerParts, type ColorLayer2D } from "./extrude";
 import { fitInto, followTransform, scoped, shrinkToFit } from "./shape2d";
+import { thinLineWarning } from "./textCheck";
 import { flatten, parsePath } from "./svgPath";
 import type { Model } from "./types";
 
@@ -92,7 +93,7 @@ export function medalOutline(M: ManifoldToplevel, shape: MedalShape, d: number):
  * Medalha: base (com alça e rasgo para a fita), destaque (borda + texto) e imagem central, cada um uma parte/cor.
  * `art` e `text` já em mm (Y para cima); aqui só são posicionados e limitados à área interna.
  */
-export function buildMedal(M: ManifoldToplevel, p: MedalParams, art: CS | null, text: CS | null, artLayers: ColorLayer2D[] | null = null): Model {
+export function buildMedal(M: ManifoldToplevel, p: MedalParams, art: CS | null, text: CS | null, artLayers: ColorLayer2D[] | null = null, check?: { label: string; warn: (msg: string) => void }): Model {
   return scoped((k) => {
     const d = p.diameter;
     const outline = k(medalOutline(M, p.shape, d));
@@ -114,8 +115,10 @@ export function buildMedal(M: ManifoldToplevel, p: MedalParams, art: CS | null, 
 
     let accent = rim;
     if (text) {
-      const t = k(fitInto(text, innerW * 0.8, Math.min(innerH * 0.18, text.bounds().max[1] - text.bounds().min[1]), -innerH * 0.3));
-      accent = k(accent.add(k(shrinkToFit(t, inner))));
+      const t = k(shrinkToFit(k(fitInto(text, innerW * 0.8, Math.min(innerH * 0.18, text.bounds().max[1] - text.bounds().min[1]), -innerH * 0.3)), inner));
+      const thin = check && thinLineWarning(t, check.label); // traço no tamanho final (#146)
+      if (thin) check.warn(thin);
+      accent = k(accent.add(t));
     }
     const at = (cs: CS) => toMesh(k(k(cs.extrude(p.relief)).translate([0, 0, p.thickness])));
     const parts = [

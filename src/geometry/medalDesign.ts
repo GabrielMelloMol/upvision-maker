@@ -5,6 +5,7 @@ import { medalRim, medalTexture, type RimStyle, type Texture } from "./medalDeco
 import { toMesh } from "./mesh";
 import { backing, moveMesh } from "./models/common";
 import { fitInto, scoped } from "./shape2d";
+import { thinLineWarning } from "./textCheck";
 import type { ArcSide } from "./text";
 import type { Model, Part } from "./types";
 
@@ -92,7 +93,16 @@ export type MedalCtx = {
   arc: (s: string, h: number, radius: number, side: ArcSide, field: MedalTextField) => CS | null;
   art: CS | null;
   artLayers?: ColorLayer2D[] | null;
+  /** Avisos para a tela (ex.: texto com traço fino no tamanho final, #146). */
+  warn?: (msg: string) => void;
 };
+
+/** Avisa se a linha, já no tamanho final, tem traço fino demais para imprimir (#146). */
+function checkLine(ctx: MedalCtx, line: CS, text: string, heightMm?: number): CS {
+  const w = thinLineWarning(line, text, heightMm);
+  if (w) ctx.warn?.(w);
+  return line;
+}
 
 const TAB_H = 12;
 const SLOT_H = 3.5;
@@ -140,7 +150,7 @@ function straightLines(ctx: MedalCtx, k: K, p: MedalDesign, maxW: number): { cs:
     if (!raw) return;
     if (!cs.length) top = h / 2;
     const cy = cs.length ? y - h / 2 : 0;
-    cs.push(k(fitInto(k(raw), maxW, h, cy)));
+    cs.push(checkLine(ctx, k(fitInto(k(raw), maxW, h, cy)), s));
     y = cy - h / 2 - Math.max(1.2, h * 0.25);
   });
   return { cs, top };
@@ -164,7 +174,7 @@ export function buildMedalDesign(ctx: MedalCtx, p: MedalDesign): Model[] {
     const arcs = [
       p.top.trim() ? ctx.arc(p.top, p.topSize, rIn - p.arcInset - p.topSize, "top", "top") : null,
       p.bottom.trim() ? ctx.arc(p.bottom, p.bottomSize, rIn - p.arcInset, "bottom", "bottom") : null,
-    ].map((c) => c && k(c));
+    ].map((c, i) => c && checkLine(ctx, k(c), i ? p.bottom : p.top, i ? p.bottomSize : p.topSize));
     const lines = straightLines(ctx, k, p, iw * 0.78);
     // imagem: acima das linhas (ou no centro, se não há linhas)
     let art: CS | null = null;
@@ -281,7 +291,7 @@ function backPieces(ctx: MedalCtx, k: K, outline: CS, face2d: CS, p: MedalDesign
   const cs = lines
     .map((l, i) => {
       const raw = ctx.text(l, p.backSize, "back");
-      return raw ? k(k(fitInto(k(raw), iw * 0.8, p.backSize, totalH / 2 - p.backSize / 2 - i * (p.backSize + gap))).intersect(inner)) : null;
+      return raw ? checkLine(ctx, k(k(fitInto(k(raw), iw * 0.8, p.backSize, totalH / 2 - p.backSize / 2 - i * (p.backSize + gap))).intersect(inner)), l) : null;
     })
     .filter((c): c is CS => !!c);
   let solid = k(mirrored.extrude(BACK_T));

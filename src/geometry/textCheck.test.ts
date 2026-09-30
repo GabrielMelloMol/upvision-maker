@@ -5,7 +5,7 @@ import { beforeAll, expect, test } from "vitest";
 import { getManifold, type ManifoldToplevel } from "./manifold";
 import { scoped } from "./shape2d";
 import { textToCrossSection } from "./text";
-import { checkText, textWarnings } from "./textCheck";
+import { checkText, textWarnings, thinLineWarning } from "./textCheck";
 
 let M: ManifoldToplevel;
 const font = (file: string) => {
@@ -47,4 +47,14 @@ test("cursiva de letras separadas (Courgette) é pega; Pacifico não", () =>
     const warn = (file: string) => textWarnings(checkText(k(textToCrossSection(M, font(file), "Ana Júlia", 14))), "Ana Júlia", true);
     expect(warn("courgette-400.ttf").join()).toMatch(/não se unem/);
     expect(warn("pacifico-400.ttf")).toEqual([]);
+  }));
+
+test("linha no tamanho final (#146): 2 mm na Hanken avisa com o texto e a altura; 8 mm não avisa", () =>
+  scoped((k) => {
+    const f = font("hanken-grotesk-800.ttf");
+    const small = k(textToCrossSection(M, f, "CAMPEÃ", 2));
+    expect(thinLineWarning(small, "CAMPEÃ")).toMatch(/^"CAMPEÃ" ficou com 2,0 mm de altura: os traços ficam com menos de 0,4 mm/);
+    expect(thinLineWarning(k(textToCrossSection(M, f, "CAMPEÃ", 8)), "CAMPEÃ")).toBeNull();
+    // texto longo aparece cortado no aviso
+    expect(thinLineWarning(small, "Uma frase bem comprida para o aviso")).toMatch(/^"Uma frase bem compri…"/);
   }));

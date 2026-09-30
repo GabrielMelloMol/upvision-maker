@@ -4,6 +4,20 @@ import { iconCs, type IconKind } from "../icons";
 import type { CS } from "../manifold";
 import { qrModel } from "../qr3d";
 import { fitInto, scoped } from "../shape2d";
+import { thinLineWarning } from "../textCheck";
+
+/** Avisos de traço fino no tamanho final de cada linha (#146); devolve a linha para seguir montando. */
+function thinChecker(): { thin: string[]; checked: (line: CS, label: string) => CS } {
+  const thin: string[] = [];
+  return {
+    thin,
+    checked: (line, label) => {
+      const w = thinLineWarning(line, label);
+      if (w && !thin.includes(w)) thin.push(w);
+      return line;
+    },
+  };
+}
 import type { Model, Part } from "../types";
 import { boxOf, MissingInput, moveMesh, offsetOf, plateStand, roundedRect, slab, type ElementBox, type ModelCtx, type ModelOutput } from "./common";
 
@@ -69,6 +83,7 @@ function qrAt(ctx: ModelCtx, payload: string, size: number, p: { thickness: numb
  */
 export function buildQrPlate(ctx: ModelCtx, p: QrPlateParams): ModelOutput {
   const { M, text } = ctx;
+  const { thin, checked } = thinChecker();
   const payload = qrPlatePayload(p.kind, p.value, p.password);
   const W = p.width, m = W * 0.08, gap = W * 0.05, q = W - 2 * m;
   const th = W * 0.13;
@@ -91,14 +106,14 @@ export function buildQrPlate(ctx: ModelCtx, p: QrPlateParams): ModelOutput {
     const title = p.title.trim() ? text(p.title, th * 0.8) : null;
     const head: CS[] = [];
     if (title) {
-      const t = k(fitInto(k(title), q - th - gap, th * 0.8, 0));
+      const t = checked(k(fitInto(k(title), q - th - gap, th * 0.8, 0)), p.title);
       const tw = t.bounds().max[0] - t.bounds().min[0];
       const total = th + gap + tw;
       head.push(k(icon.translate([-total / 2 + th / 2, top - th / 2])), k(t.translate([-total / 2 + th + gap + tw / 2, top - th / 2])));
     } else head.push(k(icon.translate([0, top - th / 2])));
     const row = at("head", "Ícone e título", head);
     const sub = sh ? text(p.subtitle, sh) : null;
-    if (sub) row.push(...at("subtitle", "Texto de baixo", [k(fitInto(k(sub), q, sh, qrCy - q / 2 - gap - sh / 2))]));
+    if (sub) row.push(...at("subtitle", "Texto de baixo", [checked(k(fitInto(k(sub), q, sh, qrCy - q / 2 - gap - sh / 2)), p.subtitle)]));
     const parts: Part[] = [
       { name: "Placa", color: p.plateColor, mesh: slab(k(roundedRect(M, W, H, W * 0.06)), p.thickness) },
       { name: "QR", color: p.darkColor, mesh: qr.mesh },
@@ -108,7 +123,7 @@ export function buildQrPlate(ctx: ModelCtx, p: QrPlateParams): ModelOutput {
   });
   const models: Model[] = [plate];
   if (p.stand) models.push(plateStand(M, W, p.thickness, p.plateColor, -H / 2 - 25));
-  return { models, warnings: qr.warnings, elements };
+  return { models, warnings: [...qr.warnings, ...thin], elements };
 }
 
 export type QrListParams = {
@@ -152,6 +167,7 @@ export const DEFAULT_QR_LIST: QrListParams = {
 /** Placa com 1 a 4 QRs lado a lado (ou empilhados), cada um com o rótulo embaixo e o ícone do tipo. */
 export function buildQrList(ctx: ModelCtx, p: QrListParams): ModelOutput {
   const { M, text } = ctx;
+  const { thin, checked } = thinChecker();
   const entries = ([1, 2, 3, 4] as const)
     .map((i) => ({ label: p[`label${i}`].trim(), link: p[`link${i}`].trim() }))
     .filter((e) => e.link);
@@ -168,7 +184,7 @@ export function buildQrList(ctx: ModelCtx, p: QrListParams): ModelOutput {
   const plate = scoped((k) => {
     const texts: CS[] = [];
     const qrMeshes: Part[] = [];
-    if (th) texts.push(k(fitInto(k(text(p.title, th)!), W - 2 * m, th, top - th / 2)));
+    if (th) texts.push(checked(k(fitInto(k(text(p.title, th)!), W - 2 * m, th, top - th / 2)), p.title));
     entries.forEach((e, i) => {
       const x = horizontal ? -W / 2 + m + cellW / 2 + i * (cellW + gap) : 0;
       const yTop = top - (th && th + gap) - (horizontal ? 0 : i * (cellH + gap));
@@ -180,7 +196,7 @@ export function buildQrList(ctx: ModelCtx, p: QrListParams): ModelOutput {
       const icon = k(iconCs(M, ICON[kind], lh));
       const raw = e.label ? text(e.label, lh) : null;
       if (raw) {
-        const t = k(fitInto(k(raw), cellW - lh - 2, lh, 0));
+        const t = checked(k(fitInto(k(raw), cellW - lh - 2, lh, 0)), e.label);
         const tw = t.bounds().max[0] - t.bounds().min[0];
         const total = lh + 2 + tw;
         texts.push(k(icon.translate([x - total / 2 + lh / 2, labelY])), k(t.translate([x - total / 2 + lh + 2 + tw / 2, labelY])));
@@ -193,5 +209,5 @@ export function buildQrList(ctx: ModelCtx, p: QrListParams): ModelOutput {
   });
   const models: Model[] = [plate];
   if (p.stand) models.push(plateStand(M, W, p.thickness, p.plateColor, -H / 2 - 25));
-  return { models, warnings: [...new Set(warnings)] };
+  return { models, warnings: [...new Set([...warnings, ...thin])] };
 }

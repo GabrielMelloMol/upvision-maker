@@ -65,7 +65,7 @@ Para cada modelo: valores **padrão**, todos os campos numéricos no **mínimo**
 | Floco de neve com nome (snowflake) | mínimo | ✅ ok | 6 | 1,6 | 1 | – | – |
 | Floco de neve com nome (snowflake) | padrão | ✅ ok | 13 | 4,5 | 1 | – | – |
 | Troféu (trophy) | máximo | ✅ ok | 119 | 95,9 | 1 | – | – |
-| Troféu (trophy) | mínimo | ⚠️ aviso | 19 | 10,2 | 1 | – | "Placa": parede/traço < 0,4 mm em Z 2,6 mm |
+| Troféu (trophy) | mínimo | ⚠️ aviso | 19 | 10,2 | 1 | – | "Placa": parede/traço < 0,4 mm em Z 2,6 mm; app: "1º LUGAR" ficou com 2,2 mm de altura: os traços ficam com menos de 0,4 mm e somem na impressão. Aumente o texto ou a peça, encurte a linha ou use uma fonte mais grossa. |
 | Troféu (trophy) | padrão | ✅ ok | 36 | 24,7 | 1 | – | – |
 | Troféu elegante (trophyElegant) | máximo | ✅ ok | 118 | 100,9 | 1 | – | – |
 | Troféu elegante (trophyElegant) | mínimo | ✅ ok | 20 | 11,4 | 1 | – | – |
@@ -95,7 +95,7 @@ Para cada modelo: valores **padrão**, todos os campos numéricos no **mínimo**
 | Placa com vários QRs (qrList) | mínimo | ✅ ok | 35 | 22,2 | 1 | – | app: Cada módulo ficou com 0,76 mm: aumente a placa ou encurte o texto (mínimo recomendado 1,2 mm).; app: Cada módulo ficou com 0,86 mm: aumente a placa ou encurte o texto (mínimo recomendado 1,2 mm). |
 | Placa com vários QRs (qrList) | padrão | ✅ ok | 75 | 49,3 | 1 | – | – |
 | Placa QR (qrPlate) | máximo | ❌ falha | 34 | 23,9 | 1 | – | "Wi-Fi" não cabe na mesa de 256 mm (200,0 × 260,0 × 9,0 mm); o conjunto arrumado ocupa 200,0 × 300,0 mm: passa da mesa de 256 mm; app: "Wi-Fi" tem 200 × 260 × 9 mm e passa da mesa de 256 mm: diminua o tamanho. |
-| Placa QR (qrPlate) | mínimo | ⚠️ aviso | 30 | 18,6 | 1 | – | "Wi-Fi": parede/traço < 0,4 mm em Z 2,2 mm |
+| Placa QR (qrPlate) | mínimo | ⚠️ aviso | 30 | 18,6 | 1 | – | "Wi-Fi": parede/traço < 0,4 mm em Z 2,2 mm; app: "Aponte a câmera" ficou com 4,2 mm de altura: os traços ficam com menos de 0,4 mm e somem na impressão. Aumente o texto ou a peça, encurte a linha ou use uma fonte mais grossa. |
 | Placa QR (qrPlate) | padrão | ✅ ok | 61 | 39,7 | 1 | – | – |
 | Placa de sinalização (sign) | máximo | ❌ falha | – | – | – | – | "Placa" não cabe na mesa de 256 mm (300,0 × 120,0 × 10,0 mm); Bambu Studio: One of the plate is empty or has no object fully inside it. Please check that the 3mf contains no empty plate in Bambu Studio before uploading. (código -50); app: "Placa" tem 300 × 120 × 10 mm e passa da mesa de 256 mm: diminua o tamanho. |
 | Placa de sinalização (sign) | mínimo | ✅ ok | 5 | 2,6 | 1 | – | – |
@@ -125,7 +125,7 @@ Para cada modelo: valores **padrão**, todos os campos numéricos no **mínimo**
 | Litofania (ferramenta) | mínimo | ✅ ok | 9 | 1,3 | 1 | – | – |
 | Litofania (ferramenta) | padrão | ✅ ok | 86 | 24,6 | 1 | – | – |
 | Medalha (ferramenta) | máximo | ✅ ok | 103 | 88,4 | 1 | – | – |
-| Medalha (ferramenta) | mínimo | ⚠️ aviso | 4 | 1,7 | 1 | – | "CAMPEÃ": parede/traço < 0,4 mm em Z 1,7 mm |
+| Medalha (ferramenta) | mínimo | ⚠️ aviso | 4 | 1,7 | 1 | – | "CAMPEÃ": parede/traço < 0,4 mm em Z 1,7 mm; app: "CAMPEÃ" ficou com 2,0 mm de altura: os traços ficam com menos de 0,4 mm e somem na impressão. Aumente o texto ou a peça, encurte a linha ou use uma fonte mais grossa. |
 | Medalha (ferramenta) | padrão | ✅ ok | 13 | 8,7 | 1 | – | – |
 | QR Code (ferramenta) | máximo | ✅ ok | 218 | 167,3 | 1 | – | – |
 | QR Code (ferramenta) | mínimo | ✅ ok | 2 | 0,4 | 1 | – | app: Cada módulo ficou com 0,56 mm: aumente a placa ou encurte o texto (mínimo recomendado 1,2 mm). |

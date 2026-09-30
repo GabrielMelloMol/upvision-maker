@@ -1,6 +1,7 @@
 import type { CS } from "../manifold";
 import { buildMedal, medalOutline, type MedalShape } from "../medal";
 import { fitInto, scoped } from "../shape2d";
+import { thinLineWarning } from "../textCheck";
 import type { Model } from "../types";
 import { moveModel, slab, solidMesh, type ModelCtx, type ModelOutput } from "./common";
 
@@ -45,10 +46,12 @@ const H1 = 8, H2 = 7;
 export function buildTrophy(ctx: ModelCtx, p: TrophyParams): ModelOutput {
   const { M, text, art } = ctx;
   const tabW = p.size * 0.35;
+  const warnings: string[] = [];
+  const warn = (msg: string) => void warnings.push(msg);
   const plate = scoped((k) => {
     const txt = text(p.text, p.size * 0.12);
     if (txt) k(txt);
-    const medal = buildMedal(M, { shape: p.shape, diameter: p.size, thickness: p.thickness, rim: 2.5, relief: p.relief, ribbon: 0, baseColor: p.plateColor, accentColor: p.accentColor, artColor: p.artColor }, art, txt);
+    const medal = buildMedal(M, { shape: p.shape, diameter: p.size, thickness: p.thickness, rim: 2.5, relief: p.relief, ribbon: 0, baseColor: p.plateColor, accentColor: p.accentColor, artColor: p.artColor }, art, txt, null, { label: p.text, warn });
     const outline = k(medalOutline(M, p.shape, p.size));
     const minY = outline.bounds().min[1];
     // onde o contorno de fato cobre o meio (na estrela, o "vale" entre as 2 pontas de baixo)
@@ -58,8 +61,8 @@ export function buildTrophy(ctx: ModelCtx, p: TrophyParams): ModelOutput {
     return { name: "Placa", parts: [...medal.parts, { name: "Encaixe", color: p.plateColor, mesh: slab(tab, p.thickness) }] } satisfies Model;
   });
   const W = Math.max(p.size * 0.9, tabW + 20);
-  const base = trophyBase(ctx, { width: W, tabW, thickness: p.thickness, relief: p.relief, lines: [p.baseText, p.baseText2 ?? ""], compact: false, baseColor: p.baseColor, textColor: p.accentColor });
-  return { models: [plate, moveModel(base, p.size / 2 + W / 2 + 10, 0)] };
+  const base = trophyBase(ctx, { width: W, tabW, thickness: p.thickness, relief: p.relief, lines: [p.baseText, p.baseText2 ?? ""], compact: false, baseColor: p.baseColor, textColor: p.accentColor }, warn);
+  return { models: [plate, moveModel(base, p.size / 2 + W / 2 + 10, 0)], warnings };
 }
 
 export type TrophyBaseParams = {
@@ -82,7 +85,7 @@ const COMPACT_H = 10;
  * Base do troféu com rasgo para a lingueta da placa (folga FIT). Original: 2 degraus; compacta: bloco baixo arredondado.
  * O texto (1 ou 2 linhas) fica em relevo na frente (-Y), a peça imprime deitada sem suporte.
  */
-export function trophyBase({ M, text }: ModelCtx, p: TrophyBaseParams): Model {
+export function trophyBase({ M, text }: ModelCtx, p: TrophyBaseParams, warn?: (msg: string) => void): Model {
   return scoped((k) => {
     const W = p.compact ? COMPACT_W : p.width;
     const D = p.compact ? COMPACT_D : BASE_D;
@@ -100,7 +103,11 @@ export function trophyBase({ M, text }: ModelCtx, p: TrophyBaseParams): Model {
       .map((l, i) => {
         const raw = text(l, lineH);
         const cy = lines.length > 1 ? faceH / 2 + (i === 0 ? 1 : -1) * (lineH / 2 + 0.4) : faceH / 2;
-        return raw ? k(fitInto(k(raw), W - 2 * STEP - 4, lineH, cy)) : null;
+        if (!raw) return null;
+        const line = k(fitInto(k(raw), W - 2 * STEP - 4, lineH, cy));
+        const thin = warn && thinLineWarning(line, l); // traço no tamanho final (#146)
+        if (thin) warn(thin);
+        return line;
       })
       .filter((c): c is CS => c !== null);
     if (cs.length) {

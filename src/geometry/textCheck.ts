@@ -35,3 +35,17 @@ export function textWarnings(c: TextCheck, text: string, cursive: boolean): stri
   if (cursive && c.pieces > words * 2) out.push(`Nesta cursiva as letras não se unem: o texto sai em ${c.pieces} partes. Para o nome emendado, prefira Pacifico, Lobster ou Norican.`);
   return out;
 }
+
+const MAX_SHOWN = 24;
+
+/**
+ * Aviso de uma linha de texto já no tamanho final (depois de o modelo encolher para caber, #146): null se o traço
+ * imprime. A altura dita é a da linha na peça (ou `heightMm`, para texto em arco).
+ */
+export function thinLineWarning(line: CS, text: string, heightMm?: number): string | null {
+  if (!checkText(line).thin) return null;
+  const b = line.bounds();
+  const shown = text.length > MAX_SHOWN ? `${text.slice(0, 20).trimEnd()}…` : text;
+  const h = (heightMm ?? b.max[1] - b.min[1]).toFixed(1).replace(".", ",");
+  return `"${shown}" ficou com ${h} mm de altura: os traços ficam com menos de ${String(MIN_STROKE_MM).replace(".", ",")} mm e somem na impressão. Aumente o texto ou a peça, encurte a linha ou use uma fonte mais grossa.`;
+}
