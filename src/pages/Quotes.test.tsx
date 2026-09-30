@@ -59,6 +59,23 @@ const setup = () => {
 };
 
 describe("Orçamentos", () => {
+  test("clicar em Novo orçamento antes de terminar de carregar ainda usa validade e condições da empresa (corrida)", async () => {
+    seed();
+    // segura as leituras do banco até depois do clique (máquina carregada)
+    let open!: () => void;
+    const gate = new Promise<void>((r) => (open = r));
+    t.handlers["plugin:sql|select"] = async (a) => {
+      await gate;
+      return t.raw.prepare(String(a.query)).all(...((a.values as never[]) ?? []));
+    };
+    const { user } = setup();
+    await user.click(screen.getByRole("button", { name: "Novo orçamento" }));
+    open();
+    const sheet = await screen.findByRole("dialog", { name: "Novo orçamento" });
+    expect(within(sheet).getByLabelText("Condições comerciais")).toHaveValue("50% na aprovação.");
+    expect(within(sheet).getByLabelText("Válido até")).toHaveValue(addDays(todayIso(), 7));
+  });
+
   test("cria com validade e condições padrão da empresa; total na lista", async () => {
     seed();
     const { user } = setup();

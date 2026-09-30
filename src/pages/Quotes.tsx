@@ -24,7 +24,7 @@ import { clearOpenQuoteDraft, clearQuoteDraft, peekOpenQuoteDraft, peekQuoteDraf
 const dateBr = (iso: string) => iso.slice(0, 10).split("-").reverse().join("/");
 
 export default function Quotes({ go }: { go: Go }) {
-  const [data, reload] = useData(loadQuotesData, EMPTY_QUOTES);
+  const [data, reload, loading] = useData(loadQuotesData, EMPTY_QUOTES);
   const [draft, setDraft] = useState(peekQuoteDraft);
   const [editing, setEditing] = useState<Quote | "new" | "draft" | null>(() => (peekOpenQuoteDraft() && draft ? "draft" : null));
   useEffect(clearOpenQuoteDraft, []);
@@ -155,7 +155,8 @@ export default function Quotes({ go }: { go: Go }) {
           </tbody>
         </table>
       )}
-      {editing && (
+      {/* só depois da 1ª leitura: o editor guarda validade e condições da empresa ao abrir */}
+      {editing && !loading && (
         <QuoteEditor
           data={data}
           quote={editing === "new" || editing === "draft" ? undefined : editing}
