@@ -15,6 +15,8 @@ const REFRAME_RATIO = 0.25;
 const VIEW_DIR = new THREE.Vector3(0, -1.6, 1.4).normalize();
 /** Folga em volta do modelo no enquadramento. */
 const FIT_MARGIN = 1.08;
+/** Menor ângulo entre a câmera e o eixo Z ao inclinar pelo teclado (não passa por cima nem por baixo). */
+const MIN_TILT = 0.08;
 
 /**
  * Distância para a esfera de raio `r` caber inteira na tela, pelo menor campo de visão (vertical ou horizontal).
@@ -171,6 +173,30 @@ export function createViewer(el: HTMLElement) {
       }
       if (group.children.length === 0) lastSize = 0;
       frame(wasEmpty);
+      render();
+    },
+    /**
+     * Teclado (#144): gira em volta do eixo Z (`dAz`), inclina (`dTilt`, sem virar de ponta-cabeça) e aproxima
+     * (`zoom` < 1) ou afasta (> 1). Para o giro automático, como um toque do mouse.
+     */
+    nudge(dAz: number, dTilt: number, zoom = 1) {
+      fly = null;
+      spinUntil = 0;
+      const off = camera.position.clone().sub(controls.target);
+      off.applyAxisAngle(camera.up, dAz);
+      const right = new THREE.Vector3().crossVectors(off, camera.up).normalize();
+      const tilted = off.clone().applyAxisAngle(right, dTilt);
+      const fromUp = tilted.angleTo(camera.up);
+      if (fromUp > MIN_TILT && fromUp < Math.PI - MIN_TILT) off.copy(tilted);
+      off.multiplyScalar(zoom);
+      camera.position.copy(controls.target).add(off);
+      controls.update();
+      render();
+    },
+    /** Volta ao enquadramento de chegada. */
+    reset() {
+      lastSize = 0;
+      frame(false);
       render();
     },
     /** Miniatura da cena (WebP, lado maior `max` px): renderiza e lê no mesmo passo (sem preserveDrawingBuffer). */
