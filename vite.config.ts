@@ -34,7 +34,7 @@ export default defineConfig(() => ({
     // #127: geometria 3D (manifold) é pesada e, com a máquina carregada, passava dos 5 s. Fica num projeto com
     // tempo maior; o resto do app continua com 5 s para teste lento comum ainda aparecer.
     projects: [
-      { extends: true, test: { name: "geometria", include: GEOMETRY_TESTS, testTimeout: 60_000, hookTimeout: 60_000 } },
+      { extends: true, test: { name: "geometria", include: GEOMETRY_TESTS, testTimeout: 60_000, hookTimeout: 60_000, setupFiles: ["src/test/setupGeometry.ts"] } },
       { extends: true, test: { name: "app", include: ["src/**/*.test.{ts,tsx}", "services/**/*.test.ts"], exclude: [...GEOMETRY_TESTS, "**/node_modules/**"] } },
     ],
     coverage: {
