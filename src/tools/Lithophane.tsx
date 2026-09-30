@@ -119,7 +119,7 @@ export default function Lithophane() {
   return (
     <div className="page">
       <h1>Litofania e quadro</h1>
-      <p className="lead">Transforma uma foto em relevo: litofania para ver contra a luz ou quadro colorido por camadas de filamento.</p>
+      <p className="lead">Foto em relevo: litofania ou quadro por camadas.</p>
       <ToolSessionBar tool={tool} />
       <div className="tool-layout">
         <div className="controls">

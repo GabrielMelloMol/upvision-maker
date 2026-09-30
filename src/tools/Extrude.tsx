@@ -44,7 +44,7 @@ export default function Extrude() {
   return (
     <div className="page">
       <h1>Extrusão SVG → 3D</h1>
-      <p className="lead">Dá altura a qualquer desenho. Com base, a placa e o desenho saem em cores separadas no 3MF.</p>
+      <p className="lead">Dá altura a qualquer desenho, com base se quiser.</p>
       <ToolSessionBar tool={tool} />
       <div className="tool-layout">
         <div className="controls">

@@ -43,7 +43,7 @@ export default function Costs() {
       <div className="page-head">
         <div>
           <h1>Custos operacionais</h1>
-          <p className="lead">Aluguel, impostos, parcelas da impressora… Entram no Financeiro nas datas em que acontecem.</p>
+          <p className="lead">Aluguel, impostos e parcelas, mês a mês.</p>
         </div>
         <Button variant="primary" icon={Plus} onClick={() => setEditing({})}>
           Novo custo

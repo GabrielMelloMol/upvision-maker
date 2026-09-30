@@ -89,7 +89,7 @@ export default function DrawerOrganizer() {
   return (
     <div className="page">
       <h1>Organizador de gaveta</h1>
-      <p className="lead">Meça a gaveta, desenhe as caixinhas e imprima a base e os módulos.</p>
+      <p className="lead">Meça a gaveta, desenhe as caixinhas e imprima.</p>
       <ToolSessionBar tool={tool} />
       <div className="tool-layout">
         <div className="controls">

@@ -82,7 +82,7 @@ export default function Orders() {
       <div className="page-head">
         <div>
           <h1>Pedidos</h1>
-          <p className="lead">Ao iniciar a produção o estoque é baixado; ao cancelar ou excluir, volta sozinho.</p>
+          <p className="lead">O estoque baixa ao produzir e volta ao cancelar.</p>
         </div>
         <div className="row">
           <Segmented

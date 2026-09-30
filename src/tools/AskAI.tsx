@@ -158,7 +158,7 @@ export default function AskAI({ go }: { go: Go }) {
     return (
       <div className="page">
         <h1>Pedir à IA</h1>
-        <p className="lead">Descreva a peça em português e o Claude desenha o modelo em OpenSCAD. Você vê em 3D, pede ajustes e exporta o 3MF.</p>
+        <p className="lead">Descreva a peça e o Claude modela em 3D.</p>
         <div className="card stack" style={{ maxWidth: 560 }}>
           <Alert kind="info">
             Para usar, cadastre uma chave da API da Anthropic em Preferências. O uso é <strong>pago por pedido</strong> (normalmente alguns centavos de dólar), e cada
@@ -177,7 +177,7 @@ export default function AskAI({ go }: { go: Go }) {
   return (
     <div className="page">
       <h1>Pedir à IA</h1>
-      <p className="lead">Descreva a peça; peça ajustes na conversa até ficar bom. Cada parte declarada sai como uma cor separada no 3MF.</p>
+      <p className="lead">Peça ajustes na conversa; cada parte sai numa cor.</p>
       <div className="tool-layout">
         <div className="controls">
           <div className="card stack chat" aria-live="polite">

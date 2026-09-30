@@ -63,7 +63,7 @@ export default function Products() {
       <div className="page-head">
         <div>
           <h1>Produtos</h1>
-          <p className="lead">Preços recalculados com o custo de hoje dos insumos. Estoque pronto sobe ao produzir e desce nos pedidos.</p>
+          <p className="lead">Preço com o custo de hoje dos insumos.</p>
         </div>
         <div className="row">
           <Button icon={Boxes} onClick={() => setEditing({ kind: "kit" })}>

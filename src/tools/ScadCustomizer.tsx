@@ -160,7 +160,7 @@ export default function ScadCustomizer() {
   return (
     <div className="page">
       <h1>OpenSCAD personalizável</h1>
-      <p className="lead">Abra um .scad com parâmetros no formato do Customizer (Thingiverse, Printables, MakerWorld) e ajuste as medidas num formulário, sem abrir o código.</p>
+      <p className="lead">Arquivo .scad do Customizer vira formulário e 3MF.</p>
       <ToolSessionBar tool={tool} />
       <div className="tool-layout">
         <div className="controls">

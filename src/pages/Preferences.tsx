@@ -51,7 +51,7 @@ export default function Preferences() {
   return (
     <div className="page">
       <h1>Preferências</h1>
-      <p className="lead">Custos da sua produção e taxas dos canais de venda. Tudo fica salvo só neste computador.</p>
+      <p className="lead">Custos da produção e taxas dos canais.</p>
       {data ? <PreferencesForm initial={data.settings} materials={data.materials} /> : <span className="skeleton" style={{ height: 180, borderRadius: 16, marginBottom: 16 }} />}
       <h2>Seus dados</h2>
       <BackupSettingsCard />

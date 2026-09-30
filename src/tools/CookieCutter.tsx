@@ -53,7 +53,7 @@ export default function CookieCutter() {
   return (
     <div className="page">
       <h1>Cortador de biscoito</h1>
-      <p className="lead">Use um SVG ou uma imagem do desenho. O contorno vira a lâmina; as linhas de dentro viram um carimbo opcional.</p>
+      <p className="lead">O contorno vira lâmina; o desenho de dentro, carimbo.</p>
       <ToolSessionBar tool={tool} />
       <div className="tool-layout">
         <div className="controls">

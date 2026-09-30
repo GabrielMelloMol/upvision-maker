@@ -101,7 +101,7 @@ export default function QrCode() {
   return (
     <div className="page">
       <h1>QR Code e Pix</h1>
-      <p className="lead">Pix com valor, link, Wi-Fi ou texto. Salve em SVG para o papel ou em 3MF de 2 cores: placa clara com o código em relevo.</p>
+      <p className="lead">Pix, link ou Wi-Fi em SVG ou 3MF de 2 cores.</p>
       <ToolSessionBar tool={tool} />
       <div className="tool-layout">
         <div className="controls">

@@ -68,7 +68,7 @@ export default function Quotes({ go }: { go: Go }) {
       <div className="page-head">
         <div>
           <h1>Orçamentos</h1>
-          <p className="lead">PDF em A4 com logo e QR Pix do valor exato. Aprovado? Vire pedido com um clique.</p>
+          <p className="lead">PDF com logo e QR Pix do valor.</p>
         </div>
         <div className="row">
           <Button icon={FileSignature} onClick={() => setSheet("contract")}>

@@ -210,7 +210,7 @@ export default function ImageToSvg({ go }: { go: Go }) {
   return (
     <div className="page">
       <h1>Imagem → SVG</h1>
-      <p className="lead">Transforma logo, desenho ou silhueta em um SVG liso, de 1 a 4 cores, já no tamanho de impressão.</p>
+      <p className="lead">Logo ou desenho vira SVG de 1 a 4 cores, em mm.</p>
       <ToolSessionBar tool={tool} />
       <div className="tool-layout">
         <div className="controls">

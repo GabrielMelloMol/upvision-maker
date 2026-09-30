@@ -66,7 +66,7 @@ function CompanyForm({ initial }: { initial: Company }) {
       <div className="page-head">
         <div>
           <h1>Dados da empresa</h1>
-          <p className="lead">Aparecem no orçamento, no contrato de consignação e no catálogo.</p>
+          <p className="lead">Aparecem no orçamento e no catálogo.</p>
         </div>
         <Button variant="primary" type="submit" icon={Building2}>
           Salvar dados

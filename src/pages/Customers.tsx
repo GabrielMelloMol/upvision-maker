@@ -47,7 +47,7 @@ export default function Customers() {
       <div className="page-head">
         <div>
           <h1>Clientes</h1>
-          <p className="lead">Contato, endereço e desconto padrão, que já entra nos pedidos e orçamentos.</p>
+          <p className="lead">Contato, endereço e desconto padrão.</p>
         </div>
         <Button variant="primary" icon={Plus} onClick={() => setEditing({})}>
           Novo cliente

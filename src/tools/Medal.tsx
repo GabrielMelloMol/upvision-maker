@@ -154,7 +154,7 @@ export default function Medal() {
   return (
     <div className="page">
       <h1>Medalhas</h1>
-      <p className="lead">Formato, textos em arco, borda, fundo, imagem, alça e verso. Cada parte sai com a sua cor no 3MF.</p>
+      <p className="lead">Formato, textos em arco, imagem e alça, em cores.</p>
       <ToolSessionBar tool={tool} />
       <div className="tool-layout">
         <div className="controls">

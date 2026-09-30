@@ -79,7 +79,7 @@ export default function Finance() {
       <div className="page-head">
         <div>
           <h1>Financeiro</h1>
-          <p className="lead">Receita pela data de entrega dos pedidos. Lucro = receita − custo das peças − custos operacionais.</p>
+          <p className="lead">Receita pela data de entrega dos pedidos.</p>
         </div>
         <Button variant="action" icon={FileSpreadsheet} onClick={exportCsv}>
           Exportar planilha

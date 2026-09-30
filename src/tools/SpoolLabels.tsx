@@ -99,7 +99,7 @@ export default function SpoolLabels() {
   return (
     <div className="page">
       <h1>Etiquetas de rolo</h1>
-      <p className="lead">Um QR por filamento: cole no carretel, leia com a câmera e dê baixa ou marque o rolo como acabado.</p>
+      <p className="lead">Um QR por rolo para dar baixa pela câmera.</p>
       <div className="tool-layout">
         <div className="controls">
           <div className="card stack">

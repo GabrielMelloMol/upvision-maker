@@ -251,7 +251,7 @@ export default function Models() {
   return (
     <div className="page">
       <h1>Modelos prontos</h1>
-      <p className="lead">Escolha um modelo, ajuste texto, tamanho e cores e salve o 3MF já separado por cor.</p>
+      <p className="lead">Escolha, ajuste o texto e salve o 3MF em cores.</p>
       <ToolSessionBar tool={tool} />
       <div className="model-picker">
         <div className="row">

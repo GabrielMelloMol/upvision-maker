@@ -75,7 +75,7 @@ export default function ModelSearch({ go }: { go: Go }) {
   return (
     <div className="page">
       <h1>Buscar modelos 3D</h1>
-      <p className="lead">Procure nos principais sites de modelos. A busca abre no navegador; aqui nada é copiado das páginas.</p>
+      <p className="lead">Busque nos principais sites de modelos.</p>
       <div className="tool-layout">
         <div className="controls">
           <form className="card stack" onSubmit={searchAll}>

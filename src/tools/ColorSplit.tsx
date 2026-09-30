@@ -80,7 +80,7 @@ export default function ColorSplit() {
   return (
     <div className="page">
       <h1>Separar 3MF por cor</h1>
-      <p className="lead">Abra um 3MF pintado no Bambu Studio, OrcaSlicer ou PrusaSlicer e cada cor vira uma peça sólida, pronta para multicor ou para imprimir separado.</p>
+      <p className="lead">3MF pintado vira uma peça sólida por cor.</p>
       <ToolSessionBar tool={tool} />
       <div className="tool-layout">
         <div className="controls">

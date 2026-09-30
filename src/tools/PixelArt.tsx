@@ -106,7 +106,7 @@ export default function PixelArt() {
   return (
     <div className="page">
       <h1>Pixel art</h1>
-      <p className="lead">Imagem vira grade de pixels nas cores dos seus filamentos: mosaico, quebra-cabeça com pixels soltos ou ímã de geladeira.</p>
+      <p className="lead">Imagem em pixels nas cores dos seus filamentos.</p>
       <ToolSessionBar tool={tool} />
       <div className="tool-layout">
         <div className="controls">
