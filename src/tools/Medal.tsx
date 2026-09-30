@@ -182,16 +182,18 @@ export default function Medal() {
           <div className="card stack">
             <h3>Textos</h3>
             {FIELDS.map((f) => (
-              <div key={f.k} className="stack">
+              // o fieldset dá o contexto para leitor de tela ("Em arco, em cima", "Altura"); na tela o rótulo fica curto
+              <fieldset key={f.k} className="stack text-group">
+                <legend className="sr-only">{f.label}</legend>
                 <label>
                   {f.label}
                   <input value={p[f.k]} maxLength={f.max} disabled={batch && f.k === "center"} onChange={(e) => set(f.k)(e.target.value)} />
                 </label>
                 <div className="grid two">
-                  <NumField label={`Altura: ${f.label.toLowerCase()}`} value={p[f.size]} onChange={set(f.size)} min={2} max={24} step={0.5} />
+                  <NumField label="Altura" value={p[f.size]} onChange={set(f.size)} min={2} max={24} step={0.5} />
                   {fontSelect(f.k, f.label.toLowerCase())}
                 </div>
-              </div>
+              </fieldset>
             ))}
           </div>
           <div className="card stack">

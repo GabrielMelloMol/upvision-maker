@@ -58,6 +58,7 @@ export default function CookieCutter() {
       <div className="tool-layout">
         <div className="controls">
           <div className="card stack">
+            <h3>Desenho</h3>
             <Dropzone accept={DESIGN_ACCEPT} label={svg ? svg.name : "Arraste um SVG ou imagem"} hint="SVG, PNG, JPG… (imagens são vetorizadas automaticamente)" onFile={onFile} />
             {loading && <Alert kind="info">Lendo o desenho…</Alert>}
             {inputError && <Alert kind="error">{inputError}</Alert>}
@@ -67,6 +68,7 @@ export default function CookieCutter() {
             <NumField label="Largura" value={width} onChange={setWidth} min={LIMITS.width[0]} max={LIMITS.width[1]} step={1} />
           </div>
           <div className="card stack">
+            <h3>Carimbo</h3>
             <label className="check">
               <input type="checkbox" checked={p.stamp} onChange={(e) => set("stamp")(e.target.checked)} /> <strong>Carimbo do desenho interno</strong>
             </label>

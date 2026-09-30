@@ -165,7 +165,7 @@ export default function ScadCustomizer() {
       <div className="tool-layout">
         <div className="controls">
           <div className="card stack">
-            <Dropzone accept=".scad" label={scad ? `${scad.name}.scad` : "Arraste o arquivo .scad"} hint="Os parâmetros do topo do arquivo viram campos: [min:passo:max], listas, /* [Abas] */." onFile={onScad} />
+            <Dropzone accept=".scad" label={scad ? `${scad.name}.scad` : "Arraste o arquivo .scad"} hint="Os parâmetros do topo do arquivo viram campos." onFile={onScad} />
             {fileError && <Alert kind="error">{fileError}</Alert>}
             {saved.length > 0 && (
               <div className="stack" aria-label="Meus modelos">

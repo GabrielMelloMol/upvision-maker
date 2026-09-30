@@ -266,7 +266,8 @@ export default function ImageToSvg({ go }: { go: Go }) {
               </>
             ) : (
               <>
-                <button className="primary" disabled={!raster} onClick={() => apply()}>
+                {/* um só botão cheio na tela: o Salvar SVG (#139) */}
+                <button disabled={!raster} onClick={() => apply()}>
                   <Play aria-hidden /> {result ? "Aplicar alterações" : "Aplicar"}
                 </button>
                 <span className={dirty ? "dirty" : "muted"}>
@@ -301,7 +302,7 @@ export default function ImageToSvg({ go }: { go: Go }) {
                 <span>SVG vetorizado</span>
                 {dirty && <span className="dirty">desatualizado</span>}
               </figcaption>
-              <div className="img" style={{ background: "#fff", opacity: running ? 0.5 : 1 }}>
+              <div className="img checker" style={{ opacity: running ? 0.5 : 1 }}>
                 {svgUrl ? (
                   <>
                     <img className="fit" src={svgUrl} alt="Resultado vetorizado" />

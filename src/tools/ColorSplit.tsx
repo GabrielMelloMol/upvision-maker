@@ -85,6 +85,7 @@ export default function ColorSplit() {
       <div className="tool-layout">
         <div className="controls">
           <div className="card stack">
+            <h3>Arquivo</h3>
             <Dropzone accept=".3mf" label={file ? `${file.name}.3mf` : "Arraste o .3mf pintado"} hint="Pintura por cor (pincel) ou partes de cores diferentes." onFile={onFile} />
             {fileError && <Alert kind="error">{fileError}</Alert>}
           </div>
@@ -97,6 +98,7 @@ export default function ColorSplit() {
             <span className="hint">{mode === "parts" ? "Um objeto com uma parte por cor: o fatiador troca de filamento (AMS)." : "Cada cor vira um objeto separado, apoiado na mesa: imprime cada um na sua cor e cola."}</span>
           </div>
           <div className="card stack">
+            <h3>Corte</h3>
             <Toggle label="Cortar com encaixe (peça maior que a mesa ou para montar)" checked={cutOn} onChange={setCutOn} />
             {cutOn && (
               <>

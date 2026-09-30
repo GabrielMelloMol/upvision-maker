@@ -125,7 +125,11 @@ export const ARTICLES: HelpArticle[] = [
     title: "OpenSCAD personalizável",
     intro: "Abra um .scad com parâmetros (formato do Customizer) e ajuste as medidas num formulário.",
     steps: ["Arraste o arquivo .scad baixado do Thingiverse, Printables ou MakerWorld.", "Escolha a licença que o autor informou e dê o crédito.", "Ajuste os campos de cada aba e confira a prévia.", "Salve o 3MF ou guarde em Meus modelos para usar de novo."],
-    tips: ["Se o .scad lê um arquivo (desenho, foto), envie o seu no campo que aparece.", "NC = não comercial: pode imprimir para você, não para vender."],
+    tips: [
+      "Se o .scad lê um arquivo (desenho, foto), envie o seu no campo que aparece.",
+      "NC = não comercial: pode imprimir para você, não para vender.",
+      "Quem escreve o .scad: variável no topo com comentário no fim da linha vira campo — // [10:1:100] é número com limites, // [redondo, quadrado] é lista, // color é cor e // font é fonte. /* [Medidas] */ abre uma aba.",
+    ],
   },
   {
     id: "search3d",

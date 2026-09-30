@@ -160,10 +160,11 @@ export default function AskAI({ go }: { go: Go }) {
         <h1>Pedir à IA</h1>
         <p className="lead">Descreva a peça e o Claude modela em 3D.</p>
         <div className="card stack" style={{ maxWidth: 560 }}>
-          <Alert kind="info">
+          <h3>Falta a chave da API</h3>
+          <p>
             Para usar, cadastre uma chave da API da Anthropic em Preferências. O uso é <strong>pago por pedido</strong> (normalmente alguns centavos de dólar), e cada
             pedido mostra o custo estimado.
-          </Alert>
+          </p>
           <button className="primary" onClick={() => go("preferences")}>
             Ir para Preferências
           </button>
@@ -181,6 +182,7 @@ export default function AskAI({ go }: { go: Go }) {
       <div className="tool-layout">
         <div className="controls">
           <div className="card stack chat" aria-live="polite">
+            <h3>Conversa</h3>
             {turns.length === 0 && (
               <>
                 <p className="muted">Exemplos:</p>
@@ -251,7 +253,8 @@ export default function AskAI({ go }: { go: Go }) {
               />
               <Attachments images={images} onChange={setImages} onAdd={(f, png) => void addImages(f, png)} disabled={!!phase} />
               <div className="row">
-                <button className="primary" type="submit" disabled={(!input.trim() && !images.length) || !!phase}>
+                {/* um só botão cheio: com a peça na tela, o cheio é o Salvar 3MF (#139) */}
+                <button className={model3d ? undefined : "primary"} type="submit" disabled={(!input.trim() && !images.length) || !!phase}>
                   <Send aria-hidden /> {turns.length ? "Pedir ajuste" : "Criar peça"}
                 </button>
                 <span className="hint">

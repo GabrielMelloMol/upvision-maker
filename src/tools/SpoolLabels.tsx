@@ -30,7 +30,7 @@ import QrScanner from "./QrScanner";
 const load = (db: Db) => filamentsRepo.list(db);
 const LAYOUTS: [LabelLayout, string][] = [
   ["a4", "Folha A4"],
-  ["roll", "Etiquetadora 50 × 30"],
+  ["roll", "Rolo 50 × 30"], // etiquetadora de rolo; nome curto para não quebrar no seletor
 ];
 const GAP_MM = 4;
 /** Quantas plaquinhas cabem na mesa da impressora escolhida (21 na de 256 mm, #124 e #119). */

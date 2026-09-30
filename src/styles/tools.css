@@ -214,3 +214,4 @@ details.advanced[open] > .stack, details.advanced[open] > .grid { margin-top: va
 @media (prefers-color-scheme: dark) {
   .checker { background-color: #2a2c31; background-image: linear-gradient(45deg, #34363c 25%, transparent 25%), linear-gradient(-45deg, #34363c 25%, transparent 25%), linear-gradient(45deg, transparent 75%, #34363c 75%), linear-gradient(-45deg, transparent 75%, #34363c 75%); }
 }
+.text-group { border: 0; padding: 0; margin: 0; min-width: 0; }

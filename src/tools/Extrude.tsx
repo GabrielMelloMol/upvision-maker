@@ -49,6 +49,7 @@ export default function Extrude() {
       <div className="tool-layout">
         <div className="controls">
           <div className="card stack">
+            <h3>Desenho</h3>
             <Dropzone accept={DESIGN_ACCEPT} label={svg ? svg.name : "Arraste um SVG ou imagem"} hint="Imagens são vetorizadas automaticamente" onFile={onFile} />
             {loading && <Alert kind="info">Lendo o desenho…</Alert>}
             {inputError && <Alert kind="error">{inputError}</Alert>}
