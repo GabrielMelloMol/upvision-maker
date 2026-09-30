@@ -91,6 +91,8 @@ export const MIGRATIONS: string[][] = [
   ],
   // Variações de produto (#82): nível (ex.: Cor) e as opções em JSON na própria linha, como a composição.
   ["ALTER TABLE products ADD COLUMN variationLabel TEXT NOT NULL DEFAULT 'Cor'", "ALTER TABLE products ADD COLUMN variants TEXT NOT NULL DEFAULT '[]'"],
+  // TD por filamento (#100): ordem e altura das faixas do quadro por camadas; vazio = sem medida.
+  ["ALTER TABLE filaments ADD COLUMN td REAL"],
 ];
 
 export const SCHEMA_VERSION = MIGRATIONS.length;

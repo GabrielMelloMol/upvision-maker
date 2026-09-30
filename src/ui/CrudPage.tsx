@@ -25,11 +25,13 @@ export type Field = {
   hint?: string;
   /** Só no formulário, fora da tabela. */
   formOnly?: true;
+  /** Número opcional: vazio grava null. */
+  optional?: true;
   /** Ação embaixo do campo (ex.: assistente que preenche o valor). */
   extra?: (set: (v: string) => void, form: Record<string, string>) => ReactNode;
 };
 
-type Row = { id: number } & Record<string, string | number>;
+type Row = { id: number } & Record<string, string | number | null>;
 
 type Repo = {
   list(db: Db): Promise<Row[]>;
@@ -65,7 +67,7 @@ const SKELETON_ROWS = 3;
 /** Tempo para desfazer uma exclusão; só então o registro sai do banco. */
 export const UNDO_MS = 8000;
 const isNum = (f: Field) => f.kind === "number" || f.kind === "money" || f.kind === "mass";
-const spoolOf = (v: Record<string, string | number>) => parseDecimal(String(v.spoolG ?? "")) || 1000;
+const spoolOf = (v: Record<string, string | number | null>) => parseDecimal(String(v.spoolG ?? "")) || 1000;
 
 function show(f: Field, r: Row) {
   const v = r[f.key];
@@ -132,6 +134,10 @@ export default function CrudPage({ pageId, title, singular, lead, repo, fields, 
     const v: Record<string, unknown> = {};
     for (const f of fields) {
       const t = String(form[f.key] ?? "");
+      if (f.optional && !t.trim()) {
+        v[f.key] = null;
+        continue;
+      }
       v[f.key] = f.kind === "money" ? parseMoney(t) : f.kind === "mass" ? parseMass(t, spoolOf(form)) : f.kind === "number" ? parseDecimal(t) : t;
     }
     return v;

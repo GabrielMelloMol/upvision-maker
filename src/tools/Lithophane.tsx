@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import type { Filament } from "../domain/entities";
 import { lumaGrid } from "../geometry/heightfield";
 import { buildLayeredPicture, DEFAULT_LAYERED, type ColorSwap } from "../geometry/layeredPicture";
@@ -12,7 +12,6 @@ import { LAYERED_PROFILE, LITHO_PROFILE } from "../geometry/printProfile";
 import NumField, { inRange } from "../ui/NumField";
 import Preview3D from "../ui/Preview3D";
 import Segmented from "../ui/Segmented";
-import Toggle from "../ui/Toggle";
 import { useData } from "../ui/useData";
 import { useModelBuilder } from "../ui/useModelBuilder";
 import { IMAGE_ACCEPT, loadRaster } from "../vectorize/client";
@@ -21,6 +20,9 @@ import { restoreFile, storeFile, type StoredFile } from "./storedFile";
 import ToolSessionBar from "./ToolSessionBar";
 import { useToolState } from "./useToolState";
 import { filamentColors, loadFilaments } from "./filamentColors";
+import { toDataUrl } from "./rasterUrl";
+import LayeredPanel, { DEFAULT_LAYERED_UI, type LayeredUi, type Thumb } from "./layered/LayeredPanel";
+import { segmentSubject } from "../vectorize/segment";
 
 type Mode = "litho" | "layered";
 const MODES: [Mode, string][] = [
@@ -38,22 +40,11 @@ const VIEWS: [View, string][] = [
   ["3d", "3D"],
 ];
 const MAX_COLS = 400; // ~250 mil triângulos por face: prévia e 3MF continuam leves
-const MAX_COLORS = 4;
+const THUMB_W = 72; // miniaturas das paletas prontas
 const FALLBACK_COLORS = DEFAULT_LAYERED.colors;
 const mmText = (n: number) => n.toFixed(2).replace(".", ",");
 
-/** RGBA → imagem (data URL) para mostrar na tela; null onde não há canvas 2D (testes). */
-function toDataUrl(rgba: Uint8ClampedArray<ArrayBuffer>, w: number, h: number): string | null {
-  const c = document.createElement("canvas");
-  c.width = w;
-  c.height = h;
-  const ctx = c.getContext("2d");
-  if (!ctx) return null;
-  ctx.putImageData(new ImageData(rgba, w, h), 0, 0);
-  return c.toDataURL();
-}
-
-const initialState = () => ({ mode: "litho" as Mode, file: null as File | null, width: 100, cell: 0.3, litho: DEFAULT_LITHO, layered: { ...DEFAULT_LAYERED, colors: [] as string[] } });
+const initialState = () => ({ mode: "litho" as Mode, file: null as File | null, width: 100, cell: 0.3, litho: DEFAULT_LITHO, layered: DEFAULT_LAYERED_UI as LayeredUi });
 type LithoState = ReturnType<typeof initialState>;
 
 /** Foto → litofania (relevo que aparece contra a luz) ou quadro por camadas de filamento (estilo HueForge). */
@@ -81,16 +72,16 @@ export default function Lithophane() {
   const nameOf = (hex: string) => filColors.find((f) => f.hex === hex)?.label ?? hex;
   const colors = layered.colors.length >= 2 ? layered.colors : FALLBACK_COLORS;
   const setL = <K extends keyof typeof litho>(k: K) => (v: (typeof litho)[K]) => setLitho((o) => ({ ...o, [k]: v }));
-  const setQ = <K extends keyof typeof layered>(k: K) => (v: (typeof layered)[K]) => setLayered((o) => ({ ...o, [k]: v }));
-  const toggleColor = (hex: string) =>
-    setLayered((o) => ({ ...o, colors: o.colors.includes(hex) ? o.colors.filter((c) => c !== hex) : o.colors.length < MAX_COLORS ? [...o.colors, hex] : o.colors }));
+  const [thumb, setThumb] = useState<Thumb | null>(null);
+  const [magnetZ, setMagnetZ] = useState<number | undefined>();
+  const masks = useRef(new Map<string, Uint8Array | null>()); // a Silhueta é lenta: guarda por foto, tamanho e tipo
 
   const valid =
     inRange(width, 20, 250) &&
     inRange(cell, 0.15, 1) &&
     (mode === "litho"
       ? inRange(litho.minT, 0.4, 3) && inRange(litho.maxT, 1, 8) && inRange(litho.border, 0, 15) && inRange(litho.arc, 30, 270)
-      : inRange(layered.base, 0.2, 3) && inRange(layered.relief, 0.4, 6) && inRange(layered.layerHeight, 0.04, 0.32));
+      : inRange(layered.base, 0.2, 3) && inRange(layered.relief, 0.4, 6) && inRange(layered.layerHeight, 0.04, 0.32) && (!layered.magnet || (inRange(layered.magnetD ?? 10, 4, 30) && inRange(layered.magnetH ?? 2, 1, 5))));
 
   const { models, warnings, pauses, busy, error } = useModelBuilder(async () => {
     if (!file || !valid) return null;
@@ -108,13 +99,22 @@ export default function Lithophane() {
       setExportModels(m);
       return { models: m, warnings: warn };
     }
-    const out = buildLayeredPicture(M, luma, r.w, r.h, step, { ...layered, colors });
+    setThumb(thumbOf(luma, r.w, r.h));
+    const subject = layered.subject ?? "none";
+    const key = `${file.name}:${file.size}:${r.w}:${subject}`;
+    if (subject !== "none" && !masks.current.has(key)) masks.current.set(key, await segmentSubject(r.rgba, r.w, r.h, subject));
+    const mask = subject !== "none" ? (masks.current.get(key) ?? null) : null;
+    const tds = colors.map((hex) => filColors.find((f) => f.hex === hex)?.td ?? null);
+    const out = buildLayeredPicture(M, luma, r.w, r.h, step, { ...layered, colors, tds, mask, background: mask ? layered.background : null });
     // faixas com o nome do filamento na legenda; a prévia é sempre colorida, o arquivo segue o toggle
     const named = (m: Model): Model => (m.parts.length > 1 ? { ...m, parts: m.parts.map((p) => ({ ...p, name: nameOf(p.color) })) } : m);
     setSwaps(out.swaps);
+    setMagnetZ(out.magnetZ);
     setExportModels([named(out.model)]);
-    return { models: [named(out.preview)], warnings: warn, pauses: layered.split ? [] : out.swaps.map((s) => s.z) };
-  }, [file, width, cell, mode, litho, layered, colors.join(), valid]);
+    const colorPauses = layered.split ? [] : out.swaps.map((s) => s.z);
+    const pauses = [...(out.magnetZ ? [out.magnetZ] : []), ...colorPauses].sort((a, b) => a - b);
+    return { models: [named(out.preview)], warnings: [...warn, ...out.warnings], pauses };
+  }, [file, width, cell, mode, litho, layered, colors.join(), filColors, valid]);
 
   return (
     <div className="page">
@@ -147,33 +147,7 @@ export default function Lithophane() {
               </span>
             </div>
           ) : (
-            <div className="card stack">
-              <h3>Quadro por camadas</h3>
-              <span className="field-label">Filamentos (2 a 4, do escuro ao claro)</span>
-              {filColors.length ? (
-                <div className="stack">
-                  {filColors.map((f) => (
-                    <label key={f.hex} className="check">
-                      <input type="checkbox" checked={layered.colors.includes(f.hex)} onChange={() => toggleColor(f.hex)} />{" "}
-                      <span className="swatch-inline">
-                        <i style={{ background: f.hex }} />
-                      </span>{" "}
-                      {f.label}
-                    </label>
-                  ))}
-                </div>
-              ) : (
-                <span className="hint">Cadastre filamentos com cor para escolher; por enquanto: preto, cinza e branco.</span>
-              )}
-              {layered.colors.length === 1 && <span className="hint">Escolha mais um: com 1 filamento usa preto, cinza e branco.</span>}
-              <div className="grid two">
-                <NumField label="Base" value={layered.base} onChange={setQ("base")} min={0.2} max={3} hint="Fundo na 1ª cor." />
-                <NumField label="Relevo" value={layered.relief} onChange={setQ("relief")} min={0.4} max={6} />
-                <NumField label="Altura de camada" value={layered.layerHeight} onChange={setQ("layerHeight")} min={0.04} max={0.32} step={0.02} hint="A mesma do fatiador, inclusive na 1ª camada." />
-              </div>
-              <Toggle label="Uma parte por cor (AMS / multimaterial)" checked={layered.split} onChange={setQ("split")} />
-              <span className="hint">{layered.split ? "O fatiador troca de filamento sozinho em cada faixa; sem pausas, o 3MF abre direto no Bambu Studio, Orca ou Prusa." : "Sem AMS: a impressora pausa em cada troca para você trocar o filamento."}</span>
-            </div>
+            <LayeredPanel layered={layered} setLayered={setLayered} filColors={filColors} colors={colors} nameOf={nameOf} thumb={thumb} />
           )}
           <ExportButtons printModes={false} models={models.length ? exportModels : []} name={mode === "litho" ? "litofania" : "quadro-camadas"} busy={busy} pauses={pauses} profile={mode === "litho" ? LITHO_PROFILE : { ...LAYERED_PROFILE, layerHeight: layered.layerHeight }} onSaved={tool.exported} />
         </div>
@@ -205,6 +179,11 @@ export default function Lithophane() {
                 <li>
                   Comece com <Swatch hex={models[0].parts[0].color} label={nameOf(models[0].parts[0].color)} /> até a camada {swaps[0].layer - 1}.
                 </li>
+                {magnetZ !== undefined && (
+                  <li>
+                    Camada {Math.round(magnetZ / layered.layerHeight)} (Z = {mmText(magnetZ)} mm): a impressora pausa; coloque o ímã no encaixe e continue.
+                  </li>
+                )}
                 {swaps.map((s) => (
                   <li key={s.z}>
                     Camada {s.layer} (Z = {mmText(s.z)} mm): troque para <Swatch hex={s.color} label={nameOf(s.color)} />
@@ -229,4 +208,13 @@ function Swatch({ hex, label }: { hex: string; label: string }) {
       {label}
     </span>
   );
+}
+
+/** Claro reduzido para as miniaturas das paletas (até THUMB_W pontos de largura). */
+function thumbOf(luma: Float32Array, w: number, h: number): Thumb {
+  const step = Math.max(1, Math.ceil(w / THUMB_W));
+  const tw = Math.ceil(w / step), th = Math.ceil(h / step);
+  const out = new Float32Array(tw * th);
+  for (let y = 0; y < th; y++) for (let x = 0; x < tw; x++) out[y * tw + x] = luma[y * step * w + x * step];
+  return { luma: out, w: tw, h: th };
 }

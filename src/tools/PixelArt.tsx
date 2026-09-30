@@ -166,16 +166,16 @@ export default function PixelArt() {
             <div className="card stack">
               {grid ? <PixelEditor grid={grid} brush={brush} onChange={(g) => setGrid(g)} /> : <span className="muted">Envie uma imagem ou comece em branco.</span>}
               <span className="field-label">Pincel</span>
-              <div className="pixel-brushes" role="group" aria-label="Pincel">
+              <div className="chips" role="group" aria-label="Pincel">
                 {palette.map((f) => (
-                  <button key={f.hex} type="button" className="pixel-brush" aria-pressed={brush === f.hex} onClick={() => setBrush(f.hex)}>
+                  <button key={f.hex} type="button" aria-pressed={brush === f.hex} onClick={() => setBrush(f.hex)}>
                     <span className="swatch-inline">
                       <i style={{ background: f.hex }} />
                       {f.label}
                     </span>
                   </button>
                 ))}
-                <button type="button" className="pixel-brush" aria-pressed={brush === null} onClick={() => setBrush(null)}>
+                <button type="button" aria-pressed={brush === null} onClick={() => setBrush(null)}>
                   Apagar
                 </button>
               </div>

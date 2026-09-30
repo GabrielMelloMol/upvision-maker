@@ -137,9 +137,14 @@ button.example svg { color: var(--brand-orange); }
 
 /* pixel art (#95) */
 .pixel-canvas { display: block; max-width: 100%; height: auto; border-radius: var(--r-sm); cursor: crosshair; touch-action: none; }
-.pixel-brushes { display: flex; flex-wrap: wrap; gap: var(--space-2); }
-.pixel-brush { padding: var(--space-1) var(--space-3); border-radius: var(--r-pill); background: var(--fill); color: var(--text); font-size: var(--text-sm); }
-.pixel-brush:hover { background: var(--fill-hover); }
-.pixel-brush[aria-pressed="true"] { background: var(--accent-soft); box-shadow: inset 0 0 0 2px var(--accent); }
 .pixel-legend { list-style: none; margin: 0; padding: 0; display: grid; gap: var(--space-2); font-size: var(--text-sm); }
 .pixel-legend li { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: var(--space-2); padding: var(--space-1) var(--space-2); border-radius: var(--r-sm); background: var(--fill); }
+
+/* quadro por camadas: paletas prontas (#100) */
+.layered-presets { display: grid; grid-template-columns: repeat(auto-fill, minmax(96px, 1fr)); gap: var(--space-2); }
+.layered-preset { display: grid; gap: var(--space-1); padding: var(--space-2); border-radius: var(--r); background: var(--fill); color: var(--text); font-size: var(--text-sm); text-align: center; }
+.layered-preset:hover { background: var(--fill-hover); }
+.layered-preset[aria-pressed="true"] { background: var(--accent-soft); box-shadow: inset 0 0 0 2px var(--accent); }
+.layered-preset img, .layered-strip { width: 100%; aspect-ratio: 4 / 3; object-fit: cover; border-radius: var(--r-sm); display: block; }
+.layered-strip { display: flex; overflow: hidden; }
+.layered-strip i { flex: 1; }
