@@ -49,7 +49,7 @@ for (const size of SIZES) {
         const labels = (await nav.locator(".scroll button.nav").allInnerTexts()).map((t) => t.trim()).filter((t) => t && (!only || only.includes(t)));
         const problems: string[] = [];
         // sem referência desta plataforma ainda (antes da 1ª aprovação no CI): só as checagens
-        const approving = test.info().config.updateSnapshots === "all";
+        const approving = ["all", "changed"].includes(test.info().config.updateSnapshots); // "--update-snapshots" sozinho = "changed"
         const compare = approving || existsSync(`tests/visual/referencia/${process.platform}`);
 
         for (const label of labels) {
