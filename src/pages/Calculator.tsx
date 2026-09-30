@@ -9,7 +9,6 @@ import { findCatalogPrinter, printerLabel } from "../domain/catalog/printers";
 import { staleChannelText } from "../domain/channels";
 import { looksLikePsuWatts } from "../domain/energy";
 import { sanityWarnings } from "../domain/sanity";
-import Alert from "../ui/Alert";
 import { fixedCostPerHour } from "../domain/finance";
 import { parseDecimal } from "../domain/format";
 import { todayIso } from "../domain/orders";
@@ -25,6 +24,7 @@ import { setProductDraft } from "./products/draft";
 import { errorText, useToast } from "../ui/Toast";
 import ChannelTable from "./calculator/ChannelTable";
 import PlugSheet from "./calculator/PlugSheet";
+import CalcWarnings from "./calculator/CalcWarnings";
 import FullForm from "./calculator/FullForm";
 import PriceControls from "./calculator/PriceControls";
 import PrinterSelect from "./calculator/PrinterSelect";
@@ -321,22 +321,7 @@ export default function Calculator({ go }: { go: Go }) {
         </div>
 
         <aside className="calc-summary" aria-live="polite">
-          {psuFix && (
-            <Alert kind="warn">
-              {num(f.watts)} W parece a potência da fonte (a da etiqueta), não o consumo. Imprimindo, a {printerLabel(psuFix)} gasta em média ~{psuFix.watts} W.{" "}
-              <button type="button" className="link" onClick={() => void applyWatts(psuFix.watts)}>
-                Usar {psuFix.watts} W
-              </button>
-            </Alert>
-          )}
-          {shownWarnings.map((w) => (
-            <Alert key={w.key} kind="warn">
-              {w.text}{" "}
-              <button type="button" className="link" onClick={() => setDismissed([...dismissed, w.key])}>
-                Está certo
-              </button>
-            </Alert>
-          ))}
+          <CalcWarnings psuFix={psuFix} watts={num(f.watts)} onUseWatts={(w) => void applyWatts(w)} warnings={shownWarnings} onDismiss={(k) => setDismissed([...dismissed, k])} />
           <PriceHero r={r} s={data.settings} onSave={saveAsProduct} onPreferences={() => go("preferences")}>
             {mode === "quick" && (
               <>
