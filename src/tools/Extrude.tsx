@@ -1,4 +1,3 @@
-import { useState } from "react";
 import { BASE_COLOR, extrudeDesign, TOP_COLOR } from "../geometry/extrude";
 import Alert from "../ui/Alert";
 import Dropzone from "../ui/Dropzone";
@@ -9,16 +8,17 @@ import Preview3D from "../ui/Preview3D";
 import { useModelBuilder } from "../ui/useModelBuilder";
 import { DESIGN_ACCEPT, designFromSvg, svgFillColors } from "./designInput";
 import { exampleFile, useExample } from "../help/helpStore";
-import { useDesignInput } from "./useDesignInput";
+import ToolSessionBar from "./ToolSessionBar";
+import { initialDesign, useDesignInput } from "./useDesignInput";
+import { useToolState } from "./useToolState";
 
 export default function Extrude() {
-  const { svg, width, setWidth, loading, error: inputError, onFile } = useDesignInput(60);
+  // estado de trabalho: desfazer, rascunho guardado e últimos projetos (#85)
+  const tool = useToolState("extrude", () => ({ ...initialDesign(60), height: 2, withBase: false, baseT: 1.6, margin: 2, colors: [BASE_COLOR, TOP_COLOR] }), { label: "Extrusão" });
+  const { height, withBase, baseT, margin, colors } = tool.state;
+  const [setHeight, setWithBase, setBaseT, setMargin, setColors] = [tool.field("height"), tool.field("withBase"), tool.field("baseT"), tool.field("margin"), tool.field("colors")];
+  const { svg, width, setWidth, loading, error: inputError, onFile } = useDesignInput(tool.state, (patch, key) => tool.set((cur) => ({ ...cur, ...patch }), key));
   useExample("extrude", () => void exampleFile("heart").then(onFile)); // "Usar exemplo" da ajuda (#84)
-  const [height, setHeight] = useState(2);
-  const [withBase, setWithBase] = useState(false);
-  const [baseT, setBaseT] = useState(1.6);
-  const [margin, setMargin] = useState(2);
-  const [colors, setColors] = useState([BASE_COLOR, TOP_COLOR]);
 
   const svgColors = svg ? svgFillColors(svg.text) : [];
   const multi = svgColors.length > 1;
@@ -42,6 +42,7 @@ export default function Extrude() {
     <div className="page">
       <h1>Extrusão SVG → 3D</h1>
       <p className="lead">Dá altura a qualquer desenho. Com base, a placa e o desenho saem em cores separadas no 3MF.</p>
+      <ToolSessionBar tool={tool} />
       <div className="tool-layout">
         <div className="controls">
           <div className="card stack">
@@ -79,7 +80,7 @@ export default function Extrude() {
               )}
             </div>
           </div>
-          <ExportButtons models={models} name={svg?.name ?? "extrusao"} busy={busy} profile={DEFAULT_PROFILE} />
+          <ExportButtons models={models} name={svg?.name ?? "extrusao"} busy={busy} profile={DEFAULT_PROFILE} onSaved={tool.exported} />
         </div>
         <div className="preview-col">
           <Preview3D models={models} busy={busy || loading} error={error} emptyText={svg && !valid ? "Corrija os campos em vermelho." : "Envie um desenho para extrudar."} />

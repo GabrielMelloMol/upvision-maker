@@ -1,4 +1,3 @@
-import { useState } from "react";
 import { buildCutter, DEFAULT_CUTTER, type CutterParams, type ReliefMode } from "../geometry/cutter";
 import Alert from "../ui/Alert";
 import Dropzone from "../ui/Dropzone";
@@ -9,7 +8,9 @@ import Preview3D from "../ui/Preview3D";
 import { useModelBuilder } from "../ui/useModelBuilder";
 import { DESIGN_ACCEPT, designFromSvg } from "./designInput";
 import { exampleFile, useExample } from "../help/helpStore";
-import { useDesignInput } from "./useDesignInput";
+import ToolSessionBar from "./ToolSessionBar";
+import { initialDesign, useDesignInput } from "./useDesignInput";
+import { useToolState } from "./useToolState";
 
 const LIMITS = {
   width: [20, 250],
@@ -27,11 +28,13 @@ const LIMITS = {
 const CUTTER_PROFILE = mergeProfiles(DEFAULT_PROFILE, { walls: 2, notes: ["Lâmina fina: deixe ligado \"Detectar paredes finas\" no fatiador para ela não sumir."] });
 
 export default function CookieCutter() {
-  const { svg, width, setWidth, loading, error: inputError, onFile } = useDesignInput(70);
+  // estado de trabalho: desfazer, rascunho guardado e últimos projetos (#85)
+  const tool = useToolState("cutter", () => ({ ...initialDesign(70), mirror: true, p: DEFAULT_CUTTER as CutterParams }), { label: "Cortador" });
+  const { mirror, p } = tool.state;
+  const setMirror = tool.field("mirror");
+  const { svg, width, setWidth, loading, error: inputError, onFile } = useDesignInput(tool.state, (patch, key) => tool.set((cur) => ({ ...cur, ...patch }), key));
   useExample("cutter", () => void exampleFile("heart").then(onFile)); // "Usar exemplo" da ajuda (#84)
-  const [mirror, setMirror] = useState(true);
-  const [p, setP] = useState<CutterParams>(DEFAULT_CUTTER);
-  const set = <K extends keyof CutterParams>(key: K) => (v: CutterParams[K]) => setP((o) => ({ ...o, [key]: v }));
+  const set = <K extends keyof CutterParams>(key: K) => (v: CutterParams[K]) => tool.set((cur) => ({ ...cur, p: { ...cur.p, [key]: v } }), `p.${String(key)}`);
 
   const valid = (Object.entries(LIMITS) as [keyof typeof LIMITS, readonly [number, number]][]).every(([k, [lo, hi]]) =>
     inRange(k === "width" ? width : (p[k] as number), lo, hi),
@@ -51,6 +54,7 @@ export default function CookieCutter() {
     <div className="page">
       <h1>Cortador de biscoito</h1>
       <p className="lead">Use um SVG ou uma imagem do desenho. O contorno vira a lâmina; as linhas de dentro viram um carimbo opcional.</p>
+      <ToolSessionBar tool={tool} />
       <div className="tool-layout">
         <div className="controls">
           <div className="card stack">
@@ -94,7 +98,7 @@ export default function CookieCutter() {
               </>
             )}
           </div>
-          <ExportButtons models={models} name={svg ? `cortador-${svg.name}` : "cortador"} busy={busy} profile={CUTTER_PROFILE} />
+          <ExportButtons models={models} name={svg ? `cortador-${svg.name}` : "cortador"} busy={busy} profile={CUTTER_PROFILE} onSaved={tool.exported} />
         </div>
         <div className="preview-col">
           <Preview3D models={models} busy={busy || loading} busyText={loading ? "Lendo o desenho…" : "Gerando cortador…"} error={error} emptyText={svg && !valid ? "Corrija os campos em vermelho para ver o cortador." : "Envie um desenho para ver o cortador."} />

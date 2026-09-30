@@ -121,8 +121,20 @@ export function useToolState<T extends object>(toolId: string, initial: T | (() 
     setProjects(await toolProjects.list(await getDb(), toolId));
   }
 
+  /** Preenchimento automático (ex.: dados da empresa ao abrir): muda o estado sem passo de desfazer e sem contar como trabalho novo. */
+  const { reset } = hist;
+  const adopt = useCallback(
+    (fn: (cur: T) => T) => {
+      const next = fn(baseline.current);
+      baseline.current = next;
+      reset(next);
+    },
+    [reset],
+  );
+
   return {
     state,
+    adopt,
     /** Um passo de desfazer (ou atualização de uma função). Com `key`, junta mudanças seguidas do mesmo campo. */
     set,
     field,

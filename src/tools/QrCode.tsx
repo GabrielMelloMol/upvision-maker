@@ -17,6 +17,8 @@ import Segmented from "../ui/Segmented";
 import { errorText, useToast } from "../ui/Toast";
 import { useModelBuilder } from "../ui/useModelBuilder";
 import { useExample } from "../help/helpStore";
+import ToolSessionBar from "./ToolSessionBar";
+import { useToolState } from "./useToolState";
 import { EMPTY_QR_FORM, qrContent, type QrForm, type QrMode } from "./qrContent";
 
 const MODES = [
@@ -30,25 +32,30 @@ const LIMITS = { size: [15, 200], base: [0.8, 8], relief: [0.4, 4], quiet: [1, 6
 
 /** QR Code de Pix, link, Wi-Fi ou texto: SVG para imprimir no papel e 3MF em 2 cores para imprimir em 3D. */
 export default function QrCode() {
-  const [mode, setMode] = useState<QrMode>("pix");
-  const [form, setForm] = useState<QrForm>(EMPTY_QR_FORM);
+  // estado de trabalho: desfazer, rascunho guardado e últimos projetos (#85)
+  const tool = useToolState("qr", () => ({ mode: "pix" as QrMode, form: EMPTY_QR_FORM as QrForm, p: { size: 50, base: 2, relief: 1, quiet: 2, corner: 3 }, colors: [QR_BASE_COLOR, QR_DARK_COLOR] }), { label: "QR Code" });
+  const { mode, form, p, colors } = tool.state;
+  const { adopt } = tool;
+  const setMode = tool.field("mode");
+  const setColors = tool.field("colors");
+  const setForm = (v: QrForm | ((f: QrForm) => QrForm)) => tool.set((cur) => ({ ...cur, form: typeof v === "function" ? v(cur.form) : v }), "form");
+  const setP = (fn: (o: typeof p) => typeof p) => tool.set((cur) => ({ ...cur, p: fn(cur.p) }), "p");
   // "Usar exemplo" da ajuda (#84): um link qualquer, para ver o QR e a peça 3D
   useExample("qr", () => {
     setMode("link");
     setForm((cur) => ({ ...cur, link: "https://github.com/GabrielMelloMol/upvision-maker" }));
   });
   const [view, setView] = useState<"2d" | "3d">("2d");
-  const [p, setP] = useState({ size: 50, base: 2, relief: 1, quiet: 2, corner: 3 });
-  const [colors, setColors] = useState([QR_BASE_COLOR, QR_DARK_COLOR]);
   const toast = useToast();
 
   // Pix já vem com os dados da empresa (Preferências → Dados da empresa).
   useEffect(() => {
     getDb()
       .then(loadCompany)
-      .then((c) => setForm((f) => ({ ...f, pix: { ...f.pix, key: c.pixKey, name: c.pixName || c.tradeName || c.name, city: c.pixCity || c.city } })))
+      // preenchimento automático: não é passo de desfazer nem trabalho novo
+      .then((c) => adopt((s) => ({ ...s, form: { ...s.form, pix: { ...s.form.pix, key: c.pixKey, name: c.pixName || c.tradeName || c.name, city: c.pixCity || c.city } } })))
       .catch((e) => console.warn("Sem dados da empresa para o Pix:", e));
-  }, []);
+  }, [adopt]);
 
   const { text, error } = qrContent(mode, form);
   const valid = (Object.keys(LIMITS) as (keyof typeof LIMITS)[]).every((k) => inRange(p[k], LIMITS[k][0], LIMITS[k][1]));
@@ -70,7 +77,10 @@ export default function QrCode() {
     if (!text) return;
     try {
       const path = await saveFile(`${name}.svg`, qrSvg(text, p.size), "svg", "SVG");
-      if (path) toast(`SVG salvo em ${path}`);
+      if (path) {
+        toast(`SVG salvo em ${path}`);
+        void tool.exported(name);
+      }
     } catch (e) {
       toast(`Não foi possível salvar: ${errorText(e)}`, "error");
     }
@@ -91,6 +101,7 @@ export default function QrCode() {
     <div className="page">
       <h1>QR Code e Pix</h1>
       <p className="lead">Pix com valor, link, Wi-Fi ou texto. Salve em SVG para o papel ou em 3MF de 2 cores: placa clara com o código em relevo.</p>
+      <ToolSessionBar tool={tool} />
       <div className="tool-layout">
         <div className="controls">
           <div className="card stack">
@@ -182,7 +193,7 @@ export default function QrCode() {
               </button>
             )}
           </div>
-          <ExportButtons models={models} name={name} busy={busy} profile={DEFAULT_PROFILE} />
+          <ExportButtons models={models} name={name} busy={busy} profile={DEFAULT_PROFILE} onSaved={tool.exported} />
         </div>
 
         <div className="preview-col">
