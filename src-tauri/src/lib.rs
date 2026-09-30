@@ -4,6 +4,7 @@ mod backup;
 mod diagnostics;
 mod bambu;
 mod stock;
+mod sync;
 mod vibrancy;
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
@@ -28,6 +29,11 @@ pub fn run() {
             backup::backup_write,
             backup::backup_list,
             backup::backup_read,
+            sync::sync_read,
+            sync::sync_write,
+            sync::sync_remove,
+            sync::sync_conflict,
+            sync::device_name,
             diagnostics::log_append,
             diagnostics::log_read,
             bambu::bambu_project

@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState, Suspense } from "react";
+import { useCallback, useEffect, useRef, useState, Suspense } from "react";
 import { loadBackup, saveBackup } from "./backupActions";
 import { errorText, useToast } from "./ui/Toast";
 import AboutSheet from "./about/AboutSheet";
@@ -6,6 +6,7 @@ import { latestVersion, useUpdates } from "./about/useUpdates";
 import { useAutoBackup } from "./backup/useAutoBackup";
 import { notifyBackupDone } from "./backup/BackupSettingsCard";
 import SuggestDialog from "./feedback/SuggestDialog";
+import SyncBanner from "./sync/SyncBanner";
 import { CHANGELOG, useWhatsNewAfterUpdate, WhatsNewModal } from "./whatsnew/WhatsNew";
 import Onboarding, { useFirstRun } from "./onboarding/Onboarding";
 import { PAGES } from "./pages";
@@ -37,6 +38,7 @@ export default function App() {
   const toast = useToast();
   const { reminderDays, neverBackedUp, backupNow } = useAutoBackup();
   const page = PAGES.find((p) => p.id === pageId) ?? PAGES[0];
+  const remount = useCallback(() => setReloadKey((k) => k + 1), []);
 
   // tela aberta para o atalho "?" (o atalho é instalado uma vez só)
   const pageRef = useRef(pageId);
@@ -111,6 +113,7 @@ export default function App() {
           )}
         </Toolbar>
         <div className="view">
+          <SyncBanner onImported={remount} onOpenBackups={() => navigate("preferences")} />
           {reminderDays !== null && (
             <div className="banner warn" role="status">
               <span>{neverBackedUp ? "Você ainda não fez nenhum backup dos seus dados." : `Faz ${reminderDays} dias sem backup dos seus dados.`}</span>

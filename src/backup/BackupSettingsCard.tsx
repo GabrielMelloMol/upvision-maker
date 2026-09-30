@@ -7,6 +7,7 @@ import Button from "../ui/Button";
 import NumField from "../ui/NumField";
 import { errorText, useToast } from "../ui/Toast";
 import Toggle from "../ui/Toggle";
+import SyncSettingsCard from "../sync/SyncSettingsCard";
 import { AUTO_DEFAULTS, defaultBackupDir, listAutoBackups, loadAutoBackupConfig, readAutoBackup, runAutoBackup, saveAutoBackupConfig, type AutoBackupConfig, type BackupEntry } from "./auto";
 
 /** Avisa o App (lembrete de backup) que acabou de haver um backup. */
@@ -16,11 +17,13 @@ export const notifyBackupDone = () => window.dispatchEvent(new Event(BACKUP_DONE
 /** "upvision-auto-2026-09-28-153000.json" → "28/09/2026 às 15:30". */
 export function backupLabel(name: string): string {
   const m = /(\d{4})-(\d{2})-(\d{2})-(\d{2})(\d{2})/.exec(name);
-  return m ? `${m[3]}/${m[2]}/${m[1]} às ${m[4]}:${m[5]}` : name;
+  if (!m) return name;
+  const when = `${m[3]}/${m[2]}/${m[1]} às ${m[4]}:${m[5]}`;
+  return name.startsWith("upvision-conflito-") ? `${when} · cópia de conflito do outro computador` : when;
 }
 const kb = (b: number) => `${Math.max(1, Math.round(b / 1024)).toLocaleString("pt-BR")} KB`;
 
-/** Preferências → Backup automático (#5): liga/desliga, pasta, quantos dias manter, fazer agora e restaurar. */
+/** Preferências → Backup automático (#5): liga/desliga, pasta, quantos dias manter, fazer agora e restaurar. Logo abaixo, Dois computadores (#16). */
 export default function BackupSettingsCard() {
   const [config, setConfig] = useState<AutoBackupConfig>(AUTO_DEFAULTS);
   const [keepDraft, setKeepDraft] = useState(AUTO_DEFAULTS.keep); // o campo pode ficar vazio enquanto ela digita
@@ -98,6 +101,7 @@ export default function BackupSettingsCard() {
 
   const shown = config.dir || defaultDir;
   return (
+    <>
     <section className="card stack" aria-labelledby="auto-backup-title">
       <h2 className="card-title" id="auto-backup-title">
         <DatabaseBackup aria-hidden /> Backup automático
@@ -153,5 +157,7 @@ export default function BackupSettingsCard() {
         </ul>
       )}
     </section>
+    <SyncSettingsCard dir={config.dir} onChooseDir={chooseDir} />
+    </>
   );
 }

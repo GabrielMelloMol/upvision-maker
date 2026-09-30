@@ -9,6 +9,7 @@ Formato: `## <versão> — <data>` e itens `- …` em linguagem simples.
 - **Termos técnicos explicados**: passe o mouse no ⓘ ao lado de campos como relevo, folga, potência e margem. A busca (Ctrl/⌘K) também encontra a ajuda e os termos.
 - **Correção**: a prévia do QR Code podia aparecer espremida num quadradinho depois de abrir Dados da empresa. Agora ela sempre ocupa a coluna.
 - **Sugestões chegam sem GitHub e sem e-mail**: o "Sugerir ferramenta" envia direto pelo app (com a imagem e, se quiser, o diagnóstico) e mostra "Recebido ✓". Também dá para mandar pelo WhatsApp com o texto pronto ou copiar o texto. O app guarda a lista do que você já enviou.
+- **Dois computadores** (#16): em Preferências, logo abaixo do backup automático, dá para manter dois computadores iguais pela mesma pasta do OneDrive, Google Drive ou Dropbox. Ao abrir, o app traz o que o outro salvou; enquanto usa e ao fechar, envia o daqui. Se o app estiver aberto no outro computador, aparece o aviso "Em uso no computador…" com Assumir ou Continuar sem sincronizar. Se os dois mudaram, ficam os dados deste computador e os do outro são guardados como cópia em Backups guardados.
 
 ## 0.7.0 — 2026-09-29
 - **Posição dos textos nos modelos prontos**: o bloco de textos, o QR e os ícones agora saem centralizados, e você pode arrastar cada um (ou digitar a posição em mm), alinhar em cima, no meio ou embaixo, e usar "Centralizar tudo" ou "Restaurar". No cartão de visita dá para escolher onde fica o QR.

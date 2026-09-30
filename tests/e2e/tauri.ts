@@ -154,15 +154,33 @@ function handler(m: TauriMock, cmd: string, a: Record<string, unknown> | null, h
       const name = `upvision-auto-${args.stamp}.json`;
       for (const k of [...folder.keys()]) if (k.startsWith(`upvision-auto-${String(args.stamp).slice(0, 10)}`)) folder.delete(k);
       folder.set(name, String(args.json));
-      const keep = [...folder.keys()].sort().reverse().slice(0, Number(args.keep));
-      for (const k of [...folder.keys()]) if (!keep.includes(k)) folder.delete(k);
+      const autos = [...folder.keys()].filter((k) => k.startsWith("upvision-auto-"));
+      const keep = autos.sort().reverse().slice(0, Number(args.keep));
+      for (const k of autos) if (!keep.includes(k)) folder.delete(k);
       m.autoBackups.set(dir, folder);
       return { name, path: `${dir || "/dados-app/backups/auto"}/${name}`, bytes: String(args.json).length };
     }
     case "backup_list":
       return [...(m.autoBackups.get(String(args.dir ?? "")) ?? new Map<string, string>()).entries()]
+        .filter(([name]) => /^upvision-(auto|conflito)-/.test(name))
         .sort(([a], [b]) => b.localeCompare(a))
         .map(([name, json]) => ({ name, path: `${args.dir || "/dados-app/backups/auto"}/${name}`, bytes: json.length }));
+    case "sync_read":
+      return m.autoBackups.get(String(args.dir ?? ""))?.get(args.kind === "lock" ? "upvision-sync.lock" : "upvision-sync.json") ?? null;
+    case "sync_write":
+    case "sync_conflict": {
+      const dir = String(args.dir ?? "");
+      const folder = m.autoBackups.get(dir) ?? new Map<string, string>();
+      const name = cmd === "sync_conflict" ? `upvision-conflito-${args.stamp}.json` : args.kind === "lock" ? "upvision-sync.lock" : "upvision-sync.json";
+      folder.set(name, String(args.json));
+      m.autoBackups.set(dir, folder);
+      return cmd === "sync_conflict" ? { name, path: `${dir}/${name}`, bytes: String(args.json).length } : null;
+    }
+    case "sync_remove":
+      m.autoBackups.get(String(args.dir ?? ""))?.delete(args.kind === "lock" ? "upvision-sync.lock" : "upvision-sync.json");
+      return null;
+    case "device_name":
+      return "ESTE-PC";
     case "backup_read": {
       const json = m.autoBackups.get(String(args.dir ?? ""))?.get(String(args.name));
       if (json === undefined) throw new Error("backup não encontrado");

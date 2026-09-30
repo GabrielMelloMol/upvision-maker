@@ -1,6 +1,7 @@
 import { getCurrentWindow } from "@tauri-apps/api/window";
 import { useCallback, useEffect, useState } from "react";
 import { getDb } from "../db";
+import { session, syncOnClose, whoAmI } from "../sync/sync";
 import { autoBackupIfDue, daysSince, loadAutoBackupConfig, needsReminder, runAutoBackup } from "./auto";
 import { BACKUP_DONE_EVENT, notifyBackupDone } from "./BackupSettingsCard";
 
@@ -41,6 +42,7 @@ export function useAutoBackup(): { reminderDays: number | null; neverBackedUp: b
           const db = await getDb();
           const c = await loadAutoBackupConfig(db);
           if (c.enabled) await runAutoBackup(db, c);
+          if (session.active) await syncOnClose(db, await whoAmI(db), session.since); // envia o daqui e solta a trava (#16)
         })();
         // nunca prende o fechamento: se demorar, fecha mesmo assim (o backup da abertura cobre)
         await Promise.race([job.catch((e) => console.warn("Backup ao fechar falhou:", e)), new Promise((r) => setTimeout(r, CLOSE_TIMEOUT_MS))]);

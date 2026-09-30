@@ -8,6 +8,8 @@ use std::path::{Path, PathBuf};
 use tauri::{AppHandle, Manager};
 
 const PREFIX: &str = "upvision-auto-";
+/// Cópias de conflito da sincronização (#16): listadas e restauráveis, mas fora do rodízio.
+pub const CONFLICT_PREFIX: &str = "upvision-conflito-";
 const EXT: &str = ".json";
 const MAX_KEEP: usize = 365;
 
@@ -20,17 +22,29 @@ pub struct BackupEntry {
 }
 
 /// `2026-09-28-153000` — data e hora, só dígitos e hífens.
-fn valid_stamp(s: &str) -> bool {
+pub fn valid_stamp(s: &str) -> bool {
     let b = s.as_bytes();
     b.len() == 17 && b.iter().enumerate().all(|(i, c)| if [4, 7, 10].contains(&i) { *c == b'-' } else { c.is_ascii_digit() })
 }
 
-/// Nome de arquivo de backup automático (sem caminho, sem `..`).
+/// Nome de arquivo de backup automático ou cópia de conflito (sem caminho, sem `..`).
 fn valid_name(name: &str) -> bool {
-    name.strip_prefix(PREFIX).and_then(|r| r.strip_suffix(EXT)).is_some_and(valid_stamp)
+    [PREFIX, CONFLICT_PREFIX].iter().any(|p| name.strip_prefix(p).and_then(|r| r.strip_suffix(EXT)).is_some_and(valid_stamp))
 }
 
-fn list_in(dir: &Path) -> Result<Vec<BackupEntry>, String> {
+/// A data do nome (os 17 caracteres antes do `.json`), para ordenar automáticos e conflitos juntos.
+fn stamp_of(name: &str) -> &str {
+    &name[name.len() - EXT.len() - 17..name.len() - EXT.len()]
+}
+
+/// Grava num temporário e renomeia: um arquivo cortado no meio nunca substitui um bom.
+pub fn write_atomic(path: &Path, json: &str) -> Result<(), String> {
+    let tmp = path.with_extension("tmp");
+    fs::write(&tmp, json).map_err(|e| format!("Não consegui gravar: {e}"))?;
+    fs::rename(&tmp, path).map_err(|e| format!("Não consegui gravar: {e}"))
+}
+
+pub fn list_in(dir: &Path) -> Result<Vec<BackupEntry>, String> {
     if !dir.exists() {
         return Ok(vec![]);
     }
@@ -43,11 +57,11 @@ fn list_in(dir: &Path) -> Result<Vec<BackupEntry>, String> {
             (meta.is_file() && valid_name(&name)).then(|| BackupEntry { path: e.path().to_string_lossy().to_string(), name, bytes: meta.len() })
         })
         .collect();
-    out.sort_by(|a, b| b.name.cmp(&a.name)); // mais novo primeiro (o nome tem a data)
+    out.sort_by(|a, b| stamp_of(&b.name).cmp(stamp_of(&a.name))); // mais novo primeiro (o nome tem a data)
     Ok(out)
 }
 
-fn write_in(dir: &Path, stamp: &str, json: &str, keep: usize) -> Result<BackupEntry, String> {
+pub fn write_in(dir: &Path, stamp: &str, json: &str, keep: usize) -> Result<BackupEntry, String> {
     if !valid_stamp(stamp) {
         return Err("Data do backup inválida.".into());
     }
@@ -55,23 +69,20 @@ fn write_in(dir: &Path, stamp: &str, json: &str, keep: usize) -> Result<BackupEn
     fs::create_dir_all(dir).map_err(|e| format!("Não consegui criar a pasta de backup: {e}"))?;
     let name = format!("{PREFIX}{stamp}{EXT}");
     let path = dir.join(&name);
-    // grava num temporário e renomeia: um backup cortado no meio nunca substitui um bom
-    let tmp = dir.join(format!("{name}.tmp"));
-    fs::write(&tmp, json).map_err(|e| format!("Não consegui gravar o backup: {e}"))?;
-    fs::rename(&tmp, &path).map_err(|e| format!("Não consegui gravar o backup: {e}"))?;
+    write_atomic(&path, json)?;
     // um backup por dia: o mais recente do dia substitui os anteriores do mesmo dia
     let today = format!("{PREFIX}{}", &stamp[..10]);
     for same_day in list_in(dir)?.into_iter().filter(|e| e.name.starts_with(&today) && e.name != name) {
         let _ = fs::remove_file(same_day.path);
     }
-    for old in list_in(dir)?.into_iter().skip(keep) {
+    for old in list_in(dir)?.into_iter().filter(|e| e.name.starts_with(PREFIX)).skip(keep) {
         let _ = fs::remove_file(old.path);
     }
     let bytes = json.len() as u64;
     Ok(BackupEntry { name, path: path.to_string_lossy().to_string(), bytes })
 }
 
-fn read_in(dir: &Path, name: &str) -> Result<String, String> {
+pub fn read_in(dir: &Path, name: &str) -> Result<String, String> {
     if !valid_name(name) {
         return Err("Esse arquivo não é um backup automático do UpVision Maker.".into());
     }
@@ -79,7 +90,7 @@ fn read_in(dir: &Path, name: &str) -> Result<String, String> {
 }
 
 /// Pasta escolhida pela usuária, ou a padrão (dados do app/backups/auto).
-fn resolve(app: &AppHandle, dir: &str) -> Result<PathBuf, String> {
+pub fn resolve(app: &AppHandle, dir: &str) -> Result<PathBuf, String> {
     if !dir.trim().is_empty() {
         return Ok(PathBuf::from(dir));
     }
@@ -135,7 +146,7 @@ mod tests {
         let names: Vec<_> = list_in(&d).unwrap().into_iter().map(|e| e.name).collect();
         assert_eq!(names, vec!["upvision-auto-2026-09-04-100000.json", "upvision-auto-2026-09-03-100000.json"]);
         assert!(d.join("nota.txt").exists(), "arquivos que não são backup ficam intactos");
-        assert!(!d.join("upvision-auto-2026-09-04-100000.json.tmp").exists());
+        assert!(!d.join("upvision-auto-2026-09-04-100000.json.tmp").exists() && !d.join("upvision-auto-2026-09-04-100000.tmp").exists());
         fs::remove_dir_all(d).unwrap();
     }
 

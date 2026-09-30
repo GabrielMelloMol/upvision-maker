@@ -29,7 +29,7 @@ describe("BackupSettingsCard", () => {
     t.openPath = "C:/Users/ana/OneDrive/UpVision";
     const user = userEvent.setup();
     renderWithApp(<BackupSettingsCard />);
-    await user.click(await screen.findByRole("button", { name: /Escolher pasta/ }));
+    await user.click(within(screen.getByRole("region", { name: /Backup automático/ })).getByRole("button", { name: /Escolher pasta/ }));
     expect(await screen.findByText("C:/Users/ana/OneDrive/UpVision")).toBeInTheDocument();
     await user.click(screen.getByRole("switch", { name: /Fazer backup sozinho/ }));
     const keep = screen.getByLabelText(/Manter os últimos/);
