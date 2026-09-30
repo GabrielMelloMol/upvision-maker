@@ -325,8 +325,8 @@ h3.subhead svg { width: 16px; height: 16px; color: var(--muted); }
 .help-glossary dd { margin: 2px 0 0; color: var(--muted); font-size: var(--text-sm); }
 .term-tip { display: inline-grid; place-items: center; width: 15px; height: 15px; margin-left: 4px; border-radius: 50%; background: var(--fill-strong); color: var(--muted); font-size: 10px; font-weight: 700; font-style: normal; vertical-align: 1px; cursor: help; position: relative; }
 .term-tip::before { content: "i"; }
-.term-tip::after { content: attr(data-tip); position: absolute; z-index: 30; left: 50%; bottom: calc(100% + 6px); transform: translateX(-50%); width: max-content; max-width: 260px; padding: 8px 10px; border-radius: var(--r-sm); background: var(--text); color: var(--surface); font-size: var(--text-sm); font-weight: 400; line-height: 1.4; text-align: left; white-space: normal; box-shadow: var(--shadow-2); opacity: 0; pointer-events: none; transition: opacity var(--dur) var(--ease-out); }
-.term-tip:hover::after { opacity: 1; }
+.term-tip::after { content: attr(data-tip); position: absolute; z-index: 30; left: 50%; bottom: calc(100% + 6px); transform: translateX(-50%); width: max-content; max-width: 260px; padding: 8px 10px; border-radius: var(--r-sm); background: var(--text); color: var(--surface); font-size: var(--text-sm); font-weight: 400; line-height: 1.4; text-align: left; white-space: normal; box-shadow: var(--shadow-2); pointer-events: none; display: none; } /* escondido fora do layout: parado, não aumenta a rolagem (175 %, #144) */
+.term-tip:hover::after { display: block; animation: fade var(--dur) var(--ease-out) both; }
 .start-here { margin: var(--space-4) 0 var(--space-6); padding: var(--space-4); border-radius: var(--r-lg); background: var(--surface); box-shadow: var(--shadow-1); }
 .start-here-head { display: flex; align-items: center; justify-content: space-between; }
 .start-here-head h2 { margin: 0; font-size: var(--title-3); }
