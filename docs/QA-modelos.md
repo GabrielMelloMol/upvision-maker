@@ -16,7 +16,7 @@ Para cada modelo: valores **padrão**, todos os campos numéricos no **mínimo**
 "n/a" = o modelo precisa de uma entrada que o teste não dá (ex.: foto). "app:" = aviso que o próprio app mostra na tela.
 
 
-**Total:** 206 casos · 164 ok · 21 com aviso · 21 com falha · 0 n/a
+**Total:** 215 casos · 170 ok · 23 com aviso · 22 com falha · 0 n/a
 
 ## Forja
 
@@ -152,6 +152,12 @@ Para cada modelo: valores **padrão**, todos os campos numéricos no **mínimo**
 | Quadro de metas (goalBoard) | máximo | ✅ ok | 161 | 134,5 | 1 | – | – |
 | Quadro de metas (goalBoard) | mínimo | ✅ ok | 26 | 18,0 | 1 | – | – |
 | Quadro de metas (goalBoard) | padrão | ✅ ok | 66 | 49,7 | 1 | – | – |
+| Gridfinity: base (gridBase) | máximo | ⚠️ aviso | 901 | 553,7 | 16 | – | o conjunto arrumado ocupa 870,0 × 870,0 mm: passa da mesa de 256 mm; não coube numa placa: 16 placas; app: Base de 20×20 casas não cabe inteira na mesa: saiu em 16 pedaços cortados nas divisas das casas. |
+| Gridfinity: base (gridBase) | mínimo | ✅ ok | 3 | 1,6 | 1 | – | – |
+| Gridfinity: base (gridBase) | padrão | ✅ ok | 27 | 16,9 | 1 | – | – |
+| Gridfinity: caixinha (gridBin) | máximo | ⚠️ aviso | 2431 | 2308,8 | 2 | – | o conjunto arrumado ocupa 251,5 × 270,5 mm: passa da mesa de 256 mm; mais de 24 h de impressão; não coube numa placa: 2 placas; app: Parede mais grossa que a borda empilhável: a borda fica com degrau por dentro. |
+| Gridfinity: caixinha (gridBin) | mínimo | ✅ ok | 19 | 10,0 | 1 | – | – |
+| Gridfinity: caixinha (gridBin) | padrão | ✅ ok | 35 | 23,4 | 1 | – | – |
 | Porta-chave de parede (keyHolder) | máximo | ❌ falha | – | – | – | – | "Porta-chave" não cabe na mesa de 256 mm (235,0 × 271,3 × 20,0 mm); Bambu Studio: One of the plate is empty or has no object fully inside it. Please check that the 3mf contains no empty plate in Bambu Studio before uploading. (código -50); app: Furos de 4,5 mm para parafuso com bucha 6. Ganchos aguentam chaves; para bolsa, aumente a espessura. |
 | Porta-chave de parede (keyHolder) | mínimo | ✅ ok | 40 | 28,7 | 1 | – | app: Furos de 4,5 mm para parafuso com bucha 6. Ganchos aguentam chaves; para bolsa, aumente a espessura. |
 | Porta-chave de parede (keyHolder) | padrão | ✅ ok | 131 | 111,3 | 1 | – | app: Furos de 4,5 mm para parafuso com bucha 6. Ganchos aguentam chaves; para bolsa, aumente a espessura. |
@@ -161,6 +167,9 @@ Para cada modelo: valores **padrão**, todos os campos numéricos no **mínimo**
 | Letra caixa LED (ledLetter) | máximo | ⚠️ aviso | 1970 | 1639,4 | 14 | – | o conjunto arrumado ocupa 194,6 × 3345,3 mm: passa da mesa de 256 mm; mais de 24 h de impressão; não coube numa placa: 14 placas; app: Maior que a mesa de 256 mm: a caixa saiu em 9 partes para colar.; app: Use filamento branco no difusor, com 2 a 3 camadas para a luz espalhar sem mostrar os pontos do LED. |
 | Letra caixa LED (ledLetter) | mínimo | ✅ ok | 20 | 10,6 | 1 | – | app: Use filamento branco no difusor, com 2 a 3 camadas para a luz espalhar sem mostrar os pontos do LED. |
 | Letra caixa LED (ledLetter) | padrão | ⚠️ aviso | 181 | 157,9 | 2 | – | o conjunto arrumado ocupa 194,6 × 404,7 mm: passa da mesa de 256 mm; não coube numa placa: 2 placas; app: Use filamento branco no difusor, com 2 a 3 camadas para a luz espalhar sem mostrar os pontos do LED. |
+| Caixa com tampa (lidBox) | máximo | ❌ falha | – | – | – | – | "Caixa" não cabe na mesa de 256 mm (258,0 × 258,0 × 204,0 mm); "Tampa" não cabe na mesa de 256 mm (258,0 × 258,0 × 10,0 mm); o conjunto arrumado ocupa 526,0 × 258,0 mm: passa da mesa de 256 mm; Bambu Studio: One of the plate is empty or has no object fully inside it. Please check that the 3mf contains no empty plate in Bambu Studio before uploading. (código -50); app: A caixa tem 258 mm e passa da mesa de 256 mm. |
+| Caixa com tampa (lidBox) | mínimo | ✅ ok | 5 | 0,9 | 1 | – | – |
+| Caixa com tampa (lidBox) | padrão | ✅ ok | 47 | 40,1 | 1 | – | – |
 | Desenho em pé (lineArt) | máximo | ⚠️ aviso | 186 | 175,3 | 1 | – | o conjunto arrumado ocupa 217,1 × 277,3 mm: passa da mesa de 256 mm |
 | Desenho em pé (lineArt) | mínimo | ✅ ok | 25 | 15,4 | 1 | – | – |
 | Desenho em pé (lineArt) | padrão | ✅ ok | 66 | 51,7 | 1 | – | – |
@@ -188,9 +197,9 @@ Para cada modelo: valores **padrão**, todos os campos numéricos no **mínimo**
 | String art (stringArt) | máximo | ❌ falha | 175 | 104,1 | 1 | – | "String art" não cabe na mesa de 256 mm (275,9 × 249,2 × 8,0 mm); app: Sem fundo, a peça fica presa só pelos fios: tire da mesa com cuidado (espátula fina). |
 | String art (stringArt) | mínimo | ✅ ok | 10 | 2,1 | 1 | – | app: Sem fundo, a peça fica presa só pelos fios: tire da mesa com cuidado (espátula fina). |
 | String art (stringArt) | padrão | ✅ ok | 44 | 19,0 | 1 | – | app: Sem fundo, a peça fica presa só pelos fios: tire da mesa com cuidado (espátula fina). |
-| Vaso paramétrico (vase) | máximo | ❌ falha | – | – | – | – | "Vaso" não cabe na mesa de 256 mm (100,3 × 100,3 × 300,0 mm); Bambu Studio: One of the plate is empty or has no object fully inside it. Please check that the 3mf contains no empty plate in Bambu Studio before uploading. (código -50); app: Modo vaso: o 3MF já vai com o modo espiral ligado (uma parede contínua, sem topo). Use bico 0,4 e 1 perímetro. |
-| Vaso paramétrico (vase) | mínimo | ✅ ok | 46 | 21,1 | 1 | – | app: Modo vaso: o 3MF já vai com o modo espiral ligado (uma parede contínua, sem topo). Use bico 0,4 e 1 perímetro. |
-| Vaso paramétrico (vase) | padrão | ✅ ok | 87 | 27,3 | 1 | – | app: Modo vaso: o 3MF já vai com o modo espiral ligado (uma parede contínua, sem topo). Use bico 0,4 e 1 perímetro. |
+| Vaso paramétrico (vase) | máximo | ❌ falha | – | – | – | – | "Vaso" não cabe na mesa de 256 mm (100,3 × 100,3 × 300,0 mm); app: Modo vaso: o 3MF já vai com o modo espiral ligado (uma parede contínua, sem topo). Use bico 0,4 e 1 perímetro. |
+| Vaso paramétrico (vase) | mínimo | ✅ ok | – | – | – | – | app: Modo vaso: o 3MF já vai com o modo espiral ligado (uma parede contínua, sem topo). Use bico 0,4 e 1 perímetro. |
+| Vaso paramétrico (vase) | padrão | ✅ ok | – | – | – | – | app: Modo vaso: o 3MF já vai com o modo espiral ligado (uma parede contínua, sem topo). Use bico 0,4 e 1 perímetro. |
 | Decoração de palavras (wordDecor) | máximo | ❌ falha | – | – | – | – | "AMOR" não cabe na mesa de 256 mm (475,1 × 120,0 × 20,0 mm); "Família" não cabe na mesa de 256 mm (355,0 × 80,0 × 6,0 mm); o conjunto arrumado ocupa 475,1 × 208,0 mm: passa da mesa de 256 mm; Bambu Studio: One of the plate is empty or has no object fully inside it. Please check that the 3mf contains no empty plate in Bambu Studio before uploading. (código -50); app: A palavra de encaixe sai separada: cole no rebaixo da palavra base (a folga é para ela entrar sem forçar). |
 | Decoração de palavras (wordDecor) | mínimo | ✅ ok | 17 | 7,2 | 1 | – | app: A palavra de encaixe sai separada: cole no rebaixo da palavra base (a folga é para ela entrar sem forçar). |
 | Decoração de palavras (wordDecor) | padrão | ✅ ok | 70 | 40,4 | 1 | – | app: A palavra de encaixe sai separada: cole no rebaixo da palavra base (a folga é para ela entrar sem forçar). |

@@ -1751,6 +1751,93 @@
   "plates": 1
  },
  {
+  "key": "gridBase:máximo",
+  "owner": "Torno",
+  "group": "home",
+  "label": "Gridfinity: base (gridBase)",
+  "variant": "máximo",
+  "status": "aviso",
+  "reasons": [
+   "o conjunto arrumado ocupa 870,0 × 870,0 mm: passa da mesa de 256 mm",
+   "não coube numa placa: 16 placas",
+   "app: Base de 20×20 casas não cabe inteira na mesa: saiu em 16 pedaços cortados nas divisas das casas."
+  ],
+  "date": "2026-09-30",
+  "minutes": 901,
+  "grams": 553.7,
+  "plates": 16
+ },
+ {
+  "key": "gridBase:mínimo",
+  "owner": "Torno",
+  "group": "home",
+  "label": "Gridfinity: base (gridBase)",
+  "variant": "mínimo",
+  "status": "ok",
+  "reasons": [],
+  "date": "2026-09-30",
+  "minutes": 3,
+  "grams": 1.6,
+  "plates": 1
+ },
+ {
+  "key": "gridBase:padrão",
+  "owner": "Torno",
+  "group": "home",
+  "label": "Gridfinity: base (gridBase)",
+  "variant": "padrão",
+  "status": "ok",
+  "reasons": [],
+  "date": "2026-09-30",
+  "minutes": 27,
+  "grams": 16.9,
+  "plates": 1
+ },
+ {
+  "key": "gridBin:máximo",
+  "owner": "Torno",
+  "group": "home",
+  "label": "Gridfinity: caixinha (gridBin)",
+  "variant": "máximo",
+  "status": "aviso",
+  "reasons": [
+   "o conjunto arrumado ocupa 251,5 × 270,5 mm: passa da mesa de 256 mm",
+   "mais de 24 h de impressão",
+   "não coube numa placa: 2 placas",
+   "app: Parede mais grossa que a borda empilhável: a borda fica com degrau por dentro."
+  ],
+  "date": "2026-09-30",
+  "minutes": 2431,
+  "grams": 2308.8,
+  "plates": 2
+ },
+ {
+  "key": "gridBin:mínimo",
+  "owner": "Torno",
+  "group": "home",
+  "label": "Gridfinity: caixinha (gridBin)",
+  "variant": "mínimo",
+  "status": "ok",
+  "reasons": [],
+  "date": "2026-09-30",
+  "minutes": 19,
+  "grams": 10,
+  "plates": 1
+ },
+ {
+  "key": "gridBin:padrão",
+  "owner": "Torno",
+  "group": "home",
+  "label": "Gridfinity: caixinha (gridBin)",
+  "variant": "padrão",
+  "status": "ok",
+  "reasons": [],
+  "date": "2026-09-30",
+  "minutes": 35,
+  "grams": 23.4,
+  "plates": 1
+ },
+ {
   "key": "keyHolder:máximo",
   "owner": "Torno",
   "group": "home",
@@ -1893,6 +1980,48 @@
   "minutes": 181,
   "grams": 157.9,
   "plates": 2
+ },
+ {
+  "key": "lidBox:máximo",
+  "owner": "Torno",
+  "group": "home",
+  "label": "Caixa com tampa (lidBox)",
+  "variant": "máximo",
+  "status": "falha",
+  "reasons": [
+   "\"Caixa\" não cabe na mesa de 256 mm (258,0 × 258,0 × 204,0 mm)",
+   "\"Tampa\" não cabe na mesa de 256 mm (258,0 × 258,0 × 10,0 mm)",
+   "o conjunto arrumado ocupa 526,0 × 258,0 mm: passa da mesa de 256 mm",
+   "Bambu Studio: One of the plate is empty or has no object fully inside it. Please check that the 3mf contains no empty plate in Bambu Studio before uploading. (código -50)",
+   "app: A caixa tem 258 mm e passa da mesa de 256 mm."
+  ],
+  "date": "2026-09-30"
+ },
+ {
+  "key": "lidBox:mínimo",
+  "owner": "Torno",
+  "group": "home",
+  "label": "Caixa com tampa (lidBox)",
+  "variant": "mínimo",
+  "status": "ok",
+  "reasons": [],
+  "date": "2026-09-30",
+  "minutes": 5,
+  "grams": 0.9,
+  "plates": 1
+ },
+ {
+  "key": "lidBox:padrão",
+  "owner": "Torno",
+  "group": "home",
+  "label": "Caixa com tampa (lidBox)",
+  "variant": "padrão",
+  "status": "ok",
+  "reasons": [],
+  "date": "2026-09-30",
+  "minutes": 47,
+  "grams": 40.1,
+  "plates": 1
  },
  {
   "key": "lineArt:máximo",
@@ -2295,7 +2424,6 @@
   "status": "falha",
   "reasons": [
    "\"Vaso\" não cabe na mesa de 256 mm (100,3 × 100,3 × 300,0 mm)",
-   "Bambu Studio: One of the plate is empty or has no object fully inside it. Please check that the 3mf contains no empty plate in Bambu Studio before uploading. (código -50)",
    "app: Modo vaso: o 3MF já vai com o modo espiral ligado (uma parede contínua, sem topo). Use bico 0,4 e 1 perímetro."
   ],
   "date": "2026-09-30"
@@ -2310,10 +2438,7 @@
   "reasons": [
    "app: Modo vaso: o 3MF já vai com o modo espiral ligado (uma parede contínua, sem topo). Use bico 0,4 e 1 perímetro."
   ],
-  "date": "2026-09-30",
-  "minutes": 46,
-  "grams": 21.1,
-  "plates": 1
+  "date": "2026-09-30"
  },
  {
   "key": "vase:padrão",
@@ -2325,10 +2450,7 @@
   "reasons": [
    "app: Modo vaso: o 3MF já vai com o modo espiral ligado (uma parede contínua, sem topo). Use bico 0,4 e 1 perímetro."
   ],
-  "date": "2026-09-30",
-  "minutes": 87,
-  "grams": 27.3,
-  "plates": 1
+  "date": "2026-09-30"
  },
  {
   "key": "wordDecor:máximo",

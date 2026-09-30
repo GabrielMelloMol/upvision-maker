@@ -9,5 +9,6 @@ export const EMOJI_FIELDS: Record<string, string[]> = {
   stringArt: ["line1", "line2"],
   windowFrame: ["name"],
   gridBin: ["label"],
+  lidBox: ["text"],
   alphabetCube: ["face1", "face2", "face3", "face4", "face5", "face6"],
 };

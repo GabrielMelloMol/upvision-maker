@@ -34,6 +34,7 @@ export const BATCH_FIELDS: Record<string, string[]> = {
   stringArt: ["line1", "line2"],
   windowFrame: ["name"],
   gridBin: ["label"],
+  lidBox: ["text"],
   alphabetCube: ["kit"],
 };
 
