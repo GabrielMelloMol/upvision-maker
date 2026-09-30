@@ -51,7 +51,8 @@ jobs:
         shell: bash
         env:
           GH_TOKEN: ${{ github.token }}
-        run: scripts/visual-refs --so ${{ matrix.so }} || echo "sem aprovação ainda: só as checagens"
+        run: |
+          scripts/visual-refs --so ${{ matrix.so }} || echo "sem aprovação ainda, só as checagens"
 
       - name: Comparar com as referências
         if: ${{ !inputs.atualizar }}
