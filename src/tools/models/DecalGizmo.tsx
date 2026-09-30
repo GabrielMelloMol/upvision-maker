@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState, type KeyboardEvent, type PointerEvent } from "react";
 import type { ElementBox } from "../../geometry/models/common";
 import type { FaceInfo, LayerShape } from "./applyLayers";
-import { normalizeRotation, rotatedHalf, snapPosition, type Guides, type Layer } from "./layers";
+import { layerName, normalizeRotation, rotatedHalf, snapPosition, type Guides, type Layer } from "./layers";
 
 const PAD_MM = 6;
 const HANDLE_PX = 7;
@@ -39,6 +39,8 @@ export default function DecalGizmo({ face, layers, shapes, selected, onSelect, o
   const [elSel, setElSel] = useState<string | null>(null);
   const [elDrag, setElDrag] = useState<ElDrag | null>(null);
   const [mmPerPx, setMmPerPx] = useState(0.25);
+  // o que o leitor de tela ouve depois de uma seta ou de soltar o arraste (#144): o readout do SVG é só desenho
+  const [said, setSaid] = useState("");
   const { min, max } = face.bounds;
   const vb = { x: min[0] - PAD_MM, y: -(max[1] + PAD_MM), w: max[0] - min[0] + 2 * PAD_MM, h: max[1] - min[1] + 2 * PAD_MM };
 
@@ -108,9 +110,16 @@ export default function DecalGizmo({ face, layers, shapes, selected, onSelect, o
   }
 
   function end() {
-    if (elDrag && (elDrag.d[0] || elDrag.d[1])) onMoveElement?.(elDrag.id, elDrag.d[0], elDrag.d[1]);
+    if (elDrag && (elDrag.d[0] || elDrag.d[1])) {
+      onMoveElement?.(elDrag.id, elDrag.d[0], elDrag.d[1]);
+      setSaid(sayElement(elements.find((x) => x.id === elDrag.id), elDrag.d));
+    }
     setElDrag(null);
-    if (drag && Object.keys(drag.draft).length) onCommit(drag.id, drag.draft);
+    if (drag && Object.keys(drag.draft).length) {
+      onCommit(drag.id, drag.draft);
+      const l = layers.find((x) => x.id === drag.id);
+      if (l) setSaid(say({ ...l, ...drag.draft }));
+    }
     setDrag(null);
   }
 
@@ -121,23 +130,27 @@ export default function DecalGizmo({ face, layers, shapes, selected, onSelect, o
     const l = layers.find((x) => x.id === selected);
     if (l) {
       e.preventDefault();
-      onCommit(l.id, { x: round1(l.x + d[0]), y: round1(l.y + d[1]) });
+      const next = { x: round1(l.x + d[0]), y: round1(l.y + d[1]) };
+      onCommit(l.id, next);
+      setSaid(say({ ...l, ...next }));
     } else if (elSel && elements.some((x) => x.id === elSel)) {
       e.preventDefault();
       onMoveElement?.(elSel, d[0], d[1]);
+      setSaid(sayElement(elements.find((x) => x.id === elSel), d as [number, number]));
     }
   }
 
   const h = HANDLE_PX * mmPerPx;
   const sel = layers.find((l) => l.id === selected);
   return (
+    <>
     <svg
       ref={svg}
       className="decal-gizmo"
       viewBox={`${vb.x} ${vb.y} ${vb.w} ${vb.h}`}
       tabIndex={0}
       role="group"
-      aria-label={`Vista de cima de ${face.part}: arraste para mover, alça do canto para o tamanho, alça de cima para girar. Setas movem 1 mm.`}
+      aria-label={`Vista de cima de ${face.part}: escolha a camada na lista Camadas; aqui, setas movem 1 mm (Shift, 5 mm). Com o mouse: arraste para mover, alça do canto para o tamanho, alça de cima para girar.`}
       onPointerMove={move}
       onPointerUp={end}
       onPointerCancel={() => {
@@ -203,9 +216,16 @@ export default function DecalGizmo({ face, layers, shapes, selected, onSelect, o
         </text>
       )}
     </svg>
+    <span className="sr-only" aria-live="polite">
+      {said}
+    </span>
+    </>
   );
 }
 
 const round1 = (n: number) => Math.round(n * 10) / 10;
 const fmt = (n: number) => n.toLocaleString("pt-BR", { maximumFractionDigits: 1 });
+const say = (l: Layer) => `${layerName(l)}: x ${fmt(l.x)} mm, y ${fmt(l.y)} mm, ${fmt(l.width)} mm de largura${l.rotation ? `, girada ${fmt(l.rotation)}°` : ""}`;
+/** Elemento interno movido: nome e o canto de baixo à esquerda na nova posição. */
+const sayElement = (el: ElementBox | undefined, d: [number, number]) => (el ? `${el.label}: x ${fmt(el.box[0] + d[0])} mm, y ${fmt(el.box[1] + d[1])} mm` : "");
 const readout = (l: Layer) => `X ${fmt(l.x)} · Y ${fmt(l.y)} mm · ${fmt(l.width)} mm · ${fmt(l.rotation)}°`;
