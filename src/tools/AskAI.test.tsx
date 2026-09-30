@@ -11,7 +11,8 @@ import { renderWithApp, setupTauri } from "../test/harness";
 import AskAI from "./AskAI";
 
 vi.mock("../ui/viewerScene", () => ({ createViewer: () => ({ setModels() {}, dispose() {} }) }));
-vi.mock("../ai/claude", async (orig) => ({ ...(await orig<typeof import("../ai/claude")>()), ask: vi.fn() }));
+// countInputTokens (estimativa antes de enviar, #89) também é simulado: nada vai para a rede
+vi.mock("../ai/claude", async (orig) => ({ ...(await orig<typeof import("../ai/claude")>()), ask: vi.fn(), countInputTokens: vi.fn(async () => 1234) }));
 vi.mock("../ai/render", async (orig) => ({ ...(await orig<typeof import("../ai/render")>()), renderScad: vi.fn() }));
 
 const t = setupTauri();

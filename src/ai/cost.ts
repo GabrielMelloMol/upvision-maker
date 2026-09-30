@@ -17,6 +17,12 @@ export type Usage = {
   cache_read_input_tokens?: number | null;
 };
 
+/** Custo em US$ só da entrada (antes de enviar: a saída ainda não existe); null se o modelo não está na tabela. */
+export function estimateInputCostUsd(model: string, inputTokens: number): number | null {
+  const m = AI_MODELS.find((x) => x.id === model);
+  return m ? (inputTokens * m.input) / 1e6 : null;
+}
+
 /** Custo estimado em US$ de uma chamada; null se o modelo não está na tabela. */
 export function estimateCostUsd(model: string, u: Usage): number | null {
   const m = AI_MODELS.find((x) => x.id === model);

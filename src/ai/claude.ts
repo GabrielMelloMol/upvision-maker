@@ -23,6 +23,11 @@ Formato do código:
   Cada parte vira um volume de filamento separado (uma cor no AMS). Peça de uma cor só = uma única @part.
   As partes não devem se sobrepor (subtraia uma da outra quando houver relevo).
 
+Imagens de referência (quando a pessoa mandar fotos, prints ou esboços, cada uma com "Imagem N" e uma legenda opcional):
+- Use as imagens só como referência de forma, proporção e disposição dos elementos; o modelo é sempre desenhado do zero.
+- Foto ou esboço não tem escala: se faltar alguma medida e ela não estiver no texto nem numa legenda, faça uma versão com uma medida razoável e diga qual usou, pedindo a medida certa.
+- Nunca reproduza logotipos, marcas, personagens ou desenhos de terceiros que apareçam nas imagens: descreva e substitua por uma forma genérica.
+
 Formato da resposta:
 - Explique em 1 a 3 frases curtas, em português, o que você fez ou mudou.
 - Depois, um único bloco \`\`\`openscad com o código COMPLETO (nunca só um trecho), mesmo em ajustes.
@@ -48,6 +53,8 @@ export async function ask(apiKey: string, model: string, history: Anthropic.Mess
       model,
       max_tokens: MAX_TOKENS,
       system: [{ type: "text", text: SYSTEM_PROMPT, cache_control: { type: "ephemeral" } }],
+      // marca também o fim da conversa: as imagens e voltas anteriores ficam em cache nos ajustes seguintes (#89)
+      cache_control: { type: "ephemeral" },
       messages: history,
     },
     { signal },
@@ -59,6 +66,15 @@ export async function ask(apiKey: string, model: string, history: Anthropic.Mess
   const text = message.content.flatMap((b) => (b.type === "text" ? [b.text] : [])).join("\n");
   if (message.stop_reason === "max_tokens") throw new Error("A resposta ficou grande demais e foi cortada. Peça uma peça mais simples ou em etapas.");
   return { message, text, costUsd: estimateCostUsd(model, message.usage) };
+}
+
+/**
+ * Tokens de entrada do próximo pedido (texto + imagens + histórico), contados pela própria API antes de enviar
+ * (gratuito). Serve para mostrar o custo estimado incluindo as imagens (#89).
+ */
+export async function countInputTokens(apiKey: string, model: string, history: Anthropic.MessageParam[]): Promise<number> {
+  const r = await createClient(apiKey).messages.countTokens({ model, system: SYSTEM_PROMPT, messages: history });
+  return r.input_tokens;
 }
 
 /** Mensagem clara para cada tipo de erro da API. */

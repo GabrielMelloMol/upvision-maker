@@ -2,7 +2,9 @@ import Anthropic from "@anthropic-ai/sdk";
 import { Send, Sparkles, X } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { loadAiSettings } from "../ai/aiSettings";
-import { aiErrorText, ask } from "../ai/claude";
+import { aiErrorText, ask, countInputTokens } from "../ai/claude";
+import { estimateInputCostUsd } from "../ai/cost";
+import { imageUrl, MAX_IMAGES, prepareImage, userContent, type RefImage } from "../ai/images";
 import { RenderCancelled, renderScad } from "../ai/render";
 import { extractReply } from "../ai/scad";
 import type { Model } from "../geometry/types";
@@ -10,10 +12,12 @@ import type { Go } from "../pages";
 import Alert from "../ui/Alert";
 import ExportButtons from "../ui/ExportButtons";
 import Preview3D from "../ui/Preview3D";
+import Attachments from "./askai/Attachments";
 
-type Turn = { role: "user" | "assistant"; text: string; code?: string | null; tokens?: { in: number; out: number }; costUsd?: number | null; renderError?: string };
+type Turn = { role: "user" | "assistant"; text: string; images?: string[]; code?: string | null; tokens?: { in: number; out: number }; costUsd?: number | null; renderError?: string };
 
 const MAX_AUTO_FIX = 2;
+const ESTIMATE_DEBOUNCE_MS = 600;
 const usd = (n: number) => `US$ ${n.toFixed(n < 0.01 ? 4 : 3)}`;
 const EXAMPLES = ["Porta-copos redondo de 90 mm com a palavra CAFÉ em relevo, base azul e letras brancas", "Suporte de celular para mesa, inclinado a 60°, com furo para o cabo", "Chaveiro de coração com furo para argola e borda em outra cor"];
 
@@ -25,6 +29,9 @@ export default function AskAI({ go }: { go: Go }) {
   const [model3d, setModel3d] = useState<Model | null>(null);
   const [phase, setPhase] = useState<null | { kind: "claude"; chars: number } | { kind: "render" }>(null);
   const [error, setError] = useState<string | null>(null);
+  const [images, setImages] = useState<RefImage[]>([]); // referências do próximo pedido (#89)
+  // estimativa do próximo pedido, guardada com a "assinatura" do pedido que foi contado
+  const [estimate, setEstimate] = useState<{ sig: string; tokens: number; usd: number | null } | { sig: string; error: true } | null>(null);
   const cancelRef = useRef<() => void>(() => {});
   const total = turns.reduce((s, t) => s + (t.costUsd ?? 0), 0);
 
@@ -34,11 +41,43 @@ export default function AskAI({ go }: { go: Go }) {
       .catch((e) => setError(aiErrorText(e)));
   }, []);
 
+  // custo do próximo pedido com as imagens, contado pela API antes de enviar (gratuito), com espera para não contar a cada tecla
+  const sig = `${settings?.model}|${history.length}|${input.trim()}|${images.map((i) => i.id + i.caption).join(",")}`;
+  useEffect(() => {
+    const key = settings?.apiKey;
+    if (!key || (!input.trim() && !images.length) || phase) return;
+    const t = setTimeout(() => {
+      const hist: Anthropic.MessageParam[] = [...history, { role: "user", content: userContent(input.trim() || "(sem texto)", images) }];
+      countInputTokens(key, settings.model, hist)
+        .then((tokens) => setEstimate({ sig, tokens, usd: estimateInputCostUsd(settings.model, tokens) }))
+        .catch((e) => {
+          console.warn("Não deu para estimar o custo do pedido:", e);
+          setEstimate({ sig, error: true });
+        });
+    }, ESTIMATE_DEBOUNCE_MS);
+    return () => clearTimeout(t);
+  }, [settings, input, images, history, phase, sig]);
+  const shown = estimate?.sig === sig && !phase ? estimate : null;
+
+  async function addImages(files: Blob[], png = false) {
+    const room = MAX_IMAGES - images.length;
+    const left = files.length - room;
+    if (left > 0) setError(`Até ${MAX_IMAGES} imagens por pedido: ${left} ${left === 1 ? "ficou" : "ficaram"} de fora.`);
+    for (const f of files.slice(0, Math.max(0, room))) {
+      try {
+        const img = await prepareImage(f, { png });
+        setImages((cur) => (cur.length < MAX_IMAGES ? [...cur, img] : cur));
+      } catch (e) {
+        setError(e instanceof Error ? e.message : String(e));
+      }
+    }
+  }
+
   /** Uma volta: pergunta ao Claude, renderiza o código e, se o OpenSCAD falhar, pede a correção sozinho (até 2×). */
-  async function send(userText: string, base: Anthropic.MessageParam[], fixesLeft = MAX_AUTO_FIX, auto = false) {
+  async function send(userText: string, base: Anthropic.MessageParam[], fixesLeft = MAX_AUTO_FIX, auto = false, refs: RefImage[] = []) {
     if (!settings?.apiKey) return;
-    const hist: Anthropic.MessageParam[] = [...base, { role: "user", content: userText }];
-    setTurns((t) => [...t, { role: "user", text: auto ? "(correção automática do erro do OpenSCAD)" : userText }]);
+    const hist: Anthropic.MessageParam[] = [...base, { role: "user", content: userContent(userText, refs) }];
+    setTurns((t) => [...t, { role: "user", text: auto ? "(correção automática do erro do OpenSCAD)" : userText, images: refs.map(imageUrl) }]);
     setError(null);
     const ctrl = new AbortController();
     cancelRef.current = () => ctrl.abort();
@@ -73,9 +112,11 @@ export default function AskAI({ go }: { go: Go }) {
   function onSubmit(e?: React.FormEvent) {
     e?.preventDefault();
     const t = input.trim();
-    if (!t || phase) return;
+    if ((!t && !images.length) || phase) return;
     setInput("");
-    send(t, history);
+    const refs = images;
+    setImages([]);
+    send(t || "Faça uma peça como na(s) imagem(ns).", history, MAX_AUTO_FIX, false, refs);
   }
 
   if (settings && !settings.apiKey) {
@@ -117,6 +158,13 @@ export default function AskAI({ go }: { go: Go }) {
             )}
             {turns.map((t, i) => (
               <div key={i} className={`turn ${t.role}`}>
+                {t.images && t.images.length > 0 && (
+                  <div className="ref-sent">
+                    {t.images.map((src, n) => (
+                      <img key={n} src={src} alt={`Imagem ${n + 1} enviada`} />
+                    ))}
+                  </div>
+                )}
                 <p>{t.text || (t.code ? "Aqui está o modelo." : "")}</p>
                 {t.code && (
                   <details>
@@ -142,20 +190,41 @@ export default function AskAI({ go }: { go: Go }) {
               </div>
             )}
             {error && <Alert kind="error">{error}</Alert>}
-            <form className="stack" onSubmit={onSubmit}>
+            <form
+              className="stack"
+              onSubmit={onSubmit}
+              onDragOver={(e) => e.preventDefault()}
+              onDrop={(e) => {
+                const files = [...e.dataTransfer.files].filter((f) => f.type.startsWith("image/") || /\.(heic|heif)$/i.test(f.name));
+                if (!files.length) return;
+                e.preventDefault();
+                void addImages(files);
+              }}
+            >
               <textarea
+                onPaste={(e) => {
+                  const files = [...e.clipboardData.files].filter((f) => f.type.startsWith("image/"));
+                  if (!files.length) return;
+                  e.preventDefault();
+                  void addImages(files);
+                }}
                 value={input}
                 rows={3}
                 placeholder={turns.length ? "Peça um ajuste: “aumenta a borda para 3 mm”, “letras mais grossas”…" : "Descreva a peça: tamanho, formato, textos, cores…"}
                 onChange={(e) => setInput(e.target.value)}
                 onKeyDown={(e) => e.key === "Enter" && (e.metaKey || e.ctrlKey) && onSubmit()}
               />
+              <Attachments images={images} onChange={setImages} onAdd={(f, png) => void addImages(f, png)} disabled={!!phase} />
               <div className="row">
-                <button className="primary" type="submit" disabled={!input.trim() || !!phase}>
+                <button className="primary" type="submit" disabled={(!input.trim() && !images.length) || !!phase}>
                   <Send aria-hidden /> {turns.length ? "Pedir ajuste" : "Criar peça"}
                 </button>
                 <span className="hint">
                   Modelo: {settings?.model ?? "…"} · gasto nesta conversa ≈ {usd(total)}
+                  {shown &&
+                    ("error" in shown
+                      ? " · estimativa do próximo pedido indisponível"
+                      : ` · próximo pedido: ${shown.tokens.toLocaleString("pt-BR")} tokens de entrada${images.length ? " com as imagens" : ""}${shown.usd == null ? "" : ` ≈ ${usd(shown.usd)}`} + resposta`)}
                 </span>
               </div>
             </form>

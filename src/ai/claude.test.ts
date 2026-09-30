@@ -1,16 +1,16 @@
 import Anthropic from "@anthropic-ai/sdk";
 import { beforeEach, describe, expect, test, vi } from "vitest";
-import { aiErrorText, ask, SYSTEM_PROMPT, testKey } from "./claude";
+import { aiErrorText, ask, countInputTokens, SYSTEM_PROMPT, testKey } from "./claude";
 
 // Nunca chama a rede: o cliente real é trocado por uma subclasse com messages/models falsos (as classes de erro continuam as reais).
-const sdk = vi.hoisted(() => ({ options: [] as unknown[], stream: vi.fn(), retrieve: vi.fn() }));
+const sdk = vi.hoisted(() => ({ options: [] as unknown[], stream: vi.fn(), retrieve: vi.fn(), countTokens: vi.fn() }));
 vi.mock("@anthropic-ai/sdk", async (orig) => {
   const mod = await orig<typeof import("@anthropic-ai/sdk")>();
   class Fake extends mod.default {
     constructor(o: ConstructorParameters<typeof mod.default>[0]) {
       super(o);
       sdk.options.push(o);
-      Object.assign(this, { messages: { stream: sdk.stream }, models: { retrieve: sdk.retrieve } });
+      Object.assign(this, { messages: { stream: sdk.stream, countTokens: sdk.countTokens }, models: { retrieve: sdk.retrieve } });
     }
   }
   return { ...mod, default: Fake };
@@ -55,6 +55,8 @@ describe("ask", () => {
     expect(onText.mock.calls).toEqual([[2], [7]]);
     const [params, opts] = sdk.stream.mock.calls[0];
     expect(params).toMatchObject({ model: "claude-sonnet-5", messages: history, system: [{ type: "text", text: SYSTEM_PROMPT, cache_control: { type: "ephemeral" } }] });
+    // o fim da conversa também vai em cache: imagens e voltas anteriores não pagam inteiras de novo (#89)
+    expect(params.cache_control).toEqual({ type: "ephemeral" });
     expect(opts).toEqual({ signal });
     expect(sdk.options[0]).toMatchObject({ apiKey: "sk-ant-x", dangerouslyAllowBrowser: true, maxRetries: 2 });
   });
@@ -65,6 +67,19 @@ describe("ask", () => {
     sdk.stream.mockReturnValueOnce(fakeStream([], { stop_reason: "max_tokens" }));
     await expect(ask("k", "claude-sonnet-5", [], () => {}, signal)).rejects.toThrow(/grande demais e foi cortada/);
   });
+});
+
+test("countInputTokens conta pela API o pedido com o prompt de sistema e as imagens (#89)", async () => {
+  sdk.countTokens.mockResolvedValue({ input_tokens: 2345 });
+  const history: Anthropic.MessageParam[] = [{ role: "user", content: [{ type: "image", source: { type: "base64", media_type: "image/png", data: "AAAA" } }, { type: "text", text: "igual" }] }];
+  await expect(countInputTokens("sk-ant-x", "claude-sonnet-5", history)).resolves.toBe(2345);
+  expect(sdk.countTokens).toHaveBeenCalledWith({ model: "claude-sonnet-5", system: SYSTEM_PROMPT, messages: history });
+});
+
+test("o prompt de sistema orienta sobre imagens: só referência, pedir medida sem escala, nada de marcas de terceiros (#89)", () => {
+  expect(SYSTEM_PROMPT).toMatch(/só como referência de forma/);
+  expect(SYSTEM_PROMPT).toMatch(/não tem escala/);
+  expect(SYSTEM_PROMPT).toMatch(/Nunca reproduza logotipos, marcas/);
 });
 
 test("testKey devolve o nome do modelo", async () => {
