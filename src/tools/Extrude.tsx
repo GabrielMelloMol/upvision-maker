@@ -1,3 +1,4 @@
+import { bedWarnings } from "./models/bedCheck";
 import { BASE_COLOR, extrudeDesign, TOP_COLOR } from "../geometry/extrude";
 import Alert from "../ui/Alert";
 import Dropzone from "../ui/Dropzone";
@@ -32,7 +33,8 @@ export default function Extrude() {
       const m = extrudeDesign(M, cs, { height, base: withBase ? { margin, thickness: baseT } : null }, svg.name, layers);
       // SVG colorido: as cores das camadas vêm do desenho; só a base usa o seletor
       const color = (i: number) => (layers ? (withBase && i === 0 ? colors[0] : undefined) : colors[withBase ? i : 0]);
-      return { models: [{ ...m, parts: m.parts.map((p, i) => ({ ...p, color: color(i) ?? p.color })) }], warnings: [] };
+      const models = [{ ...m, parts: m.parts.map((p, i) => ({ ...p, color: color(i) ?? p.color })) }];
+      return { models, warnings: bedWarnings(models, []) }; // #122
     } finally {
       cs.delete();
       layers?.forEach((l) => l.cs.delete());

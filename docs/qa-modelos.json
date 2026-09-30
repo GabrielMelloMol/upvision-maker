@@ -525,7 +525,8 @@
   "status": "falha",
   "reasons": [
    "\"Ana\" não cabe na mesa de 256 mm (266,0 × 290,6 × 9,0 mm)",
-   "Bambu Studio: One of the plate is empty or has no object fully inside it. Please check that the 3mf contains no empty plate in Bambu Studio before uploading. (código -50)"
+   "Bambu Studio: One of the plate is empty or has no object fully inside it. Please check that the 3mf contains no empty plate in Bambu Studio before uploading. (código -50)",
+   "app: \"Ana\" tem 266 × 291 × 9 mm e passa da mesa de 256 mm: diminua o tamanho."
   ],
   "date": "2026-09-30"
  },
@@ -551,7 +552,7 @@
   "status": "ok",
   "reasons": [],
   "date": "2026-09-30",
-  "minutes": 47,
+  "minutes": 48,
   "grams": 28.9,
   "plates": 1
  },
@@ -687,7 +688,8 @@
   "status": "falha",
   "reasons": [
    "\"Placa\" não cabe na mesa de 256 mm (270,0 × 276,9 × 12,0 mm)",
-   "Bambu Studio: One of the plate is empty or has no object fully inside it. Please check that the 3mf contains no empty plate in Bambu Studio before uploading. (código -50)"
+   "Bambu Studio: One of the plate is empty or has no object fully inside it. Please check that the 3mf contains no empty plate in Bambu Studio before uploading. (código -50)",
+   "app: \"Placa\" tem 270 × 277 × 12 mm e passa da mesa de 256 mm: diminua o tamanho."
   ],
   "date": "2026-09-30"
  },
@@ -1037,7 +1039,8 @@
   "status": "falha",
   "reasons": [
    "\"Wi-Fi\" não cabe na mesa de 256 mm (200,0 × 260,0 × 9,0 mm)",
-   "o conjunto arrumado ocupa 200,0 × 300,0 mm: passa da mesa de 256 mm"
+   "o conjunto arrumado ocupa 200,0 × 300,0 mm: passa da mesa de 256 mm",
+   "app: \"Wi-Fi\" tem 200 × 260 × 9 mm e passa da mesa de 256 mm: diminua o tamanho."
   ],
   "date": "2026-09-30",
   "minutes": 34,
@@ -1081,7 +1084,8 @@
   "status": "falha",
   "reasons": [
    "\"Placa\" não cabe na mesa de 256 mm (300,0 × 120,0 × 10,0 mm)",
-   "Bambu Studio: One of the plate is empty or has no object fully inside it. Please check that the 3mf contains no empty plate in Bambu Studio before uploading. (código -50)"
+   "Bambu Studio: One of the plate is empty or has no object fully inside it. Please check that the 3mf contains no empty plate in Bambu Studio before uploading. (código -50)",
+   "app: \"Placa\" tem 300 × 120 × 10 mm e passa da mesa de 256 mm: diminua o tamanho."
   ],
   "date": "2026-09-30"
  },
@@ -1847,7 +1851,8 @@
   "reasons": [
    "\"Porta-chave\" não cabe na mesa de 256 mm (235,0 × 271,3 × 20,0 mm)",
    "Bambu Studio: One of the plate is empty or has no object fully inside it. Please check that the 3mf contains no empty plate in Bambu Studio before uploading. (código -50)",
-   "app: Furos de 4,5 mm para parafuso com bucha 6. Ganchos aguentam chaves; para bolsa, aumente a espessura."
+   "app: Furos de 4,5 mm para parafuso com bucha 6. Ganchos aguentam chaves; para bolsa, aumente a espessura.",
+   "app: \"Porta-chave\" tem 235 × 271 × 20 mm e passa da mesa de 256 mm: diminua o tamanho."
   ],
   "date": "2026-09-30"
  },
@@ -1877,7 +1882,7 @@
    "app: Furos de 4,5 mm para parafuso com bucha 6. Ganchos aguentam chaves; para bolsa, aumente a espessura."
   ],
   "date": "2026-09-30",
-  "minutes": 131,
+  "minutes": 130,
   "grams": 111.3,
   "plates": 1
  },
@@ -2471,7 +2476,9 @@
    "\"Família\" não cabe na mesa de 256 mm (355,0 × 80,0 × 6,0 mm)",
    "o conjunto arrumado ocupa 475,1 × 208,0 mm: passa da mesa de 256 mm",
    "Bambu Studio: One of the plate is empty or has no object fully inside it. Please check that the 3mf contains no empty plate in Bambu Studio before uploading. (código -50)",
-   "app: A palavra de encaixe sai separada: cole no rebaixo da palavra base (a folga é para ela entrar sem forçar)."
+   "app: A palavra de encaixe sai separada: cole no rebaixo da palavra base (a folga é para ela entrar sem forçar).",
+   "app: \"AMOR\" tem 475 × 120 × 20 mm e passa da mesa de 256 mm: diminua o tamanho.",
+   "app: \"Família\" tem 355 × 80 × 6 mm e passa da mesa de 256 mm: diminua o tamanho."
   ],
   "date": "2026-09-30"
  },
@@ -2554,7 +2561,8 @@
   "reasons": [
    "\"Clipe de saco\" não cabe na mesa de 256 mm (256,8 × 64,8 × 20,0 mm)",
    "app: Na ponta a fenda fica com 1,8 mm, menor que o saco: é isso que aperta. Se não fechar, aumente a folga; se soltar, diminua.",
-   "app: Imprima deitado (como sai no arquivo), PLA ou PETG, 3 paredes."
+   "app: Imprima deitado (como sai no arquivo), PLA ou PETG, 3 paredes.",
+   "app: \"Clipe de saco\" tem 257 × 65 × 20 mm e passa da mesa de 256 mm: diminua o tamanho."
   ],
   "date": "2026-09-30",
   "minutes": 72,

@@ -58,9 +58,9 @@ Para cada modelo: valores **padrão**, todos os campos numéricos no **mínimo**
 | Troféu adaptável (adaptiveTrophy) | máximo | ⚠️ aviso | 182 | 175,6 | 1 | – | o conjunto arrumado ocupa 210,6 × 291,5 mm: passa da mesa de 256 mm |
 | Troféu adaptável (adaptiveTrophy) | mínimo | ✅ ok | 41 | 32,8 | 1 | – | – |
 | Troféu adaptável (adaptiveTrophy) | padrão | ✅ ok | 68 | 55,3 | 1 | – | – |
-| Topo de bolo (cake) | máximo | ❌ falha | – | – | – | – | "Ana" não cabe na mesa de 256 mm (266,0 × 290,6 × 9,0 mm); Bambu Studio: One of the plate is empty or has no object fully inside it. Please check that the 3mf contains no empty plate in Bambu Studio before uploading. (código -50) |
+| Topo de bolo (cake) | máximo | ❌ falha | – | – | – | – | "Ana" não cabe na mesa de 256 mm (266,0 × 290,6 × 9,0 mm); Bambu Studio: One of the plate is empty or has no object fully inside it. Please check that the 3mf contains no empty plate in Bambu Studio before uploading. (código -50); app: "Ana" tem 266 × 291 × 9 mm e passa da mesa de 256 mm: diminua o tamanho. |
 | Topo de bolo (cake) | mínimo | ✅ ok | 11 | 5,4 | 1 | – | – |
-| Topo de bolo (cake) | padrão | ✅ ok | 47 | 28,9 | 1 | – | – |
+| Topo de bolo (cake) | padrão | ✅ ok | 48 | 28,9 | 1 | – | – |
 | Floco de neve com nome (snowflake) | máximo | ✅ ok | 59 | 25,8 | 1 | – | – |
 | Floco de neve com nome (snowflake) | mínimo | ✅ ok | 6 | 1,6 | 1 | – | – |
 | Floco de neve com nome (snowflake) | padrão | ✅ ok | 13 | 4,5 | 1 | – | – |
@@ -70,7 +70,7 @@ Para cada modelo: valores **padrão**, todos os campos numéricos no **mínimo**
 | Troféu elegante (trophyElegant) | máximo | ⚠️ aviso | 118 | 100,8 | 1 | – | o conjunto arrumado ocupa 295,0 × 158,0 mm: passa da mesa de 256 mm |
 | Troféu elegante (trophyElegant) | mínimo | ✅ ok | 20 | 11,4 | 1 | – | – |
 | Troféu elegante (trophyElegant) | padrão | ✅ ok | 38 | 25,4 | 1 | – | – |
-| Placa adaptável (adaptivePlate) | máximo | ❌ falha | – | – | – | – | "Placa" não cabe na mesa de 256 mm (270,0 × 276,9 × 12,0 mm); Bambu Studio: One of the plate is empty or has no object fully inside it. Please check that the 3mf contains no empty plate in Bambu Studio before uploading. (código -50) |
+| Placa adaptável (adaptivePlate) | máximo | ❌ falha | – | – | – | – | "Placa" não cabe na mesa de 256 mm (270,0 × 276,9 × 12,0 mm); Bambu Studio: One of the plate is empty or has no object fully inside it. Please check that the 3mf contains no empty plate in Bambu Studio before uploading. (código -50); app: "Placa" tem 270 × 277 × 12 mm e passa da mesa de 256 mm: diminua o tamanho. |
 | Placa adaptável (adaptivePlate) | mínimo | ✅ ok | 2 | 0,5 | 1 | – | – |
 | Placa adaptável (adaptivePlate) | padrão | ✅ ok | 41 | 32,4 | 1 | – | – |
 | Cartão de visita (businessCard) | máximo | ⚠️ aviso | 19 | 15,1 | 1 | – | "Ana Souza": parede/traço < 0,4 mm em Z 3,8 mm; app: Cada módulo ficou com 1,03 mm: aumente a placa ou encurte o texto (mínimo recomendado 1,2 mm). |
@@ -94,10 +94,10 @@ Para cada modelo: valores **padrão**, todos os campos numéricos no **mínimo**
 | Placa com vários QRs (qrList) | máximo | ✅ ok | 202 | 125,9 | 1 | – | – |
 | Placa com vários QRs (qrList) | mínimo | ✅ ok | 35 | 22,2 | 1 | – | app: Cada módulo ficou com 0,76 mm: aumente a placa ou encurte o texto (mínimo recomendado 1,2 mm).; app: Cada módulo ficou com 0,86 mm: aumente a placa ou encurte o texto (mínimo recomendado 1,2 mm). |
 | Placa com vários QRs (qrList) | padrão | ✅ ok | 75 | 49,3 | 1 | – | – |
-| Placa QR (qrPlate) | máximo | ❌ falha | 34 | 23,9 | 1 | – | "Wi-Fi" não cabe na mesa de 256 mm (200,0 × 260,0 × 9,0 mm); o conjunto arrumado ocupa 200,0 × 300,0 mm: passa da mesa de 256 mm |
+| Placa QR (qrPlate) | máximo | ❌ falha | 34 | 23,9 | 1 | – | "Wi-Fi" não cabe na mesa de 256 mm (200,0 × 260,0 × 9,0 mm); o conjunto arrumado ocupa 200,0 × 300,0 mm: passa da mesa de 256 mm; app: "Wi-Fi" tem 200 × 260 × 9 mm e passa da mesa de 256 mm: diminua o tamanho. |
 | Placa QR (qrPlate) | mínimo | ⚠️ aviso | 30 | 18,6 | 1 | – | "Wi-Fi": parede/traço < 0,4 mm em Z 2,2 mm |
 | Placa QR (qrPlate) | padrão | ✅ ok | 61 | 39,7 | 1 | – | – |
-| Placa de sinalização (sign) | máximo | ❌ falha | – | – | – | – | "Placa" não cabe na mesa de 256 mm (300,0 × 120,0 × 10,0 mm); Bambu Studio: One of the plate is empty or has no object fully inside it. Please check that the 3mf contains no empty plate in Bambu Studio before uploading. (código -50) |
+| Placa de sinalização (sign) | máximo | ❌ falha | – | – | – | – | "Placa" não cabe na mesa de 256 mm (300,0 × 120,0 × 10,0 mm); Bambu Studio: One of the plate is empty or has no object fully inside it. Please check that the 3mf contains no empty plate in Bambu Studio before uploading. (código -50); app: "Placa" tem 300 × 120 × 10 mm e passa da mesa de 256 mm: diminua o tamanho. |
 | Placa de sinalização (sign) | mínimo | ✅ ok | 5 | 2,6 | 1 | – | – |
 | Placa de sinalização (sign) | padrão | ✅ ok | 30 | 20,2 | 1 | – | – |
 | Separar 3MF por cor (ferramenta) | corte com pino | ⚠️ aviso | 12 | 5,6 | 1 | – | o conjunto arrumado ocupa 66,0 × 276,0 mm: passa da mesa de 256 mm |
@@ -158,9 +158,9 @@ Para cada modelo: valores **padrão**, todos os campos numéricos no **mínimo**
 | Gridfinity: caixinha (gridBin) | máximo | ⚠️ aviso | 2431 | 2308,8 | 2 | – | o conjunto arrumado ocupa 251,5 × 270,5 mm: passa da mesa de 256 mm; mais de 24 h de impressão; não coube numa placa: 2 placas; app: Parede mais grossa que a borda empilhável: a borda fica com degrau por dentro. |
 | Gridfinity: caixinha (gridBin) | mínimo | ✅ ok | 19 | 10,0 | 1 | – | – |
 | Gridfinity: caixinha (gridBin) | padrão | ✅ ok | 35 | 23,4 | 1 | – | – |
-| Porta-chave de parede (keyHolder) | máximo | ❌ falha | – | – | – | – | "Porta-chave" não cabe na mesa de 256 mm (235,0 × 271,3 × 20,0 mm); Bambu Studio: One of the plate is empty or has no object fully inside it. Please check that the 3mf contains no empty plate in Bambu Studio before uploading. (código -50); app: Furos de 4,5 mm para parafuso com bucha 6. Ganchos aguentam chaves; para bolsa, aumente a espessura. |
+| Porta-chave de parede (keyHolder) | máximo | ❌ falha | – | – | – | – | "Porta-chave" não cabe na mesa de 256 mm (235,0 × 271,3 × 20,0 mm); Bambu Studio: One of the plate is empty or has no object fully inside it. Please check that the 3mf contains no empty plate in Bambu Studio before uploading. (código -50); app: Furos de 4,5 mm para parafuso com bucha 6. Ganchos aguentam chaves; para bolsa, aumente a espessura.; app: "Porta-chave" tem 235 × 271 × 20 mm e passa da mesa de 256 mm: diminua o tamanho. |
 | Porta-chave de parede (keyHolder) | mínimo | ✅ ok | 40 | 28,7 | 1 | – | app: Furos de 4,5 mm para parafuso com bucha 6. Ganchos aguentam chaves; para bolsa, aumente a espessura. |
-| Porta-chave de parede (keyHolder) | padrão | ✅ ok | 131 | 111,3 | 1 | – | app: Furos de 4,5 mm para parafuso com bucha 6. Ganchos aguentam chaves; para bolsa, aumente a espessura. |
+| Porta-chave de parede (keyHolder) | padrão | ✅ ok | 130 | 111,3 | 1 | – | app: Furos de 4,5 mm para parafuso com bucha 6. Ganchos aguentam chaves; para bolsa, aumente a espessura. |
 | Luminária (lamp) | máximo | ⚠️ aviso | 255 | 231,6 | 2 | – | o conjunto arrumado ocupa 239,9 × 500,9 mm: passa da mesa de 256 mm; não coube numa placa: 2 placas; app: Use filamento branco no difusor (1ª camada). Cabe fita de LED de até 36 mm de altura. |
 | Luminária (lamp) | mínimo | ✅ ok | 35 | 26,3 | 1 | – | app: Use filamento branco no difusor (1ª camada). Cabe fita de LED de até 11 mm de altura. |
 | Luminária (lamp) | padrão | ⚠️ aviso | 112 | 94,2 | 2 | – | o conjunto arrumado ocupa 160,0 × 337,9 mm: passa da mesa de 256 mm; não coube numa placa: 2 placas; app: Use filamento branco no difusor (1ª camada). Cabe fita de LED de até 18 mm de altura. |
@@ -200,13 +200,13 @@ Para cada modelo: valores **padrão**, todos os campos numéricos no **mínimo**
 | Vaso paramétrico (vase) | máximo | ✅ ok | 136 | 35,1 | 1 | – | app: Modo vaso: o 3MF já vai com o modo espiral ligado (uma parede contínua, sem topo). Use bico 0,4 e 1 perímetro. |
 | Vaso paramétrico (vase) | mínimo | ✅ ok | 46 | 21,1 | 1 | – | app: Modo vaso: o 3MF já vai com o modo espiral ligado (uma parede contínua, sem topo). Use bico 0,4 e 1 perímetro. |
 | Vaso paramétrico (vase) | padrão | ✅ ok | 87 | 27,3 | 1 | – | app: Modo vaso: o 3MF já vai com o modo espiral ligado (uma parede contínua, sem topo). Use bico 0,4 e 1 perímetro. |
-| Decoração de palavras (wordDecor) | máximo | ❌ falha | – | – | – | – | "AMOR" não cabe na mesa de 256 mm (475,1 × 120,0 × 20,0 mm); "Família" não cabe na mesa de 256 mm (355,0 × 80,0 × 6,0 mm); o conjunto arrumado ocupa 475,1 × 208,0 mm: passa da mesa de 256 mm; Bambu Studio: One of the plate is empty or has no object fully inside it. Please check that the 3mf contains no empty plate in Bambu Studio before uploading. (código -50); app: A palavra de encaixe sai separada: cole no rebaixo da palavra base (a folga é para ela entrar sem forçar). |
+| Decoração de palavras (wordDecor) | máximo | ❌ falha | – | – | – | – | "AMOR" não cabe na mesa de 256 mm (475,1 × 120,0 × 20,0 mm); "Família" não cabe na mesa de 256 mm (355,0 × 80,0 × 6,0 mm); o conjunto arrumado ocupa 475,1 × 208,0 mm: passa da mesa de 256 mm; Bambu Studio: One of the plate is empty or has no object fully inside it. Please check that the 3mf contains no empty plate in Bambu Studio before uploading. (código -50); app: A palavra de encaixe sai separada: cole no rebaixo da palavra base (a folga é para ela entrar sem forçar).; app: "AMOR" tem 475 × 120 × 20 mm e passa da mesa de 256 mm: diminua o tamanho.; app: "Família" tem 355 × 80 × 6 mm e passa da mesa de 256 mm: diminua o tamanho. |
 | Decoração de palavras (wordDecor) | mínimo | ✅ ok | 17 | 7,2 | 1 | – | app: A palavra de encaixe sai separada: cole no rebaixo da palavra base (a folga é para ela entrar sem forçar). |
 | Decoração de palavras (wordDecor) | padrão | ✅ ok | 70 | 40,4 | 1 | – | app: A palavra de encaixe sai separada: cole no rebaixo da palavra base (a folga é para ela entrar sem forçar). |
 | Pingentes de nomes (namePendants) | máximo | ✅ ok | 52 | 30,8 | 1 | – | – |
 | Pingentes de nomes (namePendants) | mínimo | ✅ ok | 6 | 1,7 | 1 | – | – |
 | Pingentes de nomes (namePendants) | padrão | ✅ ok | 14 | 5,9 | 1 | – | – |
-| Clipe de saco (bagClip) | máximo | ❌ falha | 72 | 54,8 | 1 | – | "Clipe de saco" não cabe na mesa de 256 mm (256,8 × 64,8 × 20,0 mm); app: Na ponta a fenda fica com 1,8 mm, menor que o saco: é isso que aperta. Se não fechar, aumente a folga; se soltar, diminua.; app: Imprima deitado (como sai no arquivo), PLA ou PETG, 3 paredes. |
+| Clipe de saco (bagClip) | máximo | ❌ falha | 72 | 54,8 | 1 | – | "Clipe de saco" não cabe na mesa de 256 mm (256,8 × 64,8 × 20,0 mm); app: Na ponta a fenda fica com 1,8 mm, menor que o saco: é isso que aperta. Se não fechar, aumente a folga; se soltar, diminua.; app: Imprima deitado (como sai no arquivo), PLA ou PETG, 3 paredes.; app: "Clipe de saco" tem 257 × 65 × 20 mm e passa da mesa de 256 mm: diminua o tamanho. |
 | Clipe de saco (bagClip) | mínimo | ✅ ok | 5 | 2,2 | 1 | – | app: Na ponta a fenda fica com 0,3 mm, menor que o saco: é isso que aperta. Se não fechar, aumente a folga; se soltar, diminua.; app: Imprima deitado (como sai no arquivo), PLA ou PETG, 3 paredes. |
 | Clipe de saco (bagClip) | padrão | ✅ ok | 15 | 10,8 | 1 | – | app: Na ponta a fenda fica com 0,5 mm, menor que o saco: é isso que aperta. Se não fechar, aumente a folga; se soltar, diminua.; app: Imprima deitado (como sai no arquivo), PLA ou PETG, 3 paredes. |
 | Boleira (cakeStand) | máximo | ❌ falha | – | – | – | – | "Boleira" não cabe na mesa de 256 mm (270,0 × 270,0 × 200,0 mm); Bambu Studio: One of the plate is empty or has no object fully inside it. Please check that the 3mf contains no empty plate in Bambu Studio before uploading. (código -50); app: O prato tem 270 mm: passa da mesa de 256 mm. Diminua o diâmetro. |

@@ -55,6 +55,15 @@ describe("Cortador de biscoito", () => {
     expect(screen.getByRole("button", { name: /Salvar 3MF/ })).toBeDisabled();
   });
 
+  test("desenho de 250 mm com borda: avisa que passa da mesa (#122)", async () => {
+    handoffSvg(HEART, "bola");
+    const user = userEvent.setup();
+    renderWithApp(<CookieCutter />);
+    await user.clear(screen.getByLabelText(/^Largura/));
+    await user.type(screen.getByLabelText(/^Largura/), "250");
+    expect(await screen.findByText(/"Cortador" tem \d+ × \d+ × \d+ mm e passa da mesa de 256 mm/, undefined, { timeout: 30_000 })).toBeInTheDocument();
+  }, 40_000);
+
   test("imagem que não abre mostra erro de leitura", async () => {
     vi.stubGlobal("createImageBitmap", () => Promise.reject(new Error("bad")));
     const user = userEvent.setup();

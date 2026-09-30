@@ -1,3 +1,4 @@
+import { bedWarnings } from "./models/bedCheck";
 import { buildCutter, DEFAULT_CUTTER, type CutterParams, type ReliefMode } from "../geometry/cutter";
 import Alert from "../ui/Alert";
 import Dropzone from "../ui/Dropzone";
@@ -42,7 +43,8 @@ export default function CookieCutter() {
     if (!svg || !valid) return null;
     const { M, cs } = await designFromSvg(svg.text, width, mirror);
     try {
-      return buildCutter(M, cs, p);
+      const out = buildCutter(M, cs, p);
+      return { ...out, warnings: [...out.warnings, ...bedWarnings(out.models, out.warnings)] }; // #122
     } finally {
       cs.delete();
     }
