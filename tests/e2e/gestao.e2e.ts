@@ -4,15 +4,20 @@ test("navegação: todas as páginas da sidebar abrem com título", async ({ pag
   void tauri;
   await openApp(page);
   const nav = page.getByRole("navigation", { name: "Navegação principal" });
-  const labels = await nav.locator(".scroll button.nav").allInnerTexts();
-  expect(labels.length).toBeGreaterThanOrEqual(12);
-  for (const label of labels) {
-    await nav.getByRole("button", { name: label.trim(), exact: true }).click();
+  // #139: cinco seções e Ajustes; cada uma abre, e as telas que ela mostra embaixo também
+  const sections = ["Início", "Criar", "Vender", "Estoque", "Resultados", "Ajustes"];
+  for (const s of sections) {
+    await nav.getByRole("button", { name: s, exact: true }).click();
     await expect(page.locator("main h1").first()).toBeVisible();
+    for (const sub of await nav.locator("button.nav.sub").allInnerTexts()) {
+      if (/backup|novo|Sugerir/.test(sub)) continue; // ações, não telas
+      await nav.getByRole("button", { name: sub.trim(), exact: true }).click();
+      await expect(page.locator("main h1").first()).toBeVisible();
+    }
   }
-  // cards da Início levam às ferramentas
+  // as ações do Início levam às telas
   await go(page, "Início");
-  await page.getByRole("main").getByRole("button", { name: /Calculadora/ }).click();
+  await page.getByRole("main").getByRole("button", { name: "Calcular preço" }).click();
   await expect(page.getByRole("heading", { level: 1, name: "Calculadora de preço" })).toBeVisible();
 });
 
@@ -131,6 +136,7 @@ test("backup: salva JSON e restaura substituindo os dados (com cópia de seguran
   await page.getByRole("button", { name: "Adicionar" }).click();
   await expect(page.getByRole("row", { name: /Ender 3/ })).toBeVisible();
 
+  await go(page, "Ajustes"); // backup e restauração ficam em Ajustes (#139)
   await page.getByRole("button", { name: "Fazer backup" }).click();
   await expect(toastWith(page, "Backup salvo em")).toBeVisible();
   const [path, bytes] = [...tauri.files].find(([p]) => p.includes("upvision-backup-"))!;
@@ -143,6 +149,8 @@ test("backup: salva JSON e restaura substituindo os dados (com cópia de seguran
   tauri.nextOpen = path;
   await page.getByRole("button", { name: "Restaurar backup" }).click();
   await expect(toastWith(page, "Backup restaurado")).toBeVisible();
+  await go(page, "Estoque");
+  await go(page, "Impressoras");
   await expect(page.getByRole("row", { name: /Ender 3/ })).toBeVisible();
   expect([...tauri.files.keys()].some((p) => p.startsWith("/dados-app/backups/antes-de-restaurar-"))).toBe(true);
 });
@@ -152,6 +160,7 @@ test("backup: arquivo que não é backup mostra erro e não apaga nada", async (
   tauri.db.exec("CREATE TABLE IF NOT EXISTS _x (a)"); // garante que o banco já existe
   tauri.files.set("/qualquer.json", Buffer.from('{"foo": 1}'));
   tauri.nextOpen = "/qualquer.json";
+  await go(page, "Ajustes");
   await page.getByRole("button", { name: "Restaurar backup" }).click();
   await expect(page.getByRole("alert").filter({ hasText: "não é um backup do UpVision Maker" })).toBeVisible();
 });
@@ -186,6 +195,7 @@ test("primeiro uso: apresentação em 3 passos grava custos, impressora e filame
 test("modal: Esc fecha e o foco volta ao botão que abriu", async ({ page, tauri }) => {
   void tauri;
   await openApp(page);
+  await go(page, "Ajustes");
   const opener = page.getByRole("button", { name: "Sugerir ferramenta" });
   await opener.click();
   const dialog = page.getByRole("dialog", { name: "Sugerir ferramenta" });

@@ -1,14 +1,14 @@
 /* Ferramentas 3D: controles à esquerda (inspector), prévia à direita. Só usa tokens. */
-.tool-layout { display: grid; grid-template-columns: minmax(320px, 390px) 1fr; gap: var(--space-5); align-items: start; }
+.tool-layout { display: grid; grid-template-columns: minmax(300px, 360px) 1fr; gap: var(--space-5); align-items: start; }
 .tool-layout > .controls { display: grid; gap: var(--space-3); }
 .tool-layout > .controls .card { margin: 0; }
-.tool-layout > .controls .card h3 { font-size: var(--text-xs); text-transform: uppercase; letter-spacing: 0.05em; color: var(--muted); font-weight: 600; }
+.tool-layout > .controls .card h3 { font-size: var(--text-md); color: var(--text); font-weight: 600; margin: 0; }
 /* sticky com rolagem própria: prévia sempre à vista e o que vem abaixo dela (vista de cima, avisos) continua alcançável */
 .preview-col { position: sticky; top: 64px; display: grid; gap: var(--space-3); align-content: start; max-height: calc(100vh - 64px - var(--space-4)); overflow-y: auto; overscroll-behavior: contain; scrollbar-gutter: stable; }
 @media (max-width: 980px) { .tool-layout { grid-template-columns: 1fr; } .preview-col { position: static; } }
 
 /* Prévia 3D / 2D */
-.viewer { position: relative; overflow: hidden; height: min(560px, calc(100vh - 150px)); min-height: 380px; border-radius: var(--r-xl); background: linear-gradient(180deg, var(--viewer-top), var(--viewer-bottom)); box-shadow: var(--shadow-1); }
+.viewer { position: relative; overflow: hidden; height: calc(100vh - 150px); min-height: 420px; border-radius: var(--r-xl); background: linear-gradient(180deg, var(--viewer-top), var(--viewer-bottom)); box-shadow: 0 0 0 0.5px var(--border); } /* prévia grande (#139) */
 .viewer canvas { display: block; width: 100%; height: 100%; cursor: grab; animation: fade var(--dur-slow) ease both; }
 .viewer canvas:active { cursor: grabbing; }
 .viewer .overlay { position: absolute; inset: 0; display: grid; place-items: center; text-align: center; padding: var(--space-6); color: var(--muted); animation: fade var(--dur) ease both; }
@@ -41,7 +41,7 @@
 }
 .dropzone:hover, .dropzone.over { border-color: var(--accent); background: var(--accent-soft); }
 .dropzone.over { transform: scale(1.01); }
-.dropzone > svg { width: 36px; height: 36px; padding: 8px; margin-bottom: 4px; border-radius: 50%; color: var(--brand-orange); background: var(--action-soft); transition: transform var(--dur) var(--spring); }
+.dropzone > svg { width: 36px; height: 36px; padding: 8px; margin-bottom: 4px; border-radius: 50%; color: var(--muted); background: var(--fill); transition: transform var(--dur) var(--spring); }
 .dropzone:hover > svg { transform: translateY(-2px); }
 .dropzone strong { color: var(--text); font-weight: 600; overflow-wrap: anywhere; }
 
@@ -91,7 +91,7 @@
 .ref-sent img { width: 64px; height: 64px; object-fit: cover; border-radius: var(--r-sm); }
 .sketch-canvas { width: 100%; aspect-ratio: 3 / 2; border-radius: var(--r); box-shadow: var(--shadow-1); background: #fff; touch-action: none; cursor: crosshair; }
 button.example { justify-content: flex-start; text-align: left; font-weight: 400; min-height: 38px; padding: 8px 12px; height: auto; }
-button.example svg { color: var(--brand-orange); }
+button.example svg { color: var(--accent-text); }
 
 /* QR Code: prévia 2D sempre sobre branco (é como vai ser lido) */
 .viewer.qr-preview { display: grid; place-items: center; background: #fff; }
@@ -170,3 +170,13 @@ button.example svg { color: var(--brand-orange); }
 .drawer-dim { position: absolute; left: 0; top: 0; padding: 2px var(--space-2); border-radius: var(--r-pill); background: var(--surface); color: var(--muted); font-size: var(--text-sm); font-variant-numeric: tabular-nums; box-shadow: var(--shadow-1); white-space: nowrap; }
 .drawer-dim[data-focus] { background: var(--accent); color: var(--on-accent); font-weight: 600; }
 .drawer-replay { position: absolute; right: var(--space-3); bottom: var(--space-3); }
+/* Template de ferramenta (#139): ajuste fino recolhido em "Opções avançadas" (disclosure do macOS) e formatos extras discretos */
+details.advanced { border-top: 0.5px solid var(--separator); padding-top: var(--space-3); }
+details.advanced > summary { display: flex; align-items: center; gap: 6px; cursor: pointer; list-style: none; font-size: var(--text-md); font-weight: 500; color: var(--muted); border-radius: var(--r-xs); }
+details.advanced > summary::-webkit-details-marker { display: none; }
+details.advanced > summary::before { content: ""; width: 6px; height: 6px; border-right: 1.5px solid currentColor; border-bottom: 1.5px solid currentColor; transform: rotate(-45deg); transition: transform var(--dur) var(--ease-out); }
+details.advanced[open] > summary::before { transform: rotate(45deg) translate(-2px, -1px); }
+details.advanced > summary:hover { color: var(--text); }
+details.advanced[open] > .stack, details.advanced[open] > .grid { margin-top: var(--space-3); }
+.export-more { display: flex; flex-wrap: wrap; align-items: baseline; gap: 2px var(--space-3); font-size: var(--text-sm); color: var(--muted); }
+.export-more button.link { font-size: var(--text-sm); }

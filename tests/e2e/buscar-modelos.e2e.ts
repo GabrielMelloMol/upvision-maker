@@ -35,7 +35,7 @@ test("buscar modelos: abre a busca de cada site, filtro de grátis, recentes, li
   await page.locator('input[type="file"]').setInputFiles({ name: "peca.stl", mimeType: "model/stl", buffer: Buffer.from("solid x") });
   await expect(page.getByText(/fatie no Bambu Studio/)).toBeVisible();
   await page.locator('input[type="file"]').setInputFiles(resolve("tests/fixtures/slicer/bambu-a1-2cores-fatiado.3mf"));
-  await expect(page.getByRole("heading", { name: "Calculadora de preço" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Calculadora de preço", level: 1 })).toBeVisible();
   await page.getByRole("button", { name: "Completo" }).click();
   await expect(page.getByText("Lido de")).toBeVisible();
   await expect(page.getByLabel("Gramas").first()).toHaveValue("3,79");

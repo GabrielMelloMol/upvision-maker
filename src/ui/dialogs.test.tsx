@@ -67,9 +67,9 @@ describe("Sheet", () => {
 
 describe("CommandPalette", () => {
   const pages: PageDef[] = [
-    { id: "home", label: "Início", group: "", icon: Home, render: () => null },
-    { id: "calculator", label: "Calculadora", group: "Gestão", icon: Home, blurb: "Custo e preço", render: () => null },
-    { id: "printers", label: "Impressoras", group: "Gestão", icon: Home, render: () => null },
+    { id: "home", section: "sell", label: "Início", group: "", icon: Home, render: () => null },
+    { id: "calculator", section: "sell", label: "Calculadora", group: "Gestão", icon: Home, blurb: "Custo e preço", render: () => null },
+    { id: "printers", section: "sell", label: "Impressoras", group: "Gestão", icon: Home, render: () => null },
   ];
 
   test("lista telas e registros; filtrar e Enter abre o registro", async () => {

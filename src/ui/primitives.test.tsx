@@ -262,33 +262,43 @@ describe("Toolbar", () => {
   });
 });
 
-describe("Sidebar", () => {
+describe("Sidebar (#139)", () => {
   const pages: PageDef[] = [
-    { id: "home", label: "Início", group: "", icon: Home, render: () => null },
-    { id: "a", label: "Alfa", group: "Ferramentas", icon: Plus, render: () => null },
-    { id: "b", label: "Beta", group: "Ferramentas", icon: Plus, render: () => null },
-    { id: "c", label: "Gama", group: "Gestão", icon: Plus, render: () => null },
+    { id: "home", section: "home", label: "Início", group: "", icon: Home, render: () => null },
+    { id: "create", section: "create", label: "Criar", group: "", icon: Plus, render: () => null },
+    { id: "keychain", section: "create", label: "Chaveiros", group: "Ferramentas", icon: Plus, render: () => null },
+    { id: "orders", section: "sell", label: "Pedidos", group: "Gestão", icon: Plus, render: () => null },
+    { id: "calculator", section: "sell", label: "Calculadora", group: "Gestão", icon: Plus, render: () => null },
+    { id: "filaments", section: "stock", label: "Filamentos", group: "Gestão", icon: Plus, render: () => null },
+    { id: "preferences", section: "settings", label: "Preferências", group: "Preferências", icon: Plus, render: () => null },
   ];
+  const noop = { onNavigate: () => {}, onNews: () => {}, onSuggest: () => {}, onBackup: () => {}, onRestore: () => {} };
 
-  test("agrupa páginas com um título por grupo e marca a atual", () => {
-    render(<Sidebar pages={pages} current="b" onNavigate={() => {}} onNews={() => {}} onSuggest={() => {}} onBackup={() => {}} onRestore={() => {}} />);
-    expect(screen.getAllByText("Ferramentas")).toHaveLength(1);
-    expect(screen.getByText("Gestão")).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: "Beta" })).toHaveAttribute("aria-current", "page");
-    expect(screen.getByRole("button", { name: "Alfa" })).not.toHaveAttribute("aria-current");
+  test("seções sempre à vista; só a aberta mostra as telas dela, com a atual marcada", () => {
+    render(<Sidebar pages={pages} current="calculator" {...noop} />);
+    for (const s of ["Início", "Criar", "Vender", "Estoque", "Resultados", "Ajustes"]) expect(screen.getByRole("button", { name: s })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Calculadora" })).toHaveAttribute("aria-current", "page");
+    expect(screen.getByRole("button", { name: "Pedidos" })).not.toHaveAttribute("aria-current");
+    expect(screen.queryByRole("button", { name: "Filamentos" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "Chaveiros" })).not.toBeInTheDocument(); // ferramentas ficam na galeria
   });
 
-  test("cada botão chama sua ação; a marca volta ao início", async () => {
+  test("a ferramenta aberta aparece embaixo de Criar", () => {
+    render(<Sidebar pages={pages} current="keychain" {...noop} />);
+    expect(screen.getByRole("button", { name: "Chaveiros" })).toHaveAttribute("aria-current", "page");
+  });
+
+  test("seção abre a tela dela; Ajustes traz backup, novidades e sugestão; a marca volta ao início", async () => {
     const h = { onNavigate: vi.fn(), onNews: vi.fn(), onSuggest: vi.fn(), onBackup: vi.fn(), onRestore: vi.fn() };
-    render(<Sidebar pages={pages} current="home" {...h} />);
+    render(<Sidebar pages={pages} current="preferences" {...h} />);
     const user = userEvent.setup();
-    await user.click(screen.getByRole("button", { name: /UpVision Maker/ }));
-    await user.click(screen.getByRole("button", { name: "Gama" }));
+    await user.click(screen.getByRole("button", { name: "UpVision Maker" }));
+    await user.click(screen.getByRole("button", { name: "Estoque" }));
     await user.click(screen.getByRole("button", { name: "Sugerir ferramenta" }));
     await user.click(screen.getByRole("button", { name: "O que há de novo" }));
     await user.click(screen.getByRole("button", { name: "Fazer backup" }));
     await user.click(screen.getByRole("button", { name: "Restaurar backup" }));
-    expect(h.onNavigate.mock.calls).toEqual([["home"], ["c"]]);
+    expect(h.onNavigate.mock.calls).toEqual([["home"], ["filaments"]]);
     expect(h.onSuggest).toHaveBeenCalledOnce();
     expect(h.onNews).toHaveBeenCalledOnce();
     expect(h.onBackup).toHaveBeenCalledOnce();

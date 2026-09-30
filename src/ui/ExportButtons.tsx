@@ -126,26 +126,28 @@ export default function ExportButtons({ models: input, name, busy, pauses: input
         </ul>
       )}
       <button className="action" disabled={disabled} onClick={() => save(`${slug(name)}.3mf`, write3mf(models, { pauses, profile, slots }), "3mf", "3MF")}>
-        <Download aria-hidden /> Salvar 3MF {hasPauses ? "(Orca / Prusa)" : "(Bambu / Orca / Prusa)"}
+        <Download aria-hidden /> Salvar 3MF{hasPauses ? " (Orca / Prusa)" : ""}
       </button>
-      {hasPauses && (
-        <button disabled={disabled} onClick={() => save(`${slug(name)}-bambu.3mf`, () => bambuProject(models, pauses!, profile, slots), "3mf", "Projeto do Bambu Studio")}>
-          <Download aria-hidden /> Projeto do Bambu Studio (pausa pronta)
-        </button>
-      )}
-      {models.length === 1 ? (
-        <button disabled={disabled} onClick={() => save(`${slug(name)}.stl`, writeStl(models), "stl", "STL")}>
-          <Download aria-hidden /> Salvar STL
-        </button>
-      ) : (
-        <div className="grid two">
-          {models.map((m) => (
-            <button key={m.name} disabled={disabled} onClick={() => save(`${slug(`${name}-${m.name}`)}.stl`, writeStl([m]), "stl", "STL")}>
-              <Download aria-hidden /> STL {m.name.toLowerCase()}
+      {/* um só botão cheio (#139); os outros formatos ficam numa linha discreta, sempre à vista */}
+      <div className="export-more">
+        <span>Outros formatos:</span>
+        {hasPauses && (
+          <button className="link" disabled={disabled} onClick={() => save(`${slug(name)}-bambu.3mf`, () => bambuProject(models, pauses!, profile, slots), "3mf", "Projeto do Bambu Studio")}>
+            Projeto do Bambu Studio (pausa pronta)
+          </button>
+        )}
+        {models.length === 1 ? (
+          <button className="link" disabled={disabled} onClick={() => save(`${slug(name)}.stl`, writeStl(models), "stl", "STL")}>
+            Salvar STL
+          </button>
+        ) : (
+          models.map((m) => (
+            <button key={m.name} className="link" disabled={disabled} onClick={() => save(`${slug(`${name}-${m.name}`)}.stl`, writeStl([m]), "stl", "STL")}>
+              STL {m.name.toLowerCase()}
             </button>
-          ))}
-        </div>
-      )}
+          ))
+        )}
+      </div>
       {profile && (
         <div className="stack" aria-label="Configuração recomendada">
           <span className="hint">
@@ -158,11 +160,7 @@ export default function ExportButtons({ models: input, name, busy, pauses: input
           ))}
         </div>
       )}
-      <span className="hint">
-        {hasPauses
-          ? "A pausa já vem no 3MF para OrcaSlicer e PrusaSlicer. Para o Bambu Studio, salve o projeto: o app usa o Bambu Studio instalado e a impressora selecionada nele."
-          : "O 3MF já separa as cores em partes: no fatiador é só escolher o filamento de cada uma."}
-      </span>
+      <span className="hint">{hasPauses ? "A pausa já vai no 3MF para Orca e Prusa; no Bambu Studio, use o projeto." : "Abre no Bambu Studio, Orca e Prusa com as cores separadas."}</span>
     </div>
   );
 }

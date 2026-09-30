@@ -115,7 +115,7 @@ button:active:not(:disabled) { transform: scale(0.97); transition-duration: 60ms
 button:disabled { opacity: 0.45; cursor: not-allowed; }
 button.primary { background: var(--accent); color: var(--on-accent); box-shadow: var(--highlight), 0 1px 2px rgb(37 99 235 / 0.3); }
 button.primary:hover:not(:disabled) { background: var(--accent-hover); }
-button.action { background: var(--action); color: var(--on-accent); box-shadow: var(--highlight), 0 1px 2px rgb(194 65 12 / 0.3); }
+button.action { background: var(--action); color: var(--on-accent); box-shadow: var(--highlight); }
 button.action:hover:not(:disabled) { background: var(--action-hover); }
 button.danger { color: var(--danger); }
 button.ghost, button.link { background: transparent; box-shadow: none; }

@@ -1,6 +1,4 @@
-import { DatabaseBackup, History, Lightbulb, Sparkles } from "lucide-react";
-import { Fragment } from "react";
-import type { PageDef } from "../pages";
+import { SECTIONS, type PageDef, type SectionDef } from "../pages";
 import BrandMark from "./BrandMark";
 
 type Props = {
@@ -17,42 +15,66 @@ type Props = {
   onAbout?: () => void;
 };
 
-/** Barra lateral translúcida: marca, páginas por grupo (rolagem própria) e rodapé fixo com backup. */
+/**
+ * Barra lateral (#139): cinco seções e Ajustes. Só a seção aberta mostra as telas dela, recuadas e sem ícone.
+ * As ferramentas ficam na galeria Criar; a que estiver aberta aparece embaixo de Criar.
+ */
 export default function Sidebar({ pages, current, onNavigate, onNews, onSuggest, onBackup, onRestore, version, updateAvailable, onAbout }: Props) {
+  const page = pages.find((p) => p.id === current);
+  const open = page?.section ?? "home";
+  const sub = (s: SectionDef) => {
+    if (s.id !== open) return [];
+    if (s.id === "create") return page && page.id !== "create" ? [page] : [];
+    return pages.filter((p) => p.section === s.id && s.id !== "home");
+  };
+  const actions =
+    open === "settings"
+      ? [
+          { label: "Fazer backup", run: onBackup },
+          { label: "Restaurar backup", run: onRestore },
+          { label: "O que há de novo", run: onNews },
+          { label: "Sugerir ferramenta", run: onSuggest },
+        ]
+      : [];
+
+  const item = (s: SectionDef) => {
+    const children = sub(s);
+    return (
+      <div className="nav-section" key={s.id}>
+        {/* a seção só fica marcada quando não mostra telas embaixo; senão quem fica marcada é a tela */}
+        <button className={`nav ${s.id === open ? "open" : ""} ${s.id === open && !children.length ? "active" : ""}`} aria-current={s.id === open && !children.length ? "page" : undefined} onClick={() => onNavigate(s.landing)}>
+          <s.icon aria-hidden />
+          {s.label}
+        </button>
+        {(children.length > 0 || (s.id === "settings" && actions.length > 0)) && (
+          <div className="subnav">
+            {children.map((p) => (
+              <button key={p.id} className={`nav sub ${p.id === current ? "active" : ""}`} aria-current={p.id === current ? "page" : undefined} onClick={() => onNavigate(p.id)}>
+                {p.label}
+              </button>
+            ))}
+            {s.id === "settings" &&
+              actions.map((a) => (
+                <button key={a.label} className="nav sub" onClick={a.run}>
+                  {a.label}
+                </button>
+              ))}
+          </div>
+        )}
+      </div>
+    );
+  };
+
   return (
     <nav className="sidebar" aria-label="Navegação principal">
       <div className="drag" data-tauri-drag-region />
       <button className="brand" onClick={() => onNavigate("home")}>
         <BrandMark />
-        <span>
-          UpVision Maker
-          <small>Ferramentas para makers 3D</small>
-        </span>
+        <span>UpVision Maker</span>
       </button>
-      <div className="scroll">
-        {pages.map((p, i) => (
-          <Fragment key={p.id}>
-            {p.group && p.group !== pages[i - 1]?.group && <div className="group">{p.group}</div>}
-            <button className={`nav ${p.id === current ? "active" : ""}`} aria-current={p.id === current ? "page" : undefined} onClick={() => onNavigate(p.id)}>
-              <p.icon aria-hidden />
-              {p.label}
-            </button>
-          </Fragment>
-        ))}
-      </div>
+      <div className="scroll">{SECTIONS.filter((s) => s.id !== "settings").map(item)}</div>
       <div className="footer">
-        <button className="nav accent" onClick={onSuggest}>
-          <Lightbulb aria-hidden /> Sugerir ferramenta
-        </button>
-        <button className="nav" onClick={onNews}>
-          <Sparkles aria-hidden /> O que há de novo
-        </button>
-        <button className="nav" onClick={onBackup}>
-          <DatabaseBackup aria-hidden /> Fazer backup
-        </button>
-        <button className="nav" onClick={onRestore}>
-          <History aria-hidden /> Restaurar backup
-        </button>
+        {SECTIONS.filter((s) => s.id === "settings").map(item)}
         {onAbout && (
           <button className={`version ${updateAvailable ? "has-update" : ""}`} onClick={onAbout} aria-label={`Versão ${version ?? ""}${updateAvailable ? ", atualização disponível" : ""}: abrir Sobre`}>
             <span>v{version ?? "…"}</span>

@@ -190,7 +190,7 @@ test("Modelos sem pausa não mostram o botão do Bambu Studio", async ({ page, t
   await go(page, "Modelos prontos");
   await pickModel(page, "Topo de bolo");
   await waitModel(page);
-  await expect(page.getByRole("button", { name: /Salvar 3MF \(Bambu \/ Orca \/ Prusa\)/ })).toBeVisible();
+  await expect(page.getByRole("button", { name: /^Salvar 3MF$/ })).toBeVisible();
   await expect(page.getByRole("button", { name: "Projeto do Bambu Studio (pausa pronta)" })).toHaveCount(0);
 });
 
