@@ -1,3 +1,4 @@
+import { bedMm } from "../bed";
 import type { CS, ManifoldToplevel, Solid } from "../manifold";
 import { fitInto, scoped } from "../shape2d";
 import type { Mesh, Part } from "../types";
@@ -59,7 +60,6 @@ const LIP_MAX = 6;
 const MIN_BACK_WALL = 0.8; // parede que sobra atrás do trilho
 const MARGIN = 4; // folga entre a arte e a borda da tampa
 const GAP = 10; // entre a caixa e a tampa na mesa
-const BED_MM = 256;
 const EPS = 0.01;
 
 type K = <D extends { delete(): void }>(o: D) => D;
@@ -163,7 +163,7 @@ export function buildLidBox(ctx: ModelCtx, p: LidBoxParams): ModelOutput {
   const mode = snap && p.textMode === "raised" ? "inlay" : p.textMode;
   const warnings: string[] = [];
   if (snap && p.textMode === "raised" && p.text.trim()) warnings.push("Na tampa de encaixe a face de fora fica na mesa: o texto sai embutido, rente e em 2 cores.");
-  if (Math.max(W, D) > BED_MM) warnings.push(`A caixa tem ${Math.round(Math.max(W, D))} mm e passa da mesa de ${BED_MM} mm.`);
+  if (Math.max(W, D) > bedMm()) warnings.push(`A caixa tem ${Math.round(Math.max(W, D))} mm e passa da mesa de ${bedMm()} mm.`);
   if (!snap && p.wall - MIN_BACK_WALL < 0.8) warnings.push("Parede fina para o trilho: use 2 mm ou mais para a tampa deslizante firmar.");
   return scoped((k) => {
     const { box, lid: rawLid } = lidBoxSolids(M, p);

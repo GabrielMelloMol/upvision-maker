@@ -1,7 +1,7 @@
+import { bedMm } from "../bed";
 import type { CS, ManifoldToplevel, Solid } from "../manifold";
 import { scoped } from "../shape2d";
 import { slab, solidMesh, type ModelCtx, type ModelOutput, type TextFn } from "./common";
-import { BED_MM } from "./gridCutter";
 
 // ---------- Suporte de palitos (#65a) ----------
 
@@ -78,7 +78,7 @@ export function buildStickStand({ M }: ModelCtx, p: StickStandParams): ModelOutp
     const hole = k(M.Manifold.cylinder(depth + 0.01, holeR, holeR, 32));
     body = k(body.subtract(k(M.Manifold.union(centers.map((c) => at(hole, c, H - depth))))));
     models.unshift({ name: "Suporte de palitos", parts: [{ name: "Suporte", color: p.color, mesh: solidMesh(body) }] });
-    const warnings = 2 * R > BED_MM ? [`O suporte tem ${Math.round(2 * R)} mm: passa da mesa de ${BED_MM} mm. Diminua os furos ou o espaçamento.`] : [];
+    const warnings = 2 * R > bedMm() ? [`O suporte tem ${Math.round(2 * R)} mm: passa da mesa de ${bedMm()} mm. Diminua os furos ou o espaçamento.`] : [];
     return { models, warnings };
   });
 }
@@ -191,7 +191,7 @@ export function buildCakeStand({ M, text }: ModelCtx, p: CakeStandParams): Model
     parts.push({ name: "Boleira", color: p.plateColor, mesh: solidMesh(body) });
     if (name && !name.isEmpty()) parts.push({ name: "Nome", color: p.nameColor, mesh: slab(name, INLAY) });
     const width = 2 * (R + p.waveDepth);
-    if (width > BED_MM) warnings.push(`O prato tem ${Math.round(width)} mm: passa da mesa de ${BED_MM} mm. Diminua o diâmetro.`);
+    if (width > bedMm()) warnings.push(`O prato tem ${Math.round(width)} mm: passa da mesa de ${bedMm()} mm. Diminua o diâmetro.`);
     return { models: [{ name: "Boleira", parts }], warnings };
   });
 }

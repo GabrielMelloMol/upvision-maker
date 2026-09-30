@@ -149,7 +149,7 @@ export const PARTY_MODELS: ModelDef[] = [
     sections: [
       {
         title: "Texto",
-        fields: [text("text", "Texto", 20), num("height", "Altura na parede", 40, 1000, { step: 5, hint: "Letras maiores que 256 mm saem em partes." }), bool("template", "Gabarito de posicionamento")],
+        fields: [text("text", "Texto", 20), num("height", "Altura na parede", 40, 1000, { step: 5, hint: "Letras maiores que a mesa da impressora saem em partes." }), bool("template", "Gabarito de posicionamento")],
       },
       {
         title: "Camadas e cores",

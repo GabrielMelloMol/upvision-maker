@@ -1,10 +1,9 @@
+import { bedHeight, bedMm } from "../../geometry/bed";
 import { fitSetOnBed, setOnBedWarning } from "../../geometry/bedLayout";
 import { meshBounds } from "../../geometry/bounds";
 import type { Model } from "../../geometry/types";
 import type { ModelDef } from "./fields";
 
-// ponytail: mesa de 256 mm (A1, P1, X1); aviso por impressora quando o app souber qual a pessoa usa
-export const BED_MM = 256;
 const fmt = (n: number) => String(Math.round(n));
 
 /** Avisos de peça maior que a mesa (largura, profundidade ou altura), se o modelo ainda não avisou da mesa. */
@@ -14,8 +13,9 @@ export function bedWarnings(models: Model[], existing: string[]): string[] {
     const b = meshBounds(m.parts.map((p) => p.mesh));
     if (!b) return [];
     const [w, d, h] = [0, 1, 2].map((i) => b.max[i] - b.min[i]);
-    if (Math.max(w, d) <= BED_MM && h <= BED_MM) return [];
-    const why = h > BED_MM && Math.max(w, d) <= BED_MM ? `passa da altura de ${BED_MM} mm da impressora` : `passa da mesa de ${BED_MM} mm`;
+    // mesa e altura da impressora escolhida (#119)
+    if (Math.max(w, d) <= bedMm() && h <= bedHeight()) return [];
+    const why = h > bedHeight() && Math.max(w, d) <= bedMm() ? `passa da altura de ${bedHeight()} mm da impressora` : `passa da mesa de ${bedMm()} mm`;
     return [`"${m.name}" tem ${fmt(w)} × ${fmt(d)} × ${fmt(h)} mm e ${why}: diminua o tamanho.`];
   });
 }

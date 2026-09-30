@@ -1,3 +1,4 @@
+import { bedMm } from "../geometry/bed";
 import { CheckCheck, Cylinder, FileDown, PackageCheck, PackageMinus } from "lucide-react";
 import { useState } from "react";
 import { getDb } from "../db";
@@ -31,9 +32,9 @@ const LAYOUTS: [LabelLayout, string][] = [
   ["a4", "Folha A4"],
   ["roll", "Etiquetadora 50 × 30"],
 ];
-const PLATE_MM = 256;
 const GAP_MM = 4;
-const MAX_TAGS = spoolTagsThatFit(PLATE_MM - 2 * GAP_MM, GAP_MM); // 21 na mesa de 256 mm (#124)
+/** Quantas plaquinhas cabem na mesa da impressora escolhida (21 na de 256 mm, #124 e #119). */
+const maxTags = () => spoolTagsThatFit(bedMm() - 2 * GAP_MM, GAP_MM);
 const grams = (g: number) => `${Math.round(g).toLocaleString("pt-BR")} g`;
 const title = (f: Filament) => [f.material, f.color].filter(Boolean).join(" ");
 const hex = (f: Filament) => {
@@ -58,9 +59,10 @@ export default function SpoolLabels() {
     const M = await getManifold();
     const font = await loadFont("hanken");
     const text = (s: string, h: number) => (s.trim() ? textToCrossSection(M, font, s, h) : null);
-    const tags = chosen.slice(0, MAX_TAGS).map((f) => buildSpoolTag(M, text, { id: f.id, title: title(f), color: hex(f) }));
-    const warn = chosen.length > MAX_TAGS ? [`Só as primeiras ${MAX_TAGS} plaquinhas cabem numa mesa.`] : [];
-    return { models: tags.length > 1 ? layoutOnPlate(tags, PLATE_MM - 2 * GAP_MM, GAP_MM) : tags, warnings: warn };
+    const max = maxTags();
+    const tags = chosen.slice(0, max).map((f) => buildSpoolTag(M, text, { id: f.id, title: title(f), color: hex(f) }));
+    const warn = chosen.length > max ? [`Só as primeiras ${max} plaquinhas cabem numa mesa.`] : [];
+    return { models: tags.length > 1 ? layoutOnPlate(tags, bedMm() - 2 * GAP_MM, GAP_MM) : tags, warnings: warn };
   }, [chosen.map((f) => `${f.id}:${f.material}:${f.color}`).join("|")]);
 
   async function savePdf() {

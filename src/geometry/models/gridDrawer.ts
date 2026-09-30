@@ -1,3 +1,4 @@
+import { bedMm } from "../bed";
 /*
  * Conta da gaveta para o organizador (#140): quantas casas de 42 mm cabem, a sobra vira margem (por lado),
  * a base se divide pela mesa contando a margem nas pontas e a altura limita a caixinha (uMax).
@@ -10,7 +11,6 @@ export const DRAWER_GAP = 1; // folga para a base entrar na gaveta
 export const TOP_GAP = 3; // folga entre o topo da caixinha e o tampo/gaveta de cima
 export const MIN_MARGIN = 2; // margem mais fina que isso não imprime bem: vira folga
 export const HALF = GRID / 2;
-export const BED_MM = 256;
 export const BED_MARGIN = 4; // 256 − 4 = 252 = 6 casas por pedaço na A1
 
 export type DrawerAlign = "center" | "corner";
@@ -55,7 +55,7 @@ const counts = (n: number, s: number) => Array.from({ length: s }, (_, i) => Mat
  * Casas por pedaço num eixo: o menor número de pedaços em que cada um (casas × 42 + a margem, nas pontas) cabe na
  * mesa menos a margem da mesa. As casas se distribuem por igual; o corte cai sempre na divisa das casas.
  */
-export function splitAxis(n: number, margin: [number, number], bed = BED_MM, bedMargin = BED_MARGIN): number[] {
+export function splitAxis(n: number, margin: [number, number], bed = bedMm(), bedMargin = BED_MARGIN): number[] {
   const usable = bed - bedMargin;
   for (let s = 1; s <= n; s++) {
     const c = counts(n, s);
@@ -80,7 +80,7 @@ function axis(size: number, gap: number, align: DrawerAlign, label: string, note
 const fmt = (n: number) => (Math.round(n * 10) / 10).toString().replace(".", ",");
 
 export function drawerPlan(input: DrawerInput): DrawerPlan {
-  const { width, depth, height, gap = DRAWER_GAP, align = "center", lip = true, baseFloor = 0, bed = BED_MM, bedMargin = BED_MARGIN } = input;
+  const { width, depth, height, gap = DRAWER_GAP, align = "center", lip = true, baseFloor = 0, bed = bedMm(), bedMargin = BED_MARGIN } = input;
   const notes: string[] = [];
   const x = axis(width, gap, align, "Largura", notes);
   const y = axis(depth, gap, align, "Profundidade", notes);

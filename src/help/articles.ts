@@ -109,7 +109,7 @@ export const ARTICLES: HelpArticle[] = [
     id: "drawer",
     title: "Organizador de gaveta",
     intro: "Meça a gaveta: o app calcula as casas de 42 mm (compatível com Gridfinity), a margem de cada lado, os pedaços da base e a altura que cabe.",
-    steps: ["Digite as medidas de dentro da gaveta (largura, profundidade e altura livre).", "Arraste na grade para criar cada caixinha; toque numa para ajustar altura, divisões, etiqueta e cor.", "Confira a gaveta montada em 3D e os avisos.", "Salve: a base e as caixinhas saem arrumadas em mesas de 256 mm."],
+    steps: ["Digite as medidas de dentro da gaveta (largura, profundidade e altura livre).", "Arraste na grade para criar cada caixinha; toque numa para ajustar altura, divisões, etiqueta e cor.", "Confira a gaveta montada em 3D e os avisos.", "Salve: a base e as caixinhas saem arrumadas nas mesas da impressora escolhida nas Preferências."],
     tips: ["Imprima antes o Gridfinity: teste de encaixe (Modelos prontos) para conferir a folga.", "Setas movem a caixinha, Shift + setas mudam o tamanho, ⌘D duplica e Delete apaga."],
     // tutorial ilustrado de como medir (#140): telas do próprio app (npm run help-shots)
     images: [

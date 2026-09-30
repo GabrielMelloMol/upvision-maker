@@ -1,3 +1,4 @@
+import { bedMm } from "../bed";
 import type { ManifoldToplevel, Solid } from "../manifold";
 import { fitInto, scoped } from "../shape2d";
 import type { Model } from "../types";
@@ -90,6 +91,6 @@ export function buildAlphabetCube(ctx: ModelCtx, p: AlphabetCubeParams): ModelOu
   const step = p.size + GAP;
   const laid = models.map((m, i) => moveModel(m, (i - (models.length - 1) / 2) * step, 0));
   const warnings = [p.size < SMALL_MM ? "Cubo pequeno: não é brinquedo para menores de 3 anos (risco de engasgo)." : "Brinquedo: para menores de 3 anos, use cubos de 45 mm ou mais e confira se nada solta."];
-  if (models.length * step - GAP > 256) warnings.push("O kit passa da mesa de 256 mm numa fila: imprima em mais de uma vez ou diminua o cubo.");
+  if (models.length * step - GAP > bedMm()) warnings.push(`O kit passa da mesa de ${bedMm()} mm numa fila: imprima em mais de uma vez ou diminua o cubo.`);
   return { models: laid, warnings };
 }

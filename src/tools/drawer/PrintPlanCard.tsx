@@ -22,7 +22,7 @@ const time = (s: number) => formatDuration(s / 60);
 const fileOf = (name: string, i: number) => `${name}-mesa-${i + 1}.3mf`;
 
 /**
- * Impressão por mesa (#140): lista de peças com quantidade, filamento, gramas e tempo; as mesas de 256 mm com um 3MF
+ * Impressão por mesa (#140): lista de peças com quantidade, filamento, gramas e tempo; as mesas da impressora escolhida com um 3MF
  * cada (uma por vez ou todas numa pasta); o total vai para a Calculadora.
  */
 export default function PrintPlanCard({ plan, name, onSaved }: Props) {
@@ -131,7 +131,7 @@ export default function PrintPlanCard({ plan, name, onSaved }: Props) {
           <Calculator aria-hidden /> Levar para a Calculadora
         </button>
       </div>
-      <span className="hint">Estimativa pela forma, sem fatiar. Cada mesa sai num 3MF próprio (256 mm, com as cores e as etiquetas).</span>
+      <span className="hint">Estimativa pela forma, sem fatiar. Cada mesa sai num 3MF próprio (do tamanho da mesa da impressora escolhida nas Preferências, com as cores e as etiquetas).</span>
     </div>
   );
 }

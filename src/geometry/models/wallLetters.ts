@@ -1,3 +1,4 @@
+import { bedMm } from "../bed";
 import type { CS, Solid } from "../manifold";
 import { fitInto, outerOnly, scoped } from "../shape2d";
 import type { Model } from "../types";
@@ -30,7 +31,6 @@ export const DEFAULT_WALL_LETTERS: WallLettersParams = {
   color3: "#f8f8f6",
 };
 
-const BED_MM = 256;
 const PIN_R = 1.0; // pino de filamento de 1,75 mm com folga
 const TEMPLATE_W = 20;
 const TEMPLATE_T = 0.8;
@@ -66,8 +66,8 @@ export function buildWallLetters({ M, text }: ModelCtx, p: WallLettersParams): M
         z += h;
       }
       const solids: Solid[] = layers.map((l) => k(k(l.cs.extrude(l.h)).translate([0, 0, l.z])));
-      const base = k(pinHoles(M, solids[0], BED_MM, PIN_R, p.thickness / 2));
-      const pieces = splitToBed(M, base, BED_MM).map(k);
+      const base = k(pinHoles(M, solids[0], bedMm(), PIN_R, p.thickness / 2));
+      const pieces = splitToBed(M, base, bedMm()).map(k);
       if (pieces.length > 1) split++;
       // a camada de baixo manda na grade: cada pedaço leva as camadas de cima que caem nele
       pieces.forEach((b0, j) => {
@@ -80,7 +80,7 @@ export function buildWallLetters({ M, text }: ModelCtx, p: WallLettersParams): M
       });
     });
     const warnings: string[] = [];
-    if (split) warnings.push(`${split} letra(s) passam da mesa de ${BED_MM} mm e saíram em partes: una com cola e um pedaço de filamento de 1,75 mm nos furos.`);
+    if (split) warnings.push(`${split} letra(s) passam da mesa de ${bedMm()} mm e saíram em partes: una com cola e um pedaço de filamento de 1,75 mm nos furos.`);
 
     if (p.template) {
       const wb = word.bounds();
@@ -92,7 +92,7 @@ export function buildWallLetters({ M, text }: ModelCtx, p: WallLettersParams): M
       });
       const tpl2d = k(strip.subtract(k(M.CrossSection.union(marks))));
       const tpl = k(tpl2d.extrude(TEMPLATE_T));
-      const segs = splitToBed(M, tpl, BED_MM).map(k);
+      const segs = splitToBed(M, tpl, bedMm()).map(k);
       segs.forEach((s, j) =>
         models.push(moveModel({ name: `Gabarito${segs.length > 1 ? ` ${j + 1}` : ""}`, parts: [{ name: "Gabarito", color: p.color1, mesh: solidMesh(s) }] }, 0, wb.min[1] - pad - GAP - TEMPLATE_W / 2 - j * (TEMPLATE_W + GAP))),
       );

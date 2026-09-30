@@ -263,7 +263,7 @@ export const PLATE_MODELS: ModelDef[] = [
       {
         title: "Tamanho e cores",
         fields: [
-          num("width", "Largura", 60, 600, { step: 1, hint: "Acima de 256 mm sai em partes para colar." }),
+          num("width", "Largura", 60, 600, { step: 1, hint: "Maior que a mesa da impressora, sai em partes para colar." }),
           num("height", "Altura", 40, 600, { step: 1 }),
           num("titleHeight", "Altura do título", 6, 60, { step: 1 }),
           num("margin", "Margem", 3, 30, { step: 1 }),

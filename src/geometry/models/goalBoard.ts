@@ -1,7 +1,7 @@
+import { bedMm } from "../bed";
 import type { CS } from "../manifold";
 import { fitInto, scoped } from "../shape2d";
 import { plateStand, roundedRect, slab, type ModelCtx, type ModelOutput } from "./common";
-import { BED_MM } from "./gridCutter";
 
 export type GoalBoardParams = {
   title: string;
@@ -107,7 +107,7 @@ export function buildGoalBoard({ M, text }: ModelCtx, p: GoalBoardParams): Model
       },
     ];
     if (p.stand) models.push(plateStand(M, p.width, p.thickness, p.plateColor, -H / 2 - 30));
-    if (Math.max(p.width, H) > BED_MM) warnings.push(`O quadro tem ${Math.round(p.width)} × ${Math.round(H)} mm: passa da mesa de ${BED_MM} mm.`);
+    if (Math.max(p.width, H) > bedMm()) warnings.push(`O quadro tem ${Math.round(p.width)} × ${Math.round(H)} mm: passa da mesa de ${bedMm()} mm.`);
     return { models, warnings };
   });
 }

@@ -1,3 +1,4 @@
+import { bedMm } from "../bed";
 import { layoutOnPlate } from "../keychain";
 import type { CS } from "../manifold";
 import { fitInto, scoped } from "../shape2d";
@@ -36,7 +37,6 @@ const HOLE_R = 1.6;
 const HOLE_PAD = 3.2; // anel em volta do furo
 const TAB_OUT = 2 * HOLE_R + HOLE_PAD; // quanto a orelha do furo passa da base (furo encostado na borda)
 const ICON_GAP = 2;
-const PLATE_MM = 256;
 const GAP_MM = 5;
 
 /** "Ana; coração" → { name: "Ana", icon: "heart" }; ícone desconhecido = coração. */
@@ -87,7 +87,7 @@ export function buildNamePendants(ctx: ModelCtx, p: NamePendantsParams): ModelOu
       if (I) parts.push(...(icon === "art" ? artParts(ctx, I, p.iconColor, "Ícone", p.relief, p.base) : [{ name: "Ícone", color: p.iconColor, mesh: slab(I, p.relief, p.base) }]));
       return { name, parts };
     });
-    const laid = layoutOnPlate(pendants, PLATE_MM - 2 * GAP_MM, GAP_MM);
+    const laid = layoutOnPlate(pendants, bedMm() - 2 * GAP_MM, GAP_MM);
     return { models: laid, warnings: [...new Set(warnings)] };
   });
 }

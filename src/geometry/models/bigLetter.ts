@@ -1,3 +1,4 @@
+import { bedMm } from "../bed";
 import { modelsBounds } from "../bounds";
 import type { CS } from "../manifold";
 import { fitInto, scoped } from "../shape2d";
@@ -64,7 +65,6 @@ export const DEFAULT_BIG_LETTER: BigLetterParams = {
   accentColor: "#c9a227",
 };
 
-const BED_MM = 256;
 const GAP = 10;
 const BACK_MM = 2; // fundo quando a letra leva material
 const TEMPLATE_MM = 0.6; // molde para cortar o EVA/feltro
@@ -162,7 +162,7 @@ export function buildBigLetter({ M, text, art, fontText }: ModelCtx, p: BigLette
       x += b.max[0] - b.min[0] + GAP;
       return moved;
     });
-    if (Math.max(W, H) > BED_MM) warnings.push(`A letra tem ${Math.round(Math.max(W, H))} mm: passa da mesa de ${BED_MM} mm. Diminua a altura ou corte em partes.`);
+    if (Math.max(W, H) > bedMm()) warnings.push(`A letra tem ${Math.round(Math.max(W, H))} mm: passa da mesa de ${bedMm()} mm. Diminua a altura ou corte em partes.`);
     return { models: [{ name: p.letter.trim() || "Letra", parts: main }, ...aside], warnings };
   });
 }

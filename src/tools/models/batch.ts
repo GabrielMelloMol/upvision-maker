@@ -1,3 +1,4 @@
+import { bedMm } from "../../geometry/bed";
 import { modelsBounds } from "../../geometry/bounds";
 import { layoutOnPlate } from "../../geometry/keychain";
 import type { Model } from "../../geometry/types";
@@ -39,7 +40,6 @@ export const BATCH_FIELDS: Record<string, string[]> = {
 };
 
 export const MAX_COPIES = 30;
-export const PLATE_MM = 256;
 const GAP_MM = 5;
 
 /** Uma cópia por linha não vazia; os campos vêm separados por ";" (faltando = vazio). */
@@ -56,12 +56,12 @@ export function parseBatch(s: string, keys: string[]): Params[] {
 
 /**
  * Arruma as cópias na mesa: cada cópia (todas as peças dela) anda junta, em linhas, centralizadas.
- * `fits` = cabe na mesa de 256 mm.
+ * `fits` = cabe na mesa da impressora escolhida (#119).
  */
 export function layoutCopies(copies: { label: string; models: Model[] }[]): { models: Model[]; fits: boolean } {
   // cada cópia vira um bloco (um Model só) para arrumar; depois volta a ser as peças originais
   const blocks = copies.map((c) => ({ name: c.label, parts: c.models.flatMap((m) => m.parts) }));
-  const placed = layoutOnPlate(blocks, PLATE_MM - 2 * GAP_MM, GAP_MM);
+  const placed = layoutOnPlate(blocks, bedMm() - 2 * GAP_MM, GAP_MM);
   const models = copies.flatMap((c, i) => {
     let at = 0;
     return c.models.map((m) => {
@@ -71,5 +71,5 @@ export function layoutCopies(copies: { label: string; models: Model[] }[]): { mo
     });
   });
   const b = modelsBounds(models);
-  return { models, fits: !b || (b.max[0] - b.min[0] <= PLATE_MM && b.max[1] - b.min[1] <= PLATE_MM) };
+  return { models, fits: !b || (b.max[0] - b.min[0] <= bedMm() && b.max[1] - b.min[1] <= bedMm()) };
 }

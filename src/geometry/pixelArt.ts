@@ -1,3 +1,4 @@
+import { bedMm } from "./bed";
 import type { CS, ManifoldToplevel, Solid } from "./manifold";
 import { backing, roundedRect, slab, solidMesh, type TextFn } from "./models/common";
 import { scoped } from "./shape2d";
@@ -54,7 +55,6 @@ const MARK_TEXT = 0.45; // altura do número em relação ao pixel
 const MARK_SQUARE = 0.5;
 const TRAY_BORDER = 3;
 const TILE_GAP = 2;
-const BED_MM = 256;
 const EPS = 0.01;
 
 /**
@@ -205,7 +205,7 @@ export function buildPixelArt(M: ManifoldToplevel, g: PixelGrid, o: PixelOptions
   if (!g.cells.some((v) => v >= 0)) throw new Error("A grade está vazia: pinte alguns pixels.");
   const warnings: string[] = [];
   const size = Math.max(g.cols, g.rows) * o.pixel + 2 * (o.output === "puzzle" ? TRAY_BORDER : o.border);
-  if (size > BED_MM) warnings.push(`A peça tem ${Math.round(size)} mm e passa da mesa de ${BED_MM} mm: diminua o pixel ou a grade.`);
+  if (size > bedMm()) warnings.push(`A peça tem ${Math.round(size)} mm e passa da mesa de ${bedMm()} mm: diminua o pixel ou a grade.`);
   if (o.output === "puzzle" && o.marks === "number" && o.pixel * MARK_TEXT < 3) warnings.push("Números muito pequenos para ler: use pixel de 7 mm ou mais.");
   const models = scoped((k) => (o.output === "puzzle" ? puzzle(M, k, g, o, text) : [mosaic(M, k, g, o, warnings)]));
   return { models, warnings };

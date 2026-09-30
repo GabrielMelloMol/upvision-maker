@@ -1,3 +1,4 @@
+import { bedMm } from "../bed";
 import type { CS, ManifoldToplevel } from "../manifold";
 import { fitInto, scoped } from "../shape2d";
 import { MissingInput, roundedRect, size2, type ModelCtx, type ModelOutput, type TextFn } from "./common";
@@ -31,7 +32,6 @@ export const DEFAULT_NAMES_PANEL: NamesPanelParams = {
   textColor: "#f8f8f6",
 };
 
-const BED_MM = 256;
 const GAP_FRAC = 0.3; // espaço entre linhas/colunas, em fração da altura do texto
 const MIN_TEXT_MM = 5;
 const HOLE_R = 2.5;
@@ -100,8 +100,8 @@ export function buildNamesPanel({ M, text }: ModelCtx, p: NamesPanelParams): Mod
     const models = splitModelToBed(M, "Painel", [
       { name: "Placa", color: p.plateColor, solid: base },
       { name: "Nomes", color: p.textColor, solid: relief },
-    ], BED_MM);
-    if (models.length > 1) warnings.push(`Maior que a mesa de ${BED_MM} mm: o painel saiu em ${models.length} partes para colar lado a lado.`);
+    ], bedMm());
+    if (models.length > 1) warnings.push(`Maior que a mesa de ${bedMm()} mm: o painel saiu em ${models.length} partes para colar lado a lado.`);
     return { models, warnings };
   });
 }

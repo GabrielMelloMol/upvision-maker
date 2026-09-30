@@ -12,6 +12,7 @@ import { errorText, useToast } from "../ui/Toast";
 import { useData } from "../ui/useData";
 import AiSettingsCard from "./AiSettingsCard";
 import AmsCard from "./preferences/AmsCard";
+import BedPrinterCard from "./preferences/BedPrinterCard";
 import AppearanceCard from "../ui/AppearanceCard";
 import BackupSettingsCard from "../backup/BackupSettingsCard";
 import PhoneSettingsCard from "../phone/PhoneSettingsCard";
@@ -25,7 +26,7 @@ import KwhBillSheet from "./preferences/KwhBillSheet";
 import StateKwhSelect from "../ui/StateKwhSelect";
 import ChannelsCard, { fromChannelForm, toChannelForm } from "./preferences/ChannelsCard";
 
-type NumKey = Exclude<keyof Settings, "channels" | "kwhHistory" | "includeFixedCosts" | "multiplyLabor" | "packagingMaterialId" | "failureByMaterial" | "ams">;
+type NumKey = Exclude<keyof Settings, "channels" | "kwhHistory" | "includeFixedCosts" | "multiplyLabor" | "packagingMaterialId" | "failureByMaterial" | "ams" | "bedPrinterId">;
 type NumField = { key: NumKey; label: string; money?: true; hint?: string };
 const FIELDS: NumField[] = [
   { key: "kwhPrice", label: "Preço do kWh", money: true, hint: "Valor total da conta ÷ kWh consumidos." },
@@ -61,6 +62,7 @@ export default function Preferences() {
       <PhoneSettingsCard />
       <h2>Ferramentas</h2>
       <AiSettingsCard />
+      <BedPrinterCard />
       <AmsCard />
     </div>
   );

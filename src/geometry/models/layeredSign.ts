@@ -1,3 +1,4 @@
+import { bedMm } from "../bed";
 import { qrMatrix } from "../../domain/qr";
 import type { CS } from "../manifold";
 import { qrModel } from "../qr3d";
@@ -98,7 +99,6 @@ const LINES = [1, 2, 3, 4] as const;
 const GAP = 4; // entre imagem/enfeite e o texto
 const HANG_R = 2;
 const HANG_INSET = 5;
-const BED_MM = 256;
 const TEX_MARGIN = 1.5;
 
 /**
@@ -179,7 +179,7 @@ export function buildLayeredSign(ctx: ModelCtx, p: LayeredSignParams): ModelOutp
     const models: Model[] = [{ name: "Letreiro", parts: [{ name: "Base", color: p.baseColor, mesh: solidMesh(baseSolid) }, ...parts] }];
     const [W, H] = size2(base);
     if (p.mount === "stand") models.push(plateStand(M, W, p.baseThickness, p.baseColor, base.bounds().min[1] - 25));
-    if (Math.max(W, H) > BED_MM) warnings.push(`O letreiro tem ${Math.round(W)} × ${Math.round(H)} mm: passa da mesa de ${BED_MM} mm. Diminua as alturas das linhas.`);
+    if (Math.max(W, H) > bedMm()) warnings.push(`O letreiro tem ${Math.round(W)} × ${Math.round(H)} mm: passa da mesa de ${bedMm()} mm. Diminua as alturas das linhas.`);
     return { models, warnings };
   });
 }

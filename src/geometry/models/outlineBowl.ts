@@ -1,8 +1,8 @@
+import { bedMm } from "../bed";
 import type { CS, Solid } from "../manifold";
 import { medalOutline } from "../medal";
 import { fitInto, outerOnly, scoped } from "../shape2d";
 import { artParts, solidMesh, type ModelCtx, type ModelOutput } from "./common";
-import { BED_MM } from "./gridCutter";
 
 export type OutlineBowlParams = {
   width: number;
@@ -99,7 +99,7 @@ export function buildOutlineBowl(ctx: ModelCtx, p: OutlineBowlParams): ModelOutp
       parts.push(...artParts(ctx, placed, p.artColor, "Desenho no fundo", p.relief, floor));
     }
     const b = outline.bounds();
-    const warnings = Math.max(b.max[0] - b.min[0], b.max[1] - b.min[1]) > BED_MM ? [`A cumbuca passa da mesa de ${BED_MM} mm. Diminua a largura.`] : [];
+    const warnings = Math.max(b.max[0] - b.min[0], b.max[1] - b.min[1]) > bedMm() ? [`A cumbuca passa da mesa de ${bedMm()} mm. Diminua a largura.`] : [];
     return { models: [{ name: "Cumbuca", parts }], warnings };
   });
 }

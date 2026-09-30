@@ -27,7 +27,7 @@ export const HOME_PROJECT_MODELS: ModelDef[] = [
         title: "Letra",
         fields: [
           text("text", "Letra ou palavra", 12),
-          num("height", "Altura", 60, 600, { step: 1, hint: "Acima de 256 mm a caixa sai em partes para colar." }),
+          num("height", "Altura", 60, 600, { step: 1, hint: "Maior que a mesa da impressora, a caixa sai em partes para colar." }),
           choice("style", "Estilo", [["flush", "Face rente"], ["halo", "Retroiluminada"], ["raised", "Tampa elevada"], ["double", "Face dupla"]]),
           text("overlay", "Nome sobreposto na frente (opcional)", 20),
           num("overlayHeight", "Altura do nome", 10, 150, { step: 1 }),

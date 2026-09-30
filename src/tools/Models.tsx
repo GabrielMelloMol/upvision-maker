@@ -1,3 +1,4 @@
+import { bedMm } from "../geometry/bed";
 import { Star } from "lucide-react";
 import { useEffect, useState } from "react";
 import { getDb } from "../db";
@@ -21,7 +22,7 @@ import { MODELS, validParams, type Category, type Params } from "./models/defs";
 import { VARIANTS } from "./models/variants";
 import { profileFor } from "./models/printProfiles";
 import { EMOJI_FIELDS } from "./models/emoji";
-import { BATCH_FIELDS, layoutCopies, MAX_COPIES, parseBatch, PLATE_MM } from "./models/batch";
+import { BATCH_FIELDS, layoutCopies, MAX_COPIES, parseBatch } from "./models/batch";
 import type { Model } from "../geometry/types";
 import { applyLayers } from "./models/applyLayers";
 import DecalGizmo from "./models/DecalGizmo";
@@ -195,7 +196,7 @@ export default function Models() {
           return null;
         }
         const laid = layoutCopies(done);
-        if (!laid.fits) warn.add(`As cópias não cabem numa mesa de ${PLATE_MM} mm: divida o lote em mais arquivos.`);
+        if (!laid.fits) warn.add(`As cópias não cabem numa mesa de ${bedMm()} mm: divida o lote em mais arquivos.`);
         if (copies.length > MAX_COPIES) warn.add(`Só as primeiras ${MAX_COPIES} cópias foram geradas.`);
         setMissing(null);
         return { models: laid.models, warnings: [...(textWarn ?? []), ...warn], pauses: [...pauses].sort((a, b) => a - b) };

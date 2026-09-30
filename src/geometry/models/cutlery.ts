@@ -1,3 +1,4 @@
+import { bedMm } from "../bed";
 import type { CS, ManifoldToplevel, Solid } from "../manifold";
 import { scoped } from "../shape2d";
 import type { Model } from "../types";
@@ -17,7 +18,6 @@ const SCOOP = 14; // rampa para os dedos na frente de cada divisão
 const HANDLE_R = 16;
 const RAIL = { post: 3, foot: 2, ledge: 2 };
 const PIN_R = 0.95; // filamento de 1,75 como pino
-const BED = 256;
 const GAP = 10;
 
 /** Bandeja com as divisões da plano, apoiada no chão (frente em −Y). */
@@ -82,8 +82,8 @@ export function buildRails(M: ManifoldToplevel, depth: number, lowerHeight: numb
   return scoped((k) => {
     const length = depth - 2;
     let rail = k(railSolid(M, length, lowerHeight));
-    rail = k(pinHoles(M, rail, BED, PIN_R, RAIL.post / 2));
-    const pieces = splitToBed(M, rail, BED).map(k);
+    rail = k(pinHoles(M, rail, bedMm(), PIN_R, RAIL.post / 2));
+    const pieces = splitToBed(M, rail, bedMm()).map(k);
     const out: Model[] = [];
     let y = 0;
     for (const side of ["esquerdo", "direito"])

@@ -3,6 +3,9 @@
 Cada versão aparece para a usuária na tela "O que há de novo" depois da atualização.
 Formato: `## <versão> — <data>` e itens `- …` em linguagem simples.
 
+## Próxima versão (vira "## 0.9.2 — data" ou "## 0.10.0 — data" ao publicar; até lá o app não mostra)
+- **Tamanho da mesa pela sua impressora** (#119): as ferramentas avisam quando a peça passa da mesa, dividem as peças grandes e arrumam o lote usando o tamanho da impressora cadastrada (A1 mini: 180 mm; Ender 3: 220 mm), e não mais os 256 mm fixos da A1. Com mais de uma impressora, escolha qual vale em Preferências → Impressora das ferramentas. A grade da prévia 3D também mostra a mesa certa.
+
 ## 0.9.1 — 2026-09-30
 - Correção: a versão para Windows não tinha sido gerada na 0.9.0. Esta versão traz todas as novidades da 0.9.0 (abaixo) também para o Windows.
 

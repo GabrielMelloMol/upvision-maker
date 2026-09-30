@@ -1,3 +1,4 @@
+import { bedMm } from "../geometry/bed";
 import { useEffect, useRef, useState } from "react";
 import { isCursive, loadEmojiFont, loadFont, type FontId } from "../geometry/fonts";
 import { RESIN_TIP } from "../geometry/models/resin";
@@ -24,7 +25,6 @@ import ToolSessionBar from "./ToolSessionBar";
 import { useToolState } from "./useToolState";
 import { errorText } from "../ui/Toast";
 
-const PLATE_MM = 256;
 const GAP_MM = 5;
 const LOGO_GAP_MM = 2;
 const MAX_BATCH = 60;
@@ -113,10 +113,10 @@ export default function Keychain() {
           return buildKeychain(M, art, p, name.replace(/\|/g, " ") || "Chaveiro", layers, silhouette ? logoFit : null);
         });
       });
-      const placed = built.length > 1 ? layoutOnPlate(built, PLATE_MM - 2 * GAP_MM, GAP_MM) : built;
+      const placed = built.length > 1 ? layoutOnPlate(built, bedMm() - 2 * GAP_MM, GAP_MM) : built;
       const b = modelsBounds(placed);
       const warn: string[] = [...textWarn, ...(p.resin ? [RESIN_TIP] : [])];
-      if (b && b.max[1] - b.min[1] > PLATE_MM) warn.push("Os chaveiros não cabem numa mesa de 256 mm: divida a lista em mais arquivos.");
+      if (b && b.max[1] - b.min[1] > bedMm()) warn.push(`Os chaveiros não cabem numa mesa de ${bedMm()} mm: divida a lista em mais arquivos.`);
       if (batch && parseNames(names).length > MAX_BATCH) warn.push(`Só os primeiros ${MAX_BATCH} nomes foram gerados.`);
       return { models: placed, warnings: warn };
     } finally {

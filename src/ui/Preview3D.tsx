@@ -36,7 +36,7 @@ export const snapshotPreview = (max?: number) => {
   }
 };
 
-/** Prévia 3D padrão de todas as ferramentas: Z para cima, mesa 256 mm, girar/zoom com o mouse. */
+/** Prévia 3D padrão de todas as ferramentas: Z para cima, mesa da impressora escolhida, girar/zoom com o mouse. */
 export default function Preview3D({ models, busy, busyText = "Gerando modelo…", error, emptyText = "A prévia aparece aqui." }: Props) {
   const host = useRef<HTMLDivElement>(null);
   const viewer = useRef<ReturnType<typeof createViewer> | null>(null);

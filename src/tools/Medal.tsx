@@ -1,3 +1,4 @@
+import { bedMm } from "../geometry/bed";
 import { useEffect, useState } from "react";
 import { FONTS, loadFont, type FontId } from "../geometry/fonts";
 import { layoutOnPlate } from "../geometry/keychain";
@@ -56,7 +57,6 @@ const COLORS: [ColorKey, string][] = [
   ["artColor", "Imagem"],
   ["bgColor", "Fundo"],
 ];
-const PLATE_MM = 256;
 const GAP_MM = 5;
 const MAX_BATCH = 30;
 type Fonts = Record<MedalTextField, FontId>;
@@ -143,7 +143,7 @@ export default function Medal() {
         .slice(0, MAX_BATCH)
         .flatMap((x) => buildMedalDesign(ctx, { ...p, center: x.name, rank: x.rank ?? p.rank }).map((m, i) => ({ ...m, name: i === 0 ? x.name : `${m.name} ${x.name}` })));
       const warn = people.length > MAX_BATCH ? [`Só as primeiras ${MAX_BATCH} medalhas foram geradas.`] : [];
-      return { models: layoutOnPlate(all, PLATE_MM - 2 * GAP_MM, GAP_MM), warnings: [...notes, ...warn] };
+      return { models: layoutOnPlate(all, bedMm() - 2 * GAP_MM, GAP_MM), warnings: [...notes, ...warn] };
     } finally {
       design?.cs.delete();
       design?.layers?.forEach((l) => l.cs.delete());

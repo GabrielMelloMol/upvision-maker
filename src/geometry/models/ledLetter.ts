@@ -1,3 +1,4 @@
+import { bedMm } from "../bed";
 import { modelsBounds } from "../bounds";
 import type { CS, Solid } from "../manifold";
 import { fitInto, outerOnly, scoped } from "../shape2d";
@@ -43,7 +44,6 @@ export const DEFAULT_LED_LETTER: LedLetterParams = {
   overlayColor: "#d6262e",
 };
 
-const BED_MM = 256;
 const BACK = 2; // fundo da caixa
 const LEDGE_W = 1.6; // apoio do difusor por dentro
 const LEDGE_H = 1.6;
@@ -127,11 +127,11 @@ export function buildLedLetter(ctx: ModelCtx, p: LedLetterParams): ModelOutput {
     for (const [i, outer] of letters.entries()) {
       const L = k(outer.intersect(shape));
       const { body, loose } = letterBox(ctx, L, p, k);
-      const pieces = splitToBed(M, body, BED_MM).map(k);
+      const pieces = splitToBed(M, body, bedMm()).map(k);
       if (pieces.length > 1) cutParts += pieces.length;
       pieces.forEach((s, j) => models.push({ name: `Caixa ${i + 1}${pieces.length > 1 ? `.${j + 1}` : ""}`, parts: [{ name: "Caixa", color: p.bodyColor, mesh: solidMesh(s) }] }));
       for (const l of loose)
-        splitToBed(M, l.solid, BED_MM).map(k).forEach((s, j, all) =>
+        splitToBed(M, l.solid, bedMm()).map(k).forEach((s, j, all) =>
           models.push({ name: `${l.name} ${i + 1}${all.length > 1 ? `.${j + 1}` : ""}`, parts: [{ name: l.name, color: p.diffuserColor, mesh: solidMesh(s) }] }),
         );
       // a fita precisa passar pelo miolo: onde o traço por dentro é mais estreito que ela, avisa
@@ -154,7 +154,7 @@ export function buildLedLetter(ctx: ModelCtx, p: LedLetterParams): ModelOutput {
       y -= b.max[1] - b.min[1] + GAP;
       return moved;
     });
-    if (cutParts) warnings.push(`Maior que a mesa de ${BED_MM} mm: a caixa saiu em ${cutParts} partes para colar.`);
+    if (cutParts) warnings.push(`Maior que a mesa de ${bedMm()} mm: a caixa saiu em ${cutParts} partes para colar.`);
     warnings.push(p.style === "halo" ? "Retroiluminada: cole a fita na parede interna virada para trás; a luz sai pela parede de fundo." : "Use filamento branco no difusor, com 2 a 3 camadas para a luz espalhar sem mostrar os pontos do LED.");
     return { models: laid, warnings };
   });

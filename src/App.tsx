@@ -15,6 +15,8 @@ const Onboarding = lazy(() => import("./onboarding/Onboarding"));
 import { PAGES } from "./pages";
 import PageSkeleton from "./ui/PageSkeleton";
 import { releaseHeavy } from "./ui/heavy";
+import { refreshBed } from "./tools/bedPrinter";
+import { getDb } from "./db";
 import { markStartup } from "./about/perf";
 import { NAVIGATE_EVENT } from "./ui/navigate";
 import Sidebar from "./ui/Sidebar";
@@ -53,6 +55,7 @@ export default function App() {
     pageRef.current = pageId;
   }, [pageId]);
   useEffect(markStartup, []);
+  useEffect(() => void getDb().then(refreshBed).catch((e) => console.warn("Mesa da impressora:", e)), []); // #119
   // telas pedindo para abrir outra (ex.: "Levar para a Calculadora" das ferramentas 3D, #99)
   useEffect(() => {
     const onGo = (e: Event) => navigate((e as CustomEvent<string>).detail);
@@ -78,6 +81,8 @@ export default function App() {
 
   function navigate(id: string) {
     if (id !== pageId) releaseHeavy(); // solta motores WASM e workers da tela que saiu (#88)
+    // mesa da impressora escolhida (#119): relê ao trocar de tela (impressora cadastrada ou trocada nas Preferências)
+    getDb().then(refreshBed).catch((e) => console.warn("Mesa da impressora:", e));
     setPageId(id);
     setScrolled(false);
   }

@@ -1,3 +1,4 @@
+import { bedMm } from "../bed";
 import type { ManifoldToplevel, Solid } from "../manifold";
 import { fitInto, scoped } from "../shape2d";
 import type { Model, Part } from "../types";
@@ -30,7 +31,6 @@ const LABEL_W = 13; // aba da etiqueta
 // o pé da caixinha de cima desce 0,35 abaixo do topo da parede: a aba fica 1 mm abaixo para não levantá-la (#140)
 const TAB_DROP = 1;
 const PIECE_GAP = 10; // entre os pedaços da base na mesa
-const BED_MM = 256;
 
 export type GridBinParams = {
   unitsX: number;
@@ -201,7 +201,7 @@ export function buildGridBin({ M, text }: ModelCtx, p: GridBinParams): ModelOutp
       ];
       models.push(moveModel({ name: `Etiqueta ${p.label.trim()}`, parts }, 0, -D / 2 - 8 - lh / 2));
     }
-    if (Math.max(W, D) > BED_MM) warnings.push(`A caixinha tem ${Math.round(Math.max(W, D))} mm: passa da mesa de ${BED_MM} mm.`);
+    if (Math.max(W, D) > bedMm()) warnings.push(`A caixinha tem ${Math.round(Math.max(W, D))} mm: passa da mesa de ${bedMm()} mm.`);
     return { models, warnings };
   });
 }
@@ -221,7 +221,7 @@ export function buildGridBase({ M }: ModelCtx, p: GridBaseParams): ModelOutput {
     if (!nx || !ny) throw new Error("A gaveta é menor que uma casa de 42 mm.");
     const mX: [number, number] = drawer ? drawer.marginX : [0, 0], mY: [number, number] = drawer ? drawer.marginY : [0, 0];
     const bedMargin = p.bedMargin ?? BED_MARGIN;
-    const xs = splitAxis(nx, mX, BED_MM, bedMargin), ys = splitAxis(ny, mY, BED_MM, bedMargin);
+    const xs = splitAxis(nx, mX, bedMm(), bedMargin), ys = splitAxis(ny, mY, bedMm(), bedMargin);
     const totalW = nx * GRID + mX[0] + mX[1], totalD = ny * GRID + mY[0] + mY[1];
     const [c1, v, c2] = PLATE;
     const floor = p.magnets ? MAGNET_H + 0.8 : 0;

@@ -1,7 +1,7 @@
+import { bedMm } from "../bed";
 import type { CS } from "../manifold";
 import { fitInto, scoped } from "../shape2d";
 import { MissingInput, roundedRect, solidMesh, type ModelCtx, type ModelOutput } from "./common";
-import { BED_MM } from "./gridCutter";
 
 export type StampMoldParams = {
   text: string;
@@ -89,7 +89,7 @@ export function buildStampMold(ctx: ModelCtx, p: StampMoldParams): ModelOutput {
       models.push({ name: "Apoio de polegar", parts: [{ name: "Apoio", color: p.color, mesh: solidMesh(k(knob.translate([b.max[0] + p.margin + GAP + R, cy, 0]))) }] });
     }
     models.unshift({ name: "Molde", parts: [{ name: "Molde", color: p.color, mesh: solidMesh(plate) }] });
-    const warnings = Math.max(w, h) > BED_MM ? [`O molde tem ${Math.round(Math.max(w, h))} mm: passa da mesa de ${BED_MM} mm.`] : [];
+    const warnings = Math.max(w, h) > bedMm() ? [`O molde tem ${Math.round(Math.max(w, h))} mm: passa da mesa de ${bedMm()} mm.`] : [];
     return { models, warnings };
   });
 }

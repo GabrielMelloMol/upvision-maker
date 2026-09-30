@@ -160,7 +160,7 @@ export const HOME_DECOR_MODELS: ModelDef[] = [
       {
         title: "Tamanho e acabamento",
         fields: [
-          num("height", "Altura da letra", 40, 280, { step: 1, hint: "Mesa de 256 mm: acima disso o app avisa." }),
+          num("height", "Altura da letra", 40, 280, { step: 1, hint: "Maior que a mesa da impressora: o app avisa." }),
           num("thickness", "Espessura", 3, 30),
           choice("finish", "Acabamento", [["flat", "Liso"], ["resin", "Borda para resina"], ["material", "Fundo para EVA/feltro"]]),
           num("wall", "Borda / moldura", 1.2, 6),

@@ -1,3 +1,4 @@
+import { bedMm } from "../bed";
 import type { CS } from "../manifold";
 import { fitInto, scoped } from "../shape2d";
 import { roundedRect, slab, solidMesh, type ModelCtx, type ModelOutput } from "./common";
@@ -41,7 +42,6 @@ export const DEFAULT_GRID_CUTTER: GridCutterParams = {
   textColor: "#ffffff",
 };
 
-export const BED_MM = 256;
 const TAB_MAX_H = 40;
 const TAB_MARGIN = 3;
 
@@ -81,7 +81,7 @@ export function buildGridCutter({ M, text }: ModelCtx, p: GridCutterParams): Mod
     }
     const totalW = W + p.wall + 2 * p.flangeWidth + (p.tabs ? 2 * p.tabLength : 0);
     const totalH = H + p.wall + 2 * p.flangeWidth;
-    const warnings = Math.max(totalW, totalH) > BED_MM ? [`A grade tem ${Math.round(totalW)} × ${Math.round(totalH)} mm: passa da mesa de ${BED_MM} mm. Diminua as células ou as colunas.`] : [];
+    const warnings = Math.max(totalW, totalH) > bedMm() ? [`A grade tem ${Math.round(totalW)} × ${Math.round(totalH)} mm: passa da mesa de ${bedMm()} mm. Diminua as células ou as colunas.`] : [];
     return { models: [{ name: "Cortador em grade", parts }], warnings };
   });
 }

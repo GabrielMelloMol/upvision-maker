@@ -1,8 +1,8 @@
 import * as THREE from "three";
 import { OrbitControls } from "three/addons/controls/OrbitControls.js";
+import { bedMm } from "../geometry/bed";
 import type { Model } from "../geometry/types";
 
-const PLATE_MM = 256;
 const FLY_MS = 700;
 const SPIN_MS = 6000;
 const SPIN_FADE_MS = 1200;
@@ -33,7 +33,7 @@ const cssVar = (name: string) => getComputedStyle(document.documentElement).getP
 const easeOutCubic = (k: number) => 1 - (1 - k) ** 3;
 
 /**
- * Cena da prévia 3D: Z para cima, mesa 256 mm, cores do tema (claro/escuro), render sob demanda.
+ * Cena da prévia 3D: Z para cima, mesa da impressora escolhida (#119), cores do tema (claro/escuro), render sob demanda.
  * Ao chegar o 1º modelo a câmera desliza até ele e gira devagar por alguns segundos; qualquer toque do mouse para o giro.
  */
 export function createViewer(el: HTMLElement) {
@@ -60,7 +60,8 @@ export function createViewer(el: HTMLElement) {
       scene.remove(grid);
       grid.dispose();
     }
-    grid = new THREE.GridHelper(PLATE_MM, 26, cssVar("--grid-major"), cssVar("--grid-minor"));
+    // mesa da impressora escolhida (#119), com as linhas a cada ~10 mm
+    grid = new THREE.GridHelper(bedMm(), Math.round(bedMm() / 10), cssVar("--grid-major"), cssVar("--grid-minor"));
     grid.rotation.x = Math.PI / 2;
     scene.add(grid);
   }

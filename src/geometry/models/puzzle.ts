@@ -1,3 +1,4 @@
+import { bedMm } from "../bed";
 import type { CS } from "../manifold";
 import { scoped } from "../shape2d";
 import type { Mesh, Model, Part } from "../types";
@@ -33,7 +34,6 @@ export const DEFAULT_PUZZLE: PuzzleParams = {
   frameColor: "#c9a227",
 };
 
-const BED_MM = 256;
 const SPREAD = 3; // espaço entre as peças na mesa
 const BACK_MM = 0.6; // verso em outra cor
 const FRAME_WALL = 6;
@@ -112,7 +112,7 @@ export function buildPuzzle(ctx: ModelCtx, p: PuzzleParams): ModelOutput {
 
     const warnings: string[] = [];
     if (cell < SMALL_PIECE_MM) warnings.push("Peças pequenas: não é brinquedo para menores de 3 anos (risco de engasgo).");
-    if (Math.max(spreadW, spreadH) > BED_MM) warnings.push(`As peças espalhadas ocupam ${Math.round(spreadW)} × ${Math.round(spreadH)} mm: passa da mesa de ${BED_MM} mm. Diminua a largura.`);
+    if (Math.max(spreadW, spreadH) > bedMm()) warnings.push(`As peças espalhadas ocupam ${Math.round(spreadW)} × ${Math.round(spreadH)} mm: passa da mesa de ${bedMm()} mm. Diminua a largura.`);
     if (p.stand && !p.frame) warnings.push("O suporte segura a moldura: ligue a moldura para usar o suporte.");
     return { models: [...pieces, ...extra], warnings };
   });

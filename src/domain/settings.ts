@@ -60,6 +60,8 @@ export const SettingsSchema = z.object({
   /** Cálculos do kWh pela conta de luz (mais recente primeiro). */
   kwhHistory: z.array(KwhEntrySchema),
   ams: AmsSchema,
+  /** Impressora que dá o tamanho da mesa nas ferramentas (#119); null = a única ou a primeira cadastrada. */
+  bedPrinterId: z.number().int().positive().nullable(),
 });
 export type Settings = z.infer<typeof SettingsSchema>;
 
@@ -87,4 +89,5 @@ export const DEFAULT_SETTINGS: Settings = {
   ],
   kwhHistory: [],
   ams: { slots: 4, filaments: [] },
+  bedPrinterId: null,
 };
