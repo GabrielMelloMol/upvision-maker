@@ -283,6 +283,21 @@ describe("Sidebar (#139)", () => {
     expect(screen.queryByRole("button", { name: "Chaveiros" })).not.toBeInTheDocument(); // ferramentas ficam na galeria
   });
 
+  test("recolher: o botão alterna e diz o atalho; em janela estreita não aparece (#139)", async () => {
+    const onToggle = vi.fn();
+    const { rerender } = render(<Sidebar pages={pages} current="home" {...noop} onToggle={onToggle} />);
+    const user = userEvent.setup();
+    const btn = screen.getByRole("button", { name: "Recolher barra lateral" });
+    expect(btn).toHaveAttribute("aria-keyshortcuts", "Meta+Alt+S Control+Alt+S");
+    await user.click(btn);
+    expect(onToggle).toHaveBeenCalledOnce();
+    rerender(<Sidebar pages={pages} current="home" {...noop} onToggle={onToggle} rail />);
+    expect(screen.getByRole("button", { name: "Expandir barra lateral" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Vender" })).toHaveAttribute("title", "Vender"); // dica na faixa de ícones
+    rerender(<Sidebar pages={pages} current="home" {...noop} onToggle={onToggle} rail narrow />);
+    expect(screen.queryByRole("button", { name: /barra lateral/ })).not.toBeInTheDocument();
+  });
+
   test("a ferramenta aberta aparece embaixo de Criar", () => {
     render(<Sidebar pages={pages} current="keychain" {...noop} />);
     expect(screen.getByRole("button", { name: "Chaveiros" })).toHaveAttribute("aria-current", "page");

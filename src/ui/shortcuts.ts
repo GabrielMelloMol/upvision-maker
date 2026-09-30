@@ -1,4 +1,4 @@
-/** Atalhos globais: Cmd/Ctrl+K abre a busca, Cmd/Ctrl+N pede "novo" à página aberta, "?" abre a ajuda da tela. */
+/** Atalhos globais: Cmd/Ctrl+K abre a busca, Cmd/Ctrl+N pede "novo" à página aberta, "?" abre a ajuda da tela, ⌘⌥S / Ctrl+Alt+S recolhe a barra lateral. */
 
 const NEW_EVENT = "upvision:new";
 
@@ -14,8 +14,14 @@ export function onNewShortcut(fn: () => void): () => void {
 /** Campo de digitação em foco: aí a tecla "?" é texto, não atalho. */
 const typing = (t: EventTarget | null) => !!(t as HTMLElement | null)?.closest?.("input, textarea, select, [contenteditable]");
 
-export function installShortcuts({ openPalette, openHelp }: { openPalette: () => void; openHelp?: () => void }): () => void {
+export function installShortcuts({ openPalette, openHelp, toggleSidebar }: { openPalette: () => void; openHelp?: () => void; toggleSidebar?: () => void }): () => void {
   const onKey = (e: KeyboardEvent) => {
+    // e.code: com Option no Mac, e.key vira "ß"
+    if (toggleSidebar && (e.metaKey || e.ctrlKey) && e.altKey && !e.shiftKey && e.code === "KeyS") {
+      e.preventDefault();
+      toggleSidebar();
+      return;
+    }
     if (e.key === "?" && openHelp && !e.metaKey && !e.ctrlKey && !e.altKey && !typing(e.target) && !document.querySelector("dialog[open]")) {
       e.preventDefault();
       openHelp();

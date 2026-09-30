@@ -69,6 +69,25 @@ describe("App", () => {
     }
   }, 30_000);
 
+  test("⌘⌥S / Ctrl+Alt+S recolhe a barra lateral e o app lembra (#139)", async () => {
+    await seenIntro();
+    localStorage.removeItem("upvision:sidebar");
+    // janela larga (o happy-dom abre com 1024 px, que já recolheria sozinha)
+    vi.spyOn(window, "matchMedia").mockReturnValue({ matches: false, addEventListener() {}, removeEventListener() {} } as unknown as MediaQueryList);
+    const user = userEvent.setup();
+    const { container, unmount } = renderWithApp(<App />);
+    const app = () => container.querySelector(".app")!;
+    expect(app()).toHaveAttribute("data-sidebar", "full");
+    await user.keyboard("{Control>}{Alt>}s{/Alt}{/Control}");
+    expect(app()).toHaveAttribute("data-sidebar", "rail");
+    unmount();
+    const again = renderWithApp(<App />);
+    expect(again.container.querySelector(".app")).toHaveAttribute("data-sidebar", "rail");
+    await user.click(screen.getByRole("button", { name: "Expandir barra lateral" }));
+    expect(again.container.querySelector(".app")).toHaveAttribute("data-sidebar", "full");
+    vi.restoreAllMocks();
+  });
+
   test("rolar a página mostra o título pequeno na toolbar", async () => {
     await seenIntro();
     const { container } = renderWithApp(<App />);

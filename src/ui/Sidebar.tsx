@@ -1,4 +1,6 @@
+import { PanelLeftClose, PanelLeftOpen } from "lucide-react";
 import { SECTIONS, type PageDef, type SectionDef } from "../pages";
+import { modKey } from "./shortcuts";
 import BrandMark from "./BrandMark";
 
 type Props = {
@@ -13,13 +15,18 @@ type Props = {
   version?: string | null;
   updateAvailable?: boolean;
   onAbout?: () => void;
+  /** Recolhida em faixa de ícones (#139): passar o mouse ou o foco expande por cima do conteúdo. */
+  rail?: boolean;
+  /** Janela estreita: fica recolhida sem escolha, então o botão some. */
+  narrow?: boolean;
+  onToggle?: () => void;
 };
 
 /**
  * Barra lateral (#139): cinco seções e Ajustes. Só a seção aberta mostra as telas dela, recuadas e sem ícone.
  * As ferramentas ficam na galeria Criar; a que estiver aberta aparece embaixo de Criar.
  */
-export default function Sidebar({ pages, current, onNavigate, onNews, onSuggest, onBackup, onRestore, version, updateAvailable, onAbout }: Props) {
+export default function Sidebar({ pages, current, onNavigate, onNews, onSuggest, onBackup, onRestore, version, updateAvailable, onAbout, rail = false, narrow = false, onToggle }: Props) {
   const page = pages.find((p) => p.id === current);
   const open = page?.section ?? "home";
   const sub = (s: SectionDef) => {
@@ -42,14 +49,14 @@ export default function Sidebar({ pages, current, onNavigate, onNews, onSuggest,
     return (
       <div className="nav-section" key={s.id}>
         {/* a seção só fica marcada quando não mostra telas embaixo; senão quem fica marcada é a tela */}
-        <button className={`nav ${s.id === open ? "open" : ""} ${s.id === open && !children.length ? "active" : ""}`} aria-current={s.id === open && !children.length ? "page" : undefined} onClick={() => onNavigate(s.landing)}>
+        <button className={`nav ${s.id === open ? "open" : ""} ${s.id === open && !children.length ? "active" : ""}`} aria-current={s.id === open && !children.length ? "page" : undefined} data-page={s.landing} title={rail ? s.label : undefined} onClick={() => onNavigate(s.landing)}>
           <s.icon aria-hidden />
-          {s.label}
+          <span className="label">{s.label}</span>
         </button>
         {(children.length > 0 || (s.id === "settings" && actions.length > 0)) && (
           <div className="subnav">
             {children.map((p) => (
-              <button key={p.id} className={`nav sub ${p.id === current ? "active" : ""}`} aria-current={p.id === current ? "page" : undefined} onClick={() => onNavigate(p.id)}>
+              <button key={p.id} className={`nav sub ${p.id === current ? "active" : ""}`} aria-current={p.id === current ? "page" : undefined} data-page={p.id} onClick={() => onNavigate(p.id)}>
                 {p.label}
               </button>
             ))}
@@ -68,10 +75,17 @@ export default function Sidebar({ pages, current, onNavigate, onNews, onSuggest,
   return (
     <nav className="sidebar" aria-label="Navegação principal">
       <div className="drag" data-tauri-drag-region />
-      <button className="brand" onClick={() => onNavigate("home")}>
-        <BrandMark />
-        <span>UpVision Maker</span>
-      </button>
+      <div className="sidebar-head">
+        <button className="brand" onClick={() => onNavigate("home")}>
+          <BrandMark />
+          <span className="brand-name">UpVision Maker</span>
+        </button>
+        {onToggle && !narrow && (
+          <button type="button" className="ghost icon-only sm sidebar-toggle" onClick={onToggle} aria-label={rail ? "Expandir barra lateral" : "Recolher barra lateral"} title={`${rail ? "Expandir" : "Recolher"} (${modKey()}${modKey() === "⌘" ? "⌥" : "+Alt+"}S)`} aria-keyshortcuts="Meta+Alt+S Control+Alt+S">
+            {rail ? <PanelLeftOpen aria-hidden /> : <PanelLeftClose aria-hidden />}
+          </button>
+        )}
+      </div>
       <div className="scroll">{SECTIONS.filter((s) => s.id !== "settings").map(item)}</div>
       <div className="footer">
         {SECTIONS.filter((s) => s.id === "settings").map(item)}

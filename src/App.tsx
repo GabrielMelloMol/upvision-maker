@@ -22,6 +22,7 @@ import Toolbar from "./ui/Toolbar";
 import CommandPalette from "./ui/CommandPalette";
 import { setPendingOpen, type SearchItem } from "./ui/search";
 import { installShortcuts, modKey } from "./ui/shortcuts";
+import { useSidebarRail } from "./ui/useSidebarRail";
 import { CircleHelp, Search } from "lucide-react";
 import { articleFor } from "./help/articles";
 import HelpSheet from "./help/HelpSheet";
@@ -59,7 +60,9 @@ export default function App() {
     return () => window.removeEventListener(NAVIGATE_EVENT, onGo);
   }); // tempo de abertura para o Copiar informações (#88)
   useEffect(() => installPhoneBridge(), []); // respostas para o celular na rede de casa (#16)
-  useEffect(() => installShortcuts({ openPalette: () => setSearching(true), openHelp: () => void (articleFor(pageRef.current) && openHelp(pageRef.current)) }), []);
+  const sidebar = useSidebarRail();
+  const toggleSidebar = sidebar.toggle;
+  useEffect(() => installShortcuts({ openPalette: () => setSearching(true), openHelp: () => void (articleFor(pageRef.current) && openHelp(pageRef.current)), toggleSidebar }), [toggleSidebar]);
 
   function pick(item: SearchItem) {
     setSearching(false);
@@ -102,8 +105,11 @@ export default function App() {
 
 
   return (
-    <div className="app">
+    <div className="app" data-sidebar={sidebar.rail ? "rail" : "full"}>
       <Sidebar
+        rail={sidebar.rail}
+        narrow={sidebar.narrow}
+        onToggle={sidebar.toggle}
         pages={PAGES}
         current={page.id}
         onNavigate={navigate}

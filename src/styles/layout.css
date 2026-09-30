@@ -9,7 +9,7 @@
 .sidebar .brand { all: unset; cursor: pointer; display: flex; align-items: center; gap: 10px; padding: 16px 18px 18px; border-radius: var(--r); }
 .sidebar .brand:focus-visible { outline: 3px solid var(--focus-ring); outline-offset: -3px; } /* por dentro: a barra lateral corta o que passa da borda */
 .sidebar .brand .brand-mark { width: 26px; height: 26px; }
-.sidebar .brand span { font-family: var(--font-display); font-weight: 650; font-size: 14px; letter-spacing: -0.01em; }
+.sidebar .brand-name { font-family: var(--font-display); font-weight: 650; font-size: 14px; letter-spacing: -0.01em; }
 .sidebar .scroll { flex: 1; min-height: 0; overflow-y: auto; padding: 2px 10px 12px; display: grid; align-content: start; gap: 1px; }
 .sidebar .footer { display: grid; gap: 1px; padding: 8px 10px 12px; }
 /* seção aberta: as telas dela recuadas, alinhadas ao texto, sem ícone (#139) */
@@ -56,9 +56,23 @@ main { position: relative; overflow: auto; min-width: 0; scroll-padding-top: 64p
 @keyframes view-in { from { opacity: 0; transform: translateY(8px); } }
 
 @media (max-width: 1100px) {
-  .app { grid-template-columns: 220px 1fr; }
   .toolbar, .view { padding-inline: var(--space-6); }
 }
+
+/* Barra lateral recolhível (#139): faixa de ícones; mouse ou foco de teclado expande POR CIMA do conteúdo, que não se mexe.
+   Pequena espera antes de abrir, para não abrir quando o mouse só passa por ela. */
+.sidebar-head { display: flex; align-items: center; }
+.sidebar-head .brand { flex: 1; min-width: 0; }
+.sidebar-toggle { flex: none; margin-right: 10px; color: var(--muted); }
+.nav .label, .brand-name { white-space: nowrap; }
+.app[data-sidebar="rail"] { grid-template-columns: 60px 1fr; }
+.app[data-sidebar="rail"] .sidebar { position: relative; z-index: 30; width: 60px; overflow: hidden; transition: width var(--dur) var(--ease-out), box-shadow var(--dur) ease; }
+.app[data-sidebar="rail"] .sidebar:is(:hover, :has(:focus-visible)) { width: 224px; box-shadow: var(--shadow-3); background: color-mix(in srgb, var(--bg) 88%, transparent); transition-delay: 140ms; }
+.app[data-sidebar="rail"] .sidebar:not(:hover):not(:has(:focus-visible)) :is(.subnav, .version, .sidebar-toggle) { display: none; }
+.nav .label, .brand-name { transition: opacity var(--dur-fast) ease; }
+.app[data-sidebar="rail"] .sidebar:not(:hover):not(:has(:focus-visible)) :is(.nav .label, .brand-name) { opacity: 0; }
+.app[data-sidebar="rail"] .sidebar:not(:hover):not(:has(:focus-visible)) .nav.open { background: var(--accent-soft); color: var(--accent-text); }
+.app[data-sidebar="rail"] .sidebar:not(:hover):not(:has(:focus-visible)) .nav.open svg { color: var(--accent-text); }
 
 /* Com material nativo o vidro vem do sistema: sem blur de CSS (evita fundo preto em alguns WebViews). */
 :root[data-vibrancy] .sidebar { -webkit-backdrop-filter: none; backdrop-filter: none; }

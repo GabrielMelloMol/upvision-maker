@@ -18,7 +18,7 @@ const KINDS = [
 ] as const;
 type Kind = (typeof KINDS)[number][0];
 const KIND_OF: Record<string, Exclude<Kind, "all">> = {
-  keychain: "make", medal: "make", qr: "make", spools: "make",
+  keychain: "make", medal: "make", qr: "make", spools: "make", drawer: "make",
   svg: "image", cutter: "image", extrude: "image", lithophane: "image", pixel: "image",
   colorsplit: "files", scad: "files",
   search3d: "ideas", ai: "ideas",
@@ -56,7 +56,7 @@ export default function Create({ go }: { go: Go }) {
           <ul className="create-tools">
             {tools.map((p) => (
               <li key={p.id}>
-                <a href={`#${p.id}`} onClick={(e) => open(e, p.id)}>
+                <a href={`#${p.id}`} data-page={p.id} onClick={(e) => open(e, p.id)}>
                   <p.icon aria-hidden />
                   <span>
                     <strong>{p.label}</strong>
