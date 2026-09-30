@@ -1,4 +1,5 @@
 import { ArrowUpRight } from "lucide-react";
+import StartHere from "../help/StartHere";
 import { PAGES, type Go } from "../pages";
 
 function greeting(h = new Date().getHours()) {
@@ -31,6 +32,7 @@ export default function Home({ go }: { go: Go }) {
       </p>
       <h1>O que vamos criar hoje?</h1>
       <p className="lead">Tudo roda neste computador, sem internet e sem limite de uso. Faça backup pelo menu de vez em quando.</p>
+      <StartHere go={go} />
       {tools > 0 && (
         <>
           <div className="section-title">

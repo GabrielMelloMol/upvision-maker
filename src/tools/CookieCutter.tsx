@@ -8,6 +8,7 @@ import NumField, { inRange } from "../ui/NumField";
 import Preview3D from "../ui/Preview3D";
 import { useModelBuilder } from "../ui/useModelBuilder";
 import { DESIGN_ACCEPT, designFromSvg } from "./designInput";
+import { exampleFile, useExample } from "../help/helpStore";
 import { useDesignInput } from "./useDesignInput";
 
 const LIMITS = {
@@ -27,6 +28,7 @@ const CUTTER_PROFILE = mergeProfiles(DEFAULT_PROFILE, { walls: 2, notes: ["Lâmi
 
 export default function CookieCutter() {
   const { svg, width, setWidth, loading, error: inputError, onFile } = useDesignInput(70);
+  useExample("cutter", () => void exampleFile("heart").then(onFile)); // "Usar exemplo" da ajuda (#84)
   const [mirror, setMirror] = useState(true);
   const [p, setP] = useState<CutterParams>(DEFAULT_CUTTER);
   const set = <K extends keyof CutterParams>(key: K) => (v: CutterParams[K]) => setP((o) => ({ ...o, [key]: v }));

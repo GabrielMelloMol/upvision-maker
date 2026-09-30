@@ -8,10 +8,12 @@ import NumField, { inRange } from "../ui/NumField";
 import Preview3D from "../ui/Preview3D";
 import { useModelBuilder } from "../ui/useModelBuilder";
 import { DESIGN_ACCEPT, designFromSvg, svgFillColors } from "./designInput";
+import { exampleFile, useExample } from "../help/helpStore";
 import { useDesignInput } from "./useDesignInput";
 
 export default function Extrude() {
   const { svg, width, setWidth, loading, error: inputError, onFile } = useDesignInput(60);
+  useExample("extrude", () => void exampleFile("heart").then(onFile)); // "Usar exemplo" da ajuda (#84)
   const [height, setHeight] = useState(2);
   const [withBase, setWithBase] = useState(false);
   const [baseT, setBaseT] = useState(1.6);

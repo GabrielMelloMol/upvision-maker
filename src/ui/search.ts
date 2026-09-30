@@ -18,6 +18,8 @@ export type SearchItem = {
   /** Registro a abrir em modo edição na página (CrudPage lê com takePendingOpen). */
   recordId?: number;
   keywords?: string;
+  /** Abre esta ajuda depois de ir para a página (artigo = id da tela; "term:<id>" = glossário) (#84). */
+  help?: string;
 };
 
 /**

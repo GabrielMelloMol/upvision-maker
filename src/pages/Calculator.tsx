@@ -41,6 +41,7 @@ import QuantityTable from "./calculator/QuantityTable";
 import AdsCard from "./calculator/AdsCard";
 import { peekQuoteDraft } from "./quotes/draft";
 import { CostBreakdown, PriceHero } from "./calculator/Result";
+import { useExample } from "../help/helpStore";
 import { EMPTY_FORM, loadSaved, storeSaved, type CalcForm, type Line } from "./calculator/saved";
 
 type Mode = "quick" | "full";
@@ -76,6 +77,11 @@ export default function Calculator({ go }: { go: Go }) {
   const [ext, setExt] = useState<Line[]>(saved?.ext ?? []);
   const [printerId, setPrinterId] = useState(saved?.printerId ?? "");
   const [f, setF] = useState<CalcForm>(saved?.f ?? EMPTY_FORM);
+  // "Usar exemplo" da ajuda (#84): chaveiro de 12 g em PLA a R$ 120/kg, 45 min, 4 na mesa
+  useExample("calculator", () => {
+    setFil([{ ref: "", price: "120,00", qty: "48" }]);
+    setF({ ...EMPTY_FORM, name: "Chaveiro de exemplo", time: "3h", quantity: "4", watts: "95" });
+  });
   const [rounding, setRounding] = useState<Rounding>("none");
   const [competitor, setCompetitor] = useState("");
   const [plugOpen, setPlugOpen] = useState(false);

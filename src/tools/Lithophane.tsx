@@ -16,6 +16,7 @@ import Toggle from "../ui/Toggle";
 import { useData } from "../ui/useData";
 import { useModelBuilder } from "../ui/useModelBuilder";
 import { IMAGE_ACCEPT, loadRaster } from "../vectorize/client";
+import { exampleFile, useExample } from "../help/helpStore";
 import { filamentColors, loadFilaments } from "./filamentColors";
 
 type Mode = "litho" | "layered";
@@ -56,6 +57,7 @@ function toDataUrl(rgba: Uint8ClampedArray<ArrayBuffer>, w: number, h: number): 
 export default function Lithophane() {
   const [mode, setMode] = useState<Mode>("litho");
   const [file, setFile] = useState<File | null>(null);
+  useExample("lithophane", () => void exampleFile("landscape").then(setFile)); // "Usar exemplo" da ajuda (#84)
   const [width, setWidth] = useState(100);
   const [cell, setCell] = useState(0.3);
   const [litho, setLitho] = useState(DEFAULT_LITHO);

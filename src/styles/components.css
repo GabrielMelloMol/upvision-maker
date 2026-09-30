@@ -278,3 +278,33 @@ h3.subhead svg { width: 16px; height: 16px; color: var(--muted); }
 .diagnostics h3 svg { width: 16px; height: 16px; color: var(--muted); }
 /* Resumo da calculadora: ação separada do número (não disputa com o custo) */
 .calc-summary .hero > button { margin: var(--space-3) 0 var(--space-1); }
+
+/* Ajuda dentro do app (#84) */
+.help-btn svg { width: 18px; height: 18px; }
+.help-article { display: grid; gap: var(--space-4); }
+.help-article .lead { margin: 0; }
+.help-steps { margin: 0; padding-left: 1.4em; display: grid; gap: var(--space-2); line-height: var(--leading); }
+.help-steps li::marker { color: var(--accent-text); font-weight: 600; }
+.help-image { width: 100%; border-radius: var(--r); box-shadow: var(--shadow-1); background: var(--surface-2); }
+.help-tips { display: flex; gap: var(--space-2); padding: var(--space-3); border-radius: var(--r); background: var(--accent-soft); font-size: var(--text-sm); }
+.help-tips > svg { flex: none; color: var(--brand-orange); margin-top: 2px; }
+.help-tips ul { margin: 0; padding-left: 1.1em; display: grid; gap: 4px; }
+.help-glossary { margin: 0; display: grid; gap: var(--space-3); }
+.help-glossary > div { padding: var(--space-2) var(--space-3); border-radius: var(--r-sm); }
+.help-glossary > div[data-highlight] { background: var(--accent-soft); }
+.help-glossary dt { font-weight: 600; }
+.help-glossary dd { margin: 2px 0 0; color: var(--muted); font-size: var(--text-sm); }
+.term-tip { display: inline-grid; place-items: center; width: 15px; height: 15px; margin-left: 4px; border-radius: 50%; background: var(--fill-strong); color: var(--muted); font-size: 10px; font-weight: 700; font-style: normal; vertical-align: 1px; cursor: help; position: relative; }
+.term-tip::before { content: "i"; }
+.term-tip::after { content: attr(data-tip); position: absolute; z-index: 30; left: 50%; bottom: calc(100% + 6px); transform: translateX(-50%); width: max-content; max-width: 260px; padding: 8px 10px; border-radius: var(--r-sm); background: var(--text); color: var(--surface); font-size: var(--text-sm); font-weight: 400; line-height: 1.4; text-align: left; white-space: normal; box-shadow: var(--shadow-2); opacity: 0; pointer-events: none; transition: opacity var(--dur) var(--ease-out); }
+.term-tip:hover::after { opacity: 1; }
+.start-here { margin: var(--space-4) 0 var(--space-6); padding: var(--space-4); border-radius: var(--r-lg); background: var(--surface); box-shadow: var(--shadow-1); }
+.start-here-head { display: flex; align-items: center; justify-content: space-between; }
+.start-here-head h2 { margin: 0; font-size: var(--title-3); }
+.start-here ol { list-style: none; margin: var(--space-3) 0 var(--space-2); padding: 0; display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: var(--space-2); }
+.start-here li button { width: 100%; height: 100%; display: grid; grid-template-columns: auto auto 1fr; grid-template-rows: auto auto; align-content: center; align-items: center; gap: 2px var(--space-2); padding: var(--space-3); border-radius: var(--r); background: var(--surface-2); box-shadow: none; text-align: left; color: var(--text); }
+.start-here li button:hover { background: var(--fill-hover); }
+.start-here .start-n { grid-row: 1 / span 2; display: grid; place-items: center; width: 26px; height: 26px; border-radius: 50%; background: var(--accent); color: var(--on-accent); font-weight: 700; font-size: var(--text-sm); }
+.start-here li svg { width: 18px; height: 18px; color: var(--brand-orange); }
+.start-here li strong { font-size: var(--text-md); }
+.start-here li span:last-child { grid-column: 2 / span 2; color: var(--muted); font-size: var(--text-sm); }

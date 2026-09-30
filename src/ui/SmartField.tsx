@@ -1,3 +1,4 @@
+import { labelTerm, TermDesc, TermTip } from "./TermTip";
 import { CircleAlert, CircleCheck } from "lucide-react";
 import { useId, useState, type InputHTMLAttributes, type ReactNode } from "react";
 
@@ -28,6 +29,7 @@ export type SmartFieldProps = {
 export default function SmartField({ label, value, onChange, parse, preview, invalidText, hint, error, required, formatOnBlur, prefix, onBlur, ...rest }: SmartFieldProps) {
   const [touched, setTouched] = useState(false);
   const id = useId();
+  const term = labelTerm(label);
   const n = parse(value);
   const empty = value.trim() === "";
   const bad = touched && ((empty && required) || (!empty && !Number.isFinite(n)));
@@ -36,14 +38,17 @@ export default function SmartField({ label, value, onChange, parse, preview, inv
   // Dica e erro ficam fora do <label>: o nome do campo é só o rótulo; o resto vai por aria-describedby.
   return (
     <div className="field">
-      <label htmlFor={id}>{label}</label>
+      <label htmlFor={id}>
+        {label}
+        {term && <TermTip term={term} />}
+      </label>
       <span className={`affix ${prefix ? "has-prefix" : ""}`}>
         {prefix && <span className="prefix" aria-hidden>{prefix}</span>}
         <input
           id={id}
           value={value}
           aria-invalid={!!message}
-          aria-describedby={`${id}-d`}
+          aria-describedby={term ? `${id}-d ${id}-t` : `${id}-d`}
           onChange={(e) => onChange(e.target.value)}
           onBlur={(e) => {
             setTouched(true);
@@ -53,6 +58,7 @@ export default function SmartField({ label, value, onChange, parse, preview, inv
           {...rest}
         />
       </span>
+      {term && <TermDesc id={`${id}-t`} term={term} />}
       {message ? (
         <span id={`${id}-d`} className="error" role="alert">
           <CircleAlert aria-hidden /> {message}

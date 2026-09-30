@@ -1,0 +1,193 @@
+/**
+ * Ajuda dentro do app (#84): um artigo curto por tela (id = id da página em pages.tsx).
+ * 3 a 5 passos, dicas de impressão e, onde existe, "Usar exemplo" (a ferramenta carrega um exemplo pronto).
+ * Texto a partir do guia em PDF (docs/guia), mais curto. `image` = arquivo em src/assets/help.
+ */
+export type HelpArticle = { id: string; title: string; intro: string; steps: string[]; tips?: string[]; image?: string; example?: string };
+
+export const ARTICLES: HelpArticle[] = [
+  {
+    id: "home",
+    title: "Por onde começar",
+    intro: "A barra lateral tem tudo: Ferramentas para criar peças, Gestão para custos, estoque e vendas, e Preferências.",
+    steps: ["Confira em Preferências o preço do kWh e o valor da sua hora.", "Cadastre sua impressora (Escolher do catálogo) e seus filamentos.", "Crie uma peça numa ferramenta e salve o 3MF.", "Calcule o preço na Calculadora e salve como produto."],
+    tips: ["Ctrl+K (⌘K no Mac) abre a busca: telas, produtos, clientes e artigos de ajuda.", "Tecla ? abre a ajuda da tela em que você está."],
+  },
+  {
+    id: "svg",
+    title: "Imagem → SVG",
+    intro: "Transforma um logo, desenho ou foto num contorno limpo, já no tamanho de impressão em mm.",
+    steps: ["Arraste a imagem (PNG, JPG, WebP…).", "Escolha Logo / desenho (fundo liso) ou Silhueta (foto de pessoa, pet ou objeto).", "Em Cores, escolha de 1 a 4: cada cor vira uma camada que encaixa na outra.", "Ajuste a Largura final e clique em Aplicar alterações.", "Salve o SVG ou mande direto para o Cortador ou a Extrusão."],
+    tips: ["Trechos em vermelho ficam com menos de 0,4 mm: use Engrossar traços finos ou aumente a largura."],
+    image: "svg-colorido.webp",
+    example: "Usar um logo de exemplo",
+  },
+  {
+    id: "cutter",
+    title: "Cortador de biscoito",
+    intro: "O contorno do desenho vira a lâmina; as linhas de dentro viram um carimbo opcional.",
+    steps: ["Envie um SVG ou uma imagem (imagens viram vetor sozinhas).", "Defina a largura e a altura. Lâmina de 0,8 mm e borda de 4 mm já vêm prontas.", "Deixe Espelhar marcado para o biscoito sair igual ao desenho.", "Marque Carimbo do desenho interno se quiser a marca na massa.", "Salve em 3MF ou STL."],
+    tips: ["Imprima com a borda na mesa e a lâmina para cima. PLA ou PETG, sem suporte."],
+    example: "Usar um desenho de exemplo",
+  },
+  {
+    id: "keychain",
+    title: "Chaveiros",
+    intro: "Nome com fonte bonita, logo opcional e argola. Base e texto saem em cores separadas.",
+    steps: ["Digite o nome, ou escolha Lote de nomes e cole um por linha.", "Clique na fonte para ver as 56 fontes com o seu nome; marque as favoritas.", "Se quiser, envie um logo: ele fica à esquerda do texto.", "Ajuste base, relevo e argola e salve o 3MF."],
+    tips: ["O app avisa se a fonte ficar fina demais para o bico 0,4 ou se a cursiva não unir as letras.", "No fatiador, cada cor já é uma parte: escolha o filamento de cada uma."],
+    image: "fontes.webp",
+  },
+  {
+    id: "medal",
+    title: "Medalhas",
+    intro: "Formato, textos em arco, borda, fundo, imagem, alça e verso. Cada parte sai com a sua cor.",
+    steps: ["Comece por um modelo pronto (Campeonato, Formatura, Corrida…).", "Escolha o formato, o tamanho e a espessura.", "Ajuste os textos em arco, a linha central e o número.", "Escolha a alça (fita, furo, argola, ímã ou broche) e salve o 3MF."],
+    tips: ["Lote: cole uma lista de nomes e o app monta várias medalhas numa mesa."],
+  },
+  {
+    id: "extrude",
+    title: "Extrusão 3D",
+    intro: "Dá altura a qualquer desenho: placas, letreiros, apliques e topos.",
+    steps: ["Envie o desenho (SVG ou imagem).", "Defina a largura e a altura do desenho em mm.", "Marque Base por baixo para ter uma placa no formato da silhueta.", "Salve em 3MF ou STL."],
+    example: "Usar um desenho de exemplo",
+  },
+  {
+    id: "qr",
+    title: "QR Code e Pix",
+    intro: "QR do Pix com valor, link, Wi-Fi ou texto. Sai em SVG para o papel ou em 3MF de 2 cores.",
+    steps: ["Escolha o tipo: Pix, Link, Wi-Fi ou Texto.", "No Pix, informe a chave, o nome e a cidade. O valor é opcional.", "Em Peça 3D, defina lado, base e relevo do código.", "Salve em SVG ou 3MF."],
+    tips: ["Antes de imprimir, teste o QR com o app do banco, direto na tela.", "Relevo de 1 mm e margem de 2 módulos leem bem na maioria dos celulares."],
+    example: "Usar um link de exemplo",
+  },
+  {
+    id: "models",
+    title: "Modelos prontos",
+    intro: "Mais de 50 modelos paramétricos. Ajuste texto, tamanho e cores e salve o 3MF separado por cor.",
+    steps: ["Escolha a categoria ou busque pelo nome; as pílulas filtram por ocasião.", "Ajuste os campos: a prévia 3D atualiza sozinha.", "Arraste textos e QR na Vista de cima, ou adicione seu desenho/texto livre.", "Salve o 3MF (ou o projeto do Bambu Studio quando há pausa)."],
+    tips: ["Nas peças com encaixe, a folga é um campo: se ficar justo ou solto, ajuste e imprima de novo.", "Salvar como variação guarda seus campos e camadas para reaproveitar."],
+  },
+  {
+    id: "spools",
+    title: "Etiquetas de rolo",
+    intro: "Um QR para cada rolo: aponte a câmera para dar baixa das gramas usadas.",
+    steps: ["Marque os filamentos e salve as etiquetas (A4 ou etiquetadora 50×30) ou as plaquinhas 3D.", "Cole a etiqueta no carretel.", "Depois de imprimir, clique em Ler com a câmera e aponte para a etiqueta.", "Informe as gramas usadas ou marque Rolo acabou."],
+    image: "etiquetas.webp",
+  },
+  {
+    id: "lithophane",
+    title: "Litofania e quadro por camadas",
+    intro: "Foto em relevo: litofania para ver contra a luz ou quadro colorido por camadas.",
+    steps: ["Envie a foto: rostos e paisagens com bom contraste ficam melhores.", "Litofania: escolha plana, curva ou caixa de luz e as espessuras.", "Quadro: marque 2 a 4 filamentos, do escuro ao claro.", "Salve o 3MF."],
+    tips: ["Litofania em PLA branco, em pé, com 100% de preenchimento.", "Sem AMS, o quadro pausa em cada troca de cor; com AMS, ligue Uma parte por cor."],
+    image: "litofania.webp",
+    example: "Usar uma foto de exemplo",
+  },
+  {
+    id: "colorsplit",
+    title: "Separar 3MF por cor",
+    intro: "Abra um 3MF pintado no fatiador e separe cada cor numa peça, para imprimir sem AMS.",
+    steps: ["Arraste o 3MF pintado (Bambu Studio, OrcaSlicer ou PrusaSlicer).", "Confira as cores encontradas.", "Se quiser, corte pelo plano com pino de encaixe.", "Salve as peças e cole ou encaixe depois de imprimir."],
+  },
+  {
+    id: "search3d",
+    title: "Buscar modelos 3D",
+    intro: "Busca no Printables, MakerWorld, Thingiverse, Cults3D e Thangs, no navegador.",
+    steps: ["Digite o que procura e busque num site ou em todos.", "Na página do modelo, confira a licença.", "Em Posso vender a peça?, escolha a licença para saber se pode vender.", "Arraste o 3MF fatiado ou o G-code para ir direto à Calculadora."],
+    tips: ["NC = não comercial: pode imprimir para você, não para vender."],
+  },
+  {
+    id: "ai",
+    title: "Pedir à IA",
+    intro: "Descreva a peça em português e o Claude desenha o modelo 3D. É a única parte paga, por pedido.",
+    steps: ["Crie uma chave em console.anthropic.com e coloque créditos.", "Cole a chave em Preferências e clique em Testar chave.", "Descreva a peça com medidas (ex.: suporte de celular, 8 cm, 60°).", "Peça ajustes conversando e exporte o 3MF."],
+    tips: ["Cada pedido mostra o custo estimado; dá para pôr limite de gasto no site da Anthropic."],
+  },
+  {
+    id: "calculator",
+    title: "Calculadora de preço",
+    intro: "Filamento, gramas, tempo e impressora: o resto vem das Preferências.",
+    steps: ["Escolha o filamento (ou digite o preço do kg) e as gramas.", "Escolha a impressora e o tempo (3h20, 3:20 ou 200 min).", "Veja os preços para lojista e para venda direta.", "Salve como produto ou adicione ao orçamento."],
+    tips: ["Arraste o 3MF fatiado ou o G-code: gramas, tempo e peças entram sozinhos.", "Em Completo: preço por canal, para onde vai o preço e comparar cenários."],
+    image: "calc-rapida.webp",
+    example: "Preencher um exemplo",
+  },
+  {
+    id: "products",
+    title: "Produtos",
+    intro: "Seu catálogo, com custo sempre atualizado pelo preço de hoje dos insumos.",
+    steps: ["Crie pela Calculadora (Salvar como produto) ou em Novo produto.", "Adicione fotos, código e preço (automático ou manual).", "Kits juntam vários produtos num só.", "Produzir registra peças prontas: o estoque pronto sobe e o filamento baixa."],
+  },
+  {
+    id: "customers",
+    title: "Clientes",
+    intro: "Cadastro para pedidos, orçamentos e o financeiro por cliente.",
+    steps: ["Clique em Novo cliente.", "Nome e WhatsApp bastam; o CEP preenche o endereço.", "Defina um desconto padrão se o cliente tiver."],
+  },
+  {
+    id: "orders",
+    title: "Pedidos",
+    intro: "Acompanhe cada encomenda até a entrega, com o estoque atualizado sozinho.",
+    steps: ["Novo pedido: cliente, produtos, quantidades, canal e prazo.", "Mova pelas etapas: Pendente → Em produção → Concluído → Entregue.", "Iniciar produção baixa o estoque; cancelar devolve.", "Marcar entregue conta a venda no financeiro."],
+  },
+  {
+    id: "quotes",
+    title: "Orçamentos",
+    intro: "Orçamento em PDF para o WhatsApp, com QR Pix do valor exato.",
+    steps: ["Novo orçamento: cliente, itens, frete, desconto e validade.", "Gere o PDF: sai com seu logo, contatos e o QR Pix do total.", "Aprovou? Transforme em pedido com um clique."],
+    tips: ["Da Calculadora, Adicionar ao orçamento junta vários cálculos num rascunho."],
+  },
+  {
+    id: "dashboard",
+    title: "Painel",
+    intro: "O que precisa de atenção hoje: prazos, estoque acabando e o resultado do mês.",
+    steps: ["Veja os pedidos atrasados e os prazos da semana.", "Reponha o estoque que está acabando direto do painel.", "Confira receita e lucro do mês."],
+  },
+  {
+    id: "finance",
+    title: "Financeiro",
+    intro: "Se o negócio está dando lucro: receita, custos e R$ por hora.",
+    steps: ["Receita = pedidos entregues no período.", "Lucro = receita − custo das peças − custos operacionais.", "Filtre por período, canal, produto ou impressora e exporte a planilha."],
+  },
+  {
+    id: "costs",
+    title: "Custos operacionais",
+    intro: "Despesas fixas que entram no lucro (e, se quiser, no preço por hora).",
+    steps: ["Cadastre aluguel, internet, assinaturas e parcelas da impressora.", "Escolha mensal, anual ou única e as datas.", "Ligue Incluir custos fixos no preço nas Preferências para dividir por hora de impressão."],
+  },
+  {
+    id: "filaments",
+    title: "Filamentos",
+    intro: "Estoque de filamentos com custo médio e aviso de estoque baixo.",
+    steps: ["Novo filamento ou Escolher do catálogo.", "Informe o preço por kg e o estoque.", "Repor recalcula o custo médio.", "Imprima etiquetas com QR para dar baixa pela câmera."],
+  },
+  {
+    id: "materials",
+    title: "Materiais extras",
+    intro: "Argolas, ímãs, embalagens e o que mais entra na peça.",
+    steps: ["Cadastre o material com unidade e preço.", "Use na Calculadora e nos produtos.", "A embalagem padrão pode entrar sozinha em todo cálculo (Preferências)."],
+  },
+  {
+    id: "printers",
+    title: "Impressoras",
+    intro: "Consumo médio e custo de máquina de cada impressora.",
+    steps: ["Novo ou Escolher do catálogo (167 modelos).", "Informe a potência média imprimindo, não a da fonte.", "Informe quanto pagou e a vida útil para cobrar a máquina por hora."],
+    tips: ["Uma tomada medidora ajuda: use Medir com tomada inteligente na Calculadora."],
+  },
+  {
+    id: "company",
+    title: "Dados da empresa",
+    intro: "Logo, contatos e chave Pix que aparecem nos PDFs e na placa Pix.",
+    steps: ["Envie o logo e preencha nome e contatos.", "Informe a chave Pix, o nome e a cidade de quem recebe.", "Salve: orçamentos, catálogo e placa Pix já usam."],
+  },
+  {
+    id: "preferences",
+    title: "Preferências",
+    intro: "Os números que entram em todos os cálculos.",
+    steps: ["Preço do kWh: use Calcular pela conta de luz (ou a média do estado).", "Hora de trabalho, taxa de falha e impostos.", "Multiplicadores de lojista e venda direta.", "Taxas dos canais de venda (confira de tempos em tempos)."],
+    tips: ["Ligue o Backup automático apontando para uma pasta do OneDrive ou Google Drive."],
+    image: "conta-luz.webp",
+  },
+];
+
+export const articleFor = (pageId: string) => ARTICLES.find((a) => a.id === pageId) ?? null;

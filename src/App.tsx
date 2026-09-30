@@ -1,4 +1,4 @@
-import { useEffect, useState, Suspense } from "react";
+import { useEffect, useRef, useState, Suspense } from "react";
 import { loadBackup, saveBackup } from "./backupActions";
 import { errorText, useToast } from "./ui/Toast";
 import AboutSheet from "./about/AboutSheet";
@@ -15,7 +15,10 @@ import Toolbar from "./ui/Toolbar";
 import CommandPalette from "./ui/CommandPalette";
 import { setPendingOpen, type SearchItem } from "./ui/search";
 import { installShortcuts, modKey } from "./ui/shortcuts";
-import { Search } from "lucide-react";
+import { CircleHelp, Search } from "lucide-react";
+import { articleFor } from "./help/articles";
+import HelpSheet from "./help/HelpSheet";
+import { openHelp } from "./help/helpStore";
 
 /** Rolagem a partir da qual o large title some e a toolbar mostra o título pequeno. */
 const TITLE_SCROLL_PX = 48;
@@ -35,13 +38,21 @@ export default function App() {
   const { reminderDays, neverBackedUp, backupNow } = useAutoBackup();
   const page = PAGES.find((p) => p.id === pageId) ?? PAGES[0];
 
-  useEffect(() => installShortcuts({ openPalette: () => setSearching(true) }), []);
+  // tela aberta para o atalho "?" (o atalho é instalado uma vez só)
+  const pageRef = useRef(pageId);
+  useEffect(() => {
+    pageRef.current = pageId;
+  }, [pageId]);
+  useEffect(() => installShortcuts({ openPalette: () => setSearching(true), openHelp: () => void (articleFor(pageRef.current) && openHelp(pageRef.current)) }), []);
 
   function pick(item: SearchItem) {
     setSearching(false);
     setPendingOpen(item.recordId !== undefined ? { pageId: item.pageId, recordId: item.recordId } : null);
-    navigate(item.pageId);
-    setReloadKey((k) => k + 1); // remonta mesmo se já estiver na página, para abrir o registro
+    if (item.pageId) {
+      navigate(item.pageId);
+      setReloadKey((k) => k + 1); // remonta mesmo se já estiver na página, para abrir o registro
+    }
+    if (item.help) openHelp(item.help);
   }
 
   function navigate(id: string) {
@@ -93,6 +104,11 @@ export default function App() {
             <Search aria-hidden /> Buscar <kbd>{modKey()}</kbd>
             <kbd>K</kbd>
           </button>
+          {articleFor(page.id) && (
+            <button className="ghost sm icon-only help-btn" onClick={() => openHelp(page.id)} aria-label={`Ajuda: ${page.label}`} title="Ajuda desta tela (?)" aria-keyshortcuts="?">
+              <CircleHelp aria-hidden />
+            </button>
+          )}
         </Toolbar>
         <div className="view">
           {reminderDays !== null && (
@@ -132,6 +148,7 @@ export default function App() {
           }}
         />
       )}
+      <HelpSheet />
       {searching && <CommandPalette pages={PAGES} onPick={pick} onClose={() => setSearching(false)} />}
       {suggesting && <SuggestDialog onClose={() => setSuggesting(false)} />}
       {afterUpdate.length > 0 && <WhatsNewModal entries={afterUpdate} onClose={closeAfterUpdate} />}

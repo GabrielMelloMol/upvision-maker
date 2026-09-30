@@ -15,6 +15,7 @@ import type { Filament } from "../domain/entities";
 import { filamentColors, loadFilaments } from "./filamentColors";
 import { useData } from "../ui/useData";
 import type { TraceDone } from "../vectorize/vectorize.worker";
+import { exampleFile, useExample } from "../help/helpStore";
 import { handoffSvg } from "./handoff";
 import TraceSettings from "./TraceSettings";
 
@@ -70,6 +71,9 @@ export default function ImageToSvg({ go }: { go: Go }) {
   const set = <K extends keyof TraceOptions>(k: K, v: TraceOptions[K]) => setOpts((o) => ({ ...o, [k]: v }));
 
   useEffect(() => () => job.current?.cancel(), []);
+
+  // "Usar exemplo" da ajuda (#84): o logo de exemplo do app
+  useExample("svg", () => void exampleFile("logo").then(onFile));
 
   async function onFile(f: File) {
     job.current?.cancel();

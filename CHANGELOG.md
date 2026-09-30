@@ -4,6 +4,9 @@ Cada versão aparece para a usuária na tela "O que há de novo" depois da atual
 Formato: `## <versão> — <data>` e itens `- …` em linguagem simples.
 
 ## Próxima versão (vira "## 0.7.1 — data" ou "## 0.8.0 — data" ao publicar; até lá o app não mostra)
+- **Ajuda dentro do app**: o botão **?** no topo (ou a tecla ?) mostra, em cada tela, como usar em poucos passos, com dicas de impressão. Várias ferramentas têm **Usar exemplo**, que carrega um desenho, uma foto ou um cálculo de demonstração.
+- **Comece por aqui** na tela inicial: criar um chaveiro, calcular um preço e fazer um orçamento.
+- **Termos técnicos explicados**: passe o mouse no ⓘ ao lado de campos como relevo, folga, potência e margem. A busca (Ctrl/⌘K) também encontra a ajuda e os termos.
 - **Correção**: a prévia do QR Code podia aparecer espremida num quadradinho depois de abrir Dados da empresa. Agora ela sempre ocupa a coluna.
 - **Sugestões chegam sem GitHub e sem e-mail**: o "Sugerir ferramenta" envia direto pelo app (com a imagem e, se quiser, o diagnóstico) e mostra "Recebido ✓". Também dá para mandar pelo WhatsApp com o texto pronto ou copiar o texto. O app guarda a lista do que você já enviou.
 

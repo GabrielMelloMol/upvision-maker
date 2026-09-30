@@ -1,8 +1,26 @@
-import { CornerDownLeft, Search } from "lucide-react";
+import { BookOpen, CircleHelp, CornerDownLeft, Search } from "lucide-react";
 import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { getDb } from "../db";
+import { ARTICLES } from "../help/articles";
+import { GLOSSARY } from "../help/glossary";
 import type { PageDef } from "../pages";
 import { loadSearchItems, rank, type SearchItem } from "./search";
+
+/** Artigos de ajuda (abrem a tela e a ajuda dela) e termos do glossário. */
+function helpItems(pages: PageDef[]): SearchItem[] {
+  const articles = ARTICLES.filter((a) => pages.some((p) => p.id === a.id)).map((a) => ({
+    id: `help-${a.id}`,
+    title: `Como usar: ${a.title}`,
+    subtitle: a.intro,
+    group: "Ajuda",
+    icon: CircleHelp,
+    pageId: a.id,
+    help: a.id,
+    keywords: [...a.steps, ...(a.tips ?? [])].join(" "),
+  }));
+  const terms = GLOSSARY.map((t) => ({ id: `term-${t.id}`, title: `O que é ${t.term}?`, subtitle: t.text, group: "Ajuda", icon: BookOpen, pageId: "", help: `term:${t.id}`, keywords: t.match.join(" ") }));
+  return [...articles, ...terms];
+}
 
 type Props = { pages: PageDef[]; onPick: (item: SearchItem) => void; onClose: () => void };
 
@@ -34,7 +52,9 @@ export default function CommandPalette({ pages, onPick, onClose }: Props) {
 
   const results = useMemo(() => {
     const screens: SearchItem[] = pages.map((p) => ({ id: `page-${p.id}`, title: p.label, subtitle: p.blurb, group: "Telas", icon: p.icon, pageId: p.id }));
-    return rank([...screens, ...records], q).slice(0, MAX_RESULTS);
+    // ajuda (#84): só aparece buscando, para não encher a lista inicial
+    const help: SearchItem[] = q.trim() ? helpItems(pages) : [];
+    return rank([...screens, ...records, ...help], q).slice(0, MAX_RESULTS);
   }, [pages, records, q]);
   const current = Math.min(active, results.length - 1);
 

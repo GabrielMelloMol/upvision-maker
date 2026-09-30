@@ -16,6 +16,7 @@ import { saveFile, slug } from "../ui/saveFile";
 import Segmented from "../ui/Segmented";
 import { errorText, useToast } from "../ui/Toast";
 import { useModelBuilder } from "../ui/useModelBuilder";
+import { useExample } from "../help/helpStore";
 import { EMPTY_QR_FORM, qrContent, type QrForm, type QrMode } from "./qrContent";
 
 const MODES = [
@@ -31,6 +32,11 @@ const LIMITS = { size: [15, 200], base: [0.8, 8], relief: [0.4, 4], quiet: [1, 6
 export default function QrCode() {
   const [mode, setMode] = useState<QrMode>("pix");
   const [form, setForm] = useState<QrForm>(EMPTY_QR_FORM);
+  // "Usar exemplo" da ajuda (#84): um link qualquer, para ver o QR e a peça 3D
+  useExample("qr", () => {
+    setMode("link");
+    setForm((cur) => ({ ...cur, link: "https://github.com/GabrielMelloMol/upvision-maker" }));
+  });
   const [view, setView] = useState<"2d" | "3d">("2d");
   const [p, setP] = useState({ size: 50, base: 2, relief: 1, quiet: 2, corner: 3 });
   const [colors, setColors] = useState([QR_BASE_COLOR, QR_DARK_COLOR]);

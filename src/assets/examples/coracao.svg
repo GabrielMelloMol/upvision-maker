@@ -1,0 +1,4 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 90" width="70mm" height="63mm">
+  <!-- exemplo do app (#84): coração com um coração menor dentro (vira carimbo no cortador) -->
+  <path fill-rule="evenodd" d="M50 88 C20 66 2 50 2 28 C2 12 14 2 28 2 C38 2 46 8 50 16 C54 8 62 2 72 2 C86 2 98 12 98 28 C98 50 80 66 50 88 Z M50 62 C38 53 30 46 30 36 C30 29 35 25 41 25 C45 25 48 27 50 31 C52 27 55 25 59 25 C65 25 70 29 70 36 C70 46 62 53 50 62 Z"/>
+</svg>
