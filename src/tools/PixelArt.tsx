@@ -128,28 +128,7 @@ export default function PixelArt() {
           </div>
           <div className="card stack">
             <Segmented label="Saída" value={opts.output} options={OUTPUTS} onChange={setO("output")} full />
-            <div className="grid two">
-              <NumField label="Pixel" value={opts.pixel} onChange={setO("pixel")} min={3} max={20} step={0.5} />
-              {opts.output === "puzzle" ? (
-                <>
-                  <NumField label="Encaixe" value={opts.pocket} onChange={setO("pocket")} min={1} max={5} hint="Profundidade da bandeja." />
-                  <NumField label="Folga" value={opts.clearance} onChange={setO("clearance")} min={0.1} max={0.5} step={0.05} hint="0,2 entra justo; aumente se prender." />
-                </>
-              ) : (
-                <>
-                  <NumField label="Fundo" value={opts.base} onChange={setO("base")} min={0} max={5} />
-                  <NumField label="Relevo" value={opts.relief} onChange={setO("relief")} min={0.4} max={4} />
-                  <NumField label="Borda" value={opts.border} onChange={setO("border")} min={0} max={10} step={0.5} />
-                </>
-              )}
-              {opts.output === "magnet" && (
-                <>
-                  <NumField label="Ímã: diâmetro" value={opts.magnetD} onChange={setO("magnetD")} min={4} max={30} step={0.5} />
-                  <NumField label="Ímã: altura" value={opts.magnetH} onChange={setO("magnetH")} min={1} max={6} step={0.5} />
-                </>
-              )}
-            </div>
-            {opts.output === "puzzle" && <Segmented label="Marca em cada casa" value={opts.marks} options={MARKS} onChange={setO("marks")} full />}
+            <NumField label="Pixel" value={opts.pixel} onChange={setO("pixel")} min={3} max={20} step={0.5} />
             <span className="hint">
               {opts.output === "puzzle"
                 ? "A bandeja sai numa peça e os pixels de cada cor num objeto próprio: dá para imprimir uma cor de cada vez, sem AMS."
@@ -158,6 +137,33 @@ export default function PixelArt() {
                   : "Uma peça multicor: o fundo e uma parte por cor em cima."}
             </span>
           </div>
+          {/* template (#139): ajuste fino recolhido */}
+          <details className="advanced">
+            <summary>Opções avançadas</summary>
+            <div className="stack">
+              <div className="grid two">
+                {opts.output === "puzzle" ? (
+                  <>
+                    <NumField label="Encaixe" value={opts.pocket} onChange={setO("pocket")} min={1} max={5} hint="Profundidade da bandeja." />
+                    <NumField label="Folga" value={opts.clearance} onChange={setO("clearance")} min={0.1} max={0.5} step={0.05} hint="0,2 entra justo; aumente se prender." />
+                  </>
+                ) : (
+                  <>
+                    <NumField label="Fundo" value={opts.base} onChange={setO("base")} min={0} max={5} />
+                    <NumField label="Relevo" value={opts.relief} onChange={setO("relief")} min={0.4} max={4} />
+                    <NumField label="Borda" value={opts.border} onChange={setO("border")} min={0} max={10} step={0.5} />
+                  </>
+                )}
+                {opts.output === "magnet" && (
+                  <>
+                    <NumField label="Ímã: diâmetro" value={opts.magnetD} onChange={setO("magnetD")} min={4} max={30} step={0.5} />
+                    <NumField label="Ímã: altura" value={opts.magnetH} onChange={setO("magnetH")} min={1} max={6} step={0.5} />
+                  </>
+                )}
+              </div>
+              {opts.output === "puzzle" && <Segmented label="Marca em cada casa" value={opts.marks} options={MARKS} onChange={setO("marks")} full />}
+            </div>
+          </details>
           <ExportButtons models={models} name="pixel-art" busy={busy} onSaved={tool.exported} />
         </div>
         <div className="preview-col">

@@ -54,6 +54,7 @@ export default function Extrude() {
             {inputError && <Alert kind="error">{inputError}</Alert>}
           </div>
           <div className="card stack">
+            <h3>Peça</h3>
             <div className="grid two">
               <NumField label="Largura" value={width} onChange={setWidth} min={5} max={300} step={1} />
               <NumField label="Altura do desenho" value={height} onChange={setHeight} min={0.2} max={100} />
@@ -61,12 +62,6 @@ export default function Extrude() {
             <label className="check">
               <input type="checkbox" checked={withBase} onChange={(e) => setWithBase(e.target.checked)} /> Base por baixo (placa na silhueta)
             </label>
-            {withBase && (
-              <div className="grid two">
-                <NumField label="Espessura da base" value={baseT} onChange={setBaseT} min={0.4} max={20} />
-                <NumField label="Margem da base" value={margin} onChange={setMargin} min={0} max={30} step={0.5} />
-              </div>
-            )}
             {multi && <p className="hint">Desenho com {svgColors.length} cores: cada uma sai como uma parte com o próprio filamento no 3MF.</p>}
             <div className="row">
               {(withBase || !multi) && (
@@ -77,6 +72,15 @@ export default function Extrude() {
               )}
             </div>
           </div>
+          {withBase && (
+            <details className="advanced">
+              <summary>Opções avançadas</summary>
+              <div className="grid two">
+                <NumField label="Espessura da base" value={baseT} onChange={setBaseT} min={0.4} max={20} />
+                <NumField label="Margem da base" value={margin} onChange={setMargin} min={0} max={30} step={0.5} />
+              </div>
+            </details>
+          )}
           <ExportButtons models={models} name={svg?.name ?? "extrusao"} busy={busy} profile={DEFAULT_PROFILE} onSaved={tool.exported} />
         </div>
         <div className="preview-col">

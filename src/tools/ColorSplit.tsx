@@ -90,7 +90,6 @@ export default function ColorSplit() {
           </div>
           <div className="card stack">
             <h3>Separação</h3>
-            <NumField label="Profundidade da cor" value={depth} onChange={setDepth} min={0.2} max={10} step={0.1} hint="Quanto cada cor pintada entra na peça. 1 mm cobre bem com 2–3 camadas por cima." />
             <div>
               <span className="field-label">Saída</span>
               <Segmented label="Saída" value={mode} options={MODES} onChange={setMode} full />
@@ -125,6 +124,12 @@ export default function ColorSplit() {
               </>
             )}
           </div>
+          <details className="advanced">
+            <summary>Opções avançadas</summary>
+            <div className="stack">
+              <NumField label="Profundidade da cor" value={depth} onChange={setDepth} min={0.2} max={10} step={0.1} hint="Quanto cada cor pintada entra na peça. 1 mm cobre bem com 2–3 camadas por cima." />
+            </div>
+          </details>
           {colors.length > 0 && models.length > 0 && (
             <div className="card stack" aria-label="Cores encontradas">
               <h3>Cores encontradas</h3>

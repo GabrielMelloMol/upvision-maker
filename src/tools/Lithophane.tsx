@@ -126,21 +126,12 @@ export default function Lithophane() {
           <div className="card stack">
             <Segmented label="Tipo" value={mode} options={MODES} onChange={setMode} full />
             <Dropzone accept={IMAGE_ACCEPT} label={file ? file.name : "Arraste uma foto ou clique"} hint="Rostos e paisagens com bom contraste ficam melhores." onFile={setFile} />
-            <div className="grid two">
-              <NumField label="Largura" value={width} onChange={setWidth} min={20} max={250} step={1} />
-              <NumField label="Detalhe" value={cell} onChange={setCell} min={0.15} max={1} step={0.05} hint="mm por ponto: menor = mais nítido e mais pesado." />
-            </div>
+            <NumField label="Largura" value={width} onChange={setWidth} min={20} max={250} step={1} />
           </div>
           {mode === "litho" ? (
             <div className="card stack">
               <h3>Litofania</h3>
               <Segmented label="Formato" value={litho.shape} options={SHAPES} onChange={setL("shape")} full />
-              <div className="grid two">
-                <NumField label="Espessura mínima" value={litho.minT} onChange={setL("minT")} min={0.4} max={3} hint="No branco: mais luz passa." />
-                <NumField label="Espessura máxima" value={litho.maxT} onChange={setL("maxT")} min={1} max={8} hint="No preto." />
-                <NumField label="Moldura" value={litho.border} onChange={setL("border")} min={0} max={15} step={0.5} />
-                {litho.shape === "curved" && <NumField label="Arco" value={litho.arc} onChange={setL("arc")} min={30} max={270} step={5} unit="°" />}
-              </div>
               <span className="hint">
                 Sai em pé, como se imprime litofania. Use filamento branco, 100% de preenchimento e camada de 0,12 mm.
                 {litho.shape === "box" && " A caixa leva a mesma foto nos 4 lados."}
@@ -149,6 +140,21 @@ export default function Lithophane() {
           ) : (
             <LayeredPanel layered={layered} setLayered={setLayered} filColors={filColors} colors={colors} nameOf={nameOf} thumb={thumb} />
           )}
+          {/* template (#139): ajuste fino recolhido */}
+          <details className="advanced">
+            <summary>Opções avançadas</summary>
+            <div className="grid two">
+              <NumField label="Detalhe" value={cell} onChange={setCell} min={0.15} max={1} step={0.05} hint="mm por ponto: menor = mais nítido e mais pesado." />
+              {mode === "litho" && (
+                <>
+                  <NumField label="Espessura mínima" value={litho.minT} onChange={setL("minT")} min={0.4} max={3} hint="No branco: mais luz passa." />
+                  <NumField label="Espessura máxima" value={litho.maxT} onChange={setL("maxT")} min={1} max={8} hint="No preto." />
+                  <NumField label="Moldura" value={litho.border} onChange={setL("border")} min={0} max={15} step={0.5} />
+                  {litho.shape === "curved" && <NumField label="Arco" value={litho.arc} onChange={setL("arc")} min={30} max={270} step={5} unit="°" />}
+                </>
+              )}
+            </div>
+          </details>
           <ExportButtons printModes={false} models={models.length ? exportModels : []} name={mode === "litho" ? "litofania" : "quadro-camadas"} busy={busy} pauses={pauses} profile={mode === "litho" ? LITHO_PROFILE : { ...LAYERED_PROFILE, layerHeight: layered.layerHeight }} onSaved={tool.exported} />
         </div>
         <div className="preview-col">

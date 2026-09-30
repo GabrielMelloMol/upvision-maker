@@ -172,10 +172,7 @@ export default function Medal() {
           <div className="card stack">
             <h3>Formato</h3>
             <Choice label="Formato" value={p.shape} options={SHAPES} onChange={set("shape")} />
-            <div className="grid two">
-              <NumField label="Tamanho" value={p.diameter} onChange={set("diameter")} min={25} max={150} step={1} />
-              <NumField label="Espessura" value={p.thickness} onChange={set("thickness")} min={1.5} max={10} />
-            </div>
+            <NumField label="Tamanho" value={p.diameter} onChange={set("diameter")} min={25} max={150} step={1} />
           </div>
           <div className="card stack">
             <h3>Textos</h3>
@@ -191,18 +188,6 @@ export default function Medal() {
                 </div>
               </div>
             ))}
-            <NumField label="Distância dos arcos até a borda" value={p.arcInset} onChange={set("arcInset")} min={0} max={10} step={0.5} hint="Maior = arco com raio menor, mais para dentro." />
-          </div>
-          <div className="card stack">
-            <h3>Borda, fundo e relevo</h3>
-            <div className="grid two">
-              <Choice label="Estilo da borda" value={p.rimStyle} options={RIMS} onChange={set("rimStyle")} />
-              <NumField label="Largura da borda" value={p.rim} onChange={set("rim")} min={0} max={12} step={0.5} />
-              <Choice label="Textura do fundo" value={p.texture} options={TEXTURES} onChange={set("texture")} />
-              <NumField label="Relevo" value={p.relief} onChange={set("relief")} min={0.4} max={5} />
-            </div>
-            <Toggle label="Baixo relevo (detalhes embutidos rente à face)" checked={p.engraved} onChange={set("engraved")} />
-            {engraveTooDeep && <Alert kind="warn">No baixo relevo o relevo precisa ser menor que a espessura (menos 0,6 mm).</Alert>}
           </div>
           <div className="card stack">
             <h3>Imagem</h3>
@@ -268,6 +253,22 @@ export default function Medal() {
               </label>
             )}
           </div>
+          {/* template (#139): espessura, arcos, borda, fundo e relevo recolhidos; os padrões já imprimem bem */}
+          <details className="advanced">
+            <summary>Opções avançadas</summary>
+            <div className="stack">
+              <div className="grid two">
+                <NumField label="Espessura" value={p.thickness} onChange={set("thickness")} min={1.5} max={10} />
+                <Choice label="Estilo da borda" value={p.rimStyle} options={RIMS} onChange={set("rimStyle")} />
+                <NumField label="Largura da borda" value={p.rim} onChange={set("rim")} min={0} max={12} step={0.5} />
+                <Choice label="Textura do fundo" value={p.texture} options={TEXTURES} onChange={set("texture")} />
+                <NumField label="Relevo" value={p.relief} onChange={set("relief")} min={0.4} max={5} />
+              </div>
+              <Toggle label="Baixo relevo (detalhes embutidos rente à face)" checked={p.engraved} onChange={set("engraved")} />
+              <NumField label="Distância dos arcos até a borda" value={p.arcInset} onChange={set("arcInset")} min={0} max={10} step={0.5} hint="Maior = arco com raio menor, mais para dentro." />
+            </div>
+          </details>
+          {engraveTooDeep && <Alert kind="warn">No baixo relevo o relevo precisa ser menor que a espessura (menos 0,6 mm).</Alert>}
           <ExportButtons models={models} name={batch ? "medalhas" : `medalha-${p.center || "sem-texto"}`} busy={busy} profile={DEFAULT_PROFILE} onSaved={tool.exported} />
         </div>
         <div className="preview-col">

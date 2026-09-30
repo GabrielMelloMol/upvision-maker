@@ -64,16 +64,7 @@ export default function CookieCutter() {
           </div>
           <div className="card stack">
             <h3>Cortador</h3>
-            <div className="grid two">
-              <NumField label="Largura" value={width} onChange={setWidth} min={LIMITS.width[0]} max={LIMITS.width[1]} step={1} />
-              <NumField label="Altura" value={p.height} onChange={set("height")} min={LIMITS.height[0]} max={LIMITS.height[1]} step={1} />
-              <NumField label="Lâmina" value={p.blade} onChange={set("blade")} min={LIMITS.blade[0]} max={LIMITS.blade[1]} />
-              <NumField label="Borda de apoio" value={p.rimWidth} onChange={set("rimWidth")} min={LIMITS.rimWidth[0]} max={LIMITS.rimWidth[1]} step={0.5} />
-              <NumField label="Altura da borda" value={p.rimHeight} onChange={set("rimHeight")} min={LIMITS.rimHeight[0]} max={LIMITS.rimHeight[1]} />
-            </div>
-            <label className="check">
-              <input type="checkbox" checked={mirror} onChange={(e) => setMirror(e.target.checked)} /> Espelhar (o biscoito sai igual ao desenho)
-            </label>
+            <NumField label="Largura" value={width} onChange={setWidth} min={LIMITS.width[0]} max={LIMITS.width[1]} step={1} />
           </div>
           <div className="card stack">
             <label className="check">
@@ -89,15 +80,32 @@ export default function CookieCutter() {
                     <option value="holes">Partes vazadas do desenho</option>
                   </select>
                 </label>
+              </>
+            )}
+          </div>
+          {/* template (#139): o que quase ninguém muda fica recolhido; os padrões já imprimem bem */}
+          <details className="advanced">
+            <summary>Opções avançadas</summary>
+            <div className="stack">
+              <div className="grid two">
+                <NumField label="Altura" value={p.height} onChange={set("height")} min={LIMITS.height[0]} max={LIMITS.height[1]} step={1} />
+                <NumField label="Lâmina" value={p.blade} onChange={set("blade")} min={LIMITS.blade[0]} max={LIMITS.blade[1]} />
+                <NumField label="Borda de apoio" value={p.rimWidth} onChange={set("rimWidth")} min={LIMITS.rimWidth[0]} max={LIMITS.rimWidth[1]} step={0.5} />
+                <NumField label="Altura da borda" value={p.rimHeight} onChange={set("rimHeight")} min={LIMITS.rimHeight[0]} max={LIMITS.rimHeight[1]} />
+              </div>
+              <label className="check">
+                <input type="checkbox" checked={mirror} onChange={(e) => setMirror(e.target.checked)} /> Espelhar (o biscoito sai igual ao desenho)
+              </label>
+              {p.stamp && (
                 <div className="grid two">
                   <NumField label="Relevo" value={p.relief} onChange={set("relief")} min={LIMITS.relief[0]} max={LIMITS.relief[1]} />
                   <NumField label="Placa" value={p.plate} onChange={set("plate")} min={LIMITS.plate[0]} max={LIMITS.plate[1]} />
                   <NumField label="Folga no cortador" value={p.clearance} onChange={set("clearance")} min={LIMITS.clearance[0]} max={LIMITS.clearance[1]} />
                   <NumField label="Margem da borda" value={p.edgeMargin} onChange={set("edgeMargin")} min={LIMITS.edgeMargin[0]} max={LIMITS.edgeMargin[1]} />
                 </div>
-              </>
-            )}
-          </div>
+              )}
+            </div>
+          </details>
           <ExportButtons models={models} name={svg ? `cortador-${svg.name}` : "cortador"} busy={busy} profile={CUTTER_PROFILE} onSaved={tool.exported} />
         </div>
         <div className="preview-col">

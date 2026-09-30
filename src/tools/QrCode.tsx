@@ -164,22 +164,26 @@ export default function QrCode() {
 
           <div className="card stack">
             <h3>Peça 3D</h3>
-            <div className="grid two">
-              <NumField label="Lado" value={p.size} onChange={setNum("size")} min={LIMITS.size[0]} max={LIMITS.size[1]} step={1} />
-              <NumField label="Cantos" value={p.corner} onChange={setNum("corner")} min={LIMITS.corner[0]} max={LIMITS.corner[1]} step={0.5} />
-              <NumField label="Base" value={p.base} onChange={setNum("base")} min={LIMITS.base[0]} max={LIMITS.base[1]} />
-              <NumField label="Relevo do código" value={p.relief} onChange={setNum("relief")} min={LIMITS.relief[0]} max={LIMITS.relief[1]} />
-              <NumField label="Margem" unit="módulos" value={p.quiet} onChange={setNum("quiet")} min={LIMITS.quiet[0]} max={LIMITS.quiet[1]} step={1} hint="2 lê bem em peça impressa." />
-            </div>
+            <NumField label="Lado" value={p.size} onChange={setNum("size")} min={LIMITS.size[0]} max={LIMITS.size[1]} step={1} />
             <div className="row">
               <ColorPick label="Cor da base" value={colors[0]} onChange={(c) => setColors([c, colors[1]])} />
               <ColorPick label="Cor do código" value={colors[1]} onChange={(c) => setColors([colors[0], c])} />
             </div>
             <span className="hint">Código escuro sobre base clara: é o que a câmera do celular lê melhor.</span>
           </div>
+          <details className="advanced">
+            <summary>Opções avançadas</summary>
+            <div className="grid two">
+              <NumField label="Cantos" value={p.corner} onChange={setNum("corner")} min={LIMITS.corner[0]} max={LIMITS.corner[1]} step={0.5} />
+              <NumField label="Base" value={p.base} onChange={setNum("base")} min={LIMITS.base[0]} max={LIMITS.base[1]} />
+              <NumField label="Relevo do código" value={p.relief} onChange={setNum("relief")} min={LIMITS.relief[0]} max={LIMITS.relief[1]} />
+              <NumField label="Margem" unit="módulos" value={p.quiet} onChange={setNum("quiet")} min={LIMITS.quiet[0]} max={LIMITS.quiet[1]} step={1} hint="2 lê bem em peça impressa." />
+            </div>
+          </details>
 
           <div className="card stack">
-            <button className="action" disabled={!text} onClick={saveSvg}>
+            {/* um só botão cheio na tela: o Salvar 3MF (#139) */}
+            <button disabled={!text} onClick={saveSvg}>
               <Download aria-hidden /> Salvar SVG (papel, adesivo, laser)
             </button>
             {mode === "pix" && (
