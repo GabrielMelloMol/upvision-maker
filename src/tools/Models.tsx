@@ -1,5 +1,5 @@
 import { Search, SearchX, Star } from "lucide-react";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import { getDb } from "../db";
 import { loadCompany } from "../db/customersRepo";
 import { isCursive, loadEmojiFont, loadFont, type FontId } from "../geometry/fonts";
@@ -9,12 +9,9 @@ import { checkText, textWarnings } from "../geometry/textCheck";
 import FontPicker from "../ui/FontPicker";
 import Alert from "../ui/Alert";
 import Dropzone from "../ui/Dropzone";
-import EmojiPicker from "../ui/EmojiPicker";
 import EmptyState from "../ui/EmptyState";
 import ExportButtons from "../ui/ExportButtons";
 import Field from "../ui/Field";
-import MoneyField from "../ui/MoneyField";
-import NumField from "../ui/NumField";
 import Preview3D from "../ui/Preview3D";
 import Segmented from "../ui/Segmented";
 import Toggle from "../ui/Toggle";
@@ -22,7 +19,7 @@ import { errorText } from "../ui/Toast";
 import { useModelBuilder } from "../ui/useModelBuilder";
 import { DESIGN_ACCEPT, designFromSvg, fileToSvg } from "./designInput";
 import { MissingInput } from "../geometry/models/common";
-import { CATEGORIES, MODELS, validParams, type Category, type FieldDef, type Params, type Section } from "./models/defs";
+import { CATEGORIES, MODELS, validParams, type Category, type Params } from "./models/defs";
 import { COLLECTIONS, inCollection, VARIANTS, type Collection } from "./models/variants";
 import { profileFor } from "./models/printProfiles";
 import { EMOJI_FIELDS } from "./models/emoji";
@@ -33,6 +30,7 @@ import DecalGizmo from "./models/DecalGizmo";
 import LayersPanel, { layerValid } from "./models/LayersPanel";
 import { useModelLayers } from "./models/useModelLayers";
 import UserVariants from "./models/UserVariants";
+import ParamField, { firstText } from "./models/ParamField";
 
 /** Minúsculas e sem acento, para a busca. */
 const normalize = (s: string) => s.normalize("NFD").replace(/\p{M}/gu, "").toLowerCase();
@@ -41,7 +39,6 @@ const ART_WIDTH_MM = 100; // o desenho é reescalado por cada modelo; aqui só n
 const FAVORITES_KEY = "upvision.favoriteModels";
 /** Seção dos campos de posição (alinhamento, arrumação) que "Restaurar posição" volta ao padrão (#79). */
 const ARRANGE_SECTION = "Arrumação";
-const MAX_SEGMENTS = 4; // acima disso a escolha vira pílulas (Segmented é para 2–4 opções)
 
 /** Miniaturas geradas por `npm run thumbs` (src/assets/model-thumbs/<id>.jpg). */
 const THUMBS: Record<string, string> = Object.fromEntries(
@@ -393,72 +390,4 @@ export default function Models() {
       </div>
     </div>
   );
-}
-
-/** Primeiro texto preenchido do modelo: é a prévia no seletor de fonte. */
-const firstText = (sections: Section[], p: Params) =>
-  sections.flatMap((s) => s.fields).map((f) => (f.kind === "text" ? String(p[f.k] ?? "").trim() : "")).find(Boolean) ?? "";
-
-type ParamProps = { f: FieldDef; value: Params[string]; onChange: (v: string | number | boolean) => void; sample?: string; emoji?: boolean };
-
-/** Texto com seletor de emoji ao lado (fora do <label>, para o rótulo nomear só o campo). */
-function EmojiText({ label, hint, max, value, onChange }: { label: string; hint?: string; max?: number; value: string; onChange: (v: string) => void }) {
-  const ref = useRef<HTMLInputElement>(null);
-  return (
-    <div className="field-with-emoji">
-      <Field label={label} hint={hint}>
-        <input ref={ref} value={value} maxLength={max} onChange={(e) => onChange(e.target.value)} />
-      </Field>
-      <EmojiPicker inputRef={ref} value={value} onChange={onChange} />
-    </div>
-  );
-}
-
-function ParamField({ f, value, onChange, sample = "", emoji }: ParamProps) {
-  switch (f.kind) {
-    case "font":
-      return (
-        <div className="span-2">
-          <FontPicker label={f.label} value={String(value)} onChange={onChange} sample={sample} />
-        </div>
-      );
-    case "num":
-      return <NumField label={f.label} value={value as number} onChange={onChange} min={f.min} max={f.max} step={f.step} unit={f.unit} hint={f.hint} />;
-    case "text":
-      if (emoji) return <EmojiText label={f.label} hint={f.hint} max={f.max} value={String(value)} onChange={onChange} />;
-      return (
-        <Field label={f.label} hint={f.hint}>
-          <input value={String(value)} maxLength={f.max} onChange={(e) => onChange(e.target.value)} />
-        </Field>
-      );
-    case "money":
-      return <MoneyField label={f.label} value={String(value)} onChange={onChange} hint={f.hint} />;
-    case "color":
-      return (
-        <label>
-          {f.label}
-          <input type="color" value={String(value)} onChange={(e) => onChange(e.target.value)} />
-        </label>
-      );
-    case "bool":
-      return <Toggle label={f.label} checked={Boolean(value)} onChange={onChange} />;
-    case "choice":
-      return (
-        <div className="span-2">
-          <span className="field-label">{f.label}</span>
-          {f.options.length > MAX_SEGMENTS ? (
-            // muitas opções: pílulas que quebram linha (o Segmented é para 2–4)
-            <div className="chips" role="group" aria-label={f.label}>
-              {f.options.map(([v, text]) => (
-                <button key={v} type="button" aria-pressed={String(value) === v} onClick={() => onChange(v)}>
-                  {text}
-                </button>
-              ))}
-            </div>
-          ) : (
-            <Segmented label={f.label} value={String(value)} options={f.options} onChange={onChange} full />
-          )}
-        </div>
-      );
-  }
 }
