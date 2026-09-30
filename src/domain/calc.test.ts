@@ -234,3 +234,23 @@ describe("taxa de falha por material ou por produto (#35)", () => {
     expect(r.failure).toBe(1.2); // 8,80 ÷ 0,88 − 8,80
   });
 });
+
+describe("desperdício multicor sem arquivo (#147)", () => {
+  test("purga ao preço médio dos filamentos, dentro da falha e do custo", () => {
+    // 100 g a R$ 100/kg + 50 g a R$ 160/kg = R$ 18,00 / 150 g → R$ 0,12/g; 20 trocas × 0,8 g = 16 g → R$ 1,92
+    const base = { ...empty, filaments: [{ pricePerKg: 100, grams: 100 }, { pricePerKg: 160, grams: 50 }] };
+    const r = calculate({ ...base, purgeGrams: 16 }, settings);
+    expect(r.purge).toBe(1.92);
+    expect(r.batchCost).toBeCloseTo(calculate(base, settings).batchCost + 1.92 * 1.05, 2); // + manutenção de 5%
+    expect(r.perGram).toBe(round(r.batchCost / 166));
+    expect(calculate({ ...base, purgeGrams: 16 }, { ...settings, failurePct: 10 }).failure).toBeCloseTo((18 + 1.92) / 0.9 - (18 + 1.92), 2);
+  });
+
+  test("sem filamento com preço, a purga não tem custo (e não quebra a conta)", () => {
+    expect(calculate({ ...empty, purgeGrams: 10 }, settings).purge).toBe(0);
+  });
+});
+
+function round(n: number) {
+  return Math.round(n * 100) / 100;
+}

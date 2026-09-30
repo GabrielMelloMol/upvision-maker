@@ -125,6 +125,7 @@ export default function Calculator({ go }: { go: Go }) {
   const r = calculate(
     {
       filaments: fil.map((l) => ({ pricePerKg: price(l.price), grams: num(l.qty) })),
+      purgeGrams: num(f.swaps) * num(f.perSwap),
       extras: ext.map((l) => ({ unitPrice: price(l.price), qty: num(l.qty) })),
       printerWatts: num(f.watts),
       printHours: printMin / 60,
@@ -358,7 +359,7 @@ export default function Calculator({ go }: { go: Go }) {
             onAdded={setDraftCount}
             onOpen={() => go("quotes")}
           />
-          {mode === "full" && <CostBreakdown r={r} s={data.settings} machinePerHour={machinePerHour} fixedPerHour={data.fixedPerHour} failure={failure} />}
+          {mode === "full" && <CostBreakdown r={r} s={data.settings} machinePerHour={machinePerHour} fixedPerHour={data.fixedPerHour} failure={failure} purge={{ swaps: num(f.swaps), grams: num(f.swaps) * num(f.perSwap) }} />}
           {mode === "full" && <PriceSplit r={r} rows={rows} freight={price(f.freight)} />}
         </aside>
       </div>

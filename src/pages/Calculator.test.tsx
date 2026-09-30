@@ -37,6 +37,30 @@ describe("Calculator", () => {
     expect(screen.getByRole("row", { name: /^Shopee/ })).toBeInTheDocument();
   });
 
+  test("trocas de cor sem arquivo viram 'Desperdício multicor' ao preço do filamento (#147)", async () => {
+    const user = userEvent.setup();
+    renderWithApp(<Calculator go={() => {}} />);
+    await user.type(screen.getByLabelText("Preço por kg"), "100");
+    await user.type(screen.getByLabelText("Gramas"), "200");
+    expect(screen.getByLabelText("Purga por troca (g)")).toHaveValue("0,8");
+    await user.type(screen.getByLabelText("Trocas de cor"), "25");
+    // 25 × 0,8 g = 20 g a R$ 0,10/g = R$ 2,00 (+ 5% de manutenção): 21,00 + 2,10
+    const row = screen.getByRole("row", { name: /^Desperdício multicor/ });
+    expect(row).toHaveTextContent("25 trocas · 20 g");
+    expect(row).toHaveTextContent(brl("2,00"));
+    expect(unitCost()).toHaveTextContent(brl("23,10"));
+  });
+
+  test("pós-processamento soma o tempo de cada etapa na mão de obra (#147)", async () => {
+    const user = userEvent.setup();
+    renderWithApp(<Calculator go={() => {}} />);
+    const labor = screen.getByLabelText(/^Mão de obra/);
+    await user.type(labor, "15");
+    await user.click(screen.getByRole("button", { name: "Lixar (10 min)" }));
+    await user.click(screen.getByRole("button", { name: "Primer ou tinta (20 min)" }));
+    expect(labor).toHaveValue("45 min");
+  });
+
   test("escolher impressora e filamento cadastrados preenche potência e preço; editar à mão desvincula", async () => {
     await t.db.execute("INSERT INTO printers (name, watts) VALUES ('Bambu A1', 95.5)");
     await t.db.execute("INSERT INTO filaments (material, color, brand, pricePerKg) VALUES ('PLA', 'Preto', 'Voolt', 120)");

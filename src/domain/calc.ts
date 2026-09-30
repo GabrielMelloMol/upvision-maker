@@ -7,6 +7,8 @@ const pos = (n: number | undefined) => (n !== undefined && Number.isFinite(n) &&
 export interface CalcInput {
   /** Valores da mesa inteira (todas as peças impressas juntas). */
   filaments: { pricePerKg: number; grams: number }[];
+  /** Purga multicor sem arquivo do fatiador (#147): trocas de cor × gramas por troca, ao preço médio dos filamentos. */
+  purgeGrams?: number;
   extras: { unitPrice: number; qty: number }[];
   printerWatts: number;
   printHours: number;
@@ -98,6 +100,8 @@ export function channelPrice(c: Channel, cost: number, marginPct: number, taxPct
 
 export function calculate(input: CalcInput, s: Settings) {
   const filament = input.filaments.reduce((t, f) => t + (pos(f.pricePerKg) / 1000) * pos(f.grams), 0);
+  const filamentGrams = input.filaments.reduce((t, f) => t + pos(f.grams), 0);
+  const purge = filamentGrams > 0 ? (filament / filamentGrams) * pos(input.purgeGrams) : 0;
   const extras = input.extras.reduce((t, e) => t + pos(e.unitPrice) * pos(e.qty), 0);
   const hours = pos(input.printHours);
   const kwh = input.energyKwh !== undefined && input.energyKwh > 0 ? input.energyKwh : (pos(input.printerWatts) / 1000) * hours;
@@ -105,11 +109,11 @@ export function calculate(input: CalcInput, s: Settings) {
   const labor = pos(input.laborHours) * pos(s.laborHourCost);
   const machine = pos(input.machinePerHour) * hours;
   // Numa falha perde-se filamento, energia e máquina; a mão de obra e a embalagem não.
-  const lost = filament + energy + machine;
+  const lost = filament + purge + energy + machine;
   const failure = lost / (1 - Math.min(pos(input.failurePct ?? s.failurePct), 90) / 100) - lost;
   const fixed = pos(input.fixedPerHour) * hours;
-  const maintenance = machine > 0 ? 0 : (filament + extras + energy + labor) * (pos(s.maintenancePct) / 100);
-  const batchCost = filament + extras + energy + labor + machine + failure + fixed + maintenance;
+  const maintenance = machine > 0 ? 0 : (filament + purge + extras + energy + labor) * (pos(s.maintenancePct) / 100);
+  const batchCost = filament + purge + extras + energy + labor + machine + failure + fixed + maintenance;
   const qty = Math.max(1, Math.floor(pos(input.quantity)));
   const unitCost = batchCost / qty;
   const freight = pos(input.freight);
@@ -120,7 +124,7 @@ export function calculate(input: CalcInput, s: Settings) {
   const consumer = base * s.multConsumer + after + freight;
   const margin = pos(input.marketplaceMarginPct) / 100;
   const tax = pos(s.taxPct) / 100;
-  const grams = input.filaments.reduce((t, f) => t + pos(f.grams), 0);
+  const grams = filamentGrams + (purge > 0 ? pos(input.purgeGrams) : 0);
   const channels: ChannelPrice[] = s.channels.map((c) => {
     const price = channelPrice(c, unitCost + freight, margin * 100, pos(s.taxPct));
     if (price === null) return { name: c.name, price: null, fees: 0, profit: 0, marginPct: 0, shippingIncluded: false };
@@ -132,6 +136,7 @@ export function calculate(input: CalcInput, s: Settings) {
   // Arredonda só no fim, para o centavo.
   return {
     filament: round2(filament),
+    purge: round2(purge),
     extras: round2(extras),
     energy: round2(energy),
     labor: round2(labor),

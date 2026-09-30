@@ -8,6 +8,7 @@ import SmartField from "../../ui/SmartField";
 import TimeField from "../../ui/TimeField";
 import SlicerImport, { type SlicerApply } from "../SlicerImport";
 import Lines from "./Lines";
+import PostProcessing from "./PostProcessing";
 import type { CalcForm, Line } from "./saved";
 
 type Options = Parameters<typeof Lines>[0]["options"];
@@ -42,6 +43,11 @@ export default function FullForm({ data, fil, setFil, ext, setExt, f, setText, s
           <Cylinder aria-hidden /> Filamentos
         </h2>
         <Lines lines={fil} setLines={setFil} options={data.filaments} priceLabel="Preço por kg" qtyLabel="Gramas" addLabel="Adicionar filamento" />
+        {/* purga multicor sem o arquivo do fatiador (#147); com o arquivo ela já vem somada nas gramas */}
+        <div className="grid two">
+          <SmartField label="Trocas de cor" inputMode="decimal" parse={parseDecimal} invalidText="Digite quantas trocas, ex.: 40." value={f.swaps} onChange={setText("swaps")} placeholder="0" hint="Sem o arquivo do fatiador. Se importou, a purga já veio nas gramas." />
+          <SmartField label="Purga por troca (g)" inputMode="decimal" parse={parseDecimal} invalidText="Digite as gramas, ex.: 0,8." value={f.perSwap} onChange={setText("perSwap")} hint="A1 com AMS: de 0,5 a 1 g por troca." />
+        </div>
       </section>
       
       <section className="card">
@@ -66,6 +72,7 @@ export default function FullForm({ data, fil, setFil, ext, setExt, f, setText, s
           </div>
           {timeField}
           <TimeField label="Mão de obra" bare="min" value={f.labor} onChange={setText("labor")} placeholder="15 min" hint="Ex.: 15 (minutos), 1h10" />
+          <PostProcessing labor={f.labor} onLabor={setText("labor")} />
           {piecesField}
           <SmartField
             label="kWh medido desta impressão"
