@@ -2,13 +2,13 @@ import type { ManifoldToplevel, Solid } from "../manifold";
 import { fitInto, scoped } from "../shape2d";
 import type { Model, Part } from "../types";
 import { moveModel, roundedRect, slab, solidMesh, type ModelCtx, type ModelOutput } from "./common";
+import { BED_MARGIN, drawerPlan, GRID, HEIGHT_UNIT, planSummary, splitAxis, type DrawerAlign } from "./gridDrawer";
 
 /*
  * Gridfinity (#93): geometria nossa, a partir das medidas públicas da especificação aberta.
  * Grade de 42 mm, altura em unidades de 7 mm; a caixinha tem 0,5 mm de folga (41,5 mm por unidade).
  */
-export const GRID = 42;
-export const HEIGHT_UNIT = 7;
+export { GRID, HEIGHT_UNIT };
 const BIN_GAP = 0.5;
 const BIN_R = 3.75; // canto da caixinha
 const BASE_R = 4; // canto da base
@@ -27,6 +27,9 @@ const SCREW_D = 3;
 const HOLE_OFFSET = 13; // furos a ±13 mm do centro de cada casa
 const EPS = 0.01;
 const LABEL_W = 13; // aba da etiqueta
+// o pé da caixinha de cima desce 0,35 abaixo do topo da parede: a aba fica 1 mm abaixo para não levantá-la (#140)
+const TAB_DROP = 1;
+const PIECE_GAP = 10; // entre os pedaços da base na mesa
 const BED_MM = 256;
 
 export type GridBinParams = {
@@ -67,8 +70,21 @@ export const DEFAULT_GRID_BIN: GridBinParams = {
   textColor: "#1c1c1e",
 };
 
-export type GridBaseParams = { unitsX: number; unitsY: number; magnets: boolean; color: string };
-export const DEFAULT_GRID_BASE: GridBaseParams = { unitsX: 4, unitsY: 3, magnets: false, color: "#1c1c1e" };
+export type GridBaseParams = {
+  unitsX: number;
+  unitsY: number;
+  magnets: boolean;
+  color: string;
+  /** "drawer": casas e margem calculadas pelas medidas da gaveta (#140). */
+  mode?: "cells" | "drawer";
+  drawerW?: number;
+  drawerD?: number;
+  drawerH?: number;
+  align?: DrawerAlign;
+  /** Quanto a mesa perde nas bordas (saia/brim): 4 mm dá 6 casas por pedaço na A1. */
+  bedMargin?: number;
+};
+export const DEFAULT_GRID_BASE: GridBaseParams = { unitsX: 4, unitsY: 3, magnets: false, color: "#1c1c1e", mode: "cells", drawerW: 500, drawerD: 420, drawerH: 80, align: "center", bedMargin: BED_MARGIN };
 
 type K = <D extends { delete(): void }>(o: D) => D;
 
@@ -144,7 +160,7 @@ export function buildGridBin({ M, text }: ModelCtx, p: GridBinParams): ModelOutp
       // aba na parede de trás, topo reto na altura da parede e 45° por baixo (imprime sem suporte).
       // perfil desenhado em (y, z) e extrudado ao longo de X: rotate([90, 0, 90]) leva x→Y, y→Z, z→X
       const tab = k(new M.CrossSection([[[0, 0], [0, -LABEL_W], [-LABEL_W, 0]]], "NonZero"));
-      body = k(body.add(k(k(k(tab.extrude(iw)).rotate([90, 0, 90])).translate([-iw / 2, id / 2, H]))));
+      body = k(body.add(k(k(k(tab.extrude(iw)).rotate([90, 0, 90])).translate([-iw / 2, id / 2, H - TAB_DROP]))));
     }
     if (p.scoop) {
       // rampa de raio ~ 1/3 da altura no pé da parede da frente
@@ -156,9 +172,12 @@ export function buildGridBin({ M, text }: ModelCtx, p: GridBinParams): ModelOutp
     if (p.lip) {
       // borda empilhável: o pé de outra caixinha encaixa por cima
       const [c1, v, c2] = LIP;
-      const shell = k(k(outer.extrude(LIP_H)).translate([0, 0, H]));
+      // apoio de 45° por baixo da borda (#140): sem ele a borda começa 1,4 mm para dentro da parede, no ar
+      const support = Math.max(0, c1 + c2 - p.wall);
+      const shell = k(k(outer.extrude(LIP_H + support)).translate([0, 0, H - support]));
       const cavity = profileSolid(M, k, W, D, BIN_R, [
-        [H - EPS, c1 + c2 + 0.001],
+        ...(support > 0 ? ([[H - support - EPS, p.wall]] as [number, number][]) : []),
+        [H - (support > 0 ? 0 : EPS), c1 + c2 + 0.001],
         [H + c1, c2],
         [H + c1 + v, c2],
         [H + LIP_H + EPS, 0],
@@ -185,16 +204,23 @@ export function buildGridBin({ M, text }: ModelCtx, p: GridBinParams): ModelOutp
   });
 }
 
-/** Quantas casas cabem por pedaço da base na mesa. */
-const cellsPerPiece = Math.floor((BED_MM - 6) / GRID);
+const rect = (M: ManifoldToplevel, x0: number, y0: number, x1: number, y1: number) => M.CrossSection.square([x1 - x0, y1 - y0]).translate([x0, y0]);
 
 /**
  * Base Gridfinity: placa com um encaixe por casa (perfil da especificação), aberta embaixo, ou com fundo e furos
- * de ímã. Maior que a mesa, sai em pedaços cortados nas divisas das casas.
+ * de ímã. Por casas ou pela medida da gaveta (casas + margem por lado, #140). Maior que a mesa, sai em pedaços
+ * cortados nas divisas das casas, contando a margem no pedaço da ponta; os cantos arredondados ficam só por fora.
  */
 export function buildGridBase({ M }: ModelCtx, p: GridBaseParams): ModelOutput {
   return scoped((k) => {
-    const nx = Math.round(p.unitsX), ny = Math.round(p.unitsY);
+    const warnings: string[] = [];
+    const drawer = p.mode === "drawer" ? drawerPlan({ width: p.drawerW ?? 0, depth: p.drawerD ?? 0, height: p.drawerH ?? 0, align: p.align, baseFloor: p.magnets ? MAGNET_H + 0.8 : 0, bedMargin: p.bedMargin }) : null;
+    const nx = drawer ? drawer.nx : Math.round(p.unitsX), ny = drawer ? drawer.ny : Math.round(p.unitsY);
+    if (!nx || !ny) throw new Error("A gaveta é menor que uma casa de 42 mm.");
+    const mX: [number, number] = drawer ? drawer.marginX : [0, 0], mY: [number, number] = drawer ? drawer.marginY : [0, 0];
+    const bedMargin = p.bedMargin ?? BED_MARGIN;
+    const xs = splitAxis(nx, mX, BED_MM, bedMargin), ys = splitAxis(ny, mY, BED_MM, bedMargin);
+    const totalW = nx * GRID + mX[0] + mX[1], totalD = ny * GRID + mY[0] + mY[1];
     const [c1, v, c2] = PLATE;
     const floor = p.magnets ? MAGNET_H + 0.8 : 0;
     const pocket = profileSolid(M, k, GRID, GRID, BASE_R, [
@@ -203,34 +229,51 @@ export function buildGridBase({ M }: ModelCtx, p: GridBaseParams): ModelOutput {
       [floor + c1 + v, c2],
       [floor + PLATE_H + EPS, 0],
     ]);
+    // contorno da base inteira (cantos redondos só aqui); cada pedaço é um recorte reto dele
+    const outline = k(k(roundedRect(M, totalW, totalD, BASE_R)).translate([totalW / 2, totalD / 2]));
+    const edges = (counts: number[], m: [number, number], total: number) => {
+      let c = 0;
+      return counts.map((n, i) => {
+        const e = { from: c, n, a: i === 0 ? 0 : m[0] + c * GRID, b: i === counts.length - 1 ? total : m[0] + (c + n) * GRID };
+        c += n;
+        return e;
+      });
+    };
+    const ex = edges(xs, mX, totalW), ey = edges(ys, mY, totalD);
+    const many = xs.length * ys.length > 1;
     const pieces: Model[] = [];
-    // pedaços de até `cellsPerPiece` casas por lado, cortados nas divisas
-    const sx = Math.ceil(nx / cellsPerPiece), sy = Math.ceil(ny / cellsPerPiece);
-    const splitCounts = (n: number, s: number) => Array.from({ length: s }, (_, i) => Math.floor((n * (i + 1)) / s) - Math.floor((n * i) / s));
-    const xs = splitCounts(nx, sx), ys = splitCounts(ny, sy);
-    let oy = 0;
-    ys.forEach((cy) => {
-      let ox = 0;
-      xs.forEach((cx) => {
-        const w = cx * GRID, d = cy * GRID;
-        let plate = k(k(roundedRect(M, w, d, BASE_R)).extrude(floor + PLATE_H));
-        const holes = cellCenters(cx, cy).map(([x, y]) => k(pocket.translate([x, y, 0])));
-        plate = k(plate.subtract(k(M.Manifold.union(holes))));
+    ey.forEach((y, iy) =>
+      ex.forEach((x, ix) => {
+        let plate = k(k(outline.intersect(k(rect(M, x.a, y.a, x.b, y.b)))).extrude(floor + PLATE_H));
+        const centers: [number, number][] = [];
+        for (let j = y.from; j < y.from + y.n; j++) for (let i = x.from; i < x.from + x.n; i++) centers.push([mX[0] + (i + 0.5) * GRID, mY[0] + (j + 0.5) * GRID]);
+        plate = k(plate.subtract(k(M.Manifold.union(centers.map(([cx, cy]) => k(pocket.translate([cx, cy, 0])))))));
         if (p.magnets) {
-          const mags = cellCenters(cx, cy).flatMap(([x, y]) =>
-            [[-1, -1], [1, -1], [1, 1], [-1, 1]].map(([a, b]) => k(k(M.Manifold.cylinder(MAGNET_H + EPS, MAGNET_D / 2, MAGNET_D / 2, 32)).translate([x + a * HOLE_OFFSET, y + b * HOLE_OFFSET, floor - MAGNET_H]))),
+          const mags = centers.flatMap(([cx, cy]) =>
+            [[-1, -1], [1, -1], [1, 1], [-1, 1]].map(([a, b]) => k(k(M.Manifold.cylinder(MAGNET_H + EPS, MAGNET_D / 2, MAGNET_D / 2, 32)).translate([cx + a * HOLE_OFFSET, cy + b * HOLE_OFFSET, floor - MAGNET_H]))),
           );
           plate = k(plate.subtract(k(M.Manifold.union(mags))));
         }
-        const name = sx * sy > 1 ? `Base ${pieces.length + 1}` : "Base";
-        // pedaços lado a lado com 10 mm entre eles (cada um cabe na mesa)
-        pieces.push(moveModel({ name, parts: [{ name: "Base", color: p.color, mesh: solidMesh(plate) }] }, ox + w / 2, -(oy + d / 2)));
-        ox += w + 10;
-      });
-      oy += cy * GRID + 10;
-    });
-    const warnings = sx * sy > 1 ? [`Base de ${nx}×${ny} casas não cabe inteira na mesa: saiu em ${sx * sy} pedaços cortados nas divisas das casas.`] : [];
+        // pedaços na mesma ordem da gaveta, afastados 10 mm (cada um cabe na mesa)
+        const moved = k(plate.translate([ix * PIECE_GAP - totalW / 2, iy * PIECE_GAP - totalD / 2, 0]));
+        pieces.push({ name: many ? `Base ${pieces.length + 1}` : "Base", parts: [{ name: "Base", color: p.color, mesh: solidMesh(moved) }] });
+      }),
+    );
+    if (drawer) warnings.push(planSummary(drawer, true, floor), ...drawer.notes);
+    if (many && !drawer) warnings.push(`Base de ${nx}×${ny} casas não cabe inteira na mesa: saiu em ${pieces.length} pedaços cortados nas divisas das casas.`);
     return { models: pieces, warnings };
   });
 }
 
+/** Peça de teste de encaixe: base 2×1 e caixinha 1×1 baixa, para conferir a folga antes da gaveta inteira (#140). */
+export function buildGridTest(ctx: ModelCtx, p: { color: string }): ModelOutput {
+  const base = buildGridBase(ctx, { ...DEFAULT_GRID_BASE, unitsX: 2, unitsY: 1, color: p.color }).models[0];
+  const bin = buildGridBin(ctx, { ...DEFAULT_GRID_BIN, unitsX: 1, unitsY: 1, unitsZ: 2, dividersX: 1, dividersY: 1, lip: false, labelTab: false, scoop: false, label: "", binColor: p.color }).models[0];
+  return {
+    models: [
+      { ...base, name: "Base de teste" },
+      { ...moveModel(bin, GRID + PIECE_GAP + GRID / 2, 0), name: "Caixinha de teste" },
+    ],
+    warnings: ["A caixinha deve entrar e sair da base sem forçar e sem folga de lado. Frouxa: a impressora está extrudando demais; não entra: de menos. Calibre o fluxo antes de imprimir a gaveta."],
+  };
+}

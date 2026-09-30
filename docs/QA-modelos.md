@@ -16,7 +16,7 @@ Para cada modelo: valores **padrão**, todos os campos numéricos no **mínimo**
 "n/a" = o modelo precisa de uma entrada que o teste não dá (ex.: foto). "app:" = aviso que o próprio app mostra na tela.
 
 
-**Total:** 215 casos · 172 ok · 23 com aviso · 20 com falha · 0 n/a
+**Total:** 219 casos · 174 ok · 25 com aviso · 20 com falha · 0 n/a
 
 ## Forja
 
@@ -152,12 +152,16 @@ Para cada modelo: valores **padrão**, todos os campos numéricos no **mínimo**
 | Quadro de metas (goalBoard) | máximo | ✅ ok | 161 | 134,5 | 1 | – | – |
 | Quadro de metas (goalBoard) | mínimo | ✅ ok | 26 | 18,0 | 1 | – | – |
 | Quadro de metas (goalBoard) | padrão | ✅ ok | 66 | 49,7 | 1 | – | – |
-| Gridfinity: base (gridBase) | máximo | ⚠️ aviso | 901 | 553,7 | 16 | – | o conjunto arrumado ocupa 870,0 × 870,0 mm: passa da mesa de 256 mm; não coube numa placa: 16 placas; app: Base de 20×20 casas não cabe inteira na mesa: saiu em 16 pedaços cortados nas divisas das casas. |
+| Gridfinity: base (gridBase) | máximo | ⚠️ aviso | 916 | 554,9 | 16 | – | o conjunto arrumado ocupa 870,0 × 870,0 mm: passa da mesa de 256 mm; não coube numa placa: 16 placas; app: Base de 20×20 casas não cabe inteira na mesa: saiu em 16 pedaços cortados nas divisas das casas. |
 | Gridfinity: base (gridBase) | mínimo | ✅ ok | 3 | 1,6 | 1 | – | – |
 | Gridfinity: base (gridBase) | padrão | ✅ ok | 27 | 16,9 | 1 | – | – |
-| Gridfinity: caixinha (gridBin) | máximo | ⚠️ aviso | 2431 | 2308,8 | 2 | – | o conjunto arrumado ocupa 251,5 × 270,5 mm: passa da mesa de 256 mm; mais de 24 h de impressão; não coube numa placa: 2 placas; app: Parede mais grossa que a borda empilhável: a borda fica com degrau por dentro. |
-| Gridfinity: caixinha (gridBin) | mínimo | ✅ ok | 19 | 10,0 | 1 | – | – |
-| Gridfinity: caixinha (gridBin) | padrão | ✅ ok | 35 | 23,4 | 1 | – | – |
+| Gridfinity: caixinha (gridBin) | máximo | ⚠️ aviso | 2433 | 2308,8 | 2 | – | o conjunto arrumado ocupa 251,5 × 270,5 mm: passa da mesa de 256 mm; mais de 24 h de impressão; não coube numa placa: 2 placas; app: Parede mais grossa que a borda empilhável: a borda fica com degrau por dentro. |
+| Gridfinity: caixinha (gridBin) | mínimo | ✅ ok | 19 | 10,1 | 1 | – | – |
+| Gridfinity: caixinha (gridBin) | padrão | ✅ ok | 36 | 23,6 | 1 | – | – |
+| Gridfinity: base pela gaveta (gridDrawerBase) | máximo | ⚠️ aviso | 1501 | 924,0 | 25 | – | o conjunto arrumado ocupa 1039,0 × 1039,0 mm: passa da mesa de 256 mm; mais de 24 h de impressão; não coube numa placa: 25 placas; app: Cabem 23 × 23 casas; margem 16,5 mm de cada lado na largura e 16,5 mm de cada lado na profundidade. Caixinhas de até 41 unidades (291,4 mm). A base sai em 25 pedaço(s). |
+| Gridfinity: base pela gaveta (gridDrawerBase) | mínimo | ✅ ok | 6 | 3,8 | 1 | – | app: Cabem 1 × 1 casas; margem 3,5 mm de cada lado na largura e 3,5 mm de cada lado na profundidade. Caixinhas de até 1 unidades (11,4 mm). A base sai em 1 pedaço(s).; app: Gaveta baixa: cabe caixinha de 1 unidade(s) (mínimo útil: 2). |
+| Gridfinity: base pela gaveta (gridDrawerBase) | padrão | ⚠️ aviso | 365 | 236,7 | 6 | – | o conjunto arrumado ocupa 519,0 × 429,0 mm: passa da mesa de 256 mm; não coube numa placa: 6 placas; app: Cabem 11 × 9 casas; margem 18,5 mm de cada lado na largura e 20,5 mm de cada lado na profundidade. Caixinhas de até 10 unidades (74,4 mm). A base sai em 6 pedaço(s). |
+| Gridfinity: teste de encaixe (gridTest) | padrão | ✅ ok | 17 | 10,3 | 1 | – | app: A caixinha deve entrar e sair da base sem forçar e sem folga de lado. Frouxa: a impressora está extrudando demais; não entra: de menos. Calibre o fluxo antes de imprimir a gaveta. |
 | Porta-chave de parede (keyHolder) | máximo | ❌ falha | – | – | – | – | "Porta-chave" não cabe na mesa de 256 mm (235,0 × 271,3 × 20,0 mm); Bambu Studio: One of the plate is empty or has no object fully inside it. Please check that the 3mf contains no empty plate in Bambu Studio before uploading. (código -50); app: Furos de 4,5 mm para parafuso com bucha 6. Ganchos aguentam chaves; para bolsa, aumente a espessura.; app: "Porta-chave" tem 235 × 271 × 20 mm e passa da mesa de 256 mm: diminua o tamanho. |
 | Porta-chave de parede (keyHolder) | mínimo | ✅ ok | 40 | 28,7 | 1 | – | app: Furos de 4,5 mm para parafuso com bucha 6. Ganchos aguentam chaves; para bolsa, aumente a espessura. |
 | Porta-chave de parede (keyHolder) | padrão | ✅ ok | 130 | 111,3 | 1 | – | app: Furos de 4,5 mm para parafuso com bucha 6. Ganchos aguentam chaves; para bolsa, aumente a espessura. |

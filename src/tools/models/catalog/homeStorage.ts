@@ -1,5 +1,5 @@
-import { Grid2x2, Grid3x3, Package } from "lucide-react";
-import { buildGridBase, buildGridBin, DEFAULT_GRID_BASE, DEFAULT_GRID_BIN } from "../../../geometry/models/gridfinity";
+import { Grid2x2, Grid3x3, Package, Ruler, TestTube } from "lucide-react";
+import { buildGridBase, buildGridBin, buildGridTest, DEFAULT_GRID_BASE, DEFAULT_GRID_BIN } from "../../../geometry/models/gridfinity";
 import { buildLidBox, DEFAULT_LID_BOX } from "../../../geometry/models/lidBox";
 import { as, bool, choice, color, num, text, type ModelDef } from "../fields";
 
@@ -104,10 +104,49 @@ export const HOME_STORAGE_MODELS: ModelDef[] = [
           num("unitsX", "Largura (casas)", 1, 20, { step: 1, unit: "" }),
           num("unitsY", "Profundidade (casas)", 1, 20, { step: 1, unit: "" }),
           bool("magnets", "Fundo com furos de ímã"),
+          num("bedMargin", "Margem da mesa", 0, 20, { step: 1, hint: "4 mm: 6 casas por pedaço na A1 (252 mm). Aumente se usar brim." }),
           color("color", "Cor"),
         ],
       },
     ],
-    build: (ctx, p) => buildGridBase(ctx, as(p)),
+    build: (ctx, p) => buildGridBase(ctx, as({ ...p, mode: "cells" })),
+  },
+  {
+    id: "gridDrawerBase",
+    category: "home",
+    label: "Gridfinity: base pela gaveta",
+    blurb: "Meça a gaveta: o app calcula as casas, a margem de cada lado, os pedaços e a altura que cabe.",
+    icon: Ruler,
+    defaults: { ...DEFAULT_GRID_BASE, mode: "drawer" },
+    sections: [
+      {
+        title: "Gaveta (medidas de dentro)",
+        fields: [
+          num("drawerW", "Largura", 50, 1000, { step: 1 }),
+          num("drawerD", "Profundidade", 50, 1000, { step: 1 }),
+          num("drawerH", "Altura livre", 20, 300, { step: 1, hint: "Do fundo da gaveta ao tampo ou à gaveta de cima." }),
+          choice("align", "Sobra", [["center", "Centralizar"], ["corner", "Encostar no canto"]]),
+        ],
+      },
+      {
+        title: "Base",
+        fields: [
+          bool("magnets", "Fundo com furos de ímã"),
+          num("bedMargin", "Margem da mesa", 0, 20, { step: 1, hint: "4 mm: 6 casas por pedaço na A1 (252 mm). Aumente se usar brim." }),
+          color("color", "Cor"),
+        ],
+      },
+    ],
+    build: (ctx, p) => buildGridBase(ctx, as({ ...p, mode: "drawer" })),
+  },
+  {
+    id: "gridTest",
+    category: "home",
+    label: "Gridfinity: teste de encaixe",
+    blurb: "Base 2×1 e caixinha 1×1 para conferir a folga antes de imprimir a gaveta inteira.",
+    icon: TestTube,
+    defaults: { color: DEFAULT_GRID_BASE.color },
+    sections: [{ title: "Teste", fields: [color("color", "Cor")] }],
+    build: (ctx, p) => buildGridTest(ctx, as(p)),
   },
 ];

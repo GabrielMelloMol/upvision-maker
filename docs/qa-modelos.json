@@ -1767,8 +1767,8 @@
    "app: Base de 20×20 casas não cabe inteira na mesa: saiu em 16 pedaços cortados nas divisas das casas."
   ],
   "date": "2026-09-30",
-  "minutes": 901,
-  "grams": 553.7,
+  "minutes": 916,
+  "grams": 554.9,
   "plates": 16
  },
  {
@@ -1811,7 +1811,7 @@
    "app: Parede mais grossa que a borda empilhável: a borda fica com degrau por dentro."
   ],
   "date": "2026-09-30",
-  "minutes": 2431,
+  "minutes": 2433,
   "grams": 2308.8,
   "plates": 2
  },
@@ -1825,7 +1825,7 @@
   "reasons": [],
   "date": "2026-09-30",
   "minutes": 19,
-  "grams": 10,
+  "grams": 10.1,
   "plates": 1
  },
  {
@@ -1837,8 +1837,74 @@
   "status": "ok",
   "reasons": [],
   "date": "2026-09-30",
-  "minutes": 35,
-  "grams": 23.4,
+  "minutes": 36,
+  "grams": 23.6,
+  "plates": 1
+ },
+ {
+  "key": "gridDrawerBase:máximo",
+  "owner": "Torno",
+  "group": "home",
+  "label": "Gridfinity: base pela gaveta (gridDrawerBase)",
+  "variant": "máximo",
+  "status": "aviso",
+  "reasons": [
+   "o conjunto arrumado ocupa 1039,0 × 1039,0 mm: passa da mesa de 256 mm",
+   "mais de 24 h de impressão",
+   "não coube numa placa: 25 placas",
+   "app: Cabem 23 × 23 casas; margem 16,5 mm de cada lado na largura e 16,5 mm de cada lado na profundidade. Caixinhas de até 41 unidades (291,4 mm). A base sai em 25 pedaço(s)."
+  ],
+  "date": "2026-09-30",
+  "minutes": 1501,
+  "grams": 924,
+  "plates": 25
+ },
+ {
+  "key": "gridDrawerBase:mínimo",
+  "owner": "Torno",
+  "group": "home",
+  "label": "Gridfinity: base pela gaveta (gridDrawerBase)",
+  "variant": "mínimo",
+  "status": "ok",
+  "reasons": [
+   "app: Cabem 1 × 1 casas; margem 3,5 mm de cada lado na largura e 3,5 mm de cada lado na profundidade. Caixinhas de até 1 unidades (11,4 mm). A base sai em 1 pedaço(s).",
+   "app: Gaveta baixa: cabe caixinha de 1 unidade(s) (mínimo útil: 2)."
+  ],
+  "date": "2026-09-30",
+  "minutes": 6,
+  "grams": 3.8,
+  "plates": 1
+ },
+ {
+  "key": "gridDrawerBase:padrão",
+  "owner": "Torno",
+  "group": "home",
+  "label": "Gridfinity: base pela gaveta (gridDrawerBase)",
+  "variant": "padrão",
+  "status": "aviso",
+  "reasons": [
+   "o conjunto arrumado ocupa 519,0 × 429,0 mm: passa da mesa de 256 mm",
+   "não coube numa placa: 6 placas",
+   "app: Cabem 11 × 9 casas; margem 18,5 mm de cada lado na largura e 20,5 mm de cada lado na profundidade. Caixinhas de até 10 unidades (74,4 mm). A base sai em 6 pedaço(s)."
+  ],
+  "date": "2026-09-30",
+  "minutes": 365,
+  "grams": 236.7,
+  "plates": 6
+ },
+ {
+  "key": "gridTest:padrão",
+  "owner": "Torno",
+  "group": "home",
+  "label": "Gridfinity: teste de encaixe (gridTest)",
+  "variant": "padrão",
+  "status": "ok",
+  "reasons": [
+   "app: A caixinha deve entrar e sair da base sem forçar e sem folga de lado. Frouxa: a impressora está extrudando demais; não entra: de menos. Calibre o fluxo antes de imprimir a gaveta."
+  ],
+  "date": "2026-09-30",
+  "minutes": 17,
+  "grams": 10.3,
   "plates": 1
  },
  {
