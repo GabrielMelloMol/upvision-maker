@@ -4,6 +4,7 @@ Cada versão aparece para a usuária na tela "O que há de novo" depois da atual
 Formato: `## <versão> — <data>` e itens `- …` em linguagem simples.
 
 ## Próxima versão (vira "## 0.8.1 — data" ou "## 0.9.0 — data" ao publicar; até lá o app não mostra)
+- **Vidro (estilo macOS 26)** na barra de cima, nas janelas por cima (como Sobre e a busca) e no seletor de modo: translúcido, com borda de luz e um brilho que acompanha o mouse. No Windows ele também refrata de leve o que está atrás. Fica simples em computador mais fraco e opaco com **Reduzir transparência** ligado no sistema.
 - **Visual novo, mais simples** (#139): a barra lateral agora tem só cinco seções (**Início, Criar, Vender, Estoque e Resultados**) e **Ajustes** embaixo. Ao abrir uma seção, as telas dela aparecem logo abaixo. Backup, restauração, novidades e sugestões ficaram em Ajustes.
 - **Criar**: todas as ferramentas e os Modelos prontos numa galeria só, com busca (sem ligar para acento) e filtro por tipo. Clicar num modelo abre a ferramenta já nele.
 - **Início novo**: atalhos para o que mais se faz, **Continuar** (o que ficou pela metade nas ferramentas) e os **pedidos da semana**.

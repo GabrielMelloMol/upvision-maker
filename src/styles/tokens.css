@@ -84,6 +84,12 @@
   --toolbar: rgb(245 245 247 / 0.72);
   --glass: rgb(255 255 255 / 0.78);
   --blur: saturate(180%) blur(20px);
+  /* Liquid Glass (#139): só em barra, sheet, busca e seletor; nunca em card de conteúdo */
+  --glass-fill: rgb(255 255 255 / 0.66);
+  --glass-fill-strong: rgb(255 255 255 / 0.88); /* sheets: texto com contraste AA sobre qualquer fundo */
+  --glass-edge: inset 0 0.5px 0 rgb(255 255 255 / 0.95), inset 0 0 0 0.5px rgb(255 255 255 / 0.5), 0 0 0 0.5px rgb(0 0 0 / 0.08);
+  --glass-shine: rgb(255 255 255 / 0.6);
+  --glass-blur: blur(22px) saturate(185%);
   --scrim: rgb(0 0 0 / 0.28);
   --toast: rgb(29 29 31 / 0.9);
 
@@ -145,6 +151,10 @@
 
     --sidebar: rgb(32 32 36 / 0.78);
     --toolbar: rgb(22 22 24 / 0.72);
+    --glass-fill: rgb(48 48 54 / 0.58);
+    --glass-fill-strong: rgb(34 34 38 / 0.9);
+    --glass-edge: inset 0 0.5px 0 rgb(255 255 255 / 0.24), inset 0 0 0 0.5px rgb(255 255 255 / 0.08), 0 0 0 0.5px rgb(0 0 0 / 0.5);
+    --glass-shine: rgb(255 255 255 / 0.12);
     --glass: rgb(40 40 44 / 0.78);
     --scrim: rgb(0 0 0 / 0.5);
     --toast: rgb(58 58 62 / 0.92);
@@ -166,7 +176,7 @@
   :root { --border: var(--border-strong); --muted: var(--text); }
 }
 @media (prefers-reduced-transparency: reduce) {
-  :root { --sidebar: var(--surface-2); --toolbar: var(--bg); --glass: var(--surface); --blur: none; }
+  :root { --sidebar: var(--surface-2); --toolbar: var(--bg); --glass: var(--surface); --blur: none; --glass-fill: var(--surface); --glass-fill-strong: var(--surface); --glass-blur: none; --glass-shine: transparent; }
 }
 
 /* Material nativo ativo (Mica / vibrancy): a janela fica transparente atrás da sidebar.
@@ -213,3 +223,7 @@
   :root { --dur-fast: 0ms; --dur: 0ms; --dur-slow: 0ms; }
   *, ::before, ::after { animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; transition-duration: 0.01ms !important; scroll-behavior: auto !important; }
 }
+
+/* Liquid Glass por aparelho (src/ui/glass.ts): off = sem vidro (reduzir transparência), lite = sem brilho que segue o mouse */
+:root[data-glass="off"] { --glass-fill: var(--surface); --glass-fill-strong: var(--surface); --glass-blur: none; --glass-shine: transparent; }
+:root[data-glass="lite"] { --glass-shine: transparent; }
