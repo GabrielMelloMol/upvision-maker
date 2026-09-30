@@ -1,7 +1,7 @@
 import { PanelLeftClose, PanelLeftOpen } from "lucide-react";
 import { SECTIONS, type PageDef, type SectionDef } from "../pages";
 import { modKey } from "./shortcuts";
-import BrandMark from "./BrandMark";
+import BrandMark, { Wordmark } from "./BrandMark";
 
 type Props = {
   pages: PageDef[];
@@ -78,7 +78,7 @@ export default function Sidebar({ pages, current, onNavigate, onNews, onSuggest,
       <div className="sidebar-head">
         <button className="brand" onClick={() => onNavigate("home")}>
           <BrandMark />
-          <span className="brand-name">UpVision Maker</span>
+          <Wordmark className="brand-name" />
         </button>
         {onToggle && !narrow && (
           <button type="button" className="ghost icon-only sm sidebar-toggle" onClick={onToggle} aria-label={rail ? "Expandir barra lateral" : "Recolher barra lateral"} title={`${rail ? "Expandir" : "Recolher"} (${modKey()}${modKey() === "⌘" ? "⌥" : "+Alt+"}S)`} aria-keyshortcuts="Meta+Alt+S Control+Alt+S">

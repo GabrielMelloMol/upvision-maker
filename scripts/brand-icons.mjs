@@ -1,8 +1,10 @@
 // Gera os ícones do app a partir de src/assets/brand/mark.svg (#138): `node scripts/brand-icons.mjs`.
-// macOS: squircle contínuo no grid da Apple (824 de 1024, sombra suave). Windows: placa com cantos
+// macOS: squircle contínuo no grid da Apple (824 de 1024), sem sombra desenhada: o sistema põe a dele (HIG). Windows: placa com cantos
 // transparentes (aparece na barra de tarefas escura), e 16/24/32 px com um desenho simplificado.
 import { execFileSync } from "node:child_process";
-import { readFileSync, rmSync, writeFileSync } from "node:fs";
+import { copyFileSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
 import { chromium } from "playwright";
 
 const INK = "#1D1D1F";
@@ -26,15 +28,14 @@ function squircle(c, r, n = 5, steps = 256) {
 }
 
 const plate = `<linearGradient id="bg" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#FFFFFF"/><stop offset="1" stop-color="#ECEFF4"/></linearGradient>`;
-// o desenho ocupa x 38–474 e y 104–468 do viewBox 512: centro em (256, 286)
-const placeMark = (size, scale) => `<g transform="translate(${size / 2 - 256 * scale} ${size / 2 - 286 * scale}) scale(${scale})">${mark}</g>`;
+// o desenho ocupa x 49–463 e y 100–467 do viewBox: centro em (256, 283)
+const placeMark = (size, scale) => `<g transform="translate(${size / 2 - 256 * scale} ${size / 2 - 283 * scale}) scale(${scale})">${mark}</g>`;
 
-const macSvg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024"><defs>${plate}
-  <filter id="sh" x="-10%" y="-10%" width="120%" height="130%"><feDropShadow dx="0" dy="12" stdDeviation="12" flood-color="#000" flood-opacity="0.25"/></filter></defs>
-  <path d="${squircle(512, 412)}" fill="url(#bg)" filter="url(#sh)"/>${placeMark(1024, 1.25)}</svg>`;
+const macSvg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024"><defs>${plate}</defs>
+  <path d="${squircle(512, 412)}" fill="url(#bg)"/>${placeMark(1024, 1.3)}</svg>`;
 
 const winSvg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024"><defs>${plate}</defs>
-  <path d="${squircle(512, 500)}" fill="url(#bg)" stroke="#D5DAE2" stroke-width="8"/>${placeMark(1024, 1.6)}</svg>`;
+  <path d="${squircle(512, 500)}" fill="url(#bg)" stroke="#D5DAE2" stroke-width="8"/>${placeMark(1024, 1.7)}</svg>`;
 
 // 16–32 px: sem trilho, bico e LEDs; moldura grossa e 3 camadas para ler de longe
 const smallSvg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32"><defs>${plate}</defs>
@@ -82,4 +83,13 @@ for (const size of [16, 24, 32]) images.push({ size, data: await png(smallSvg, s
 for (const size of [48, 64, 256]) images.push({ size, data: await png(winSvg, size) });
 writeFileSync(`${ICONS}/icon.ico`, ico(images));
 writeFileSync(`${ICONS}/32x32.png`, images[2].data);
+
+// macOS 26+ (#138): camadas no formato do Icon Composer, compiladas para Assets.car (só no Mac, com o Xcode)
+if (process.platform === "darwin") {
+  rmSync(`${ICONS}/AppIcon.icon`, { recursive: true, force: true });
+  execFileSync("python3", ["scripts/brand-mark.py", "--icon", `${ICONS}/AppIcon.icon`], { stdio: "inherit" });
+  const out = mkdtempSync(join(tmpdir(), "appicon-"));
+  execFileSync("xcrun", ["actool", `${ICONS}/AppIcon.icon`, "--compile", out, "--platform", "macosx", "--minimum-deployment-target", "11.0", "--app-icon", "AppIcon", "--output-partial-info-plist", join(out, "partial.plist")], { stdio: "ignore" });
+  copyFileSync(join(out, "Assets.car"), `${ICONS}/Assets.car`);
+}
 await browser.close();

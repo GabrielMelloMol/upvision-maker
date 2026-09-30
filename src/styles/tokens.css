@@ -64,6 +64,7 @@
   --focus-ring: rgb(37 99 235 / 0.35);
 
   --brand-orange: #f97316; /* decorativo (ícones, destaques) */
+  --brand-blue: #0a5cff; /* o "Up" do nome, como no site da UpVision (#138) */
   /* botão de exportar = o primário (#139): um só acento; laranja fica para a marca e o que tem significado */
   --action: var(--accent);
   --action-hover: var(--accent-hover);
@@ -127,6 +128,9 @@
     --accent: #2563eb;
     --accent-hover: #3b75f0;
     --accent-text: #6ea2ff;
+    --brand-blue: #4d8dff;
+    --mark-bed: #48484a; /* mesa do símbolo: preta no claro, grafite no escuro */
+    --mark-bed-top: #636366;
     --accent-soft: rgb(80 140 255 / 0.18);
     --focus-ring: rgb(110 162 255 / 0.45);
 

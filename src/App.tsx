@@ -60,6 +60,8 @@ export default function App() {
     return () => window.removeEventListener(NAVIGATE_EVENT, onGo);
   }); // tempo de abertura para o Copiar informações (#88)
   useEffect(() => installPhoneBridge(), []); // respostas para o celular na rede de casa (#16)
+  // app montado: a abertura some (src/splash.ts)
+  useEffect(() => (window as unknown as { upvisionSplashDone?: () => void }).upvisionSplashDone?.(), []);
   const sidebar = useSidebarRail();
   const toggleSidebar = sidebar.toggle;
   useEffect(() => installShortcuts({ openPalette: () => setSearching(true), openHelp: () => void (articleFor(pageRef.current) && openHelp(pageRef.current)), toggleSidebar }), [toggleSidebar]);

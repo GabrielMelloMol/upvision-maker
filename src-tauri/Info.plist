@@ -2,6 +2,9 @@
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
+  <!-- macOS 26+: ícone do Icon Composer (claro, escuro, transparente e tingido) no Assets.car; o icon.icns fica para os antigos (#138) -->
+  <key>CFBundleIconName</key>
+  <string>AppIcon</string>
   <key>NSCameraUsageDescription</key>
   <string>A câmera lê o QR das etiquetas de rolo de filamento.</string>
 </dict>
