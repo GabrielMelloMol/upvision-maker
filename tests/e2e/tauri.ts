@@ -17,6 +17,8 @@ export type TauriMock = {
   /** Resposta de ask()/confirm(). */
   askAnswer: boolean;
   calls: string[];
+  /** Zoom pedido ao webview (Tamanho do texto, #144). */
+  zoom?: number;
   /** Resposta do updater (latest.json): null = sem atualização. */
   update: { rid: number; currentVersion: string; version: string; date: null; body: null; rawJson: object } | null;
   /** Resposta da API de releases do GitHub (interceptada; null = sem internet). */
@@ -199,6 +201,9 @@ function handler(m: TauriMock, cmd: string, a: Record<string, unknown> | null, h
       if (json === undefined) throw new Error("backup não encontrado");
       return json;
     }
+    case "plugin:webview|set_webview_zoom":
+      m.zoom = Number(args.value);
+      return null;
     case "plugin:opener|open_url":
       m.opened.push(String(args.url));
       return null;
