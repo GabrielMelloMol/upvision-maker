@@ -252,5 +252,11 @@ export async function openApp(page: Page, { keepOnboarding = false } = {}) {
 export const toastWith = (page: Page, text: string) => page.locator(".toast", { hasText: text });
 
 export async function go(page: Page, label: string | RegExp) {
-  await page.getByRole("navigation", { name: "Navegação principal" }).getByRole("button", { name: label }).click();
+  // a barra lateral (#139) só mostra as seções e as telas da seção aberta; o resto se abre pela busca (⌘K)
+  const direct = page.getByRole("navigation", { name: "Navegação principal" }).getByRole("button", { name: label });
+  if (await direct.count()) return direct.first().click();
+  await page.keyboard.press("Control+k");
+  const palette = page.getByRole("dialog", { name: "Buscar" });
+  await palette.getByRole("combobox").fill(typeof label === "string" ? label : label.source.replace(/[\\^$]/g, ""));
+  await palette.getByRole("option", { name: label }).first().click();
 }

@@ -64,10 +64,11 @@
   --focus-ring: rgb(37 99 235 / 0.35);
 
   --brand-orange: #f97316; /* decorativo (ícones, destaques) */
-  --action: #c2410c; /* botão de exportar (laranja AA com texto branco) */
-  --action-hover: #9a3412;
-  --action-text: #c2410c;
-  --action-soft: rgb(249 115 22 / 0.12);
+  /* botão de exportar = o primário (#139): um só acento; laranja fica para a marca e o que tem significado */
+  --action: var(--accent);
+  --action-hover: var(--accent-hover);
+  --action-text: var(--accent-text);
+  --action-soft: var(--accent-soft);
 
   --danger: #d70015;
   --danger-soft: rgb(255 59 48 / 0.1);
@@ -129,10 +130,6 @@
     --accent-soft: rgb(80 140 255 / 0.18);
     --focus-ring: rgb(110 162 255 / 0.45);
 
-    --action: #c2410c;
-    --action-hover: #d9531d;
-    --action-text: #ff9f5a;
-    --action-soft: rgb(249 115 22 / 0.18);
 
     --danger: #ff6961;
     --danger-soft: rgb(255 69 58 / 0.16);
@@ -205,4 +202,10 @@
     --viz-5: #d55181;
     --viz-grid: rgb(255 255 255 / 0.08);
   }
+}
+
+/* Reduzir movimento (Acessibilidade do sistema): sem molas nem deslizes, as mudanças acontecem na hora */
+@media (prefers-reduced-motion: reduce) {
+  :root { --dur-fast: 0ms; --dur: 0ms; --dur-slow: 0ms; }
+  *, ::before, ::after { animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; transition-duration: 0.01ms !important; scroll-behavior: auto !important; }
 }

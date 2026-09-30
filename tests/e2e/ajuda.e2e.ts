@@ -43,6 +43,7 @@ test("busca ⌘K acha artigos e termos; ⓘ nos campos técnicos (#84)", async (
 
   // ⓘ: o campo técnico ganha a explicação como descrição (leitor de tela) e o balão no hover
   await go(page, "Chaveiros");
+  await page.getByText("Opções avançadas").click(); // ajuste fino recolhido (#139)
   const relief = page.getByLabel(/^Relevo do texto/);
   await expect(relief).toHaveAccessibleDescription(/sobressai da base/);
   await page.locator(".term-tip").first().hover();

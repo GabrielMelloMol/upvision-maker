@@ -1,4 +1,4 @@
-import { expect, openApp, test } from "./tauri";
+import { expect, go, openApp, test } from "./tauri";
 
 test("erro visto vira registro; o diagnóstico vai junto na mensagem, sem GitHub nem e-mail (#7, #83)", async ({ page, tauri }) => {
   // guarda o que for copiado (o build de teste não tem endpoint nem WhatsApp: sobra 'Copiar texto')
@@ -10,6 +10,7 @@ test("erro visto vira registro; o diagnóstico vai junto na mensagem, sem GitHub
   await openApp(page);
   tauri.files.set("/Users/ana/Downloads/ruim.json", Buffer.from('{"foo": 1}'));
   tauri.nextOpen = "/Users/ana/Downloads/ruim.json";
+  await go(page, "Ajustes");
   await page.getByRole("button", { name: "Restaurar backup" }).click();
   await expect(page.getByRole("alert").filter({ hasText: "não é um backup" })).toBeVisible();
   await expect.poll(() => tauri.log.join("\n")).toContain("não é um backup do UpVision Maker");

@@ -9,9 +9,16 @@ export const ARTICLES: HelpArticle[] = [
   {
     id: "home",
     title: "Por onde começar",
-    intro: "A barra lateral tem tudo: Ferramentas para criar peças, Gestão para custos, estoque e vendas, e Preferências.",
-    steps: ["Confira em Preferências o preço do kWh e o valor da sua hora.", "Cadastre sua impressora (Escolher do catálogo) e seus filamentos.", "Crie uma peça numa ferramenta e salve o 3MF.", "Calcule o preço na Calculadora e salve como produto."],
+    intro: "A barra lateral tem cinco seções: Criar (ferramentas e modelos), Vender, Estoque, Resultados e Ajustes.",
+    steps: ["Em Ajustes → Preferências, confira o preço do kWh e o valor da sua hora.", "Em Estoque, cadastre sua impressora (Escolher do catálogo) e seus filamentos.", "Em Criar, escolha uma ferramenta ou um modelo pronto e salve o 3MF.", "Em Vender → Calculadora, calcule o preço e salve como produto."],
     tips: ["Ctrl+K (⌘K no Mac) abre a busca: telas, produtos, clientes e artigos de ajuda.", "Tecla ? abre a ajuda da tela em que você está."],
+  },
+  {
+    id: "create",
+    title: "Criar",
+    intro: "Todas as ferramentas e os Modelos prontos num lugar só.",
+    steps: ["Busque pelo nome (ex.: chaveiro, placa, cortador) ou filtre pelo tipo.", "Clique numa ferramenta para abrir, ou num modelo pronto para abrir já nele.", "A ferramenta aberta aparece embaixo de Criar na barra lateral."],
+    tips: ["Tem um desenho ou uma foto? Veja o filtro De um desenho ou foto."],
   },
   {
     id: "svg",

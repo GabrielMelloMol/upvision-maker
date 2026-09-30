@@ -128,7 +128,7 @@ export default function Keychain() {
   return (
     <div className="page">
       <h1>Chaveiros</h1>
-      <p className="lead">Nome com fonte bonita, logo opcional e argola. Base e texto saem em cores separadas no 3MF, prontos para o AMS.</p>
+      <p className="lead">Nome e logo em 2 cores, pronto para o AMS.</p>
       <ToolSessionBar tool={tool} />
       <div className="tool-layout">
         <div className="controls">
@@ -157,7 +157,7 @@ export default function Keychain() {
             <NumField label="Altura do texto" value={textH} onChange={setTextH} min={5} max={60} step={1} />
           </div>
           <div className="card stack">
-            <h3>{silhouette ? "Silhueta" : "Logo (opcional)"}</h3>
+            <h3>{silhouette ? "Silhueta" : "Logo"}</h3>
             <Dropzone
               accept={DESIGN_ACCEPT}
               label={logo ? logo.name : silhouette ? "SVG ou imagem da silhueta" : "SVG ou imagem do logo"}
@@ -179,19 +179,10 @@ export default function Keychain() {
             <Segmented label="Formato" value={p.shape ?? "outline"} options={SHAPES} onChange={(v: KeychainShape) => set("shape")(v)} full />
             <span className="field-label">Camadas</span>
             <Segmented label="Camadas" value={String(p.layers ?? 2) as "2" | "3"} options={LAYERS} onChange={(v) => set("layers")(v === "3" ? 3 : 2)} full />
-            <div className="grid two">
-              {p.shape === "rect" && <NumField label="Largura da etiqueta" value={p.rectWidth!} onChange={set("rectWidth")} min={30} max={150} step={1} />}
-              <NumField label="Espessura" value={p.base} onChange={set("base")} min={0.8} max={8} />
-              <NumField label="Relevo do texto" value={p.relief} onChange={set("relief")} min={0.4} max={5} />
-              <NumField label="Borda" value={p.border} onChange={set("border")} min={1} max={10} step={0.5} />
-            </div>
+            {p.shape === "rect" && <NumField label="Largura da etiqueta" value={p.rectWidth!} onChange={set("rectWidth")} min={30} max={150} step={1} />}
             <label className="check">
               <input type="checkbox" checked={p.ring} onChange={(e) => set("ring")(e.target.checked)} /> Argola com furo à esquerda
             </label>
-            <label className="check">
-              <input type="checkbox" checked={!!p.resin} onChange={(e) => set("resin")(e.target.checked)} /> Cavidade para resina (borda elevada)
-            </label>
-            {p.resin && <NumField label="Profundidade da resina" value={p.resinDepth ?? 1.5} onChange={set("resinDepth")} min={0.6} max={4} />}
             <div className="row">
               <ColorPick label="Cor da base" value={p.baseColor} onChange={set("baseColor")} />
               {p.layers === 3 && (
@@ -199,6 +190,21 @@ export default function Keychain() {
               )}
               <ColorPick label="Cor do texto" value={p.topColor} onChange={set("topColor")} />
             </div>
+            {/* template (#139): o que quase ninguém muda fica recolhido */}
+            <details className="advanced">
+              <summary>Opções avançadas</summary>
+              <div className="stack">
+                <div className="grid two">
+                  <NumField label="Espessura" value={p.base} onChange={set("base")} min={0.8} max={8} />
+                  <NumField label="Relevo do texto" value={p.relief} onChange={set("relief")} min={0.4} max={5} />
+                  <NumField label="Borda" value={p.border} onChange={set("border")} min={1} max={10} step={0.5} />
+                </div>
+                <label className="check">
+                  <input type="checkbox" checked={!!p.resin} onChange={(e) => set("resin")(e.target.checked)} /> Cavidade para resina (borda elevada)
+                </label>
+                {p.resin && <NumField label="Profundidade da resina" value={p.resinDepth ?? 1.5} onChange={set("resinDepth")} min={0.6} max={4} />}
+              </div>
+            </details>
           </div>
           <ExportButtons models={models} name={batch ? "chaveiros" : `chaveiro-${splitLines(text).join(" ") || "logo"}`} busy={busy} profile={DEFAULT_PROFILE} onSaved={tool.exported} />
         </div>

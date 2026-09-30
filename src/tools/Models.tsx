@@ -32,6 +32,8 @@ import { useModelLayers, type ModelEdits } from "./models/useModelLayers";
 import UserVariants from "./models/UserVariants";
 import ToolSessionBar from "./ToolSessionBar";
 import { useToolState } from "./useToolState";
+import { takeIntent } from "./intent";
+import { THUMBS } from "./models/thumbs";
 import ParamField, { firstText } from "./models/ParamField";
 
 /** Minúsculas e sem acento, para a busca. */
@@ -42,10 +44,6 @@ const FAVORITES_KEY = "upvision.favoriteModels";
 /** Seção dos campos de posição (alinhamento, arrumação) que "Restaurar posição" volta ao padrão (#79). */
 const ARRANGE_SECTION = "Arrumação";
 
-/** Miniaturas geradas por `npm run thumbs` (src/assets/model-thumbs/<id>.jpg). */
-const THUMBS: Record<string, string> = Object.fromEntries(
-  Object.entries(import.meta.glob("../assets/model-thumbs/*.jpg", { eager: true, query: "?url", import: "default" }) as Record<string, string>).map(([path, url]) => [path.replace(/^.*\/(.+)\.jpg$/, "$1"), url]),
-);
 
 function loadFavorites(): string[] {
   try {
@@ -84,7 +82,12 @@ export default function Models() {
   const { adopt } = tool;
   const [setId, setAll, setFont, setArt, setBatchOn, setBatchText] = [tool.field("id"), tool.field("all"), tool.field("font"), tool.field("art"), tool.field("batchOn"), tool.field("batchText")];
   const [artError, setArtError] = useState<string | null>(null);
-  const [category, setCategory] = useState<Category>(MODELS[0].category);
+  // aberto pela galeria Criar (#139): já vem com o modelo escolhido, sem virar passo de desfazer
+  const [wanted] = useState(() => MODELS.find((m) => m.id === takeIntent<{ id: string }>("models")?.id));
+  const [category, setCategory] = useState<Category>(wanted?.category ?? MODELS[0].category);
+  useEffect(() => {
+    if (wanted) adopt((cur) => ({ ...cur, id: wanted.id }));
+  }, [adopt, wanted]);
   const [query, setQuery] = useState("");
   const [missing, setMissing] = useState<string | null>(null);
   // ocasião ou favoritos: filtro que atravessa as categorias (como a busca)
