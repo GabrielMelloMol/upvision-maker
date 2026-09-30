@@ -19,6 +19,7 @@ import { read3mf } from "../geometry/threemfRead";
 import type { Model } from "../geometry/types";
 import { bedWarnings } from "../tools/models/bedCheck";
 import { testArt, type QaCase } from "./cases";
+import { drawerCases } from "./drawerCases";
 
 /**
  * Ferramentas avulsas (fora dos Modelos prontos) na varredura (#90): mesma geometria que a tela chama, com os limites
@@ -173,5 +174,7 @@ export function toolCases(M: ManifoldToplevel): QaCase[] {
       ["máximo", () => split(10, false)],
       ["corte com pino", () => split(1, true)],
     ]),
+    // organizador de gaveta e talheres (#140): casos do Torno
+    ...drawerCases(M),
   ];
 }

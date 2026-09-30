@@ -55,6 +55,16 @@ describe("talheres em 2 andares: bandeja e trilhos (#140)", { timeout: 60_000 },
     for (const r of rails) expect(volume(r.parts[0].mesh)).toBeGreaterThan(0);
   });
 
+  test("gaveta alta: trilhos e peça de teste cabem na mesa, sem cortar o trilho na altura (#148)", () => {
+    const plan = cutleryPlan({ width: 500, depth: 500, height: 400 });
+    const rails = buildRails(M, 500, plan.lowerHeight, "#1c1c1e");
+    expect(rails).toHaveLength(4);
+    for (const m of [...rails, ...buildRailTest(M, plan.lowerHeight, "#2563eb")]) {
+      const b = modelsBounds([m])!;
+      expect(Math.max(b.max[0] - b.min[0], b.max[1] - b.min[1])).toBeLessThanOrEqual(256);
+    }
+  });
+
   test("peça de teste do trilho: um pedaço curto do trilho e um canto da bandeja", () => {
     const out = buildRailTest(M, 60, "#2563eb");
     expect(out.map((m) => m.name)).toEqual(["Teste do trilho", "Canto da bandeja"]);

@@ -1,5 +1,5 @@
 import { expect, test } from "vitest";
-import { cutleryPlan, TRAY_DEPTH } from "./cutleryPlan";
+import { cutleryPlan, RAIL_MAX_HEIGHT, TRAY_DEPTH } from "./cutleryPlan";
 
 test("gaveta funda (500 mm): 2 andares, bandeja desliza na profundidade, trilhos tiram largura da base (#140)", () => {
   const p = cutleryPlan({ width: 500, depth: 500, height: 110 });
@@ -38,4 +38,11 @@ test("obstáculo nas laterais (trilho metálico) tira da largura útil", () => {
 test("gaveta estreita demais para as 4 divisões de talheres avisa", () => {
   const p = cutleryPlan({ width: 200, depth: 500, height: 110 });
   expect(p.notes.join(" ")).toMatch(/estreit/);
+});
+
+test("gaveta muito alta: andar de baixo com teto (trilhos cabem deitados na mesa) e aviso de espaço em cima (#148)", () => {
+  const p = cutleryPlan({ width: 500, depth: 500, height: 400 });
+  expect(p.lowerHeight).toBeLessThanOrEqual(RAIL_MAX_HEIGHT);
+  expect(RAIL_MAX_HEIGHT).toBeLessThan(256 - 10);
+  expect(p.notes.join(" ")).toMatch(/sobra/);
 });

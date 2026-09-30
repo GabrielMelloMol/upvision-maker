@@ -8,6 +8,8 @@ export const TRAY_HEIGHT = 45; // talher deitado + fundo + folga
 export const TRAY_MAX_WIDTH = 250; // cabe na mesa da A1
 export const MIN_TWO_LEVELS = 80;
 export const RAIL_WIDTH = 12; // pé do trilho encostado na lateral
+/** Teto do andar de baixo: o trilho imprime deitado e a altura dele vira largura na mesa (#148). */
+export const RAIL_MAX_HEIGHT = 200;
 const TRAY_GAP = 3; // entre a bandeja e o obstáculo de cima
 const SIDE_CLEAR = 1; // folga da bandeja para os trilhos, de cada lado
 const SLIDE_FACTOR = 1.8; // profundidade ≥ 1,8 × bandeja: dá para empurrar e chegar no andar de baixo
@@ -68,6 +70,8 @@ export function cutleryPlan({ width, depth, height, sideObstacle = 0 }: CutleryI
       ? "A bandeja desliza para o fundo nos trilhos: empurre para chegar nas caixinhas da frente."
       : `A gaveta não tem fundo para a bandeja deslizar (precisaria de ${Math.round(trayDepth * SLIDE_FACTOR)} mm): ela fica apoiada nos trilhos e levanta pelas alças para chegar embaixo.`,
   );
-  const lowerHeight = height - TRAY_HEIGHT - TRAY_GAP;
+  const room = height - TRAY_HEIGHT - TRAY_GAP;
+  const lowerHeight = Math.min(room, RAIL_MAX_HEIGHT);
+  if (room > lowerHeight) notes.push(`Gaveta alta: a bandeja fica a ${lowerHeight} mm do fundo (trilhos de até ${RAIL_MAX_HEIGHT} mm cabem na mesa) e sobra ${Math.round(room - lowerHeight)} mm em cima dela.`);
   return { levels, innerWidth, railWidth: RAIL_WIDTH, baseWidth, lowerHeight, trayHeight: TRAY_HEIGHT, trayDepth, trays, slide, notes };
 }
