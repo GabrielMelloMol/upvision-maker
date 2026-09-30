@@ -6,6 +6,7 @@ import { OrderInput, OrderItem, STATUSES } from "../domain/orders";
 import { ProductInput } from "../domain/products";
 import { CalcHistoryInput } from "./calcHistoryRepo";
 import { ModelVariantInput } from "./modelVariantsRepo";
+import { ToolProjectInput, ToolStateRow } from "./toolStateRepo";
 
 const id = z.number().int().positive();
 
@@ -44,6 +45,8 @@ export const TABLES = {
   operational_costs: OperationalCostInput.extend({ id }),
   calc_history: CalcHistoryInput.extend({ id }),
   model_variants: ModelVariantInput.extend({ id }),
+  tool_state: ToolStateRow,
+  tool_projects: ToolProjectInput.extend({ id }),
 };
 
 export type TableName = keyof typeof TABLES;

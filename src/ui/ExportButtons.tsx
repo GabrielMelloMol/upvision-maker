@@ -27,10 +27,12 @@ type Props = {
   printModes?: boolean;
   /** Configuração de impressão recomendada: vai no 3MF (Bambu/Orca) e aparece na tela. */
   profile?: PrintProfile;
+  /** Depois de salvar um arquivo (com o `name` legível): a ferramenta guarda o projeto nos "Últimos projetos" (#85). */
+  onSaved?: (fileName: string) => void;
 };
 
 /** Botões padrão de exportação: 3MF com cores (principal) e STL por objeto, ajustados ao jeito de imprimir. */
-export default function ExportButtons({ models: input, name, busy, pauses: inputPauses, printModes = true, profile }: Props) {
+export default function ExportButtons({ models: input, name, busy, pauses: inputPauses, printModes = true, profile, onSaved }: Props) {
   const toast = useToast();
   const [mode, setMode] = useState<PrintMode>("ams");
   const [layer, setLayer] = useState(profile?.layerHeight ?? 0.2);
@@ -46,7 +48,10 @@ export default function ExportButtons({ models: input, name, busy, pauses: input
   async function save(file: string, data: Uint8Array | (() => Promise<Uint8Array>), ext: string, label: string) {
     try {
       const p = await saveFile(file, typeof data === "function" ? await data() : data, ext, label);
-      if (p) toast(`Arquivo salvo em ${p}`);
+      if (p) {
+        toast(`Arquivo salvo em ${p}`);
+        onSaved?.(name);
+      }
     } catch (e) {
       toast(`Não foi possível salvar: ${errorText(e)}`, "error");
     }

@@ -19,6 +19,8 @@ import Segmented from "../ui/Segmented";
 import { useModelBuilder } from "../ui/useModelBuilder";
 import { clearHandoff, peekHandoff } from "./handoff";
 import { DESIGN_ACCEPT, designFromSvg, fileToSvg, svgFillColors } from "./designInput";
+import ToolSessionBar from "./ToolSessionBar";
+import { useToolState } from "./useToolState";
 import { errorText } from "../ui/Toast";
 
 const PLATE_MM = 256;
@@ -30,19 +32,28 @@ const SHAPES = [["outline", "Contorno"], ["rect", "Retângulo"], ["silhouette", 
 const LAYERS = [["2", "2 cores"], ["3", "3 cores"]] as const;
 
 export default function Keychain() {
-  const [batch, setBatch] = useState(false);
-  const [text, setText] = useState("Ana");
+  // estado de trabalho: desfazer, rascunho guardado e últimos projetos (#85)
+  const tool = useToolState(
+    "keychain",
+    () => ({
+      batch: false,
+      text: "Ana",
+      names: "Ana\nBia\nCaio",
+      font: "pacifico" as FontId,
+      textH: 14,
+      // SVG vindo do Imagem → SVG (pode ser colorido)
+      logo: peekHandoff() as { svg: string; name: string } | null,
+      logoH: 16,
+      p: DEFAULT_KEYCHAIN as KeychainParams,
+    }),
+    { label: "Chaveiro" },
+  );
+  const { batch, text, names, font, textH, logo, logoH, p } = tool.state;
+  const [setBatch, setText, setNames, setFont, setTextH, setLogo, setLogoH] = [tool.field("batch"), tool.field("text"), tool.field("names"), tool.field("font"), tool.field("textH"), tool.field("logo"), tool.field("logoH")];
   const textRef = useRef<HTMLInputElement>(null);
-  const [names, setNames] = useState("Ana\nBia\nCaio");
-  const [font, setFont] = useState<FontId>("pacifico");
-  const [textH, setTextH] = useState(14);
-  // SVG vindo do Imagem → SVG (pode ser colorido)
-  const [logo, setLogo] = useState<{ svg: string; name: string } | null>(() => peekHandoff());
   useEffect(clearHandoff, []);
-  const [logoH, setLogoH] = useState(16);
   const [logoError, setLogoError] = useState<string | null>(null);
-  const [p, setP] = useState<KeychainParams>(DEFAULT_KEYCHAIN);
-  const set = <K extends keyof KeychainParams>(k: K) => (v: KeychainParams[K]) => setP((o) => ({ ...o, [k]: v }));
+  const set = <K extends keyof KeychainParams>(k: K) => (v: KeychainParams[K]) => tool.set((cur) => ({ ...cur, p: { ...cur.p, [k]: v } }), `p.${String(k)}`);
 
   const list = batch ? parseNames(names).slice(0, MAX_BATCH) : [text.trim()].filter(Boolean);
   const silhouette = p.shape === "silhouette";
@@ -117,6 +128,7 @@ export default function Keychain() {
     <div className="page">
       <h1>Chaveiros</h1>
       <p className="lead">Nome com fonte bonita, logo opcional e argola. Base e texto saem em cores separadas no 3MF, prontos para o AMS.</p>
+      <ToolSessionBar tool={tool} />
       <div className="tool-layout">
         <div className="controls">
           <div className="card stack">
@@ -196,7 +208,7 @@ export default function Keychain() {
               </label>
             </div>
           </div>
-          <ExportButtons models={models} name={batch ? "chaveiros" : `chaveiro-${splitLines(text).join(" ") || "logo"}`} busy={busy} profile={DEFAULT_PROFILE} />
+          <ExportButtons models={models} name={batch ? "chaveiros" : `chaveiro-${splitLines(text).join(" ") || "logo"}`} busy={busy} profile={DEFAULT_PROFILE} onSaved={tool.exported} />
         </div>
         <div className="preview-col">
           <Preview3D models={models} busy={busy} busyText="Gerando chaveiros…" error={error} emptyText={!valid ? "Corrija os campos em vermelho." : silhouette && !logo ? "Envie a silhueta (SVG ou imagem) para ver o chaveiro." : "Digite um nome para ver o chaveiro."} />

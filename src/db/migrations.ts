@@ -84,6 +84,11 @@ export const MIGRATIONS: string[][] = [
     "ALTER TABLE products ADD COLUMN boxW REAL",
     "ALTER TABLE products ADD COLUMN boxH REAL",
   ],
+  // Não perder trabalho (#85): estado atual de cada ferramenta e os últimos projetos exportados; entram no backup.
+  [
+    "CREATE TABLE tool_state (id TEXT PRIMARY KEY, data TEXT NOT NULL, updatedAt TEXT NOT NULL)",
+    "CREATE TABLE tool_projects (id INTEGER PRIMARY KEY, toolId TEXT NOT NULL, name TEXT NOT NULL DEFAULT '', data TEXT NOT NULL, thumb TEXT, at TEXT NOT NULL)",
+  ],
 ];
 
 export const SCHEMA_VERSION = MIGRATIONS.length;

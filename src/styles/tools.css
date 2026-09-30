@@ -113,3 +113,14 @@ button.example svg { color: var(--brand-orange); }
 .emoji-pop button { width: 36px; min-height: 36px; padding: 0; font-size: 20px; line-height: 1; border-radius: var(--r-sm); }
 .field-with-emoji { display: flex; gap: 6px; align-items: flex-end; }
 .field-with-emoji > label { flex: 1; min-width: 0; }
+
+/* Não perder trabalho (#85): continuar, desfazer e últimos projetos */
+.resume-banner { margin-bottom: var(--space-3); }
+.resume-banner > span { flex: 1; }
+.session-bar { display: flex; align-items: center; gap: var(--space-1); margin-bottom: var(--space-2); }
+.project-grid { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: var(--space-3); }
+.project-grid li { position: relative; }
+.project-open { width: 100%; display: grid; gap: 4px; padding: var(--space-2); border-radius: var(--r); background: var(--surface-raised); box-shadow: var(--shadow-1); text-align: left; color: var(--text); font-size: var(--text-sm); }
+.project-open img, .project-nothumb { width: 100%; aspect-ratio: 4 / 3; object-fit: contain; border-radius: var(--r-sm); background: var(--surface-2); display: block; }
+.project-open strong { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.project-grid li > .danger { position: absolute; top: 6px; right: 6px; background: var(--surface-raised); }

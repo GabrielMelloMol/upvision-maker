@@ -4,6 +4,7 @@ Cada versão aparece para a usuária na tela "O que há de novo" depois da atual
 Formato: `## <versão> — <data>` e itens `- …` em linguagem simples.
 
 ## Próxima versão (vira "## 0.7.1 — data" ou "## 0.8.0 — data" ao publicar; até lá o app não mostra)
+- **Não perder trabalho** (começando pelos Chaveiros): o que você está fazendo fica guardado sozinho e, ao voltar, aparece "Continuar de onde parou" ou "Começar do zero". **Desfazer e refazer** (botões ou ⌘Z / ⇧⌘Z) e **Últimos projetos**: os 10 últimos arquivos salvos, com miniatura, para reabrir com um toque. Tudo entra no backup.
 - **Ajuda dentro do app**: o botão **?** no topo (ou a tecla ?) mostra, em cada tela, como usar em poucos passos, com dicas de impressão. Várias ferramentas têm **Usar exemplo**, que carrega um desenho, uma foto ou um cálculo de demonstração.
 - **Comece por aqui** na tela inicial: criar um chaveiro, calcular um preço e fazer um orçamento.
 - **Termos técnicos explicados**: passe o mouse no ⓘ ao lado de campos como relevo, folga, potência e margem. A busca (Ctrl/⌘K) também encontra a ajuda e os termos.

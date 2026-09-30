@@ -12,6 +12,17 @@ type Props = {
   emptyText?: string;
 };
 
+// prévia na tela agora (uma por ferramenta): dá a miniatura dos "Últimos projetos" (#85)
+let active: ReturnType<typeof createViewer> | null = null;
+/** Miniatura WebP da prévia 3D aberta, ou null (sem prévia ou vazia). */
+export const snapshotPreview = (max?: number) => {
+  try {
+    return active?.snapshot(max) ?? null;
+  } catch {
+    return null; // sem WebGL (testes) ou canvas indisponível: sem miniatura
+  }
+};
+
 /** Prévia 3D padrão de todas as ferramentas: Z para cima, mesa 256 mm, girar/zoom com o mouse. */
 export default function Preview3D({ models, busy, busyText = "Gerando modelo…", error, emptyText = "A prévia aparece aqui." }: Props) {
   const host = useRef<HTMLDivElement>(null);
@@ -20,7 +31,9 @@ export default function Preview3D({ models, busy, busyText = "Gerando modelo…"
   useEffect(() => {
     const v = createViewer(host.current!);
     viewer.current = v;
+    active = v;
     return () => {
+      if (active === v) active = null;
       v.dispose();
       viewer.current = null;
     };

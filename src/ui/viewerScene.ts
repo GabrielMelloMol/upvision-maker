@@ -173,6 +173,18 @@ export function createViewer(el: HTMLElement) {
       frame(wasEmpty);
       render();
     },
+    /** Miniatura da cena (WebP, lado maior `max` px): renderiza e lê no mesmo passo (sem preserveDrawingBuffer). */
+    snapshot(max = 200): string | null {
+      if (!group.children.length) return null;
+      render();
+      const src = renderer.domElement;
+      const k = Math.min(1, max / Math.max(src.width, src.height));
+      const c = document.createElement("canvas");
+      c.width = Math.max(1, Math.round(src.width * k));
+      c.height = Math.max(1, Math.round(src.height * k));
+      c.getContext("2d")?.drawImage(src, 0, 0, c.width, c.height);
+      return c.toDataURL("image/webp", 0.7);
+    },
     dispose() {
       cancelAnimationFrame(raf);
       scheme.removeEventListener("change", onScheme);
