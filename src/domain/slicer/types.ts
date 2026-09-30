@@ -1,6 +1,8 @@
 /** estimatedDiameterMm: as gramas vieram dos metros (fatiador sem peso); refazer com a densidade do material escolhido. */
 export type SlicerFilament = { index: number; type?: string; color?: string; grams?: number; meters?: number; estimatedDiameterMm?: number };
 
+import type { SlicerWaste } from "./waste";
+
 /** O que foi lido de um arquivo de fatiador (tudo opcional: cada fatiador informa coisas diferentes). */
 export type SlicerReport = {
   source: string;
@@ -10,6 +12,8 @@ export type SlicerReport = {
   seconds?: number;
   pieces?: number;
   filaments: SlicerFilament[];
+  /** Purga/torre de impressão multicor (#147), quando o arquivo permite calcular. */
+  waste?: SlicerWaste;
   warnings: string[];
 };
 

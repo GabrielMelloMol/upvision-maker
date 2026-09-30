@@ -14,7 +14,7 @@ test("histórico: guarda sozinho, Limpar começa outro, Reabrir volta os valores
   const rows = card.locator("tbody tr");
   await expect(rows).toHaveCount(1);
   await expect(rows.first()).toContainText("Chaveiros da turma");
-  await expect(rows.first()).toContainText("4,3 g");
+  await expect(rows.first()).toContainText("5,1 g");
 
   // continuar editando atualiza o mesmo cálculo; Limpar começa outro
   await page.getByLabel("Nome da peça").fill("Chaveiros da turma B");
@@ -30,7 +30,7 @@ test("histórico: guarda sozinho, Limpar começa outro, Reabrir volta os valores
   if (process.env.SHOTS_DIR) await card.screenshot({ path: `${process.env.SHOTS_DIR}/calc-historico.png` });
   await card.getByRole("button", { name: "Reabrir Chaveiros da turma B" }).click();
   await expect(page.getByLabel("Nome da peça")).toHaveValue("Chaveiros da turma B");
-  await expect(page.getByLabel("Gramas").nth(1)).toHaveValue("0,55");
+  await expect(page.getByLabel("Gramas").nth(1)).toHaveValue("1,33");
   expect((tauri.db.prepare("SELECT COUNT(*) AS n FROM calc_history").get() as { n: number }).n).toBe(2);
 
   await card.getByRole("button", { name: "Apagar Vaso" }).click();

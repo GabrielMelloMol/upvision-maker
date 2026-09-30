@@ -157,7 +157,7 @@ describe("Calculator", () => {
     expect(screen.getByLabelText("Potência (W)")).toHaveValue("110");
     expect(screen.getByLabelText("Tempo de impressão")).toHaveValue("21 min");
     expect(screen.getByLabelText("Peças na mesa")).toHaveValue("3");
-    expect(screen.getAllByLabelText("Gramas").map((i) => (i as HTMLInputElement).value)).toEqual(["3,79", "0,55"]);
+    expect(screen.getAllByLabelText("Gramas").map((i) => (i as HTMLInputElement).value)).toEqual(["3,79", "1,33"]);
     expect(screen.getAllByLabelText("Preço por kg").map((i) => (i as HTMLInputElement).value)).toEqual(["120,00", "110,00"]);
   });
 });

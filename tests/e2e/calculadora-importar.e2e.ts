@@ -14,7 +14,7 @@ test("calculadora: importa o 3MF fatiado do Bambu e preenche filamentos, tempo, 
   await expect(page.getByText("Lido de")).toBeVisible();
   await expect(page.getByText("Bambu Lab A1", { exact: true })).toBeVisible();
   await expect(page.getByLabel("Gramas").nth(0)).toHaveValue("3,79");
-  await expect(page.getByLabel("Gramas").nth(1)).toHaveValue("0,55");
+  await expect(page.getByLabel("Gramas").nth(1)).toHaveValue("1,33");
   await expect(page.getByLabel("Preço por kg").nth(0)).toHaveValue("120,00"); // azul casado
   await expect(page.getByLabel("Preço por kg").nth(1)).toHaveValue("110,00"); // branco casado
   await expect(page.getByLabel("Tempo de impressão")).toHaveValue("21 min");

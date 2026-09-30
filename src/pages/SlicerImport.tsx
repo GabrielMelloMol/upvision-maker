@@ -3,10 +3,11 @@ import { useEffect, useState } from "react";
 import type { Filament, Printer } from "../domain/entities";
 import { parseSlicerFile, SLICER_ACCEPT, type SlicerReport } from "../domain/slicer";
 import { gramsFromMeters } from "../domain/slicer/gcodeText";
-import type { SlicerFilament } from "../domain/slicer/types";
+import { round2, type SlicerFilament } from "../domain/slicer/types";
 import { colorHex, filamentDraft, isCloseMatch, matchFilament, matchPrinter } from "../domain/slicer/match";
 import { FILAMENT_COLORS } from "../ui/ColorDots";
 import NewFilamentSheet from "./calculator/NewFilamentSheet";
+import WasteNote, { purgeFor } from "./calculator/WasteNote";
 import { takePendingSlicerFile } from "./calculator/pendingFile";
 import Alert from "../ui/Alert";
 import Card from "../ui/Card";
@@ -60,7 +61,8 @@ export default function SlicerImport({ stock, printers, onApply, onStockAdded }:
   const apply = (r: SlicerReport, map: (number | null)[]) => {
     const printer = printers.find((p) => p.id === matchPrinter(r.printer, printers));
     onApply({
-      filaments: r.filaments.map((f, i) => ({ filamentId: map[i], pricePerKg: stock.find((s) => s.id === map[i])?.pricePerKg ?? null, grams: weigh(f, i)?.grams ?? f.grams ?? 0 })),
+      // purga das trocas de cor entra na linha do filamento que ela gasta (#147), quando o fatiador não somou
+      filaments: r.filaments.map((f, i) => ({ filamentId: map[i], pricePerKg: stock.find((s) => s.id === map[i])?.pricePerKg ?? null, grams: round2((weigh(f, i)?.grams ?? f.grams ?? 0) + purgeFor(r.waste, f.index)) })),
       printerId: printer?.id ?? null,
       printerWatts: printer?.watts ?? null,
       seconds: r.seconds,
@@ -176,6 +178,13 @@ export default function SlicerImport({ stock, printers, onApply, onStockAdded }:
               ))}
             </tbody>
           </table>
+          {report.waste && (
+            <WasteNote
+              waste={report.waste}
+              modelGrams={report.filaments.reduce((s, f, i) => s + (weigh(f, i)?.grams ?? f.grams ?? 0), 0)}
+              priceOf={(index) => stock.find((s) => s.id === mapping[report.filaments.findIndex((f) => f.index === index)])?.pricePerKg ?? null}
+            />
+          )}
           {report.warnings.map((w) => (
             <Alert key={w} kind="warn">
               {w}

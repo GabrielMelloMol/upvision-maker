@@ -29,15 +29,17 @@ describe("Importar do fatiador", () => {
     expect(first).toMatchObject({ printerId: 7, printerWatts: 110, pieces: 3 });
     expect(first.filaments.map((f) => [f.filamentId, f.pricePerKg, f.grams])).toEqual([
       [1, 120, 3.79],
-      [2, 110, 0.55],
+      [2, 110, 1.33], // 0,55 g na peça + 0,78 g de purga da troca azul → branco (#147)
     ]);
+    // 0,78 g de 5,12 g (3,79 + 0,55 + 0,78); R$ 110/kg no branco
+    expect(screen.getByText(/Desperdício multicor: 0,78 g \(R\$\s0,09\), 15% do filamento/)).toBeInTheDocument();
 
     const second = screen.getByLabelText("Filamento cadastrado para o filamento 2");
     expect(second).toHaveValue("2");
     await userEvent.selectOptions(second, "PLA · Azul · Bambu");
-    await waitFor(() => expect(onApply.mock.lastCall![0].filaments[1]).toEqual({ filamentId: 1, pricePerKg: 120, grams: 0.55 }));
+    await waitFor(() => expect(onApply.mock.lastCall![0].filaments[1]).toEqual({ filamentId: 1, pricePerKg: 120, grams: 1.33 }));
     await userEvent.selectOptions(second, "Nenhum (digitar preço)");
-    await waitFor(() => expect(onApply.mock.lastCall![0].filaments[1]).toEqual({ filamentId: null, pricePerKg: null, grams: 0.55 }));
+    await waitFor(() => expect(onApply.mock.lastCall![0].filaments[1]).toEqual({ filamentId: null, pricePerKg: null, grams: 1.33 }));
   });
 
   test("impressora não cadastrada avisa que a potência fica em branco; cadastro que chega depois é casado", async () => {

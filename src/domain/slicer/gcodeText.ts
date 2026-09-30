@@ -1,4 +1,5 @@
 import { numList, parseDuration, round2, splitList, type SlicerFilament, type SlicerReport } from "./types";
+import { flushMatrix, purgeWaste, toolSequence, type SlicerWaste } from "./waste";
 
 const HEAD_TAIL = 256 * 1024; // estatísticas ficam no começo (Bambu/Cura) ou no fim (Prusa)
 /** Densidade típica (g/cm³) de cada material, para estimar gramas de quem só informa metros (#47). Varia ±3% por marca. */
@@ -51,8 +52,12 @@ function filamentsFrom(grams: number[], mm: number[], types: string[], colors: s
 export function fromPrusaKeys(kv: Map<string, string>, source: string): SlicerReport {
   const filaments = filamentsFrom(numList(kv.get("filament used [g]")), numList(kv.get("filament used [mm]")), splitList(kv.get("filament_type")), splitList(kv.get("filament_colour")));
   if (!filaments.length) throw new Error("Não encontrei o consumo de filamento neste arquivo.");
+  // PrusaSlicer/Orca: a torre de limpeza já está dentro do "filament used"; só informa (#147)
+  const tower = Number(kv.get("total filament used for wipe tower [g]"));
+  const waste: SlicerWaste | undefined = tower > 0 ? { byFilament: [], grams: round2(tower), swaps: 0, included: true, from: "torre" } : undefined;
   return {
     source,
+    ...(waste && { waste }),
     printer: kv.get("printer_model") || undefined,
     seconds: parseDuration(kv.get("estimated printing time (normal mode)") ?? ""),
     pieces: objectsCount(kv.get("objects_info")),
@@ -61,12 +66,16 @@ export function fromPrusaKeys(kv: Map<string, string>, source: string): SlicerRe
   };
 }
 
-function fromBambu(text: string, kv: Map<string, string>): SlicerReport {
+function fromBambu(text: string, kv: Map<string, string>, full: () => string[]): SlicerReport {
   const time = /total estimated time:\s*([^;\n]+)/.exec(text)?.[1];
   const labels = kv.get("model label id");
   const filaments = filamentsFrom(numList(kv.get("total filament weight [g]")), numList(kv.get("total filament length [mm]")), splitList(kv.get("filament_type")), splitList(kv.get("filament_colour")));
   if (!filaments.length || filaments.every((f) => !f.grams)) throw new Error("Não encontrei o peso do filamento neste G-code. Confira a densidade do filamento no fatiador.");
-  return { source: "Bambu Studio / OrcaSlicer (G-code)", printer: kv.get("printer_model") || undefined, seconds: time ? parseDuration(time) : undefined, pieces: labels ? splitList(labels).length : undefined, filaments, warnings: [] };
+  const matrix = flushMatrix(numList(kv.get("flush_volumes_matrix")));
+  const density = numList(kv.get("filament_density"));
+  const seq = matrix ? full().flatMap(toolSequence).filter((t, i, a) => i === 0 || a[i - 1] !== t) : [];
+  const waste = matrix ? purgeWaste(seq, matrix, Number(kv.get("flush_multiplier")) || 1, (i) => density[i] || DENSITY.PLA, "gcode") : null;
+  return { source: "Bambu Studio / OrcaSlicer (G-code)", printer: kv.get("printer_model") || undefined, seconds: time ? parseDuration(time) : undefined, pieces: labels ? splitList(labels).length : undefined, filaments, ...(waste && { waste }), warnings: [] };
 }
 
 function fromCura(text: string, kv: Map<string, string>): SlicerReport {
@@ -135,12 +144,27 @@ const ORCA_FAMILY: [RegExp, string][] = [
   [/ElegooSlicer/i, "Elegoo Slicer"],
 ];
 
+/** O arquivo inteiro em pedaços de 8 MB (as trocas de cor ficam espalhadas; o cabeçalho só lê o começo e o fim). */
+function chunks(bytes: Uint8Array): string[] {
+  const dec = new TextDecoder();
+  const out: string[] = [];
+  const size = 8 * 1024 * 1024;
+  // cada pedaço começa numa quebra de linha: nenhuma linha fica cortada entre dois pedaços
+  for (let start = 0; start < bytes.length; ) {
+    let end = Math.min(bytes.length, start + size);
+    while (end < bytes.length && bytes[end - 1] !== 10) end++;
+    out.push(dec.decode(bytes.subarray(start, end)));
+    start = end;
+  }
+  return out;
+}
+
 export function parseGcodeText(bytes: Uint8Array): SlicerReport {
   const dec = new TextDecoder();
   const text = bytes.length > 2 * HEAD_TAIL ? dec.decode(bytes.subarray(0, HEAD_TAIL)) + "\n" + dec.decode(bytes.subarray(bytes.length - HEAD_TAIL)) : dec.decode(bytes);
   const kv = keyValues(text);
   const head = text.slice(0, 4096);
-  if (/BambuStudio|OrcaSlicer/i.test(head)) return fromBambu(text, kv);
+  if (/BambuStudio|OrcaSlicer/i.test(head)) return fromBambu(text, kv, () => chunks(bytes));
   const family = ORCA_FAMILY.find(([re]) => re.test(head));
   if (family) return fromPrusaKeys(kv, `${family[1]} (G-code)`);
   if (/PrusaSlicer|SuperSlicer/i.test(text)) return fromPrusaKeys(kv, "PrusaSlicer (G-code)");

@@ -20,7 +20,7 @@ test("fluxo completo: fatiador → produto → orçamento → pedido → estoque
   await go(page, "Calculadora");
   await page.getByRole("button", { name: "Completo" }).click(); // abre no Rápido (#22)
   await page.locator(".card", { hasText: "Importar do fatiador" }).locator('input[type="file"]').setInputFiles(resolve("tests/fixtures/slicer", "bambu-a1-2cores-fatiado.3mf"));
-  await expect(page.getByLabel("Gramas").nth(1)).toHaveValue("0,55");
+  await expect(page.getByLabel("Gramas").nth(1)).toHaveValue("1,33");
   await expect(page.getByLabel("Preço por kg").nth(0)).toHaveValue("120,00");
   await page.getByRole("button", { name: "Salvar como produto" }).click();
   const productSheet = page.getByRole("dialog", { name: "Novo produto" });
@@ -56,7 +56,7 @@ test("fluxo completo: fatiador → produto → orçamento → pedido → estoque
   const after = stock();
   after.forEach((f, i) => expect(f.stockG).toBeLessThan(before[i].stockG));
   expect(before[0].stockG - after[0].stockG).toBeCloseTo(2 * 3.79, 1); // azul: 3,79 g por mesa
-  expect(before[1].stockG - after[1].stockG).toBeCloseTo(2 * 0.55, 1); // branco: 0,55 g por mesa
+  expect(before[1].stockG - after[1].stockG).toBeCloseTo(2 * 1.33, 1); // branco: 0,55 g na peça + 0,78 g de purga da troca de cor, por mesa (#147)
 
   // 4. Concluir e entregar
   await page.getByRole("region", { name: "Em produção" }).getByRole("button", { name: "Concluir →" }).click();
