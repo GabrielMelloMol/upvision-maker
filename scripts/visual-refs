@@ -1,0 +1,14 @@
+#!/bin/sh
+# Traz para o repositório as referências visuais e a lista de problemas conhecidos geradas no CI (#142).
+#   scripts/visual-refs <id da execução do workflow "visual" rodado com "atualizar">
+set -e
+cd "$(dirname "$0")/.."
+[ -n "$1" ] || { echo "uso: scripts/visual-refs <id-da-execução>" >&2; exit 2; }
+tmp=$(mktemp -d)
+gh run download "$1" -p "referencias-*" -D "$tmp"
+for d in "$tmp"/referencias-*; do
+  cp -R "$d"/referencia/. tests/visual/referencia/ 2>/dev/null || true
+  cp -R "$d"/conhecidos/. tests/visual/conhecidos/ 2>/dev/null || true
+done
+rm -rf "$tmp"
+git status --short tests/visual

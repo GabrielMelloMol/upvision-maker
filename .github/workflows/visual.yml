@@ -1,0 +1,73 @@
+name: visual
+
+# Regressão visual (#142): todas as telas em claro/escuro, 1100/1440 px e 1280 px a 125/150 %, comparadas com as
+# referências aprovadas de cada plataforma, mais checagens de transbordo, alvos, foco e contraste.
+# Relatório com os diffs em Artifacts (relatorio-visual-<so>).
+# Aprovar telas novas: Actions → visual → Run workflow com "atualizar" ligado; depois
+#   scripts/visual-refs <id-da-execução>   (baixa as referências e a lista de problemas conhecidos para o repositório)
+on:
+  workflow_dispatch:
+    inputs:
+      atualizar:
+        description: "Gerar novas referências e lista de problemas conhecidos (em vez de comparar)"
+        type: boolean
+        default: false
+  push:
+    branches: [main]
+    paths: ["src/**", "tests/visual/**", "playwright.visual.config.ts", ".github/workflows/visual.yml"]
+
+permissions:
+  contents: read
+
+jobs:
+  visual:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: windows-latest
+            so: windows
+            channel: msedge
+          - os: macos-latest
+            so: macos
+            channel: ""
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+      - run: npm ci
+      - name: Navegador
+        if: matrix.channel == ''
+        run: npx playwright install --with-deps chromium
+
+      - name: Comparar com as referências
+        if: ${{ !inputs.atualizar }}
+        env:
+          PW_CHANNEL: ${{ matrix.channel }}
+        run: npm run visual
+
+      - name: Gerar referências e problemas conhecidos
+        if: ${{ inputs.atualizar }}
+        env:
+          PW_CHANNEL: ${{ matrix.channel }}
+          VISUAL_CONHECIDOS: "1"
+        run: npm run visual -- --update-snapshots
+
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: relatorio-visual-${{ matrix.so }}
+          path: |
+            playwright-report/visual/
+            test-results/
+      - uses: actions/upload-artifact@v4
+        if: ${{ inputs.atualizar }}
+        with:
+          name: referencias-${{ matrix.so }}
+          path: |
+            tests/visual/referencia/
+            tests/visual/conhecidos/

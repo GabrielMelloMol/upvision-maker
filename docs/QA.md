@@ -147,3 +147,15 @@ Pendências: conferir vibrancy/Mica e o fallback num Windows 10/11 real; o Bambu
 - Já eram sob demanda (conferido no build): vtracer, manifold, openscad-wasm, MediaPipe, three.js, fontes e miniaturas da galeria (`loading="lazy"`). O inicial é React (223 KB), zod dos esquemas do banco (96 KB) e o app.
 - Novo: `src/ui/heavy.ts`. Cada motor pesado se registra ao carregar e o App solta todos ao trocar de tela; a próxima ferramenta carrega de novo (~0,1 s para o manifold). Fotos já tinham limite de resolução (`MAX_SIDE`/`MAX_PIXELS` no SVG, `MAX_COLS` na litofania) e prévias 3D prontas depois de sair da tela são descartadas.
 - Os números do navegador de teste não são os do WebView2: a medição real fica com **Sobre → Copiar informações** (abertura e memória JS) e o Gerenciador de Tarefas. Checklist em `docs/QA-windows.md`.
+
+# Regressão visual automática (#142)
+
+`npm run visual` (`playwright.visual.config.ts`, `tests/visual/`): todas as telas da barra lateral (a lista vem da própria barra, então tela nova entra sozinha), com dados de exemplo e data fixa, em claro e escuro a 1100 e 1440 px e a 1280 px com escala 125% e 150%.
+
+- **Comparação** com as referências aprovadas de cada plataforma (`tests/visual/referencia/<darwin|win32>/`), com tolerância (0,3% dos pixels). A prévia 3D fica mascarada (o WebGL muda de uma GPU para outra). O relatório com os diffs fica em `playwright-report/visual/` (no CI: artefato `relatorio-visual-<so>`).
+- **Checagens** em cada tela: conteúdo cortado e página rolando para o lado, alvos clicáveis menores que 32 px, foco visível ao usar Tab e contraste AA (axe-core). O que já existia fica em `tests/visual/conhecidos/<plataforma>/*.json`; só problema **novo** falha.
+- **CI** (`.github/workflows/visual.yml`): Windows (Edge, o motor do WebView2) e macOS, a cada push em `src/`. Sem referência ou sem lista aprovada numa plataforma, só mostra os problemas no relatório, sem falhar.
+- **Aprovar** telas novas ou problemas aceitos: Actions → visual → Run workflow com **atualizar**; depois `scripts/visual-refs <id-da-execução>` traz as referências e as listas para o repositório. As referências vêm do CI e não da máquina de ninguém, porque as fontes do sistema mudam os pixels.
+- Só algumas telas: `VISUAL_PAGES="Painel,Pedidos" npm run visual`; tempo de cada etapa: `VISUAL_TEMPO=1`.
+
+Achados da 1ª rodada (Mac, 1100 claro): botões `ghost`/`link`, `.chips` e `.icon-button` sem anel de foco ao usar Tab (a regra que tira a sombra ganha do `:focus-visible` global); botões `sm` com 28 px de altura (abaixo dos 32 px); a versão no rodapé da barra lateral com contraste abaixo de AA. Ficam na lista de conhecidos até o redesign (#139).
