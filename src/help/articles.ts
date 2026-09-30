@@ -90,6 +90,13 @@ export const ARTICLES: HelpArticle[] = [
     steps: ["Arraste o 3MF pintado (Bambu Studio, OrcaSlicer ou PrusaSlicer).", "Confira as cores encontradas.", "Se quiser, corte pelo plano com pino de encaixe.", "Salve as peças e cole ou encaixe depois de imprimir."],
   },
   {
+    id: "pixel",
+    title: "Pixel art",
+    intro: "Transforme uma imagem numa grade de pixels com as cores dos seus filamentos e imprima como mosaico, quebra-cabeça ou ímã.",
+    steps: ["Arraste uma imagem (ou comece em branco).", "Escolha quantos pixels no lado maior e quantas cores.", "Pinte, apague ou troque cores na grade; a legenda mostra o número e o filamento de cada cor.", "Escolha a saída e salve o 3MF."],
+    tips: ["No quebra-cabeça, cada casa tem o número da cor gravado e os pixels de cada cor saem num objeto próprio: imprima uma cor de cada vez, sem AMS.", "Pixel de 7 mm ou mais deixa os números legíveis."],
+  },
+  {
     id: "scad",
     title: "OpenSCAD personalizável",
     intro: "Abra um .scad com parâmetros (formato do Customizer) e ajuste as medidas num formulário.",

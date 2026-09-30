@@ -163,7 +163,8 @@ function absorbIslands(labels: Uint8Array, w: number, minPx: number): Uint8Array
   return out;
 }
 
-export type ColorOptions = { colors: number; removeBg: boolean; minAreaPx: number; filaments?: string[] };
+/** `smooth: false` mantém pixels isolados (pixel art); o padrão limpa o pontilhado das bordas. */
+export type ColorOptions = { colors: number; removeBg: boolean; minAreaPx: number; filaments?: string[]; smooth?: boolean };
 export type Quantized = { labels: Uint8Array; palette: string[] };
 
 /**
@@ -198,7 +199,7 @@ export function quantize(rgba: Uint8ClampedArray, w: number, h: number, o: Color
     for (let c = 1; c < cl.length; c++) if (dist2(p, cl[c].lab) < dist2(p, cl[j].lab)) j = c;
     labels[i] = j;
   }
-  for (let p = 0; p < SMOOTH_PASSES; p++) labels = modeFilter(labels, w, h);
+  if (o.smooth !== false) for (let p = 0; p < SMOOTH_PASSES; p++) labels = modeFilter(labels, w, h);
   labels = absorbIslands(labels, w, o.minAreaPx);
 
   // maior área primeiro: vira a camada de baixo (o fundo do empilhamento)
