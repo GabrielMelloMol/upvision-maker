@@ -3,6 +3,9 @@
 Cada versão aparece para a usuária na tela "O que há de novo" depois da atualização.
 Formato: `## <versão> — <data>` e itens `- …` em linguagem simples.
 
+## 0.9.1 — 2026-09-30
+- Correção: a versão para Windows não tinha sido gerada na 0.9.0. Esta versão traz todas as novidades da 0.9.0 (abaixo) também para o Windows.
+
 ## 0.9.0 — 2026-09-30
 - **Organizador de gaveta** (novo, em Criar): digite a largura, a profundidade e a altura da gaveta (uma gaveta 3D mostra onde medir) e o app monta a base na medida, dividida para caber na mesa. Arraste as caixinhas no editor, veja tudo montado em 3D e salve um 3MF por mesa com gramas, tempo e custo. Sem régua? Imprima a régua em papel (com teste de escala) ou a régua rápida em 3D.
 - **Organizador de talheres em 2 andares**: talheres na bandeja de cima, que corre nos trilhos (ou sai por cima), e o que se usa menos embaixo.
