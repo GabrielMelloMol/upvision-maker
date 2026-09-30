@@ -1,5 +1,5 @@
 import { readdirSync, readFileSync } from "node:fs";
-import { resolve } from "node:path";
+import { basename, resolve } from "node:path";
 import { expect, test } from "vitest";
 
 /** Guia de voz (docs/design/voz.md, #143): subtítulo de tela com no máximo 1 linha; o passo a passo fica no "?". */
@@ -15,7 +15,7 @@ test("#143: subtítulo das telas em até 60 caracteres, sem exclamação", () =>
     [...readFileSync(f, "utf8").matchAll(/className="lead">([^<{]+)<\/p>/g)]
       .map((m) => m[1].trim())
       .filter((t) => t.length > MAX_LEAD || t.includes("!"))
-      .map((t) => `${f.split("/").pop()}: ${t}`),
+      .map((t) => `${basename(f)}: ${t}`), // basename: no Windows o caminho usa "\"
   );
   expect(long.filter((l) => !l.startsWith("DesignCatalog"))).toEqual([]); // a página interna de design fica de fora
 });
