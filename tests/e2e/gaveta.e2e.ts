@@ -49,4 +49,17 @@ test("organizador de gaveta: 4 × 3 casas, 3 caixinhas desenhadas, ajuste e expo
   await expect(toastWith(page, "Arquivo salvo em")).toBeVisible();
   // base + 3 caixinhas + etiqueta
   expect(objects3mf([...tauri.files].find(([p]) => p.endsWith(".3mf"))![1])).toBe(5);
+
+  // impressão por mesa: lista com a caixinha e a base, e um 3MF por mesa numa pasta
+  const card = page.getByLabel("Impressão por mesa");
+  await expect(card.getByRole("row", { name: /Caixinha 2×1×3 Pregos/ })).toBeVisible();
+  await expect(card.getByRole("row", { name: /^Base/ })).toBeVisible();
+  await expect(card.getByRole("row", { name: /Total/ })).toContainText(" g");
+  await expect(card.getByText(/^Mesa 1/)).toBeVisible();
+  tauri.nextOpen = "/pasta";
+  await card.getByRole("button", { name: "Salvar todas as mesas numa pasta" }).click();
+  await expect(page.locator(".toast", { hasText: /(mesa salva|mesas salvas) em \/pasta/ })).toBeVisible();
+  const plates = [...tauri.files.keys()].filter((p) => p.startsWith("/pasta/gaveta-mesa-"));
+  expect(plates.length).toBeGreaterThanOrEqual(1);
+  expect(objects3mf(tauri.files.get(plates[0])!)).toBeGreaterThanOrEqual(1);
 });

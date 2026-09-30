@@ -2,7 +2,6 @@ import { useMemo, useState } from "react";
 import { loadFont } from "../geometry/fonts";
 import { getManifold } from "../geometry/manifold";
 import { planSummary } from "../geometry/models/gridDrawer";
-import { packPlates } from "../geometry/pack";
 import { textToCrossSection } from "../geometry/text";
 import type { Model } from "../geometry/types";
 import { moveModel } from "../geometry/models/common";
@@ -18,6 +17,8 @@ import { buildDrawer, planOf, type DrawerProject } from "./drawer/assemble";
 import DrawerEditor from "./drawer/DrawerEditor";
 import { duplicate, removeModules, resizeGrid, updateModules } from "./drawer/layout";
 import ModulePanel from "./drawer/ModulePanel";
+import PrintPlanCard from "./drawer/PrintPlanCard";
+import { drawerPrint, type DrawerPrint } from "./drawer/printPlan";
 import ToolSessionBar from "./ToolSessionBar";
 import { useToolState } from "./useToolState";
 
@@ -29,21 +30,12 @@ const VIEWS = [
   ["grid", "Grade"],
   ["3d", "3D"],
 ] as const;
-const BED = 256;
-const PLATE_GAP = 5;
 const FONT = "hanken";
 
 function initialState(): DrawerProject {
   const p: DrawerProject = { width: 500, depth: 420, height: 80, align: "center", baseMagnets: false, baseColor: "#1c1c1e", bedMargin: 4, layout: { cols: 0, rows: 0, modules: [] } };
   const plan = planOf(p);
   return { ...p, layout: { cols: plan.nx, rows: plan.ny, modules: [] } };
-}
-
-/** Todas as peças para imprimir: pedaços da base e cada módulo quantas vezes aparece, em mesas de 256 mm. */
-function printSet(basePieces: Model[], groups: { count: number; models: Model[] }[]): Model[] {
-  const all = [...basePieces, ...groups.flatMap((g) => Array.from({ length: g.count }, (_, i) => g.models.map((m) => ({ ...m, name: g.count > 1 ? `${m.name} (${i + 1})` : m.name }))).flat())];
-  // mesas lado a lado no mesmo arquivo; o fatiador arruma de novo se quiser
-  return packPlates(all, BED, PLATE_GAP).flatMap((plate, i) => plate.map((m) => moveModel(m, i * (BED + 20), 0)));
 }
 
 /** Organizador de gaveta (#140): medir a gaveta, desenhar as caixinhas na grade e sair com a base e os módulos. */
@@ -66,13 +58,17 @@ export default function DrawerOrganizer() {
   const chosen = p.layout.modules.filter((m) => selected.includes(m.id));
 
   const [exportModels, setExportModels] = useState<Model[]>([]);
+  const [print, setPrint] = useState<DrawerPrint | null>(null);
   const { models, warnings, busy, error } = useModelBuilder(async () => {
     if (!valid || !plan.nx || !plan.ny) return null;
     const M = await getManifold();
     const labels = p.layout.modules.some((m) => m.labelTab && m.label.trim());
     const font = labels ? await loadFont(FONT) : null;
     const out = buildDrawer({ M, art: null, text: (s, h) => (font && s.trim() ? textToCrossSection(M, font, s, h) : null) }, p);
-    setExportModels(printSet(out.basePieces, out.groups));
+    const pp = drawerPrint(out.basePieces, out.groups);
+    // um 3MF com tudo (mesas lado a lado); cada mesa sozinha sai pela lista de impressão
+    setExportModels(pp.plates.flatMap((plate, i) => plate.models.map((m) => moveModel(m, i * (256 + 20), 0))));
+    setPrint(pp);
     return { models: out.preview, warnings: out.warnings };
   }, [p, valid]);
 
@@ -119,6 +115,7 @@ export default function DrawerOrganizer() {
             </div>
           </details>
           <ExportButtons models={models.length ? exportModels : []} name="gaveta" busy={busy} onSaved={tool.exported} />
+          {print && models.length > 0 && !busy && <PrintPlanCard plan={print} name="gaveta" onSaved={() => tool.exported("gaveta")} />}
         </div>
         <div className="preview-col">
           <Segmented label="Prévia" value={view} options={VIEWS} onChange={setView} />
