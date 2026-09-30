@@ -1,4 +1,5 @@
 import { strToU8, zipSync } from "fflate";
+import { nearestColor } from "./colorMatch";
 import { bambuObjectSettings, type PrintProfile } from "./printProfile";
 import type { Mesh, Model } from "./types";
 
@@ -21,19 +22,40 @@ const RELS = `<?xml version="1.0" encoding="UTF-8"?>
 /** Cores distintas das partes, na ordem dos filamentos (1ª cor = filamento 1). */
 export const modelColors = (models: Model[]) => [...new Set(models.flatMap((m) => m.parts.map((p) => p.color.toLowerCase())))];
 
+/** Cor de filamento para slot vazio do AMS (o fatiador exige uma cor por filamento). */
+const EMPTY_SLOT = "#808080";
+
+/**
+ * Filamento de cada cor (#98). Sem AMS: a posição da cor na lista de cores distintas. Com AMS (`slots`: cor de cada
+ * slot, null = vazio): o slot da mesma cor ou, se não houver, o slot carregado de cor mais parecida (ΔE2000).
+ */
+export function filamentPlan(models: Model[], slots?: (string | null)[]): { extruderOf: (color: string) => number; filamentColors: string[]; moved: { color: string; slot: number }[] } {
+  const colors = modelColors(models);
+  const loaded = (slots ?? []).flatMap((c, i) => (c ? [{ c: c.toLowerCase(), slot: i + 1 }] : []));
+  if (!loaded.length) return { extruderOf: (c) => colors.indexOf(c.toLowerCase()) + 1, filamentColors: colors, moved: [] };
+  const slotOf = new Map<string, number>();
+  const moved: { color: string; slot: number }[] = [];
+  for (const c of colors) {
+    const exact = loaded.find((l) => l.c === c);
+    const slot = exact?.slot ?? loaded.find((l) => l.c === nearestColor(c, loaded.map((x) => x.c)))!.slot;
+    slotOf.set(c, slot);
+    if (!exact) moved.push({ color: c, slot });
+  }
+  return { extruderOf: (c) => slotOf.get(c.toLowerCase()) ?? 1, filamentColors: slots!.map((c) => c ?? EMPTY_SLOT), moved };
+}
+
 /**
  * 3MF com um objeto por modelo e uma parte (componente) por cor.
  * `Metadata/model_settings.config` diz ao Bambu Studio / OrcaSlicer qual extrusora (filamento) cada parte usa:
- * a extrusora é a posição da cor na lista de cores distintas (1ª cor = filamento 1).
+ * a extrusora é a posição da cor na lista de cores distintas (1ª cor = filamento 1) ou, com `slots`, o slot do AMS (#98).
  * `profile`: configuração de impressão recomendada, gravada em cada objeto (o Bambu Studio e o OrcaSlicer aplicam ao abrir).
  * `pauses`: alturas (mm) do topo da camada ANTES da qual a impressora pausa (ex.: colocar ímã ou tag NFC).
  * O OrcaSlicer e o PrusaSlicer leem de qualquer 3MF (cada um no seu arquivo); o Bambu Studio só de projetos
  * gerados por ele: para ele use `bambuProject` (roda o CLI do Bambu Studio instalado).
  */
-export function write3mf(models: Model[], { pauses = [], profile }: { pauses?: number[]; profile?: PrintProfile } = {}): Uint8Array {
+export function write3mf(models: Model[], { pauses = [], profile, slots }: { pauses?: number[]; profile?: PrintProfile; slots?: (string | null)[] } = {}): Uint8Array {
   const objectSettings = profile ? bambuObjectSettings(profile).map(([k, v]) => `<metadata key="${k}" value="${esc(v)}"/>`).join("") : "";
-  const colors = modelColors(models);
-  const extruder = (c: string) => colors.indexOf(c.toLowerCase()) + 1;
+  const extruder = filamentPlan(models, slots).extruderOf;
   let id = 1;
   const objects: string[] = [];
   const items: string[] = [];

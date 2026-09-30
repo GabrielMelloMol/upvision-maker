@@ -23,6 +23,14 @@ export const ChannelSchema = z.object({
 });
 export type Channel = z.infer<typeof ChannelSchema>;
 
+/** Meu AMS (#98): quantos slots e o filamento cadastrado de cada um (null = vazio). */
+export const AMS_SLOT_OPTIONS = [4, 8, 12, 16] as const;
+export const AmsSchema = z.object({
+  slots: z.union([z.literal(4), z.literal(8), z.literal(12), z.literal(16)]),
+  filaments: z.array(z.number().int().positive().nullable()).max(16),
+});
+export type Ams = z.infer<typeof AmsSchema>;
+
 export const SettingsSchema = z.object({
   kwhPrice: z.number().min(0),
   laborHourCost: z.number().min(0),
@@ -51,6 +59,7 @@ export const SettingsSchema = z.object({
   channels: z.array(ChannelSchema),
   /** Cálculos do kWh pela conta de luz (mais recente primeiro). */
   kwhHistory: z.array(KwhEntrySchema),
+  ams: AmsSchema,
 });
 export type Settings = z.infer<typeof SettingsSchema>;
 
@@ -77,4 +86,5 @@ export const DEFAULT_SETTINGS: Settings = {
     { name: "TikTok Shop", feePct: 12, feeFixed: 4 },
   ],
   kwhHistory: [],
+  ams: { slots: 4, filaments: [] },
 };

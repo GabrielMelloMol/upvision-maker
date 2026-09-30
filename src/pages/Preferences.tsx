@@ -11,6 +11,7 @@ import { fieldErrors } from "../ui/fieldErrors";
 import { errorText, useToast } from "../ui/Toast";
 import { useData } from "../ui/useData";
 import AiSettingsCard from "./AiSettingsCard";
+import AmsCard from "./preferences/AmsCard";
 import BackupSettingsCard from "../backup/BackupSettingsCard";
 import PhoneSettingsCard from "../phone/PhoneSettingsCard";
 import MoneyField from "../ui/MoneyField";
@@ -23,7 +24,7 @@ import KwhBillSheet from "./preferences/KwhBillSheet";
 import StateKwhSelect from "../ui/StateKwhSelect";
 import ChannelsCard, { fromChannelForm, toChannelForm } from "./preferences/ChannelsCard";
 
-type NumKey = Exclude<keyof Settings, "channels" | "kwhHistory" | "includeFixedCosts" | "multiplyLabor" | "packagingMaterialId" | "failureByMaterial">;
+type NumKey = Exclude<keyof Settings, "channels" | "kwhHistory" | "includeFixedCosts" | "multiplyLabor" | "packagingMaterialId" | "failureByMaterial" | "ams">;
 type NumField = { key: NumKey; label: string; money?: true; hint?: string };
 const FIELDS: NumField[] = [
   { key: "kwhPrice", label: "Preço do kWh", money: true, hint: "Valor total da conta ÷ kWh consumidos." },
@@ -57,6 +58,7 @@ export default function Preferences() {
       <PhoneSettingsCard />
       <h2>Ferramentas</h2>
       <AiSettingsCard />
+      <AmsCard />
     </div>
   );
 }
@@ -83,7 +85,7 @@ function PreferencesForm({ initial, materials }: { initial: Settings; materials:
       packagingMaterialId: packaging ? Number(packaging) : null,
       failureByMaterial: Object.fromEntries(Object.entries(byMaterial).flatMap(([k, v]) => (v.trim() === "" ? [] : [[k, parseDecimal(v)]]))), // vazio = a geral
       channels: channels.map(fromChannelForm),
-    } as Omit<Settings, "kwhHistory">;
+    } as Omit<Settings, "kwhHistory" | "ams">;
     try {
       const db = await getDb();
       // relê o que está gravado para não apagar o que este formulário não edita (ex.: histórico do kWh)

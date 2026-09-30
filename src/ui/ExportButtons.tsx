@@ -1,17 +1,21 @@
 import { Download } from "lucide-react";
 import { useState } from "react";
 import { bambuProject } from "../geometry/bambuProject";
+import { mergeClosest } from "../geometry/colorMatch";
 import { printPlan, type PrintMode } from "../geometry/printPlan";
 import { profileSummary, type PrintProfile } from "../geometry/printProfile";
 import { writeStl } from "../geometry/stl";
-import { write3mf } from "../geometry/threemf";
+import { filamentPlan, modelColors, write3mf } from "../geometry/threemf";
 import type { Model } from "../geometry/types";
 import Alert from "./Alert";
 import EstimateCard from "./EstimateCard";
 import NumField, { inRange } from "./NumField";
 import { saveFile, slug } from "./saveFile";
 import Segmented from "./Segmented";
+import Toggle from "./Toggle";
+import { loadAms, type AmsSlot } from "../tools/amsSlots";
 import { errorText, useToast } from "./Toast";
+import { useData } from "./useData";
 
 const MODES: [PrintMode, string][] = [
   ["ams", "Multicor (AMS)"],
@@ -32,14 +36,26 @@ type Props = {
   onSaved?: (fileName: string) => void;
 };
 
+/** Troca as cores das partes pelo mapa (cor → cor que fica). */
+const recolor = (models: Model[], map: Record<string, string>): Model[] => models.map((m) => ({ ...m, parts: m.parts.map((p) => ({ ...p, color: map[p.color.toLowerCase()] ?? p.color })) }));
+
 /** Botões padrão de exportação: 3MF com cores (principal) e STL por objeto, ajustados ao jeito de imprimir. */
 export default function ExportButtons({ models: input, name, busy, pauses: inputPauses, printModes = true, profile, onSaved }: Props) {
   const toast = useToast();
   const [mode, setMode] = useState<PrintMode>("ams");
   const [layer, setLayer] = useState(profile?.layerHeight ?? 0.2);
-  const colorCount = new Set(input.flatMap((m) => m.parts.map((p) => p.color.toLowerCase()))).size;
+  const [merge, setMerge] = useState(false);
+  const [ams] = useData(loadAms, [] as AmsSlot[]);
+  const colors = modelColors(input);
+  const colorCount = colors.length;
   const showModes = printModes && colorCount > 1;
-  const plan = printPlan(input, showModes ? mode : "ams", inRange(layer, 0.04, 0.4) ? layer : 0.2, inputPauses ?? []);
+  const multi = colorCount > 1 && (!showModes || mode === "ams");
+  // Meu AMS (#98): com filamentos carregados, cada cor vai no slot dela (ou no mais parecido); sem, avisa se passar dos slots
+  const slots = multi && ams.some((s) => s.hex) ? ams.map((s) => s.hex) : undefined;
+  const tooMany = multi && !slots && ams.length > 0 && colorCount > ams.length;
+  const merged = tooMany && merge ? recolor(input, mergeClosest(colors, ams.length)) : input;
+  const moved = slots ? filamentPlan(input, slots).moved : [];
+  const plan = printPlan(merged, showModes ? mode : "ams", inRange(layer, 0.04, 0.4) ? layer : 0.2, inputPauses ?? []);
   const models = plan.models;
   const pauses = plan.pauses;
   const disabled = busy || models.length === 0 || !!plan.error || (showModes && mode === "manual" && !inRange(layer, 0.04, 0.4));
@@ -88,11 +104,32 @@ export default function ExportButtons({ models: input, name, busy, pauses: input
           {mode === "single" && <span className="hint">Sai tudo num filamento só (as partes continuam separadas no arquivo).</span>}
         </>
       )}
-      <button className="action" disabled={disabled} onClick={() => save(`${slug(name)}.3mf`, write3mf(models, { pauses, profile }), "3mf", "3MF")}>
+      {tooMany && (
+        <>
+          <Alert kind="warn">
+            Este modelo usa {colorCount} cores e seu AMS tem {ams.length} slots (Preferências → Meu AMS).
+          </Alert>
+          <Toggle label={`Juntar as cores mais parecidas (fica com ${ams.length})`} checked={merge} onChange={setMerge} />
+        </>
+      )}
+      {moved.length > 0 && (
+        <ul className="hint" aria-label="Cores sem filamento igual no AMS">
+          {moved.map((m) => (
+            <li key={m.color}>
+              <span className="swatch-inline">
+                <i style={{ background: m.color }} />
+                {m.color}
+              </span>{" "}
+              sai no slot {m.slot} ({ams[m.slot - 1]?.label}), a cor mais parecida carregada.
+            </li>
+          ))}
+        </ul>
+      )}
+      <button className="action" disabled={disabled} onClick={() => save(`${slug(name)}.3mf`, write3mf(models, { pauses, profile, slots }), "3mf", "3MF")}>
         <Download aria-hidden /> Salvar 3MF {hasPauses ? "(Orca / Prusa)" : "(Bambu / Orca / Prusa)"}
       </button>
       {hasPauses && (
-        <button disabled={disabled} onClick={() => save(`${slug(name)}-bambu.3mf`, () => bambuProject(models, pauses!, profile), "3mf", "Projeto do Bambu Studio")}>
+        <button disabled={disabled} onClick={() => save(`${slug(name)}-bambu.3mf`, () => bambuProject(models, pauses!, profile, slots), "3mf", "Projeto do Bambu Studio")}>
           <Download aria-hidden /> Projeto do Bambu Studio (pausa pronta)
         </button>
       )}
