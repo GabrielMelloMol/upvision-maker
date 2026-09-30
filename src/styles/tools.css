@@ -180,3 +180,27 @@ details.advanced > summary:hover { color: var(--text); }
 details.advanced[open] > .stack, details.advanced[open] > .grid { margin-top: var(--space-3); }
 .export-more { display: flex; flex-wrap: wrap; align-items: baseline; gap: 2px var(--space-3); font-size: var(--text-sm); color: var(--muted); }
 .export-more button.link { font-size: var(--text-sm); }
+
+/* Modelos prontos em famílias (#141): card como o da galeria Criar; seletor de variação no painel */
+.model-families { display: grid; grid-template-columns: repeat(auto-fill, minmax(148px, 1fr)); gap: var(--space-4) var(--space-3); }
+.model-families button { display: grid; gap: var(--space-2); padding: 0; background: none; box-shadow: none; color: var(--text); font-size: 13px; font-weight: 500; text-align: left; border-radius: var(--r); }
+.model-families button > span:last-child { padding: 0 2px; }
+.model-families .model-thumb { display: grid; place-items: center; aspect-ratio: 4 / 3; overflow: hidden; border-radius: var(--r); background: var(--fill); box-shadow: inset 0 0 0 0.5px var(--border); color: var(--tertiary); }
+.model-families .model-thumb img { width: 100%; height: 100%; object-fit: cover; transition: transform var(--dur) var(--ease-out); }
+.model-families .model-thumb svg { width: 32px; height: 32px; }
+.model-families button:hover img { transform: scale(1.04); }
+.model-families button[aria-pressed="true"] .model-thumb { box-shadow: 0 0 0 2px var(--accent); }
+.model-families button[aria-pressed="true"] > span:last-child { font-weight: 600; }
+.model-families button:focus-visible { outline: 2px solid var(--focus-ring); outline-offset: 2px; }
+.model-variants { display: grid; gap: var(--space-2); }
+.model-variant-group { display: grid; gap: var(--space-1); }
+.model-variant-title { font-size: 13px; color: var(--muted); }
+.model-variant-row { display: flex; flex-wrap: wrap; gap: var(--space-2); }
+.model-variant-row button { display: grid; justify-items: center; gap: 4px; width: 72px; padding: 0; background: none; box-shadow: none; color: var(--text); font-size: 12px; line-height: 1.2; text-align: center; border-radius: var(--r-sm); }
+.model-variant-thumb { display: grid; place-items: center; width: 56px; aspect-ratio: 4 / 3; overflow: hidden; border-radius: var(--r-sm); background: var(--fill); box-shadow: inset 0 0 0 0.5px var(--border); color: var(--tertiary); }
+.model-variant-thumb img { width: 100%; height: 100%; object-fit: cover; }
+.model-variant-thumb svg { width: 20px; height: 20px; }
+.model-variant-row button[aria-pressed="true"] .model-variant-thumb { box-shadow: 0 0 0 2px var(--accent); }
+.model-variant-row button[aria-pressed="true"] > span:last-child { font-weight: 600; }
+.model-variant-row button:focus-visible { outline: 2px solid var(--focus-ring); outline-offset: 2px; }
+.model-variant-tool .model-variant-thumb { color: var(--accent-text); }

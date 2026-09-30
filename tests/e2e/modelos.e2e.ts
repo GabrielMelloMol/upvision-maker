@@ -90,14 +90,18 @@ test("Modelos prontos (#10): brindes, esporte e peças funcionais geram prévia 
   }
 });
 
-test("Modelos prontos: categorias filtram a galeria", async ({ page, tauri }) => {
+test("Modelos prontos: categorias mostram as famílias; a variação escolhe o modelo (#141)", async ({ page, tauri }) => {
   void tauri;
   await openApp(page);
   await go(page, "Modelos prontos");
   await page.getByRole("group", { name: "Categoria" }).getByRole("button", { name: "Cozinha" }).click();
-  const gallery = page.getByRole("group", { name: "Modelo" });
-  await expect(gallery.getByRole("button", { name: "Ejetor de brigadeiro" })).toBeVisible();
-  await expect(gallery.getByRole("button", { name: "Placa Pix" })).toHaveCount(0);
+  const families = page.getByRole("group", { name: "Família" });
+  await expect(families.getByRole("button", { name: "Cortadores e formas" })).toBeVisible();
+  await expect(families.getByRole("button", { name: "Placa de balcão" })).toHaveCount(0);
+  await families.getByRole("button", { name: "Cortadores e formas" }).click();
+  await page.getByRole("group", { name: "Variação" }).getByRole("button", { name: "Ejetor de brigadeiro" }).click();
+  await expect(page.getByRole("heading", { name: "Ejetor de brigadeiro" })).toBeVisible();
+  await expect(page.getByRole("group", { name: "Variação" }).getByRole("button", { name: "Ejetor de brigadeiro" })).toHaveAttribute("aria-pressed", "true");
 });
 
 const STUDY = ["Placa QR", "Placa com vários QRs", "Desenho em pé", "Tag de pet", "Placa de profissão", "Cartão de visita", "Chaveiro espelho", "Floco de neve com nome"];

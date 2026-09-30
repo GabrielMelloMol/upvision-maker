@@ -2,7 +2,8 @@ import { Search, Shapes } from "lucide-react";
 import { useState } from "react";
 import { PAGES, type Go } from "../pages";
 import { openWith } from "../tools/intent";
-import { CATEGORIES, MODELS } from "../tools/models/defs";
+import { CATEGORIES } from "../tools/models/defs";
+import { familiesIn, modelOf, type Family } from "../tools/models/families";
 import { THUMBS } from "../tools/models/thumbs";
 import Segmented from "../ui/Segmented";
 
@@ -33,7 +34,13 @@ export default function Create({ go }: { go: Go }) {
   const tools = PAGES.filter((p) => p.section === "create" && p.id !== "create" && p.id !== "models")
     .filter((p) => kind === "all" || KIND_OF[p.id] === kind)
     .filter((p) => hit(`${p.label} ${p.blurb ?? ""}`));
-  const models = kind === "all" || kind === "make" ? MODELS.filter((m) => hit(`${m.label} ${m.blurb}`)) : [];
+  // modelos prontos em famílias (#141): o card abre a variação que a busca achou ("anilha" → Chaveiro › Anilha)
+  const variantText = (id: string, label: string) => `${label} ${modelOf(id).label} ${modelOf(id).blurb}`;
+  const pickIn = (f: Family) => (hit(f.label) ? f.variants[0] : f.variants.find((v) => hit(variantText(v.id, v.label))));
+  const models =
+    kind === "all" || kind === "make"
+      ? CATEGORIES.flatMap(([cat]) => familiesIn(cat).map((f) => ({ f, cat, v: pickIn(f) }))).filter((x): x is { f: Family; cat: (typeof CATEGORIES)[number][0]; v: Family["variants"][number] } => !!x.v)
+      : [];
   const open = (e: React.MouseEvent, id: string) => {
     e.preventDefault();
     go(id);
@@ -71,7 +78,7 @@ export default function Create({ go }: { go: Go }) {
 
       {models.length > 0 &&
         CATEGORIES.map(([cat, label]) => {
-          const list = models.filter((m) => m.category === cat);
+          const list = models.filter((m) => m.cat === cat);
           if (!list.length) return null;
           return (
             <section key={cat} aria-labelledby={`create-${cat}`}>
@@ -79,20 +86,23 @@ export default function Create({ go }: { go: Go }) {
                 {label} <span className="muted">· Modelos prontos</span>
               </h2>
               <ul className="create-models">
-                {list.map((m) => (
-                  <li key={m.id}>
-                    <a
-                      href={`#models/${m.id}`}
-                      onClick={(e) => {
-                        openWith("models", { id: m.id });
-                        open(e, "models");
-                      }}
-                    >
-                      <span className="model-thumb">{THUMBS[m.id] ? <img src={THUMBS[m.id]} alt="" loading="lazy" /> : <Shapes aria-hidden />}</span>
-                      <strong>{m.label}</strong>
-                    </a>
-                  </li>
-                ))}
+                {list.map(({ f, v }) => {
+                  const thumb = THUMBS[v.id] ?? f.variants.map((x) => THUMBS[x.id]).find(Boolean);
+                  return (
+                    <li key={f.id}>
+                      <a
+                        href={`#models/${v.id}`}
+                        onClick={(e) => {
+                          openWith("models", { id: v.id });
+                          open(e, "models");
+                        }}
+                      >
+                        <span className="model-thumb">{thumb ? <img src={thumb} alt="" loading="lazy" /> : <Shapes aria-hidden />}</span>
+                        <strong>{f.label}</strong>
+                      </a>
+                    </li>
+                  );
+                })}
               </ul>
             </section>
           );

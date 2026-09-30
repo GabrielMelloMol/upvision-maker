@@ -7,6 +7,7 @@ import { beforeAll, describe, expect, test, vi } from "vitest";
 import { renderWithApp, setupTauri } from "../test/harness";
 import Models from "./Models";
 import { CATEGORIES, MODELS } from "./models/defs";
+import { familiesIn, familyOf, modelOf } from "./models/families";
 
 vi.mock("../ui/viewerScene", () => ({ createViewer: () => ({ setModels() {}, dispose() {} }) }));
 
@@ -21,6 +22,8 @@ beforeAll(() => {
 });
 const BUILD = { timeout: 15_000 };
 const gallery = () => within(screen.getByRole("group", { name: "Modelo" }));
+const families = () => within(screen.getByRole("group", { name: "Família" }));
+const variations = () => within(screen.getByRole("group", { name: "Variação" }));
 
 describe("Modelos prontos", () => {
   test("todo modelo tem categoria válida e id único", () => {
@@ -29,15 +32,32 @@ describe("Modelos prontos", () => {
     for (const m of MODELS) expect(CATEGORIES.map(([c]) => c)).toContain(m.category);
   });
 
-  test("categoria filtra a galeria e troca para o 1º modelo dela", async () => {
+  test("categoria mostra um card por família e troca para a 1ª variação da 1ª família (#141)", async () => {
     const user = userEvent.setup();
     renderWithApp(<Models />);
-    const first = MODELS[0];
-    expect(gallery().getAllByRole("button")).toHaveLength(MODELS.filter((m) => m.category === first.category).length);
+    const first = familyOf(MODELS[0].id);
+    expect(families().getAllByRole("button").map((b) => b.textContent)).toEqual(familiesIn(first.category).map((f) => f.label));
     await user.click(screen.getByRole("button", { name: "Cozinha" }));
-    const kitchen = MODELS.filter((m) => m.category === "kitchen");
-    expect(gallery().getAllByRole("button").map((b) => b.textContent)).toEqual(kitchen.map((m) => m.label));
-    expect(gallery().getByRole("button", { name: kitchen[0].label })).toHaveAttribute("aria-pressed", "true");
+    const kitchen = familiesIn("kitchen");
+    expect(families().getAllByRole("button").map((b) => b.textContent)).toEqual(kitchen.map((f) => f.label));
+    expect(families().getByRole("button", { name: kitchen[0].label })).toHaveAttribute("aria-pressed", "true");
+    expect(screen.getByRole("heading", { name: modelOf(kitchen[0].variants[0].id).label })).toBeInTheDocument();
+  });
+
+  test("variação da família: miniatura com rótulo, grupos no chaveiro, texto digitado vai junto (#141)", async () => {
+    const user = userEvent.setup();
+    renderWithApp(<Models />);
+    await user.click(screen.getByRole("button", { name: "Chaveiros" }));
+    await user.click(families().getByRole("button", { name: "Chaveiro" }));
+    expect(screen.getByText("Com arte")).toBeInTheDocument();
+    expect(screen.getByText("Com função")).toBeInTheDocument();
+    expect(variations().getByRole("button", { name: "Nome (em lote)" })).toBeInTheDocument(); // atalho da ferramenta Chaveiros
+    await user.click(variations().getByRole("button", { name: "Anilha" }));
+    expect(variations().getByRole("button", { name: "Anilha" })).toHaveAttribute("aria-pressed", "true");
+    expect(screen.getByRole("heading", { name: "Chaveiro anilha" })).toBeInTheDocument();
+    // buscando pelo nome antigo acha o modelo e diz a família
+    await user.type(screen.getByRole("searchbox", { name: "Buscar modelo" }), "anilha");
+    expect(gallery().getByRole("button", { name: "Chaveiro anilha" })).toHaveAttribute("title", expect.stringMatching(/^Chaveiro · /));
   });
 
   test("busca ignora acento e procura em todas as categorias", async () => {
@@ -61,10 +81,12 @@ describe("Modelos prontos", () => {
     const user = userEvent.setup();
     renderWithApp(<Models />);
     await user.click(screen.getByRole("button", { name: "Placas" }));
-    await user.click(gallery().getByRole("button", { name: "Placa Pix" }));
+    await user.click(families().getByRole("button", { name: "Placa de balcão" }));
+    expect(variations().getByRole("button", { name: "Pix" })).toHaveAttribute("aria-pressed", "true");
     expect(await screen.findByText("Preencha a chave Pix para ver a placa.", undefined, BUILD)).toBeInTheDocument();
     expect(screen.queryByRole("alert")).not.toBeInTheDocument();
-    await user.click(gallery().getByRole("button", { name: "Placa adaptável" }));
+    await user.click(families().getByRole("button", { name: "Placa" }));
+    await user.click(variations().getByRole("button", { name: "No contorno do desenho" }));
     expect(await screen.findByText(/Envie um desenho/, undefined, BUILD)).toBeInTheDocument();
   }, 30_000);
 

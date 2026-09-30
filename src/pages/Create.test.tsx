@@ -3,7 +3,7 @@ import { screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { expect, test, vi } from "vitest";
 import { takeIntent } from "../tools/intent";
-import { MODELS } from "../tools/models/defs";
+import { FAMILIES } from "../tools/models/families";
 import { renderWithApp } from "../test/harness";
 import Create from "./Create";
 
@@ -14,11 +14,13 @@ test("Criar (#139): busca sem acento, filtro por tipo e modelo pronto abre já e
   const user = userEvent.setup();
   renderWithApp(<Create go={go} />);
   expect(tools().length).toBeGreaterThan(10);
-  expect(screen.getAllByRole("link", { name: MODELS[0].label }).length).toBeGreaterThan(0);
+  // um card por família (#141), não por modelo
+  expect(screen.getAllByRole("link", { name: FAMILIES[0].label }).length).toBeGreaterThan(0);
+  expect(screen.queryByRole("link", { name: "Placa Pix" })).not.toBeInTheDocument();
 
   await user.click(screen.getByRole("button", { name: "De um desenho ou foto" }));
   expect(tools().map((a) => a.textContent)).toEqual(expect.arrayContaining([expect.stringMatching(/^Cortador de biscoito/)]));
-  expect(screen.queryByRole("link", { name: MODELS[0].label })).not.toBeInTheDocument(); // modelos só em Tudo e Personalizar
+  expect(screen.queryByRole("link", { name: FAMILIES[0].label })).not.toBeInTheDocument(); // modelos só em Tudo e Personalizar
 
   await user.click(screen.getByRole("button", { name: "Tudo" }));
   await user.type(screen.getByRole("searchbox", { name: "Buscar ferramenta ou modelo" }), "medalha");
@@ -28,10 +30,15 @@ test("Criar (#139): busca sem acento, filtro por tipo e modelo pronto abre já e
   await user.type(screen.getByRole("searchbox"), "zzzz");
   expect(screen.getByText(/Nada com “zzzz”/)).toBeInTheDocument();
 
+  // o nome antigo acha a família e abre na variação certa
   await user.clear(screen.getByRole("searchbox"));
-  await user.click(screen.getAllByRole("link", { name: MODELS[3].label })[0]);
+  await user.type(screen.getByRole("searchbox"), "anilha");
+  await user.click(screen.getByRole("link", { name: "Chaveiro" }));
   expect(go).toHaveBeenLastCalledWith("models");
-  expect(takeIntent("models")).toEqual({ id: MODELS[3].id });
+  expect(takeIntent("models")).toEqual({ id: "gymKeychain" });
+  await user.clear(screen.getByRole("searchbox"));
+  await user.click(screen.getAllByRole("link", { name: "Troféu" })[0]);
+  expect(takeIntent("models")).toEqual({ id: "trophy" });
   await user.click(tools()[0]);
   expect(go).toHaveBeenLastCalledWith("svg");
 });
