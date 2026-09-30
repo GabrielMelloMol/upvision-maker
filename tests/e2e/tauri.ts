@@ -27,6 +27,8 @@ export type TauriMock = {
   log: string[];
   /** Backups automáticos "no disco": pasta → (nome → conteúdo). */
   autoBackups: Map<string, Map<string, string>>;
+  /** Acesso do celular na rede de casa (lan.rs, #16). */
+  lan: { running: boolean; url: string; code: string; phones: number; locked: boolean };
   /** Resposta do comando window_style (material nativo). */
   windowStyle: { effect: "mica" | "sidebar" | "none"; overlayTitlebar: boolean };
 };
@@ -179,6 +181,17 @@ function handler(m: TauriMock, cmd: string, a: Record<string, unknown> | null, h
     case "sync_remove":
       m.autoBackups.get(String(args.dir ?? ""))?.delete(args.kind === "lock" ? "upvision-sync.lock" : "upvision-sync.json");
       return null;
+    case "lan_status":
+      return m.lan;
+    case "lan_start":
+      m.lan = { running: true, url: "http://192.168.0.10:51234/", code: "123456", phones: 0, locked: false };
+      return m.lan;
+    case "lan_stop":
+      m.lan = { running: false, url: "", code: "", phones: 0, locked: false };
+      return null;
+    case "lan_disconnect_all":
+      m.lan = { ...m.lan, phones: 0, code: "654321" };
+      return m.lan;
     case "device_name":
       return "ESTE-PC";
     case "backup_read": {
@@ -197,7 +210,7 @@ function handler(m: TauriMock, cmd: string, a: Record<string, unknown> | null, h
 export const test = base.extend<{ tauri: TauriMock }>({
   // auto: o mock do IPC entra mesmo em testes que não pedem `tauri` (sem ele o app nem abre)
   tauri: [async ({ page }, provide) => {
-    const m: TauriMock = { db: new DatabaseSync(":memory:"), files: new Map(), nextOpen: null, savePath: null, askAnswer: true, calls: [], opened: [], log: [], update: null, releases: [], autoBackups: new Map(), windowStyle: { effect: "none", overlayTitlebar: false } };
+    const m: TauriMock = { db: new DatabaseSync(":memory:"), files: new Map(), nextOpen: null, savePath: null, askAnswer: true, calls: [], opened: [], log: [], update: null, releases: [], autoBackups: new Map(), lan: { running: false, url: "", code: "", phones: 0, locked: false }, windowStyle: { effect: "none", overlayTitlebar: false } };
     await page.exposeFunction("__tauriInvoke", (cmd: string, a: Record<string, unknown> | null, h: Record<string, string> | null) => {
       m.calls.push(cmd);
       try {

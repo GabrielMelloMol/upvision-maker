@@ -7,6 +7,7 @@ import { useAutoBackup } from "./backup/useAutoBackup";
 import { notifyBackupDone } from "./backup/BackupSettingsCard";
 import SuggestDialog from "./feedback/SuggestDialog";
 import SyncBanner from "./sync/SyncBanner";
+import { installPhoneBridge } from "./phone/api";
 import { CHANGELOG, useWhatsNewAfterUpdate, WhatsNewModal } from "./whatsnew/WhatsNew";
 import Onboarding, { useFirstRun } from "./onboarding/Onboarding";
 import { PAGES } from "./pages";
@@ -45,6 +46,7 @@ export default function App() {
   useEffect(() => {
     pageRef.current = pageId;
   }, [pageId]);
+  useEffect(() => installPhoneBridge(), []); // respostas para o celular na rede de casa (#16)
   useEffect(() => installShortcuts({ openPalette: () => setSearching(true), openHelp: () => void (articleFor(pageRef.current) && openHelp(pageRef.current)) }), []);
 
   function pick(item: SearchItem) {

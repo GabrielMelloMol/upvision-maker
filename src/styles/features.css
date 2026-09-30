@@ -185,3 +185,8 @@ g:hover > .viz-hit { fill: var(--fill); }
 /* elementos internos do modelo no gizmo (#79): tracejados, o escolhido em destaque */
 .gizmo-element { fill: transparent; stroke: var(--muted); stroke-width: 1; stroke-dasharray: 4 3; vector-effect: non-scaling-stroke; cursor: move; }
 .gizmo-element[data-selected] { stroke: var(--accent); fill: var(--accent-soft); }
+
+/* Celular na rede de casa (#16) */
+.phone-pair { display: flex; gap: var(--space-6); align-items: center; flex-wrap: wrap; }
+.phone-qr { width: 180px; height: 180px; padding: 8px; background: #fff; border-radius: var(--r-sm); }
+.pair-code { font-size: 36px; font-weight: 700; letter-spacing: 0.08em; font-variant-numeric: tabular-nums; }

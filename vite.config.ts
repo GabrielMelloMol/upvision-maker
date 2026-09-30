@@ -12,11 +12,12 @@ export default defineConfig(() => ({
   // Data do build (tela Sobre, #18).
   define: { __BUILD_DATE__: JSON.stringify(new Date().toISOString().slice(0, 10)) },
   // WASM (vtracer) usa top-level await; WebView2 e WKWebView (Safari 16+) suportam.
-  build: { target: "es2022" },
+  // phone.html: página leve que o app serve para o celular na rede de casa (#16, src-tauri/src/lan.rs)
+  build: { target: "es2022", rollupOptions: { input: { main: "index.html", phone: "phone.html" } } },
   worker: { format: "es" as const, plugins: () => [wasm()] },
   // Escaneia todas as páginas (lazy) e workers na partida: sem isso o Vite descobre dependências
   // só quando a tela abre e recarrega a página no meio do uso (bug B10 do QA, derrubava os E2E).
-  optimizeDeps: { entries: ["index.html", "src/**/*.tsx", "src/**/*.worker.ts"] },
+  optimizeDeps: { entries: ["index.html", "phone.html", "src/**/*.tsx", "src/**/*.worker.ts"] },
   test: {
     setupFiles: ["src/test/setup.ts"],
     coverage: {

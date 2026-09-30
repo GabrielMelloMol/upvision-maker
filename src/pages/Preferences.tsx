@@ -12,6 +12,7 @@ import { errorText, useToast } from "../ui/Toast";
 import { useData } from "../ui/useData";
 import AiSettingsCard from "./AiSettingsCard";
 import BackupSettingsCard from "../backup/BackupSettingsCard";
+import PhoneSettingsCard from "../phone/PhoneSettingsCard";
 import MoneyField from "../ui/MoneyField";
 import SmartField from "../ui/SmartField";
 import Field from "../ui/Field";
@@ -53,6 +54,7 @@ export default function Preferences() {
       {data ? <PreferencesForm initial={data.settings} materials={data.materials} /> : <span className="skeleton" style={{ height: 180, borderRadius: 16, marginBottom: 16 }} />}
       <h2>Seus dados</h2>
       <BackupSettingsCard />
+      <PhoneSettingsCard />
       <h2>Ferramentas</h2>
       <AiSettingsCard />
     </div>

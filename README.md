@@ -69,6 +69,11 @@ O app não tem certificado pago, então o sistema avisa na primeira vez:
 - **macOS:** abra o `.dmg` e arraste para Aplicativos. Na primeira abertura, clique com o botão direito no app → **Abrir** → **Abrir**. Se aparecer "está danificado", rode no Terminal:
   `xattr -dr com.apple.quarantine "/Applications/UpVision Maker.app"`
 
+## Celular e dois computadores (grátis, sem servidor)
+
+- **Dois computadores:** em Preferências, escolha para o backup automático uma pasta do OneDrive/Google Drive/Dropbox e ligue **Dois computadores** nos dois. Um computador de cada vez: o outro mostra "Em uso no computador…".
+- **Celular:** em Preferências → **Celular na rede de casa**, ligue e leia o QR com a câmera do celular (mesmo Wi-Fi). Na primeira vez, o **Windows** pergunta se o app pode usar a rede: marque **Redes privadas** e clique em **Permitir acesso**. O **macOS** pergunta se aceita conexões de entrada: **Permitir**. O acesso desliga sozinho ao fechar o app.
+
 ## Pedir à IA (opcional, pago por uso)
 
 A ferramenta usa a API da Anthropic com a **chave da própria usuária** (Preferências → Inteligência artificial). A chave fica só no banco local, fora do backup. O modelo padrão é o Claude Sonnet 5; cada pedido mostra tokens e custo estimado, e o custo do próximo pedido (com as imagens de referência, se houver) é contado antes de enviar. O código OpenSCAD gerado roda localmente (OpenSCAD em WASM, dentro de um worker).

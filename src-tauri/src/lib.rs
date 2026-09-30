@@ -2,6 +2,7 @@ use tauri::Manager;
 
 mod backup;
 mod diagnostics;
+mod lan;
 mod bambu;
 mod stock;
 mod sync;
@@ -16,6 +17,7 @@ pub fn run() {
         .plugin(tauri_plugin_process::init())
         .plugin(tauri_plugin_opener::init())
         .plugin(tauri_plugin_updater::Builder::new().build())
+        .manage(lan::Lan::default())
         .setup(|app| {
             diagnostics::install_panic_hook(app.handle());
             let window = app.get_webview_window("main").expect("janela principal");
@@ -34,6 +36,12 @@ pub fn run() {
             sync::sync_remove,
             sync::sync_conflict,
             sync::device_name,
+            lan::lan_start,
+            lan::lan_stop,
+            lan::lan_status,
+            lan::lan_new_code,
+            lan::lan_disconnect_all,
+            lan::lan_respond,
             diagnostics::log_append,
             diagnostics::log_read,
             bambu::bambu_project
