@@ -98,6 +98,27 @@ describe("como vai imprimir", () => {
     expect(strFromU8(unzipSync(f)["Metadata/custom_gcode_per_layer.xml"])).toContain('top_z="2.2"');
   });
 
+  test("rótulo do AMS: 1 cor, troca manual (empilhadas) ou precisa de AMS (lado a lado) (#118)", () => {
+    const { rerender } = renderWithApp(<ExportButtons models={[model("A")]} name="x" />);
+    expect(screen.getByText("Sem AMS: 1 cor")).toBeInTheDocument();
+    rerender(<ExportButtons models={[two]} name="x" />);
+    expect(screen.getByText("Sem AMS: troca de filamento nas pausas")).toBeInTheDocument();
+    rerender(<ExportButtons models={[side]} name="x" />);
+    expect(screen.getByText("Precisa de AMS (ou uma mesa por cor)")).toBeInTheDocument();
+  });
+
+  test("uma mesa por cor: um 3MF de cada cor na pasta escolhida (#118)", async () => {
+    t.openPath = "/pasta";
+    const user = userEvent.setup();
+    renderWithApp(<ExportButtons models={[side]} name="pixel" />);
+    await user.click(screen.getByRole("button", { name: "Uma mesa por cor" }));
+    await user.click(screen.getByRole("button", { name: "Salvar uma mesa por cor (2 arquivos)" }));
+    await waitFor(() => expect([...t.files.keys()].filter((k) => k.startsWith("/pasta/")).sort()).toEqual(["/pasta/pixel-cor-1.3mf", "/pasta/pixel-cor-2.3mf"]));
+    // cada arquivo com um filamento só
+    expect(extruders(t.files.get("/pasta/pixel-cor-1.3mf")!)).toEqual(new Set(["1"]));
+    expect(extruders(t.files.get("/pasta/pixel-cor-2.3mf")!)).toEqual(new Set(["1"]));
+  });
+
   test("troca manual com cores lado a lado: aviso e salvar bloqueado; 1 cor salva num filamento", async () => {
     const user = userEvent.setup();
     renderWithApp(<ExportButtons models={[side]} name="lado" />);

@@ -5,6 +5,7 @@ Formato: `## <versão> — <data>` e itens `- …` em linguagem simples.
 
 ## Próxima versão (vira "## 0.9.2 — data" ou "## 0.10.0 — data" ao publicar; até lá o app não mostra)
 - **Tamanho da mesa pela sua impressora** (#119): as ferramentas avisam quando a peça passa da mesa, dividem as peças grandes e arrumam o lote usando o tamanho da impressora cadastrada (A1 mini: 180 mm; Ender 3: 220 mm), e não mais os 256 mm fixos da A1. Com mais de uma impressora, escolha qual vale em Preferências → Impressora das ferramentas. A grade da prévia 3D também mostra a mesa certa.
+- **Precisa de AMS?** (#118): ao salvar o 3MF, cada ferramenta e modelo mostra se sai em 1 cor, se dá para imprimir sem AMS trocando o filamento nas pausas ou se precisa de AMS. Novo jeito de imprimir **Uma mesa por cor**: cada cor sai num 3MF próprio, com as peças deitadas na mesa, para imprimir uma cor por vez e montar ou colar (pixel art, shadowbox, marchetaria).
 
 ## 0.9.1 — 2026-09-30
 - Correção: a versão para Windows não tinha sido gerada na 0.9.0. Esta versão traz todas as novidades da 0.9.0 (abaixo) também para o Windows.

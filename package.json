@@ -12,6 +12,7 @@
     "lint": "eslint .",
     "typecheck": "tsc --noEmit",
     "visual": "playwright test -c playwright.visual.config.ts",
+    "ams-table": "AMS_TABLE=1 vitest run src/qa/amsTable.qa.test.ts",
     "perf": "playwright test -c playwright.perf.config.ts",
     "e2e": "playwright test",
     "thumbs": "THUMBS=1 playwright test tests/e2e/thumbs.e2e.ts && mkdir -p src/assets/model-thumbs && cp test-results/model-thumbs/*.jpg src/assets/model-thumbs/",

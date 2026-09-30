@@ -1,5 +1,9 @@
+import { join } from "@tauri-apps/api/path";
+import { open } from "@tauri-apps/plugin-dialog";
+import { writeFile } from "@tauri-apps/plugin-fs";
 import { Download } from "lucide-react";
 import { useState } from "react";
+import { AMS_LABEL, amsNeed, platesByColor } from "../geometry/amsNeed";
 import { bambuProject } from "../geometry/bambuProject";
 import { mergeClosest } from "../geometry/colorMatch";
 import { printPlan, type PrintMode } from "../geometry/printPlan";
@@ -17,9 +21,12 @@ import { loadAms, type AmsSlot } from "../tools/amsSlots";
 import { errorText, useToast } from "./Toast";
 import { useData } from "./useData";
 
-const MODES: [PrintMode, string][] = [
+/** "plates" (#118): cada cor numa mesa própria, para montar ou colar depois (sem AMS e sem pausas). */
+type Mode = PrintMode | "plates";
+const MODES: [Mode, string][] = [
   ["ams", "Multicor (AMS)"],
   ["manual", "Trocando o filamento"],
+  ["plates", "Uma mesa por cor"],
   ["single", "1 cor"],
 ];
 
@@ -44,7 +51,7 @@ const recolor = (models: Model[], map: Record<string, string>): Model[] => model
 /** Botões padrão de exportação: 3MF com cores (principal) e STL por objeto, ajustados ao jeito de imprimir. */
 export default function ExportButtons({ models: input, name, busy, pauses: inputPauses, printModes = true, profile, onSaved, secondary = false }: Props) {
   const toast = useToast();
-  const [mode, setMode] = useState<PrintMode>("ams");
+  const [mode, setMode] = useState<Mode>("ams");
   const [layer, setLayer] = useState(profile?.layerHeight ?? 0.2);
   const [merge, setMerge] = useState(false);
   const [ams] = useData(loadAms, [] as AmsSlot[]);
@@ -57,12 +64,27 @@ export default function ExportButtons({ models: input, name, busy, pauses: input
   const tooMany = multi && !slots && ams.length > 0 && colorCount > ams.length;
   const merged = tooMany && merge ? recolor(input, mergeClosest(colors, ams.length)) : input;
   const moved = slots ? filamentPlan(input, slots).moved : [];
-  const plan = printPlan(merged, showModes ? mode : "ams", inRange(layer, 0.04, 0.4) ? layer : 0.2, inputPauses ?? []);
+  const plan = printPlan(merged, showModes && mode !== "plates" ? mode : "ams", inRange(layer, 0.04, 0.4) ? layer : 0.2, inputPauses ?? []);
   const models = plan.models;
   const pauses = plan.pauses;
   const disabled = busy || models.length === 0 || !!plan.error || (showModes && mode === "manual" && !inRange(layer, 0.04, 0.4));
 
   const hasPauses = pauses.length > 0;
+  const perColor = showModes && mode === "plates";
+
+  /** Uma mesa por cor (#118): um 3MF por cor, na pasta escolhida. */
+  async function savePlates() {
+    try {
+      const dir = await open({ directory: true, multiple: false, title: "Pasta para as mesas (uma por cor)" });
+      if (typeof dir !== "string") return;
+      const plates = platesByColor(input);
+      for (const [i, p] of plates.entries()) await writeFile(await join(dir, `${slug(name)}-cor-${i + 1}.3mf`), write3mf(p.models, { profile }));
+      toast(`${plates.length} mesas salvas em ${dir} (uma por cor).`);
+      onSaved?.(name);
+    } catch (e) {
+      toast(`Não foi possível salvar: ${errorText(e)}`, "error");
+    }
+  }
 
   async function save(file: string, data: Uint8Array | (() => Promise<Uint8Array>), ext: string, label: string) {
     try {
@@ -79,6 +101,7 @@ export default function ExportButtons({ models: input, name, busy, pauses: input
   return (
     <div className="card stack">
       <EstimateCard models={input} profile={profile} name={name} busy={busy} />
+      {input.length > 0 && !busy && <span className="hint">{AMS_LABEL[amsNeed(input)]}</span>}
       {showModes && (
         <>
           <span className="field-label">Como vai imprimir</span>
@@ -104,6 +127,7 @@ export default function ExportButtons({ models: input, name, busy, pauses: input
             </>
           )}
           {mode === "single" && <span className="hint">Sai tudo num filamento só (as partes continuam separadas no arquivo).</span>}
+          {mode === "plates" && <span className="hint">Cada cor sai num 3MF próprio, com as peças deitadas na mesa: imprima uma cor por vez e monte ou cole (pixel art, shadowbox, marchetaria).</span>}
         </>
       )}
       {tooMany && (
@@ -127,9 +151,15 @@ export default function ExportButtons({ models: input, name, busy, pauses: input
           ))}
         </ul>
       )}
-      <button className={secondary ? undefined : "action"} disabled={disabled} onClick={() => save(`${slug(name)}.3mf`, write3mf(models, { pauses, profile, slots }), "3mf", "3MF")}>
-        <Download aria-hidden /> Salvar 3MF{hasPauses ? " (Orca / Prusa)" : ""}
-      </button>
+      {perColor ? (
+        <button className={secondary ? undefined : "action"} disabled={busy || input.length === 0} onClick={() => void savePlates()}>
+          <Download aria-hidden /> Salvar uma mesa por cor ({colorCount} arquivos)
+        </button>
+      ) : (
+        <button className={secondary ? undefined : "action"} disabled={disabled} onClick={() => save(`${slug(name)}.3mf`, write3mf(models, { pauses, profile, slots }), "3mf", "3MF")}>
+          <Download aria-hidden /> Salvar 3MF{hasPauses ? " (Orca / Prusa)" : ""}
+        </button>
+      )}
       {/* um só botão cheio (#139); os outros formatos ficam numa linha discreta, sempre à vista */}
       <div className="export-more">
         <span>Outros formatos:</span>
