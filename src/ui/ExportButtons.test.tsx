@@ -148,3 +148,10 @@ describe("Meu AMS no 3MF (#98)", () => {
     expect(new Set(partExtruders("/saida/seis.3mf")).size).toBe(4);
   });
 });
+
+test("secondary: o Salvar 3MF vira botão comum, sem a cor de principal (#139)", () => {
+  const { container } = renderWithApp(<ExportButtons models={[model("A")]} name="x" secondary />);
+  const btn = screen.getByRole("button", { name: /Salvar 3MF/ });
+  expect(btn).not.toHaveClass("action");
+  expect(container.querySelectorAll("button.action")).toHaveLength(0);
+});

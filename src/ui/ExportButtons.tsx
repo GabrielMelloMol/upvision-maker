@@ -34,13 +34,15 @@ type Props = {
   profile?: PrintProfile;
   /** Depois de salvar um arquivo (com o `name` legível): a ferramenta guarda o projeto nos "Últimos projetos" (#85). */
   onSaved?: (fileName: string) => void;
+  /** O 3MF não é a saída principal da tela (ex.: etiquetas, cujo principal é o PDF): botão comum, sem cor (#139). */
+  secondary?: boolean;
 };
 
 /** Troca as cores das partes pelo mapa (cor → cor que fica). */
 const recolor = (models: Model[], map: Record<string, string>): Model[] => models.map((m) => ({ ...m, parts: m.parts.map((p) => ({ ...p, color: map[p.color.toLowerCase()] ?? p.color })) }));
 
 /** Botões padrão de exportação: 3MF com cores (principal) e STL por objeto, ajustados ao jeito de imprimir. */
-export default function ExportButtons({ models: input, name, busy, pauses: inputPauses, printModes = true, profile, onSaved }: Props) {
+export default function ExportButtons({ models: input, name, busy, pauses: inputPauses, printModes = true, profile, onSaved, secondary = false }: Props) {
   const toast = useToast();
   const [mode, setMode] = useState<PrintMode>("ams");
   const [layer, setLayer] = useState(profile?.layerHeight ?? 0.2);
@@ -125,7 +127,7 @@ export default function ExportButtons({ models: input, name, busy, pauses: input
           ))}
         </ul>
       )}
-      <button className="action" disabled={disabled} onClick={() => save(`${slug(name)}.3mf`, write3mf(models, { pauses, profile, slots }), "3mf", "3MF")}>
+      <button className={secondary ? undefined : "action"} disabled={disabled} onClick={() => save(`${slug(name)}.3mf`, write3mf(models, { pauses, profile, slots }), "3mf", "3MF")}>
         <Download aria-hidden /> Salvar 3MF{hasPauses ? " (Orca / Prusa)" : ""}
       </button>
       {/* um só botão cheio (#139); os outros formatos ficam numa linha discreta, sempre à vista */}
