@@ -128,7 +128,8 @@ export function buildBigLetter({ M, text, art, fontText }: ModelCtx, p: BigLette
       body = k(recessTexture(M, body, name ? k(texRegion.subtract(k(name.offset(TEX_MARGIN, "Round")))) : texRegion, p.thickness, p.texture, p.texturePitch, p.textureDepth));
       if (name && p.nameMode !== "raised") {
         const pocket = k(k(name.offset(p.nameMode === "inlay" ? p.clearance : 0, "Round")).intersect(letter));
-        body = k(body.subtract(k(k(pocket.extrude(p.depth + 0.01)).translate([0, 0, p.thickness - p.depth]))));
+        // nome todo fora da letra: bolso vazio (subtrair o vazio apagava a letra inteira, #128)
+        if (!pocket.isEmpty()) body = k(body.subtract(k(k(pocket.extrude(p.depth + 0.01)).translate([0, 0, p.thickness - p.depth]))));
       }
       main = [{ name: "Letra", color: p.letterColor, mesh: solidMesh(body) }];
       if (name && p.nameMode === "raised") main.push({ name: "Nome", color: p.nameColor, mesh: slab(onLetter!, p.depth, p.thickness) });

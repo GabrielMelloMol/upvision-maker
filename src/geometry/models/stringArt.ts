@@ -56,7 +56,7 @@ type Pt = [number, number];
 function frameShape(ctx: ModelCtx, kind: StringFrame, size: number): CS {
   const { M } = ctx;
   if (kind === "circle") return M.CrossSection.circle(size / 2, 128);
-  if (kind === "heart") return heart(M, size);
+  if (kind === "heart") return scoped((k) => fitInto(k(heart(M, size)), size, size, 0)); // tamanho = maior lado (#129)
   if (kind === "art" && ctx.art) return scoped((k) => outerOnly(M, k(fitInto(ctx.art!, size, size, 0))));
   return roundedRect(M, size, size * 0.75, size * 0.04);
 }

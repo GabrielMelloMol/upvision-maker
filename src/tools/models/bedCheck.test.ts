@@ -1,0 +1,27 @@
+import { expect, test } from "vitest";
+import type { Mesh, Model } from "../../geometry/types";
+import { bedWarnings, withBedCheck } from "./bedCheck";
+import type { ModelDef } from "./fields";
+
+/** Caixa [0,w]×[0,d]×[0,h] (só os 8 cantos bastam para os limites). */
+const box = (w: number, d: number, h: number): Mesh => ({
+  positions: Float32Array.from([0, 0, 0, w, 0, 0, 0, d, 0, w, d, 0, 0, 0, h, w, 0, h, 0, d, h, w, d, h]),
+  indices: new Uint32Array([0, 1, 2]),
+});
+const model = (name: string, m: Mesh): Model => ({ name, parts: [{ name, color: "#000000", mesh: m }] });
+
+test("avisa a peça que passa da mesa na largura ou na altura; nada quando cabe", () => {
+  expect(bedWarnings([model("Placa", box(200, 100, 3))], [])).toEqual([]);
+  expect(bedWarnings([model("Coração", box(276, 249, 3))], [])[0]).toMatch(/"Coração" tem 276 × 249 × 3 mm e passa da mesa de 256 mm/);
+  expect(bedWarnings([model("Vaso", box(100, 100, 300))], [])[0]).toMatch(/altura de 256 mm/);
+});
+
+test("não repete quando o modelo já avisou da mesa", () => {
+  expect(bedWarnings([model("Placa", box(300, 100, 3))], ["A peça tem 300 mm e passa da mesa de 256 mm."])).toEqual([]);
+});
+
+test("withBedCheck acrescenta o aviso à saída do modelo", () => {
+  const def = { id: "x", build: () => ({ models: [model("Placa", box(300, 10, 3))], warnings: ["outro"] }) } as unknown as ModelDef;
+  const out = withBedCheck(def).build({} as never, {});
+  expect(out.warnings).toHaveLength(2);
+});

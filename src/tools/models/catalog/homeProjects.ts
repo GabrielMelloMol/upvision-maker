@@ -349,7 +349,7 @@ export const HOME_PROJECT_MODELS: ModelDef[] = [
     icon: Flower2,
     defaults: DEFAULT_VASE,
     sections: [
-      { title: "Perfil", fields: [profile("profile", "Perfil (meia silhueta)", 5, 120), num("height", "Altura", 60, 300, { step: 1 })] },
+      { title: "Perfil", fields: [profile("profile", "Perfil (meia silhueta)", 5, 120), num("height", "Altura", 60, 250, { step: 1, hint: "Até 250 mm: a altura de impressão da A1, P1 e X1 é 256." })] },
       {
         title: "Forma",
         fields: [

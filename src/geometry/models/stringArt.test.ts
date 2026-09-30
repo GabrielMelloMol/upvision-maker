@@ -27,6 +27,13 @@ describe("string art (#58)", { timeout: 60_000 }, () => {
     expect(volume(part(m, "Fios")!.mesh)).toBeGreaterThan(50);
   });
 
+  test("tamanho é o maior lado da moldura, também no coração (#129)", () => {
+    for (const frame of ["heart", "circle", "rect"] as const) {
+      const b = meshBounds(build({ frame, size: 250 }).models[0].parts.map((q) => q.mesh))!;
+      expect(Math.max(b.max[0] - b.min[0], b.max[1] - b.min[1])).toBeLessThanOrEqual(250.01);
+    }
+  });
+
   test("padrões: vertical e cruzado; mais espaço entre fios = menos fio", () => {
     const vol = (p: Partial<StringArtParams>) => volume(part(build({ frame: "rect", ...p }).models[0], "Fios")!.mesh);
     expect(vol({ pattern: "vertical", spacing: 3 })).toBeGreaterThan(vol({ pattern: "vertical", spacing: 6 }) * 1.6);

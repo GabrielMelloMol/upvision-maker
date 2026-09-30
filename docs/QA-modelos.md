@@ -16,7 +16,7 @@ Para cada modelo: valores **padrão**, todos os campos numéricos no **mínimo**
 "n/a" = o modelo precisa de uma entrada que o teste não dá (ex.: foto). "app:" = aviso que o próprio app mostra na tela.
 
 
-**Total:** 215 casos · 170 ok · 23 com aviso · 22 com falha · 0 n/a
+**Total:** 215 casos · 172 ok · 23 com aviso · 20 com falha · 0 n/a
 
 ## Forja
 
@@ -194,12 +194,12 @@ Para cada modelo: valores **padrão**, todos os campos numéricos no **mínimo**
 | Molde para carimbo de EVA (stampMold) | máximo | ❌ falha | 15 | 6,3 | 1 | – | "Molde" não cabe na mesa de 256 mm (331,9 × 340,0 × 10,0 mm); o conjunto arrumado ocupa 386,9 × 340,0 mm: passa da mesa de 256 mm; app: O molde tem 340 mm: passa da mesa de 256 mm. |
 | Molde para carimbo de EVA (stampMold) | mínimo | ✅ ok | 14 | 5,9 | 1 | – | – |
 | Molde para carimbo de EVA (stampMold) | padrão | ✅ ok | 40 | 26,1 | 1 | – | – |
-| String art (stringArt) | máximo | ❌ falha | 175 | 104,1 | 1 | – | "String art" não cabe na mesa de 256 mm (275,9 × 249,2 × 8,0 mm); app: Sem fundo, a peça fica presa só pelos fios: tire da mesa com cuidado (espátula fina). |
-| String art (stringArt) | mínimo | ✅ ok | 10 | 2,1 | 1 | – | app: Sem fundo, a peça fica presa só pelos fios: tire da mesa com cuidado (espátula fina). |
-| String art (stringArt) | padrão | ✅ ok | 44 | 19,0 | 1 | – | app: Sem fundo, a peça fica presa só pelos fios: tire da mesa com cuidado (espátula fina). |
-| Vaso paramétrico (vase) | máximo | ❌ falha | – | – | – | – | "Vaso" não cabe na mesa de 256 mm (100,3 × 100,3 × 300,0 mm); app: Modo vaso: o 3MF já vai com o modo espiral ligado (uma parede contínua, sem topo). Use bico 0,4 e 1 perímetro. |
-| Vaso paramétrico (vase) | mínimo | ✅ ok | – | – | – | – | app: Modo vaso: o 3MF já vai com o modo espiral ligado (uma parede contínua, sem topo). Use bico 0,4 e 1 perímetro. |
-| Vaso paramétrico (vase) | padrão | ✅ ok | – | – | – | – | app: Modo vaso: o 3MF já vai com o modo espiral ligado (uma parede contínua, sem topo). Use bico 0,4 e 1 perímetro. |
+| String art (stringArt) | máximo | ✅ ok | 151 | 88,7 | 1 | – | app: Sem fundo, a peça fica presa só pelos fios: tire da mesa com cuidado (espátula fina). |
+| String art (stringArt) | mínimo | ✅ ok | 8 | 1,8 | 1 | – | app: Sem fundo, a peça fica presa só pelos fios: tire da mesa com cuidado (espátula fina). |
+| String art (stringArt) | padrão | ✅ ok | 37 | 16,2 | 1 | – | app: Sem fundo, a peça fica presa só pelos fios: tire da mesa com cuidado (espátula fina). |
+| Vaso paramétrico (vase) | máximo | ✅ ok | 136 | 35,1 | 1 | – | app: Modo vaso: o 3MF já vai com o modo espiral ligado (uma parede contínua, sem topo). Use bico 0,4 e 1 perímetro. |
+| Vaso paramétrico (vase) | mínimo | ✅ ok | 46 | 21,1 | 1 | – | app: Modo vaso: o 3MF já vai com o modo espiral ligado (uma parede contínua, sem topo). Use bico 0,4 e 1 perímetro. |
+| Vaso paramétrico (vase) | padrão | ✅ ok | 87 | 27,3 | 1 | – | app: Modo vaso: o 3MF já vai com o modo espiral ligado (uma parede contínua, sem topo). Use bico 0,4 e 1 perímetro. |
 | Decoração de palavras (wordDecor) | máximo | ❌ falha | – | – | – | – | "AMOR" não cabe na mesa de 256 mm (475,1 × 120,0 × 20,0 mm); "Família" não cabe na mesa de 256 mm (355,0 × 80,0 × 6,0 mm); o conjunto arrumado ocupa 475,1 × 208,0 mm: passa da mesa de 256 mm; Bambu Studio: One of the plate is empty or has no object fully inside it. Please check that the 3mf contains no empty plate in Bambu Studio before uploading. (código -50); app: A palavra de encaixe sai separada: cole no rebaixo da palavra base (a folga é para ela entrar sem forçar). |
 | Decoração de palavras (wordDecor) | mínimo | ✅ ok | 17 | 7,2 | 1 | – | app: A palavra de encaixe sai separada: cole no rebaixo da palavra base (a folga é para ela entrar sem forçar). |
 | Decoração de palavras (wordDecor) | padrão | ✅ ok | 70 | 40,4 | 1 | – | app: A palavra de encaixe sai separada: cole no rebaixo da palavra base (a folga é para ela entrar sem forçar). |
@@ -236,9 +236,9 @@ Para cada modelo: valores **padrão**, todos os campos numéricos no **mínimo**
 | Letras para parede (wallLetters) | máximo | ❌ falha | – | – | – | – | o conjunto arrumado ocupa 3905,4 × 1600,0 mm: passa da mesa de 256 mm; Bambu Studio: Some objects are located over the boundary of the heated bed. (código -52); app: 5 letra(s) passam da mesa de 256 mm e saíram em partes: una com cola e um pedaço de filamento de 1,75 mm nos furos.; app: Gabarito: cole a tira na parede com fita, alinhe cada letra entre os riscos dela e retire a tira depois. |
 | Letras para parede (wallLetters) | mínimo | ✅ ok | 33 | 16,1 | 1 | – | app: Gabarito: cole a tira na parede com fita, alinhe cada letra entre os riscos dela e retire a tira depois. |
 | Letras para parede (wallLetters) | padrão | ⚠️ aviso | 943 | 849,9 | 8 | – | o conjunto arrumado ocupa 1167,6 × 483,0 mm: passa da mesa de 256 mm; não coube numa placa: 8 placas; app: 5 letra(s) passam da mesa de 256 mm e saíram em partes: una com cola e um pedaço de filamento de 1,75 mm nos furos.; app: Gabarito: cole a tira na parede com fita, alinhe cada letra entre os riscos dela e retire a tira depois. |
-| Peça com janela (shaker) (windowFrame) | máximo | ❌ falha | 158 | 156,7 | 1 | 15,24 | "Janela" não cabe na mesa de 256 mm (200,0 × 260,0 × 18,3 mm); o conjunto arrumado ocupa 200,0 × 308,0 mm: passa da mesa de 256 mm; app: Pausa em 15.36 mm: coloque o glitter na câmara, deslize a folha de acetato na ranhura e continue. |
+| Peça com janela (shaker) (windowFrame) | máximo | ❌ falha | 158 | 156,7 | 1 | 15,24 | "Janela" não cabe na mesa de 256 mm (200,0 × 260,0 × 18,3 mm); o conjunto arrumado ocupa 200,0 × 308,0 mm: passa da mesa de 256 mm; app: Pausa em 15.36 mm: coloque o glitter na câmara, deslize a folha de acetato na ranhura e continue.; app: "Janela" tem 200 × 260 × 18 mm e passa da mesa de 256 mm: diminua o tamanho. |
 | Peça com janela (shaker) (windowFrame) | mínimo | ✅ ok | 10 | 2,8 | 1 | 1,96 | app: Pausa em 2 mm: coloque o glitter na câmara, deslize a folha de acetato na ranhura e continue. |
 | Peça com janela (shaker) (windowFrame) | padrão | ✅ ok | 23 | 16,6 | 1 | 5,20 | app: Pausa em 5.2 mm: coloque o glitter na câmara, deslize a folha de acetato na ranhura e continue. |
-| Painel de nomes (namesPanel) | máximo | ⚠️ aviso | 1394 | 1202,0 | 9 | – | o conjunto arrumado ocupa 600,0 × 600,0 mm: passa da mesa de 256 mm; "Painel 1": parede/traço < 0,4 mm em Z 6,3, 8,1 mm; não coube numa placa: 9 placas; app: Maior que a mesa de 256 mm: o painel saiu em 9 partes para colar lado a lado. |
+| Painel de nomes (namesPanel) | máximo | ⚠️ aviso | 1394 | 1202,0 | 9 | – | o conjunto arrumado ocupa 600,0 × 600,0 mm: passa da mesa de 256 mm; não coube numa placa: 9 placas; app: Maior que a mesa de 256 mm: o painel saiu em 9 partes para colar lado a lado. |
 | Painel de nomes (namesPanel) | mínimo | ✅ ok | 8 | 5,0 | 1 | – | app: Com 12 nomes a letra fica com 4.1 mm: aumente a placa para ler bem. |
 | Painel de nomes (namesPanel) | padrão | ✅ ok | 96 | 71,3 | 1 | – | – |

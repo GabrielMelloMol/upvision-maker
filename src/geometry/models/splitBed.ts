@@ -5,6 +5,19 @@ import type { Model } from "../types";
 
 /** Margem da mesa: a peça cortada fica um pouco menor que a mesa (saia, brim). */
 const BED_MARGIN = 6;
+const SLIVER_MM = 0.6; // pedaço mais fino que isso (o corte raspando numa letra) não imprime: sai
+
+/** Tira os pedaços soltos mais finos que um filete que o corte deixou (ex.: 0,3 mm da borda de uma letra). */
+function dropSlivers(M: ManifoldToplevel, s: Solid): Solid {
+  return scoped((k) => {
+    const comps = s.decompose().map(k);
+    const keep = comps.filter((c) => {
+      const b = c.boundingBox();
+      return Math.min(b.max[0] - b.min[0], b.max[1] - b.min[1]) >= SLIVER_MM;
+    });
+    return keep.length === comps.length ? s.translate([0, 0, 0]) : M.Manifold.compose(keep);
+  });
+}
 
 /**
  * Corta um sólido em partes que cabem na mesa (lado `bed`), numa grade de cortes retos em X e Y, com o mínimo de
@@ -24,7 +37,7 @@ export function splitToBed(M: ManifoldToplevel, solid: Solid, bed: number): Soli
     for (let i = 0; i < nx; i++)
       for (let j = 0; j < ny; j++) {
         const box = k(k(M.Manifold.cube([sx, sy, h])).translate([b.min[0] + i * sx, b.min[1] + j * sy, b.min[2] - 1]));
-        const piece = solid.intersect(box);
+        const piece = dropSlivers(M, k(solid.intersect(box)));
         if (piece.isEmpty()) piece.delete();
         else out.push(piece);
       }
@@ -47,7 +60,7 @@ export function splitModelToBed(M: ManifoldToplevel, name: string, parts: { name
     for (let j = ny - 1; j >= 0; j--)
       for (let i = 0; i < nx; i++) {
         const box = k(k(M.Manifold.cube([sx, sy, 1e4])).translate([b.min[0] + i * sx, b.min[1] + j * sy, -5e3]));
-        const pieces = parts.map((q) => ({ ...q, solid: k(q.solid.intersect(box)) })).filter((q) => !q.solid.isEmpty());
+        const pieces = parts.map((q) => ({ ...q, solid: k(dropSlivers(M, k(q.solid.intersect(box)))) })).filter((q) => !q.solid.isEmpty());
         if (pieces.length) out.push({ name: `${name} ${out.length + 1}`, parts: pieces.map((q) => ({ name: q.name, color: q.color, mesh: toMesh(q.solid) })) });
       }
     return out;

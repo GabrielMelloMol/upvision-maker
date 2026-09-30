@@ -32,6 +32,14 @@ function expectPrintable(models: Model[]) {
 }
 
 describe("letra grande com nome (#55)", { timeout: 30_000 }, () => {
+  test("nome todo fora da letra: a letra continua inteira e o app avisa (#128)", () => {
+    for (const nameMode of ["inlay", "sunken"] as const) {
+      const out = build({ nameMode, nameDx: -140, nameDy: -140 });
+      expect(out.models[0].parts[0].mesh.indices.length).toBeGreaterThan(0);
+      expect(out.warnings?.join(" ")).toMatch(/fora da letra/);
+    }
+  });
+
   test("encaixado: letra com rebaixo + peça do nome separada ao lado", () => {
     const { models } = build();
     expectPrintable(models);

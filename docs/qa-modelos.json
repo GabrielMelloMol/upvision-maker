@@ -2375,14 +2375,13 @@
   "group": "home",
   "label": "String art (stringArt)",
   "variant": "máximo",
-  "status": "falha",
+  "status": "ok",
   "reasons": [
-   "\"String art\" não cabe na mesa de 256 mm (275,9 × 249,2 × 8,0 mm)",
    "app: Sem fundo, a peça fica presa só pelos fios: tire da mesa com cuidado (espátula fina)."
   ],
   "date": "2026-09-30",
-  "minutes": 175,
-  "grams": 104.1,
+  "minutes": 151,
+  "grams": 88.7,
   "plates": 1
  },
  {
@@ -2396,8 +2395,8 @@
    "app: Sem fundo, a peça fica presa só pelos fios: tire da mesa com cuidado (espátula fina)."
   ],
   "date": "2026-09-30",
-  "minutes": 10,
-  "grams": 2.1,
+  "minutes": 8,
+  "grams": 1.8,
   "plates": 1
  },
  {
@@ -2411,8 +2410,8 @@
    "app: Sem fundo, a peça fica presa só pelos fios: tire da mesa com cuidado (espátula fina)."
   ],
   "date": "2026-09-30",
-  "minutes": 44,
-  "grams": 19,
+  "minutes": 37,
+  "grams": 16.2,
   "plates": 1
  },
  {
@@ -2421,12 +2420,14 @@
   "group": "home",
   "label": "Vaso paramétrico (vase)",
   "variant": "máximo",
-  "status": "falha",
+  "status": "ok",
   "reasons": [
-   "\"Vaso\" não cabe na mesa de 256 mm (100,3 × 100,3 × 300,0 mm)",
    "app: Modo vaso: o 3MF já vai com o modo espiral ligado (uma parede contínua, sem topo). Use bico 0,4 e 1 perímetro."
   ],
-  "date": "2026-09-30"
+  "date": "2026-09-30",
+  "minutes": 136,
+  "grams": 35.1,
+  "plates": 1
  },
  {
   "key": "vase:mínimo",
@@ -2438,7 +2439,10 @@
   "reasons": [
    "app: Modo vaso: o 3MF já vai com o modo espiral ligado (uma parede contínua, sem topo). Use bico 0,4 e 1 perímetro."
   ],
-  "date": "2026-09-30"
+  "date": "2026-09-30",
+  "minutes": 46,
+  "grams": 21.1,
+  "plates": 1
  },
  {
   "key": "vase:padrão",
@@ -2450,7 +2454,10 @@
   "reasons": [
    "app: Modo vaso: o 3MF já vai com o modo espiral ligado (uma parede contínua, sem topo). Use bico 0,4 e 1 perímetro."
   ],
-  "date": "2026-09-30"
+  "date": "2026-09-30",
+  "minutes": 87,
+  "grams": 27.3,
+  "plates": 1
  },
  {
   "key": "wordDecor:máximo",
@@ -2968,7 +2975,8 @@
   "reasons": [
    "\"Janela\" não cabe na mesa de 256 mm (200,0 × 260,0 × 18,3 mm)",
    "o conjunto arrumado ocupa 200,0 × 308,0 mm: passa da mesa de 256 mm",
-   "app: Pausa em 15.36 mm: coloque o glitter na câmara, deslize a folha de acetato na ranhura e continue."
+   "app: Pausa em 15.36 mm: coloque o glitter na câmara, deslize a folha de acetato na ranhura e continue.",
+   "app: \"Janela\" tem 200 × 260 × 18 mm e passa da mesa de 256 mm: diminua o tamanho."
   ],
   "date": "2026-09-30",
   "minutes": 158,
@@ -3017,7 +3025,6 @@
   "status": "aviso",
   "reasons": [
    "o conjunto arrumado ocupa 600,0 × 600,0 mm: passa da mesa de 256 mm",
-   "\"Painel 1\": parede/traço < 0,4 mm em Z 6,3, 8,1 mm",
    "não coube numa placa: 9 placas",
    "app: Maior que a mesa de 256 mm: o painel saiu em 9 partes para colar lado a lado."
   ],
