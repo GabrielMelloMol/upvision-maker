@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="38 68 436 436" fill="currentColor">
+  <!-- UpVision: impressora-câmera imprimindo camadas (laranja embaixo → azul em cima). Traço/estrutura em currentColor. -->
+  <path d="M132 114h36a8 8 0 0 1 8 8v12h-52v-12a8 8 0 0 1 8-8z"/>
+  <path d="M186 140l20-28a14 14 0 0 1 11.4-6h77.2a14 14 0 0 1 11.4 6l20 28z"/>
+  <rect x="56" y="150" width="400" height="300" rx="66" fill="none" stroke="currentColor" stroke-width="36"/>
+  <rect x="74" y="204" width="364" height="12" rx="6"/>
+  <rect x="218" y="180" width="76" height="62" rx="14"/>
+  <rect x="240" y="222" width="32" height="7" rx="3.5" fill="#2F7BFF"/>
+  <path d="M242 242h28l-11.5 17.5a3 3 0 0 1-5 0z"/>
+  <rect x="166" y="263" width="180" height="22" rx="8" fill="#3B9BFF"/>
+  <rect x="166" y="290" width="180" height="22" rx="8" fill="#2F6BFF"/>
+  <rect x="166" y="317" width="180" height="22" rx="8" fill="#5B4BF0"/>
+  <rect x="166" y="344" width="180" height="22" rx="8" fill="#FF6A1A"/>
+  <rect x="166" y="371" width="180" height="22" rx="8" fill="#FF8A1F"/>
+  <rect x="136" y="398" width="240" height="26" rx="9"/>
+  <circle cx="332" cy="411" r="4" fill="#2F7BFF"/><circle cx="346" cy="411" r="4" fill="#2F7BFF"/><circle cx="360" cy="411" r="4" fill="#2F7BFF"/>
+</svg>

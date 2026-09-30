@@ -1,9 +1,9 @@
-import { X, type LucideIcon } from "lucide-react";
-import { useId, useLayoutEffect, useRef, type FormEvent, type ReactNode } from "react";
+import { X } from "lucide-react";
+import { useId, useLayoutEffect, useRef, type ComponentType, type FormEvent, type ReactNode } from "react";
 
 type Props = {
   title: ReactNode;
-  icon?: LucideIcon;
+  icon?: ComponentType<{ className?: string; "aria-hidden"?: boolean | "true" }>;
   onClose: () => void;
   children: ReactNode;
   /** Botões do rodapé (o principal por último, à direita). */

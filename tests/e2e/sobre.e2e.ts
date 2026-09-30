@@ -10,6 +10,7 @@ test("versão no rodapé abre Sobre; 2 versões atrás com o que está perdendo 
   await expect(version).toContainText("Atualização disponível");
   await version.click();
   const sheet = page.getByRole("dialog", { name: "Sobre o UpVision Maker" });
+  await expect(sheet.locator(".about-head .brand-mark svg")).toBeVisible(); // símbolo vetorial da marca (#138)
   await expect(sheet.getByRole("status")).toHaveText("Você está 2 versões atrás (v0.2.0 → v0.4.0)");
   await expect(sheet.getByText("Backup automático todo dia")).toBeVisible();
   await expect(sheet.getByRole("button", { name: "Atualizar agora" })).toBeVisible();

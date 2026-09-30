@@ -2,12 +2,12 @@ import { perfLine } from "./perf";
 import { openUrl } from "@tauri-apps/plugin-opener";
 import { CircleCheck, Copy, Download, ExternalLink, Info, RefreshCw, Sparkles, WifiOff } from "lucide-react";
 import { useEffect, useState } from "react";
-import logo from "../assets/logo.png";
 import Button from "../ui/Button";
 import Sheet from "../ui/Sheet";
 import { errorText, useToast } from "../ui/Toast";
 import { releaseHighlights, RELEASES_PAGE } from "./releases";
 import { systemName } from "./system";
+import BrandMark from "../ui/BrandMark";
 import { latestVersion, type UpdatesState } from "./useUpdates";
 
 type Props = UpdatesState & { checkNow: () => Promise<void>; install: () => Promise<void>; onNews: () => void; onClose: () => void };
@@ -78,7 +78,7 @@ export default function AboutSheet(p: Props) {
       }
     >
       <div className="about-head">
-        <img src={logo} alt="" />
+        <BrandMark />
         <div>
           <strong>UpVision Maker</strong>
           <span className="about-version">v{p.version ?? "…"}</span>

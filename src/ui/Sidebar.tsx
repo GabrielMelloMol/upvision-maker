@@ -1,7 +1,7 @@
 import { DatabaseBackup, History, Lightbulb, Sparkles } from "lucide-react";
 import { Fragment } from "react";
-import logo from "../assets/logo.png";
 import type { PageDef } from "../pages";
+import BrandMark from "./BrandMark";
 
 type Props = {
   pages: PageDef[];
@@ -23,7 +23,7 @@ export default function Sidebar({ pages, current, onNavigate, onNews, onSuggest,
     <nav className="sidebar" aria-label="Navegação principal">
       <div className="drag" data-tauri-drag-region />
       <button className="brand" onClick={() => onNavigate("home")}>
-        <img src={logo} alt="" />
+        <BrandMark />
         <span>
           UpVision Maker
           <small>Ferramentas para makers 3D</small>

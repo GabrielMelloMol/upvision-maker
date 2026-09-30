@@ -1,4 +1,4 @@
-import { Cylinder, Printer, Sparkles, Zap, type LucideIcon } from "lucide-react";
+import { Cylinder, Printer, Zap, type LucideIcon } from "lucide-react";
 import { useState, type FormEvent } from "react";
 import { getDb } from "../db";
 import { filaments, loadSettings, printers, saveSettings } from "../db/repo";
@@ -14,6 +14,7 @@ import { parseMass, parseMoney } from "../ui/parse";
 import { fieldErrors } from "../ui/fieldErrors";
 import Sheet from "../ui/Sheet";
 import StateKwhSelect from "../ui/StateKwhSelect";
+import BrandMark from "../ui/BrandMark";
 import { useToast } from "../ui/Toast";
 
 export { useFirstRun } from "./firstRun";
@@ -95,7 +96,7 @@ export default function Onboarding({ onClose }: { onClose: () => void }) {
   return (
     <Sheet
       title="Boas-vindas ao UpVision Maker"
-      icon={Sparkles}
+      icon={BrandMark}
       onClose={onClose}
       onSubmit={submit}
       footer={
