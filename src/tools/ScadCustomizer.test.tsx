@@ -88,3 +88,12 @@ test("não é .scad: erro claro", async () => {
   await open("x", "peca.stl");
   expect(await screen.findByText("Envie o arquivo .scad do OpenSCAD.")).toBeInTheDocument();
 });
+
+test("vindo do Pedir à IA (#97): abre o modelo guardado, com a licença 'Meu'", async () => {
+  const { openScadNext } = await import("../scad/library");
+  openScadNext({ name: "porta-copos", source: "/* [Medidas] */\n// Diâmetro\nd = 90; // [60:1:120]\ncylinder(d = d, h = 4);\n", license: "own", credit: "Feito no Pedir à IA", values: {} });
+  renderWithApp(<ScadCustomizer />);
+  expect(await screen.findByRole("heading", { name: "Medidas" })).toBeInTheDocument();
+  expect(screen.getByLabelText(/Diâmetro/)).toHaveValue(90);
+  expect(screen.getByText("Modelo seu: pode vender a peça.")).toBeInTheDocument();
+});

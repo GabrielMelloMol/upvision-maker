@@ -1,12 +1,15 @@
 import Anthropic from "@anthropic-ai/sdk";
-import { Send, Sparkles, X } from "lucide-react";
+import { SlidersHorizontal, Send, Sparkles, X } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { loadAiSettings } from "../ai/aiSettings";
 import { aiErrorText, ask, countInputTokens } from "../ai/claude";
 import { estimateInputCostUsd } from "../ai/cost";
 import { imageUrl, MAX_IMAGES, prepareImage, userContent, type RefImage } from "../ai/images";
 import { RenderCancelled, renderScad } from "../ai/render";
-import { extractReply } from "../ai/scad";
+import { extractReply, parametrizePrompt } from "../ai/scad";
+import { getDb } from "../db";
+import { parseCustomizer } from "../scad/customizer";
+import { OWN_LICENSE, openScadNext, saveScad } from "../scad/library";
 import type { Model } from "../geometry/types";
 import type { Go } from "../pages";
 import Alert from "../ui/Alert";
@@ -27,6 +30,7 @@ export default function AskAI({ go }: { go: Go }) {
   const [history, setHistory] = useState<Anthropic.MessageParam[]>([]);
   const [input, setInput] = useState("");
   const [model3d, setModel3d] = useState<Model | null>(null);
+  const [modelCode, setModelCode] = useState<string | null>(null); // código da peça na tela (para "Virar modelo", #97)
   const [phase, setPhase] = useState<null | { kind: "claude"; chars: number } | { kind: "render" }>(null);
   const [error, setError] = useState<string | null>(null);
   const [images, setImages] = useState<RefImage[]>([]); // referências do próximo pedido (#89)
@@ -95,6 +99,7 @@ export default function AskAI({ go }: { go: Go }) {
       cancelRef.current = job.cancel;
       try {
         setModel3d(await job.result);
+        setModelCode(reply.code);
       } catch (e) {
         if (e instanceof RenderCancelled) return;
         const msg = e instanceof Error ? e.message : String(e);
@@ -104,6 +109,36 @@ export default function AskAI({ go }: { go: Go }) {
       }
     } catch (e) {
       if (!(e instanceof Anthropic.APIUserAbortError)) setError(aiErrorText(e));
+    } finally {
+      setPhase(null);
+    }
+  }
+
+  /** "Virar modelo" (#97): 1 pedido ao Claude expõe as medidas como parâmetros; guarda em Meus modelos e abre o formulário. */
+  async function makeModel() {
+    if (!settings?.apiKey || !modelCode || phase) return;
+    setError(null);
+    const ctrl = new AbortController();
+    cancelRef.current = () => ctrl.abort();
+    setPhase({ kind: "claude", chars: 0 });
+    try {
+      const r = await ask(settings.apiKey, settings.model, [{ role: "user", content: parametrizePrompt(modelCode) }], (chars) => setPhase({ kind: "claude", chars }), ctrl.signal);
+      const code = extractReply(r.text).code;
+      const tokens = { in: r.message.usage.input_tokens + (r.message.usage.cache_read_input_tokens ?? 0) + (r.message.usage.cache_creation_input_tokens ?? 0), out: r.message.usage.output_tokens };
+      setTurns((t) => [...t, { role: "assistant", text: "Modelo com parâmetros criado.", code, tokens, costUsd: r.costUsd }]);
+      if (!code || !parseCustomizer(code).length) throw new Error("A IA não devolveu parâmetros no formato do Customizer. Tente de novo.");
+      setPhase({ kind: "render" });
+      const job = renderScad(code, "Modelo da IA");
+      cancelRef.current = job.cancel;
+      await job.result; // confere que renderiza antes de guardar
+      const firstAsk = turns.find((t) => t.role === "user")?.text ?? "Peça da IA";
+      const saved = { name: firstAsk.slice(0, 40), source: code, license: OWN_LICENSE.id, credit: "Feito no Pedir à IA", values: {} };
+      await saveScad(await getDb(), saved);
+      openScadNext(saved);
+      go("scad");
+    } catch (e) {
+      if (e instanceof RenderCancelled || e instanceof Anthropic.APIUserAbortError) return;
+      setError(aiErrorText(e));
     } finally {
       setPhase(null);
     }
@@ -230,6 +265,14 @@ export default function AskAI({ go }: { go: Go }) {
             </form>
           </div>
           <ExportButtons models={model3d ? [model3d] : []} name="peca-ia" busy={!!phase} />
+          {model3d && modelCode && (
+            <div className="card stack">
+              <button type="button" disabled={!!phase} onClick={() => void makeModel()}>
+                <SlidersHorizontal aria-hidden /> Virar modelo
+              </button>
+              <span className="hint">1 pedido ao Claude transforma as medidas e textos em campos. Depois, ajustar pelo formulário não custa nada.</span>
+            </div>
+          )}
         </div>
         <div className="preview-col">
           <Preview3D models={model3d ? [model3d] : []} busy={phase?.kind === "render"} busyText="Renderizando no OpenSCAD…" emptyText="O modelo aparece aqui depois do primeiro pedido." />

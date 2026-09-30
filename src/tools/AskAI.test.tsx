@@ -141,3 +141,37 @@ describe("Pedir à IA", () => {
     expect(screen.queryByText(/Erro no OpenSCAD/)).not.toBeInTheDocument();
   });
 });
+
+describe("Virar modelo (#97)", () => {
+  const PARAM = "Pronto.\n```openscad\n/* [Medidas] */\n// Lado (mm)\nlado = 10; // [5:1:50]\ncube(lado);\n```";
+
+  test("1 pedido expõe as medidas como parâmetros, confere que renderiza, guarda em Meus modelos e abre o formulário", async () => {
+    const { modelVariants } = await import("../db/modelVariantsRepo");
+    const { takeScadHandoff } = await import("../scad/library");
+    askMock.mockResolvedValueOnce(reply(WITH_CODE)).mockResolvedValueOnce(reply(PARAM, 0.02));
+    renderMock.mockReturnValue({ result: Promise.resolve(CUBE), cancel: () => {} });
+    const { user, go } = await start();
+    await user.click(screen.getByRole("button", { name: /Criar peça/ }));
+    await user.click(await screen.findByRole("button", { name: /Virar modelo/ }));
+    await waitFor(() => expect(go).toHaveBeenCalledWith("scad"));
+    // pedido sem o histórico da conversa (mais barato), com o código atual
+    const sent = askMock.mock.calls[1][2];
+    expect(sent).toHaveLength(1);
+    expect(String(sent[0].content)).toContain("module a() { cube(10); }");
+    expect(renderMock).toHaveBeenLastCalledWith(expect.stringContaining("lado = 10;"), "Modelo da IA");
+    const saved = await modelVariants.list(t.db, "scad");
+    expect(saved).toHaveLength(1);
+    expect(JSON.parse(saved[0].data)).toMatchObject({ license: "own", source: expect.stringContaining("// [5:1:50]") });
+    expect(takeScadHandoff()).toMatchObject({ name: "um cubo", license: "own" });
+  });
+
+  test("resposta sem parâmetros: erro claro e nada guardado", async () => {
+    askMock.mockResolvedValueOnce(reply(WITH_CODE)).mockResolvedValueOnce(reply(WITH_CODE));
+    renderMock.mockReturnValue({ result: Promise.resolve(CUBE), cancel: () => {} });
+    const { user, go } = await start();
+    await user.click(screen.getByRole("button", { name: /Criar peça/ }));
+    await user.click(await screen.findByRole("button", { name: /Virar modelo/ }));
+    expect(await screen.findByText(/não devolveu parâmetros/)).toBeInTheDocument();
+    expect(go).not.toHaveBeenCalled();
+  });
+});

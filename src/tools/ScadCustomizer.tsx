@@ -7,6 +7,7 @@ import { readBinaryStl } from "../geometry/stlRead";
 import type { Model } from "../geometry/types";
 import { defineArgs, parseCustomizer, plateModules, scadImports, type ScadValue } from "../scad/customizer";
 import { fromFormValue, toFormValue, toSections } from "../scad/form";
+import { LIBRARY_ID, OWN_LICENSE, readSaved, saveScad, takeScadHandoff, type SavedScad } from "../scad/library";
 import Alert from "../ui/Alert";
 import Dropzone from "../ui/Dropzone";
 import ExportButtons from "../ui/ExportButtons";
@@ -23,13 +24,13 @@ import { useToolState } from "./useToolState";
 const MAX_SCAD_BYTES = 1024 * 1024;
 const MAX_IMPORT_BYTES = 20 * 1024 * 1024;
 const RENDER_DEBOUNCE_MS = 700; // o OpenSCAD leva segundos: espera a pessoa parar de digitar
-const LIBRARY_ID = "scad"; // "Meus modelos" OpenSCAD ficam na tabela de variações (#26), que entra no backup
 const PLATE_COLOR = "#2563eb";
 
 type Scad = { name: string; text: string };
 const initialState = () => ({ scad: null as Scad | null, values: {} as Params, license: "", credit: "", imports: {} as Record<string, Uint8Array> });
 type ScadState = ReturnType<typeof initialState>;
-type Saved = { source: string; license: string; credit: string; values: Params };
+const LICENSE_OPTIONS = [OWN_LICENSE, ...LICENSES];
+const fromSaved = (d: SavedScad): ScadState => ({ scad: { name: d.name, text: d.source }, values: d.values, license: d.license, credit: d.credit, imports: {} });
 
 /**
  * OpenSCAD personalizável (#96): abre um .scad no formato do Customizer (o mesmo do Parametric Model Maker), vira
@@ -49,6 +50,13 @@ export default function ScadCustomizer() {
   const [setValues, setLicense, setCredit, setImports] = [tool.field("values"), tool.field("license"), tool.field("credit"), tool.field("imports")];
   const [fileError, setFileError] = useState<string | null>(null);
   const toast = useToast();
+  // vindo do Pedir à IA (#97): abre o modelo recém-criado (um passo de desfazer)
+  useEffect(() => {
+    const next = takeScadHandoff();
+    if (next) tool.set(() => fromSaved(next));
+    // só na abertura da tela
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const params = useMemo(() => (scad ? parseCustomizer(scad.text) : []), [scad]);
   const sections = useMemo(() => toSections(params), [params]);
@@ -126,8 +134,7 @@ export default function ScadCustomizer() {
   async function saveToLibrary() {
     if (!scad) return;
     try {
-      const data: Saved = { source: scad.text, license, credit, values };
-      await modelVariants.create(await getDb(), { modelId: LIBRARY_ID, label: scad.name.slice(0, 60), data: JSON.stringify(data), createdAt: new Date().toISOString() });
+      await saveScad(await getDb(), { name: scad.name, source: scad.text, license, credit, values });
       toast(`"${scad.name}" guardado em Meus modelos.`);
       reloadSaved();
     } catch (e) {
@@ -136,8 +143,8 @@ export default function ScadCustomizer() {
   }
   function openSaved(v: ModelVariant) {
     try {
-      const d = JSON.parse(v.data) as Saved;
-      tool.set(() => ({ scad: { name: v.label, text: d.source }, values: d.values ?? {}, license: d.license ?? "", credit: d.credit ?? "", imports: {} }));
+      const d = readSaved(v.label, v.data);
+      tool.set(() => fromSaved(d));
     } catch {
       toast("Não deu para abrir este modelo guardado.", "error");
     }
@@ -147,7 +154,7 @@ export default function ScadCustomizer() {
     reloadSaved();
   }
 
-  const verdict = LICENSES.find((l) => l.id === license)?.verdict;
+  const verdict = LICENSE_OPTIONS.find((l) => l.id === license)?.verdict;
   const firstText = String(Object.values(values).find((v) => typeof v === "string" && v.trim()) ?? "");
 
   return (
@@ -184,7 +191,7 @@ export default function ScadCustomizer() {
               <Field label="Licença informada pelo autor">
                 <select value={license} onChange={(e) => setLicense(e.target.value)}>
                   <option value="">Escolha…</option>
-                  {LICENSES.map((l) => (
+                  {LICENSE_OPTIONS.map((l) => (
                     <option key={l.id} value={l.id}>
                       {l.label}
                     </option>
