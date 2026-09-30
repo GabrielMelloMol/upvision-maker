@@ -132,8 +132,6 @@ export function stockHealth(current: number, recommended: number): "ok" | "warn"
 
 export const PERIODS = ["month", "lastMonth", "3m", "6m", "12m", "year", "custom"] as const;
 export type Period = (typeof PERIODS)[number];
-export const PERIOD_LABEL: Record<Period, string> = { month: "Este mês", lastMonth: "Mês passado", "3m": "Últimos 3 meses", "6m": "Últimos 6 meses", "12m": "Últimos 12 meses", year: "Este ano", custom: "Personalizado" };
-
 /** [início, fim] do período (datas ISO). "Últimos N meses" inclui o mês atual. */
 export function periodRange(p: Exclude<Period, "custom">, today: string): [string, string] {
   const [y, m] = today.split("-").map(Number);

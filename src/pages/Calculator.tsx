@@ -1,4 +1,4 @@
-import { Clock, Columns2, Cylinder, Package, Store, Zap } from "lucide-react";
+import { Columns2, Cylinder } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { getDb } from "../db";
 import { costsRepo } from "../db/costsRepo";
@@ -14,20 +14,20 @@ import { fixedCostPerHour } from "../domain/finance";
 import { parseDecimal } from "../domain/format";
 import { todayIso } from "../domain/orders";
 import { DEFAULT_SETTINGS } from "../domain/settings";
-import { compareChannels, roundPrice, ROUNDINGS, type Rounding } from "../domain/pricing";
+import { compareChannels, roundPrice, type Rounding } from "../domain/pricing";
 import Segmented from "../ui/Segmented";
-import SmartField from "../ui/SmartField";
 import { useData } from "../ui/useData";
-import MoneyField from "../ui/MoneyField";
 import { formatDuration, formatMoneyInput, parseDuration, parseMoney } from "../ui/parse";
 import TimeField from "../ui/TimeField";
-import SlicerImport, { type SlicerApply } from "./SlicerImport";
+import { type SlicerApply } from "./SlicerImport";
 import type { Go } from "../pages";
 import { setProductDraft } from "./products/draft";
 import { errorText, useToast } from "../ui/Toast";
-import ChannelTable, { CompetitorHint } from "./calculator/ChannelTable";
+import ChannelTable from "./calculator/ChannelTable";
 import PlugSheet from "./calculator/PlugSheet";
-import PrinterCatalogButton from "./calculator/PrinterCatalogButton";
+import FullForm from "./calculator/FullForm";
+import PriceControls from "./calculator/PriceControls";
+import PrinterSelect from "./calculator/PrinterSelect";
 import AddToQuote from "./calculator/AddToQuote";
 import HistoryCard, { useCalcHistory } from "./calculator/History";
 import Compare from "./calculator/Compare";
@@ -163,6 +163,7 @@ export default function Calculator({ go }: { go: Go }) {
     window.scrollTo({ top: 0, behavior: "smooth" });
   }
   const rows = compareChannels(r, data.settings, price(f.freight), { rounding, competitor: price(competitor), hours: printMin / 60, qty: num(f.quantity) });
+  const marginPct = f.margin === "" ? data.settings.marketplaceMarginPct : num(f.margin);
   const current = scenarioSummary(f.name.trim(), r, rows, grams, printMin / 60);
 
   /** Preenche a calculadora com o que o arquivo do fatiador informou. */
@@ -235,27 +236,16 @@ export default function Calculator({ go }: { go: Go }) {
   }
 
   const printerSelect = (
-    <div className="stack" style={{ gap: 4 }}>
-      <label>
-        Impressora
-        <select value={printerId} onChange={(e) => pickPrinter(e.target.value)}>
-          <option value="">Digitar potência</option>
-          {data.printers.map((p) => (
-            <option key={p.id} value={p.id}>
-              {p.name}
-            </option>
-          ))}
-        </select>
-      </label>
-      <PrinterCatalogButton
-        printers={data.printers}
-        onPicked={(p) => {
-          setPrinterId(String(p.id));
-          setF((cur) => ({ ...cur, watts: str(p.watts) }));
-          reloadData();
-        }}
-      />
-    </div>
+    <PrinterSelect
+      printers={data.printers}
+      value={printerId}
+      onPick={pickPrinter}
+      onCatalog={(p) => {
+        setPrinterId(String(p.id));
+        setF((cur) => ({ ...cur, watts: str(p.watts) }));
+        reloadData();
+      }}
+    />
   );
   const timeField = <TimeField label="Tempo de impressão" value={f.time} onChange={setText("time")} />;
   const piecesField = <label>Peças na mesa<input inputMode="numeric" value={f.quantity} onChange={set("quantity")} /></label>;
@@ -306,71 +296,27 @@ export default function Calculator({ go }: { go: Go }) {
               </div>
             </section>
           ) : (
-            <>
-              <SlicerImport stock={data.stock} printers={data.printers} onApply={applySlicer} onStockAdded={reloadData} />
-              <section className="card">
-                <h2 className="card-title">
-                  <Cylinder aria-hidden /> Filamentos
-                </h2>
-                <Lines lines={fil} setLines={setFil} options={data.filaments} priceLabel="Preço por kg" qtyLabel="Gramas" addLabel="Adicionar filamento" />
-              </section>
-
-              <section className="card">
-                <h2 className="card-title">
-                  <Clock aria-hidden /> Impressão e mão de obra
-                </h2>
-                <div className="grid">
-                  {printerSelect}
-                  <div className="stack" style={{ gap: 4 }}>
-                    <SmartField
-                      label="Potência (W)"
-                      inputMode="decimal"
-                      parse={parseDecimal}
-                      invalidText="Digite os watts, ex.: 95."
-                      value={f.watts}
-                      hint={catalog ? `${printerLabel(catalog)}: ${catalog.watts} W (${catalog.source === "oficial" ? "oficial" : "estimativa"})` : REFERENCE}
-                      onChange={(v) => {
-                        setPrinterId(""); // potência digitada à mão não é mais a da impressora escolhida
-                        setText("watts")(v);
-                      }}
-                    />
-                    <button type="button" className="link" style={{ justifySelf: "start" }} onClick={() => setPlugOpen(true)}>
-                      <Zap aria-hidden size={14} /> Medir com tomada inteligente
-                    </button>
-                  </div>
-                  {timeField}
-                  <TimeField label="Mão de obra" bare="min" value={f.labor} onChange={setText("labor")} placeholder="15 min" hint="Ex.: 15 (minutos), 1h10" />
-                  {piecesField}
-                  <SmartField
-                    label="kWh medido desta impressão"
-                    inputMode="decimal"
-                    parse={parseDecimal}
-                    invalidText="Digite os kWh, ex.: 0,3."
-                    value={f.kwh}
-                    placeholder="Opcional"
-                    hint="Para quem mede cada peça na tomada: substitui potência × tempo."
-                    onChange={setText("kwh")}
-                  />
-                </div>
-              </section>
-
-              <section className="card">
-                <h2 className="card-title">
-                  <Package aria-hidden /> Materiais extras
-                </h2>
-                <Lines lines={ext} setLines={setExt} options={data.materials} priceLabel="Preço unitário" qtyLabel="Quantidade" addLabel="Adicionar material" />
-              </section>
-
-              <section className="card">
-                <h2 className="card-title">
-                  <Store aria-hidden /> Venda
-                </h2>
-                <div className="grid">
-                  <MoneyField label="Frete absorvido por peça" value={f.freight} onChange={setText("freight")} />
-                  <label>Margem em marketplace (%)<input inputMode="decimal" placeholder={String(data.settings.marketplaceMarginPct)} value={f.margin} onChange={set("margin")} /></label>
-                </div>
-              </section>
-            </>
+            <FullForm
+              data={data}
+              fil={fil}
+              setFil={setFil}
+              ext={ext}
+              setExt={setExt}
+              f={f}
+              setText={setText}
+              set={set}
+              printerSelect={printerSelect}
+              timeField={timeField}
+              piecesField={piecesField}
+              wattsHint={catalog ? `${printerLabel(catalog)}: ${catalog.watts} W (${catalog.source === "oficial" ? "oficial" : "estimativa"})` : REFERENCE}
+              onWatts={(v) => {
+                setPrinterId(""); // potência digitada à mão não é mais a da impressora escolhida
+                setText("watts")(v);
+              }}
+              onApplySlicer={applySlicer}
+              onStockAdded={reloadData}
+              onOpenPlug={() => setPlugOpen(true)}
+            />
           )}
         </div>
 
@@ -432,28 +378,12 @@ export default function Calculator({ go }: { go: Go }) {
           onClose={() => setScenarioA(null)}
         />
       )}
-
       {mode === "full" && (
         <ChannelTable rows={rows} minMarginPct={data.settings.minMarginPct} target={data.settings.targetProfitPerHour} stale={staleFees}>
-          <div className="row" style={{ alignItems: "flex-start", flexWrap: "wrap", gap: "var(--space-4)", marginBottom: "var(--space-3)" }}>
-            <div className="stack" style={{ gap: 6 }}>
-              <span className="field-label">Arredondar preços</span>
-              <Segmented label="Arredondar preços" value={rounding} onChange={setRounding} options={ROUNDINGS} />
-            </div>
-            <div style={{ flex: "1 1 240px", maxWidth: 360 }}>
-              <MoneyField
-                label="Testar um preço (seu ou do concorrente)"
-                value={competitor}
-                onChange={setCompetitor}
-                hint={<CompetitorHint ours={roundPrice(r.consumer, rounding)} competitor={price(competitor)} />}
-              />
-            </div>
-          </div>
+          <PriceControls rounding={rounding} onRounding={setRounding} competitor={competitor} onCompetitor={setCompetitor} ours={roundPrice(r.consumer, rounding)} />
         </ChannelTable>
       )}
-      {mode === "full" && (
-        <AdsCard r={r} s={data.settings} rows={rows} freight={price(f.freight)} marginPct={f.margin === "" ? data.settings.marketplaceMarginPct : num(f.margin)} />
-      )}
+      {mode === "full" && <AdsCard r={r} s={data.settings} rows={rows} freight={price(f.freight)} marginPct={marginPct} />}
       {mode === "full" && (
         <QuantityTable
           r={r}
@@ -461,7 +391,7 @@ export default function Calculator({ go }: { go: Go }) {
           rows={rows}
           freight={price(f.freight)}
           rounding={rounding}
-          marginPct={f.margin === "" ? data.settings.marketplaceMarginPct : num(f.margin)}
+          marginPct={marginPct}
           minutesPerPiece={printMin / Math.max(1, Math.floor(num(f.quantity)) || 1)}
           name={f.name}
           prepTime={f.prepTime}
