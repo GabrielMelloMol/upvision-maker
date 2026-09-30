@@ -72,6 +72,12 @@ Regras para quem cria ferramenta (combinado com o Torno na #140): `.tool-layout`
 
 Tokens continuam num lugar só (`tokens.css`); a mudança foi de valores (`--action` = acento) e de poucas regras em `components.css`, `tools.css`, `layout.css` e `features.css`.
 
+## Andamento da Fase 2 (aprovada em 30/09/2026)
+
+- **Passo 1 no main:** navegação em 5 seções com data-page, galeria Criar, Início, template em Chaveiros, um primário no ExportButtons, linguagem visual, barra lateral recolhível (⌘⌥S), marca fiel ao site com wordmark, abertura que se imprime e ícone do macOS 26 com variantes (Icon Composer → Assets.car).
+- **A Calculadora do protótipo ficou de fora:** o Lupa está nela (#147). Entra combinada com ele.
+- **Próximos:** Liquid Glass; template nas outras ferramentas (Forja e Torno) e nas telas de gestão (Lupa); textos (#143) e acessibilidade (#144).
+
 ## 6. O que a Fase 2 faz (depois da aprovação)
 
 1. Aplicar o template nas outras 13 ferramentas (Forja e Torno donos da lógica; eu, do layout): tirar os `.lead` longos e recolher o ajuste fino em cada uma.

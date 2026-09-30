@@ -4,6 +4,12 @@ Cada versão aparece para a usuária na tela "O que há de novo" depois da atual
 Formato: `## <versão> — <data>` e itens `- …` em linguagem simples.
 
 ## Próxima versão (vira "## 0.8.1 — data" ou "## 0.9.0 — data" ao publicar; até lá o app não mostra)
+- **Visual novo, mais simples** (#139): a barra lateral agora tem só cinco seções (**Início, Criar, Vender, Estoque e Resultados**) e **Ajustes** embaixo. Ao abrir uma seção, as telas dela aparecem logo abaixo. Backup, restauração, novidades e sugestões ficaram em Ajustes.
+- **Criar**: todas as ferramentas e os Modelos prontos numa galeria só, com busca (sem ligar para acento) e filtro por tipo. Clicar num modelo abre a ferramenta já nele.
+- **Início novo**: atalhos para o que mais se faz, **Continuar** (o que ficou pela metade nas ferramentas) e os **pedidos da semana**.
+- **Barra lateral recolhível**: o botão no topo ou **⌘⌥S** (Ctrl+Alt+S no Windows) deixa só os ícones. Passar o mouse mostra tudo por cima, sem empurrar a tela. Em janela estreita ela se recolhe sozinha.
+- **Menos enfeite**: um botão principal por ferramenta (**Salvar 3MF**), ajuste fino em **Opções avançadas** e cores mais calmas. Com **Reduzir movimento** ligado no sistema, o app não anima.
+- **Logo da UpVision** redesenhada fiel ao site, na barra lateral e em Sobre. Ao abrir, o símbolo **se imprime camada por camada** (a animação completa só na primeira abertura do dia) e sai assim que o app está pronto. No macOS 26, o ícone acompanha o modo claro, o escuro e o tingido.
 - **Ajuda com várias imagens** (#84, #140): o botão **?** agora mostra um carrossel com legenda (setas, pontinhos ou ← →). No Organizador de gaveta, ele ensina a medir a largura, a profundidade e a altura livre com a própria gaveta 3D do app, e mostra a grade e a gaveta montada.
 - **Ícone novo** (#138): o app agora usa o símbolo da UpVision (a impressora-câmera imprimindo camadas do laranja ao azul) no Dock, no ⌘Tab, na barra de tarefas do Windows e no instalador, redesenhado em vetor. Dentro do app ele aparece na barra lateral, em Sobre e nas boas-vindas, e fica claro no tema escuro.
 - Correção: a **Cumbuca no contorno** com fundo arredondado saía com um pedaço da parede solto no ar (e no tamanho máximo o fatiador recusava). Agora a peça sai inteira, apoiada na mesa (#134).
