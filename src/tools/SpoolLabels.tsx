@@ -8,7 +8,7 @@ import { parseFilamentQr } from "../domain/spoolQr";
 import { loadFont } from "../geometry/fonts";
 import { layoutOnPlate } from "../geometry/keychain";
 import { getManifold } from "../geometry/manifold";
-import { buildSpoolTag } from "../geometry/spoolTag";
+import { buildSpoolTag, spoolTagsThatFit } from "../geometry/spoolTag";
 import { textToCrossSection } from "../geometry/text";
 import { loadPdfFonts } from "../pdf/fonts";
 import { spoolLabelsPdf, type LabelLayout } from "../pdf/spoolLabels";
@@ -33,7 +33,7 @@ const LAYOUTS: [LabelLayout, string][] = [
 ];
 const PLATE_MM = 256;
 const GAP_MM = 4;
-const MAX_TAGS = 30;
+const MAX_TAGS = spoolTagsThatFit(PLATE_MM - 2 * GAP_MM, GAP_MM); // 21 na mesa de 256 mm (#124)
 const grams = (g: number) => `${Math.round(g).toLocaleString("pt-BR")} g`;
 const title = (f: Filament) => [f.material, f.color].filter(Boolean).join(" ");
 const hex = (f: Filament) => {

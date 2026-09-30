@@ -1,4 +1,5 @@
 import type { CS, ManifoldToplevel, Solid } from "./manifold";
+import { fitSetOnBed, setOnBedWarning } from "./bedLayout";
 import { toMesh } from "./mesh";
 import { scoped } from "./shape2d";
 import type { Model, Part } from "./types";
@@ -129,7 +130,9 @@ export function cutModels(M: ManifoldToplevel, models: Model[], o: CutOptions): 
     });
     out.push(...r);
   }
-  return { models: spread(out), warnings };
+  const placed = fitSetOnBed(spread(out)); // partes em fila passando da mesa: rearruma (#125)
+  const set = setOnBedWarning(placed);
+  return { models: placed, warnings: set ? [...warnings, set] : warnings };
 }
 
 /** Lado a lado em X, sem se tocar. */

@@ -62,3 +62,12 @@ describe("cartão de visita: posição dos elementos (#79)", { timeout: 30_000 }
     expect(out.warnings!.join(" ")).toMatch(/QR: passa da borda/);
   });
 });
+
+describe("cartão de visita: texto encolhido para caber (#126)", { timeout: 30_000 }, () => {
+  test("linha que encolhe a menos de 0,4 mm de traço: avisa qual linha e a altura; linhas normais não avisam", () => {
+    const long = `contato${"x".repeat(300)}@loja.com`;
+    const w = build({ email: long }).warnings ?? [];
+    expect(w.join()).toMatch(new RegExp(`"${long.slice(0, 12)}.*" ficou com 0,\\d+ mm de altura`));
+    expect((build().warnings ?? []).some((x) => /de altura/.test(x))).toBe(false);
+  });
+});

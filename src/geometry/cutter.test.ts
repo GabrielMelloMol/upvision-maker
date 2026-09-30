@@ -18,6 +18,16 @@ function run(contours: [number, number][][], p: Partial<CutterParams> = {}) {
 const lineArt = [sq(20), sq(18), sq(5)];
 
 describe("cortador", () => {
+  test("lâmina de 0,4 mm sem borda de apoio não fatia: sai com 0,8 mm e avisa (#123)", () => {
+    const r = run(lineArt, { stamp: false, blade: 0.4, rimWidth: 0 });
+    expect(size(r.models[0])[0]).toBeCloseTo(40 + 2 * 0.8, 1);
+    expect(r.warnings.join()).toMatch(/0,8 mm/);
+    // com borda de apoio, a lâmina fina fica como pedida
+    const withRim = run(lineArt, { stamp: false, blade: 0.4, rimWidth: 4 });
+    expect(size(withRim.models[0])[0]).toBeCloseTo(40 + 2 * (0.4 + 4), 1);
+    expect(withRim.warnings).toEqual([]);
+  });
+
   test("lâmina de 0,8 mm na altura pedida + borda de apoio na base", () => {
     const [cutter] = run(lineArt, { stamp: false }).models;
     const [w, d, h] = size(cutter);

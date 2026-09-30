@@ -1,3 +1,4 @@
+import { fitSetOnBed, setOnBedWarning } from "../../geometry/bedLayout";
 import { meshBounds } from "../../geometry/bounds";
 import type { Model } from "../../geometry/types";
 import type { ModelDef } from "./fields";
@@ -26,7 +27,11 @@ export function withBedCheck(def: ModelDef): ModelDef {
     build: (ctx, p) => {
       const out = def.build(ctx, p);
       const warnings = out.warnings ?? [];
-      return { ...out, warnings: [...warnings, ...bedWarnings(out.models, warnings)] };
+      // peças arrumadas além da mesa: rearruma se der, senão avisa que vai em mais de uma mesa (#125)
+      const models = fitSetOnBed(out.models);
+      const bed = bedWarnings(models, warnings);
+      const set = bed.length || warnings.some((w) => /mesa/i.test(w)) ? null : setOnBedWarning(models);
+      return { ...out, models, warnings: [...warnings, ...bed, ...(set ? [set] : [])] };
     },
   };
 }

@@ -17,6 +17,9 @@ const HOLE_R = 2.2; // abraçadeira ou argola no furo do carretel
 const PAD = 2;
 const DOT_R = 3.5;
 
+/** Quantas plaquinhas cabem numa área quadrada de `area` mm, em grade com `gap` entre elas (#124). */
+export const spoolTagsThatFit = (area: number, gap: number) => Math.floor((area + gap) / (W + gap)) * Math.floor((area + gap) / (H + gap));
+
 /**
  * Plaquinha do rolo: placa clara com o QR (aponta para o filamento), o nome e o #id em relevo escuro,
  * uma bolinha na cor do filamento e furo para prender no carretel.

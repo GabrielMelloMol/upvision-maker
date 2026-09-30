@@ -10,7 +10,7 @@
    "app: Dobradiça com folga de 0,6 mm: imprima um teste; se as letras grudarem, aumente a folga."
   ],
   "date": "2026-09-30",
-  "minutes": 47,
+  "minutes": 46,
   "grams": 23.6,
   "plates": 1
  },
@@ -483,7 +483,8 @@
   "variant": "máximo",
   "status": "aviso",
   "reasons": [
-   "o conjunto arrumado ocupa 210,6 × 291,5 mm: passa da mesa de 256 mm"
+   "o conjunto arrumado ocupa 210,6 × 291,5 mm: passa da mesa de 256 mm",
+   "app: As 2 peças não cabem juntas na mesa de 256 mm: o fatiador vai usar mais de uma mesa (ou imprima uma de cada vez)."
   ],
   "date": "2026-09-30",
   "minutes": 182,
@@ -601,10 +602,8 @@
   "group": "party",
   "label": "Troféu (trophy)",
   "variant": "máximo",
-  "status": "aviso",
-  "reasons": [
-   "o conjunto arrumado ocupa 352,0 × 179,2 mm: passa da mesa de 256 mm"
-  ],
+  "status": "ok",
+  "reasons": [],
   "date": "2026-09-30",
   "minutes": 119,
   "grams": 95.9,
@@ -644,13 +643,11 @@
   "group": "party",
   "label": "Troféu elegante (trophyElegant)",
   "variant": "máximo",
-  "status": "aviso",
-  "reasons": [
-   "o conjunto arrumado ocupa 295,0 × 158,0 mm: passa da mesa de 256 mm"
-  ],
+  "status": "ok",
+  "reasons": [],
   "date": "2026-09-30",
   "minutes": 118,
-  "grams": 100.8,
+  "grams": 100.9,
   "plates": 1
  },
  {
@@ -725,14 +722,13 @@
   "group": "plates",
   "label": "Cartão de visita (businessCard)",
   "variant": "máximo",
-  "status": "aviso",
+  "status": "ok",
   "reasons": [
-   "\"Ana Souza\": parede/traço < 0,4 mm em Z 3,8 mm",
    "app: Cada módulo ficou com 1,03 mm: aumente a placa ou encurte o texto (mínimo recomendado 1,2 mm)."
   ],
   "date": "2026-09-30",
   "minutes": 19,
-  "grams": 15.1,
+  "grams": 15.2,
   "plates": 1
  },
  {
@@ -741,9 +737,8 @@
   "group": "plates",
   "label": "Cartão de visita (businessCard)",
   "variant": "mínimo",
-  "status": "aviso",
+  "status": "ok",
   "reasons": [
-   "\"Ana Souza\": parede/traço < 0,4 mm em Z 1,4 mm",
    "app: Cada módulo ficou com 1,03 mm: aumente a placa ou encurte o texto (mínimo recomendado 1,2 mm)."
   ],
   "date": "2026-09-30",
@@ -757,13 +752,12 @@
   "group": "plates",
   "label": "Cartão de visita (businessCard)",
   "variant": "padrão",
-  "status": "aviso",
+  "status": "ok",
   "reasons": [
-   "\"Ana Souza\": parede/traço < 0,4 mm em Z 2,0 mm",
    "app: Cada módulo ficou com 1,03 mm: aumente a placa ou encurte o texto (mínimo recomendado 1,2 mm)."
   ],
   "date": "2026-09-30",
-  "minutes": 15,
+  "minutes": 14,
   "grams": 9.6,
   "plates": 1
  },
@@ -851,9 +845,8 @@
   "group": "plates",
   "label": "Totem NFC (nfcTotem)",
   "variant": "máximo",
-  "status": "aviso",
+  "status": "ok",
   "reasons": [
-   "o conjunto arrumado ocupa 170,0 × 265,0 mm: passa da mesa de 256 mm",
    "app: Pausa em Z = 3,52 mm: coloque a tag NFC (grave o link de avaliação antes) e retome."
   ],
   "date": "2026-09-30",
@@ -902,7 +895,8 @@
   "variant": "máximo",
   "status": "aviso",
   "reasons": [
-   "o conjunto arrumado ocupa 200,0 × 276,0 mm: passa da mesa de 256 mm"
+   "o conjunto arrumado ocupa 200,0 × 276,0 mm: passa da mesa de 256 mm",
+   "app: As 2 peças não cabem juntas na mesa de 256 mm: o fatiador vai usar mais de uma mesa (ou imprima uma de cada vez)."
   ],
   "date": "2026-09-30",
   "minutes": 302,
@@ -1121,10 +1115,8 @@
   "group": "tools",
   "label": "Separar 3MF por cor (ferramenta)",
   "variant": "corte com pino",
-  "status": "aviso",
-  "reasons": [
-   "o conjunto arrumado ocupa 66,0 × 276,0 mm: passa da mesa de 256 mm"
-  ],
+  "status": "ok",
+  "reasons": [],
   "date": "2026-09-30",
   "minutes": 12,
   "grams": 5.6,
@@ -1192,12 +1184,15 @@
   "group": "tools",
   "label": "Cortador de biscoito (ferramenta)",
   "variant": "mínimo",
-  "status": "falha",
+  "status": "ok",
   "reasons": [
-   "Bambu Studio: Failed slicing the model. Please verify the slicing of all plates on Bambu Studio before uploading. (código -100)",
+   "app: Sem borda de apoio, a lâmina precisa de pelo menos 0,8 mm (2 filetes) para imprimir: saiu com 0,8 mm.",
    "app: Sem desenho interno para o carimbo marcar: ele sai liso."
   ],
-  "date": "2026-09-30"
+  "date": "2026-09-30",
+  "minutes": 4,
+  "grams": 0.8,
+  "plates": 1
  },
  {
   "key": "cutter:padrão",
@@ -1288,7 +1283,7 @@
   "status": "ok",
   "reasons": [],
   "date": "2026-09-30",
-  "minutes": 186,
+  "minutes": 185,
   "grams": 81.1,
   "plates": 1
  },
@@ -1521,20 +1516,17 @@
   "plates": 1
  },
  {
-  "key": "spool:máximo (30)",
+  "key": "spool:máximo",
   "owner": "Forja",
   "group": "tools",
   "label": "Plaquinhas de rolo (ferramenta)",
-  "variant": "máximo (30)",
-  "status": "aviso",
-  "reasons": [
-   "o conjunto arrumado ocupa 206,0 × 316,0 mm: passa da mesa de 256 mm",
-   "não coube numa placa: 2 placas"
-  ],
+  "variant": "máximo",
+  "status": "ok",
+  "reasons": [],
   "date": "2026-09-30",
-  "minutes": 226,
-  "grams": 117.8,
-  "plates": 2
+  "minutes": 158,
+  "grams": 82.3,
+  "plates": 1
  },
  {
   "key": "spool:padrão",

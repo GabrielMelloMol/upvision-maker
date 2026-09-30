@@ -16,13 +16,13 @@ Para cada modelo: valores **padrão**, todos os campos numéricos no **mínimo**
 "n/a" = o modelo precisa de uma entrada que o teste não dá (ex.: foto). "app:" = aviso que o próprio app mostra na tela.
 
 
-**Total:** 222 casos · 177 ok · 25 com aviso · 20 com falha · 0 n/a
+**Total:** 222 casos · 186 ok · 17 com aviso · 19 com falha · 0 n/a
 
 ## Forja
 
 | Modelo | Valores | Resultado | Tempo (min) | PLA (g) | Placas | Pausas (Z) | Motivo |
 |---|---|---|---:|---:|---:|---|---|
-| Nome articulado (articulatedName) | máximo | ✅ ok | 47 | 23,6 | 1 | – | app: Dobradiça com folga de 0,6 mm: imprima um teste; se as letras grudarem, aumente a folga. |
+| Nome articulado (articulatedName) | máximo | ✅ ok | 46 | 23,6 | 1 | – | app: Dobradiça com folga de 0,6 mm: imprima um teste; se as letras grudarem, aumente a folga. |
 | Nome articulado (articulatedName) | mínimo | ✅ ok | 12 | 3,9 | 1 | – | app: Dobradiça com folga de 0,15 mm: imprima um teste; se as letras grudarem, aumente a folga. |
 | Nome articulado (articulatedName) | padrão | ✅ ok | 18 | 7,0 | 1 | – | app: Dobradiça com folga de 0,3 mm: imprima um teste; se as letras grudarem, aumente a folga. |
 | Clicker (clicker) | máximo | ✅ ok | 11 | 4,8 | 1 | – | app: Encaixe feito para chave tipo Cherry MX (e compatíveis). Imprima a chapa e a cruz primeiro: se ficar justo, aumente as folgas.; app: A chave entra por cima na chapa do corpo; a tecla encaixa na haste. |
@@ -55,7 +55,7 @@ Para cada modelo: valores **padrão**, todos os campos numéricos no **mínimo**
 | Medalha adaptável (adaptiveMedal) | máximo | ✅ ok | 74 | 66,8 | 1 | – | – |
 | Medalha adaptável (adaptiveMedal) | mínimo | ✅ ok | 7 | 3,3 | 1 | – | – |
 | Medalha adaptável (adaptiveMedal) | padrão | ✅ ok | 17 | 11,1 | 1 | – | – |
-| Troféu adaptável (adaptiveTrophy) | máximo | ⚠️ aviso | 182 | 175,6 | 1 | – | o conjunto arrumado ocupa 210,6 × 291,5 mm: passa da mesa de 256 mm |
+| Troféu adaptável (adaptiveTrophy) | máximo | ⚠️ aviso | 182 | 175,6 | 1 | – | o conjunto arrumado ocupa 210,6 × 291,5 mm: passa da mesa de 256 mm; app: As 2 peças não cabem juntas na mesa de 256 mm: o fatiador vai usar mais de uma mesa (ou imprima uma de cada vez). |
 | Troféu adaptável (adaptiveTrophy) | mínimo | ✅ ok | 41 | 32,8 | 1 | – | – |
 | Troféu adaptável (adaptiveTrophy) | padrão | ✅ ok | 68 | 55,3 | 1 | – | – |
 | Topo de bolo (cake) | máximo | ❌ falha | – | – | – | – | "Ana" não cabe na mesa de 256 mm (266,0 × 290,6 × 9,0 mm); Bambu Studio: One of the plate is empty or has no object fully inside it. Please check that the 3mf contains no empty plate in Bambu Studio before uploading. (código -50); app: "Ana" tem 266 × 291 × 9 mm e passa da mesa de 256 mm: diminua o tamanho. |
@@ -64,28 +64,28 @@ Para cada modelo: valores **padrão**, todos os campos numéricos no **mínimo**
 | Floco de neve com nome (snowflake) | máximo | ✅ ok | 59 | 25,8 | 1 | – | – |
 | Floco de neve com nome (snowflake) | mínimo | ✅ ok | 6 | 1,6 | 1 | – | – |
 | Floco de neve com nome (snowflake) | padrão | ✅ ok | 13 | 4,5 | 1 | – | – |
-| Troféu (trophy) | máximo | ⚠️ aviso | 119 | 95,9 | 1 | – | o conjunto arrumado ocupa 352,0 × 179,2 mm: passa da mesa de 256 mm |
+| Troféu (trophy) | máximo | ✅ ok | 119 | 95,9 | 1 | – | – |
 | Troféu (trophy) | mínimo | ⚠️ aviso | 19 | 10,2 | 1 | – | "Placa": parede/traço < 0,4 mm em Z 2,6 mm |
 | Troféu (trophy) | padrão | ✅ ok | 36 | 24,7 | 1 | – | – |
-| Troféu elegante (trophyElegant) | máximo | ⚠️ aviso | 118 | 100,8 | 1 | – | o conjunto arrumado ocupa 295,0 × 158,0 mm: passa da mesa de 256 mm |
+| Troféu elegante (trophyElegant) | máximo | ✅ ok | 118 | 100,9 | 1 | – | – |
 | Troféu elegante (trophyElegant) | mínimo | ✅ ok | 20 | 11,4 | 1 | – | – |
 | Troféu elegante (trophyElegant) | padrão | ✅ ok | 38 | 25,4 | 1 | – | – |
 | Placa adaptável (adaptivePlate) | máximo | ❌ falha | – | – | – | – | "Placa" não cabe na mesa de 256 mm (270,0 × 276,9 × 12,0 mm); Bambu Studio: One of the plate is empty or has no object fully inside it. Please check that the 3mf contains no empty plate in Bambu Studio before uploading. (código -50); app: "Placa" tem 270 × 277 × 12 mm e passa da mesa de 256 mm: diminua o tamanho. |
 | Placa adaptável (adaptivePlate) | mínimo | ✅ ok | 2 | 0,5 | 1 | – | – |
 | Placa adaptável (adaptivePlate) | padrão | ✅ ok | 41 | 32,4 | 1 | – | – |
-| Cartão de visita (businessCard) | máximo | ⚠️ aviso | 19 | 15,1 | 1 | – | "Ana Souza": parede/traço < 0,4 mm em Z 3,8 mm; app: Cada módulo ficou com 1,03 mm: aumente a placa ou encurte o texto (mínimo recomendado 1,2 mm). |
-| Cartão de visita (businessCard) | mínimo | ⚠️ aviso | 20 | 7,4 | 1 | – | "Ana Souza": parede/traço < 0,4 mm em Z 1,4 mm; app: Cada módulo ficou com 1,03 mm: aumente a placa ou encurte o texto (mínimo recomendado 1,2 mm). |
-| Cartão de visita (businessCard) | padrão | ⚠️ aviso | 15 | 9,6 | 1 | – | "Ana Souza": parede/traço < 0,4 mm em Z 2,0 mm; app: Cada módulo ficou com 1,03 mm: aumente a placa ou encurte o texto (mínimo recomendado 1,2 mm). |
+| Cartão de visita (businessCard) | máximo | ✅ ok | 19 | 15,2 | 1 | – | app: Cada módulo ficou com 1,03 mm: aumente a placa ou encurte o texto (mínimo recomendado 1,2 mm). |
+| Cartão de visita (businessCard) | mínimo | ✅ ok | 20 | 7,4 | 1 | – | app: Cada módulo ficou com 1,03 mm: aumente a placa ou encurte o texto (mínimo recomendado 1,2 mm). |
+| Cartão de visita (businessCard) | padrão | ✅ ok | 14 | 9,6 | 1 | – | app: Cada módulo ficou com 1,03 mm: aumente a placa ou encurte o texto (mínimo recomendado 1,2 mm). |
 | Plaquinha de colorir (coloring) | máximo | ✅ ok | 161 | 128,6 | 1 | – | – |
 | Plaquinha de colorir (coloring) | mínimo | ✅ ok | 5 | 2,6 | 1 | – | – |
 | Plaquinha de colorir (coloring) | padrão | ✅ ok | 23 | 16,1 | 1 | – | – |
 | MOLLE tag (molle) | máximo | ✅ ok | 38 | 28,7 | 1 | – | – |
 | MOLLE tag (molle) | mínimo | ✅ ok | 29 | 20,9 | 1 | – | – |
 | MOLLE tag (molle) | padrão | ✅ ok | 32 | 23,3 | 1 | – | – |
-| Totem NFC (nfcTotem) | máximo | ⚠️ aviso | 151 | 149,0 | 1 | 3,40 | o conjunto arrumado ocupa 170,0 × 265,0 mm: passa da mesa de 256 mm; app: Pausa em Z = 3,52 mm: coloque a tag NFC (grave o link de avaliação antes) e retome. |
+| Totem NFC (nfcTotem) | máximo | ✅ ok | 151 | 149,0 | 1 | 3,40 | app: Pausa em Z = 3,52 mm: coloque a tag NFC (grave o link de avaliação antes) e retome. |
 | Totem NFC (nfcTotem) | mínimo | ✅ ok | 63 | 23,5 | 1 | 1,40 | app: Pausa em Z = 1,44 mm: coloque a tag NFC (grave o link de avaliação antes) e retome. |
 | Totem NFC (nfcTotem) | padrão | ✅ ok | 56 | 42,7 | 1 | 2,00 | app: Pausa em Z = 2,00 mm: coloque a tag NFC (grave o link de avaliação antes) e retome. |
-| Placa Pix (pix) | máximo | ⚠️ aviso | 302 | 204,7 | 1 | – | o conjunto arrumado ocupa 200,0 × 276,0 mm: passa da mesa de 256 mm |
+| Placa Pix (pix) | máximo | ⚠️ aviso | 302 | 204,7 | 1 | – | o conjunto arrumado ocupa 200,0 × 276,0 mm: passa da mesa de 256 mm; app: As 2 peças não cabem juntas na mesa de 256 mm: o fatiador vai usar mais de uma mesa (ou imprima uma de cada vez). |
 | Placa Pix (pix) | mínimo | ✅ ok | 29 | 17,7 | 1 | – | app: Cada módulo ficou com 1,03 mm: aumente a placa ou encurte o texto (mínimo recomendado 1,2 mm). |
 | Placa Pix (pix) | padrão | ✅ ok | 61 | 37,4 | 1 | – | – |
 | Placa de profissão (profession) | máximo | ✅ ok | 144 | 142,7 | 1 | 8,20 | app: Três peças: cole o símbolo no rebaixo da placa e encaixe a placa na base.; app: Pausa em Z = 8,32 mm: coloque moedas ou arruelas nos 2 bolsões da base e retome (a base fica pesada e não tomba). |
@@ -100,19 +100,19 @@ Para cada modelo: valores **padrão**, todos os campos numéricos no **mínimo**
 | Placa de sinalização (sign) | máximo | ❌ falha | – | – | – | – | "Placa" não cabe na mesa de 256 mm (300,0 × 120,0 × 10,0 mm); Bambu Studio: One of the plate is empty or has no object fully inside it. Please check that the 3mf contains no empty plate in Bambu Studio before uploading. (código -50); app: "Placa" tem 300 × 120 × 10 mm e passa da mesa de 256 mm: diminua o tamanho. |
 | Placa de sinalização (sign) | mínimo | ✅ ok | 5 | 2,6 | 1 | – | – |
 | Placa de sinalização (sign) | padrão | ✅ ok | 30 | 20,2 | 1 | – | – |
-| Separar 3MF por cor (ferramenta) | corte com pino | ⚠️ aviso | 12 | 5,6 | 1 | – | o conjunto arrumado ocupa 66,0 × 276,0 mm: passa da mesa de 256 mm |
+| Separar 3MF por cor (ferramenta) | corte com pino | ✅ ok | 12 | 5,6 | 1 | – | – |
 | Separar 3MF por cor (ferramenta) | máximo | ✅ ok | 13 | 4,2 | 1 | – | – |
 | Separar 3MF por cor (ferramenta) | mínimo | ✅ ok | 13 | 4,2 | 1 | – | – |
 | Separar 3MF por cor (ferramenta) | padrão | ✅ ok | 13 | 4,2 | 1 | – | – |
 | Cortador de biscoito (ferramenta) | máximo | ❌ falha | 133 | 128,1 | 1 | – | "Cortador" não cabe na mesa de 256 mm (286,0 × 292,8 × 40,0 mm); o conjunto arrumado ocupa 542,0 × 292,8 mm: passa da mesa de 256 mm; app: Sem desenho interno para o carimbo marcar: ele sai liso. |
-| Cortador de biscoito (ferramenta) | mínimo | ❌ falha | – | – | – | – | Bambu Studio: Failed slicing the model. Please verify the slicing of all plates on Bambu Studio before uploading. (código -100); app: Sem desenho interno para o carimbo marcar: ele sai liso. |
+| Cortador de biscoito (ferramenta) | mínimo | ✅ ok | 4 | 0,8 | 1 | – | app: Sem borda de apoio, a lâmina precisa de pelo menos 0,8 mm (2 filetes) para imprimir: saiu com 0,8 mm.; app: Sem desenho interno para o carimbo marcar: ele sai liso. |
 | Cortador de biscoito (ferramenta) | padrão | ✅ ok | 27 | 16,5 | 1 | – | app: Sem desenho interno para o carimbo marcar: ele sai liso. |
 | Extrusão de SVG (ferramenta) | máximo | ❌ falha | – | – | – | – | "Extrusão" não cabe na mesa de 256 mm (359,9 × 368,2 × 120,0 mm); Bambu Studio: One of the plate is empty or has no object fully inside it. Please check that the 3mf contains no empty plate in Bambu Studio before uploading. (código -50) |
 | Extrusão de SVG (ferramenta) | mínimo | ✅ ok | 1 | 0,1 | 1 | – | – |
 | Extrusão de SVG (ferramenta) | padrão | ✅ ok | 9 | 5,7 | 1 | – | – |
 | Chaveiro (ferramenta) | 3 camadas | ✅ ok | 6 | 2,0 | 1 | – | – |
 | Chaveiro (ferramenta) | etiqueta | ✅ ok | 5 | 2,1 | 1 | – | – |
-| Chaveiro (ferramenta) | lote 30 | ✅ ok | 186 | 81,1 | 1 | – | – |
+| Chaveiro (ferramenta) | lote 30 | ✅ ok | 185 | 81,1 | 1 | – | – |
 | Chaveiro (ferramenta) | máximo | ✅ ok | 55 | 40,9 | 1 | – | – |
 | Chaveiro (ferramenta) | mínimo | ✅ ok | 1 | 0,2 | 1 | – | – |
 | Chaveiro (ferramenta) | padrão | ✅ ok | 4 | 1,7 | 1 | – | – |
@@ -130,7 +130,7 @@ Para cada modelo: valores **padrão**, todos os campos numéricos no **mínimo**
 | QR Code (ferramenta) | máximo | ✅ ok | 218 | 167,3 | 1 | – | – |
 | QR Code (ferramenta) | mínimo | ✅ ok | 2 | 0,4 | 1 | – | app: Cada módulo ficou com 0,56 mm: aumente a placa ou encurte o texto (mínimo recomendado 1,2 mm). |
 | QR Code (ferramenta) | padrão | ✅ ok | 14 | 6,7 | 1 | – | – |
-| Plaquinhas de rolo (ferramenta) | máximo (30) | ⚠️ aviso | 226 | 117,8 | 2 | – | o conjunto arrumado ocupa 206,0 × 316,0 mm: passa da mesa de 256 mm; não coube numa placa: 2 placas |
+| Plaquinhas de rolo (ferramenta) | máximo | ✅ ok | 158 | 82,3 | 1 | – | – |
 | Plaquinhas de rolo (ferramenta) | padrão | ✅ ok | 8 | 4,0 | 1 | – | – |
 
 ## Torno

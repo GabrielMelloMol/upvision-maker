@@ -13,7 +13,7 @@ import { buildMedalDesign, DEFAULT_MEDAL_DESIGN, type MedalDesign } from "../geo
 import { cutModels, DEFAULT_CUT } from "../geometry/planeCut";
 import { CUTTER_PROFILE, DEFAULT_PROFILE, LAYERED_PROFILE, LITHO_PROFILE, type PrintProfile } from "../geometry/printProfile";
 import { qrModel } from "../geometry/qr3d";
-import { buildSpoolTag } from "../geometry/spoolTag";
+import { buildSpoolTag, spoolTagsThatFit } from "../geometry/spoolTag";
 import { arcTextToCrossSection, textToCrossSection } from "../geometry/text";
 import { read3mf } from "../geometry/threemfRead";
 import type { Model } from "../geometry/types";
@@ -156,7 +156,7 @@ export function toolCases(M: ManifoldToplevel): QaCase[] {
     ]),
     ...cases("spool", "Plaquinhas de rolo", [
       ["padrão", () => spool(1)],
-      ["máximo (30)", () => spool(30)],
+      ["máximo", () => spool(spoolTagsThatFit(PLATE_MM - 2 * GAP_MM, GAP_MM))],
     ]),
     ...cases("colorsplit", "Separar 3MF por cor", [
       ["padrão", () => split(1, false)],

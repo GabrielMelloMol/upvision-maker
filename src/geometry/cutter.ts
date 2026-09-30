@@ -41,9 +41,18 @@ const MIN_RELIEF_AREA = 1; // mm²
  * Impresso com a borda de apoio na mesa e a lâmina para cima; o carimbo com o relevo para cima.
  * Espelhe o desenho antes (fitWidth mirror) para a massa sair na orientação do desenho.
  */
-export function buildCutter(M: ManifoldToplevel, design: CS, p: CutterParams): { models: Model[]; warnings: string[] } {
+/** Sem borda de apoio a lâmina fica sozinha na mesa: com 1 filete (0,4 mm) o Bambu Studio não fatia (#123). */
+const FREE_BLADE_MIN = 0.8;
+const RIM_SUPPORT_MIN = 1;
+
+export function buildCutter(M: ManifoldToplevel, design: CS, input: CutterParams): { models: Model[]; warnings: string[] } {
   return scoped((k) => {
     const warnings: string[] = [];
+    let p = input;
+    if (p.rimWidth < RIM_SUPPORT_MIN && p.blade < FREE_BLADE_MIN) {
+      p = { ...p, blade: FREE_BLADE_MIN };
+      warnings.push("Sem borda de apoio, a lâmina precisa de pelo menos 0,8 mm (2 filetes) para imprimir: saiu com 0,8 mm.");
+    }
     const filled = k(outerOnly(M, design));
     if (filled.isEmpty()) throw new Error("O desenho não tem área para formar o cortador.");
 

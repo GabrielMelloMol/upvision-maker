@@ -96,7 +96,8 @@ describe.skipIf(!process.env.QA)("varredura de QA (#90)", () => {
   test("gera, confere, fatia e atualiza o relatório", async () => {
     serveFontsFromDisk(ROOT);
     const M = await getManifold();
-    const cases = [...modelCases(M, () => true), ...toolCases(M)].filter((c) => wanted(c.key.split(":")[0], c.group, c.owner));
+    const all = [...modelCases(M, () => true), ...toolCases(M)];
+    const cases = all.filter((c) => wanted(c.key.split(":")[0], c.group, c.owner));
     expect(cases.length, "nenhum caso com esses filtros").toBeGreaterThan(0);
     const built: Built[] = [];
     for (const c of cases) {
@@ -112,7 +113,9 @@ describe.skipIf(!process.env.QA)("varredura de QA (#90)", () => {
       return r;
     });
     const jsonFile = join(ROOT, "docs/qa-modelos.json");
-    const merged = mergeRows(existsSync(jsonFile) ? (JSON.parse(readFileSync(jsonFile, "utf8")) as QaRow[]) : [], rows);
+    // casos que não existem mais (modelo ou variante renomeados) saem do relatório
+    const known = new Set(all.map((c) => c.key));
+    const merged = mergeRows(existsSync(jsonFile) ? (JSON.parse(readFileSync(jsonFile, "utf8")) as QaRow[]) : [], rows).filter((r) => known.has(r.key));
     writeFileSync(jsonFile, JSON.stringify(merged, null, 1) + "\n");
     writeFileSync(join(ROOT, "docs/QA-modelos.md"), renderReport(merged, HEADER(slicing)));
   }, 6 * 3600 * 1000);

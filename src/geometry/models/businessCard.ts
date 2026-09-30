@@ -2,6 +2,7 @@ import { qrMatrix } from "../../domain/qr";
 import { toMesh } from "../mesh";
 import { qrModel } from "../qr3d";
 import { fitInto, scoped } from "../shape2d";
+import { checkText } from "../textCheck";
 import type { CS } from "../manifold";
 import { boxOf, MissingInput, moveMesh, placeIn, roundedRect, slab, type AlignX, type AlignY, type ElementBox, type ModelCtx, type ModelOutput } from "./common";
 import { nfcLayout } from "./nfcKeychain";
@@ -29,9 +30,9 @@ export type BusinessCardParams = {
 
 export const DEFAULT_BUSINESS_CARD: BusinessCardParams = {
   name: "Ana Souza",
-  role: "Ateliê de impressão 3D",
+  role: "Impressão 3D",
   phone: "(21) 99999-0000",
-  email: "ana@minhaloja.com.br",
+  email: "ana@loja.com",
   link: "minhaloja.com.br",
   thickness: 1.6,
   relief: 0.6,
@@ -54,6 +55,10 @@ const TAG_D = 25 + 1.5;
 const FABRIC_LAYERS = 2;
 const MIN_QR = 14; // QR menor que isto fica difícil de ler
 const EDGE = 1; // elemento a menos disto da borda: avisa
+
+// 4,6 mm: a menor altura em que os traços da fonte padrão (Hanken) passam de 0,4 mm (#126)
+const NAME_H = 6;
+const LINE_H = 4.6;
 
 const snap = (z: number) => Math.round(z * 1000) / 1000;
 
@@ -78,10 +83,10 @@ export function buildBusinessCard(ctx: ModelCtx, p: BusinessCardParams): ModelOu
     const side = hasQr && layout !== "qrTop";
     const textW = inner[2] - inner[0] - (side ? QR + PAD : 0);
     const lines: [string, number][] = [
-      [p.name, 6],
-      [p.role, 3.6],
-      [p.phone, 3.4],
-      [p.email, 3.2],
+      [p.name, NAME_H],
+      [p.role, LINE_H],
+      [p.phone, LINE_H],
+      [p.email, LINE_H],
     ];
     // bloco de linhas montado na origem, cada linha alinhada à esquerda, ao centro ou à direita
     let y = 0;
@@ -94,6 +99,13 @@ export function buildBusinessCard(ctx: ModelCtx, p: BusinessCardParams): ModelOu
         y -= h / 2 + (i ? gap : 0);
         const line = k(fitInto(k(raw), textW, h, y));
         const b = line.bounds();
+        // confere o traço no tamanho final: a linha longa encolhe para caber (#126)
+        if (checkText(line).thin) {
+          const shown = s.length > 24 ? `${s.slice(0, 20)}…` : s;
+          const lh = (b.max[1] - b.min[1]).toFixed(1).replace(".", ",");
+          const shrunk = b.max[1] - b.min[1] < h * 0.95;
+          warnings.push(shrunk ? `"${shown}" ficou com ${lh} mm de altura para caber: os traços ficam finos demais para imprimir. Encurte a linha ou use o QR em cima.` : `"${shown}": nesta fonte os traços ficam com menos de 0,4 mm. Escolha uma fonte mais grossa.`);
+        }
         const x = align === "left" ? -b.min[0] : align === "right" ? -b.max[0] : -(b.min[0] + b.max[0]) / 2;
         block.push(k(line.translate([x, 0])));
         y -= h / 2;
