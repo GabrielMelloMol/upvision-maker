@@ -1,7 +1,7 @@
 import type { Page } from "@playwright/test";
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { expect, go, openApp, test } from "../e2e/tauri";
-import { contrast, focusVisible, overflow, smallTargets } from "./checks";
+import { contrast, focusVisible, GOAL_TARGET_PX, MIN_TARGET_PX, overflow, smallTargets } from "./checks";
 import { SEED_BASE, SEED_ORDERS } from "./seed";
 
 /**
@@ -73,6 +73,7 @@ for (const size of SIZES) {
         const only = process.env.VISUAL_PAGES?.split(",").map((x) => x.trim()); // ids das telas, ex.: VISUAL_PAGES="dashboard,orders"
         const list = (await screens(page)).filter((x) => !only || only.includes(x.id));
         const problems: string[] = [];
+        const goal: string[] = []; // alvos entre 24 e 32 px: aviso no relatório
         // sem referência desta plataforma ainda (antes da 1ª aprovação no CI): só as checagens
         const approving = ["all", "changed"].includes(test.info().config.updateSnapshots); // "--update-snapshots" sozinho = "changed"
         const compare = approving || existsSync(`tests/visual/referencia/${process.platform}`);
@@ -87,7 +88,9 @@ for (const size of SIZES) {
           const t0 = Date.now();
           if (compare) await expect.soft(page, `tela ${id}`).toHaveScreenshot(`${id}-${tag}.png`, { mask: [page.locator(".viewer canvas"), page.locator("[data-visual-mask]")] });
           const t1 = Date.now();
-          const found = [...(await overflow(page)), ...(await smallTargets(page))];
+          const found = [...(await overflow(page)), ...(await smallTargets(page, MIN_TARGET_PX))];
+          const below = await smallTargets(page, GOAL_TARGET_PX);
+          goal.push(...below.filter((b) => !found.some((f) => f.endsWith(b.split(": ").slice(1).join(": ")))).map((b) => `${id} · ${b}`));
           const t2 = Date.now();
           found.push(...(await contrast(page)));
           const t3 = Date.now();
@@ -96,6 +99,7 @@ for (const size of SIZES) {
           problems.push(...found.map((f) => `${id} · ${f}`));
         }
 
+        if (goal.length) test.info().annotations.push({ type: `alvos entre ${MIN_TARGET_PX} e ${GOAL_TARGET_PX} px (aviso)`, description: goal.join("\n") });
         const file = `${KNOWN_DIR}/${tag}.json`;
         if (process.env.VISUAL_CONHECIDOS) {
           mkdirSync(KNOWN_DIR, { recursive: true });

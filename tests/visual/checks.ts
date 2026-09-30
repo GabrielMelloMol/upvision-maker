@@ -6,7 +6,10 @@ import type { Page } from "@playwright/test";
  * Cada problema vira uma linha estável ("chaveiros · alvo < 32 px: button "Girar"") para comparar com a lista
  * de problemas já conhecidos: só falha o que for novo.
  */
-export const MIN_TARGET_PX = 32;
+/** Abaixo disso é falha (WCAG 2.2 AA, 2.5.8). */
+export const MIN_TARGET_PX = 24;
+/** Meta da #142: entre 24 e 32 px vai para o relatório como aviso, sem falhar (botões sm de 28 px são de propósito). */
+export const GOAL_TARGET_PX = 32;
 const FOCUS_TABS = 12;
 
 /** Conteúdo cortado (a caixa esconde o que passa dela, sem rolagem nem reticências) e a página rolando para o lado. */
