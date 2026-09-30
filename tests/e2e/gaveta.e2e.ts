@@ -18,6 +18,7 @@ async function dragCells(page: Page, cols: number, rows: number, from: [number, 
 }
 
 test("organizador de gaveta: 4 × 3 casas, 3 caixinhas desenhadas, ajuste e exportação (#140)", async ({ page, tauri }) => {
+  test.slow(); // prévia 3D pesada: com a máquina em carga passa de 60 s (sozinho, ~5 s)
   await page.setViewportSize({ width: 1024, height: 900 });
   await openApp(page);
   await go(page, "Organizador de gaveta");

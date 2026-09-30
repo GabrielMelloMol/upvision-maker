@@ -77,6 +77,7 @@ test("estojo com tampa de rosca (#59): corpo e tampa, nome, mosaico e orelha; 3M
 });
 
 test("rolo de textura (#64): abre com o mosaico de exemplo, troca para cabos e baixo relevo; 3MF", async ({ page, tauri }) => {
+  test.slow(); // prévia 3D pesada: com a máquina em carga passa de 60 s (sozinho, ~5 s)
   await openModel(page, "Rolo de textura");
   await page.screenshot({ path: "test-results/rolo.png" });
   await page.getByRole("button", { name: "Cabos impressos" }).click();
@@ -87,6 +88,7 @@ test("rolo de textura (#64): abre com o mosaico de exemplo, troca para cabos e b
 });
 
 test("quadro de metas (#75): grade de números com título e suporte; muitos números avisam; 3MF", async ({ page, tauri }) => {
+  test.slow(); // prévia 3D pesada: com a máquina em carga passa de 60 s (sozinho, ~5 s)
   await openModel(page, "Quadro de metas");
   await expect(page.locator(".legend")).toContainText("Números e título");
   await page.screenshot({ path: "test-results/metas.png" });
