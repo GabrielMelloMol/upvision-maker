@@ -22,6 +22,7 @@ import { spreadWarning, variantErrors } from "../../domain/variants";
 import VariantsFieldset, { toDraft, type VariantDraft } from "./VariantsFieldset";
 import PrinterCatalogButton from "../calculator/PrinterCatalogButton";
 import ModelSelect from "./ModelSelect";
+import PrintSheet from "./PrintSheet";
 
 type Line = { id: string; qty: string };
 type Props = { initial: Partial<Product>; data: ProductsData; onClose: () => void; onSaved: () => void };
@@ -310,6 +311,7 @@ export default function ProductEditor({ initial, data, onClose, onSaved }: Props
               warning={variantWarning}
             />
           )}
+          {initial.id && <PrintSheet productId={initial.id} printers={printerList} ownFailurePct={input.failurePct} />}
           {errors._ && <Alert kind="error">{errors._}</Alert>}
         </div>
 

@@ -1,3 +1,4 @@
+import { PrintLogInput } from "../domain/printLogs";
 import { z } from "zod";
 import { FilamentInput, MaterialInput, PrinterInput } from "../domain/entities";
 import { CustomerInput } from "../domain/customers";
@@ -20,6 +21,7 @@ export const TABLES = {
   products: ProductInput.extend({ id, composition: z.string(), variants: z.string().default("[]") }), // JSON na linha; backups antigos não têm
   product_photos: z.object({ id, productId: id, position: z.number().int().min(0), dataUrl: z.string().startsWith("data:image/") }),
   customers: CustomerInput.extend({ id, active: z.number().int() }), // booleano guardado como 0/1
+  print_logs: PrintLogInput.extend({ id, brim: z.number().int() }), // ficha de impressão (#163); brim 0/1
   company: z.object({ id: z.literal(1), data: z.string() }),
   orders: OrderInput.omit({ items: true }).extend({
     id,

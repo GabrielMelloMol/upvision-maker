@@ -96,6 +96,10 @@ export const MIGRATIONS: string[][] = [
   // Do pedido ao arquivo pronto (#164): personalização de cada item (uma cópia por linha, campos com ";", como o
   // lote dos Modelos prontos) e o modelo pronto que o produto usa.
   ["ALTER TABLE order_items ADD COLUMN custom TEXT NOT NULL DEFAULT ''", "ALTER TABLE products ADD COLUMN modelId TEXT"],
+  // Ficha de impressão (#163): cada impressão de um produto, o que foi usado e se deu certo; entra no backup.
+  [
+    "CREATE TABLE print_logs (id INTEGER PRIMARY KEY, productId INTEGER, orderId INTEGER, at TEXT NOT NULL, printerId INTEGER, filaments TEXT NOT NULL DEFAULT '', layerHeight REAL, infillPct REAL, supports TEXT NOT NULL DEFAULT 'nenhum', brim INTEGER NOT NULL DEFAULT 0, orientation TEXT NOT NULL DEFAULT '', minutes REAL, grams REAL, result TEXT NOT NULL, reason TEXT NOT NULL DEFAULT '', notes TEXT NOT NULL DEFAULT '')",
+  ],
 ];
 
 export const SCHEMA_VERSION = MIGRATIONS.length;

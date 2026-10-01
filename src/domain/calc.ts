@@ -32,8 +32,10 @@ export interface CalcInput {
  * Taxa de falha de uma mesa (#35): a do produto, se tiver; senão a maior entre os materiais das linhas de filamento
  * que tenham taxa própria; senão a geral. `source` diz de onde veio, para a linha "Falhas 12% (TPU)".
  */
-export function failureFor(materials: string[], s: Settings, productPct?: number | null): { pct: number; source?: string } {
+export function failureFor(materials: string[], s: Settings, productPct?: number | null, measured?: { pct: number; prints: number } | null): { pct: number; source?: string } {
   if (productPct != null) return { pct: productPct, source: "produto" };
+  // ficha de impressão (#163): o que aconteceu de verdade vale mais que o palpite do material
+  if (measured) return { pct: measured.pct, source: `medida em ${measured.prints} impressões` };
   const own = materials.filter((m) => s.failureByMaterial[m] !== undefined).map((m) => ({ pct: s.failureByMaterial[m], source: m }));
   if (!own.length) return { pct: s.failurePct };
   return own.reduce((a, b) => (b.pct > a.pct ? b : a));

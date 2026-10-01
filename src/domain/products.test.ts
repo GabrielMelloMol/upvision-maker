@@ -68,6 +68,10 @@ describe("preço do produto", () => {
     const base = { ...ctx([p], [{ ...filament(1, 100), material: "TPU" }]), settings: { ...DEFAULT_SETTINGS, maintenancePct: 0, failurePct: 0, failureByMaterial: { TPU: 12 } } };
     expect(productPricing(p, base).result.failure).toBe(1.2); // 8,80 ÷ 0,88 − 8,80
     expect(productPricing({ ...p, failurePct: 0 }, base).result.failure).toBe(0); // o produto manda
+    // ficha de impressão (#163): a taxa medida vale mais que a do material, menos que a digitada no produto
+    const measured = { ...base, measuredFailure: { 3: { pct: 20, prints: 5 } } };
+    expect(productPricing(p, measured).result.failure).toBe(2.2); // 8,80 ÷ 0,80 − 8,80
+    expect(productPricing({ ...p, failurePct: 0 }, measured).result.failure).toBe(0);
   });
 
   test("recalcula quando o preço do filamento muda", () => {

@@ -82,7 +82,8 @@ export const EMPTY_PRODUCT: ProductInput = {
 };
 
 /** `fixedPerHour`: custos operacionais rateados (ver `fixedCostPerHour`); ausente = 0. */
-export type ProductCtx = { filaments: Filament[]; materials: Material[]; printers: Printer[]; products: Product[]; settings: Settings; fixedPerHour?: number };
+/** `measuredFailure`: taxa de falha medida na ficha de impressão de cada produto (#163), com 3+ impressões. */
+export type ProductCtx = { filaments: Filament[]; materials: Material[]; printers: Printer[]; products: Product[]; settings: Settings; fixedPerHour?: number; measuredFailure?: Record<number, { pct: number; prints: number }> };
 
 function guard(p: Product, seen: Set<number>) {
   if (seen.has(p.id)) throw new Error(`O kit "${p.name}" está dentro de si mesmo.`);
@@ -128,7 +129,7 @@ export function productPricing(p: Product, ctx: ProductCtx, seen = new Set<numbe
       marketplaceMarginPct: ctx.settings.marketplaceMarginPct,
       machinePerHour: printer ? machineHourCost(printer) : 0,
       fixedPerHour: ctx.fixedPerHour,
-      failurePct: failureFor(materials, ctx.settings, p.failurePct).pct,
+      failurePct: failureFor(materials, ctx.settings, p.failurePct, ctx.measuredFailure?.[p.id]).pct,
     },
     ctx.settings,
   );

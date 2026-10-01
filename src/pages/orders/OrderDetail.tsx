@@ -8,6 +8,10 @@ import { money } from "../../domain/format";
 import { customCopies, lineTotal, orderTotals, STATUS_LABEL, STATUSES, type Order, type OrderItem, type OrderStatus } from "../../domain/orders";
 import { openWith } from "../../tools/intent";
 import { requestNavigate } from "../../ui/navigate";
+import { printLogsRepo } from "../../db/printLogsRepo";
+import { lastWorked, type PrintLog } from "../../domain/printLogs";
+import PrintLogForm from "../products/PrintLogForm";
+import { logLine } from "../products/PrintSheet";
 import Button from "../../ui/Button";
 import Sheet from "../../ui/Sheet";
 import { errorText, useToast } from "../../ui/Toast";
@@ -21,6 +25,9 @@ export async function moveOrder(order: Order, to: OrderStatus, data: OrdersData)
 
 export default function OrderDetail({ order, data, onClose, onChanged, onEdit }: { order: Order; data: OrdersData; onClose: () => void; onChanged: () => void; onEdit: () => void }) {
   const [history, setHistory] = useState<HistoryEntry[]>([]);
+  // ficha de impressão (#163): o que funcionou em cada produto do pedido e o registro da impressão deste pedido
+  const [logs, setLogs] = useState<PrintLog[]>([]);
+  const [logging, setLogging] = useState<number | null>(null);
   const [busy, setBusy] = useState(false);
   const toast = useToast();
   const totals = orderTotals(order.items, order.freight);
@@ -31,6 +38,14 @@ export default function OrderDetail({ order, data, onClose, onChanged, onEdit }:
       .then(setHistory)
       .catch((e) => toast(`Erro ao carregar histórico: ${errorText(e)}`, "error"));
   }, [order.id, toast]);
+  const reloadLogs = () => getDb().then(printLogsRepo.list).then(setLogs);
+  useEffect(() => {
+    getDb()
+      .then(printLogsRepo.list)
+      .then(setLogs)
+      .catch((e) => toast(`Erro ao ler as fichas: ${errorText(e)}`, "error"));
+  }, [toast]);
+  const workedFor = (productId: number | null) => (productId ? lastWorked(logs.filter((l) => l.productId === productId)) : null);
 
   /**
    * "Preparar impressão" (#164): abre o modelo pronto do produto com a personalização do item no lote; o pedido
@@ -123,6 +138,30 @@ export default function OrderDetail({ order, data, onClose, onChanged, onEdit }:
                   <button type="button" className="link" onClick={() => void prepare(i)} disabled={busy}>
                     Preparar impressão
                   </button>
+                )}
+                {workedFor(i.productId) && (
+                  <span className="hint order-custom">
+                    Ficha: {logLine(workedFor(i.productId)!, data.printers) || "deu certo antes"}
+                    {workedFor(i.productId)!.notes && ` · ${workedFor(i.productId)!.notes}`}
+                  </span>
+                )}
+                {i.productId && logging !== i.id && (
+                  <button type="button" className="link" onClick={() => setLogging(i.id)}>
+                    Registrar impressão
+                  </button>
+                )}
+                {i.productId && logging === i.id && (
+                  <PrintLogForm
+                    productId={i.productId}
+                    orderId={order.id}
+                    base={workedFor(i.productId)}
+                    printers={data.printers}
+                    onCancel={() => setLogging(null)}
+                    onSaved={() => {
+                      setLogging(null);
+                      void reloadLogs();
+                    }}
+                  />
                 )}
               </td>
               <td className="num">{i.qty.toLocaleString("pt-BR")}</td>
