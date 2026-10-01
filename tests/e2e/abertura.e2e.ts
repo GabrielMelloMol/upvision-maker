@@ -11,7 +11,8 @@ test("abertura (#139): impressão completa 1ª vez no dia, some quando o app mon
   await page.goto("/", { waitUntil: "commit" }); // o load espera o main.tsx, que está segurado
   const splash = page.locator("#splash");
   await expect(splash).toHaveClass(/full/);
-  await expect(splash.locator(".brand-mark.printing .layer")).toHaveCount(5);
+  await expect(splash.locator(".brand-mark .layer")).toHaveCount(5);
+  await expect(splash.locator(".nozzle .nozzle-glow")).toHaveCount(1); // o bico que deposita as camadas (#150)
   release();
   await expect(page.getByRole("navigation", { name: "Navegação principal" })).toBeVisible({ timeout: 60_000 }); // Vite frio
   await expect(splash).toHaveCount(0); // app montou: saiu
@@ -23,4 +24,24 @@ test("abertura (#139): impressão completa 1ª vez no dia, some quando o app mon
   await expect(splash).toHaveClass(/short/);
   await page.keyboard.press("Escape");
   await expect(splash).toHaveCount(0, { timeout: 1500 });
+});
+
+test("abertura (#150): com o app pronto na hora, a impressão completa fica o tempo mínimo e o clique pula", async ({ page }) => {
+  await page.clock.install();
+  await page.clock.pauseAt(new Date("2026-10-01T09:00:00"));
+  await page.goto("/");
+  const splash = page.locator("#splash");
+  await expect(splash).toHaveClass(/full/);
+  await expect(page.getByRole("navigation", { name: "Navegação principal" })).toBeVisible({ timeout: 60_000 });
+  await page.clock.runFor(1000);
+  await expect(splash).not.toHaveClass(/out/); // app montado, mas a animação ainda não terminou
+  await page.clock.runFor(1500); // 1,4 s + o voo até a barra lateral
+  await expect(splash).toHaveCount(0);
+
+  // outra abertura no modo completo (dia seguinte): o clique pula na hora
+  await page.clock.pauseAt(new Date("2026-10-02T09:00:00"));
+  await page.reload();
+  await expect(splash).toHaveClass(/full/);
+  await page.mouse.click(10, 10);
+  await expect(splash).toHaveClass(/gone/); // pular: some sem o voo
 });

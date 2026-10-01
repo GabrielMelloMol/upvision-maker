@@ -101,6 +101,8 @@ function handler(m: TauriMock, cmd: string, a: Record<string, unknown> | null, h
   switch (cmd) {
     case "apply_stock":
       return applyStock(m, args as unknown as ApplyStockArgs);
+    case "plugin:window|show":
+      return null;
     case "plugin:sql|load":
       return args.db;
     case "plugin:sql|select":

@@ -22,6 +22,13 @@ pub fn run() {
             diagnostics::install_panic_hook(app.handle());
             let window = app.get_webview_window("main").expect("janela principal");
             app.manage(vibrancy::Applied(vibrancy::apply(&window)));
+            // a janela nasce escondida e a abertura mostra depois do 1º paint (#150); se o JS falhar, aparece igual
+            std::thread::spawn(move || {
+                std::thread::sleep(std::time::Duration::from_secs(3));
+                if !window.is_visible().unwrap_or(false) {
+                    let _ = window.show();
+                }
+            });
             Ok(())
         })
         .invoke_handler(tauri::generate_handler![
