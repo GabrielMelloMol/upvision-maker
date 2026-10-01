@@ -11,7 +11,7 @@ test("abertura (#139): impressão completa 1ª vez no dia, some quando o app mon
   await page.goto("/", { waitUntil: "commit" }); // o load espera o main.tsx, que está segurado
   const splash = page.locator("#splash");
   await expect(splash).toHaveClass(/full/);
-  await expect(splash.locator(".brand-mark .layer")).toHaveCount(5);
+  await expect(splash.locator(".brand-mark .layer")).toHaveCount(3);
   await expect(splash.locator(".nozzle .nozzle-glow")).toHaveCount(1); // o bico que deposita as camadas (#150)
   release();
   await expect(page.getByRole("navigation", { name: "Navegação principal" })).toBeVisible({ timeout: 60_000 }); // Vite frio

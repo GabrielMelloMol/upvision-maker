@@ -1,19 +1,14 @@
-import mark from "../assets/brand/mark.svg?raw";
+import glyph from "../assets/brand/glyph.svg?raw";
 
-/** Símbolo da UpVision (#138). A estrutura segue `color` (escura no claro, clara no escuro); as camadas mantêm as cores da marca. */
+/**
+ * Símbolo da UpVision (#151, opção A): a pilha de 3 camadas num mini-ícone (squircle branco no claro, grafite no
+ * escuro), como o ícone do app. O mesmo na barra lateral, no Sobre, nas boas-vindas e na abertura.
+ */
 export default function BrandMark({ className = "" }: { className?: string }) {
-  return <span className={`brand-mark ${className}`} aria-hidden dangerouslySetInnerHTML={{ __html: mark }} />;
+  return <span className={`brand-mark ${className}`} aria-hidden dangerouslySetInnerHTML={{ __html: glyph }} />;
 }
 
-/** Nome no estilo do site da UpVision (#138): "Up" no azul da marca, "Vision" na cor do texto, "Maker" em laranja. */
+/** Nome do app em SF Pro semibold na cor do texto (padrão Apple: sem azul/laranja no nome). */
 export function Wordmark({ className = "" }: { className?: string }) {
-  return (
-    <span className={`wordmark ${className}`}>
-      {/* as cores quebram o nome em pedaços; o leitor de tela lê o nome inteiro */}
-      <span aria-hidden>
-        <span className="wm-up">Up</span>Vision <span className="wm-maker">Maker</span>
-      </span>
-      <span className="sr-only">UpVision Maker</span>
-    </span>
-  );
+  return <span className={`wordmark ${className}`}>UpVision Maker</span>;
 }

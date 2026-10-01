@@ -136,11 +136,16 @@ ul.changes { margin: 0; padding-left: 18px; display: grid; gap: 6px; }
 }
 .sheet-inner { display: flex; flex-direction: column; min-height: 0; max-height: inherit; }
 .sheet-icon { width: 20px; height: 20px; color: var(--muted); flex: none; }
-.brand-mark { display: inline-flex; color: var(--text); }
-.brand-mark svg { width: 100%; height: 100%; }
-.wordmark { white-space: nowrap; }
-.wordmark .wm-up { color: var(--brand-blue); }
-.wordmark .wm-maker { color: var(--brand-orange); }
+/* símbolo num mini-ícone (#151, opção A): squircle como o ícone do app; o tamanho vem de quem usa */
+.brand-mark {
+  display: inline-grid; place-items: center; flex: none; border-radius: 23%;
+  background: linear-gradient(180deg, #fff, #f1f1f4); box-shadow: 0 0 0 0.5px rgb(0 0 0 / 0.14), 0 1px 2px rgb(0 0 0 / 0.1);
+}
+.brand-mark svg { width: 74%; height: 74%; }
+@media (prefers-color-scheme: dark) {
+  .brand-mark { background: linear-gradient(180deg, #3a3a3e, #2a2a2d); box-shadow: 0 0 0 0.5px rgb(255 255 255 / 0.14), 0 1px 2px rgb(0 0 0 / 0.4); }
+}
+.wordmark { white-space: nowrap; color: var(--text); }
 .sheet-icon.brand-mark { width: 24px; height: 24px; color: var(--text); }
 .sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
 td.actions { white-space: nowrap; width: 1%; }

@@ -1,13 +1,13 @@
 /**
- * Abertura (#139, #150): o bico imprime o símbolo camada por camada, um reflexo de vidro passa pela peça pronta e o
- * símbolo voa para a logo da barra lateral enquanto o app aparece por baixo (coreografia em styles/splash.css).
+ * Abertura (#139, #150, #151): o bico imprime as 3 camadas do símbolo no mini-ícone, um reflexo de vidro passa por cima e o
+ * mini-ícone voa para a logo da barra lateral enquanto o app aparece por baixo (coreografia em styles/splash.css).
  * A versão completa roda uma vez por dia e fica pelo menos MIN_FULL_MS (no app instalado o React monta em ~100 ms
  * e ela sumia antes de ser vista); nas outras aberturas é só o reflexo + o voo (~0,4 s), quando o app monta (App chama
  * `window.upvisionSplashDone`). Clique ou tecla pulam; trava de 4 s. "Reduzir movimento": só um fade.
  * A janela do Tauri nasce escondida e só aparece depois do 1º paint da abertura (sem piscar o fundo vazio).
  */
 import { getCurrentWindow } from "@tauri-apps/api/window";
-import mark from "./assets/brand/mark.svg?raw";
+import glyph from "./assets/brand/glyph.svg?raw";
 import "./styles/splash.css";
 import { applyTheme, storedTheme } from "./ui/theme";
 
@@ -42,11 +42,12 @@ const el = document.createElement("div");
 el.id = "splash";
 el.className = full ? "full" : "short";
 el.setAttribute("aria-hidden", "true");
-el.innerHTML = `<span class="brand-mark">${mark}<span class="sheen"></span></span><span class="wordmark">${letters}</span>`;
-el.style.setProperty("--mark-mask", `url("data:image/svg+xml,${encodeURIComponent(mark)}")`);
+el.innerHTML = `<span class="brand-mark">${glyph}<span class="sheen"></span></span><span class="wordmark">${letters}</span>`;
+// o bico (só na abertura): corpo, ponta e o brilho quente onde o filamento sai
+const nozzle = `<g class="nozzle"><circle class="nozzle-glow" cx="16" cy="3.4" r="3.2" fill="url(#splash-glow)"/><rect x="13.6" y="-2.6" width="4.8" height="3.6" rx="1" fill="currentColor"/><path d="M14.6 1h2.8l-1.4 2z" fill="currentColor"/></g>`;
 const svg = el.querySelector("svg");
 svg?.insertAdjacentHTML("afterbegin", glow);
-svg?.querySelector(".nozzle")?.insertAdjacentHTML("afterbegin", `<circle class="nozzle-glow" cx="256" cy="234" r="22" fill="url(#splash-glow)"/>`);
+svg?.insertAdjacentHTML("beforeend", nozzle);
 document.body.prepend(el);
 
 // mostra a janela depois do 1º paint da abertura (2 frames); fora do Tauri não há janela para mostrar
