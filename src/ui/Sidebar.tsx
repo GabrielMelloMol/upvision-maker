@@ -1,5 +1,9 @@
 import { Moon, PanelLeftClose, PanelLeftOpen, Sun } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
+
+/** Intenção do hover na faixa recolhida (#156): abrir só com o mouse parado nela; fechar sem pressa ao sair. */
+const PEEK_OPEN_MS = 150;
+const PEEK_CLOSE_MS = 300;
 import { SECTIONS, type PageDef, type SectionDef } from "../pages";
 import { modKey } from "./shortcuts";
 import BrandMark, { Wordmark } from "./BrandMark";
@@ -31,27 +35,32 @@ type Props = {
 export default function Sidebar({ pages, current, onNavigate, onNews, onSuggest, onBackup, onRestore, version, updateAvailable, onAbout, rail = false, narrow = false, onToggle }: Props) {
   const page = pages.find((p) => p.id === current);
   const open = page?.section ?? "home";
-  // acabou de recolher (#156): fica recolhida mesmo com o mouse ou o foco ainda nela, até o mouse sair
-  const [hold, setHold] = useState(false);
-  const wasRail = useRef(rail);
+  // recolhida (#156): o painel abre por cima com o mouse parado nela (150 ms) e fecha 300 ms depois de sair; o foco do
+  // teclado também abre. Ao recolher, fecha na hora (mesmo com o mouse em cima).
+  const [peek, setPeek] = useState(false);
+  const timer = useRef(0);
   const navRef = useRef<HTMLElement>(null);
+  const later = (open: boolean, ms: number) => {
+    clearTimeout(timer.current);
+    timer.current = window.setTimeout(() => setPeek(open), ms);
+  };
   useEffect(() => {
-    if (rail && !wasRail.current) {
-      if (navRef.current?.matches(":hover")) setHold(true);
-      const el = document.activeElement as HTMLElement | null;
-      if (el?.closest(".sidebar") && !el.matches(".sidebar-toggle")) el.blur();
-    }
-    wasRail.current = rail;
+    clearTimeout(timer.current);
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- recolher/expandir zera o painel (o rail vem de fora)
+    setPeek(false);
+    const el = document.activeElement as HTMLElement | null;
+    if (rail && el?.closest(".sidebar") && !el.matches(".sidebar-toggle")) el.blur();
   }, [rail]);
-  // o WebKit não dispara mouseleave quando a barra encolhe e sai de baixo do cursor parado: solta no 1º movimento fora
-  useEffect(() => {
-    if (!hold) return;
-    const onMove = (e: PointerEvent) => {
-      if (!navRef.current?.contains(e.target as Node)) setHold(false);
-    };
-    window.addEventListener("pointermove", onMove);
-    return () => window.removeEventListener("pointermove", onMove);
-  }, [hold]);
+  useEffect(() => () => clearTimeout(timer.current), []);
+  const peekProps = rail
+    ? {
+        "data-peek": peek || undefined,
+        onPointerEnter: (e: React.PointerEvent) => e.pointerType === "mouse" && later(true, PEEK_OPEN_MS),
+        onPointerLeave: () => later(false, PEEK_CLOSE_MS),
+        onFocus: (e: React.FocusEvent) => (e.target as HTMLElement).matches(":focus-visible") && later(true, 0),
+        onBlur: (e: React.FocusEvent) => !navRef.current?.contains(e.relatedTarget as Node) && later(false, 0),
+      }
+    : {};
   const sub = (s: SectionDef) => {
     if (s.id !== open) return [];
     if (s.id === "create") return page && page.id !== "create" ? [page] : [];
@@ -96,7 +105,7 @@ export default function Sidebar({ pages, current, onNavigate, onNews, onSuggest,
   };
 
   return (
-    <nav ref={navRef} className="sidebar" aria-label="Navegação principal" data-hold={hold || undefined} onMouseLeave={() => setHold(false)} onFocus={() => setHold(false)}>
+    <nav ref={navRef} className="sidebar" aria-label="Navegação principal" {...peekProps}>
       <div className="drag" data-tauri-drag-region />
       <div className="sidebar-head">
         <button className="brand" onClick={() => onNavigate("home")}>

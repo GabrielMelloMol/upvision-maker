@@ -12,14 +12,18 @@ test("barra lateral recolhível (#139): atalho, faixa de ícones, expande por ci
   await page.keyboard.press("Control+Alt+KeyS");
   await expect(page.locator(".app")).toHaveAttribute("data-sidebar", "rail");
   await expect.poll(async () => (await nav.boundingBox())!.width).toBeLessThan(70);
-  await expect.poll(async () => (await main.boundingBox())!.x).toBe(60); // a coluna terminou de animar (#156)
+  await expect.poll(async () => (await main.boundingBox())!.x).toBe(64); // a coluna terminou de animar (#156)
+  // recolhida (#156): o botão de expandir fica à vista, sem subitens nem barra de rolagem de lado
+  await expect(nav.getByRole("button", { name: "Expandir barra lateral" })).toBeVisible();
+  await expect(nav.getByRole("button", { name: "Calculadora" })).toBeHidden();
+  expect(await nav.locator(".scroll").evaluate((el) => getComputedStyle(el).overflowX)).toBe("hidden"); // sem a "barrinha" de rolagem de lado
   const x = (await main.boundingBox())!.x;
   if (SHOTS) await page.waitForTimeout(500);
   if (SHOTS) await page.screenshot({ path: `${SHOTS}/barra-recolhida.png` });
 
-  // passar o mouse: expande por cima; o conteúdo não se mexe
-  await nav.hover();
-  await expect.poll(async () => (await nav.boundingBox())!.width).toBeGreaterThan(200);
+  // passar o mouse: abre um painel por cima com a largura cheia; o conteúdo não se mexe
+  await nav.hover({ position: { x: 30, y: 300 } });
+  await expect.poll(async () => (await nav.boundingBox())!.width).toBe(240);
   expect((await main.boundingBox())!.x).toBe(x);
   await expect(nav.getByRole("button", { name: "Calculadora" })).toBeVisible(); // telas da seção aberta
   if (SHOTS) await page.screenshot({ path: `${SHOTS}/barra-hover.png` });

@@ -1,30 +1,31 @@
 /* Janela: sidebar translúcida + área principal com toolbar sticky (large title → título pequeno ao rolar). */
-.app { display: grid; grid-template-columns: 224px 1fr; height: 100vh; overflow: hidden; background: var(--window); transition: grid-template-columns var(--sb-dur) var(--sb-ease); }
+.app { position: relative; display: grid; grid-template-columns: var(--side-w) 1fr; height: 100vh; overflow: hidden; background: var(--window); transition: grid-template-columns var(--sb-dur) var(--sb-ease); }
 
 .sidebar {
-  display: flex; flex-direction: column; min-height: 0; width: 224px; overflow: hidden;
+  display: flex; flex-direction: column; min-height: 0; width: var(--side-w); overflow: hidden;
   /* recolher/expandir (#156): a largura anda junto com a coluna, sem salto */
   transition: width var(--sb-dur) var(--sb-ease), box-shadow var(--sb-dur) ease, background-color var(--sb-dur) ease;
   background: var(--sidebar); -webkit-backdrop-filter: var(--blur); backdrop-filter: var(--blur);
   border-right: 1px solid var(--separator);
 }
-.sidebar .brand { all: unset; cursor: pointer; display: flex; align-items: center; gap: 10px; padding: 16px 18px 18px; border-radius: var(--r); }
+/* logo, ícones e botão ficam na mesma coluna aberta ou recolhida: o centro da faixa recolhida (#156) */
+.sidebar .brand { all: unset; cursor: pointer; display: flex; align-items: center; gap: 10px; padding: 16px 18px 18px calc((var(--rail-w) - 30px) / 2); border-radius: var(--r); }
 .sidebar .brand:focus-visible { outline: 3px solid var(--focus-ring); outline-offset: -3px; } /* por dentro: a barra lateral corta o que passa da borda */
 .sidebar .brand .brand-mark { width: 30px; height: 30px; border-radius: 7px; }
 .sidebar .brand-name { font-family: var(--font-display); font-weight: 600; font-size: 14px; letter-spacing: -0.01em; }
-.sidebar .scroll { flex: 1; min-height: 0; overflow-y: auto; padding: 2px 10px 12px; display: grid; align-content: start; gap: 1px; }
+.sidebar .scroll { flex: 1; min-height: 0; overflow-x: hidden; overflow-y: auto; padding: 2px 10px 12px; display: grid; align-content: start; gap: 1px; } /* sem barra de rolagem de lado (a "barrinha" solta, #156) */
 .sidebar .footer { display: grid; gap: 1px; padding: 8px 10px 12px; }
 /* seção aberta: as telas dela recuadas, alinhadas ao texto, sem ícone (#139) */
 .nav-section { display: grid; gap: 1px; }
 .subnav { display: grid; gap: 1px; padding: 1px 0 6px; animation: subnav-in var(--dur) var(--ease-out); }
 @keyframes subnav-in { from { opacity: 0; transform: translateY(-3px); } }
-.nav.sub { height: 28px; padding-left: 38px; font-size: 13px; font-weight: 450; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; display: block; line-height: 28px; } /* nome longo não quebra em 2 linhas */
+.nav.sub { height: 28px; padding-left: calc((var(--rail-w) - 18px) / 2 + 18px); font-size: 13px; font-weight: 450; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; display: block; line-height: 28px; } /* nome longo não quebra em 2 linhas */
 .nav.sub.active { color: var(--accent-text); }
 .nav.open:not(.active) { font-weight: 600; }
 
 .nav {
   all: unset; box-sizing: border-box; position: relative; display: flex; align-items: center; gap: 10px; cursor: pointer;
-  height: 32px; padding: 0 10px; border-radius: var(--r-sm); color: var(--text); font-size: 13.5px; font-weight: 500;
+  height: 32px; padding: 0 10px 0 calc((var(--rail-w) - 18px) / 2 - 10px); border-radius: var(--r-sm); color: var(--text); font-size: 13.5px; font-weight: 500;
   transition: background var(--dur-fast) ease, color var(--dur-fast) ease;
 }
 .nav svg { width: 18px; height: 18px; color: var(--muted); flex: none; transition: color var(--dur-fast) ease, transform var(--dur) var(--spring); }
@@ -62,39 +63,44 @@ main { position: relative; overflow: auto; min-width: 0; scroll-padding-top: 64p
   .toolbar, .view { padding-inline: var(--space-6); }
 }
 
-/* Barra lateral recolhível (#139): faixa de ícones; mouse ou foco de teclado expande POR CIMA do conteúdo, que não se mexe.
-   Pequena espera antes de abrir, para não abrir quando o mouse só passa por ela. */
+/* Barra lateral recolhível (#139, #156 — padrão Finder/Notas): recolhida é uma faixa de ícones que deixa livre a área dos
+   semáforos do Mac, com a logo e o botão de expandir sempre à vista. O mouse (ou o foco do teclado) abre um PAINEL POR CIMA
+   do conteúdo com a largura cheia — quem decide abrir/fechar é o Sidebar.tsx (data-peek: 150 ms para abrir, 300 ms para
+   fechar). O texto só entra depois que a largura abriu e sai antes de ela fechar; os ícones não mudam de lugar. */
+:root { --side-w: 240px; --rail-w: 64px; --sb-dur: 280ms; --sb-ease: cubic-bezier(0.4, 0, 0.2, 1); }
+:root[data-titlebar="overlay"] { --rail-w: 78px; } /* semáforos do Mac: ~70 px de largura */
 .sidebar-head { display: flex; align-items: center; }
 .sidebar-head .brand { flex: 1; min-width: 0; }
 .sidebar-toggle { flex: none; margin-right: 10px; color: var(--muted); }
 .nav .label, .brand-name { white-space: nowrap; }
-/* Recolher/expandir (#156, critério do Gabriel): a largura anda suave (só largura e coluna); o texto SAI antes de a
-   largura encolher e só ENTRA depois que ela abriu (nunca aparece cortado nem quebrando); os ícones ficam parados
-   (a coluna de ícones não muda de lugar); abrir por cima no hover só depois de uma pausa de intenção. */
-:root { --sb-dur: 280ms; --sb-ease: cubic-bezier(0.4, 0, 0.2, 1); --sb-intent: 150ms; }
-.sidebar :is(.nav .label, .brand-name, .subnav, .version, .sidebar-toggle, .theme-toggle) {
+.sidebar :is(.nav .label, .brand-name, .subnav, .version, .theme-toggle) {
   transition: opacity 160ms ease calc(var(--sb-dur) * 0.6), display 0s allow-discrete calc(var(--sb-dur) * 0.6);
   transition-behavior: allow-discrete;
 }
-@starting-style { .sidebar :is(.subnav, .version, .sidebar-toggle, .theme-toggle) { opacity: 0; } }
-.app[data-sidebar="rail"] { grid-template-columns: 60px 1fr; }
-.app[data-sidebar="rail"] .sidebar { position: relative; z-index: 30; width: 60px; }
-.app[data-sidebar="rail"] .sidebar:is(:hover, :has(:focus-visible)):not([data-hold]) { width: 224px; box-shadow: var(--shadow-3); background: color-mix(in srgb, var(--bg) 92%, transparent); transition-delay: var(--sb-intent); }
-.app[data-sidebar="rail"] .sidebar:is(:hover, :has(:focus-visible)):not([data-hold]) :is(.nav .label, .brand-name, .subnav, .version, .sidebar-toggle, .theme-toggle) {
-  transition-delay: calc(var(--sb-intent) + var(--sb-dur) * 0.6);
-}
-.app[data-sidebar="rail"] .sidebar:is(:not(:hover):not(:has(:focus-visible)), [data-hold]) :is(.nav .label, .brand-name, .subnav, .version, .sidebar-toggle, .theme-toggle) {
+@starting-style { .sidebar :is(.subnav, .version, .theme-toggle) { opacity: 0; } }
+.app[data-sidebar="rail"] { grid-template-columns: var(--rail-w) 1fr; }
+.app[data-sidebar="rail"] > main { grid-column: 2; } /* a barra saiu da grade (absoluta): o conteúdo fica na coluna dele */
+/* recolhida: a barra sai da grade e fica por cima (o conteúdo nunca se mexe quando ela abre) */
+.app[data-sidebar="rail"] .sidebar { position: absolute; inset: 0 auto 0 0; z-index: 40; width: var(--rail-w); }
+.app[data-sidebar="rail"] .sidebar[data-peek] { width: var(--side-w); box-shadow: var(--shadow-3); background: color-mix(in srgb, var(--bg) 94%, transparent); }
+.app[data-sidebar="rail"] .sidebar:not([data-peek]) :is(.nav .label, .brand-name, .subnav, .version, .theme-toggle) {
   opacity: 0; transition: opacity 90ms ease, display 0s allow-discrete 90ms; transition-behavior: allow-discrete;
 }
-.app[data-sidebar="rail"] .sidebar:is(:not(:hover):not(:has(:focus-visible)), [data-hold]) :is(.subnav, .version, .sidebar-toggle) { display: none; }
-.app[data-sidebar="rail"] .sidebar:is(:not(:hover):not(:has(:focus-visible)), [data-hold]) .nav.open { background: var(--accent-soft); color: var(--accent-text); }
-.app[data-sidebar="rail"] .sidebar:is(:not(:hover):not(:has(:focus-visible)), [data-hold]) .nav.open svg { color: var(--accent-text); }
+.app[data-sidebar="rail"] .sidebar:not([data-peek]) :is(.subnav, .version, .theme-toggle, .brand-name) { display: none; }
+.app[data-sidebar="rail"] .sidebar:not([data-peek]) .nav.open { background: var(--accent-soft); color: var(--accent-text); }
+.app[data-sidebar="rail"] .sidebar:not([data-peek]) .nav.open svg { color: var(--accent-text); }
+/* recolhida: logo e, embaixo dela, o botão de expandir, no centro da faixa */
+.app[data-sidebar="rail"] .sidebar:not([data-peek]) .sidebar-head { flex-direction: column; align-items: flex-start; }
+.app[data-sidebar="rail"] .sidebar:not([data-peek]) .brand { padding-bottom: 6px; }
+.app[data-sidebar="rail"] .sidebar:not([data-peek]) .sidebar-toggle { margin: 0 0 10px calc((var(--rail-w) - 28px) / 2); }
 
 /* Com material nativo o vidro vem do sistema: sem blur de CSS (evita fundo preto em alguns WebViews). */
 :root[data-vibrancy] .sidebar { -webkit-backdrop-filter: none; backdrop-filter: none; }
 /* macOS: barra de título sobreposta — espaço para os semáforos e área de arrastar. */
 .drag { height: 0; }
 :root[data-titlebar="overlay"] .sidebar .drag { height: 30px; flex: none; }
+/* recolhida no Mac: a faixa dos semáforos (~52 px) fica livre, a logo vem embaixo */
+:root[data-titlebar="overlay"] .app[data-sidebar="rail"] .sidebar:not([data-peek]) .drag { height: 46px; }
 :root[data-titlebar="overlay"] .sidebar .brand { padding-top: 6px; }
 
 /* Versão no rodapé da barra lateral (abre "Sobre") e selo de atualização (#18) */
@@ -106,7 +112,6 @@ main { position: relative; overflow: auto; min-width: 0; scroll-padding-top: 64p
 .sidebar .footer-row { display: flex; align-items: center; gap: 4px; margin-top: 6px; }
 .sidebar .footer-row .version { margin-top: 0; flex: 1; min-width: 0; }
 .theme-toggle { flex: none; color: var(--muted); }
-.app[data-sidebar="rail"] .sidebar:is(:not(:hover):not(:has(:focus-visible)), [data-hold]) .theme-toggle { display: none; }
 /* troca de tema num quadro só (#154): sem transições de cor no meio, tudo muda junto com o vidro nativo */
 :root.theme-switching *, :root.theme-switching *::before, :root.theme-switching *::after { transition: none !important; }
 @media (prefers-reduced-motion: reduce) { :root { --sb-dur: 0ms; } }
