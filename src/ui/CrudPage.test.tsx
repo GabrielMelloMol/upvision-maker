@@ -25,12 +25,13 @@ describe("CrudPage (Impressoras)", () => {
   test("erros de validação em português, por campo", async () => {
     const user = userEvent.setup();
     renderWithApp(<Printers />);
-    await user.click(await screen.findByRole("button", { name: /Adicionar/ }));
+    await screen.findByRole("heading", { name: "Adicionar impressora" }); // lista vazia: o formulário já vem aberto
+    await user.click(screen.getByRole("button", { name: "Adicionar" }));
     expect(await screen.findByText("Obrigatório.")).toBeInTheDocument();
     expect(screen.getByText("Digite um número.")).toBeInTheDocument();
   });
 
-  test("editar grava e 'Cancelar' volta ao modo adicionar", async () => {
+  test("editar grava; 'Cancelar' fecha o formulário e o botão do título abre o de adicionar", async () => {
     await t.db.execute("INSERT INTO printers (name, watts) VALUES ('Ender', 150)");
     const user = userEvent.setup();
     renderWithApp(<Printers />);
@@ -43,7 +44,10 @@ describe("CrudPage (Impressoras)", () => {
     await waitFor(async () => expect(await t.db.select("SELECT watts FROM printers")).toEqual([{ watts: 180 }]));
     await user.click(screen.getByRole("button", { name: "Editar" }));
     await user.click(screen.getByRole("button", { name: "Cancelar" }));
+    expect(screen.queryByRole("heading", { name: /impressora$/ })).not.toBeInTheDocument();
+    await user.click(screen.getByRole("button", { name: "Adicionar impressora" }));
     expect(screen.getByRole("heading", { name: "Adicionar impressora" })).toBeInTheDocument();
+    await waitFor(() => expect(screen.getByLabelText(/^Nome/)).toHaveFocus());
   });
 
   test("excluir some na hora; Desfazer traz de volta; sem desfazer apaga depois do prazo", async () => {

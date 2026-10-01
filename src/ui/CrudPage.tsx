@@ -4,6 +4,7 @@ import { Fragment, useEffect, useRef, useState, type ReactNode } from "react";
 import { getDb } from "../db";
 import type { Db } from "../db/types";
 import { money, parseDecimal } from "../domain/format";
+import Button from "./Button";
 import CatalogSheet, { type CatalogItem } from "./CatalogSheet";
 import ColorDots, { colorSwatch } from "./ColorDots";
 import EmptyState from "./EmptyState";
@@ -98,6 +99,10 @@ export default function CrudPage({ pageId, title, singular, lead, repo, fields, 
   const [restocking, setRestocking] = useState<{ id: number; qty: string; price: string } | null>(null);
   const [hidden, setHidden] = useState<Set<number>>(new Set());
   const [catalogOpen, setCatalogOpen] = useState(false);
+  // o formulário de adicionar fica fechado atrás do botão do título; aberto ao editar e com a lista vazia
+  const [adding, setAdding] = useState(false);
+  const [focusTick, setFocusTick] = useState(0);
+  const focusScroll = useRef<boolean | null>(null);
   const formRef = useRef<HTMLFormElement>(null);
   const toast = useToast();
   const set = (k: string, v: string) => {
@@ -106,11 +111,23 @@ export default function CrudPage({ pageId, title, singular, lead, repo, fields, 
   };
   const visible = rows.filter((r) => !hidden.has(r.id));
   const columns = fields.filter((f) => !f.formOnly);
+  const formOpen = adding || editing !== null || (!loading && visible.length === 0);
 
-  function focusForm(scroll = true) {
+  function focusFirst(scroll: boolean) {
     if (scroll) formRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
     formRef.current?.querySelector<HTMLElement>("input, select, button[role=radio]")?.focus({ preventScroll: true });
   }
+  /** Abre o formulário e põe o cursor no primeiro campo depois de ele aparecer. */
+  function focusForm(scroll = true) {
+    setAdding(true);
+    focusScroll.current = scroll;
+    setFocusTick((t) => t + 1);
+  }
+  useEffect(() => {
+    if (focusScroll.current === null) return;
+    focusFirst(focusScroll.current);
+    focusScroll.current = null;
+  }, [focusTick]);
 
   // Lista vazia: já deixa o cursor no primeiro campo. Cmd/Ctrl+N: novo cadastro.
   useEffect(() => {
@@ -118,7 +135,7 @@ export default function CrudPage({ pageId, title, singular, lead, repo, fields, 
     const open = takePendingOpen(pageId);
     const row = open !== null ? rows.find((r) => r.id === open) : undefined;
     if (row) edit(row);
-    else if (rows.length === 0) focusForm(false); // sem rolar: a tela abre no topo (a barra de cima não esconde o título)
+    else if (rows.length === 0) focusFirst(false); // sem rolar: a tela abre no topo (a barra de cima não esconde o título)
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [loading]);
   useEffect(
@@ -163,6 +180,7 @@ export default function CrudPage({ pageId, title, singular, lead, repo, fields, 
   }
 
   function cancel() {
+    setAdding(false);
     setForm(defaults);
     setEditing(null);
     setErrors({});
@@ -282,39 +300,50 @@ export default function CrudPage({ pageId, title, singular, lead, repo, fields, 
           onClose={() => setCatalogOpen(false)}
         />
       )}
-      <h1>{title}</h1>
-      {lead && <p className="lead">{lead}</p>}
-      <form ref={formRef} className="card" onSubmit={submit} noValidate>
-        <div className="row" style={{ justifyContent: "space-between", alignItems: "baseline" }}>
-          <h2 className="card-title">{editing === null ? `Adicionar ${singular.toLowerCase()}` : `Editar ${singular.toLowerCase()}`}</h2>
-          {catalog && (
-            <button type="button" className="link" onClick={() => setCatalogOpen(true)}>
-              Escolher do catálogo
-            </button>
-          )}
+      <div className="page-head">
+        <div>
+          <h1>{title}</h1>
+          {lead && <p className="lead">{lead}</p>}
         </div>
-        <div className="grid">{fields.map(input)}</div>
-        {errors._ && <p className="error">{errors._}</p>}
-        <div className="row" style={{ marginTop: 16 }}>
-          <button className="primary" type="submit">
-            {editing === null ? (
-              <>
-                <Plus aria-hidden /> Adicionar
-              </>
-            ) : (
-              "Salvar alterações"
+        {!formOpen && (
+          <Button variant="primary" icon={Plus} onClick={() => focusForm()}>
+            Adicionar {singular.toLowerCase()}
+          </Button>
+        )}
+      </div>
+      {formOpen && (
+        <form ref={formRef} className="card" onSubmit={submit} noValidate>
+          <div className="row" style={{ justifyContent: "space-between", alignItems: "baseline" }}>
+            <h2 className="card-title">{editing === null ? `Adicionar ${singular.toLowerCase()}` : `Editar ${singular.toLowerCase()}`}</h2>
+            {catalog && (
+              <button type="button" className="link" onClick={() => setCatalogOpen(true)}>
+                Escolher do catálogo
+              </button>
             )}
-          </button>
-          {editing !== null && (
-            <button type="button" onClick={cancel}>
-              Cancelar
+          </div>
+          <div className="grid">{fields.map(input)}</div>
+          {errors._ && <p className="error">{errors._}</p>}
+          <div className="row" style={{ marginTop: 16 }}>
+            <button className="primary" type="submit">
+              {editing === null ? (
+                <>
+                  <Plus aria-hidden /> Adicionar
+                </>
+              ) : (
+                "Salvar alterações"
+              )}
             </button>
-          )}
-          <span className="hint kbd-hint">
-            <kbd>Enter</kbd> salva · <kbd>{modKey()}</kbd>+<kbd>N</kbd> novo
-          </span>
-        </div>
-      </form>
+            {(editing !== null || visible.length > 0) && (
+              <button type="button" onClick={cancel}>
+                Cancelar
+              </button>
+            )}
+            <span className="hint kbd-hint">
+              <kbd>Enter</kbd> salva · <kbd>{modKey()}</kbd>+<kbd>N</kbd> novo
+            </span>
+          </div>
+        </form>
+      )}
 
       {loading ? (
         <div className="card" style={{ padding: 0, overflow: "hidden" }} aria-busy="true" aria-label="Carregando">

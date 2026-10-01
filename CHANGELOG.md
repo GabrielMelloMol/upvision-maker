@@ -9,6 +9,7 @@ Formato: `## <versão> — <data>` e itens `- …` em linguagem simples.
 - **Ficha de impressão** (#163): em cada produto, anote como imprimiu (impressora, filamentos e slots, camada, preenchimento, suporte, brim, orientação, tempo e gramas reais) e se deu certo ou falhou e por quê. A ficha mostra **o que funcionou**, o histórico e a taxa de sucesso; a partir de 3 impressões, a taxa de falha medida passa a valer no preço do produto (a não ser que você tenha digitado uma). No pedido, cada item mostra a ficha do produto e tem **Registrar impressão**. Entra no backup.
 Orçamento em PDF mostra as fotos das peças (a capa de cada produto) logo abaixo dos itens (#162).
 Exportar para marketplace salva as fotos dos produtos na pasta da planilha, com o SKU no nome do arquivo, prontas para subir no Seller Center (#162).
+Filamentos, Materiais extras e Impressoras: o formulário de adicionar abre pelo botão do título (continua aberto com a lista vazia e ao editar).
 
 ## 0.9.2 — 2026-10-01
 - **Abertura nova**: o bico imprime o símbolo camada por camada, passa um reflexo de vidro e ele voa para o canto da barra lateral enquanto o app aparece. Completa na primeira vez do dia; nas outras, bem rápida. Um clique pula.
