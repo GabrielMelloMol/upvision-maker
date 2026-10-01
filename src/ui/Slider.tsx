@@ -1,3 +1,5 @@
+import HintText from "./HintText";
+
 type Props = {
   label: string;
   value: number;
@@ -29,7 +31,7 @@ export default function Slider({ label, value, min, max, step = 1, onChange, dis
         style={{ "--fill": `${fill}%` } as React.CSSProperties}
         onChange={(e) => onChange(Number(e.target.value))}
       />
-      {hint && <span className="hint">{hint}</span>}
+      {hint && <span className="hint"><HintText>{hint}</HintText></span>}
     </label>
   );
 }

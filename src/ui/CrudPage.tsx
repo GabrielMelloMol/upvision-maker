@@ -1,3 +1,4 @@
+import HintText from "./HintText";
 import { Plus, type LucideIcon } from "lucide-react";
 import { Fragment, useEffect, useRef, useState, type ReactNode } from "react";
 import { getDb } from "../db";
@@ -261,7 +262,7 @@ export default function CrudPage({ pageId, title, singular, lead, repo, fields, 
         ) : (
           <input value={common.value} inputMode={f.kind === "text" ? "text" : "decimal"} placeholder={f.placeholder} aria-invalid={!!errors[f.key]} onChange={(e) => set(f.key, e.target.value)} />
         )}
-        {errors[f.key] ? <span className="error">{errors[f.key]}</span> : f.hint && <span className="hint">{f.hint}</span>}
+        {errors[f.key] ? <span className="error">{errors[f.key]}</span> : f.hint && <span className="hint"><HintText>{f.hint}</HintText></span>}
       </label>
     );
   }

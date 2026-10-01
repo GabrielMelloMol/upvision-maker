@@ -1,3 +1,4 @@
+import HintText from "./HintText";
 import { labelTerm, TermDesc, TermTip } from "./TermTip";
 import { CircleAlert, CircleCheck } from "lucide-react";
 import { useId, useState, type InputHTMLAttributes, type ReactNode } from "react";
@@ -70,7 +71,7 @@ export default function SmartField({ label, value, onChange, parse, preview, inv
       ) : (
         hint && (
           <span id={`${id}-d`} className="hint">
-            {hint}
+            <HintText>{hint}</HintText>
           </span>
         )
       )}

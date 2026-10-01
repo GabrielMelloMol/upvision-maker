@@ -1,3 +1,4 @@
+import HintText from "./HintText";
 import type { ReactNode } from "react";
 
 type Props = { label: ReactNode; hint?: ReactNode; error?: string; children: ReactNode };
@@ -8,7 +9,7 @@ export default function Field({ label, hint, error, children }: Props) {
     <label>
       {label}
       {children}
-      {error ? <span className="error">{error}</span> : hint && <span className="hint">{hint}</span>}
+      {error ? <span className="error">{error}</span> : hint && <span className="hint"><HintText>{hint}</HintText></span>}
     </label>
   );
 }

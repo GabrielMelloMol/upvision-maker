@@ -1,3 +1,4 @@
+import HintText from "./HintText";
 import { useId } from "react";
 import { labelTerm, TermDesc, TermTip } from "./TermTip";
 
@@ -24,7 +25,7 @@ export default function NumField({ label, value, onChange, min, max, step = 0.1,
       {label} {unit && `(${unit})`}
       {term && <TermTip term={term} />}
       <input type="number" aria-describedby={term ? tipId : undefined} value={Number.isFinite(value) ? value : ""} min={min} max={max} step={step} aria-invalid={bad} onChange={(e) => onChange(e.target.valueAsNumber)} />
-      {bad ? <span className="error">{rangeMessage(value, min, max)}</span> : hint && <span className="hint">{hint}</span>}
+      {bad ? <span className="error">{rangeMessage(value, min, max)}</span> : hint && <span className="hint"><HintText>{hint}</HintText></span>}
     </label>
     {term && <TermDesc id={tipId} term={term} />}
     </>
