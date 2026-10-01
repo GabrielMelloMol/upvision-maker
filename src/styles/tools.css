@@ -208,7 +208,6 @@ details.advanced[open] > .stack, details.advanced[open] > .grid { margin-top: va
 /* polimento: dropzone sozinha num card vira o próprio grupo (sem card dentro de card) */
 .controls > .card:has(> .dropzone:first-child) { padding: 0; background: none; box-shadow: none; }
 /* miniaturas claras (fundo de estúdio) menos ofuscantes no tema escuro */
-@media (prefers-color-scheme: dark) { .model-families .model-thumb img, .model-variant-thumb img { filter: brightness(0.82); } }
 /* dentro do card de exportar o disclosure não precisa do recuo dos cards */
 .export-tips { padding-inline: 0; }
 @media (prefers-color-scheme: dark) {

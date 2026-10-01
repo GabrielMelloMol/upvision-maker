@@ -15,7 +15,7 @@
     "ams-table": "AMS_TABLE=1 vitest run src/qa/amsTable.qa.test.ts",
     "perf": "playwright test -c playwright.perf.config.ts",
     "e2e": "playwright test",
-    "thumbs": "THUMBS=1 playwright test tests/e2e/thumbs.e2e.ts && mkdir -p src/assets/model-thumbs && cp test-results/model-thumbs/*.jpg src/assets/model-thumbs/",
+    "thumbs": "THUMBS=1 playwright test tests/e2e/thumbs.e2e.ts && mkdir -p src/assets/model-thumbs && cp node_modules/.cache/model-thumbs/*.webp src/assets/model-thumbs/",
     "help-shots": "HELP_SHOTS=1 playwright test tests/e2e/help-shots.e2e.ts",
     "coverage": "vitest run --coverage"
   },
