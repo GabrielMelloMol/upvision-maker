@@ -25,7 +25,7 @@
 
 ## Depende de outros devs
 
-### Forja (ferramentas 3D)
+### Forja (ferramentas 3D) — feito em 91d4446 (Gaveta, Pixel art e Litofania ficaram com o Torno)
 - **Imagem → SVG:** tem dois botões cheios, "Aplicar" e "Salvar SVG". "Aplicar" deveria virar secundário ou ser aplicado sozinho. No escuro, o painel "SVG vetorizado" continua branco; o "Original" já usa o xadrez escuro.
 - **QR Code e Pix:** tem dois botões principais, "Salvar SVG" e o Salvar 3MF do ExportButtons. Um deles deveria usar `secondary`.
 - **Pedir à IA:** "Criar peça" e o ExportButtons são dois botões principais. A caixa de informação cinza fica dentro de um cartão.
@@ -42,7 +42,7 @@
   - Separar 3MF (linha 100)
   - Pedir à IA (linha 183)
 
-### Torno (Modelos prontos e catálogo)
+### Torno (Modelos prontos e catálogo) — feito em 1fbd7d4. A prévia cortada era a altura do `.viewer`, corrigida em bc2f81c
 - **Modelos prontos:**
   - As 11 pílulas de ocasião ocupam 3 linhas a 1100 px. Dá para mostrar as 5 mais usadas e esconder o resto em "Mais".
   - O texto de baixo da plaquinha ("Ateliê da Ana") sai da prévia. Falta enquadrar pelo tamanho real da peça.
