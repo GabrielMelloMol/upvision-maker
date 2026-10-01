@@ -3,8 +3,9 @@
 Cada versão aparece para a usuária na tela "O que há de novo" depois da atualização.
 Formato: `## <versão> — <data>` e itens `- …` em linguagem simples.
 
-## Próxima versão (vira "## 0.10.1 — data" ou "## 0.11.0 — data" ao publicar; até lá o app não mostra)
-Preferências: Backup automático, Dois computadores e Celular na rede de casa no padrão de Ajustes (#165).
+## 0.10.1 — 2026-10-01
+- **Barra lateral recolhida no padrão do Finder**: deixa livres os botões de fechar/minimizar/maximizar do Mac, o botão de expandir fica sempre à vista e, ao passar o mouse, um painel abre por cima da tela com tudo legível. Recolhida, mostra só os ícones.
+- **Ajustes reorganizados como os do macOS**: cada opção numa linha, com o nome à esquerda e o campo alinhado à direita, em grupos (Custos da produção, Preço de venda, Falhas e impostos, Aparência, Inteligência artificial, Meu AMS, Fatiador, Backup, Sincronização e Celular). O mesmo em Dados da empresa e no estoque.
 
 ## 0.10.0 — 2026-10-01
 - **Abertura nova**: o símbolo se imprime camada por camada em cerca de 3,6 s e o app se abre em **íris** a partir da peça, como a lente de uma câmera. Aparece toda vez que você abre; um clique pula. Em Ajustes → Aparência dá para escolher Completa, Curta ou Desligada.
