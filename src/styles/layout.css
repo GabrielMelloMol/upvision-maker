@@ -1,10 +1,10 @@
 /* Janela: sidebar translúcida + área principal com toolbar sticky (large title → título pequeno ao rolar). */
-.app { display: grid; grid-template-columns: 224px 1fr; height: 100vh; overflow: hidden; background: var(--window); transition: grid-template-columns var(--dur-slow) var(--ease-out); }
+.app { display: grid; grid-template-columns: 224px 1fr; height: 100vh; overflow: hidden; background: var(--window); transition: grid-template-columns var(--sb-dur) var(--sb-ease); }
 
 .sidebar {
   display: flex; flex-direction: column; min-height: 0; width: 224px; overflow: hidden;
   /* recolher/expandir (#156): a largura anda junto com a coluna, sem salto */
-  transition: width var(--dur-slow) var(--ease-out), box-shadow var(--dur) ease, background-color var(--dur) ease;
+  transition: width var(--sb-dur) var(--sb-ease), box-shadow var(--sb-dur) ease, background-color var(--sb-dur) ease;
   background: var(--sidebar); -webkit-backdrop-filter: var(--blur); backdrop-filter: var(--blur);
   border-right: 1px solid var(--separator);
 }
@@ -68,13 +68,25 @@ main { position: relative; overflow: auto; min-width: 0; scroll-padding-top: 64p
 .sidebar-head .brand { flex: 1; min-width: 0; }
 .sidebar-toggle { flex: none; margin-right: 10px; color: var(--muted); }
 .nav .label, .brand-name { white-space: nowrap; }
+/* Recolher/expandir (#156, critério do Gabriel): a largura anda suave (só largura e coluna); o texto SAI antes de a
+   largura encolher e só ENTRA depois que ela abriu (nunca aparece cortado nem quebrando); os ícones ficam parados
+   (a coluna de ícones não muda de lugar); abrir por cima no hover só depois de uma pausa de intenção. */
+:root { --sb-dur: 280ms; --sb-ease: cubic-bezier(0.4, 0, 0.2, 1); --sb-intent: 150ms; }
+.sidebar :is(.nav .label, .brand-name, .subnav, .version, .sidebar-toggle, .theme-toggle) {
+  transition: opacity 160ms ease calc(var(--sb-dur) * 0.6), display 0s allow-discrete calc(var(--sb-dur) * 0.6);
+  transition-behavior: allow-discrete;
+}
+@starting-style { .sidebar :is(.subnav, .version, .sidebar-toggle, .theme-toggle) { opacity: 0; } }
 .app[data-sidebar="rail"] { grid-template-columns: 60px 1fr; }
 .app[data-sidebar="rail"] .sidebar { position: relative; z-index: 30; width: 60px; }
-/* abre por cima só depois de o mouse parar nela (não abre quando só passa a caminho dos botões da janela); fecha na hora */
-.app[data-sidebar="rail"] .sidebar:is(:hover, :has(:focus-visible)):not([data-hold]) { width: 224px; box-shadow: var(--shadow-3); background: color-mix(in srgb, var(--bg) 92%, transparent); transition-delay: 260ms; }
+.app[data-sidebar="rail"] .sidebar:is(:hover, :has(:focus-visible)):not([data-hold]) { width: 224px; box-shadow: var(--shadow-3); background: color-mix(in srgb, var(--bg) 92%, transparent); transition-delay: var(--sb-intent); }
+.app[data-sidebar="rail"] .sidebar:is(:hover, :has(:focus-visible)):not([data-hold]) :is(.nav .label, .brand-name, .subnav, .version, .sidebar-toggle, .theme-toggle) {
+  transition-delay: calc(var(--sb-intent) + var(--sb-dur) * 0.6);
+}
+.app[data-sidebar="rail"] .sidebar:is(:not(:hover):not(:has(:focus-visible)), [data-hold]) :is(.nav .label, .brand-name, .subnav, .version, .sidebar-toggle, .theme-toggle) {
+  opacity: 0; transition: opacity 90ms ease, display 0s allow-discrete 90ms; transition-behavior: allow-discrete;
+}
 .app[data-sidebar="rail"] .sidebar:is(:not(:hover):not(:has(:focus-visible)), [data-hold]) :is(.subnav, .version, .sidebar-toggle) { display: none; }
-.nav .label, .brand-name { transition: opacity var(--dur-fast) ease; }
-.app[data-sidebar="rail"] .sidebar:is(:not(:hover):not(:has(:focus-visible)), [data-hold]) :is(.nav .label, .brand-name) { opacity: 0; }
 .app[data-sidebar="rail"] .sidebar:is(:not(:hover):not(:has(:focus-visible)), [data-hold]) .nav.open { background: var(--accent-soft); color: var(--accent-text); }
 .app[data-sidebar="rail"] .sidebar:is(:not(:hover):not(:has(:focus-visible)), [data-hold]) .nav.open svg { color: var(--accent-text); }
 
@@ -97,3 +109,4 @@ main { position: relative; overflow: auto; min-width: 0; scroll-padding-top: 64p
 .app[data-sidebar="rail"] .sidebar:is(:not(:hover):not(:has(:focus-visible)), [data-hold]) .theme-toggle { display: none; }
 /* troca de tema num quadro só (#154): sem transições de cor no meio, tudo muda junto com o vidro nativo */
 :root.theme-switching *, :root.theme-switching *::before, :root.theme-switching *::after { transition: none !important; }
+@media (prefers-reduced-motion: reduce) { :root { --sb-dur: 0ms; } }

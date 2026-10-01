@@ -43,6 +43,15 @@ export default function Sidebar({ pages, current, onNavigate, onNews, onSuggest,
     }
     wasRail.current = rail;
   }, [rail]);
+  // o WebKit não dispara mouseleave quando a barra encolhe e sai de baixo do cursor parado: solta no 1º movimento fora
+  useEffect(() => {
+    if (!hold) return;
+    const onMove = (e: PointerEvent) => {
+      if (!navRef.current?.contains(e.target as Node)) setHold(false);
+    };
+    window.addEventListener("pointermove", onMove);
+    return () => window.removeEventListener("pointermove", onMove);
+  }, [hold]);
   const sub = (s: SectionDef) => {
     if (s.id !== open) return [];
     if (s.id === "create") return page && page.id !== "create" ? [page] : [];
