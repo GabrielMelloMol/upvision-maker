@@ -1,7 +1,7 @@
 import { readFileSync } from "node:fs";
 import { expect, go, openApp, test } from "./tauri";
 
-const PHOTO = readFileSync(new URL("../../src/assets/model-thumbs/cake.jpg", import.meta.url));
+const PHOTO = readFileSync(new URL("../fixtures/foto.jpg", import.meta.url));
 
 function sse(text: string): string {
   const ev = (type: string, data: object) => `event: ${type}\ndata: ${JSON.stringify({ type, ...data })}\n\n`;
