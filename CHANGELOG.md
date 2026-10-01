@@ -3,7 +3,12 @@
 Cada versão aparece para a usuária na tela "O que há de novo" depois da atualização.
 Formato: `## <versão> — <data>` e itens `- …` em linguagem simples.
 
-## Próxima versão (vira "## 0.9.2 — data" ou "## 0.10.0 — data" ao publicar; até lá o app não mostra)
+## 0.9.2 — 2026-10-01
+- **Abertura nova**: o bico imprime o símbolo camada por camada, passa um reflexo de vidro e ele voa para o canto da barra lateral enquanto o app aparece. Completa na primeira vez do dia; nas outras, bem rápida. Um clique pula.
+- **Marca nova** no topo da barra lateral: o mini-ícone do app e "UpVision Maker" em letra do sistema.
+- **Claro ou escuro num toque**: botão de sol/lua no rodapé da barra lateral (Automático, Claro, Escuro), também em Ajustes → Aparência e no atalho ⌘⇧L (Ctrl+Shift+L).
+- **Miniaturas novas** em todos os Modelos prontos: fundo transparente que combina com o tema, o mesmo ângulo e a peça inteira à vista. Nenhum card fica mais sem imagem.
+- **Selo "Com AMS / Sem AMS"** nos cards e o filtro **Funciona sem AMS** na galeria Criar.
 - **Tamanho da mesa pela sua impressora** (#119): as ferramentas avisam quando a peça passa da mesa, dividem as peças grandes e arrumam o lote usando o tamanho da impressora cadastrada (A1 mini: 180 mm; Ender 3: 220 mm), e não mais os 256 mm fixos da A1. Com mais de uma impressora, escolha qual vale em Preferências → Impressora das ferramentas. A grade da prévia 3D também mostra a mesa certa.
 - **Precisa de AMS?** (#118): ao salvar o 3MF, cada ferramenta e modelo mostra se sai em 1 cor, se dá para imprimir sem AMS trocando o filamento nas pausas ou se precisa de AMS. Novo jeito de imprimir **Uma mesa por cor**: cada cor sai num 3MF próprio, com as peças deitadas na mesa, para imprimir uma cor por vez e montar ou colar (pixel art, shadowbox, marchetaria).
 
