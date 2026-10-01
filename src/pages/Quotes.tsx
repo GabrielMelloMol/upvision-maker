@@ -35,7 +35,7 @@ export default function Quotes({ go }: { go: Go }) {
 
   async function pdf(q: Quote) {
     try {
-      const r = await quotePdf(await loadPdfFonts(), data.company, q, data.customers.find((c) => c.id === q.customerId));
+      const r = await quotePdf(await loadPdfFonts(), data.company, q, data.customers.find((c) => c.id === q.customerId), data.covers); // capas dos produtos (#162)
       const path = await saveFile(`${num(q)}-${slug(q.customerName)}.pdf`, r.bytes, "pdf", "PDF");
       if (path) toast(r.pixError ? `PDF salvo sem o QR Pix (${r.pixError}) em ${path}` : `Orçamento salvo em ${path}`, r.pixError ? "error" : "ok");
     } catch (e) {

@@ -51,6 +51,13 @@ test("orçamento: A4, itens, total com desconto e frete, Pix com o valor", async
   expect(r.pixError).toBeNull();
 });
 
+test("orçamento com foto do produto mostra as fotos das peças (#162)", async () => {
+  const q = quote(2);
+  const withProduct = { ...q, items: q.items.map((it, i) => (i === 0 ? { ...it, productId: 1 } : it)) };
+  expect(txt((await quotePdf(fonts, company, withProduct, undefined, { 1: PNG })).trace)).toContain("Fotos das peças");
+  expect(txt((await quotePdf(fonts, company, withProduct)).trace)).not.toContain("Fotos das peças");
+});
+
 test("orçamento longo quebra página e repete o cabeçalho da tabela", async () => {
   const r = await quotePdf(fonts, company, quote(60));
   const n = (await pages(r.bytes)).length;
