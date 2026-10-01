@@ -3,13 +3,19 @@
 Cada versão aparece para a usuária na tela "O que há de novo" depois da atualização.
 Formato: `## <versão> — <data>` e itens `- …` em linguagem simples.
 
-## Próxima versão (vira "## 0.9.3 — data" ou "## 0.10.0 — data" ao publicar; até lá o app não mostra)
-- **Aviso de atualização com o app aberto** (#155): o app procura versão nova a cada hora e quando você volta para a janela (se passou meia hora). Quando há versão nova, aparece uma faixa no topo com **Ver novidades**, **Atualizar agora** e **Depois** (some até a próxima vez que abrir o app). Com o app em segundo plano, chega também uma notificação do sistema, uma vez por versão. Ao atualizar, o que você estava fazendo nas ferramentas é guardado antes de reiniciar, e o app pergunta se alguma ferramenta ainda está gerando.
-- **Do pedido ao arquivo pronto** (#164): cada item do pedido ou orçamento pode ter **personalização** (uma cópia por linha, por exemplo os nomes dos 20 chaveiros; dá para colar a lista, e o app oferece usar o número de linhas como quantidade). No produto, escolha o **Modelo pronto** que ele usa. No pedido, **Preparar impressão** abre esse modelo com os nomes já no lote, arrumados na mesa com gramas, tempo e custo, e o pedido pendente passa para Em produção.
-- **Ficha de impressão** (#163): em cada produto, anote como imprimiu (impressora, filamentos e slots, camada, preenchimento, suporte, brim, orientação, tempo e gramas reais) e se deu certo ou falhou e por quê. A ficha mostra **o que funcionou**, o histórico e a taxa de sucesso; a partir de 3 impressões, a taxa de falha medida passa a valer no preço do produto (a não ser que você tenha digitado uma). No pedido, cada item mostra a ficha do produto e tem **Registrar impressão**. Entra no backup.
-Orçamento em PDF mostra as fotos das peças (a capa de cada produto) logo abaixo dos itens (#162).
-Exportar para marketplace salva as fotos dos produtos na pasta da planilha, com o SKU no nome do arquivo, prontas para subir no Seller Center (#162).
-Filamentos, Materiais extras e Impressoras: o formulário de adicionar abre pelo botão do título (continua aberto com a lista vazia e ao editar).
+## 0.10.0 — 2026-10-01
+- **Abertura nova**: o símbolo se imprime camada por camada em cerca de 3,6 s e o app se abre em **íris** a partir da peça, como a lente de uma câmera. Aparece toda vez que você abre; um clique pula. Em Ajustes → Aparência dá para escolher Completa, Curta ou Desligada.
+- **Tour guiado**: na primeira visita ao Início, Criar, Chaveiros, Calculadora, Pedidos e Filamentos, a tela escurece e destaca onde clicar, passo a passo. Dá para rever pelo **?** ou reiniciar as dicas em Ajustes.
+- **Claro ou escuro** pelo sol/lua ao lado da versão, no rodapé da barra lateral — e a troca agora acontece por inteiro, sem partes atrasadas. A barra lateral recolhe e expande sem tropeços.
+- **Aviso de atualização com o app aberto**: o app procura versão nova a cada hora e quando você volta para a janela, e mostra uma faixa com **Atualizar agora**. Antes de reiniciar, guarda o que você estava fazendo.
+- **Abrir no fatiador com 1 clique**: ao lado de Salvar 3MF, abre direto no Bambu Studio, OrcaSlicer ou PrusaSlicer instalado.
+- **Meus projetos**: tudo o que você fez em qualquer ferramenta num lugar só, com miniatura, busca, favoritos e "fazer de novo".
+- **Fotos reais das peças** no produto, no projeto e na ficha de impressão; aparecem no orçamento em PDF e vão junto da planilha da Shopee e do Mercado Livre.
+- **Do pedido ao arquivo pronto**: cada item do pedido ou orçamento guarda a personalização (nomes, textos, cores) e **Preparar impressão** abre o modelo já com o lote montado.
+- **Ficha de impressão** em cada produto: impressora, filamentos, camada, preenchimento, tempo e gramas reais, anotações e o histórico do que deu certo — a taxa de falha do produto passa a vir daí.
+- **Quebra-cabeça de verdade**: encaixe clássico, bolinha, quadrado, ondulado ou triangular, peças todas diferentes, contorno livre, verso numerado e peça de teste para acertar a folga.
+- **Pedir à IA**: com chave sem workspace, o "Testar chave" explica o que fazer, há um campo opcional de workspace e os erros aparecem em português claro, com o pedido guardado para reenviar.
+- Correções: dicas longas dos campos mostram só a 1ª frase (o resto no ⓘ); lucro negativo mostra a diferença em R$; o formulário de adicionar no estoque abre pelo botão do título.
 
 ## 0.9.2 — 2026-10-01
 - **Abertura nova**: o bico imprime o símbolo camada por camada, passa um reflexo de vidro e ele voa para o canto da barra lateral enquanto o app aparece. Completa na primeira vez do dia; nas outras, bem rápida. Um clique pula.
