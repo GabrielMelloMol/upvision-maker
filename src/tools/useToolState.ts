@@ -1,3 +1,4 @@
+import { trackSave } from "./pendingSaves";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { getDb } from "../db";
 import { toolProjects, toolState, type ToolProject } from "../db/toolStateRepo";
@@ -91,15 +92,22 @@ export function useToolState<T extends object>(toolId: string, initial: T | (() 
     if (!loaded.current || same(state, baseline.current)) return;
     exported.current = false;
     setDraft(null);
-    const t = setTimeout(async () => {
+    const save = async () => {
+      untrack();
       try {
         const db = await getDb();
         await toolState.save(db, { id: toolId, data: await encode(state), updatedAt: new Date().toISOString() });
       } catch (e) {
         console.warn(`Não deu para guardar o rascunho de ${toolId}:`, e);
       }
-    }, AUTOSAVE_MS);
-    return () => clearTimeout(t);
+    };
+    // registrado até gravar: antes de reiniciar para atualizar, grava na hora (#155)
+    const untrack = trackSave(`tool:${toolId}`, save);
+    const t = setTimeout(() => void save(), AUTOSAVE_MS);
+    return () => {
+      clearTimeout(t);
+      untrack();
+    };
   }, [state, toolId, encode]);
 
   // aviso ao sair com trabalho não exportado: nada se perde, fica guardado para o "Continuar"

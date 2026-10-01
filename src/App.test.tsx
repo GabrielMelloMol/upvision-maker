@@ -171,9 +171,25 @@ describe("App", () => {
     const user = userEvent.setup();
     renderWithApp(<App />);
     expect(await screen.findByText("Nova versão v0.4.0 disponível.")).toBeInTheDocument();
-    await user.click(screen.getByRole("button", { name: "Atualizar e reiniciar" }));
+    await user.click(screen.getByRole("button", { name: "Atualizar agora" }));
     expect(await screen.findByRole("alert")).toHaveTextContent("Falha ao atualizar: sem espaço");
-    expect(screen.getByRole("button", { name: "Atualizar e reiniciar" })).toBeEnabled();
+    expect(screen.getByRole("button", { name: "Atualizar agora" })).toBeEnabled();
+  });
+
+  test("versão nova com o app aberto: Ver novidades abre o Sobre; Depois esconde até a próxima abertura (#155)", async () => {
+    await seenIntro();
+    t.handlers["plugin:updater|check"] = () => UPDATE;
+    const user = userEvent.setup();
+    const { unmount } = renderWithApp(<App />);
+    const banner = (await screen.findByText("Nova versão v0.4.0 disponível.")).closest(".banner") as HTMLElement;
+    await user.click(within(banner).getByRole("button", { name: "Ver novidades" }));
+    const about = await screen.findByRole("dialog", { name: /Sobre/ });
+    await user.click(within(about).getByRole("button", { name: "Fechar" }));
+    await user.click(await screen.findByRole("button", { name: "Depois" }));
+    expect(screen.queryByText("Nova versão v0.4.0 disponível.")).not.toBeInTheDocument();
+    unmount();
+    renderWithApp(<App />); // próxima abertura
+    expect(await screen.findByText("Nova versão v0.4.0 disponível.")).toBeInTheDocument();
   });
 
   test("atualização instalando mostra 'Atualizando…' e reinicia", async () => {
@@ -183,7 +199,7 @@ describe("App", () => {
     t.handlers["plugin:process|restart"] = () => null;
     const user = userEvent.setup();
     renderWithApp(<App />);
-    await user.click(await screen.findByRole("button", { name: "Atualizar e reiniciar" }));
+    await user.click(await screen.findByRole("button", { name: "Atualizar agora" }));
     expect(screen.getByRole("button", { name: "Atualizando…" })).toBeDisabled();
     await waitFor(() => expect(t.calls).toContain("plugin:process|restart"));
   });

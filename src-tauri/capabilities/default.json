@@ -23,6 +23,7 @@
     "fs:allow-mkdir",
     "fs:scope-appdata-recursive",
     "updater:default",
+    "notification:default",
     "process:allow-restart",
     "opener:default"
   ]

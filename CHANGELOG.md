@@ -3,6 +3,9 @@
 Cada versão aparece para a usuária na tela "O que há de novo" depois da atualização.
 Formato: `## <versão> — <data>` e itens `- …` em linguagem simples.
 
+## Próxima versão (vira "## 0.9.3 — data" ou "## 0.10.0 — data" ao publicar; até lá o app não mostra)
+- **Aviso de atualização com o app aberto** (#155): o app procura versão nova a cada hora e quando você volta para a janela (se passou meia hora). Quando há versão nova, aparece uma faixa no topo com **Ver novidades**, **Atualizar agora** e **Depois** (some até a próxima vez que abrir o app). Com o app em segundo plano, chega também uma notificação do sistema, uma vez por versão. Ao atualizar, o que você estava fazendo nas ferramentas é guardado antes de reiniciar, e o app pergunta se alguma ferramenta ainda está gerando.
+
 ## 0.9.2 — 2026-10-01
 - **Abertura nova**: o bico imprime o símbolo camada por camada, passa um reflexo de vidro e ele voa para o canto da barra lateral enquanto o app aparece. Completa na primeira vez do dia; nas outras, bem rápida. Um clique pula.
 - **Marca nova** no topo da barra lateral: o mini-ícone do app e "UpVision Maker" em letra do sistema.

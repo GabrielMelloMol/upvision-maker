@@ -155,11 +155,20 @@ export default function App() {
               </button>
             </div>
           )}
-          {updates.update && !about && (
-            <div className="banner">
+          {/* #155: aparece com o app aberto (checa a cada 1 h e ao voltar para a janela); "Depois" some até a próxima abertura */}
+          {(updates.status === "available" || updates.status === "installing") && !updates.dismissed && !about && (
+            <div className="banner" role="status">
               <span>Nova versão v{latestVersion(updates)} disponível.</span>
-              <button className="primary" onClick={updates.install} disabled={updates.status === "installing"}>
-                {updates.status === "installing" ? "Atualizando…" : "Atualizar e reiniciar"}
+              <button className="ghost" onClick={() => setAbout(true)}>
+                Ver novidades
+              </button>
+              {updates.update && (
+                <button className="primary" onClick={updates.install} disabled={updates.status === "installing"}>
+                  {updates.status === "installing" ? "Atualizando…" : "Atualizar agora"}
+                </button>
+              )}
+              <button className="ghost" onClick={updates.dismiss} disabled={updates.status === "installing"}>
+                Depois
               </button>
               {updates.error && (
                 <span className="error" role="alert">

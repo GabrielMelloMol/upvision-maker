@@ -6,7 +6,8 @@ import App from "../App";
 import { renderWithApp, setupTauri } from "../test/harness";
 import { ToastProvider } from "../ui/Toast";
 import { systemName } from "./system";
-import { RECHECK_MS, useUpdates } from "./useUpdates";
+import { trackSave } from "../tools/pendingSaves";
+import { FOCUS_RECHECK_MS, RECHECK_MS, useUpdates } from "./useUpdates";
 
 vi.mock("../ui/viewerScene", () => ({ createViewer: () => ({ setModels() {}, dispose() {} }) }));
 
@@ -87,13 +88,62 @@ describe("versão e Sobre", () => {
 });
 
 describe("useUpdates", () => {
-  test("verifica sozinho a cada 6 h", async () => {
+  test("verifica sozinho a cada 1 h com o app aberto (#155)", async () => {
     vi.useFakeTimers({ shouldAdvanceTime: true });
     renderHook(() => useUpdates(), { wrapper });
     await waitFor(() => expect(t.calls.filter((c) => c === "plugin:updater|check")).toHaveLength(1));
     await act(async () => vi.advanceTimersByTime(RECHECK_MS));
     await waitFor(() => expect(t.calls.filter((c) => c === "plugin:updater|check")).toHaveLength(2));
     vi.useRealTimers();
+  });
+
+  test("ao voltar para a janela checa de novo, mas só se passaram 30 min (#155)", async () => {
+    vi.useFakeTimers({ shouldAdvanceTime: true });
+    const checks = () => t.calls.filter((c) => c === "plugin:updater|check").length;
+    renderHook(() => useUpdates(), { wrapper });
+    await waitFor(() => expect(checks()).toBe(1));
+    await act(async () => void window.dispatchEvent(new Event("focus")));
+    expect(checks()).toBe(1); // acabou de checar
+    await act(async () => vi.setSystemTime(Date.now() + FOCUS_RECHECK_MS));
+    await act(async () => void window.dispatchEvent(new Event("focus")));
+    await waitFor(() => expect(checks()).toBe(2));
+    vi.useRealTimers();
+  });
+
+  test("versão nova com o app em segundo plano: notificação do sistema, uma vez por versão (#155)", async () => {
+    localStorage.clear();
+    const shown: string[] = [];
+    vi.stubGlobal("Notification", class {
+      static permission = "granted";
+      constructor(title: string, o: { body: string }) {
+        shown.push(`${title}: ${o.body}`);
+      }
+    });
+    t.handlers["plugin:notification|is_permission_granted"] = () => true;
+    vi.spyOn(document, "hasFocus").mockReturnValue(false);
+    t.handlers["plugin:updater|check"] = () => UPDATE;
+    const { result, unmount } = renderHook(() => useUpdates(), { wrapper });
+    await waitFor(() => expect(result.current.status).toBe("available"));
+    await waitFor(() => expect(shown).toEqual(["UpVision Maker: Nova versão 0.5.0 disponível. Abra o app para ver as novidades e atualizar."]));
+    unmount();
+    const again = renderHook(() => useUpdates(), { wrapper });
+    await waitFor(() => expect(again.result.current.status).toBe("available"));
+    expect(shown).toHaveLength(1); // a mesma versão não avisa de novo
+    vi.restoreAllMocks();
+    vi.unstubAllGlobals();
+  });
+
+  test("atualizar grava os rascunhos pendentes antes de reiniciar (#155)", async () => {
+    t.handlers["plugin:updater|check"] = () => UPDATE;
+    t.handlers["plugin:updater|download_and_install"] = () => null;
+    t.handlers["plugin:process|restart"] = () => null;
+    const saved: string[] = [];
+    trackSave("tool:keychain", async () => void saved.push("keychain"));
+    const { result } = renderHook(() => useUpdates(), { wrapper });
+    await waitFor(() => expect(result.current.status).toBe("available"));
+    await act(() => result.current.install());
+    expect(saved).toEqual(["keychain"]);
+    expect(t.calls.indexOf("plugin:process|restart")).toBeGreaterThan(-1);
   });
 
   test("falha ao instalar volta para 'disponível' com a mensagem", async () => {
