@@ -1,8 +1,8 @@
 import Anthropic from "@anthropic-ai/sdk";
 import { SlidersHorizontal, Send, Sparkles, X } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
-import { loadAiSettings } from "../ai/aiSettings";
-import { aiErrorText, ask, countInputTokens } from "../ai/claude";
+import { type AiSettings, loadAiSettings } from "../ai/aiSettings";
+import { aiError, type AiErrorInfo, ask, countInputTokens } from "../ai/claude";
 import { estimateInputCostUsd } from "../ai/cost";
 import { imageUrl, MAX_IMAGES, prepareImage, userContent, type RefImage } from "../ai/images";
 import { RenderCancelled, renderScad } from "../ai/render";
@@ -15,6 +15,7 @@ import type { Go } from "../pages";
 import Alert from "../ui/Alert";
 import ExportButtons from "../ui/ExportButtons";
 import Preview3D from "../ui/Preview3D";
+import AiErrorAlert from "./askai/AiErrorAlert";
 import Attachments from "./askai/Attachments";
 
 type Turn = { role: "user" | "assistant"; text: string; images?: string[]; code?: string | null; tokens?: { in: number; out: number }; costUsd?: number | null; renderError?: string };
@@ -25,14 +26,15 @@ const usd = (n: number) => `US$ ${n.toFixed(n < 0.01 ? 4 : 3)}`;
 const EXAMPLES = ["Porta-copos redondo de 90 mm com a palavra CAFÉ em relevo, base azul e letras brancas", "Suporte de celular para mesa, inclinado a 60°, com furo para o cabo", "Chaveiro de coração com furo para argola e borda em outra cor"];
 
 export default function AskAI({ go }: { go: Go }) {
-  const [settings, setSettings] = useState<{ apiKey: string | null; model: string } | null>(null);
+  const [settings, setSettings] = useState<AiSettings | null>(null);
   const [turns, setTurns] = useState<Turn[]>([]);
   const [history, setHistory] = useState<Anthropic.MessageParam[]>([]);
   const [input, setInput] = useState("");
   const [model3d, setModel3d] = useState<Model | null>(null);
   const [modelCode, setModelCode] = useState<string | null>(null); // código da peça na tela (para "Virar modelo", #97)
   const [phase, setPhase] = useState<null | { kind: "claude"; chars: number } | { kind: "render" }>(null);
-  const [error, setError] = useState<string | null>(null);
+  const [error, setError] = useState<AiErrorInfo | null>(null);
+  const fail = (text: string) => setError({ text });
   const [images, setImages] = useState<RefImage[]>([]); // referências do próximo pedido (#89)
   // estimativa do próximo pedido, guardada com a "assinatura" do pedido que foi contado
   const [estimate, setEstimate] = useState<{ sig: string; tokens: number; usd: number | null } | { sig: string; error: true } | null>(null);
@@ -42,7 +44,7 @@ export default function AskAI({ go }: { go: Go }) {
   useEffect(() => {
     loadAiSettings()
       .then(setSettings)
-      .catch((e) => setError(aiErrorText(e)));
+      .catch((e) => setError(aiError(e)));
   }, []);
 
   // custo do próximo pedido com as imagens, contado pela API antes de enviar (gratuito), com espera para não contar a cada tecla
@@ -52,7 +54,7 @@ export default function AskAI({ go }: { go: Go }) {
     if (!key || (!input.trim() && !images.length) || phase) return;
     const t = setTimeout(() => {
       const hist: Anthropic.MessageParam[] = [...history, { role: "user", content: userContent(input.trim() || "(sem texto)", images) }];
-      countInputTokens(key, settings.model, hist)
+      countInputTokens({ apiKey: key, workspaceId: settings.workspaceId }, settings.model, hist)
         .then((tokens) => setEstimate({ sig, tokens, usd: estimateInputCostUsd(settings.model, tokens) }))
         .catch((e) => {
           console.warn("Não deu para estimar o custo do pedido:", e);
@@ -66,13 +68,13 @@ export default function AskAI({ go }: { go: Go }) {
   async function addImages(files: Blob[], png = false) {
     const room = MAX_IMAGES - images.length;
     const left = files.length - room;
-    if (left > 0) setError(`Até ${MAX_IMAGES} imagens por pedido: ${left} ${left === 1 ? "ficou" : "ficaram"} de fora.`);
+    if (left > 0) fail(`Até ${MAX_IMAGES} imagens por pedido: ${left} ${left === 1 ? "ficou" : "ficaram"} de fora.`);
     for (const f of files.slice(0, Math.max(0, room))) {
       try {
         const img = await prepareImage(f, { png });
         setImages((cur) => (cur.length < MAX_IMAGES ? [...cur, img] : cur));
       } catch (e) {
-        setError(e instanceof Error ? e.message : String(e));
+        fail(e instanceof Error ? e.message : String(e));
       }
     }
   }
@@ -81,13 +83,14 @@ export default function AskAI({ go }: { go: Go }) {
   async function send(userText: string, base: Anthropic.MessageParam[], fixesLeft = MAX_AUTO_FIX, auto = false, refs: RefImage[] = []) {
     if (!settings?.apiKey) return;
     const hist: Anthropic.MessageParam[] = [...base, { role: "user", content: userContent(userText, refs) }];
-    setTurns((t) => [...t, { role: "user", text: auto ? "(correção automática do erro do OpenSCAD)" : userText, images: refs.map(imageUrl) }]);
+    const userTurn: Turn = { role: "user", text: auto ? "(correção automática do erro do OpenSCAD)" : userText, images: refs.map(imageUrl) };
+    setTurns((t) => [...t, userTurn]);
     setError(null);
     const ctrl = new AbortController();
     cancelRef.current = () => ctrl.abort();
     setPhase({ kind: "claude", chars: 0 });
     try {
-      const r = await ask(settings.apiKey, settings.model, hist, (chars) => setPhase({ kind: "claude", chars }), ctrl.signal);
+      const r = await ask({ apiKey: settings.apiKey, workspaceId: settings.workspaceId }, settings.model, hist, (chars) => setPhase({ kind: "claude", chars }), ctrl.signal);
       const reply = extractReply(r.text);
       const nextHist: Anthropic.MessageParam[] = [...hist, { role: "assistant", content: r.message.content }];
       setHistory(nextHist);
@@ -105,10 +108,16 @@ export default function AskAI({ go }: { go: Go }) {
         const msg = e instanceof Error ? e.message : String(e);
         setTurns((t) => t.map((x) => (x === turn ? { ...x, renderError: msg } : x)));
         if (fixesLeft > 0) return send(`O OpenSCAD deu este erro ao renderizar:\n${msg}\nCorrija e mande o código completo de novo.`, nextHist, fixesLeft - 1, true);
-        setError("O código ainda não renderizou. Descreva o problema com outras palavras ou peça algo mais simples.");
+        fail("O código ainda não renderizou. Descreva o problema com outras palavras ou peça algo mais simples.");
       }
     } catch (e) {
-      if (!(e instanceof Anthropic.APIUserAbortError)) setError(aiErrorText(e));
+      if (e instanceof Anthropic.APIUserAbortError) return;
+      setError(aiError(e));
+      // o pedido que falhou volta para o campo (texto e imagens), pronto para reenviar com um clique (#157)
+      if (auto) return;
+      setTurns((t) => t.filter((x) => x !== userTurn));
+      setInput((cur) => cur || userText);
+      setImages((cur) => (cur.length ? cur : refs));
     } finally {
       setPhase(null);
     }
@@ -122,7 +131,7 @@ export default function AskAI({ go }: { go: Go }) {
     cancelRef.current = () => ctrl.abort();
     setPhase({ kind: "claude", chars: 0 });
     try {
-      const r = await ask(settings.apiKey, settings.model, [{ role: "user", content: parametrizePrompt(modelCode) }], (chars) => setPhase({ kind: "claude", chars }), ctrl.signal);
+      const r = await ask({ apiKey: settings.apiKey, workspaceId: settings.workspaceId }, settings.model, [{ role: "user", content: parametrizePrompt(modelCode) }], (chars) => setPhase({ kind: "claude", chars }), ctrl.signal);
       const code = extractReply(r.text).code;
       const tokens = { in: r.message.usage.input_tokens + (r.message.usage.cache_read_input_tokens ?? 0) + (r.message.usage.cache_creation_input_tokens ?? 0), out: r.message.usage.output_tokens };
       setTurns((t) => [...t, { role: "assistant", text: "Modelo com parâmetros criado.", code, tokens, costUsd: r.costUsd }]);
@@ -138,7 +147,7 @@ export default function AskAI({ go }: { go: Go }) {
       go("scad");
     } catch (e) {
       if (e instanceof RenderCancelled || e instanceof Anthropic.APIUserAbortError) return;
-      setError(aiErrorText(e));
+      setError(aiError(e));
     } finally {
       setPhase(null);
     }
@@ -226,7 +235,7 @@ export default function AskAI({ go }: { go: Go }) {
                 </button>
               </div>
             )}
-            {error && <Alert kind="error">{error}</Alert>}
+            {error && <AiErrorAlert info={error} />}
             <form
               className="stack"
               onSubmit={onSubmit}

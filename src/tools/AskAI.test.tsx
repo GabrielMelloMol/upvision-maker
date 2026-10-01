@@ -69,7 +69,7 @@ describe("Pedir à IA", () => {
     expect(await screen.findByText("10.0 × 20.0 × 5.0 mm")).toBeInTheDocument();
     expect(screen.getByText(/gasto nesta conversa ≈ US\$ 0.012/)).toBeInTheDocument();
     expect(renderMock).toHaveBeenCalledWith("module a() { cube(10); }", "Peça da IA");
-    expect(askMock.mock.calls[0][0]).toBe("sk-ant-teste");
+    expect(askMock.mock.calls[0][0]).toEqual({ apiKey: "sk-ant-teste", workspaceId: null });
     expect(askMock.mock.calls[0][2]).toEqual([{ role: "user", content: "um cubo" }]);
 
     await user.click(screen.getByRole("button", { name: /Salvar 3MF/ }));
@@ -110,7 +110,33 @@ describe("Pedir à IA", () => {
     askMock.mockRejectedValue(new Anthropic.APIConnectionError({ message: "offline" }));
     const { user } = await start();
     await user.click(screen.getByRole("button", { name: /Criar peça/ }));
-    expect(await screen.findByText("Sem conexão com a Anthropic. Verifique a internet.")).toBeInTheDocument();
+    expect(await screen.findByText("Sem conexão com a Anthropic. Verifique a internet e tente de novo.")).toBeInTheDocument();
+  });
+
+  test("chave sem workspace: mensagem humana, detalhes recolhidos com Copiar e o pedido volta ao campo para reenviar (#157)", async () => {
+    const raw = '400 {"type":"error","error":{"type":"invalid_request_error","message":"This API key is not scoped to a workspace"}}';
+    askMock.mockRejectedValueOnce(Anthropic.APIError.generate(400, { type: "error", error: { type: "invalid_request_error", message: "This API key is not scoped to a workspace" } }, raw, new Headers()));
+    const { user } = await start("um cubo azul");
+    await user.click(screen.getByRole("button", { name: /Criar peça/ }));
+    expect(await screen.findByText("Esta chave não está ligada a um workspace, então a Anthropic recusou o pedido.")).toBeInTheDocument();
+    expect(screen.queryByText(/créditos/)).not.toBeInTheDocument();
+    // o JSON cru só dentro de "Ver detalhes", com botão de copiar
+    const pre = screen.getByText(raw);
+    expect(pre.closest("details")).not.toHaveAttribute("open");
+    const writeText = vi.fn(async () => {});
+    Object.defineProperty(navigator, "clipboard", { value: { writeText }, configurable: true });
+    await user.click(screen.getByText("Ver detalhes"));
+    await user.click(screen.getByRole("button", { name: "Copiar" }));
+    expect(writeText).toHaveBeenCalledWith(raw);
+    expect(screen.getByText(/Copiado\./)).toBeInTheDocument();
+    // o pedido voltou para o campo e não ficou na conversa; um clique reenvia
+    expect(screen.getByRole("textbox")).toHaveValue("um cubo azul");
+    expect(screen.queryByText("um cubo azul", { selector: ".turn p" })).not.toBeInTheDocument();
+    askMock.mockResolvedValueOnce(reply("Pronto."));
+    await user.click(screen.getByRole("button", { name: /Criar peça/ }));
+    expect(await screen.findByText("Pronto.")).toBeInTheDocument();
+    expect(askMock.mock.calls[1][2].at(-1)!.content).toBe("um cubo azul");
+    expect(screen.queryByRole("alert")).not.toBeInTheDocument();
   });
 
   test("cancelar enquanto o Claude escreve: sem erro na tela", async () => {

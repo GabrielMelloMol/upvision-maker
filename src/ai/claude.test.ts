@@ -1,6 +1,6 @@
 import Anthropic from "@anthropic-ai/sdk";
 import { beforeEach, describe, expect, test, vi } from "vitest";
-import { aiErrorText, ask, countInputTokens, SYSTEM_PROMPT, testKey } from "./claude";
+import { aiError, aiErrorText, ask, countInputTokens, SYSTEM_PROMPT, testKey } from "./claude";
 
 // Nunca chama a rede: o cliente real é trocado por uma subclasse com messages/models falsos (as classes de erro continuam as reais).
 const sdk = vi.hoisted(() => ({ options: [] as unknown[], stream: vi.fn(), retrieve: vi.fn(), countTokens: vi.fn() }));
@@ -48,7 +48,7 @@ describe("ask", () => {
     );
     const onText = vi.fn();
     const history: Anthropic.MessageParam[] = [{ role: "user", content: "cubo" }];
-    const r = await ask("sk-ant-x", "claude-sonnet-5", history, onText, signal);
+    const r = await ask({ apiKey: "sk-ant-x" }, "claude-sonnet-5", history, onText, signal);
 
     expect(r.text).toBe("parte 1\nparte 2");
     expect(r.costUsd).toBeCloseTo(2, 6); // 1M tokens de entrada × US$ 2
@@ -63,16 +63,16 @@ describe("ask", () => {
 
   test("recusa e resposta cortada viram erros explicados", async () => {
     sdk.stream.mockReturnValueOnce(fakeStream([], { stop_reason: "refusal" }));
-    await expect(ask("k", "claude-sonnet-5", [], () => {}, signal)).rejects.toThrow(/recusou este pedido/);
+    await expect(ask({ apiKey: "k" }, "claude-sonnet-5", [], () => {}, signal)).rejects.toThrow(/recusou este pedido/);
     sdk.stream.mockReturnValueOnce(fakeStream([], { stop_reason: "max_tokens" }));
-    await expect(ask("k", "claude-sonnet-5", [], () => {}, signal)).rejects.toThrow(/grande demais e foi cortada/);
+    await expect(ask({ apiKey: "k" }, "claude-sonnet-5", [], () => {}, signal)).rejects.toThrow(/grande demais e foi cortada/);
   });
 });
 
 test("countInputTokens conta pela API o pedido com o prompt de sistema e as imagens (#89)", async () => {
   sdk.countTokens.mockResolvedValue({ input_tokens: 2345 });
   const history: Anthropic.MessageParam[] = [{ role: "user", content: [{ type: "image", source: { type: "base64", media_type: "image/png", data: "AAAA" } }, { type: "text", text: "igual" }] }];
-  await expect(countInputTokens("sk-ant-x", "claude-sonnet-5", history)).resolves.toBe(2345);
+  await expect(countInputTokens({ apiKey: "sk-ant-x" }, "claude-sonnet-5", history)).resolves.toBe(2345);
   expect(sdk.countTokens).toHaveBeenCalledWith({ model: "claude-sonnet-5", system: SYSTEM_PROMPT, messages: history });
 });
 
@@ -84,24 +84,64 @@ test("o prompt de sistema orienta sobre imagens: só referência, pedir medida s
 
 test("testKey devolve o nome do modelo", async () => {
   sdk.retrieve.mockResolvedValue({ display_name: "Claude Sonnet 5" });
-  await expect(testKey("sk-ant-x", "claude-sonnet-5")).resolves.toBe("Claude Sonnet 5");
+  await expect(testKey({ apiKey: "sk-ant-x" }, "claude-sonnet-5")).resolves.toBe("Claude Sonnet 5");
   expect(sdk.retrieve).toHaveBeenCalledWith("claude-sonnet-5");
 });
 
-describe("aiErrorText", () => {
-  const api = (status: number) => Anthropic.APIError.generate(status, { error: { message: "detalhe" } }, "detalhe", new Headers());
-  test.each([
-    [401, "Chave da API inválida. Confira em Preferências."],
-    [403, "Esta chave não tem permissão para usar o modelo escolhido."],
-    [404, "Modelo não encontrado. Escolha outro em Preferências."],
-    [429, "Muitos pedidos seguidos. Espere um minuto e tente de novo."],
-  ])("HTTP %i", (status, text) => expect(aiErrorText(api(status))).toBe(text));
+test("ID do workspace vai no header anthropic-workspace-id de todas as chamadas; sem ID, não vai (#157)", async () => {
+  sdk.retrieve.mockResolvedValue({ display_name: "x" });
+  await testKey({ apiKey: "sk-ant-x", workspaceId: "wrkspc_01JwQvzr7rXLA5AGx3HKfFUJ" }, "m");
+  sdk.countTokens.mockResolvedValue({ input_tokens: 1 });
+  await countInputTokens({ apiKey: "sk-ant-x", workspaceId: "wrkspc_01JwQvzr7rXLA5AGx3HKfFUJ" }, "m", []);
+  sdk.stream.mockReturnValue(fakeStream([], {}));
+  await ask({ apiKey: "sk-ant-x", workspaceId: "wrkspc_01JwQvzr7rXLA5AGx3HKfFUJ" }, "m", [], () => {}, signal);
+  await testKey({ apiKey: "sk-ant-x", workspaceId: null }, "m");
+  expect(sdk.options.slice(0, 3)).toEqual(Array(3).fill(expect.objectContaining({ defaultHeaders: { "anthropic-workspace-id": "wrkspc_01JwQvzr7rXLA5AGx3HKfFUJ" } })));
+  expect(sdk.options[3]).not.toHaveProperty("defaultHeaders");
+});
 
-  test("400 cita o motivo e o saldo; 500 mostra o status; sem conexão; erros comuns", () => {
-    expect(aiErrorText(api(400))).toMatch(/^A API recusou o pedido: .*detalhe.*console\.anthropic\.com/);
-    expect(aiErrorText(api(500))).toMatch(/^Erro da API \(500\): /);
-    expect(aiErrorText(new Anthropic.APIConnectionError({ message: "x" }))).toBe("Sem conexão com a Anthropic. Verifique a internet.");
-    expect(aiErrorText(new Error("falhou"))).toBe("falhou");
+describe("aiError: respostas simuladas da API viram mensagens humanas, com o texto técnico à parte (#157)", () => {
+  const api = (status: number, type: string, message: string, headers: Record<string, string> = {}) =>
+    Anthropic.APIError.generate(status, { type: "error", error: { type, message } }, `${status} {"type":"error","error":{"type":"${type}","message":"${message}"}}`, new Headers({ "request-id": "req_1", ...headers }));
+
+  test("chave sem workspace (o 400 da namorada do Gabriel): explica e dá os passos", () => {
+    const e = api(400, "invalid_request_error", "This API key is not scoped to a workspace, so this request must include the anthropic-workspace-id header with the ID of the workspace to use.");
+    const r = aiError(e);
+    expect(r.text).toBe("Esta chave não está ligada a um workspace, então a Anthropic recusou o pedido.");
+    expect(r.steps!.join(" ")).toMatch(/Settings → Workspaces.*API keys.*Create key.*wrkspc_/);
+    expect(r.text).not.toMatch(/créditos|saldo/);
+    expect(r.detail).toContain("not scoped to a workspace");
+    expect(r.detail).toContain("request-id: req_1");
+  });
+
+  test.each([
+    [401, "authentication_error", "invalid x-api-key", /^Chave da API inválida/],
+    [403, "permission_error", "no access", /^Esta chave não tem permissão/],
+    [403, "permission_error", "key cannot access this workspace", /^Esta chave não está ligada a um workspace/],
+    [400, "invalid_request_error", "Your credit balance is too low to access the Anthropic API.", /^Acabaram os créditos/],
+    [402, "billing_error", "payment required", /^Acabaram os créditos/],
+    [400, "invalid_request_error", "messages.0.content.1.image.source.base64: image exceeds 5 MB maximum", /^Uma imagem é grande demais ou está num formato/],
+    [400, "invalid_request_error", "Image does not match the provided media type image/png", /^Uma imagem é grande demais ou está num formato/],
+    [413, "request_too_large", "Request exceeds the maximum allowed number of bytes.", /^Uma imagem é grande demais/],
+    [404, "not_found_error", "model: x", /^Modelo não encontrado/],
+    [529, "overloaded_error", "Overloaded", /sobrecarregados\. O app já tentou de novo sozinho/],
+    [500, "api_error", "Internal server error", /sobrecarregados/],
+    [400, "invalid_request_error", "max_tokens: too big", /^A Anthropic recusou o pedido\. Veja os detalhes/],
+  ])("HTTP %i %s", (status, type, message, text) => {
+    const r = aiError(api(status, type, message));
+    expect(r.text).toMatch(text);
+    expect(r.detail).toContain(message);
+  });
+
+  test("429 diz em quantos segundos tentar (retry-after); sem o header, 60 s", () => {
+    expect(aiError(api(429, "rate_limit_error", "slow down", { "retry-after": "17" })).text).toBe("Muitos pedidos seguidos. Tente de novo em 17 s.");
+    expect(aiError(api(429, "rate_limit_error", "slow down")).text).toBe("Muitos pedidos seguidos. Tente de novo em 60 s.");
+  });
+
+  test("sem internet, demora, erros comuns", () => {
+    expect(aiErrorText(new Anthropic.APIConnectionError({ message: "x" }))).toBe("Sem conexão com a Anthropic. Verifique a internet e tente de novo.");
+    expect(aiErrorText(new Anthropic.APIConnectionTimeoutError())).toMatch(/^A Anthropic demorou demais/);
+    expect(aiError(new Error("falhou"))).toEqual({ text: "falhou" });
     expect(aiErrorText("texto")).toBe("texto");
   });
 });

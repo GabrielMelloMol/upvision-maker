@@ -216,3 +216,7 @@ details.advanced[open] > .stack, details.advanced[open] > .grid { margin-top: va
 .text-group { border: 0; padding: 0; margin: 0; min-width: 0; }
 /* Modelos prontos: a galeria de famílias fica em cima; a prévia não passa da dobra ao abrir (polimento) */
 .page:has(.model-families) .viewer { height: min(560px, calc(100vh - 150px)); }
+/* erro da IA (#157): passos numerados e detalhes técnicos recolhidos */
+.ai-error-steps { margin: 6px 0 0; padding-left: 18px; }
+.ai-error-detail { margin-top: 6px; }
+.ai-error-detail pre { white-space: pre-wrap; word-break: break-word; max-height: 180px; overflow: auto; font-size: var(--text-sm); margin: 6px 0 0; }

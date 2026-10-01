@@ -1,8 +1,9 @@
 import { Bot, CircleCheck, KeyRound } from "lucide-react";
 import { useEffect, useState } from "react";
-import { loadAiSettings, looksLikeKey, saveAiSettings } from "../ai/aiSettings";
-import { aiErrorText, testKey } from "../ai/claude";
+import { loadAiSettings, looksLikeKey, looksLikeWorkspace, saveAiSettings } from "../ai/aiSettings";
+import { aiError, type AiErrorInfo, testKey } from "../ai/claude";
 import { AI_MODELS } from "../ai/cost";
+import AiErrorAlert from "../tools/askai/AiErrorAlert";
 import Alert from "../ui/Alert";
 import { errorText, useToast } from "../ui/Toast";
 
@@ -12,7 +13,9 @@ export default function AiSettingsCard() {
   const [saved, setSaved] = useState(false);
   const [model, setModel] = useState<string>(AI_MODELS[0].id);
   const [custom, setCustom] = useState(false);
+  const [workspace, setWorkspace] = useState("");
   const [status, setStatus] = useState<{ kind: "ok" | "error" | "info"; text: string } | null>(null);
+  const [apiError, setApiError] = useState<AiErrorInfo | null>(null);
   const [testing, setTesting] = useState(false);
   const toast = useToast();
 
@@ -22,16 +25,20 @@ export default function AiSettingsCard() {
         setSaved(!!s.apiKey);
         setModel(s.model);
         setCustom(!AI_MODELS.some((m) => m.id === s.model));
+        setWorkspace(s.workspaceId ?? "");
       })
       .catch((e) => toast(`Erro ao ler as preferências de IA: ${errorText(e)}`, "error"));
   }, [toast]);
 
   async function onSave() {
     const k = key.trim();
+    const w = workspace.trim();
+    setApiError(null);
     if (k && !looksLikeKey(k)) return setStatus({ kind: "error", text: "Isso não parece uma chave da Anthropic (começa com sk-ant-)." });
+    if (w && !looksLikeWorkspace(w)) return setStatus({ kind: "error", text: "O ID do workspace começa com wrkspc_ (copie em console.anthropic.com → Settings → Workspaces)." });
     try {
       const current = (await loadAiSettings()).apiKey;
-      await saveAiSettings(k || current, model.trim());
+      await saveAiSettings(k || current, model.trim(), w || null);
       if (k) setSaved(true);
       setKey("");
       setStatus({ kind: "ok", text: "Preferências de IA salvas neste computador." });
@@ -41,22 +48,26 @@ export default function AiSettingsCard() {
   }
 
   async function onTest() {
+    const w = workspace.trim();
+    setApiError(null);
+    if (w && !looksLikeWorkspace(w)) return setStatus({ kind: "error", text: "O ID do workspace começa com wrkspc_ (copie em console.anthropic.com → Settings → Workspaces)." });
     setTesting(true);
     setStatus({ kind: "info", text: "Testando…" });
     try {
       const k = key.trim() || (await loadAiSettings()).apiKey;
       if (!k) throw new Error("Cole a chave primeiro.");
-      const name = await testKey(k, model.trim());
+      const name = await testKey({ apiKey: k, workspaceId: w || null }, model.trim());
       setStatus({ kind: "ok", text: `Chave funcionando com ${name}. O teste não gera custo.` });
     } catch (e) {
-      setStatus({ kind: "error", text: aiErrorText(e) });
+      setStatus(null);
+      setApiError(aiError(e));
     } finally {
       setTesting(false);
     }
   }
 
   async function onRemove() {
-    await saveAiSettings(null, model);
+    await saveAiSettings(null, model, workspace.trim() || null);
     setSaved(false);
     setStatus({ kind: "info", text: "Chave removida deste computador." });
   }
@@ -80,7 +91,12 @@ export default function AiSettingsCard() {
       <label>
         Chave da API {saved && <span className="badge ok"><CircleCheck size={11} /> salva</span>}
         <input type="password" autoComplete="off" spellCheck={false} placeholder={saved ? "•••••••• (cole outra para trocar)" : "sk-ant-…"} value={key} onChange={(e) => setKey(e.target.value)} />
-        <span className="hint">Crie em console.anthropic.com → API Keys.</span>
+        <span className="hint">Crie dentro de um workspace: console.anthropic.com → Settings → Workspaces → escolha o workspace → API keys → Create key.</span>
+      </label>
+      <label>
+        ID do workspace (opcional)
+        <input spellCheck={false} autoComplete="off" placeholder="wrkspc_…" value={workspace} onChange={(e) => setWorkspace(e.target.value)} />
+        <span className="hint">Só para chave que não é de um workspace só. Fica em console.anthropic.com → Settings → Workspaces.</span>
       </label>
       <label>
         Modelo
@@ -108,6 +124,7 @@ export default function AiSettingsCard() {
         </label>
       )}
       {status && <Alert kind={status.kind}>{status.text}</Alert>}
+      {apiError && <AiErrorAlert info={apiError} />}
       <div className="row">
         <button className="primary" type="submit">
           <KeyRound aria-hidden /> Salvar

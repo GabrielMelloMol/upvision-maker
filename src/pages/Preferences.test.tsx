@@ -1,4 +1,5 @@
 // @vitest-environment happy-dom
+import Anthropic from "@anthropic-ai/sdk";
 import { screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, test, vi } from "vitest";
@@ -262,8 +263,35 @@ describe("AiSettingsCard", () => {
     await user.type(screen.getByLabelText(/Chave da API/), KEY);
     await user.click(screen.getByRole("button", { name: "Testar chave" }));
     expect(await screen.findByText("Chave funcionando com Claude Sonnet 5. O teste não gera custo.")).toBeInTheDocument();
-    expect(testKey).toHaveBeenCalledWith(KEY, "claude-sonnet-5");
+    expect(testKey).toHaveBeenCalledWith({ apiKey: KEY, workspaceId: null }, "claude-sonnet-5");
     expect(screen.getByRole("button", { name: "Testar chave" })).toBeEnabled();
+  });
+
+  test("workspace: formato errado é recusado; o certo é salvo e vai no teste; chave sem workspace mostra os passos (#157)", async () => {
+    const user = userEvent.setup();
+    renderWithApp(<AiSettingsCard />);
+    await user.type(screen.getByLabelText(/Chave da API/), KEY);
+    await user.type(screen.getByLabelText(/ID do workspace/), "default");
+    await user.click(screen.getByRole("button", { name: "Salvar" }));
+    expect(await screen.findByText(/O ID do workspace começa com wrkspc_/)).toBeInTheDocument();
+    expect(await secret("ai_workspace_id")).toBeUndefined();
+
+    await user.clear(screen.getByLabelText(/ID do workspace/));
+    testKey.mockRejectedValueOnce(
+      Anthropic.APIError.generate(400, { type: "error", error: { type: "invalid_request_error", message: "This API key is not scoped to a workspace" } }, "400 not scoped", new Headers()),
+    );
+    await user.click(screen.getByRole("button", { name: "Testar chave" }));
+    expect(await screen.findByText("Esta chave não está ligada a um workspace, então a Anthropic recusou o pedido.")).toBeInTheDocument();
+    expect(screen.getByText(/Settings → Workspaces e escolha o workspace/)).toBeInTheDocument();
+    expect(screen.getByText("Ver detalhes")).toBeInTheDocument();
+
+    await user.type(screen.getByLabelText(/ID do workspace/), "wrkspc_01JwQvzr7rXLA5AGx3HKfFUJ");
+    testKey.mockResolvedValueOnce("Claude Sonnet 5");
+    await user.click(screen.getByRole("button", { name: "Testar chave" }));
+    expect(await screen.findByText(/Chave funcionando/)).toBeInTheDocument();
+    expect(testKey).toHaveBeenLastCalledWith({ apiKey: KEY, workspaceId: "wrkspc_01JwQvzr7rXLA5AGx3HKfFUJ" }, "claude-sonnet-5");
+    await user.click(screen.getByRole("button", { name: "Salvar" }));
+    await waitFor(async () => expect(await secret("ai_workspace_id")).toBe("wrkspc_01JwQvzr7rXLA5AGx3HKfFUJ"));
   });
 
   test("escolher 'Outro' mostra o campo de ID; voltar para um da lista esconde", async () => {
