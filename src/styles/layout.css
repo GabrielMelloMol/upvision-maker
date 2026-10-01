@@ -82,7 +82,14 @@ main { position: relative; overflow: auto; min-width: 0; scroll-padding-top: 64p
 .app[data-sidebar="rail"] > main { grid-column: 2; } /* a barra saiu da grade (absoluta): o conteúdo fica na coluna dele */
 /* recolhida: a barra sai da grade e fica por cima (o conteúdo nunca se mexe quando ela abre) */
 .app[data-sidebar="rail"] .sidebar { position: absolute; inset: 0 auto 0 0; z-index: 40; width: var(--rail-w); }
-.app[data-sidebar="rail"] .sidebar[data-peek] { width: var(--side-w); box-shadow: var(--shadow-3); background: color-mix(in srgb, var(--bg) 94%, transparent); }
+/* painel por cima do conteúdo: material quase sólido + desfoque forte (o vibrancy nativo só desfoca o que está atrás da
+   janela, não a tela do app) e sombra lateral — os itens não brigam com o texto de baixo (AA) */
+.app[data-sidebar="rail"] .sidebar[data-peek] {
+  width: var(--side-w); border-right-color: var(--border);
+  background: color-mix(in srgb, var(--bg) 97%, transparent);
+  -webkit-backdrop-filter: blur(28px) saturate(1.6); backdrop-filter: blur(28px) saturate(1.6);
+  box-shadow: 10px 0 30px -8px rgb(0 0 0 / 0.22), 1px 0 0 var(--separator);
+}
 .app[data-sidebar="rail"] .sidebar:not([data-peek]) :is(.nav .label, .brand-name, .subnav, .version, .theme-toggle) {
   opacity: 0; transition: opacity 90ms ease, display 0s allow-discrete 90ms; transition-behavior: allow-discrete;
 }
@@ -95,7 +102,7 @@ main { position: relative; overflow: auto; min-width: 0; scroll-padding-top: 64p
 .app[data-sidebar="rail"] .sidebar:not([data-peek]) .sidebar-toggle { margin: 0 0 10px calc((var(--rail-w) - 28px) / 2); }
 
 /* Com material nativo o vidro vem do sistema: sem blur de CSS (evita fundo preto em alguns WebViews). */
-:root[data-vibrancy] .sidebar { -webkit-backdrop-filter: none; backdrop-filter: none; }
+:root[data-vibrancy] .sidebar:not([data-peek]) { -webkit-backdrop-filter: none; backdrop-filter: none; }
 /* macOS: barra de título sobreposta — espaço para os semáforos e área de arrastar. */
 .drag { height: 0; }
 :root[data-titlebar="overlay"] .sidebar .drag { height: 30px; flex: none; }
