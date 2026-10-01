@@ -346,3 +346,28 @@ h3.subhead svg { width: 16px; height: 16px; color: var(--muted); }
 .start-here li svg { width: 18px; height: 18px; color: var(--brand-orange); }
 .start-here li strong { font-size: var(--text-md); }
 .start-here li span:last-child { grid-column: 2 / span 2; color: var(--muted); font-size: var(--text-sm); }
+
+/* Tour guiado (#158): escurece tudo menos o alvo (recorte arredondado que anda suave) e um balão com seta */
+.tour-block { position: fixed; inset: 0; z-index: 1500; }
+.tour-spot {
+  position: fixed; z-index: 1501; pointer-events: none; border-radius: 12px;
+  box-shadow: 0 0 0 100vmax rgb(0 0 0 / 0.45), 0 0 0 2px rgb(255 255 255 / 0.5);
+  transition: left var(--dur-slow) var(--ease-out), top var(--dur-slow) var(--ease-out), width var(--dur-slow) var(--ease-out), height var(--dur-slow) var(--ease-out);
+  animation: fade var(--dur) ease both;
+}
+.tour-pop {
+  position: fixed; z-index: 1502; display: grid; gap: var(--space-3); padding: var(--space-4) var(--space-4) var(--space-3);
+  border-radius: var(--r-lg); background: var(--surface); color: var(--text); box-shadow: var(--shadow-3), 0 0 0 0.5px var(--border);
+  animation: fade-up var(--dur) var(--ease-out) both;
+}
+.tour-pop::before { /* a seta aponta para o alvo */
+  content: ""; position: absolute; left: calc(var(--arrow) - 7px); width: 14px; height: 14px; background: inherit; transform: rotate(45deg);
+  box-shadow: -0.5px -0.5px 0 var(--border);
+}
+.tour-pop[data-side="below"]::before { top: -7px; }
+.tour-pop[data-side="above"]::before { bottom: -7px; box-shadow: 0.5px 0.5px 0 var(--border); }
+.tour-pop[data-side="right"]::before { left: -7px; top: calc(var(--arrow) - 7px); box-shadow: -0.5px 0.5px 0 var(--border); }
+.tour-pop p { margin: 0; padding-right: 28px; font-size: var(--text-md, 15px); line-height: 1.4; }
+.tour-close { position: absolute; top: 8px; right: 8px; color: var(--muted); }
+.tour-actions { display: flex; align-items: center; gap: var(--space-2); }
+.tour-actions .muted { margin-right: auto; font-size: var(--text-sm); font-variant-numeric: tabular-nums; }

@@ -29,6 +29,7 @@ import { toggleTheme } from "./ui/theme";
 import { CircleHelp, Search } from "lucide-react";
 import { articleFor } from "./help/articles";
 import HelpSheet from "./help/HelpSheet";
+import TourHost from "./ui/Tour";
 import { openHelp } from "./help/helpStore";
 
 /** Rolagem a partir da qual o large title some e a toolbar mostra o título pequeno. */
@@ -191,6 +192,7 @@ export default function App() {
         />
       )}
       <HelpSheet />
+      <TourHost pageId={page.id} />
       {searching && <CommandPalette pages={PAGES} onPick={pick} onClose={() => setSearching(false)} />}
       {suggesting && <SuggestDialog onClose={() => setSuggesting(false)} />}
       {afterUpdate.length > 0 && <WhatsNewModal entries={afterUpdate} onClose={closeAfterUpdate} />}

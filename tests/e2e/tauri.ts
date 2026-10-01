@@ -41,6 +41,12 @@ export type TauriMock = {
 };
 
 const INIT = () => {
+  // tour guiado (#158) desligado nos testes; o teste do tour liga com "[]"
+  try {
+    if (localStorage.getItem("upvision:tours") === null) localStorage.setItem("upvision:tours", '["*"]');
+  } catch {
+    // about:blank: sem localStorage
+  }
   const b64 = (u: Uint8Array) => {
     let s = "";
     for (let i = 0; i < u.length; i += 0x8000) s += String.fromCharCode(...u.subarray(i, i + 0x8000));

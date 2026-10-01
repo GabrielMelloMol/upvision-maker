@@ -1,9 +1,10 @@
-import { BookOpen, CircleHelp, Lightbulb, Sparkles } from "lucide-react";
+import { BookOpen, CircleHelp, Lightbulb, MousePointerClick, Sparkles } from "lucide-react";
 import Sheet from "../ui/Sheet";
 import { articleFor, type HelpArticle } from "./articles";
 import { GLOSSARY } from "./glossary";
 import { closeHelp, openHelp, requestExample, useHasExample, useOpenHelp } from "./helpStore";
 import HelpImages from "./HelpImages";
+import { startTour, tourFor } from "./tours";
 
 
 /** Ajuda aberta (botão "?", tecla ?, busca ⌘K): artigo da tela ou o glossário. */
@@ -27,6 +28,17 @@ function Article({ a }: { a: HelpArticle }) {
           <button type="button" className="ghost" onClick={() => openGlossary()}>
             <BookOpen aria-hidden size={16} /> Termos técnicos
           </button>
+          {tourFor(a.id) && (
+            <button
+              type="button"
+              onClick={() => {
+                closeHelp();
+                startTour(a.id);
+              }}
+            >
+              <MousePointerClick aria-hidden size={16} /> Rever o tour
+            </button>
+          )}
           {canExample && (
             <button
               type="button"

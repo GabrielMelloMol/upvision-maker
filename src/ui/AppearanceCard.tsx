@@ -1,6 +1,8 @@
 import { useState } from "react";
+import { resetTours, setToursEnabled, toursEnabled } from "../help/tours";
 import { modKey } from "./shortcuts";
 import Segmented from "./Segmented";
+import Toggle from "./Toggle";
 import { saveSplashMode, SPLASH_MODES, storedSplashMode, type SplashMode } from "./splashMode";
 import { applyTheme, THEMES, useTheme } from "./theme";
 import { applyZoom, storedZoom, ZOOMS, type Zoom } from "./zoom";
@@ -10,6 +12,8 @@ export default function AppearanceCard() {
   const [zoom, setZoom] = useState<Zoom>(storedZoom);
   const theme = useTheme();
   const [splash, setSplash] = useState<SplashMode>(storedSplashMode);
+  const [tips, setTips] = useState(toursEnabled);
+  const [tipsReset, setTipsReset] = useState(false);
   return (
     <>
     <section className="card stack">
@@ -47,6 +51,35 @@ export default function AppearanceCard() {
         }}
       />
       <span className="hint">Completa: uns 3 segundos, toda vez que o app abre. Um clique ou qualquer tecla pulam. Vale a partir da próxima abertura.</span>
+    </section>
+    <section className="card stack">
+      <h3>Dicas</h3>
+      <Toggle
+        label="Tour guiado na primeira visita de cada tela"
+        checked={tips}
+        onChange={(on) => {
+          setTips(on);
+          setToursEnabled(on);
+        }}
+      />
+      <div className="row">
+        <button
+          type="button"
+          onClick={() => {
+            resetTours();
+            setTips(true);
+            setTipsReset(true);
+          }}
+        >
+          Reiniciar dicas
+        </button>
+        {tipsReset && (
+          <span className="hint" role="status">
+            Pronto: o tour aparece de novo na próxima visita a cada tela.
+          </span>
+        )}
+      </div>
+      <span className="hint">Para rever o tour de uma tela, use o ? no canto de cima.</span>
     </section>
     </>
   );
