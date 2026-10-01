@@ -312,18 +312,18 @@ export default function CrudPage({ pageId, title, singular, lead, repo, fields, 
         )}
       </div>
       {formOpen && (
-        <form ref={formRef} className="card" onSubmit={submit} noValidate>
-          <div className="row" style={{ justifyContent: "space-between", alignItems: "baseline" }}>
-            <h2 className="card-title">{editing === null ? `Adicionar ${singular.toLowerCase()}` : `Editar ${singular.toLowerCase()}`}</h2>
+        <form ref={formRef} className="group" onSubmit={submit} noValidate>
+          <div className="group-head">
+            <h2 className="group-title">{editing === null ? `Adicionar ${singular.toLowerCase()}` : `Editar ${singular.toLowerCase()}`}</h2>
             {catalog && (
               <button type="button" className="link" onClick={() => setCatalogOpen(true)}>
                 Escolher do catálogo
               </button>
             )}
           </div>
-          <div className="grid">{fields.map(input)}</div>
+          <div className="rows">{fields.map(input)}</div>
           {errors._ && <p className="error">{errors._}</p>}
-          <div className="row" style={{ marginTop: 16 }}>
+          <div className="row">
             <button className="primary" type="submit">
               {editing === null ? (
                 <>

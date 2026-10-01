@@ -1,4 +1,4 @@
-import { Plus, Store } from "lucide-react";
+import { Plus } from "lucide-react";
 import { Fragment } from "react";
 import { CHANNEL_PRESETS, staleChannelText } from "../../domain/channels";
 import { parseDecimal } from "../../domain/format";
@@ -50,20 +50,19 @@ export default function ChannelsCard({ channels, setChannels, error }: Props) {
   const presets = CHANNEL_PRESETS.filter((p) => !channels.some((c) => c.name.trim().toLowerCase() === p.name.toLowerCase()));
 
   return (
+    <section className="group">
+    <h2 className="group-title">Canais de venda (taxas)</h2>
+    <p className="hint group-note">As taxas dos marketplaces mudam com frequência: confira os valores de cada canal. Custo extra = só naquele canal (embalagem reforçada, etiqueta, brinde).</p>
     <div className="card">
-      <h2 className="card-title">
-        <Store aria-hidden /> Canais de venda (taxas)
-      </h2>
-      <p className="hint" style={{ marginTop: -8, marginBottom: 16 }}>As taxas dos marketplaces mudam com frequência. Confira os valores atuais de cada canal.</p>
       {channels.map((c, i) => {
         const stale = staleChannelText(fromChannelForm(c) as Channel, today);
         return (
           <Fragment key={i}>
-            <div className="row line">
+            <div className="row line channel-line">
               <label>Canal<input value={c.name} onChange={(e) => setChannel(i, "name", e.target.value)} /></label>
               <label>Comissão (%)<input inputMode="decimal" value={c.feePct} onChange={(e) => setChannel(i, "feePct", e.target.value)} /></label>
               <MoneyField label="Taxa fixa por venda" value={c.feeFixed} onChange={(v) => setChannel(i, "feeFixed", v)} />
-              <MoneyField label="Custo extra por venda" value={c.extraPerSale} placeholder="0,00" hint="Só neste canal: embalagem reforçada, etiqueta, brinde." onChange={(v) => setChannel(i, "extraPerSale", v)} />
+              <MoneyField label="Custo extra por venda" value={c.extraPerSale} placeholder="0,00" onChange={(v) => setChannel(i, "extraPerSale", v)} />
               <button type="button" className="link danger" onClick={() => setChannels(channels.filter((_, j) => j !== i))}>Remover</button>
             </div>
             <p className="hint">
@@ -111,5 +110,6 @@ export default function ChannelsCard({ channels, setChannels, error }: Props) {
       {presets.length > 0 && <p className="hint">Os canais prontos são um ponto de partida: confira as taxas no site de cada um.</p>}
       {error && <p className="error">Confira os canais: nome obrigatório e comissão entre 0 e 100%.</p>}
     </div>
+    </section>
   );
 }

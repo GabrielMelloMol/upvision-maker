@@ -1,4 +1,4 @@
-import { Building2, ImagePlus, QrCode } from "lucide-react";
+import { Building2, ImagePlus } from "lucide-react";
 import { useState } from "react";
 import { getDb } from "../db";
 import { loadCompany, saveCompany } from "../db/customersRepo";
@@ -73,9 +73,13 @@ function CompanyForm({ initial }: { initial: Company }) {
         </Button>
       </div>
 
-      <section className="card stack">
-        <h2 className="card-title">Empresa</h2>
-        <div className="row" style={{ alignItems: "center" }}>
+      <section className="group">
+        <h2 className="group-title">Empresa</h2>
+        <div className="rows">
+        <div className="row-control">
+          <span className="row-label">Logo</span>
+          <span className="hint">Sai no orçamento e no catálogo. PNG, JPG ou WebP.</span>
+          <div className="row" style={{ alignItems: "center" }}>
           {v.logo ? <img className="logo-preview" src={v.logo} alt="Logo da empresa" /> : <span className="muted small">Sem logo</span>}
           <label className="button-like">
             <span className="btn-inline">
@@ -88,6 +92,7 @@ function CompanyForm({ initial }: { initial: Company }) {
               Remover logo
             </Button>
           )}
+          </div>
         </div>
         <div className="grid">
           <label>Nome / razão social<input value={v.name} maxLength={120} onChange={set("name")} /></label>
@@ -106,18 +111,20 @@ function CompanyForm({ initial }: { initial: Company }) {
           <label>Instagram<input value={v.instagram} maxLength={60} onChange={set("instagram")} /></label>
           <label>Site<input value={v.website} maxLength={120} onChange={set("website")} /></label>
         </div>
-        <fieldset className="plain">
-          <legend>Endereço</legend>
-          <AddressFields value={v} onChange={setV} />
-        </fieldset>
+        </div>
       </section>
 
-      <section className="card stack">
-        <h2 className="card-title">
-          <QrCode aria-hidden /> Pix para receber
-        </h2>
-        <div className="row" style={{ alignItems: "flex-start" }}>
-          <div className="grid" style={{ flex: 1 }}>
+      <section className="group" aria-labelledby="company-address">
+        <h2 className="group-title" id="company-address">Endereço</h2>
+        <div className="rows">
+          <AddressFields value={v} onChange={setV} />
+        </div>
+      </section>
+
+      <section className="group">
+        <h2 className="group-title">Pix para receber</h2>
+        <div className="rows">
+          <div className="grid">
             <label>
               Chave Pix
               <input value={v.pixKey} maxLength={120} aria-invalid={!!(pixError || errors.pixKey)} onChange={set("pixKey")} placeholder="CPF, CNPJ, e-mail, telefone ou aleatória" />
@@ -132,27 +139,35 @@ function CompanyForm({ initial }: { initial: Company }) {
               <input value={v.pixCity} maxLength={40} onChange={set("pixCity")} placeholder={v.city} />
             </label>
           </div>
-          {qr && <div className="qr-thumb" role="img" aria-label="Prévia do QR Pix" dangerouslySetInnerHTML={{ __html: qr }} />}
+          {qr && (
+            <div className="row-control">
+              <span className="row-label">Prévia do QR</span>
+              <span className="hint">Teste lendo com o app do banco.</span>
+              <div className="qr-thumb" role="img" aria-label="Prévia do QR Pix" dangerouslySetInnerHTML={{ __html: qr }} />
+            </div>
+          )}
         </div>
-        <p className="hint">O orçamento gera um QR Pix com o valor exato. Teste lendo esta prévia com o app do banco.</p>
+        <p className="hint group-note">O orçamento gera um QR Pix com o valor exato.</p>
       </section>
 
-      <section className="card stack">
-        <h2 className="card-title">Orçamentos</h2>
-        <label style={{ maxWidth: 220 }}>
+      <section className="group">
+        <h2 className="group-title">Orçamentos</h2>
+        <div className="rows">
+        <label>
           Prefixo do número
           <input value={v.quotePrefix} maxLength={10} aria-invalid={!!errors.quotePrefix} onChange={set("quotePrefix")} />
           {errors.quotePrefix ? <span className="error">{errors.quotePrefix}</span> : <span className="hint">Fica assim: {v.quotePrefix || "ORC"}-{new Date().getFullYear()}-001</span>}
         </label>
-        <label style={{ maxWidth: 220 }}>
+        <label>
           Validade padrão (dias)
           <input inputMode="numeric" value={validity} aria-invalid={!!errors.quoteValidityDays} onChange={(e) => setValidity(e.target.value)} />
           {errors.quoteValidityDays && <span className="error">Use de 1 a 365 dias.</span>}
         </label>
-        <label>
+        <label className="wide">
           Condições comerciais padrão
           <textarea value={v.quoteTerms} maxLength={2000} rows={3} onChange={set("quoteTerms")} />
         </label>
+        </div>
       </section>
       {errors._ && <Alert kind="error">{errors._}</Alert>}
     </form>

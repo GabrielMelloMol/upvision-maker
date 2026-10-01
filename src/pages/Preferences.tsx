@@ -1,4 +1,3 @@
-import { Coins } from "lucide-react";
 import { useState } from "react";
 import { getDb } from "../db";
 import { loadSettings, materials, saveSettings } from "../db/repo";
@@ -56,7 +55,6 @@ export default function Preferences() {
       <h1>Preferências</h1>
       <p className="lead">Custos da produção e taxas dos canais.</p>
       {data ? <PreferencesForm initial={data.settings} materials={data.materials} /> : <span className="skeleton" style={{ height: 180, borderRadius: 16, marginBottom: 16 }} />}
-      <h2>Aparência</h2>
       <AppearanceCard />
       <h2>Seus dados</h2>
       <BackupSettingsCard />
@@ -125,37 +123,50 @@ function PreferencesForm({ initial, materials }: { initial: Settings; materials:
     const who = f.key === "multResale" ? PRICE_NAMES.resale.help : PRICE_NAMES.consumer.help;
     const meta = f.key === "targetProfitPerHour" ? parseMoney(nums[f.key]) : NaN;
     const hint = mult > 0 ? `${who} ${markupText(mult)}.` : meta > 0 ? `Com a impressora ocupada 8 h por dia, ${money(meta)}/h ≈ ${money(meta * HOURS_MONTH)} por mês.` : f.hint;
-    if (f.key === "kwhPrice")
-      return (
-        <div key={f.key} className="stack" style={{ gap: 4 }}>
-          <MoneyField label={f.label} hint={hint} value={nums[f.key]} error={errors[f.key]} onChange={(v) => setNums({ ...nums, [f.key]: v })} />
-          <button type="button" className="link" style={{ justifySelf: "start" }} onClick={() => setBillOpen(true)}>
-            Calcular pela conta de luz
-          </button>
-          <StateKwhSelect onPick={(v) => setNums((n) => ({ ...n, kwhPrice: v }))} />
-        </div>
-      );
     if (f.money) return <MoneyField key={f.key} label={f.label} hint={hint} value={nums[f.key]} error={errors[f.key]} onChange={(v) => setNums({ ...nums, [f.key]: v })} />;
     return (
       <SmartField key={f.key} label={f.label} hint={hint} inputMode="decimal" parse={parseDecimal} invalidText="Digite um número." value={nums[f.key]} disabled={disabled} error={errors[f.key]} onChange={(v) => setNums({ ...nums, [f.key]: v })} />
     );
   };
 
+  const f = (k: NumKey) => field(ALL_FIELDS.find((x) => x.key === k)!);
   return (
     <>
     {/* fora do <form>: o envio do assistente não pode disparar o "Salvar preferências" */}
     {billOpen && <KwhBillSheet history={kwhHistory} onUse={applyBill} onClose={() => setBillOpen(false)} />}
     <form onSubmit={submit} noValidate>
-      <div className="card">
-        <h2 className="card-title">
-          <Coins aria-hidden /> Custos e preço
-        </h2>
-        <div className="grid">
-          {FIELDS.map((f) => field(f))}
+      <section className="group">
+        <h2 className="group-title">Custos da produção</h2>
+        <div className="rows">
+          {f("kwhPrice")}
+          <div className="row-action">
+            <span className="hint">Tem a conta de luz à mão?</span>
+            <button type="button" className="link" onClick={() => setBillOpen(true)}>
+              Calcular pela conta de luz
+            </button>
+          </div>
+          <StateKwhSelect onPick={(v) => setNums((n) => ({ ...n, kwhPrice: v }))} />
+          {f("laborHourCost")}
+          {f("maintenancePct")}
+          {f("targetProfitPerHour")}
         </div>
-        <h3 style={{ margin: "var(--space-5) 0 var(--space-3)" }}>Falhas, impostos e custos fixos</h3>
-        <div className="grid">
-          {EXTRA_FIELDS.slice(0, 2).map((f) => field(f))}
+      </section>
+
+      <section className="group">
+        <h2 className="group-title">Preço de venda</h2>
+        <div className="rows">
+          {f("multResale")}
+          {f("multConsumer")}
+          {f("marketplaceMarginPct")}
+          {f("minMarginPct")}
+        </div>
+      </section>
+
+      <section className="group">
+        <h2 className="group-title">Falhas, impostos e custos fixos</h2>
+        <div className="rows">
+          {f("failurePct")}
+          {f("taxPct")}
           <Field label="Embalagem padrão" hint="A calculadora já abre com ela nos materiais extras (dá para remover).">
             <select value={packaging} onChange={(e) => setPackaging(e.target.value)}>
               <option value="">Nenhuma</option>
@@ -164,36 +175,36 @@ function PreferencesForm({ initial, materials }: { initial: Settings; materials:
               ))}
             </select>
           </Field>
-        </div>
-        <details style={{ marginTop: "var(--space-3)" }}>
-          <summary>Taxa de falha por material{Object.values(byMaterial).some((v) => v.trim()) ? " (em uso)" : ""}</summary>
-          <p className="hint">TPU, ABS e peças difíceis falham mais que PLA. Vazio = a taxa geral. Na calculadora vale a maior entre os filamentos da mesa.</p>
-          <div className="grid">
-            {MATERIAL_TYPES.map((m) => (
-              <label key={m}>
-                Falha {m} (%)
-                <input inputMode="decimal" value={byMaterial[m] ?? ""} placeholder={nums.failurePct} onChange={(e) => setByMaterial({ ...byMaterial, [m]: e.target.value })} />
-              </label>
-            ))}
-          </div>
-        </details>
-        <div className="stack" style={{ gap: 8, marginTop: 12 }}>
+          <details className="wide">
+            <summary>Taxa de falha por material{Object.values(byMaterial).some((v) => v.trim()) ? " (em uso)" : ""}</summary>
+            <p className="hint">TPU, ABS e peças difíceis falham mais que PLA. Vazio = a taxa geral. Na calculadora vale a maior entre os filamentos da mesa.</p>
+            <div className="grid">
+              {MATERIAL_TYPES.map((m) => (
+                <label key={m}>
+                  Falha {m} (%)
+                  <input inputMode="decimal" value={byMaterial[m] ?? ""} placeholder={nums.failurePct} onChange={(e) => setByMaterial({ ...byMaterial, [m]: e.target.value })} />
+                </label>
+              ))}
+            </div>
+          </details>
           <label className="check">
             <input type="checkbox" checked={flags.includeFixedCosts} onChange={(e) => setFlags({ ...flags, includeFixedCosts: e.target.checked })} /> Incluir custos fixos no preço
           </label>
-          <div className="grid">{field(EXTRA_FIELDS[2])}</div>
+          {f("productiveHoursMonth")}
           <label className="check">
             <input type="checkbox" checked={flags.multiplyLabor} onChange={(e) => setFlags({ ...flags, multiplyLabor: e.target.checked })} /> Multiplicar também a mão de obra (jeito antigo)
           </label>
-          <span className="hint">
-            Desde a v0.6 a mão de obra e os custos fixos são somados depois do multiplicador: com ×5, uma hora de R$ 30 virava R$ 150 no preço.
-          </span>
         </div>
-      </div>
+        <p className="hint group-note">
+          Desde a v0.6 a mão de obra e os custos fixos são somados depois do multiplicador: com ×5, uma hora de R$ 30 virava R$ 150 no preço.
+        </p>
+      </section>
 
       <ChannelsCard channels={channels} setChannels={setChannels} error={errors.channels} />
       {errors._ && <p className="error">{errors._}</p>}
-      <button className="primary" type="submit">Salvar preferências</button>
+      <div className="row group-actions">
+        <button className="primary" type="submit">Salvar preferências</button>
+      </div>
     </form>
     </>
   );

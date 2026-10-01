@@ -14,73 +14,69 @@ export default function AppearanceCard() {
   const [splash, setSplash] = useState<SplashMode>(storedSplashMode);
   const [tips, setTips] = useState(toursEnabled);
   const [tipsReset, setTipsReset] = useState(false);
+  const shortcut = `${modKey()}${modKey() === "⌘" ? "⇧" : "+Shift+"}L`;
   return (
-    <>
-    <section className="card stack">
-      <h3>Tema</h3>
-      <Segmented label="Tema" value={theme} options={THEMES} onChange={(t) => void applyTheme(t, { save: true })} />
-      <span className="hint">
-        Automático segue o sistema. Também dá para trocar pelo sol/lua embaixo da barra lateral ou com {modKey()}
-        {modKey() === "⌘" ? "⇧" : "+Shift+"}L.
-      </span>
-    </section>
-    <section className="card stack">
-      <h3>Tamanho do texto</h3>
-      <Segmented
-        label="Tamanho do texto"
-        value={zoom}
-        options={ZOOMS}
-        onChange={(z) => {
-          setZoom(z);
-          void applyZoom(z, true);
-        }}
-      />
-      <span className="hint">
-        Aumenta tudo, sem quebrar as telas. Também dá para usar {modKey()} + e {modKey()} −.
-      </span>
-    </section>
-    <section className="card stack">
-      <h3>Animação de abertura</h3>
-      <Segmented
-        label="Animação de abertura"
-        value={splash}
-        options={SPLASH_MODES}
-        onChange={(m) => {
-          setSplash(m);
-          saveSplashMode(m);
-        }}
-      />
-      <span className="hint">Completa: uns 3 segundos, toda vez que o app abre. Um clique ou qualquer tecla pulam. Vale a partir da próxima abertura.</span>
-    </section>
-    <section className="card stack">
-      <h3>Dicas</h3>
-      <Toggle
-        label="Tour guiado na primeira visita de cada tela"
-        checked={tips}
-        onChange={(on) => {
-          setTips(on);
-          setToursEnabled(on);
-        }}
-      />
-      <div className="row">
-        <button
-          type="button"
-          onClick={() => {
-            resetTours();
-            setTips(true);
-            setTipsReset(true);
-          }}
-        >
-          Reiniciar dicas
-        </button>
-        {tipsReset && (
-          <span className="hint" role="status">
-            Pronto: o tour aparece de novo na próxima visita a cada tela.
+    <section className="group">
+      <h2 className="group-title">Aparência</h2>
+      <div className="rows">
+        <div className="row-control">
+          <span className="row-label">Tema</span>
+          <span className="hint">Automático segue o sistema. Atalho: sol/lua na barra lateral ou {shortcut}.</span>
+          <Segmented label="Tema" value={theme} options={THEMES} onChange={(t) => void applyTheme(t, { save: true })} />
+        </div>
+        <div className="row-control">
+          <span className="row-label">Tamanho do texto</span>
+          <span className="hint">
+            Também com {modKey()} + e {modKey()} −.
           </span>
-        )}
+          <Segmented
+            label="Tamanho do texto"
+            value={zoom}
+            options={ZOOMS}
+            onChange={(z) => {
+              setZoom(z);
+              void applyZoom(z, true);
+            }}
+          />
+        </div>
+        <div className="row-control">
+          <span className="row-label">Animação de abertura</span>
+          <span className="hint">Uns 3 segundos ao abrir; clique ou tecla pulam.</span>
+          <Segmented
+            label="Animação de abertura"
+            value={splash}
+            options={SPLASH_MODES}
+            onChange={(m) => {
+              setSplash(m);
+              saveSplashMode(m);
+            }}
+          />
+        </div>
+        <Toggle
+          label="Tour guiado na primeira visita de cada tela"
+          checked={tips}
+          onChange={(on) => {
+            setTips(on);
+            setToursEnabled(on);
+          }}
+        />
+        <div className="row-control">
+          <span className="row-label">Dicas já vistas</span>
+          <span className="hint" role="status">
+            {tipsReset ? "Pronto: o tour aparece de novo na próxima visita a cada tela." : "Para rever o tour de uma tela, use o ? no canto de cima."}
+          </span>
+          <button
+            type="button"
+            onClick={() => {
+              resetTours();
+              setTips(true);
+              setTipsReset(true);
+            }}
+          >
+            Reiniciar dicas
+          </button>
+        </div>
       </div>
-      <span className="hint">Para rever o tour de uma tela, use o ? no canto de cima.</span>
     </section>
-    </>
   );
 }

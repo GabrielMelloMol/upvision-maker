@@ -371,3 +371,59 @@ h3.subhead svg { width: 16px; height: 16px; color: var(--muted); }
 .tour-close { position: absolute; top: 8px; right: 8px; color: var(--muted); }
 .tour-actions { display: flex; align-items: center; gap: var(--space-2); }
 .tour-actions .muted { margin-right: auto; font-size: var(--text-sm); font-variant-numeric: tabular-nums; }
+
+/* Ajustes no padrão do macOS (#165): grupo = título fora + caixa com linhas (rótulo e ajuda à esquerda, controle à
+   direita, separador fino). Funciona com Field, SmartField/MoneyField, <label> simples, checkbox/switch e com
+   wrappers .grid dentro da caixa (viram linhas). Caixa estreita: o controle desce para baixo do rótulo. */
+.group { display: grid; gap: var(--space-2); margin: 0 0 var(--space-6); min-width: 0; }
+.group > .group-title { margin: 0 4px; font-size: var(--text-md); font-weight: 600; color: var(--text); }
+.group > h3.group-title { margin-top: var(--space-2); font-size: var(--text-sm); color: var(--muted); }
+.group > .group-note { margin: 0 4px; }
+.group-head { display: flex; align-items: center; gap: var(--space-3); margin: 0 4px; }
+.group-head > .group-title { margin: 0; flex: 1; font-size: var(--text-md); font-weight: 600; }
+.rows {
+  container-type: inline-size; display: grid; min-width: 0;
+  background: var(--surface); border-radius: var(--r-lg); box-shadow: 0 0 0 0.5px var(--border), var(--shadow-1);
+}
+.rows > .grid { display: contents; }
+.rows > :not(.grid), .rows > .grid > * { padding: 10px var(--space-4); min-height: 44px; box-sizing: border-box; border-top: 1px solid var(--separator); }
+.rows > :first-child, .rows > .grid:first-child > :first-child { border-top: 0; }
+.rows :is(label, .field) { margin: 0; }
+/* linha de campo: rótulo à esquerda (texto normal, cor do texto), controle à direita, ajuda embaixo do rótulo */
+.rows > :is(label:not(.check), .field), .rows > .grid > :is(label:not(.check), .field), .rows > .stack > :is(label:not(.check), .field) {
+  display: grid; grid-template-columns: minmax(0, 1fr) minmax(200px, 300px); grid-template-rows: 1fr auto; column-gap: var(--space-5); row-gap: 2px;
+  align-items: center; color: var(--text); font-size: var(--text-md); font-weight: 400;
+}
+/* o controle ocupa as duas linhas (rótulo + ajuda); o rótulo fica centrado com o campo quando não há ajuda */
+.rows :is(label, .field) > :is(input, select, textarea, .affix, [role="group"]) { grid-column: 2; grid-row: 1 / -1; }
+.rows :is(label, .field) > select, .rows .affix > input { width: 100%; }
+.rows :is(label, .field) > :is(.hint, .error, .term-desc) { grid-column: 1; font-size: var(--text-sm); }
+.rows .field > label { grid-column: 1; grid-row: 1; color: inherit; font-size: inherit; font-weight: inherit; }
+/* linha larga (textarea, editores): o controle ocupa a linha toda, embaixo do rótulo */
+.rows > .wide, .rows > .grid > .wide { grid-template-columns: 1fr; }
+.rows .wide > :is(input, select, textarea, .affix) { grid-column: 1; grid-row: auto; }
+/* checkbox e switch: texto à esquerda, controle na ponta direita */
+.rows > label.check, .rows > .grid > label.check { display: grid; grid-template-columns: minmax(0, 1fr) auto; column-gap: var(--space-4); align-items: center; }
+.rows label.check > input { grid-column: 2; grid-row: 1; justify-self: end; }
+/* CEP + botão de buscar: rótulo | campo | botão */
+.rows .cep-field { display: grid; grid-template-columns: minmax(0, 1fr) minmax(200px, 300px) auto; column-gap: var(--space-2); align-items: center; color: var(--text); font-size: var(--text-md); font-weight: 400; }
+.rows .cep-field > label { display: contents; }
+.rows .cep-field > label > input { grid-column: 2; grid-row: 1; }
+.rows .cep-field > label > :is(.hint, .error) { grid-column: 1; }
+.rows .cep-field > button { grid-column: 3; grid-row: 1; }
+/* linha de ação: texto à esquerda, botão à direita */
+.rows > .row-action, .rows > .grid > .row-action { display: flex; align-items: center; justify-content: space-between; gap: var(--space-4); }
+@container (max-width: 520px) {
+  .rows > :is(label:not(.check), .field), .rows > .grid > :is(label:not(.check), .field), .rows .cep-field { grid-template-columns: 1fr; }
+  .rows :is(.field, label, .cep-field) > :is(input, select, textarea, .affix, [role="group"], button) { grid-column: 1; grid-row: auto; }
+}
+/* linha com controle que não é campo (Segmented, botões): rótulo e ajuda à esquerda, controle à direita */
+.rows > .row-control, .rows > .grid > .row-control { display: grid; grid-template-columns: minmax(0, 1fr) auto; column-gap: var(--space-5); row-gap: 2px; align-items: center; }
+.row-control > .row-label { grid-column: 1; color: var(--text); font-size: var(--text-md); }
+.row-control > .hint { grid-column: 1; font-size: var(--text-sm); }
+.row-control > :not(.row-label):not(.hint) { grid-column: 2; grid-row: 1 / span 2; justify-self: end; }
+@container (max-width: 520px) { .rows > .row-control { grid-template-columns: 1fr; } .row-control > :not(.row-label):not(.hint) { grid-column: 1; grid-row: auto; justify-self: start; } }
+.group-actions { margin: 0 0 var(--space-6); }
+.row.line.channel-line { grid-template-columns: 1.4fr 0.8fr 1fr 1fr auto; align-items: end; }
+.rows .state-kwh select { max-width: none; }
+.rows .cep-field > label { color: inherit; font-size: inherit; font-weight: inherit; }
