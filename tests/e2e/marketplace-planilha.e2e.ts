@@ -3,7 +3,8 @@ import { expect, go, openApp, test, toastWith } from "./tauri";
 test("produtos → planilha de upload em massa (#78): selecionar, prévia e salvar .xlsx", async ({ page, tauri }) => {
   await openApp(page);
   tauri.db.exec(`INSERT INTO filaments (material, color, brand, pricePerKg, spoolG, stockG, minG) VALUES ('PLA', 'Azul', 'X', 100, 1000, 1000, 0);
-    INSERT INTO products (name, kind, composition, piecesPerPlate, sku, stock, description, ncm) VALUES ('Chaveiro de coração', 'simple', '{"filaments":[{"filamentId":1,"grams":20}],"materials":[],"items":[]}', 1, 'CH-1', 5, 'Chaveiro impresso em 3D', '39264000');`);
+    INSERT INTO products (name, kind, composition, piecesPerPlate, sku, stock, description, ncm) VALUES ('Chaveiro de coração', 'simple', '{"filaments":[{"filamentId":1,"grams":20}],"materials":[],"items":[]}', 1, 'CH-1', 5, 'Chaveiro impresso em 3D', '39264000');
+    INSERT INTO photos (owner, position, dataUrl, createdAt) VALUES ('product:1', 0, 'data:image/jpeg;base64,/9j/', '2026-10-01');`);
   await go(page, "Produtos");
   await page.getByRole("checkbox", { name: "Selecionar Chaveiro de coração" }).check();
   await page.getByRole("button", { name: "Exportar para marketplace" }).click();
@@ -16,4 +17,6 @@ test("produtos → planilha de upload em massa (#78): selecionar, prévia e salv
   await sheet.getByRole("button", { name: "Salvar planilha" }).click();
   await expect(toastWith(page, "Planilha salva em")).toBeVisible();
   expect([...tauri.files.keys()].some((p) => /ml-upload-em-massa-.*\.xlsx$/.test(p))).toBe(true);
+  // a planilha só aceita link: a foto vai ao lado, com o SKU no nome (#162)
+  expect([...tauri.files.keys()].some((p) => p.endsWith("ch-1-1.jpg"))).toBe(true);
 });

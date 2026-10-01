@@ -13,6 +13,7 @@ import Segmented from "../../ui/Segmented";
 import Sheet from "../../ui/Sheet";
 import { errorText, useToast } from "../../ui/Toast";
 import type { ProductsData } from "./data";
+import { savePhotosBeside } from "./listingPhotos";
 
 const MARKETS = (Object.keys(MARKETPLACES) as Marketplace[]).map((m) => [m, MARKETPLACES[m].label] as const);
 const KEY = "upvision:exportar-marketplace";
@@ -61,7 +62,8 @@ export default function ExportSheet({ products, data, onClose }: Props) {
       } catch {
         // só não lembra da próxima vez
       }
-      toast(`Planilha salva em ${path}. ${note}`);
+      const saved = await savePhotosBeside(path, products);
+      toast(`Planilha salva em ${path}. ${note}${saved ? ` ${saved} ${saved === 1 ? "foto salva" : "fotos salvas"} na mesma pasta.` : ""}`);
       onClose();
     } catch (e) {
       toast(errorText(e), "error");
@@ -142,7 +144,7 @@ export default function ExportSheet({ products, data, onClose }: Props) {
         {rows.length !== products.length && ` em ${rows.length} linhas (uma por variação)`}
         {gaps.size > 0 ? ` · faltando: ${[...gaps].map(([k, n]) => `${k} (${n})`).join(", ")}` : " · tudo preenchido"}
       </p>
-      <Alert kind="info">A planilha só aceita fotos por link: envie as fotos pelo Seller Center depois de subir a planilha.</Alert>
+      <Alert kind="info">A planilha só aceita fotos por link: as fotos dos produtos são salvas na mesma pasta, com o SKU no nome do arquivo, para enviar pelo Seller Center depois de subir a planilha.</Alert>
     </Sheet>
   );
 }
