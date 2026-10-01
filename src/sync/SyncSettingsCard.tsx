@@ -1,5 +1,4 @@
 import { ask } from "@tauri-apps/plugin-dialog";
-import { MonitorSmartphone } from "lucide-react";
 import { useEffect, useState } from "react";
 import { getDb } from "../db";
 import { exportBackup } from "../db/backup";
@@ -64,26 +63,31 @@ export default function SyncSettingsCard({ dir, onChooseDir }: { dir: string; on
 
   const onDefault = dir === "";
   return (
-    <section className="card stack" aria-labelledby="sync-title">
-      <h2 className="card-title" id="sync-title">
-        <MonitorSmartphone aria-hidden /> Dois computadores
+    <section className="group" aria-labelledby="sync-title">
+      <h2 className="group-title" id="sync-title">
+        Dois computadores
       </h2>
-      <div className="field">
-        <Toggle label="Sincronizar com outro computador por esta pasta" checked={!!config?.enabled} disabled={onDefault || busy || !config} onChange={toggle} />
-        {onDefault ? (
-          <span className="hint">
-            Escolha uma pasta do OneDrive, Google Drive ou Dropbox no backup automático e instale o app no outro computador apontando para a mesma pasta.{" "}
-            <button type="button" className="link" onClick={onChooseDir}>
+      <div className="rows">
+        <Toggle
+          label="Sincronizar com outro computador por esta pasta"
+          checked={!!config?.enabled}
+          disabled={onDefault || busy || !config}
+          onChange={toggle}
+          hint={
+            onDefault
+              ? "Escolha uma pasta do OneDrive, Google Drive ou Dropbox no backup automático e instale o app no outro computador apontando para a mesma pasta."
+              : config?.enabled
+                ? `${config.lastAt ? `Última sincronização: ${whenLabel(config.lastAt)} · deste computador.` : "Ainda não sincronizou."} Ao abrir, o app traz o que o outro computador salvou; enquanto usa e ao fechar, envia o daqui. Use um computador de cada vez.`
+                : "Ligue também no outro computador, com a mesma pasta."
+          }
+        />
+        {onDefault && (
+          <div className="row-action">
+            <span className="hint">A pasta padrão fica só neste computador.</span>
+            <button type="button" onClick={onChooseDir}>
               Escolher pasta…
             </button>
-          </span>
-        ) : config?.enabled ? (
-          <span className="hint">
-            {config.lastAt ? `Última sincronização: ${whenLabel(config.lastAt)} · deste computador.` : "Ainda não sincronizou."} Ao abrir, o app traz o que o outro computador
-            salvou; enquanto usa e ao fechar, envia o daqui. Use um computador de cada vez.
-          </span>
-        ) : (
-          <span className="hint">Ligue também no outro computador, com a mesma pasta.</span>
+          </div>
         )}
       </div>
     </section>

@@ -278,6 +278,8 @@ h3.subhead svg { width: 16px; height: 16px; color: var(--muted); }
 .backup-list { list-style: none; margin: 0; padding: 0; display: grid; }
 .backup-list li { display: grid; grid-template-columns: 1fr auto auto; align-items: center; gap: var(--space-3); padding: 6px 0; border-bottom: 1px solid var(--separator); font-variant-numeric: tabular-nums; }
 .backup-list li:last-child { border-bottom: 0; }
+.rows.backup-list li { border-bottom: 0; } /* nas linhas de Ajustes o separador é o de cima */
+.row-control > code.path { justify-self: start; max-width: 100%; }
 .banner.warn { background: var(--warn-soft); }
 .banner button.ghost { color: var(--text); }
 

@@ -3,6 +3,9 @@
 Cada versão aparece para a usuária na tela "O que há de novo" depois da atualização.
 Formato: `## <versão> — <data>` e itens `- …` em linguagem simples.
 
+## Próxima versão (vira "## 0.10.1 — data" ou "## 0.11.0 — data" ao publicar; até lá o app não mostra)
+Preferências: Backup automático, Dois computadores e Celular na rede de casa no padrão de Ajustes (#165).
+
 ## 0.10.0 — 2026-10-01
 - **Abertura nova**: o símbolo se imprime camada por camada em cerca de 3,6 s e o app se abre em **íris** a partir da peça, como a lente de uma câmera. Aparece toda vez que você abre; um clique pula. Em Ajustes → Aparência dá para escolher Completa, Curta ou Desligada.
 - **Tour guiado**: na primeira visita ao Início, Criar, Chaveiros, Calculadora, Pedidos e Filamentos, a tela escurece e destaca onde clicar, passo a passo. Dá para rever pelo **?** ou reiniciar as dicas em Ajustes.

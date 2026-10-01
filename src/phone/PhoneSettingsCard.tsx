@@ -1,6 +1,5 @@
 import { invoke } from "@tauri-apps/api/core";
 import { listen } from "@tauri-apps/api/event";
-import { Smartphone } from "lucide-react";
 import { useEffect, useState } from "react";
 import { qrSvg } from "../domain/qr";
 import Alert from "../ui/Alert";
@@ -44,14 +43,18 @@ export default function PhoneSettingsCard() {
   }
 
   return (
-    <section className="card stack" aria-labelledby="phone-title">
-      <h2 className="card-title" id="phone-title">
-        <Smartphone aria-hidden /> Celular na rede de casa
+    <section className="group" aria-labelledby="phone-title">
+      <h2 className="group-title" id="phone-title">
+        Celular na rede de casa
       </h2>
-      <div className="field">
-        <Toggle label="Deixar o celular ver pedidos e estoque" checked={status.running} disabled={busy} onChange={(on) => run(on ? "lan_start" : "lan_stop")} />
-        <span className="hint">Só funciona no mesmo Wi-Fi e com este computador ligado e o app aberto. Nada fica aberto para a internet; desliga sozinho quando você fecha o app.</span>
-      </div>
+      <div className="rows">
+        <Toggle
+          label="Deixar o celular ver pedidos e estoque"
+          checked={status.running}
+          disabled={busy}
+          onChange={(on) => run(on ? "lan_start" : "lan_stop")}
+          hint="Só funciona no mesmo Wi-Fi e com este computador ligado e o app aberto. Nada fica aberto para a internet; desliga sozinho quando você fecha o app."
+        />
       {status.running && (
         <>
           <div className="phone-pair">
@@ -74,7 +77,7 @@ export default function PhoneSettingsCard() {
               )}
             </div>
           </div>
-          <div className="row" style={{ alignItems: "center" }}>
+          <div className="row-action">
             <span>Celulares conectados: {status.phones}</span>
             {status.phones > 0 && (
               <button type="button" className="link danger" disabled={busy} onClick={() => run("lan_disconnect_all")}>
@@ -84,6 +87,7 @@ export default function PhoneSettingsCard() {
           </div>
         </>
       )}
+      </div>
     </section>
   );
 }

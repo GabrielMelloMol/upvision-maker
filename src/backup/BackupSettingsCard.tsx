@@ -1,5 +1,5 @@
 import { ask, open } from "@tauri-apps/plugin-dialog";
-import { DatabaseBackup, FolderOpen, History, RotateCcw } from "lucide-react";
+import { DatabaseBackup, FolderOpen, RotateCcw } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
 import { restoreFromText } from "../backupActions";
 import { getDb } from "../db";
@@ -108,54 +108,54 @@ export default function BackupSettingsCard() {
   const shown = config.dir || defaultDir;
   return (
     <>
-    <section className="card stack" aria-labelledby="auto-backup-title">
-      <h2 className="card-title" id="auto-backup-title">
-        <DatabaseBackup aria-hidden /> Backup automático
+    <section className="group" aria-labelledby="auto-backup-title">
+      <h2 className="group-title" id="auto-backup-title">
+        Backup automático
       </h2>
-      <Toggle label="Fazer backup sozinho todo dia e ao fechar o app" checked={config.enabled} onChange={(enabled) => update({ enabled })} />
-      <div className="field">
-        <span className="field-label">Pasta</span>
-        <div className="row" style={{ alignItems: "center" }}>
-          <code className="path" title={shown}>
+      <div className="rows">
+        <Toggle label="Fazer backup sozinho todo dia e ao fechar o app" checked={config.enabled} onChange={(enabled) => update({ enabled })} />
+        <div className="row-control">
+          <span className="row-label">Pasta</span>
+          <code className="path hint" title={shown}>
             {shown || "…"}
           </code>
-          <Button size="sm" icon={FolderOpen} onClick={chooseDir}>
-            Escolher pasta…
-          </Button>
-          {config.dir && (
-            <Button size="sm" variant="ghost" onClick={() => update({ dir: "" })}>
-              Usar a padrão
+          <div className="row">
+            <Button size="sm" icon={FolderOpen} onClick={chooseDir}>
+              Escolher pasta…
             </Button>
-          )}
+            {config.dir && (
+              <Button size="sm" variant="ghost" onClick={() => update({ dir: "" })}>
+                Usar a padrão
+              </Button>
+            )}
+          </div>
         </div>
-        <span className="hint">Dica: escolha uma pasta do OneDrive ou do Google Drive e o backup também fica guardado fora deste computador.</span>
-      </div>
-      <div className="grid two">
         <NumField label="Manter os últimos" unit="dias" value={keepDraft} min={1} max={365} step={1} onChange={(keep) => {
             setKeepDraft(keep);
             if (Number.isInteger(keep) && keep >= 1 && keep <= 365) void update({ keep });
           }} hint="Um backup por dia; os mais antigos são apagados." />
+        <Toggle
+          label="Incluir as fotos das peças"
+          checked={config.photos}
+          onChange={(v) => update({ photos: v })}
+          hint={`${photoBytes ? `As fotos ocupam ${mb(photoBytes)}. ` : ""}Sem as fotos o backup fica leve; restaurar um backup assim mantém as fotos que já estão no app. A sincronização entre computadores sempre leva as fotos.`}
+        />
+        <div className="row-action">
+          <span className="hint">Uma cópia de tudo na pasta, agora.</span>
+          <Button icon={DatabaseBackup} onClick={backupNow} disabled={busy}>
+            {busy ? "Salvando…" : "Fazer backup agora"}
+          </Button>
+        </div>
       </div>
-      <Toggle label="Incluir as fotos das peças" checked={config.photos} onChange={(v) => update({ photos: v })} />
-      <span className="hint">
-        {photoBytes ? `As fotos ocupam ${mb(photoBytes)}. ` : ""}
-        Sem as fotos o backup fica leve; restaurar um backup assim mantém as fotos que já estão no app. A sincronização entre computadores sempre leva as fotos.
-      </span>
-      <div className="row">
-        <Button variant="primary" icon={DatabaseBackup} onClick={backupNow} disabled={busy}>
-          {busy ? "Salvando…" : "Fazer backup agora"}
-        </Button>
-      </div>
+      <p className="hint group-note">Dica: escolha uma pasta do OneDrive ou do Google Drive e o backup também fica guardado fora deste computador.</p>
 
-      <h3 className="subhead">
-        <History aria-hidden /> Backups guardados
-      </h3>
+      <h3 className="group-title">Backups guardados</h3>
       {list === null ? (
         <span className="skeleton line" style={{ width: "60%" }} />
       ) : list.length === 0 ? (
-        <p className="hint">Nenhum backup automático nesta pasta ainda.</p>
+        <p className="hint group-note">Nenhum backup automático nesta pasta ainda.</p>
       ) : (
-        <ul className="backup-list">
+        <ul className="rows backup-list">
           {list.map((b) => (
             <li key={b.name}>
               <span>{backupLabel(b.name)}</span>
