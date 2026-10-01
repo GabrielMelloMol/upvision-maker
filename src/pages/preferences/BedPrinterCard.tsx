@@ -1,4 +1,3 @@
-import { Printer as PrinterIcon } from "lucide-react";
 import { useEffect, useState } from "react";
 import { getDb } from "../../db";
 import { loadSettings, printers as printersRepo, saveSettings } from "../../db/repo";
@@ -46,30 +45,37 @@ export default function BedPrinterCard() {
     }
   }
 
+  const used = list.length === 0 || !known ? "256 × 256 × 256 mm" : `${size(bed)} (${bed.name})`;
   return (
-    <section className="card stack" aria-labelledby="bed-title">
-      <h2 className="card-title" id="bed-title">
-        <PrinterIcon aria-hidden /> Impressora das ferramentas
+    <section className="group" aria-labelledby="bed-title">
+      <h2 className="group-title" id="bed-title">
+        Mesa das ferramentas
       </h2>
-      {list.length > 1 && (
-        <label>
-          Tamanho da mesa pela impressora
-          <select value={chosen ?? ""} onChange={(e) => choose(e.target.value ? Number(e.target.value) : null)}>
-            <option value="">A primeira cadastrada ({list[0].name})</option>
-            {list.map((p) => (
-              <option key={p.id} value={p.id}>
-                {p.name}
-              </option>
-            ))}
-          </select>
-        </label>
-      )}
-      <p className="hint">
+      <div className="rows">
+        {list.length > 1 && (
+          <label>
+            Tamanho da mesa pela impressora
+            <select value={chosen ?? ""} onChange={(e) => choose(e.target.value ? Number(e.target.value) : null)}>
+              <option value="">A primeira cadastrada ({list[0].name})</option>
+              {list.map((p) => (
+                <option key={p.id} value={p.id}>
+                  {p.name}
+                </option>
+              ))}
+            </select>
+          </label>
+        )}
+        <div className="row-control">
+          <span className="row-label">Mesa usada</span>
+          <span className="muted">{used}</span>
+        </div>
+      </div>
+      <p className="hint group-note">
         {list.length === 0
-          ? "Sem impressora cadastrada: as ferramentas usam a mesa de 256 × 256 × 256 mm (Bambu A1/P1/X1)."
+          ? "Sem impressora cadastrada: as ferramentas usam a mesa da Bambu A1/P1/X1."
           : known
-            ? `Mesa usada nas ferramentas: ${size(bed)} (${bed.name}). Peça maior avisa, ou sai dividida onde a ferramenta divide.`
-            : `"${bed.name}" não está no catálogo: as ferramentas usam 256 × 256 × 256 mm. Cadastre a impressora pelo catálogo para usar o tamanho certo.`}
+            ? "Peça maior que a mesa avisa, ou sai dividida onde a ferramenta divide."
+            : `"${bed.name}" não está no catálogo: as ferramentas usam 256 mm. Cadastre a impressora pelo catálogo para usar o tamanho certo.`}
       </p>
     </section>
   );
