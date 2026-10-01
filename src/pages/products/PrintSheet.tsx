@@ -1,3 +1,5 @@
+import { ownerOf } from "../../db/photosRepo";
+import PhotoGallery from "../../ui/PhotoGallery";
 import { ClipboardCheck } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
 import { getDb } from "../../db";
@@ -65,6 +67,8 @@ export default function PrintSheet({ productId, printers, ownFailurePct }: { pro
           <strong>O que funcionou ({dateBr(worked.at)})</strong>
           <span>{logLine(worked, printers) || "Sem ajustes anotados."}</span>
           {worked.notes && <span className="hint">{worked.notes}</span>}
+          {/* foto da peça que deu certo (#162): para comparar na próxima vez */}
+          <PhotoGallery owner={ownerOf("print", worked.id)} label="Fotos desta impressão" />
         </div>
       )}
       {adding ? (

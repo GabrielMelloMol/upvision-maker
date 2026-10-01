@@ -1,3 +1,4 @@
+import { ownerOf, photos } from "./photosRepo";
 import { PrintLogInput, type PrintLog } from "../domain/printLogs";
 import type { Db } from "./types";
 
@@ -23,5 +24,9 @@ export const printLogsRepo = {
     const v = PrintLogInput.parse(input);
     await db.execute(`UPDATE print_logs SET ${COLS.map((c) => `${c} = ?`).join(", ")} WHERE id = ?`, [...values(v), id]);
   },
-  remove: (db: Db, id: number) => db.execute("DELETE FROM print_logs WHERE id = ?", [id]),
+  /** Apaga a impressão e as fotos dela (#162). */
+  async remove(db: Db, id: number): Promise<void> {
+    await photos.removeOwner(db, ownerOf("print", id));
+    await db.execute("DELETE FROM print_logs WHERE id = ?", [id]);
+  },
 };

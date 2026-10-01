@@ -19,19 +19,18 @@ export default function ModelSelect({ value, onChange }: { value: string | null;
   }, []);
   return (
     <div className="field">
-      <label>
-        Modelo pronto (opcional)
-        <select value={value ?? ""} disabled={!options} aria-describedby="model-select-hint" onChange={(e) => onChange(e.target.value || null)}>
-          <option value="">Nenhum (peça própria)</option>
-          {/* id gravado de um modelo que não existe mais: mostra para não sumir sem aviso */}
-          {value && options && !options.some((o) => o.id === value) && <option value={value}>{value} (não encontrado)</option>}
-          {(options ?? []).map((o) => (
-            <option key={o.id} value={o.id}>
-              {o.label}
-            </option>
-          ))}
-        </select>
-      </label>
+      {/* label por id, sem envolver o select: senão o texto das opções entra no nome do campo */}
+      <label htmlFor="model-select">Modelo pronto (opcional)</label>
+      <select id="model-select" value={value ?? ""} disabled={!options} aria-describedby="model-select-hint" onChange={(e) => onChange(e.target.value || null)}>
+        <option value="">Nenhum (peça própria)</option>
+        {/* id gravado de um modelo que não existe mais: mostra para não sumir sem aviso */}
+        {value && options && !options.some((o) => o.id === value) && <option value={value}>{value} (não encontrado)</option>}
+        {(options ?? []).map((o) => (
+          <option key={o.id} value={o.id}>
+            {o.label}
+          </option>
+        ))}
+      </select>
       {/* fora do label: não entra no nome do campo (leitor de tela e testes) */}
       <span className="hint" id="model-select-hint">
         No pedido, &quot;Preparar impressão&quot; abre este modelo com a personalização do item.

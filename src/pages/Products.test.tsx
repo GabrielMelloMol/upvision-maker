@@ -297,27 +297,17 @@ describe("Produtos: editor", () => {
     expect(await t.db.select("SELECT CAST(substr(owner, 9) AS INTEGER) AS productId, position, dataUrl FROM photos")).toEqual([{ productId: 1, position: 0, dataUrl: `data:image/jpeg;base64,${btoa("b.png")}` }]);
   });
 
-  test("fotos de produto salvo: adiciona, troca a capa e exclui direto no banco", async () => {
+  test("produto salvo: as fotos dele na galeria comum do app (#162), sem as de outros donos", async () => {
     t.raw.exec(`INSERT INTO products (name, kind, composition, piecesPerPlate) VALUES ('Vaso', 'simple', '${COMP()}', 1);
-      INSERT INTO photos (owner, position, dataUrl, createdAt) VALUES ('product:1', 0, 'data:image/png;base64,UM', '2026-10-01T10:00:00Z');`);
+      INSERT INTO photos (owner, position, dataUrl, createdAt) VALUES ('product:1', 0, 'data:image/png;base64,UM', '2026-10-01T10:00:00Z'),
+        ('product:1', 1, 'data:image/png;base64,DOIS', '2026-10-01T10:00:00Z'), ('print:1', 0, 'data:image/png;base64,FICHA', '2026-10-01T10:00:00Z');`);
     const user = userEvent.setup();
     renderWithApp(<Products />);
     await user.click(await screen.findByRole("button", { name: "Editar Vaso" }));
-    const sheet = await dialog("Editar Vaso");
-    expect(await within(sheet).findByAltText("Foto 1 de Vaso")).toHaveAttribute("src", "data:image/png;base64,UM");
-    expect(within(sheet).queryByRole("button", { name: "Usar como capa" })).not.toBeInTheDocument(); // a capa já é a 1ª
-    await user.upload(sheet.querySelector<HTMLInputElement>('input[type="file"]')!, new File(["x"], "x.png", { type: "image/png" }));
-    expect(await within(sheet).findByAltText("Foto 2 de Vaso")).toBeInTheDocument();
-    await user.click(within(sheet).getByRole("button", { name: "Usar como capa" }));
-    await waitFor(() => expect(within(sheet).getByAltText("Foto 1 de Vaso")).toHaveAttribute("src", `data:image/jpeg;base64,${btoa("x.png")}`));
-    await user.click(within(sheet).getAllByRole("button", { name: "Excluir foto" })[0]);
-    await waitFor(async () => expect(await t.db.select("SELECT dataUrl FROM photos")).toEqual([{ dataUrl: "data:image/png;base64,UM" }]));
-
-    t.handlers["plugin:sql|execute"] = () => {
-      throw new Error("banco travado");
-    };
-    await user.click(within(sheet).getByRole("button", { name: "Excluir foto" }));
-    expect(await screen.findByText("Não foi possível alterar a foto: banco travado")).toBeInTheDocument();
+    const gallery = within(await dialog("Editar Vaso")).getByRole("list", { name: "Fotos" });
+    expect(await within(gallery).findByAltText("Capa")).toHaveAttribute("src", "data:image/png;base64,UM");
+    expect(within(gallery).getByAltText("Foto 2")).toHaveAttribute("src", "data:image/png;base64,DOIS");
+    expect(within(gallery).getAllByRole("img")).toHaveLength(2); // a da ficha (print:1) não entra
   });
 
   test("foto que não abre vira aviso", async () => {
@@ -329,28 +319,6 @@ describe("Produtos: editor", () => {
     await user.upload(sheet.querySelector<HTMLInputElement>('input[type="file"]')!, new File(["x"], "x.png", { type: "image/png" }));
     expect(await screen.findByText("Não consegui abrir esta imagem.")).toBeInTheDocument();
     photo.fail = false;
-  });
-
-  test("com 8 fotos some o botão de adicionar", async () => {
-    t.raw.exec(`INSERT INTO products (name, kind, composition, piecesPerPlate) VALUES ('Vaso', 'simple', '${COMP()}', 1)`);
-    for (let i = 0; i < 8; i++) t.raw.exec(`INSERT INTO photos (owner, position, dataUrl, createdAt) VALUES ('product:1', ${i}, 'data:image/png;base64,A${i}', '2026-10-01T10:00:00Z')`);
-    const user = userEvent.setup();
-    renderWithApp(<Products />);
-    await user.click(await screen.findByRole("button", { name: "Editar Vaso" }));
-    const sheet = await dialog("Editar Vaso");
-    await within(sheet).findByAltText("Foto 8 de Vaso");
-    expect(sheet.querySelector('input[type="file"]')).toBeNull(); // limite de 8
-  });
-
-  test("erro ao carregar fotos vira aviso", async () => {
-    t.raw.exec(`INSERT INTO products (name, kind, composition, piecesPerPlate) VALUES ('Vaso', 'simple', '${COMP()}', 1)`);
-    const user = userEvent.setup();
-    renderWithApp(<Products />);
-    await user.click(await screen.findByRole("button", { name: "Editar Vaso" }));
-    t.raw.exec("DROP TABLE photos");
-    await user.click(within(await dialog("Editar Vaso")).getByRole("button", { name: "Cancelar" }));
-    await user.click(await screen.findByRole("button", { name: "Editar Vaso" }));
-    expect(await screen.findByText(/Erro ao carregar fotos/)).toBeInTheDocument();
   });
 });
 

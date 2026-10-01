@@ -1,7 +1,9 @@
-import { ImagePlus, Package, Plus, Star, Trash2 } from "lucide-react";
-import { useEffect, useState } from "react";
+import { ImagePlus, Package, Plus, Trash2 } from "lucide-react";
+import { useState } from "react";
 import { getDb } from "../../db";
-import { MAX_PHOTOS, photosRepo, productsRepo, type Photo } from "../../db/productsRepo";
+import { MAX_PHOTOS, photosRepo, productsRepo } from "../../db/productsRepo";
+import { ownerOf } from "../../db/photosRepo";
+import PhotoGallery from "../../ui/PhotoGallery";
 import { money, parseDecimal } from "../../domain/format";
 import MoneyField from "../../ui/MoneyField";
 import { formatDuration, formatMoneyInput, parseDuration, parseMoney } from "../../ui/parse";
@@ -63,21 +65,12 @@ export default function ProductEditor({ initial, data, onClose, onSaved }: Props
   const [swapFrom, setSwapFrom] = useState(() => String(base.variants.flatMap((v) => v.swaps)[0]?.from ?? base.composition.filaments[0]?.filamentId ?? ""));
   const [variationLabel, setVariationLabel] = useState(base.variationLabel);
   const [variantDrafts, setVariantDrafts] = useState<VariantDraft[]>(() => base.variants.map((v) => toDraft(v, Number(swapFrom) || null)));
-  const [photos, setPhotos] = useState<Photo[]>([]);
-  const [pending, setPending] = useState<string[]>([]); // fotos de produto ainda não salvo
+  const [pending, setPending] = useState<string[]>([]); // fotos de produto ainda não salvo (sem id para a galeria)
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [saving, setSaving] = useState(false);
   const toast = useToast();
   const setNum = (k: keyof typeof n) => (e: React.ChangeEvent<HTMLInputElement>) => setN({ ...n, [k]: e.target.value });
   const setText = (k: keyof typeof n) => (v: string) => setN((cur) => ({ ...cur, [k]: v }));
-
-  useEffect(() => {
-    if (!initial.id) return;
-    getDb()
-      .then((db) => photosRepo.list(db, initial.id!))
-      .then(setPhotos)
-      .catch((e) => toast(`Erro ao carregar fotos: ${errorText(e)}`, "error"));
-  }, [initial.id, toast]);
 
   const lines = (ls: Line[]) => ls.filter((l) => l.id);
   const filamentLabel = (fid: number) => {
@@ -128,28 +121,14 @@ export default function ProductEditor({ initial, data, onClose, onSaved }: Props
   });
   const variantWarning = spreadWarning(variantPriced.flatMap((x) => (x ? [x.price] : [])));
 
-  async function addPhotos(files: FileList | null) {
+  /** Produto novo: guarda as fotos até salvar (a galeria precisa do id do produto). */
+  async function addPending(files: FileList | null) {
     if (!files) return;
     try {
       const urls = await Promise.all([...files].slice(0, MAX_PHOTOS).map(photoToDataUrl));
-      if (initial.id) {
-        const db = await getDb();
-        for (const u of urls) await photosRepo.add(db, initial.id, u);
-        setPhotos(await photosRepo.list(db, initial.id));
-      } else setPending([...pending, ...urls].slice(0, MAX_PHOTOS));
+      setPending([...pending, ...urls].slice(0, MAX_PHOTOS));
     } catch (e) {
       toast(errorText(e), "error");
-    }
-  }
-
-  async function photoAction(p: Photo, action: "cover" | "remove") {
-    try {
-      const db = await getDb();
-      if (action === "cover") await photosRepo.makeCover(db, p.productId, p.id);
-      else await photosRepo.remove(db, p.id);
-      setPhotos(await photosRepo.list(db, p.productId));
-    } catch (e) {
-      toast(`Não foi possível alterar a foto: ${errorText(e)}`, "error");
     }
   }
 
@@ -175,7 +154,6 @@ export default function ProductEditor({ initial, data, onClose, onSaved }: Props
   }
 
   const others = data.products.filter((p) => p.id !== initial.id);
-  const shownPhotos: { key: string; url: string; photo?: Photo }[] = initial.id ? photos.map((p) => ({ key: String(p.id), url: p.dataUrl, photo: p })) : pending.map((u, i) => ({ key: `p${i}`, url: u }));
 
   return (
     <Sheet
@@ -343,44 +321,37 @@ export default function ProductEditor({ initial, data, onClose, onSaved }: Props
               </>
             )}
           </section>
-          <section className="card">
-            <h3>
-              Fotos <span className="muted small">{shownPhotos.length}/{MAX_PHOTOS} · a 1ª é a capa</span>
-            </h3>
-            <div className="photo-grid">
-              {shownPhotos.map((p, i) => (
-                <figure key={p.key}>
-                  <img src={p.url} alt={`Foto ${i + 1} de ${name || "produto"}`} />
-                  {p.photo && (
-                    <figcaption>
-                      {i > 0 && (
-                        <button type="button" className="ghost icon-only" aria-label="Usar como capa" onClick={() => photoAction(p.photo!, "cover")}>
-                          <Star aria-hidden />
-                        </button>
-                      )}
-                      <button type="button" className="ghost icon-only danger" aria-label="Excluir foto" onClick={() => photoAction(p.photo!, "remove")}>
-                        <Trash2 aria-hidden />
-                      </button>
-                    </figcaption>
-                  )}
-                  {!p.photo && (
+          {/* fotos reais (#162): galeria comum do app (arquivo, arrastar, colar, câmera, ajustar, capa) */}
+          {initial.id ? (
+            <section className="card">
+              <PhotoGallery owner={ownerOf("product", initial.id)} label="Fotos" />
+            </section>
+          ) : (
+            <section className="card">
+              <h3>
+                Fotos <span className="muted small">{pending.length}/{MAX_PHOTOS} · a 1ª é a capa</span>
+              </h3>
+              <div className="photo-grid">
+                {pending.map((u, i) => (
+                  <figure key={`p${i}`}>
+                    <img src={u} alt={`Foto ${i + 1} de ${name || "produto"}`} />
                     <figcaption>
                       <button type="button" className="ghost icon-only danger" aria-label="Tirar foto" onClick={() => setPending(pending.filter((_, j) => j !== i))}>
                         <Trash2 aria-hidden />
                       </button>
                     </figcaption>
-                  )}
-                </figure>
-              ))}
-              {shownPhotos.length < MAX_PHOTOS && (
-                <label className="photo-add">
-                  <ImagePlus aria-hidden />
-                  <span>Adicionar</span>
-                  <input type="file" accept="image/*" multiple hidden onChange={(e) => addPhotos(e.target.files)} />
-                </label>
-              )}
-            </div>
-          </section>
+                  </figure>
+                ))}
+                {pending.length < MAX_PHOTOS && (
+                  <label className="photo-add">
+                    <ImagePlus aria-hidden />
+                    <span>Adicionar</span>
+                    <input type="file" accept="image/*" multiple hidden onChange={(e) => addPending(e.target.files)} />
+                  </label>
+                )}
+              </div>
+            </section>
+          )}
         </aside>
       </div>
     </Sheet>

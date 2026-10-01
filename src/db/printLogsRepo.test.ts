@@ -38,3 +38,13 @@ describe("ficha de impressão no banco (#163)", () => {
     expect(await printLogsRepo.forProduct(other, 7)).toHaveLength(4);
   });
 });
+
+test("apagar a impressão apaga as fotos dela (#162)", async () => {
+  const { photos, ownerOf } = await import("./photosRepo");
+  const id = await printLogsRepo.insert(db, { productId: 1, at: "2026-09-01", result: "ok" });
+  await photos.add(db, ownerOf("print", id), "data:image/jpeg;base64,AA");
+  await photos.add(db, ownerOf("product", 1), "data:image/jpeg;base64,BB");
+  await printLogsRepo.remove(db, id);
+  expect(await photos.list(db, ownerOf("print", id))).toEqual([]);
+  expect(await photos.list(db, ownerOf("product", 1))).toHaveLength(1); // as do produto ficam
+});
