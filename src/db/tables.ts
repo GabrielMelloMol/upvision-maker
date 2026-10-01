@@ -8,6 +8,7 @@ import { ProductInput } from "../domain/products";
 import { CalcHistoryInput } from "./calcHistoryRepo";
 import { ModelVariantInput } from "./modelVariantsRepo";
 import { ToolProjectInput, ToolStateRow } from "./toolStateRepo";
+import { PhotoOwner } from "./photosRepo";
 
 const id = z.number().int().positive();
 
@@ -19,7 +20,8 @@ export const TABLES = {
   materials: MaterialInput.extend({ id }),
   // composição guardada como JSON (texto) na linha
   products: ProductInput.extend({ id, composition: z.string(), variants: z.string().default("[]") }), // JSON na linha; backups antigos não têm
-  product_photos: z.object({ id, productId: id, position: z.number().int().min(0), dataUrl: z.string().startsWith("data:image/") }),
+  // fotos de produto, projeto e impressão (#162); backups antigos trazem product_photos (convertido no restore)
+  photos: z.object({ id, owner: PhotoOwner, position: z.number().int().min(0), dataUrl: z.string().startsWith("data:image/"), createdAt: z.string() }),
   customers: CustomerInput.extend({ id, active: z.number().int() }), // booleano guardado como 0/1
   print_logs: PrintLogInput.extend({ id, brim: z.number().int() }), // ficha de impressão (#163); brim 0/1
   company: z.object({ id: z.literal(1), data: z.string() }),
@@ -52,3 +54,6 @@ export const TABLES = {
 };
 
 export type TableName = keyof typeof TABLES;
+
+/** Fotos de produto de backups de antes da #162 (tabela product_photos). */
+export const LegacyProductPhoto = z.object({ id, productId: id, position: z.number().int().min(0), dataUrl: z.string().startsWith("data:image/") });

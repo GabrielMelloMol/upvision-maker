@@ -30,9 +30,9 @@ describe("backup automático: configuração no banco local", async () => {
     const db = memoryDb();
     await migrate(db);
     expect(await loadAutoBackupConfig(db)).toEqual({ ...AUTO_DEFAULTS, lastAt: null });
-    await saveAutoBackupConfig(db, { enabled: false, dir: "C:/OneDrive/Backups", keep: 30 });
+    await saveAutoBackupConfig(db, { enabled: false, dir: "C:/OneDrive/Backups", keep: 30, photos: false });
     await markBackupDone(db, new Date("2026-09-28T10:00:00Z"));
-    expect(await loadAutoBackupConfig(db)).toEqual({ enabled: false, dir: "C:/OneDrive/Backups", keep: 30, lastAt: "2026-09-28T10:00:00.000Z" });
+    expect(await loadAutoBackupConfig(db)).toEqual({ enabled: false, dir: "C:/OneDrive/Backups", keep: 30, photos: false, lastAt: "2026-09-28T10:00:00.000Z" });
   });
 
   test("valor corrompido cai no padrão", async () => {

@@ -3,7 +3,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { getDb } from "../db";
 import { projectIntentKey, takeIntent, type ProjectIntent } from "./intent";
 import { toolProjects, toolState, type ToolProject } from "../db/toolStateRepo";
-import { previewThumb } from "../ui/Preview3D";
+import { previewThumb, snapshotPreview } from "../ui/Preview3D";
 import { errorText, useToast } from "../ui/Toast";
 import { useHistory } from "../ui/useHistory";
 
@@ -207,8 +207,14 @@ export function useToolState<T extends object>(toolId: string, initial: T | (() 
       exported.current = true;
       try {
         const db = await getDb();
-        await toolProjects.add(db, { toolId, name, data: await encode(state), thumb: await previewThumb(), at: new Date().toISOString() });
+        // grava já (com a captura da prévia) e troca pela miniatura no padrão da galeria quando ficar pronta
+        const id = await toolProjects.add(db, { toolId, name, data: await encode(state), thumb: snapshotPreview(), at: new Date().toISOString() });
         await reload();
+        const thumb = await previewThumb();
+        if (thumb) {
+          await toolProjects.setThumb(db, id, thumb);
+          await reload();
+        }
       } catch (e) {
         console.warn(`Projeto de ${toolId} não entrou no histórico:`, e);
       }

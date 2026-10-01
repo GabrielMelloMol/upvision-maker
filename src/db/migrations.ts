@@ -108,6 +108,13 @@ export const MIGRATIONS: string[][] = [
     "ALTER TABLE tool_projects ADD COLUMN productId INTEGER",
     "ALTER TABLE tool_projects ADD COLUMN orderId INTEGER",
   ],
+  // Fotos reais (#162): uma tabela só para fotos de produto, projeto e impressão (dono "product:<id>" etc.); as de produto vêm junto.
+  [
+    "CREATE TABLE photos (id INTEGER PRIMARY KEY, owner TEXT NOT NULL, position INTEGER NOT NULL, dataUrl TEXT NOT NULL, createdAt TEXT NOT NULL)",
+    "CREATE INDEX photos_owner ON photos (owner, position)",
+    "INSERT INTO photos (id, owner, position, dataUrl, createdAt) SELECT id, 'product:' || productId, position, dataUrl, strftime('%Y-%m-%dT%H:%M:%SZ', 'now') FROM product_photos",
+    "DROP TABLE product_photos",
+  ],
 ];
 
 export const SCHEMA_VERSION = MIGRATIONS.length;

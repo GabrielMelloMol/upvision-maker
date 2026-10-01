@@ -291,3 +291,11 @@ g:hover > .viz-hit { fill: var(--fill); }
 
 /* Painel, Mais vendidos: nome numa linha só (polimento) */
 td.best-name { max-width: 0; width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+/* Fotos reais (#162): grade de fotos com capa e menu ⋯; ajuste da foto e câmera */
+.photo-gallery ul.photo-grid { list-style: none; margin: 0; padding: 0; }
+.photo-gallery .photo-grid li { position: relative; }
+.photo-gallery .photo-cover { position: absolute; left: 6px; bottom: 6px; background: var(--surface); }
+.photo-gallery .photo-actions { position: absolute; top: 4px; right: 4px; }
+.photo-gallery .photo-actions .menu-wrap > button { background: var(--surface); box-shadow: 0 0 0 0.5px var(--border); }
+.photo-edit-preview { display: block; max-width: 100%; max-height: 50vh; margin: 0 auto; border-radius: var(--r); object-fit: contain; }
+.photo-camera { display: block; width: 100%; max-height: 60vh; border-radius: var(--r); background: #000; }

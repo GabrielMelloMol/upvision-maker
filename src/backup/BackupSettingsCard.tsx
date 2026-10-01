@@ -8,6 +8,7 @@ import NumField from "../ui/NumField";
 import { errorText, useToast } from "../ui/Toast";
 import Toggle from "../ui/Toggle";
 import SyncSettingsCard from "../sync/SyncSettingsCard";
+import { photos } from "../db/photosRepo";
 import { AUTO_DEFAULTS, defaultBackupDir, listAutoBackups, loadAutoBackupConfig, readAutoBackup, runAutoBackup, saveAutoBackupConfig, type AutoBackupConfig, type BackupEntry } from "./auto";
 
 /** Avisa o App (lembrete de backup) que acabou de haver um backup. */
@@ -24,12 +25,15 @@ export function backupLabel(name: string): string {
 const kb = (b: number) => `${Math.max(1, Math.round(b / 1024)).toLocaleString("pt-BR")} KB`;
 
 /** Preferências → Backup automático (#5): liga/desliga, pasta, quantos dias manter, fazer agora e restaurar. Logo abaixo, Dois computadores (#16). */
+const mb = (chars: number) => `${(chars / 1024 / 1024).toFixed(1).replace(".", ",")} MB`;
+
 export default function BackupSettingsCard() {
   const [config, setConfig] = useState<AutoBackupConfig>(AUTO_DEFAULTS);
   const [keepDraft, setKeepDraft] = useState(AUTO_DEFAULTS.keep); // o campo pode ficar vazio enquanto ela digita
   const [defaultDir, setDefaultDir] = useState("");
   const [list, setList] = useState<BackupEntry[] | null>(null);
   const [busy, setBusy] = useState(false);
+  const [photoBytes, setPhotoBytes] = useState<number | null>(null);
   const toast = useToast();
 
   const refresh = useCallback(async (c: AutoBackupConfig) => {
@@ -43,8 +47,10 @@ export default function BackupSettingsCard() {
 
   useEffect(() => {
     (async () => {
-      const c = await loadAutoBackupConfig(await getDb());
+      const db = await getDb();
+      const c = await loadAutoBackupConfig(db);
       setConfig(c);
+      setPhotoBytes(await photos.totalChars(db));
       setKeepDraft(c.keep);
       setDefaultDir(await defaultBackupDir().catch(() => ""));
       await refresh(c);
@@ -130,6 +136,11 @@ export default function BackupSettingsCard() {
             if (Number.isInteger(keep) && keep >= 1 && keep <= 365) void update({ keep });
           }} hint="Um backup por dia; os mais antigos são apagados." />
       </div>
+      <Toggle label="Incluir as fotos das peças" checked={config.photos} onChange={(v) => update({ photos: v })} />
+      <span className="hint">
+        {photoBytes ? `As fotos ocupam ${mb(photoBytes)}. ` : ""}
+        Sem as fotos o backup fica leve; restaurar um backup assim mantém as fotos que já estão no app. A sincronização entre computadores sempre leva as fotos.
+      </span>
       <div className="row">
         <Button variant="primary" icon={DatabaseBackup} onClick={backupNow} disabled={busy}>
           {busy ? "Salvando…" : "Fazer backup agora"}

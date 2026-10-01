@@ -3,15 +3,16 @@ import { useState, type FormEvent } from "react";
 import type { ProjectPatch, ToolProject } from "../../db/toolStateRepo";
 import { projectTags } from "../../db/toolStateRepo";
 import Field from "../../ui/Field";
+import PhotoGallery from "../../ui/PhotoGallery";
 import Sheet from "../../ui/Sheet";
 
 type Option = { id: number; label: string };
-type Props = { project: ToolProject; products: Option[]; orders: Option[]; onSave: (patch: ProjectPatch) => void; onClose: () => void };
+type Props = { project: ToolProject; products: Option[]; orders: Option[]; onSave: (patch: ProjectPatch) => void; onClose: () => void; onPhotos?: () => void };
 
 const MAX_TAGS = 20;
 
-/** Nome, tags e ligação a produto/pedido de um projeto (#161). Tags separadas por vírgula. */
-export default function ProjectSheet({ project, products, orders, onSave, onClose }: Props) {
+/** Nome, tags, fotos da peça impressa (#162) e ligação a produto/pedido de um projeto (#161). Tags separadas por vírgula. */
+export default function ProjectSheet({ project, products, orders, onSave, onClose, onPhotos }: Props) {
   const [name, setName] = useState(project.name);
   const [tags, setTags] = useState(projectTags(project).join(", "));
   const [productId, setProductId] = useState(project.productId ? String(project.productId) : "");
@@ -26,6 +27,7 @@ export default function ProjectSheet({ project, products, orders, onSave, onClos
   return (
     <Sheet
       title="Editar projeto"
+      wide
       icon={FolderOpen}
       onClose={onClose}
       onSubmit={submit}
@@ -46,6 +48,8 @@ export default function ProjectSheet({ project, products, orders, onSave, onClos
       <Field label="Tags" hint="Separadas por vírgula: escola, formatura, cliente Ana.">
         <input value={tags} onChange={(e) => setTags(e.target.value)} />
       </Field>
+      {/* fotos gravam na hora (não esperam o Salvar); a capa vira a miniatura em Meus projetos */}
+      <PhotoGallery owner={`project:${project.id}`} onChange={onPhotos} />
       <Field label="Produto">
         <select value={productId} onChange={(e) => setProductId(e.target.value)}>
           <option value="">Nenhum</option>

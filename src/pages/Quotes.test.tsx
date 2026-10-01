@@ -28,7 +28,7 @@ const seed = (company = COMPANY) =>
     INSERT INTO customers (kind, name, discountPct, active, phone) VALUES ('pj', 'Loja da Bia', 0, 1, '21 9999-0000');
     INSERT INTO products (name, kind, composition, piecesPerPlate, manualPrice, consignmentPrice) VALUES ('Chaveiro', 'simple', '{"filaments":[],"materials":[],"items":[]}', 1, 15, 8),
       ('Ímã', 'simple', '{"filaments":[],"materials":[],"items":[]}', 1, 10, NULL);
-    INSERT INTO product_photos (productId, position, dataUrl) VALUES (1, 0, 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==');`);
+    INSERT INTO photos (owner, position, dataUrl, createdAt) VALUES ('product:1', 0, 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==', '2026-10-01T10:00:00Z');`);
 
 const quoteJson = (o: { name?: string; validUntil?: string; qty?: number }) =>
   JSON.stringify({

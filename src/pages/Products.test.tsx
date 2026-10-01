@@ -65,7 +65,7 @@ describe("Produtos: lista", () => {
       ('Chaveiro', 'simple', '${COMP([[1, 10]])}', 1, 10, 0, '', 15),
       ('Kit', 'kit', '${COMP([], [], [[2, 2]])}', 1, 0, 0, '', NULL),
       ('Órfão', 'simple', '${COMP([[99, 10]])}', 1, 0, 0, '', NULL);
-      INSERT INTO product_photos (productId, position, dataUrl) VALUES (1, 0, 'data:image/png;base64,AAA');`);
+      INSERT INTO photos (owner, position, dataUrl, createdAt) VALUES ('product:1', 0, 'data:image/png;base64,AAA', '2026-10-01T10:00:00Z');`);
     renderWithApp(<Products />);
     const lum = await screen.findByRole("row", { name: /Luminária/ });
     expect(lum).toHaveTextContent("R$ 15,96"); // custo por peça (mesmo exemplo do E2E)
@@ -91,7 +91,7 @@ describe("Produtos: lista", () => {
 
   test("excluir avisa se o produto está em um kit; cancelar mantém, confirmar apaga com as fotos", async () => {
     t.raw.exec(`INSERT INTO products (name, kind, composition, piecesPerPlate) VALUES ('Peça', 'simple', '${COMP()}', 1), ('Kit festa', 'kit', '${COMP([], [], [[1, 2]])}', 1);
-      INSERT INTO product_photos (productId, position, dataUrl) VALUES (1, 0, 'data:image/png;base64,AAA');`);
+      INSERT INTO photos (owner, position, dataUrl, createdAt) VALUES ('product:1', 0, 'data:image/png;base64,AAA', '2026-10-01T10:00:00Z');`);
     const messages: string[] = [];
     t.handlers["plugin:dialog|message"] = (a) => {
       messages.push(String(a.message));
@@ -110,7 +110,7 @@ describe("Produtos: lista", () => {
     expect(messages[1]).toBe('Excluir "Kit festa"?');
     await user.click(screen.getByRole("button", { name: "Excluir Peça" }));
     await waitFor(async () => expect(await t.db.select("SELECT id FROM products")).toEqual([]));
-    expect(await t.db.select("SELECT id FROM product_photos")).toEqual([]);
+    expect(await t.db.select("SELECT id FROM photos")).toEqual([]);
   });
 
   test("erro do banco ao excluir vira aviso", async () => {
@@ -294,12 +294,12 @@ describe("Produtos: editor", () => {
     expect(within(sheet).queryByAltText("Foto 2 de Vaso")).not.toBeInTheDocument();
     await user.click(within(sheet).getByRole("button", { name: "Salvar produto" }));
     await screen.findByText("Produto salvo.");
-    expect(await t.db.select("SELECT productId, position, dataUrl FROM product_photos")).toEqual([{ productId: 1, position: 0, dataUrl: `data:image/jpeg;base64,${btoa("b.png")}` }]);
+    expect(await t.db.select("SELECT CAST(substr(owner, 9) AS INTEGER) AS productId, position, dataUrl FROM photos")).toEqual([{ productId: 1, position: 0, dataUrl: `data:image/jpeg;base64,${btoa("b.png")}` }]);
   });
 
   test("fotos de produto salvo: adiciona, troca a capa e exclui direto no banco", async () => {
     t.raw.exec(`INSERT INTO products (name, kind, composition, piecesPerPlate) VALUES ('Vaso', 'simple', '${COMP()}', 1);
-      INSERT INTO product_photos (productId, position, dataUrl) VALUES (1, 0, 'data:image/png;base64,UM');`);
+      INSERT INTO photos (owner, position, dataUrl, createdAt) VALUES ('product:1', 0, 'data:image/png;base64,UM', '2026-10-01T10:00:00Z');`);
     const user = userEvent.setup();
     renderWithApp(<Products />);
     await user.click(await screen.findByRole("button", { name: "Editar Vaso" }));
@@ -311,7 +311,7 @@ describe("Produtos: editor", () => {
     await user.click(within(sheet).getByRole("button", { name: "Usar como capa" }));
     await waitFor(() => expect(within(sheet).getByAltText("Foto 1 de Vaso")).toHaveAttribute("src", `data:image/jpeg;base64,${btoa("x.png")}`));
     await user.click(within(sheet).getAllByRole("button", { name: "Excluir foto" })[0]);
-    await waitFor(async () => expect(await t.db.select("SELECT dataUrl FROM product_photos")).toEqual([{ dataUrl: "data:image/png;base64,UM" }]));
+    await waitFor(async () => expect(await t.db.select("SELECT dataUrl FROM photos")).toEqual([{ dataUrl: "data:image/png;base64,UM" }]));
 
     t.handlers["plugin:sql|execute"] = () => {
       throw new Error("banco travado");
@@ -333,7 +333,7 @@ describe("Produtos: editor", () => {
 
   test("com 8 fotos some o botão de adicionar", async () => {
     t.raw.exec(`INSERT INTO products (name, kind, composition, piecesPerPlate) VALUES ('Vaso', 'simple', '${COMP()}', 1)`);
-    for (let i = 0; i < 8; i++) t.raw.exec(`INSERT INTO product_photos (productId, position, dataUrl) VALUES (1, ${i}, 'data:image/png;base64,A${i}')`);
+    for (let i = 0; i < 8; i++) t.raw.exec(`INSERT INTO photos (owner, position, dataUrl, createdAt) VALUES ('product:1', ${i}, 'data:image/png;base64,A${i}', '2026-10-01T10:00:00Z')`);
     const user = userEvent.setup();
     renderWithApp(<Products />);
     await user.click(await screen.findByRole("button", { name: "Editar Vaso" }));
@@ -347,7 +347,7 @@ describe("Produtos: editor", () => {
     const user = userEvent.setup();
     renderWithApp(<Products />);
     await user.click(await screen.findByRole("button", { name: "Editar Vaso" }));
-    t.raw.exec("DROP TABLE product_photos");
+    t.raw.exec("DROP TABLE photos");
     await user.click(within(await dialog("Editar Vaso")).getByRole("button", { name: "Cancelar" }));
     await user.click(await screen.findByRole("button", { name: "Editar Vaso" }));
     expect(await screen.findByText(/Erro ao carregar fotos/)).toBeInTheDocument();

@@ -6,6 +6,6 @@
   <key>CFBundleIconName</key>
   <string>AppIcon</string>
   <key>NSCameraUsageDescription</key>
-  <string>A câmera lê o QR das etiquetas de rolo de filamento.</string>
+  <string>A câmera lê o QR das etiquetas de rolo de filamento e tira fotos das peças impressas.</string>
 </dict>
 </plist>

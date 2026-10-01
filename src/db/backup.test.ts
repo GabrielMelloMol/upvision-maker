@@ -61,3 +61,30 @@ describe("backup", () => {
     expect(() => parseBackup(JSON.stringify({ ...b, schemaVersion: 999 }))).toThrow(/versão mais nova/i);
   });
 });
+
+describe("fotos no backup (#162)", () => {
+  const JPG = "data:image/jpeg;base64,AAAA";
+
+  test("backup antigo com product_photos: a restauração passa as fotos para a tabela photos (dono product:<id>)", async () => {
+    const db = await seeded();
+    const b = await exportBackup(db);
+    const tables = { ...b.tables, product_photos: [{ id: 3, productId: 7, position: 0, dataUrl: JPG }] } as Record<string, unknown>;
+    delete tables.photos;
+    await restoreBackup(db, parseBackup(JSON.stringify({ ...b, schemaVersion: 20, tables })));
+    expect(await db.select("SELECT id, owner, position, dataUrl FROM photos")).toEqual([{ id: 3, owner: "product:7", position: 0, dataUrl: JPG }]);
+  });
+
+  test("sem fotos no arquivo: o backup sai leve e restaurar não apaga as fotos que já estão no app", async () => {
+    const db = await seeded();
+    await db.execute("INSERT INTO photos (owner, position, dataUrl, createdAt) VALUES ('product:1', 0, ?, '2026-10-01T10:00:00Z')", [JPG]);
+    const light = await exportBackup(db, { photos: false });
+    expect(light.tables.photos).toEqual([]);
+    expect(light.photosOmitted).toBe(true);
+    await db.execute("UPDATE settings SET data = ?", ['{"kwhPrice":9}']);
+    await restoreBackup(db, parseBackup(JSON.stringify(light)));
+    expect(await db.select("SELECT data FROM settings")).toEqual([{ data: '{"kwhPrice":1}' }]);
+    expect(await db.select("SELECT owner FROM photos")).toEqual([{ owner: "product:1" }]);
+    // com fotos (padrão, e a sincronização #16): vão junto
+    expect((await exportBackup(db)).tables.photos).toHaveLength(1);
+  });
+});

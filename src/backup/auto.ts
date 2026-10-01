@@ -7,13 +7,14 @@ import type { Db } from "../db/types";
  * Backup automático rotativo (#5). A configuração fica na tabela local `secrets`
  * (não vai para o backup: a pasta é deste computador). Gravação, rotação e leitura ficam no Rust (backup.rs).
  */
-export type AutoBackupConfig = { enabled: boolean; dir: string; keep: number };
+/** `photos`: incluir as fotos (#162); desligado, o backup fica leve e restaurar mantém as fotos do app. */
+export type AutoBackupConfig = { enabled: boolean; dir: string; keep: number; photos: boolean };
 export type BackupEntry = { name: string; path: string; bytes: number };
 
-export const AUTO_DEFAULTS: AutoBackupConfig = { enabled: true, dir: "", keep: 10 };
+export const AUTO_DEFAULTS: AutoBackupConfig = { enabled: true, dir: "", keep: 10, photos: true };
 const DAY_MS = 86_400_000;
 export const REMIND_DAYS = 7;
-const K = { enabled: "backup_enabled", dir: "backup_dir", keep: "backup_keep", last: "backup_last_at" };
+const K = { enabled: "backup_enabled", dir: "backup_dir", keep: "backup_keep", last: "backup_last_at", photos: "backup_photos" };
 
 const pad = (n: number) => String(n).padStart(2, "0");
 /** `2026-09-28-153000` (hora local): vira parte do nome do arquivo. */
@@ -32,12 +33,13 @@ export const needsReminder = (lastAt: string | null, now = new Date()) => {
 };
 
 export async function loadAutoBackupConfig(db: Db): Promise<AutoBackupConfig & { lastAt: string | null }> {
-  const [enabled, dir, keep, lastAt] = await Promise.all([getSecret(db, K.enabled), getSecret(db, K.dir), getSecret(db, K.keep), getSecret(db, K.last)]);
+  const [enabled, dir, keep, lastAt, photos] = await Promise.all([getSecret(db, K.enabled), getSecret(db, K.dir), getSecret(db, K.keep), getSecret(db, K.last), getSecret(db, K.photos)]);
   const n = Number(keep);
   return {
     enabled: enabled === null ? AUTO_DEFAULTS.enabled : enabled === "1",
     dir: dir ?? AUTO_DEFAULTS.dir,
     keep: Number.isInteger(n) && n >= 1 && n <= 365 ? n : AUTO_DEFAULTS.keep,
+    photos: photos === null ? AUTO_DEFAULTS.photos : photos === "1",
     lastAt,
   };
 }
@@ -46,6 +48,7 @@ export async function saveAutoBackupConfig(db: Db, c: AutoBackupConfig): Promise
   await setSecret(db, K.enabled, c.enabled ? "1" : "0");
   await setSecret(db, K.dir, c.dir.trim());
   await setSecret(db, K.keep, String(Math.round(c.keep)));
+  await setSecret(db, K.photos, c.photos ? "1" : "0");
 }
 
 /** Registra que houve backup (automático ou o manual do menu). */
@@ -57,7 +60,7 @@ export const readAutoBackup = (dir: string, name: string) => invoke<string>("bac
 
 /** Faz o backup agora na pasta configurada, apaga os mais antigos além de `keep` e registra a data. */
 export async function runAutoBackup(db: Db, c: AutoBackupConfig, now = new Date()): Promise<BackupEntry> {
-  const json = JSON.stringify(await exportBackup(db));
+  const json = JSON.stringify(await exportBackup(db, { photos: c.photos }));
   const entry = await invoke<BackupEntry>("backup_write", { dir: c.dir, stamp: backupStamp(now), json, keep: c.keep });
   await markBackupDone(db, now);
   return entry;

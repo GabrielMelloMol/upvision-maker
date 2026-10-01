@@ -1,6 +1,6 @@
 import { z } from "zod";
 import { QUOTE_NUMBER_BACKFILL, SCHEMA_VERSION } from "./migrations";
-import { TABLES, type TableName } from "./tables";
+import { LegacyProductPhoto, TABLES, type TableName } from "./tables";
 import type { Db } from "./types";
 
 const APP = "upvision-maker";
@@ -9,20 +9,29 @@ const BackupSchema = z.object({
   app: z.literal(APP),
   schemaVersion: z.number().int().positive(),
   exportedAt: z.string(),
-  tables: z.object(
-    Object.fromEntries(Object.entries(TABLES).map(([k, s]) => [k, z.array(s).default([])])) as {
-      [K in TableName]: z.ZodDefault<z.ZodArray<(typeof TABLES)[K]>>;
-    },
-  ),
+  /** Backup feito sem as fotos (#162, para ficar leve): restaurar mantém as fotos que já estão no app. */
+  photosOmitted: z.boolean().optional(),
+  tables: z
+    .object(
+      Object.fromEntries(Object.entries(TABLES).map(([k, s]) => [k, z.array(s).default([])])) as {
+        [K in TableName]: z.ZodDefault<z.ZodArray<(typeof TABLES)[K]>>;
+      },
+    )
+    // antes da #162 as fotos de produto ficavam em product_photos
+    .extend({ product_photos: z.array(LegacyProductPhoto).default([]) }),
 });
 export type Backup = z.infer<typeof BackupSchema>;
 
 const names = Object.keys(TABLES) as TableName[];
 
-export async function exportBackup(db: Db): Promise<Backup> {
-  const tables = {} as Backup["tables"];
-  for (const t of names) (tables as Record<string, unknown>)[t] = await db.select(`SELECT * FROM ${t} ORDER BY id`);
-  return { app: APP, schemaVersion: SCHEMA_VERSION, exportedAt: new Date().toISOString(), tables };
+/**
+ * `photos: false` deixa as fotos de fora (backup leve, #162). A sincronização entre computadores (#16) e a cópia de
+ * segurança antes de restaurar usam o padrão, com fotos.
+ */
+export async function exportBackup(db: Db, { photos = true }: { photos?: boolean } = {}): Promise<Backup> {
+  const tables = { product_photos: [] } as unknown as Backup["tables"];
+  for (const t of names) (tables as Record<string, unknown>)[t] = t === "photos" && !photos ? [] : await db.select(`SELECT * FROM ${t} ORDER BY id`);
+  return { app: APP, schemaVersion: SCHEMA_VERSION, exportedAt: new Date().toISOString(), ...(photos ? {} : { photosOmitted: true }), tables };
 }
 
 /** Valida o arquivo inteiro antes de qualquer escrita no banco. */
@@ -43,15 +52,22 @@ export function parseBackup(json: string): Backup {
   return full.data;
 }
 
+/** Linhas da tabela no backup; fotos de backup antigo vêm de product_photos (dono "product:<id>"). */
+function rowsOf(backup: Backup, t: TableName): Record<string, unknown>[] {
+  if (t !== "photos" || backup.tables.photos.length || !backup.tables.product_photos.length) return backup.tables[t] as Record<string, unknown>[];
+  return backup.tables.product_photos.map((p) => ({ id: p.id, owner: `product:${p.productId}`, position: p.position, dataUrl: p.dataUrl, createdAt: backup.exportedAt }));
+}
+
 /** Substitui todos os dados pelos do backup. */
 export async function restoreBackup(db: Db, backup: Backup): Promise<void> {
   // ponytail: sem transação (o pool do tauri-plugin-sql não garante a mesma conexão entre chamadas);
   // o backup já foi validado e a UI salva uma cópia de segurança antes. Mover para comando Rust se precisar de atomicidade.
   for (const t of names) {
+    if (t === "photos" && backup.photosOmitted) continue; // backup leve: as fotos do app ficam
     await db.execute(`DELETE FROM ${t}`);
     const cols = Object.keys(TABLES[t].shape);
     const sql = `INSERT INTO ${t} (${cols.join(", ")}) VALUES (${cols.map(() => "?").join(", ")})`;
-    for (const row of backup.tables[t] as Record<string, unknown>[]) {
+    for (const row of rowsOf(backup, t)) {
       await db.execute(sql, cols.map((c) => row[c] ?? null));
     }
   }

@@ -1,7 +1,7 @@
 import { appDataDir, join } from "@tauri-apps/api/path";
 import { open, save } from "@tauri-apps/plugin-dialog";
 import { mkdir, readTextFile, writeTextFile } from "@tauri-apps/plugin-fs";
-import { markBackupDone } from "./backup/auto";
+import { loadAutoBackupConfig, markBackupDone } from "./backup/auto";
 import { exportBackup, parseBackup, restoreBackup } from "./db/backup";
 import { getDb } from "./db";
 
@@ -13,7 +13,8 @@ export async function saveBackup(): Promise<string | null> {
   const path = await save({ defaultPath: `upvision-backup-${stamp()}.json`, filters: FILTERS });
   if (!path) return null;
   const db = await getDb();
-  await writeTextFile(path, JSON.stringify(await exportBackup(db), null, 2));
+  const { photos } = await loadAutoBackupConfig(db); // "Incluir fotos" vale também para o backup do menu (#162)
+  await writeTextFile(path, JSON.stringify(await exportBackup(db, { photos }), null, 2));
   await markBackupDone(db);
   return path;
 }

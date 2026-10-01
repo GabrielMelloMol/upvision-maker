@@ -108,6 +108,8 @@ export const toolProjects = {
     sets.push(["updatedAt", new Date().toISOString()]);
     await db.execute(`UPDATE tool_projects SET ${sets.map(([k]) => `${k} = ?`).join(", ")} WHERE id = ?`, [...sets.map(([, x]) => x), id]);
   },
+  /** Miniatura que chega depois do projeto (render à parte, #161/#149); não conta como mudança da pessoa. */
+  setThumb: (db: Db, id: number, thumb: string | null) => db.execute("UPDATE tool_projects SET thumb = ? WHERE id = ?", [thumb, id]),
   /** "Fazer de novo": cópia com o mesmo estado, nome com "(cópia)", sem favorito nem ligações. */
   async duplicate(db: Db, id: number): Promise<number> {
     const p = await toolProjects.get(db, id);

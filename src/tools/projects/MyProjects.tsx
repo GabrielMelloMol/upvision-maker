@@ -2,6 +2,7 @@ import { FolderOpen, Search, Star } from "lucide-react";
 import { useMemo, useState } from "react";
 import { getDb } from "../../db";
 import { ordersRepo } from "../../db/ordersRepo";
+import { photos } from "../../db/photosRepo";
 import { productsRepo } from "../../db/productsRepo";
 import { toolProjects, toolState, type ProjectPatch, type ToolProject } from "../../db/toolStateRepo";
 import type { Db } from "../../db/types";
@@ -23,10 +24,11 @@ const PERIODS: [Period, string][] = [
   ["30", "Últimos 30 dias"],
 ];
 
-type Data = { projects: ToolProject[]; drafts: { id: string; updatedAt: string }[]; products: { id: number; label: string }[]; orders: { id: number; label: string }[] };
+type Data = { projects: ToolProject[]; drafts: { id: string; updatedAt: string }[]; products: { id: number; label: string }[]; orders: { id: number; label: string }[]; covers: Record<number, string> };
 const load = async (db: Db): Promise<Data> => {
-  const [projects, drafts, products, orders] = await Promise.all([toolProjects.all(db), toolState.recent(db, DRAFTS_MAX), productsRepo.list(db), ordersRepo.list(db)]);
+  const [projects, drafts, products, orders, covers] = await Promise.all([toolProjects.all(db), toolState.recent(db, DRAFTS_MAX), productsRepo.list(db), ordersRepo.list(db), photos.covers(db, "project")]);
   return {
+    covers,
     projects,
     drafts,
     products: products.map((p) => ({ id: p.id, label: p.name })),
@@ -44,7 +46,7 @@ const when = (iso: string) => {
 
 /** Meus projetos (#161): tudo o que foi feito nas ferramentas e modelos, com os rascunhos em andamento no topo. */
 export default function MyProjects({ go }: { go: Go }) {
-  const [data, reload, loading] = useData(load, { projects: [], drafts: [], products: [], orders: [] } as Data);
+  const [data, reload, loading] = useData(load, { projects: [], drafts: [], products: [], orders: [], covers: {} } as Data);
   const [filters, setFilters] = useState<Filters>(NO_FILTERS);
   const [hidden, setHidden] = useState<Set<string>>(new Set());
   const [editing, setEditing] = useState<ToolProject | null>(null);
@@ -88,7 +90,11 @@ export default function MyProjects({ go }: { go: Go }) {
     let undone = false;
     const timer = setTimeout(() => {
       if (undone) return;
-      void act((db) => (it.kind === "draft" ? toolState.remove(db, it.toolId) : toolProjects.remove(db, it.project.id)));
+      void act(async (db) => {
+        if (it.kind === "draft") return toolState.remove(db, it.toolId);
+        await toolProjects.remove(db, it.project.id);
+        await photos.removeOwner(db, `project:${it.project.id}`);
+      });
     }, UNDO_MS);
     toast(`"${it.kind === "draft" ? `Rascunho de ${toolLabel(it.toolId)}` : it.name}" excluído.`, "ok", {
       label: "Desfazer",
@@ -154,7 +160,8 @@ export default function MyProjects({ go }: { go: Go }) {
       <ul className="create-models projects-grid" aria-label="Projetos">
         {shown.map((it) => {
           const page = pageOf(it.toolId)!;
-          const thumb = it.kind === "project" ? it.project.thumb : null;
+          // foto real da peça (#162) no lugar do render
+          const thumb = it.kind === "project" ? (data.covers[it.project.id] ?? it.project.thumb) : null;
           const title = it.kind === "draft" ? `Rascunho de ${page.label}` : it.name;
           return (
             <li key={it.key}>
@@ -194,7 +201,7 @@ export default function MyProjects({ go }: { go: Go }) {
           );
         })}
       </ul>
-      {editing && <ProjectSheet project={editing} products={data.products} orders={data.orders} onSave={(patch) => save(editing, patch)} onClose={() => setEditing(null)} />}
+      {editing && <ProjectSheet project={editing} products={data.products} orders={data.orders} onSave={(patch) => save(editing, patch)} onClose={() => setEditing(null)} onPhotos={reload} />}
     </div>
   );
 }
