@@ -180,20 +180,39 @@ export const HOME_DECOR_MODELS: ModelDef[] = [
     id: "puzzle",
     category: "home",
     label: "Quebra-cabeça",
-    blurb: "Sua arte dividida em peças quadradas, com verso em outra cor, moldura e suporte opcionais.",
+    blurb: "Sua arte em peças com encaixe de verdade (clássico, bolinha, onda…), contorno, número no verso e peça de teste.",
     icon: Puzzle,
-    art: "Arte do quebra-cabeça (SVG ou imagem)",
+    art: "Arte do quebra-cabeça (SVG ou imagem, opcional)",
     defaults: DEFAULT_PUZZLE,
     sections: [
       {
         title: "Peças",
         fields: [
+          choice("output", "Imprimir", [["full", "Quebra-cabeça"], ["test", "Peça de teste (2 × 2)"]]),
           num("width", "Largura montado", 40, 250, { step: 1 }),
-          num("columns", "Peças por linha", 2, 16, { step: 1, unit: "", hint: "As linhas seguem a proporção da arte." }),
+          num("columns", "Peças por linha", 2, 16, { step: 1, unit: "" }),
+          num("rows", "Linhas", 0, 16, { step: 1, unit: "", hint: "0 = segue a proporção da arte." }),
+          choice("outline", "Contorno", [["rect", "Retângulo"], ["circle", "Círculo"], ["heart", "Coração"], ["art", "Do desenho"]]),
+        ],
+      },
+      {
+        title: "Encaixe",
+        fields: [
+          choice("knob", "Tipo de encaixe", [["classic", "Clássico"], ["round", "Bolinha"], ["square", "Quadrado"], ["wave", "Ondulado"], ["triangle", "Triangular"], ["straight", "Sem encaixe (reto)"]]),
+          num("knobSize", "Tamanho da orelha", 15, 30, { step: 1, unit: "%", hint: "Em relação ao lado da peça." }),
+          bool("random", "Cada peça diferente"),
+          num("seed", "Sorteio nº", 1, 999, { step: 1, hint: "Troque o número para outro corte; o mesmo número refaz igual." }),
+          num("clearance", "Folga entre peças", 0.1, 0.8, { step: 0.05, hint: "0,2 a 0,3 mm na maioria das impressoras. Acerte com a peça de teste." }),
+        ],
+      },
+      {
+        title: "Espessura e verso",
+        fields: [
           num("thickness", "Espessura", 2, 10),
           num("inlay", "Profundidade da arte", 0.2, 2, { hint: "A arte fica embutida, rente à face." }),
-          num("clearance", "Folga entre peças", 0.1, 0.8, { step: 0.05 }),
           choice("face", "Imprimir com a arte", [["up", "Para cima"], ["down", "Para baixo (face lisa)"]]),
+          bool("numbers", "Número no verso (para montar)"),
+          choice("layout", "Prévia", [["spread", "Espalhado (para imprimir)"], ["assembled", "Montado (só para ver)"]]),
         ],
       },
       {
