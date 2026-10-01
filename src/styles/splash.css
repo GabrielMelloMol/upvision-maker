@@ -2,7 +2,7 @@
    cores com fallback. Só transform/opacity/clip-path no que se repete (60 fps em máquina fraca).
    Linha do tempo da completa (~3,6 s, conta de quando a janela aparece):
    0–700 ms o mini-ícone sobe com mola · 500–2100 o bico deposita as 3 camadas, com calma · 1500–2500 o nome entra
-   letra a letra · 2300–2900 reflexo de vidro · 3000 a tela "abre" para o app (splash.ts: zoom ou íris). */
+   letra a letra · 2300–2900 reflexo de vidro · 3000 o app se abre num círculo a partir da peça (íris, splash.ts). */
 #splash {
   position: fixed; inset: 0; z-index: 1000; display: grid; place-content: center; justify-items: center; gap: 26px;
   background: var(--bg, #f5f5f7); color: var(--text, #1d1d1f);
@@ -48,14 +48,11 @@
 #splash.full .sheen { animation: splash-sheen 620ms cubic-bezier(0.4, 0, 0.2, 1) 2300ms both; }
 #splash.short .sheen { animation: splash-sheen 500ms cubic-bezier(0.4, 0, 0.2, 1) 40ms both; }
 
-/* 6. abrir o app (splash.ts põe .out + o efeito). Zoom: a peça cresce em direção à tela e se dissolve, o fundo some
-   e o Início chega de um leve desfoque. Íris: o app se abre num círculo a partir da peça (clip-path no #root). */
+/* 6. abrir o app (splash.ts põe .out.iris): o app se abre num círculo a partir da peça (clip-path no #root), que brilha. */
 #splash.out { pointer-events: none; }
 #splash.out::before { opacity: 0; transition: opacity 300ms ease; }
 #splash.out .wordmark { opacity: 0; transform: translateY(6px); transition: opacity 220ms ease, transform 220ms ease; }
-#splash.fx-zoom { animation: splash-fade-out 460ms ease 160ms both; }
-#splash.fx-zoom .brand-mark { animation: splash-zoom 620ms cubic-bezier(0.4, 0, 0.2, 1) both; }
-#splash.fx-iris .brand-mark { animation: splash-glint 620ms ease both; }
+#splash.iris .brand-mark { animation: splash-glint 620ms ease both; }
 #splash.skip { opacity: 0; transition: opacity 200ms ease; }
 
 @keyframes splash-breathe { from { transform: scale(0.92); } to { transform: scale(1.06); } }
@@ -65,8 +62,6 @@
 @keyframes splash-sheen { 0% { opacity: 1; background-position: 110% 0; } 85% { opacity: 1; } 100% { opacity: 0; background-position: -10% 0; } }
 @keyframes splash-letter { from { opacity: 0; transform: translateX(calc(16px - var(--i) * 1px)); filter: blur(3px); } }
 @keyframes splash-glow { 0% { opacity: 0; } 6%, 94% { opacity: 1; } 100% { opacity: 0; } }
-@keyframes splash-fade-out { to { opacity: 0; } }
-@keyframes splash-zoom { 60% { opacity: 1; } to { transform: scale(12); opacity: 0; filter: blur(10px); } }
 @keyframes splash-glint { 0% { filter: brightness(1); } 30% { filter: brightness(1.35); transform: scale(1.04); } 100% { filter: brightness(1); transform: scale(0.96); } }
 /* x: -7 → 7 a cada terço; y: de 9 (camada de baixo) até 0 (camada de cima) */
 @keyframes splash-nozzle {

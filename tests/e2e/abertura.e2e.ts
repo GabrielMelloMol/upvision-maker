@@ -28,7 +28,7 @@ test("abertura (#139, #153): completa toda vez, com o bico e as 3 camadas; sai d
 
 test("abertura (#153): com o app pronto na hora, a completa fica uns 3 s e abre o app; o clique pula", async ({ page }) => {
   await page.clock.install();
-  await page.clock.pauseAt(new Date("2026-10-01T09:00:00"));
+  await page.clock.pauseAt(Date.now() + 60_000); // sempre no futuro (o relógio só anda para frente)
   await page.goto("/");
   const splash = page.locator("#splash");
   await expect(splash).toHaveClass(/full/);
@@ -57,7 +57,7 @@ test("abertura (#153): Desligada em Ajustes → Aparência some com a abertura n
   await go(page, "Ajustes");
   await page.getByRole("group", { name: "Animação de abertura" }).getByRole("button", { name: "Curta" }).click();
   await page.clock.install();
-  await page.clock.pauseAt(new Date("2026-10-01T09:00:00"));
+  await page.clock.pauseAt(Date.now() + 60_000); // sempre no futuro (o relógio só anda para frente)
   await page.reload();
   const splash = page.locator("#splash");
   await expect(splash).toHaveClass(/short/);

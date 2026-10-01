@@ -1,11 +1,12 @@
 import { X } from "lucide-react";
 import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
-import { endTour, startTour, tourFor, tourSeen, useOpenTour, type Tour, type TourStep } from "../help/tours";
+import { cancelTour, endTour, startTour, tourFor, tourSeen, useOpenTour, type Tour, type TourStep } from "../help/tours";
 
 /** Espera a abertura e os modais saírem antes de começar (nunca abre sobre um modal). */
 const POLL_MS = 400;
-const MAX_POLLS = 25;
+/** Tela carregada sob demanda pode demorar: espera até ~20 s o 1º alvo aparecer. */
+const MAX_POLLS = 50;
 const PAD = 6;
 const GAP = 12;
 const POP_W = 300;
@@ -38,6 +39,7 @@ export default function TourHost({ pageId }: { pageId: string }) {
     const t = setInterval(() => {
       if (++polls > MAX_POLLS) return clearInterval(t);
       if (document.getElementById("splash") || document.querySelector("dialog[open]")) return;
+      if (!tourFor(pageId)!.steps.some((s) => findTarget(s))) return; // a tela ainda não montou
       clearInterval(t);
       startTour(pageId);
     }, POLL_MS);
@@ -60,7 +62,7 @@ function TourRun({ tour }: { tour: Tour }) {
   const next = () => (last ? endTour() : setI(i + 1));
 
   useEffect(() => {
-    if (!steps.length) endTour();
+    if (!steps.length) cancelTour(); // nada na tela para mostrar: não conta como visto
   }, [steps.length]);
 
   // acompanha o alvo (rolagem, janela mudando de tamanho)

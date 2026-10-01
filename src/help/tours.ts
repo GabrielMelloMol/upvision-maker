@@ -108,6 +108,11 @@ export function startTour(id: string): void {
   open = id;
   emit();
 }
+/** Fecha sem marcar como visto (o tour não chegou a mostrar nada). */
+export function cancelTour(): void {
+  open = null;
+  emit();
+}
 export function endTour(): void {
   if (open) markTourSeen(open);
   open = null;

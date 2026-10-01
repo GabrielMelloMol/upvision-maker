@@ -22,18 +22,9 @@ const PAINT_SETTLE_MS = 60;
 const THEME_WAIT_MS = 400;
 const SAFETY_MS = 7000;
 const NAME = "UpVision Maker";
-/** Efeito de abrir: "zoom" (a peça cresce e se dissolve) ou "iris" (o app se abre num círculo a partir da peça). */
-type OpenFx = "zoom" | "iris";
 
 const reduce = typeof matchMedia === "function" && matchMedia("(prefers-reduced-motion: reduce)").matches;
 const kind = pickSplash(storedSplashMode(), reduce);
-const fx: OpenFx = (() => {
-  try {
-    return localStorage.getItem("upvision:splash-fx") === "iris" ? "iris" : "zoom";
-  } catch {
-    return "zoom";
-  }
-})();
 const isTauri = "__TAURI_INTERNALS__" in window;
 
 // tema escolhido no app (#152) antes de a janela aparecer: senão ela pisca no tema do sistema
@@ -90,14 +81,15 @@ if (kind === "off") {
 
   let done = false;
   const root = () => document.getElementById("root");
-  /** Abre o app: a peça cresce e se dissolve ("zoom") ou o app se abre num círculo a partir dela ("iris"). */
+  /** Abre o app (#153, escolha do Gabriel: íris): o app se abre num círculo a partir da peça. Pular = fade curto. */
   const open = (skip: boolean) => {
     if (done) return;
     done = true;
     const r = root();
     const dur = skip || reduce ? SKIP_MS : OPEN_MS;
-    el.classList.add("out", skip || reduce ? "skip" : `fx-${fx}`);
-    if (!skip && !reduce && fx === "iris" && r?.animate) {
+    const iris = !skip && !reduce && !!r?.animate;
+    el.classList.add("out", iris ? "iris" : "skip");
+    if (iris && r) {
       const m = el.querySelector(".brand-mark")!.getBoundingClientRect();
       const at = `${Math.round(m.left + m.width / 2)}px ${Math.round(m.top + m.height / 2)}px`;
       r.style.cssText += ";position:relative;z-index:1001";
@@ -105,8 +97,7 @@ if (kind === "off") {
         r.style.position = "";
         r.style.zIndex = "";
       });
-    } else
-      r?.animate?.([{ opacity: 0, transform: "scale(1.04)", filter: "blur(8px)" }, { opacity: 1, transform: "none", filter: "none" }], { duration: dur, easing: "cubic-bezier(0.22, 1, 0.36, 1)" });
+    } else r?.animate?.([{ opacity: 0 }, { opacity: 1 }], { duration: dur, easing: "ease-out" });
     setTimeout(() => el.remove(), dur);
   };
   /** Abre quando as duas coisas estão prontas: o tempo da versão escolhida e o app montado por baixo. */
