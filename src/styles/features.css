@@ -288,3 +288,6 @@ g:hover > .viz-hit { fill: var(--fill); }
 .menu-pop [role="menuitem"].danger { color: var(--danger); }
 .menu-pop .menu-sep { height: 0.5px; margin: 4px 6px; background: var(--border); }
 .create-filters .create-projects { margin-left: auto; font-size: var(--text-sm); font-weight: 500; color: var(--accent-text); text-decoration: none; white-space: nowrap; }
+
+/* Painel, Mais vendidos: nome numa linha só (polimento) */
+td.best-name { max-width: 0; width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }

@@ -58,7 +58,8 @@ describe("Financeiro", () => {
     expect(text(tile("Lucro"))).toContain("-R$ 65,00");
     expect(tile("Lucro")).toHaveClass("bad");
     expect(text(tile("Lucro"))).toContain("prejuízo no período");
-    expect(text(tile("Lucro"))).toContain("▲ 71%"); // -65 vs -225
+    // prejuízo: em vez de % sobre base negativa (que confundia, polimento), a diferença em R$ e se melhorou
+    expect(text(tile("Lucro"))).toMatch(/▲ R\$\s160,00 melhor vs\. período anterior/); // -65 vs -225
     expect(tile("Lucro").querySelector(".stat-delta")).toHaveClass("good");
     expect(text(tile("R$ por hora de impressão"))).toContain("R$ 43,57");
     expect(text(tile("R$ por hora de impressão"))).toContain("7 h de máquina");

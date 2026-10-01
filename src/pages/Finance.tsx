@@ -131,7 +131,7 @@ export default function Finance() {
         <StatTile label="Receita" value={money(s.revenue)} delta={change(s.revenue, prev.revenue)} hint={`${s.orders} pedidos entregues`} />
         <StatTile label="Custo das peças" value={money(s.cogs)} delta={change(s.cogs, prev.cogs)} upIsGood={false} />
         <StatTile label="Custos operacionais" value={money(s.expenses)} delta={change(s.expenses, prev.expenses)} upIsGood={false} hint={productId ? "não se aplicam a um produto" : undefined} />
-        <StatTile label="Lucro" value={money(s.profit)} delta={change(s.profit, prev.profit)} tone={s.profit < 0 ? "bad" : undefined} hint={s.profit < 0 ? "prejuízo no período" : undefined} />
+        <StatTile label="Lucro" value={money(s.profit)} delta={change(s.profit, prev.profit)} deltaMoney={s.profit < 0 || prev.profit < 0 ? s.profit - prev.profit : undefined} tone={s.profit < 0 ? "bad" : undefined} hint={s.profit < 0 ? "prejuízo no período" : undefined} />
         <StatTile label="R$ por hora de impressão" value={s.revenuePerHour === null ? "—" : money(s.revenuePerHour)} hint={`${s.machineHours.toLocaleString("pt-BR")} h de máquina (faturamento, não lucro)`} />
         <StatTile label="Ticket médio" value={s.averageTicket === null ? "—" : money(s.averageTicket)} />
       </div>

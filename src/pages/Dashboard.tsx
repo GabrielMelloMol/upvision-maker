@@ -66,7 +66,7 @@ export default function Dashboard({ go }: { go: Go }) {
       </div>
       <div className="stats">
         <StatTile label="Receita do mês" value={money(month.revenue)} delta={change(month.revenue, last.revenue)} hint={`${month.orders} entregues`} />
-        <StatTile label="Lucro do mês" value={money(month.profit)} delta={change(month.profit, last.profit)} tone={month.profit < 0 ? "bad" : undefined} hint={month.profit < 0 ? "prejuízo até agora" : undefined} />
+        <StatTile label="Lucro do mês" value={money(month.profit)} delta={change(month.profit, last.profit)} deltaMoney={month.profit < 0 || last.profit < 0 ? month.profit - last.profit : undefined} tone={month.profit < 0 ? "bad" : undefined} hint={month.profit < 0 ? "prejuízo até agora" : undefined} />
         <StatTile label="Pedidos em aberto" value={String(open.length)} hint={`${open.filter((o) => o.status === "production").length} em produção`} />
         <StatTile label="Atrasados" value={String(late.length)} tone={late.length ? "bad" : undefined} hint={late.length ? "prazo já passou" : "tudo em dia"} />
       </div>
@@ -129,7 +129,10 @@ export default function Dashboard({ go }: { go: Go }) {
                   const h = HEALTH[health];
                   return (
                     <tr key={p.id}>
-                      <td>{p.name}</td>
+                      {/* nome longo: uma linha com reticências e o nome inteiro na dica (polimento) */}
+                      <td className="best-name" title={p.name}>
+                        {p.name}
+                      </td>
                       <td className="num">{qty.toLocaleString("pt-BR")}</td>
                       <td className="num">
                         {p.stock.toLocaleString("pt-BR")} / {rec}{" "}

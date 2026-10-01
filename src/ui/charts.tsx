@@ -176,9 +176,13 @@ export function HBars({ rows, format = money }: { rows: { label: string; value: 
   );
 }
 
-/** Rótulo pequeno em cima, número grande e variação com seta + texto (a cor só reforça). */
-export function StatTile({ label, value, hint, delta, upIsGood = true, tone }: { label: string; value: string; hint?: string; delta?: number | null; upIsGood?: boolean; tone?: "bad" }) {
-  const dir = delta === undefined || delta === null || delta === 0 ? null : delta > 0 ? "up" : "down";
+/**
+ * Rótulo pequeno em cima, número grande e variação com seta + texto (a cor só reforça).
+ * `deltaMoney`: com prejuízo, % sobre base negativa engana; mostra a diferença em R$ e se ficou melhor ou pior.
+ */
+export function StatTile({ label, value, hint, delta, deltaMoney, upIsGood = true, tone }: { label: string; value: string; hint?: string; delta?: number | null; deltaMoney?: number; upIsGood?: boolean; tone?: "bad" }) {
+  const amount = deltaMoney ?? delta;
+  const dir = amount === undefined || amount === null || Math.abs(amount) < 0.005 ? null : amount > 0 ? "up" : "down";
   const good = dir && (dir === "up") === upIsGood;
   return (
     <div className={`stat ${tone ?? ""}`}>
@@ -186,10 +190,14 @@ export function StatTile({ label, value, hint, delta, upIsGood = true, tone }: {
       <span className="stat-value">{value}</span>
       {dir && (
         <span className={`stat-delta ${good ? "good" : "bad"}`}>
-          {dir === "up" ? "▲" : "▼"} {Math.abs(delta!).toLocaleString("pt-BR", { maximumFractionDigits: 0 })}% vs. período anterior
+          {dir === "up" ? "▲" : "▼"}{" "}
+          {deltaMoney !== undefined
+            ? `${Math.abs(deltaMoney).toLocaleString("pt-BR", { style: "currency", currency: "BRL" })} ${good ? "melhor" : "pior"}`
+            : `${Math.abs(delta!).toLocaleString("pt-BR", { maximumFractionDigits: 0 })}%`}{" "}
+          vs. período anterior
         </span>
       )}
-      {delta === null && <span className="stat-hint">sem base para comparar</span>}
+      {delta === null && deltaMoney === undefined && <span className="stat-hint">sem base para comparar</span>}
       {hint && <span className="stat-hint">{hint}</span>}
     </div>
   );
