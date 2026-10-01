@@ -1,10 +1,11 @@
-import { BookOpen, CircleHelp, CornerDownLeft, Search } from "lucide-react";
+import { BookOpen, CircleHelp, CornerDownLeft, Moon, Search, Sun, SunMoon } from "lucide-react";
 import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { getDb } from "../db";
 import { ARTICLES } from "../help/articles";
 import { GLOSSARY } from "../help/glossary";
 import type { PageDef } from "../pages";
 import { loadSearchItems, rank, type SearchItem } from "./search";
+import { applyTheme, type Theme } from "./theme";
 
 /** Artigos de ajuda (abrem a tela e a ajuda dela) e termos do glossário. */
 function helpItems(pages: PageDef[]): SearchItem[] {
@@ -21,6 +22,15 @@ function helpItems(pages: PageDef[]): SearchItem[] {
   const terms = GLOSSARY.map((t) => ({ id: `term-${t.id}`, title: `O que é ${t.term}?`, subtitle: t.text, group: "Ajuda", icon: BookOpen, pageId: "", help: `term:${t.id}`, keywords: t.match.join(" ") }));
   return [...articles, ...terms];
 }
+
+/** Claro/escuro pela busca (#152). */
+const THEME_ITEMS: SearchItem[] = (
+  [
+    ["dark", "Modo escuro", Moon, "tema aparência noite escuro dark"],
+    ["light", "Modo claro", Sun, "tema aparência dia claro light"],
+    ["auto", "Aparência automática", SunMoon, "tema aparência sistema automático claro escuro"],
+  ] as const
+).map(([t, title, icon, keywords]) => ({ id: `theme-${t}`, title, subtitle: t === "auto" ? "Segue o claro/escuro do sistema" : undefined, group: "Aparência", icon, pageId: "", keywords, run: () => void applyTheme(t as Theme, { save: true, fade: true }) }));
 
 type Props = { pages: PageDef[]; onPick: (item: SearchItem) => void; onClose: () => void };
 
@@ -54,7 +64,7 @@ export default function CommandPalette({ pages, onPick, onClose }: Props) {
     const screens: SearchItem[] = pages.map((p) => ({ id: `page-${p.id}`, title: p.label, subtitle: p.blurb, group: "Telas", icon: p.icon, pageId: p.id }));
     // ajuda (#84): só aparece buscando, para não encher a lista inicial
     const help: SearchItem[] = q.trim() ? helpItems(pages) : [];
-    return rank([...screens, ...records, ...help], q).slice(0, MAX_RESULTS);
+    return rank([...screens, ...records, ...help, ...(q.trim() ? THEME_ITEMS : [])], q).slice(0, MAX_RESULTS);
   }, [pages, records, q]);
   const current = Math.min(active, results.length - 1);
 

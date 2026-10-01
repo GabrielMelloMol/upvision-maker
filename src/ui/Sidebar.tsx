@@ -1,7 +1,8 @@
-import { PanelLeftClose, PanelLeftOpen } from "lucide-react";
+import { Moon, PanelLeftClose, PanelLeftOpen, Sun } from "lucide-react";
 import { SECTIONS, type PageDef, type SectionDef } from "../pages";
 import { modKey } from "./shortcuts";
 import BrandMark, { Wordmark } from "./BrandMark";
+import { toggleTheme, useDarkNow } from "./theme";
 
 type Props = {
   pages: PageDef[];
@@ -88,7 +89,10 @@ export default function Sidebar({ pages, current, onNavigate, onNews, onSuggest,
       </div>
       <div className="scroll">{SECTIONS.filter((s) => s.id !== "settings").map(item)}</div>
       <div className="footer">
-        {SECTIONS.filter((s) => s.id === "settings").map(item)}
+        <div className="footer-row">
+          {SECTIONS.filter((s) => s.id === "settings").map(item)}
+          <ThemeButton />
+        </div>
         {onAbout && (
           <button className={`version ${updateAvailable ? "has-update" : ""}`} onClick={onAbout} aria-label={`Versão ${version ?? ""}${updateAvailable ? ", atualização disponível" : ""}: abrir Sobre`}>
             <span>v{version ?? "…"}</span>
@@ -97,5 +101,17 @@ export default function Sidebar({ pages, current, onNavigate, onNews, onSuggest,
         )}
       </div>
     </nav>
+  );
+}
+
+/** Sol/lua no rodapé (#152): alterna claro e escuro; Automático fica em Ajustes → Preferências → Aparência. */
+function ThemeButton() {
+  const dark = useDarkNow();
+  const label = dark ? "Modo claro" : "Modo escuro";
+  const shortcut = `${modKey()}${modKey() === "⌘" ? "⇧" : "+Shift+"}L`;
+  return (
+    <button type="button" className="ghost icon-only sm theme-toggle" onClick={() => void toggleTheme()} aria-label={label} title={`${label} (${shortcut})`} aria-keyshortcuts="Meta+Shift+L Control+Shift+L">
+      {dark ? <Sun aria-hidden /> : <Moon aria-hidden />}
+    </button>
   );
 }

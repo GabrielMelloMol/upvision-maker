@@ -17,6 +17,8 @@ export type TauriMock = {
   /** Resposta de ask()/confirm(). */
   askAnswer: boolean;
   calls: string[];
+  /** Tema pedido à janela (#152): null = Automático. */
+  theme?: string | null;
   /** Zoom pedido ao webview (Tamanho do texto, #144). */
   zoom?: number;
   /** Resposta do updater (latest.json): null = sem atualização. */
@@ -201,6 +203,9 @@ function handler(m: TauriMock, cmd: string, a: Record<string, unknown> | null, h
       if (json === undefined) throw new Error("backup não encontrado");
       return json;
     }
+    case "plugin:window|set_theme":
+      m.theme = (args.value as string | null) ?? null;
+      return null;
     case "plugin:webview|set_webview_zoom":
       m.zoom = Number(args.value);
       return null;

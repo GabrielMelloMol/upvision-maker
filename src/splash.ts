@@ -5,6 +5,10 @@
  */
 import mark from "./assets/brand/mark.svg?raw";
 import "./styles/splash.css";
+import { applyTheme, storedTheme } from "./ui/theme";
+
+// tema escolhido no app (#152) já na abertura, antes do 1º paint
+if (storedTheme() !== "auto") void applyTheme(storedTheme());
 
 const KEY = "upvision:splash";
 const SAFETY_MS = 4000;

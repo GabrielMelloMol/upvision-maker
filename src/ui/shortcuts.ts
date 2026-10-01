@@ -1,4 +1,4 @@
-/** Atalhos globais: Cmd/Ctrl+K abre a busca, Cmd/Ctrl+N pede "novo" à página aberta, "?" abre a ajuda da tela, ⌘⌥S / Ctrl+Alt+S recolhe a barra lateral. */
+/** Atalhos globais: Cmd/Ctrl+K abre a busca, Cmd/Ctrl+N pede "novo" à página aberta, "?" abre a ajuda da tela, ⌘⌥S / Ctrl+Alt+S recolhe a barra lateral, ⌘⇧L / Ctrl+Shift+L alterna claro e escuro. */
 
 const NEW_EVENT = "upvision:new";
 
@@ -14,8 +14,13 @@ export function onNewShortcut(fn: () => void): () => void {
 /** Campo de digitação em foco: aí a tecla "?" é texto, não atalho. */
 const typing = (t: EventTarget | null) => !!(t as HTMLElement | null)?.closest?.("input, textarea, select, [contenteditable]");
 
-export function installShortcuts({ openPalette, openHelp, toggleSidebar }: { openPalette: () => void; openHelp?: () => void; toggleSidebar?: () => void }): () => void {
+export function installShortcuts({ openPalette, openHelp, toggleSidebar, toggleTheme }: { openPalette: () => void; openHelp?: () => void; toggleSidebar?: () => void; toggleTheme?: () => void }): () => void {
   const onKey = (e: KeyboardEvent) => {
+    if (toggleTheme && (e.metaKey || e.ctrlKey) && e.shiftKey && !e.altKey && e.code === "KeyL") {
+      e.preventDefault();
+      toggleTheme();
+      return;
+    }
     // e.code: com Option no Mac, e.key vira "ß"
     if (toggleSidebar && (e.metaKey || e.ctrlKey) && e.altKey && !e.shiftKey && e.code === "KeyS") {
       e.preventDefault();

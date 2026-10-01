@@ -25,6 +25,7 @@ import CommandPalette from "./ui/CommandPalette";
 import { setPendingOpen, type SearchItem } from "./ui/search";
 import { installShortcuts, modKey } from "./ui/shortcuts";
 import { useSidebarRail } from "./ui/useSidebarRail";
+import { toggleTheme } from "./ui/theme";
 import { CircleHelp, Search } from "lucide-react";
 import { articleFor } from "./help/articles";
 import HelpSheet from "./help/HelpSheet";
@@ -67,10 +68,11 @@ export default function App() {
   useEffect(() => (window as unknown as { upvisionSplashDone?: () => void }).upvisionSplashDone?.(), []);
   const sidebar = useSidebarRail();
   const toggleSidebar = sidebar.toggle;
-  useEffect(() => installShortcuts({ openPalette: () => setSearching(true), openHelp: () => void (articleFor(pageRef.current) && openHelp(pageRef.current)), toggleSidebar }), [toggleSidebar]);
+  useEffect(() => installShortcuts({ openPalette: () => setSearching(true), openHelp: () => void (articleFor(pageRef.current) && openHelp(pageRef.current)), toggleSidebar, toggleTheme: () => void toggleTheme() }), [toggleSidebar]);
 
   function pick(item: SearchItem) {
     setSearching(false);
+    if (item.run) return item.run();
     setPendingOpen(item.recordId !== undefined ? { pageId: item.pageId, recordId: item.recordId } : null);
     if (item.pageId) {
       navigate(item.pageId);

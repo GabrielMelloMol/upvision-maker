@@ -20,6 +20,8 @@ export type SearchItem = {
   keywords?: string;
   /** Abre esta ajuda depois de ir para a página (artigo = id da tela; "term:<id>" = glossário) (#84). */
   help?: string;
+  /** Ação em vez de tela (Modo escuro, Modo claro… #152). */
+  run?: () => void;
 };
 
 /**

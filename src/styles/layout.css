@@ -87,3 +87,9 @@ main { position: relative; overflow: auto; min-width: 0; scroll-padding-top: 64p
 .sidebar .version:hover { color: var(--text); }
 .sidebar .version:focus-visible { outline: 3px solid var(--focus-ring); outline-offset: 1px; }
 .sidebar .update-pill { padding: 1px 8px; border-radius: var(--r-pill); background: var(--action-soft); color: var(--action-text); font-weight: 600; animation: fade-up var(--dur) var(--ease-out) both; }
+/* Ajustes + sol/lua na mesma linha (#152) */
+.sidebar .footer-row { display: flex; align-items: center; gap: 4px; }
+.sidebar .footer-row > :first-child { flex: 1; min-width: 0; }
+.theme-toggle { flex: none; color: var(--muted); }
+.app[data-sidebar="rail"] .sidebar:not(:hover):not(:has(:focus-visible)) .theme-toggle { display: none; }
+::view-transition-old(root), ::view-transition-new(root) { animation-duration: 200ms; }
