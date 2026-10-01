@@ -12,7 +12,10 @@ test("chaveiro: Abrir no OrcaSlicer manda o 3MF com a configuração recomendada
   const card = page.getByRole("region", { name: "Fatiador" });
   await expect(card.getByLabel("Abrir no")).toHaveValue("");
   await card.getByLabel("Abrir no").selectOption("orca");
-  await expect(toastWith(page, "Fatiador salvo.")).toBeVisible();
+  await expect.poll(() => (() => {
+    const row = tauri.db.prepare("SELECT data FROM settings").get() as { data: string } | undefined;
+    return row ? JSON.parse(row.data).slicer : undefined;
+  })()).toBe("orca");
 
   await go(page, "Chaveiros");
   await expect(page.locator(".viewer .overlay.busy")).toHaveCount(0, { timeout: 60_000 });

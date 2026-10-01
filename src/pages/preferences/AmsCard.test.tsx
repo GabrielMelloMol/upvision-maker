@@ -9,7 +9,7 @@ import AmsCard from "./AmsCard";
 
 const t = setupTauri();
 
-test("Meu AMS: escolhe o nº de slots e o filamento de cada slot, e salva nas Preferências (#98)", async () => {
+test("Meu AMS: escolhe o nº de slots e o filamento de cada slot, e grava na hora nas Preferências (#98, #165)", async () => {
   await t.db.execute("INSERT INTO filaments (material, color, brand, pricePerKg) VALUES ('PLA', 'Branco', 'Bambu', 110), ('PLA', 'Preto', 'Bambu', 110)");
   const user = userEvent.setup();
   renderWithApp(<AmsCard />);
@@ -17,7 +17,6 @@ test("Meu AMS: escolhe o nº de slots e o filamento de cada slot, e salva nas Pr
   expect(screen.getAllByRole("combobox")).toHaveLength(8);
   await user.selectOptions(screen.getByLabelText("Slot 1"), "PLA Branco (Bambu)");
   await user.selectOptions(screen.getByLabelText("Slot 3"), "PLA Preto (Bambu)");
-  await user.click(screen.getByRole("button", { name: "Salvar AMS" }));
   await waitFor(async () => expect((await loadSettings(t.db)).ams).toEqual({ slots: 8, filaments: [1, null, 2, null, null, null, null, null] }));
 });
 

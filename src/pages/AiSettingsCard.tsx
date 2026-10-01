@@ -1,4 +1,4 @@
-import { Bot, CircleCheck, KeyRound } from "lucide-react";
+import { CircleCheck, KeyRound } from "lucide-react";
 import { useEffect, useState } from "react";
 import { loadAiSettings, looksLikeKey, looksLikeWorkspace, saveAiSettings } from "../ai/aiSettings";
 import { aiError, type AiErrorInfo, testKey } from "../ai/claude";
@@ -74,59 +74,65 @@ export default function AiSettingsCard() {
 
   return (
     <form
-      className="card stack"
+      className="group"
+      aria-labelledby="ai-title"
       noValidate
       onSubmit={(e) => {
         e.preventDefault();
         void onSave();
       }}
     >
-      <h2 className="card-title">
-        <Bot aria-hidden /> Inteligência artificial (opcional)
+      <h2 className="group-title" id="ai-title">
+        Inteligência artificial (opcional)
       </h2>
-      <Alert kind="warn">
+      <div className="rows">
+        <label>
+          <span>
+            Chave da API {saved && <span className="badge ok"><CircleCheck size={11} /> salva</span>}
+          </span>
+          <input type="password" autoComplete="off" spellCheck={false} placeholder={saved ? "•••••••• (cole outra para trocar)" : "sk-ant-…"} value={key} onChange={(e) => setKey(e.target.value)} />
+          <span className="hint">Crie dentro de um workspace: console.anthropic.com → Settings → Workspaces → escolha o workspace → API keys → Create key.</span>
+        </label>
+        <label>
+          ID do workspace (opcional)
+          <input spellCheck={false} autoComplete="off" placeholder="wrkspc_…" value={workspace} onChange={(e) => setWorkspace(e.target.value)} />
+          <span className="hint">Só para chave que não é de um workspace só. Fica em console.anthropic.com → Settings → Workspaces.</span>
+        </label>
+        <label>
+          Modelo
+          <select
+            value={custom ? "custom" : model}
+            onChange={(e) => {
+              const v = e.target.value;
+              setCustom(v === "custom");
+              if (v !== "custom") setModel(v);
+            }}
+          >
+            {AI_MODELS.map((m) => (
+              <option key={m.id} value={m.id}>
+                {m.label} · US$ {m.input}/{m.output} por milhão de tokens
+              </option>
+            ))}
+            <option value="custom">Outro (digitar ID)</option>
+          </select>
+        </label>
+        {custom && (
+          <label>
+            ID do modelo
+            <input value={model} onChange={(e) => setModel(e.target.value)} placeholder="claude-…" />
+            <span className="hint">Para modelos fora da lista o custo não é estimado.</span>
+          </label>
+        )}
+      </div>
+      <p className="hint group-note">
         A ferramenta <strong>Pedir à IA</strong> usa a API da Anthropic, que é <strong>paga por uso</strong> e cobrada no cartão da conta dona da chave. Cada pedido
         mostra os tokens e o custo estimado. A chave fica guardada só neste computador e não entra no backup.
-      </Alert>
-      <label>
-        Chave da API {saved && <span className="badge ok"><CircleCheck size={11} /> salva</span>}
-        <input type="password" autoComplete="off" spellCheck={false} placeholder={saved ? "•••••••• (cole outra para trocar)" : "sk-ant-…"} value={key} onChange={(e) => setKey(e.target.value)} />
-        <span className="hint">Crie dentro de um workspace: console.anthropic.com → Settings → Workspaces → escolha o workspace → API keys → Create key.</span>
-      </label>
-      <label>
-        ID do workspace (opcional)
-        <input spellCheck={false} autoComplete="off" placeholder="wrkspc_…" value={workspace} onChange={(e) => setWorkspace(e.target.value)} />
-        <span className="hint">Só para chave que não é de um workspace só. Fica em console.anthropic.com → Settings → Workspaces.</span>
-      </label>
-      <label>
-        Modelo
-        <select
-          value={custom ? "custom" : model}
-          onChange={(e) => {
-            const v = e.target.value;
-            setCustom(v === "custom");
-            if (v !== "custom") setModel(v);
-          }}
-        >
-          {AI_MODELS.map((m) => (
-            <option key={m.id} value={m.id}>
-              {m.label} · US$ {m.input}/{m.output} por milhão de tokens
-            </option>
-          ))}
-          <option value="custom">Outro (digitar ID)</option>
-        </select>
-      </label>
-      {custom && (
-        <label>
-          ID do modelo
-          <input value={model} onChange={(e) => setModel(e.target.value)} placeholder="claude-…" />
-          <span className="hint">Para modelos fora da lista o custo não é estimado.</span>
-        </label>
-      )}
+      </p>
       {status && <Alert kind={status.kind}>{status.text}</Alert>}
       {apiError && <AiErrorAlert info={apiError} />}
       <div className="row">
-        <button className="primary" type="submit">
+        {/* botão comum: o principal da página é o Salvar preferências (#165) */}
+        <button type="submit">
           <KeyRound aria-hidden /> Salvar
         </button>
         <button type="button" onClick={onTest} disabled={testing}>

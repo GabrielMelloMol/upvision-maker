@@ -28,29 +28,30 @@ export default function AmsCard() {
   }, [toast]);
 
   if (!ams) return null;
-  const setSlot = (i: number, id: number | null) => setAms((a) => a && { ...a, filaments: Array.from({ length: a.slots }, (_, j) => (j === i ? id : (a.filaments[j] ?? null))) });
 
-  async function save() {
-    if (!ams) return;
+  /** Grava na hora, como nos Ajustes do sistema (#165); só avisa se der erro. */
+  async function save(next: Ams) {
+    setAms(next);
     try {
       const db = await getDb();
-      await saveSettings(db, { ...(await loadSettings(db)), ams: { ...ams, filaments: ams.filaments.slice(0, ams.slots) } });
-      toast("AMS salvo.");
+      await saveSettings(db, { ...(await loadSettings(db)), ams: { ...next, filaments: next.filaments.slice(0, next.slots) } });
     } catch (e) {
-      toast(`Não foi possível salvar: ${errorText(e)}`, "error");
+      toast(`Não foi possível salvar o AMS: ${errorText(e)}`, "error");
     }
   }
+  const setSlot = (i: number, id: number | null) => void save({ ...ams, filaments: Array.from({ length: ams.slots }, (_, j) => (j === i ? id : (ams.filaments[j] ?? null))) });
 
   return (
-    <section className="card stack" aria-label="Meu AMS">
-      <h3>Meu AMS</h3>
-      <p className="muted">Os filamentos carregados aparecem primeiro nos seletores de cor, e o 3MF já sai com cada cor no slot certo.</p>
-      <div>
-        <span className="field-label">Slots</span>
-        <Segmented label="Slots" value={String(ams.slots)} options={SLOT_OPTIONS} onChange={(v) => setAms({ ...ams, slots: Number(v) as Ams["slots"] })} />
-      </div>
-      {!list.length && <span className="hint">Cadastre seus filamentos em Filamentos para escolher o de cada slot.</span>}
-      <div className="grid two">
+    <section className="group" aria-labelledby="ams-title">
+      <h2 className="group-title" id="ams-title">
+        Meu AMS
+      </h2>
+      <div className="rows">
+        <div className="row-control">
+          <span className="row-label">Slots</span>
+          <span className="hint">Quantos filamentos o seu AMS carrega.</span>
+          <Segmented label="Slots" value={String(ams.slots)} options={SLOT_OPTIONS} onChange={(v) => void save({ ...ams, slots: Number(v) as Ams["slots"] })} />
+        </div>
         {Array.from({ length: ams.slots }, (_, i) => (
           <Field key={i} label={`Slot ${i + 1}`}>
             <select value={ams.filaments[i] ?? ""} onChange={(e) => setSlot(i, e.target.value ? Number(e.target.value) : null)}>
@@ -64,9 +65,11 @@ export default function AmsCard() {
           </Field>
         ))}
       </div>
-      <button type="button" className="primary" onClick={() => void save()}>
-        Salvar AMS
-      </button>
+      <p className="hint group-note">
+        {list.length
+          ? "Os filamentos carregados aparecem primeiro nos seletores de cor, e o 3MF já sai com cada cor no slot certo."
+          : "Cadastre seus filamentos em Filamentos para escolher o de cada slot."}
+      </p>
     </section>
   );
 }

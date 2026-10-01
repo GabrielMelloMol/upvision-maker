@@ -15,7 +15,7 @@ test("Ajustes › Fatiador: automático mostra qual vai abrir; escolher grava na
   ];
   const user = userEvent.setup();
   renderWithApp(<SlicerCard />);
-  const select = await screen.findByLabelText("Abrir no");
+  const select = await screen.findByLabelText(/^Abrir no/);
   expect([...(select as HTMLSelectElement).options].map((o) => o.textContent)).toEqual(["Automático (Bambu Studio)", "Bambu Studio", "OrcaSlicer"]);
   await user.selectOptions(select, "orca");
   await waitFor(async () => expect((await loadSettings(t.db)).slicer).toBe("orca"));

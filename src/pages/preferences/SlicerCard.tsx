@@ -28,31 +28,37 @@ export default function SlicerCard() {
     setChoice(v);
     try {
       const db = await getDb();
-      await saveSettings(db, { ...(await loadSettings(db)), slicer: v });
-      toast("Fatiador salvo.");
+      await saveSettings(db, { ...(await loadSettings(db)), slicer: v }); // grava na hora (#165)
     } catch (e) {
       toast(`Não foi possível salvar: ${errorText(e)}`, "error");
     }
   }
 
   return (
-    <section className="card stack" aria-label="Fatiador">
-      <h3>Fatiador</h3>
-      <p className="muted">O botão "Abrir no…" das ferramentas salva o arquivo e abre direto nele. No Bambu Studio, abre como projeto, com a impressora e o AMS.</p>
-      {installed.length ? (
-        <Field label="Abrir no">
-          <select value={choice ?? ""} onChange={(e) => void change((e.target.value || null) as SlicerId | null)}>
-            <option value="">Automático{auto ? ` (${auto.name})` : ""}</option>
-            {SLICER_IDS.filter((id) => installed.some((s) => s.id === id)).map((id) => (
-              <option key={id} value={id}>
-                {SLICER_DOWNLOADS[id].name}
-              </option>
-            ))}
-          </select>
-        </Field>
-      ) : (
-        <span className="hint">Nenhum fatiador encontrado neste computador. Instale o Bambu Studio, o OrcaSlicer ou o PrusaSlicer.</span>
-      )}
+    <section className="group" aria-labelledby="slicer-title">
+      <h2 className="group-title" id="slicer-title">
+        Fatiador
+      </h2>
+      <div className="rows">
+        {installed.length ? (
+          <Field label="Abrir no" hint="O botão Abrir no… das ferramentas salva o arquivo e abre direto nele.">
+            <select value={choice ?? ""} onChange={(e) => void change((e.target.value || null) as SlicerId | null)}>
+              <option value="">Automático{auto ? ` (${auto.name})` : ""}</option>
+              {SLICER_IDS.filter((id) => installed.some((s) => s.id === id)).map((id) => (
+                <option key={id} value={id}>
+                  {SLICER_DOWNLOADS[id].name}
+                </option>
+              ))}
+            </select>
+          </Field>
+        ) : (
+          <div className="row-control">
+            <span className="row-label">Abrir no</span>
+            <span className="hint">Nenhum fatiador encontrado neste computador. Instale o Bambu Studio, o OrcaSlicer ou o PrusaSlicer.</span>
+          </div>
+        )}
+      </div>
+      <p className="hint group-note">No Bambu Studio o arquivo abre como projeto, com a impressora, os filamentos do AMS e as pausas.</p>
     </section>
   );
 }

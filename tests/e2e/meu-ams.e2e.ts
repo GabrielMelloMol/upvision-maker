@@ -12,8 +12,11 @@ test("Meu AMS: filamentos nos slots, cores do chaveiro escolhidas entre eles e 3
   const card = page.getByRole("region", { name: "Meu AMS" });
   await card.getByLabel("Slot 2").selectOption({ label: "PLA Preto (Bambu)" });
   await card.getByLabel("Slot 3").selectOption({ label: "PLA Amarelo (Bambu)" });
-  await card.getByRole("button", { name: "Salvar AMS" }).click();
-  await expect(toastWith(page, "AMS salvo.")).toBeVisible();
+  // grava na hora (#165)
+  await expect.poll(() => (() => {
+    const row = tauri.db.prepare("SELECT data FROM settings").get() as { data: string } | undefined;
+    return row ? JSON.parse(row.data).ams.filaments : undefined;
+  })()).toEqual([null, 1, 2, null]);
 
   await go(page, "Chaveiros");
   await page.getByRole("radiogroup", { name: "Cor da base: seus filamentos" }).getByRole("radio", { name: "Slot 2 · PLA Preto (Bambu)" }).click();
