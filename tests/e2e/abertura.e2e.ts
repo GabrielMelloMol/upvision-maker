@@ -1,6 +1,6 @@
-import { expect, test } from "./tauri";
+import { expect, go, openApp, test } from "./tauri";
 
-test("abertura (#139): impressão completa 1ª vez no dia, some quando o app monta, fade curto depois e tecla pula", async ({ page }) => {
+test("abertura (#139, #153): completa toda vez, com o bico e as 3 camadas; sai depois que o app monta; tecla pula", async ({ page }) => {
   // o app só carrega quando o teste liberar: a abertura fica na tela para ser conferida
   let release!: () => void;
   const held = new Promise<void>((ok) => (release = ok));
@@ -15,33 +15,55 @@ test("abertura (#139): impressão completa 1ª vez no dia, some quando o app mon
   await expect(splash.locator(".nozzle .nozzle-glow")).toHaveCount(1); // o bico que deposita as camadas (#150)
   release();
   await expect(page.getByRole("navigation", { name: "Navegação principal" })).toBeVisible({ timeout: 60_000 }); // Vite frio
-  await expect(splash).toHaveCount(0); // app montou: saiu
+  await expect(splash).toHaveCount(0, { timeout: 10_000 }); // app montou e a animação terminou: abriu
 
-  // mesmo dia: só o fade curto; com o app parado, é a tecla que fecha (antes da trava de 4 s)
+  // de novo: a completa aparece toda vez (#153); com o app parado, é a tecla que fecha
   await page.unroute("**/src/main.tsx*");
   await page.route("**/src/main.tsx*", (r) => r.fulfill({ body: "", contentType: "text/javascript" }));
   await page.reload({ waitUntil: "commit" });
-  await expect(splash).toHaveClass(/short/);
+  await expect(splash).toHaveClass(/full/);
   await page.keyboard.press("Escape");
   await expect(splash).toHaveCount(0, { timeout: 1500 });
 });
 
-test("abertura (#150): com o app pronto na hora, a impressão completa fica o tempo mínimo e o clique pula", async ({ page }) => {
+test("abertura (#153): com o app pronto na hora, a completa fica uns 3 s e abre o app; o clique pula", async ({ page }) => {
   await page.clock.install();
   await page.clock.pauseAt(new Date("2026-10-01T09:00:00"));
   await page.goto("/");
   const splash = page.locator("#splash");
   await expect(splash).toHaveClass(/full/);
   await expect(page.getByRole("navigation", { name: "Navegação principal" })).toBeVisible({ timeout: 60_000 });
-  await page.clock.runFor(1000);
+  await page.clock.runFor(2500);
   await expect(splash).not.toHaveClass(/out/); // app montado, mas a animação ainda não terminou
-  await page.clock.runFor(1500); // 1,4 s + o voo até a barra lateral
+  await page.clock.runFor(6000); // 3 s contados de quando a janela apareceu (o IPC do mock roda no relógio real) + o efeito
   await expect(splash).toHaveCount(0);
 
-  // outra abertura no modo completo (dia seguinte): o clique pula na hora
-  await page.clock.pauseAt(new Date("2026-10-02T09:00:00"));
   await page.reload();
   await expect(splash).toHaveClass(/full/);
   await page.mouse.click(10, 10);
-  await expect(splash).toHaveClass(/gone/); // pular: some sem o voo
+  await expect(splash).toHaveClass(/skip/); // pular: some num fade curto
+});
+
+test("abertura (#153): Desligada em Ajustes → Aparência some com a abertura na próxima vez; Curta fica pelo menos o reflexo", async ({ page }) => {
+  await openApp(page);
+  await go(page, "Ajustes");
+  const mode = page.getByRole("group", { name: "Animação de abertura" });
+  await expect(mode.getByRole("button", { name: "Completa" })).toHaveAttribute("aria-pressed", "true"); // padrão
+  await mode.getByRole("button", { name: "Desligada" }).click();
+  await page.reload();
+  await expect(page.getByRole("navigation", { name: "Navegação principal" })).toBeVisible({ timeout: 60_000 });
+  await expect(page.locator("#splash")).toHaveCount(0);
+  // Curta: mesmo com o app pronto na hora, o reflexo passa inteiro antes de abrir
+  await go(page, "Ajustes");
+  await page.getByRole("group", { name: "Animação de abertura" }).getByRole("button", { name: "Curta" }).click();
+  await page.clock.install();
+  await page.clock.pauseAt(new Date("2026-10-01T09:00:00"));
+  await page.reload();
+  const splash = page.locator("#splash");
+  await expect(splash).toHaveClass(/short/);
+  await expect(page.getByRole("navigation", { name: "Navegação principal" })).toBeVisible({ timeout: 60_000 });
+  await page.clock.runFor(300);
+  await expect(splash).not.toHaveClass(/out/);
+  await page.clock.runFor(2000);
+  await expect(splash).toHaveCount(0);
 });

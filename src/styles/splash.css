@@ -1,65 +1,73 @@
-/* Abertura (#139, #150) e a impressão do símbolo camada por camada (também no Sobre). Carrega antes dos tokens: cores com fallback.
-   Só transform/opacity/clip-path (60 fps em máquina fraca). Linha do tempo da abertura completa (~1,8 s):
-   0–420 ms o mini-ícone sobe com mola · 280–1000 o bico deposita as 3 camadas · 650–1300 o nome entra letra a letra ·
-   1020–1440 reflexo de vidro · depois o símbolo voa para a logo da barra lateral e o app aparece (splash.ts). */
+/* Abertura (#139, #150, #153) e a impressão do símbolo camada por camada (também no Sobre). Carrega antes dos tokens:
+   cores com fallback. Só transform/opacity/clip-path no que se repete (60 fps em máquina fraca).
+   Linha do tempo da completa (~3,6 s, conta de quando a janela aparece):
+   0–700 ms o mini-ícone sobe com mola · 500–2100 o bico deposita as 3 camadas, com calma · 1500–2500 o nome entra
+   letra a letra · 2300–2900 reflexo de vidro · 3000 a tela "abre" para o app (splash.ts: zoom ou íris). */
 #splash {
-  position: fixed; inset: 0; z-index: 1000; display: grid; place-content: center; justify-items: center; gap: 22px;
+  position: fixed; inset: 0; z-index: 1000; display: grid; place-content: center; justify-items: center; gap: 26px;
   background: var(--bg, #f5f5f7); color: var(--text, #1d1d1f);
-  font: 600 22px/1.2 -apple-system, BlinkMacSystemFont, "SF Pro Display", "Segoe UI Variable Display", "Segoe UI", system-ui, sans-serif;
-  letter-spacing: -0.01em; transition: background-color 360ms ease, opacity 220ms ease;
+  font: 600 24px/1.2 -apple-system, BlinkMacSystemFont, "SF Pro Display", "Segoe UI Variable Display", "Segoe UI", system-ui, sans-serif;
+  letter-spacing: -0.01em;
 }
 @media (prefers-color-scheme: dark) {
   #splash { background: var(--bg, #161618); color: var(--text, #f5f5f7); }
 }
 /* brilho radial azul que respira atrás do símbolo */
 #splash::before {
-  content: ""; position: absolute; left: 50%; top: 50%; width: 520px; height: 520px; margin: -300px 0 0 -260px; pointer-events: none;
-  background: radial-gradient(closest-side, rgb(47 123 255 / 0.16), transparent); animation: splash-breathe 1.6s ease-in-out infinite alternate;
+  content: ""; position: absolute; left: 50%; top: 50%; width: 560px; height: 560px; margin: -320px 0 0 -280px; pointer-events: none;
+  background: radial-gradient(closest-side, rgb(47 123 255 / 0.16), transparent); animation: splash-breathe 1.8s ease-in-out infinite alternate;
 }
-#splash.out { background-color: transparent; pointer-events: none; }
-#splash::before, #splash .wordmark { transition: opacity 180ms ease; }
-#splash.out::before, #splash.out .wordmark { opacity: 0; }
-#splash.gone { opacity: 0; }
-#splash .brand-mark { position: relative; width: 120px; height: 120px; border-radius: 27px; overflow: hidden; will-change: transform; }
+#splash .brand-mark { position: relative; width: 132px; height: 132px; border-radius: 30px; overflow: hidden; will-change: transform; }
 #splash .brand-mark svg { overflow: visible; }
 #splash .wordmark { display: inline-flex; white-space: pre; }
-#splash.short .wordmark { display: none; }
+#splash.short .wordmark, #splash.short .nozzle { display: none; }
+/* tudo parado até a janela aparecer (splash.ts põe .play): o app pronto antes não "atropela" a animação */
+#splash:not(.play), #splash:not(.play) *, #splash:not(.play)::before { animation-play-state: paused !important; }
 
-/* reflexo de vidro (Liquid Glass): faixa clara que passa por cima do mini-ícone pronto */
-#splash .sheen {
-  position: absolute; inset: 0; pointer-events: none; opacity: 0; border-radius: inherit;
-  background: linear-gradient(115deg, transparent 38%, rgb(255 255 255 / 0.7) 50%, transparent 62%) no-repeat; background-size: 300% 100%;
-}
-#splash.full .sheen { animation: splash-sheen 420ms cubic-bezier(0.4, 0, 0.2, 1) 1020ms both; }
-#splash.short.sheening .sheen { animation: splash-sheen 260ms cubic-bezier(0.4, 0, 0.2, 1) both; }
-
-/* 1. o mini-ícone (a "mesa") sobe com uma mola curta */
-#splash.full .brand-mark { animation: splash-bed 420ms cubic-bezier(0.34, 1.56, 0.64, 1) both; }
+/* 1. o mini-ícone (a "mesa") sobe com uma mola */
+#splash.full .brand-mark { animation: splash-bed 700ms cubic-bezier(0.34, 1.4, 0.64, 1) both; }
 /* 2. cada camada "escorre" da esquerda para a direita atrás do bico e assenta */
 #splash.full .layer {
   transform-box: fill-box; transform-origin: 50% 100%;
-  animation: splash-pour 220ms linear both, splash-settle 220ms cubic-bezier(0.34, 1.56, 0.64, 1) both;
+  animation: splash-pour 420ms cubic-bezier(0.45, 0, 0.55, 1) both, splash-settle 320ms cubic-bezier(0.34, 1.56, 0.64, 1) both;
 }
-#splash.full .l0 { animation-delay: 280ms, 500ms; }
-#splash.full .l1 { animation-delay: 520ms, 740ms; }
-#splash.full .l2 { animation-delay: 760ms, 980ms; }
+#splash.full .l0 { animation-delay: 560ms, 980ms; }
+#splash.full .l1 { animation-delay: 1060ms, 1480ms; }
+#splash.full .l2 { animation-delay: 1560ms, 1980ms; }
 /* 3. o bico: uma passada por camada, subindo 4,5 (a altura da camada) a cada passada */
-#splash.full .nozzle { animation: splash-nozzle 720ms linear 280ms both; }
-#splash.full .nozzle-glow { animation: splash-glow 720ms linear 280ms both; }
-#splash.short .nozzle { display: none; }
+#splash.full .nozzle { animation: splash-nozzle 1560ms linear 500ms both; }
+#splash.full .nozzle-glow { animation: splash-glow 1560ms linear 500ms both; }
 .nozzle-glow { opacity: 0; }
-
 /* 4. o nome entra letra a letra, com o espaço entre as letras fechando */
-#splash.full .wordmark span { display: inline-block; animation: splash-letter 360ms cubic-bezier(0.22, 1, 0.36, 1) both; animation-delay: calc(650ms + var(--i) * 28ms); }
+#splash.full .wordmark span { display: inline-block; animation: splash-letter 520ms cubic-bezier(0.22, 1, 0.36, 1) both; animation-delay: calc(1500ms + var(--i) * 45ms); }
+/* 5. reflexo de vidro (Liquid Glass) passa pela peça pronta */
+#splash .sheen {
+  position: absolute; inset: 0; pointer-events: none; opacity: 0; border-radius: inherit;
+  background: linear-gradient(115deg, transparent 38%, rgb(255 255 255 / 0.75) 50%, transparent 62%) no-repeat; background-size: 300% 100%;
+}
+#splash.full .sheen { animation: splash-sheen 620ms cubic-bezier(0.4, 0, 0.2, 1) 2300ms both; }
+#splash.short .sheen { animation: splash-sheen 500ms cubic-bezier(0.4, 0, 0.2, 1) 40ms both; }
+
+/* 6. abrir o app (splash.ts põe .out + o efeito). Zoom: a peça cresce em direção à tela e se dissolve, o fundo some
+   e o Início chega de um leve desfoque. Íris: o app se abre num círculo a partir da peça (clip-path no #root). */
+#splash.out { pointer-events: none; }
+#splash.out::before { opacity: 0; transition: opacity 300ms ease; }
+#splash.out .wordmark { opacity: 0; transform: translateY(6px); transition: opacity 220ms ease, transform 220ms ease; }
+#splash.fx-zoom { animation: splash-fade-out 460ms ease 160ms both; }
+#splash.fx-zoom .brand-mark { animation: splash-zoom 620ms cubic-bezier(0.4, 0, 0.2, 1) both; }
+#splash.fx-iris .brand-mark { animation: splash-glint 620ms ease both; }
+#splash.skip { opacity: 0; transition: opacity 200ms ease; }
 
 @keyframes splash-breathe { from { transform: scale(0.92); } to { transform: scale(1.06); } }
-@keyframes splash-bed { from { opacity: 0; transform: translateY(40px) scale(0.92); } }
-@keyframes splash-fade { from { opacity: 0; } }
+@keyframes splash-bed { from { opacity: 0; transform: translateY(48px) scale(0.9); } }
 @keyframes splash-pour { from { clip-path: inset(0 100% 0 0); } to { clip-path: inset(0 0 0 0); } }
 @keyframes splash-settle { 0% { transform: translateY(-0.8px); } 100% { transform: none; } }
 @keyframes splash-sheen { 0% { opacity: 1; background-position: 110% 0; } 85% { opacity: 1; } 100% { opacity: 0; background-position: -10% 0; } }
-@keyframes splash-letter { from { opacity: 0; transform: translateX(calc(14px - var(--i) * 1px)); filter: blur(2px); } }
-@keyframes splash-glow { 0% { opacity: 0; } 8%, 92% { opacity: 1; } 100% { opacity: 0; } }
+@keyframes splash-letter { from { opacity: 0; transform: translateX(calc(16px - var(--i) * 1px)); filter: blur(3px); } }
+@keyframes splash-glow { 0% { opacity: 0; } 6%, 94% { opacity: 1; } 100% { opacity: 0; } }
+@keyframes splash-fade-out { to { opacity: 0; } }
+@keyframes splash-zoom { 60% { opacity: 1; } to { transform: scale(12); opacity: 0; filter: blur(10px); } }
+@keyframes splash-glint { 0% { filter: brightness(1); } 30% { filter: brightness(1.35); transform: scale(1.04); } 100% { filter: brightness(1); transform: scale(0.96); } }
 /* x: -7 → 7 a cada terço; y: de 9 (camada de baixo) até 0 (camada de cima) */
 @keyframes splash-nozzle {
   0% { opacity: 0; transform: translate(-7px, 9px); }
@@ -72,14 +80,12 @@
   100% { opacity: 0; transform: translate(7px, -3px); }
 }
 
-/* Sobre: a impressão simples de antes (cada camada cresce de baixo para cima) */
+/* Sobre: a impressão simples (cada camada cresce de baixo para cima) */
 .brand-mark.printing .bed { animation: print-bed 240ms ease both; }
 .brand-mark.printing .layer { transform-box: fill-box; transform-origin: 50% 100%; animation: print-layer 220ms cubic-bezier(0.22, 1, 0.36, 1) both; }
 .brand-mark.printing .l0 { animation-delay: calc(var(--print-step, 140ms) * 1); }
 .brand-mark.printing .l1 { animation-delay: calc(var(--print-step, 140ms) * 2); }
 .brand-mark.printing .l2 { animation-delay: calc(var(--print-step, 140ms) * 3); }
-.brand-mark.printing .l3 { animation-delay: calc(var(--print-step, 140ms) * 4); }
-.brand-mark.printing .l4 { animation-delay: calc(var(--print-step, 140ms) * 5); }
 @keyframes print-bed { from { opacity: 0; } }
 @keyframes print-layer { from { opacity: 0; transform: scaleY(0.15); } }
 @media (prefers-reduced-motion: reduce) {

@@ -1,4 +1,5 @@
 import { Moon, PanelLeftClose, PanelLeftOpen, Sun } from "lucide-react";
+import { useEffect, useRef, useState } from "react";
 import { SECTIONS, type PageDef, type SectionDef } from "../pages";
 import { modKey } from "./shortcuts";
 import BrandMark, { Wordmark } from "./BrandMark";
@@ -30,6 +31,18 @@ type Props = {
 export default function Sidebar({ pages, current, onNavigate, onNews, onSuggest, onBackup, onRestore, version, updateAvailable, onAbout, rail = false, narrow = false, onToggle }: Props) {
   const page = pages.find((p) => p.id === current);
   const open = page?.section ?? "home";
+  // acabou de recolher (#156): fica recolhida mesmo com o mouse ou o foco ainda nela, até o mouse sair
+  const [hold, setHold] = useState(false);
+  const wasRail = useRef(rail);
+  const navRef = useRef<HTMLElement>(null);
+  useEffect(() => {
+    if (rail && !wasRail.current) {
+      if (navRef.current?.matches(":hover")) setHold(true);
+      const el = document.activeElement as HTMLElement | null;
+      if (el?.closest(".sidebar") && !el.matches(".sidebar-toggle")) el.blur();
+    }
+    wasRail.current = rail;
+  }, [rail]);
   const sub = (s: SectionDef) => {
     if (s.id !== open) return [];
     if (s.id === "create") return page && page.id !== "create" ? [page] : [];
@@ -74,7 +87,7 @@ export default function Sidebar({ pages, current, onNavigate, onNews, onSuggest,
   };
 
   return (
-    <nav className="sidebar" aria-label="Navegação principal">
+    <nav ref={navRef} className="sidebar" aria-label="Navegação principal" data-hold={hold || undefined} onMouseLeave={() => setHold(false)} onFocus={() => setHold(false)}>
       <div className="drag" data-tauri-drag-region />
       <div className="sidebar-head">
         <button className="brand" onClick={() => onNavigate("home")}>
@@ -89,16 +102,16 @@ export default function Sidebar({ pages, current, onNavigate, onNews, onSuggest,
       </div>
       <div className="scroll">{SECTIONS.filter((s) => s.id !== "settings").map(item)}</div>
       <div className="footer">
+        {SECTIONS.filter((s) => s.id === "settings").map(item)}
         <div className="footer-row">
-          {SECTIONS.filter((s) => s.id === "settings").map(item)}
-          <ThemeButton />
-        </div>
         {onAbout && (
           <button className={`version ${updateAvailable ? "has-update" : ""}`} onClick={onAbout} aria-label={`Versão ${version ?? ""}${updateAvailable ? ", atualização disponível" : ""}: abrir Sobre`}>
             <span>v{version ?? "…"}</span>
             {updateAvailable && <span className="update-pill">Atualização disponível</span>}
           </button>
         )}
+          <ThemeButton />
+        </div>
       </div>
     </nav>
   );

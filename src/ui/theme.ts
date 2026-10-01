@@ -49,8 +49,12 @@ async function native(t: Theme): Promise<void> {
   await getCurrentWindow().setTheme(t === "auto" ? null : t);
 }
 
-/** Aplica o tema (com cross-fade quando o webview sabe fazer) e, com `save`, lembra a escolha. */
-export async function applyTheme(t: Theme, { save = false, fade = false } = {}): Promise<void> {
+/**
+ * Aplica o tema e, com `save`, lembra a escolha. A troca é instantânea e em um quadro só (#154): o cross-fade de antes
+ * deixava um quadro cinza (as duas fotos meio transparentes sobre o vidro nativo) e o vidro trocava antes do resto.
+ * Durante a troca as transições do CSS ficam desligadas, senão botões e cartões mudavam de cor depois do fundo.
+ */
+export async function applyTheme(t: Theme, { save = false } = {}): Promise<void> {
   current = t;
   if (save) {
     try {
@@ -60,25 +64,20 @@ export async function applyTheme(t: Theme, { save = false, fade = false } = {}):
     }
   }
   listeners.forEach((l) => l());
-  const run = async () => {
+  const root = document.documentElement;
+  root.classList.add("theme-switching");
+  try {
     await native(t);
     await schemeChanged();
-  };
-  const reduce = typeof matchMedia === "function" && matchMedia("(prefers-reduced-motion: reduce)").matches;
-  const doc = document as Document & { startViewTransition?: (cb: () => Promise<void>) => { ready: Promise<void>; finished: Promise<void> } };
-  try {
-    if (fade && !reduce && doc.startViewTransition) {
-      const vt = doc.startViewTransition(run);
-      vt.ready.catch(() => {}); // trocou de novo antes de terminar: a transição anterior é pulada, o tema vale igual
-      await vt.finished;
-    } else await native(t);
   } catch (e) {
     console.error("Tema: não deu para trocar", e);
+  } finally {
+    requestAnimationFrame(() => requestAnimationFrame(() => root.classList.remove("theme-switching")));
   }
 }
 
 /** Alterna entre claro e escuro a partir do que está na tela agora (botão sol/lua e ⌘⇧L). */
-export const toggleTheme = () => applyTheme(isDarkNow() ? "light" : "dark", { save: true, fade: true });
+export const toggleTheme = () => applyTheme(isDarkNow() ? "light" : "dark", { save: true });
 
 export function useTheme(): Theme {
   return useSyncExternalStore(

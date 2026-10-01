@@ -10,3 +10,4 @@ interface ImportMetaEnv {
 
 /** Data do build (AAAA-MM-DD), definida no vite.config.ts. */
 declare const __BUILD_DATE__: string;
+declare const __APP_VERSION__: string;

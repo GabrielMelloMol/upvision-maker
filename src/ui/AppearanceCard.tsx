@@ -1,18 +1,20 @@
 import { useState } from "react";
 import { modKey } from "./shortcuts";
 import Segmented from "./Segmented";
+import { saveSplashMode, SPLASH_MODES, storedSplashMode, type SplashMode } from "./splashMode";
 import { applyTheme, THEMES, useTheme } from "./theme";
 import { applyZoom, storedZoom, ZOOMS, type Zoom } from "./zoom";
 
-/** Aparência: claro/escuro (#152) e tamanho do texto do app inteiro (#144). */
+/** Aparência: claro/escuro (#152), tamanho do texto do app inteiro (#144) e animação de abertura (#153). */
 export default function AppearanceCard() {
   const [zoom, setZoom] = useState<Zoom>(storedZoom);
   const theme = useTheme();
+  const [splash, setSplash] = useState<SplashMode>(storedSplashMode);
   return (
     <>
     <section className="card stack">
       <h3>Tema</h3>
-      <Segmented label="Tema" value={theme} options={THEMES} onChange={(t) => void applyTheme(t, { save: true, fade: true })} />
+      <Segmented label="Tema" value={theme} options={THEMES} onChange={(t) => void applyTheme(t, { save: true })} />
       <span className="hint">
         Automático segue o sistema. Também dá para trocar pelo sol/lua embaixo da barra lateral ou com {modKey()}
         {modKey() === "⌘" ? "⇧" : "+Shift+"}L.
@@ -32,6 +34,19 @@ export default function AppearanceCard() {
       <span className="hint">
         Aumenta tudo, sem quebrar as telas. Também dá para usar {modKey()} + e {modKey()} −.
       </span>
+    </section>
+    <section className="card stack">
+      <h3>Animação de abertura</h3>
+      <Segmented
+        label="Animação de abertura"
+        value={splash}
+        options={SPLASH_MODES}
+        onChange={(m) => {
+          setSplash(m);
+          saveSplashMode(m);
+        }}
+      />
+      <span className="hint">Completa: uns 3 segundos, toda vez que o app abre. Um clique ou qualquer tecla pulam. Vale a partir da próxima abertura.</span>
     </section>
     </>
   );

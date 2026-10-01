@@ -46,3 +46,7 @@ tauri-plugin-updater = "2.13.0"
 
 [dev-dependencies]
 tokio = { version = "1.53.1", features = ["macros", "rt"] }
+
+# janela invisível até a abertura pintar (#153): NSWindow.alphaValue
+[target.'cfg(target_os = "macos")'.dependencies]
+objc2-app-kit = { version = "0.3", default-features = false, features = ["std", "NSWindow", "NSResponder"] }

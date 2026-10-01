@@ -1,5 +1,6 @@
 /// <reference types="vitest/config" />
 import react from "@vitejs/plugin-react";
+import { readFileSync } from "node:fs";
 import process from "node:process";
 import { defineConfig } from "vite";
 import wasm from "vite-plugin-wasm";
@@ -21,7 +22,8 @@ const GEOMETRY_TESTS = [
 export default defineConfig(() => ({
   plugins: [react(), wasm()],
   // Data do build (tela Sobre, #18).
-  define: { __BUILD_DATE__: JSON.stringify(new Date().toISOString().slice(0, 10)) },
+  // Versão do app (abertura completa na 1ª abertura depois de cada atualização, #153).
+  define: { __BUILD_DATE__: JSON.stringify(new Date().toISOString().slice(0, 10)), __APP_VERSION__: JSON.stringify(JSON.parse(readFileSync(new URL("./package.json", import.meta.url), "utf8")).version) },
   // WASM (vtracer) usa top-level await; WebView2 e WKWebView (Safari 16+) suportam.
   // phone.html: página leve que o app serve para o celular na rede de casa (#16, src-tauri/src/lan.rs)
   build: { target: "es2022", rollupOptions: { input: { main: "index.html", phone: "phone.html" } } },

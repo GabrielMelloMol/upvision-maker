@@ -30,7 +30,7 @@ const THEME_ITEMS: SearchItem[] = (
     ["light", "Modo claro", Sun, "tema aparência dia claro light"],
     ["auto", "Aparência automática", SunMoon, "tema aparência sistema automático claro escuro"],
   ] as const
-).map(([t, title, icon, keywords]) => ({ id: `theme-${t}`, title, subtitle: t === "auto" ? "Segue o claro/escuro do sistema" : undefined, group: "Aparência", icon, pageId: "", keywords, run: () => void applyTheme(t as Theme, { save: true, fade: true }) }));
+).map(([t, title, icon, keywords]) => ({ id: `theme-${t}`, title, subtitle: t === "auto" ? "Segue o claro/escuro do sistema" : undefined, group: "Aparência", icon, pageId: "", keywords, run: () => void applyTheme(t as Theme, { save: true }) }));
 
 type Props = { pages: PageDef[]; onPick: (item: SearchItem) => void; onClose: () => void };
 

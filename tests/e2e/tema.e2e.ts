@@ -6,6 +6,8 @@ test("claro/escuro (#152): sol/lua na barra lateral, ⌘⇧L, ⌘K e Ajustes →
   const nav = page.getByRole("navigation", { name: "Navegação principal" });
   await nav.getByRole("button", { name: "Modo escuro" }).click();
   await expect.poll(() => tauri.theme).toBe("dark");
+  // troca num quadro só (#154): as transições de cor ficam desligadas só durante a troca
+  await expect(page.locator("html")).not.toHaveClass(/theme-switching/);
 
   // a busca troca para Automático (a janela volta a seguir o sistema)
   await page.keyboard.press("ControlOrMeta+K");
