@@ -10,7 +10,9 @@ test("quebra-cabeça: arte vira peças com verso, moldura e aviso de peça peque
   await go(page, "Modelos prontos");
   await page.getByRole("searchbox", { name: "Buscar modelo" }).fill("Quebra");
   await page.getByRole("group", { name: "Modelo" }).getByRole("button", { name: "Quebra-cabeça", exact: true }).click();
-  await expect(page.getByText("Envie um desenho (SVG ou imagem) para ver o modelo.")).toBeVisible();
+  // desde a #159 o quebra-cabeça já abre com prévia (contorno sem desenho); o desenho enviado vai na face
+  await idle(page);
+  await expect(hud(page)).toContainText("mm", { timeout: 60_000 });
   await page.locator('input[type="file"]').first().setInputFiles({ name: "arte.svg", mimeType: "image/svg+xml", buffer: Buffer.from(ART) });
   await idle(page);
   await expect(hud(page)).toContainText("mm", { timeout: 60_000 });
