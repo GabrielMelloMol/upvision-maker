@@ -176,3 +176,28 @@ test("secondary: o Salvar 3MF vira botão comum, sem a cor de principal (#139)",
   expect(btn).not.toHaveClass("action");
   expect(container.querySelectorAll("button.action")).toHaveLength(0);
 });
+
+describe("Abrir no fatiador (#160)", () => {
+  test("com o Bambu Studio instalado: 1 clique monta o projeto e abre no fatiador", async () => {
+    const { strToU8, zipSync } = await import("fflate");
+    let opened: Record<string, unknown> | null = null;
+    t.handlers["slicers_installed"] = () => [{ id: "bambu", name: "Bambu Studio", path: "/Applications/BambuStudio.app" }];
+    t.handlers["bambu_project"] = () => Array.from(zipSync({ "Metadata/project_settings.config": strToU8("{}") }));
+    t.handlers["open_in_slicer"] = (a) => {
+      opened = a as Record<string, unknown>;
+      return "/dados/abrir-no-fatiador/chaveiro.3mf";
+    };
+    const user = userEvent.setup();
+    renderWithApp(<ExportButtons models={[model("Chaveiro")]} name="chaveiro" />);
+    await user.click(await screen.findByRole("button", { name: "Abrir no Bambu Studio" }));
+    expect(await screen.findByText(/Abrindo no Bambu Studio como projeto/)).toBeInTheDocument();
+    expect(opened).toMatchObject({ name: "chaveiro", slicer: "bambu" });
+  });
+
+  test("sem fatiador instalado: links para baixar no lugar do botão", async () => {
+    t.handlers["slicers_installed"] = () => [];
+    renderWithApp(<ExportButtons models={[model("Chaveiro")]} name="chaveiro" />);
+    expect(await screen.findByRole("button", { name: "OrcaSlicer" })).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: /^Abrir no/ })).toBeNull();
+  });
+});

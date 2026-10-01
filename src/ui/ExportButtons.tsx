@@ -1,7 +1,8 @@
 import { join } from "@tauri-apps/api/path";
 import { open } from "@tauri-apps/plugin-dialog";
 import { writeFile } from "@tauri-apps/plugin-fs";
-import { Download } from "lucide-react";
+import { openUrl } from "@tauri-apps/plugin-opener";
+import { Download, ExternalLink } from "lucide-react";
 import { useState } from "react";
 import { AMS_LABEL, amsNeed, platesByColor } from "../geometry/amsNeed";
 import { bambuProject } from "../geometry/bambuProject";
@@ -20,6 +21,12 @@ import Toggle from "./Toggle";
 import { loadAms, type AmsSlot } from "../tools/amsSlots";
 import { errorText, useToast } from "./Toast";
 import { useData } from "./useData";
+import { loadSettings } from "../db/repo";
+import type { Db } from "../db/types";
+import { listSlicers, openInSlicer, pickSlicer, SLICER_DOWNLOADS, type InstalledSlicer } from "../slicer/openInSlicer";
+
+/** Fatiador do "Abrir no…" (#160): o de Ajustes, se instalado, senão o primeiro achado; null = nenhum. */
+const loadSlicer = async (db: Db): Promise<InstalledSlicer | null> => pickSlicer(await listSlicers(), (await loadSettings(db)).slicer);
 
 /** "plates" (#118): cada cor numa mesa própria, para montar ou colar depois (sem AMS e sem pausas). */
 type Mode = PrintMode | "plates";
@@ -55,6 +62,8 @@ export default function ExportButtons({ models: input, name, busy, pauses: input
   const [layer, setLayer] = useState(profile?.layerHeight ?? 0.2);
   const [merge, setMerge] = useState(false);
   const [ams] = useData(loadAms, [] as AmsSlot[]);
+  const [slicer, , slicerLoading] = useData(loadSlicer, null as InstalledSlicer | null);
+  const [opening, setOpening] = useState(false);
   const colors = modelColors(input);
   const colorCount = colors.length;
   const showModes = printModes && colorCount > 1;
@@ -83,6 +92,21 @@ export default function ExportButtons({ models: input, name, busy, pauses: input
       onSaved?.(name);
     } catch (e) {
       toast(`Não foi possível salvar: ${errorText(e)}`, "error");
+    }
+  }
+
+  /** Abrir no fatiador com 1 clique (#160): no Bambu Studio vai como projeto (impressora, AMS, pausas). */
+  async function openSlicer() {
+    if (!slicer) return;
+    setOpening(true);
+    try {
+      const r = await openInSlicer(models, name, { pauses, profile, slicer, slots: slots ?? null });
+      toast(r.project ? `Abrindo no ${slicer.name} como projeto, com a impressora e os filamentos.` : `Abrindo no ${slicer.name}.`);
+      onSaved?.(name);
+    } catch (e) {
+      toast(`Não foi possível abrir no ${slicer.name}: ${errorText(e)}`, "error");
+    } finally {
+      setOpening(false);
     }
   }
 
@@ -159,6 +183,25 @@ export default function ExportButtons({ models: input, name, busy, pauses: input
         <button className={secondary ? undefined : "action"} disabled={disabled} onClick={() => save(`${slug(name)}.3mf`, write3mf(models, { pauses, profile, slots }), "3mf", "3MF")}>
           <Download aria-hidden /> Salvar 3MF{hasPauses ? " (Orca / Prusa)" : ""}
         </button>
+      )}
+      {!perColor && slicer && (
+        <button disabled={disabled || opening} onClick={() => void openSlicer()}>
+          <ExternalLink aria-hidden /> {opening ? `Abrindo no ${slicer.name}…` : `Abrir no ${slicer.name}`}
+        </button>
+      )}
+      {!perColor && !slicer && !slicerLoading && (
+        <span className="hint">
+          Para abrir direto no fatiador, instale o{" "}
+          {Object.values(SLICER_DOWNLOADS).map((d, i, all) => (
+            <span key={d.name}>
+              <button className="link" onClick={() => void openUrl(d.url).catch((e) => toast(errorText(e), "error"))}>
+                {d.name}
+              </button>
+              {i < all.length - 2 ? ", " : i === all.length - 2 ? " ou " : ""}
+            </span>
+          ))}
+          .
+        </span>
       )}
       {/* um só botão cheio (#139); os outros formatos ficam numa linha discreta, sempre à vista */}
       <div className="export-more">

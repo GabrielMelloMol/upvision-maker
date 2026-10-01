@@ -12,6 +12,7 @@ import { errorText, useToast } from "../ui/Toast";
 import { useData } from "../ui/useData";
 import AiSettingsCard from "./AiSettingsCard";
 import AmsCard from "./preferences/AmsCard";
+import SlicerCard from "./preferences/SlicerCard";
 import BedPrinterCard from "./preferences/BedPrinterCard";
 import AppearanceCard from "../ui/AppearanceCard";
 import BackupSettingsCard from "../backup/BackupSettingsCard";
@@ -26,7 +27,7 @@ import KwhBillSheet from "./preferences/KwhBillSheet";
 import StateKwhSelect from "../ui/StateKwhSelect";
 import ChannelsCard, { fromChannelForm, toChannelForm } from "./preferences/ChannelsCard";
 
-type NumKey = Exclude<keyof Settings, "channels" | "kwhHistory" | "includeFixedCosts" | "multiplyLabor" | "packagingMaterialId" | "failureByMaterial" | "ams" | "bedPrinterId">;
+type NumKey = Exclude<keyof Settings, "channels" | "kwhHistory" | "includeFixedCosts" | "multiplyLabor" | "packagingMaterialId" | "failureByMaterial" | "ams" | "bedPrinterId" | "slicer">;
 type NumField = { key: NumKey; label: string; money?: true; hint?: string };
 const FIELDS: NumField[] = [
   { key: "kwhPrice", label: "Preço do kWh", money: true, hint: "Valor total da conta ÷ kWh consumidos." },
@@ -64,6 +65,7 @@ export default function Preferences() {
       <AiSettingsCard />
       <BedPrinterCard />
       <AmsCard />
+      <SlicerCard />
     </div>
   );
 }
@@ -90,7 +92,7 @@ function PreferencesForm({ initial, materials }: { initial: Settings; materials:
       packagingMaterialId: packaging ? Number(packaging) : null,
       failureByMaterial: Object.fromEntries(Object.entries(byMaterial).flatMap(([k, v]) => (v.trim() === "" ? [] : [[k, parseDecimal(v)]]))), // vazio = a geral
       channels: channels.map(fromChannelForm),
-    } as Omit<Settings, "kwhHistory" | "ams">;
+    } as Omit<Settings, "kwhHistory" | "ams" | "slicer">;
     try {
       const db = await getDb();
       // relê o que está gravado para não apagar o que este formulário não edita (ex.: histórico do kWh)

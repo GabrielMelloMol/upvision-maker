@@ -4,6 +4,7 @@ mod backup;
 mod diagnostics;
 mod lan;
 mod bambu;
+mod slicer;
 mod stock;
 mod sync;
 mod vibrancy;
@@ -52,7 +53,9 @@ pub fn run() {
             lan::lan_respond,
             diagnostics::log_append,
             diagnostics::log_read,
-            bambu::bambu_project
+            bambu::bambu_project,
+            slicer::slicers_installed,
+            slicer::open_in_slicer
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

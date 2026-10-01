@@ -31,6 +31,10 @@ export const AmsSchema = z.object({
 });
 export type Ams = z.infer<typeof AmsSchema>;
 
+/** Fatiador que o "Abrir no fatiador" usa (#160); null = o primeiro instalado (Bambu Studio, OrcaSlicer, PrusaSlicer). */
+export const SLICER_IDS = ["bambu", "orca", "prusa"] as const;
+export type SlicerId = (typeof SLICER_IDS)[number];
+
 export const SettingsSchema = z.object({
   kwhPrice: z.number().min(0),
   laborHourCost: z.number().min(0),
@@ -62,6 +66,7 @@ export const SettingsSchema = z.object({
   ams: AmsSchema,
   /** Impressora que dá o tamanho da mesa nas ferramentas (#119); null = a única ou a primeira cadastrada. */
   bedPrinterId: z.number().int().positive().nullable(),
+  slicer: z.enum(SLICER_IDS).nullable(),
 });
 export type Settings = z.infer<typeof SettingsSchema>;
 
@@ -90,4 +95,5 @@ export const DEFAULT_SETTINGS: Settings = {
   kwhHistory: [],
   ams: { slots: 4, filaments: [] },
   bedPrinterId: null,
+  slicer: null,
 };

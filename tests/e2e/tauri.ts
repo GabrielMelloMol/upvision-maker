@@ -35,6 +35,9 @@ export type TauriMock = {
   lan: { running: boolean; url: string; code: string; phones: number; locked: boolean };
   /** Resposta do comando window_style (material nativo). */
   windowStyle: { effect: "mica" | "sidebar" | "none"; overlayTitlebar: boolean };
+  /** Fatiadores "instalados" (slicer.rs, #160) e o que o app mandou abrir neles. */
+  slicers: { id: string; name: string; path: string }[];
+  slicerOpened: { name: string; slicer: string; model: Buffer }[];
 };
 
 const INIT = () => {
@@ -187,6 +190,13 @@ function handler(m: TauriMock, cmd: string, a: Record<string, unknown> | null, h
     case "sync_remove":
       m.autoBackups.get(String(args.dir ?? ""))?.delete(args.kind === "lock" ? "upvision-sync.lock" : "upvision-sync.json");
       return null;
+    case "slicers_installed":
+      return m.slicers;
+    case "open_in_slicer": {
+      const name = String(args.name);
+      m.slicerOpened.push({ name, slicer: String(args.slicer), model: Buffer.from(args.model as number[]) });
+      return `/dados/abrir-no-fatiador/${name}.3mf`;
+    }
     case "lan_status":
       return m.lan;
     case "lan_start":
@@ -221,7 +231,7 @@ function handler(m: TauriMock, cmd: string, a: Record<string, unknown> | null, h
 
 /** Instala o mock do IPC numa página (o fixture `tauri` faz isso sozinho; o teste de desempenho usa em páginas próprias). */
 export async function installTauriMock(page: Page): Promise<TauriMock> {
-  const m: TauriMock = { db: new DatabaseSync(":memory:"), files: new Map(), nextOpen: null, savePath: null, askAnswer: true, calls: [], opened: [], log: [], update: null, releases: [], autoBackups: new Map(), lan: { running: false, url: "", code: "", phones: 0, locked: false }, windowStyle: { effect: "none", overlayTitlebar: false } };
+  const m: TauriMock = { db: new DatabaseSync(":memory:"), files: new Map(), nextOpen: null, savePath: null, askAnswer: true, calls: [], opened: [], log: [], update: null, releases: [], autoBackups: new Map(), lan: { running: false, url: "", code: "", phones: 0, locked: false }, windowStyle: { effect: "none", overlayTitlebar: false }, slicers: [], slicerOpened: [] };
   await page.exposeFunction("__tauriInvoke", (cmd: string, a: Record<string, unknown> | null, h: Record<string, string> | null) => {
     m.calls.push(cmd);
     try {
