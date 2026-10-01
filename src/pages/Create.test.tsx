@@ -3,6 +3,7 @@ import { screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { expect, test, vi } from "vitest";
 import { takeIntent } from "../tools/intent";
+import { worksWithoutAms } from "../tools/models/amsTable";
 import { FAMILIES } from "../tools/models/families";
 import { renderWithApp } from "../test/harness";
 import Create from "./Create";
@@ -41,4 +42,17 @@ test("Criar (#139): busca sem acento, filtro por tipo e modelo pronto abre já e
   expect(takeIntent("models")).toEqual({ id: "trophy" });
   await user.click(tools()[0]);
   expect(go).toHaveBeenLastCalledWith("svg");
+});
+
+test("Criar (#118): selo de AMS no card e filtro 'Funciona sem AMS'", async () => {
+  const user = userEvent.setup();
+  renderWithApp(<Create go={vi.fn()} />);
+  const cards = () => screen.getAllByRole("link").filter((a) => a.getAttribute("href")?.startsWith("#models/"));
+  const all = cards().length;
+  const need = (a: HTMLElement) => document.getElementById(a.getAttribute("aria-describedby") ?? "")?.textContent ?? "";
+  expect(cards().some((a) => need(a) === "Precisa de AMS (ou uma mesa por cor)")).toBe(true);
+  await user.click(screen.getByRole("switch", { name: "Funciona sem AMS" }));
+  expect(cards().length).toBeGreaterThan(0);
+  expect(cards().length).toBeLessThan(all);
+  for (const a of cards()) expect(worksWithoutAms(a.getAttribute("href")!.slice("#models/".length))).toBe(true);
 });

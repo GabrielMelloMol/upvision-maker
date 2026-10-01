@@ -1,11 +1,14 @@
 import { Search, Shapes } from "lucide-react";
 import { useState } from "react";
 import { PAGES, type Go } from "../pages";
+import { AMS_LABEL } from "../geometry/amsNeed";
 import { openWith } from "../tools/intent";
+import { AMS_NEED, worksWithoutAms } from "../tools/models/amsTable";
 import { CATEGORIES } from "../tools/models/defs";
 import { familiesIn, modelOf, type Family } from "../tools/models/families";
 import { THUMBS } from "../tools/models/thumbs";
 import Segmented from "../ui/Segmented";
+import Toggle from "../ui/Toggle";
 
 const normalize = (s: string) => s.normalize("NFD").replace(/\p{M}/gu, "").toLowerCase();
 
@@ -18,6 +21,8 @@ const KINDS = [
   ["ideas", "Ideias"],
 ] as const;
 type Kind = (typeof KINDS)[number][0];
+/** Selo curto do card (#118); o rótulo inteiro (AMS_LABEL) fica na dica. */
+const AMS_SHORT = { "uma-cor": "1 cor", "troca-manual": "Sem AMS, com pausas", ams: "Com AMS" } as const;
 const KIND_OF: Record<string, Exclude<Kind, "all">> = {
   keychain: "make", medal: "make", qr: "make", spools: "make", drawer: "make",
   svg: "image", cutter: "image", extrude: "image", lithophane: "image", pixel: "image",
@@ -29,6 +34,7 @@ const KIND_OF: Record<string, Exclude<Kind, "all">> = {
 export default function Create({ go }: { go: Go }) {
   const [q, setQ] = useState("");
   const [kind, setKind] = useState<Kind>("all");
+  const [noAms, setNoAms] = useState(false);
   const term = normalize(q.trim());
   const hit = (text: string) => !term || normalize(text).includes(term);
   const tools = PAGES.filter((p) => p.section === "create" && p.id !== "create" && p.id !== "models")
@@ -36,7 +42,11 @@ export default function Create({ go }: { go: Go }) {
     .filter((p) => hit(`${p.label} ${p.blurb ?? ""}`));
   // modelos prontos em famílias (#141): o card abre a variação que a busca achou ("anilha" → Chaveiro › Anilha)
   const variantText = (id: string, label: string) => `${label} ${modelOf(id).label} ${modelOf(id).blurb}`;
-  const pickIn = (f: Family) => (hit(f.label) ? f.variants[0] : f.variants.find((v) => hit(variantText(v.id, v.label))));
+  // "Funciona sem AMS" (#118): o card mostra a primeira variação que dá para imprimir sem AMS
+  const pickIn = (f: Family) => {
+    const ok = f.variants.filter((v) => !noAms || worksWithoutAms(v.id));
+    return hit(f.label) ? ok[0] : ok.find((v) => hit(variantText(v.id, v.label)));
+  };
   const models =
     kind === "all" || kind === "make"
       ? CATEGORIES.flatMap(([cat]) => familiesIn(cat).map((f) => ({ f, cat, v: pickIn(f) }))).filter((x): x is { f: Family; cat: (typeof CATEGORIES)[number][0]; v: Family["variants"][number] } => !!x.v)
@@ -55,6 +65,7 @@ export default function Create({ go }: { go: Go }) {
           <input type="search" aria-label="Buscar ferramenta ou modelo" placeholder="Buscar ferramenta ou modelo" value={q} onChange={(e) => setQ(e.target.value)} />
         </label>
         <Segmented label="Tipo" value={kind} options={KINDS} onChange={setKind} />
+        {(kind === "all" || kind === "make") && <Toggle label="Funciona sem AMS" checked={noAms} onChange={setNoAms} />}
       </div>
 
       {tools.length > 0 && (
@@ -88,10 +99,12 @@ export default function Create({ go }: { go: Go }) {
               <ul className="create-models">
                 {list.map(({ f, v }) => {
                   const thumb = THUMBS[v.id] ?? f.variants.map((x) => THUMBS[x.id]).find(Boolean);
+                  const need = AMS_NEED[v.id];
                   return (
                     <li key={f.id}>
                       <a
                         href={`#models/${v.id}`}
+                        aria-describedby={need ? `ams-${f.id}` : undefined}
                         onClick={(e) => {
                           openWith("models", { id: v.id });
                           open(e, "models");
@@ -99,6 +112,12 @@ export default function Create({ go }: { go: Go }) {
                       >
                         <span className="model-thumb">{thumb ? <img src={thumb} alt="" loading="lazy" /> : <Shapes aria-hidden />}</span>
                         <strong>{f.label}</strong>
+                        {need && (
+                          <small className="ams-need" title={AMS_LABEL[need]} aria-hidden>
+                            {AMS_SHORT[need]}
+                            <span hidden id={`ams-${f.id}`}>{AMS_LABEL[need]}</span>
+                          </small>
+                        )}
                       </a>
                     </li>
                   );
@@ -108,7 +127,7 @@ export default function Create({ go }: { go: Go }) {
           );
         })}
 
-      {!tools.length && !models.length && <p className="muted create-empty">Nada com “{q}”. Tente outra palavra ou peça à IA em Ideias.</p>}
+      {!tools.length && !models.length && <p className="muted create-empty">{noAms && !q ? "Nenhum modelo funciona sem AMS com esse filtro." : <>Nada com “{q}”{noAms && " sem AMS"}. Tente outra palavra ou peça à IA em Ideias.</>}</p>}
     </div>
   );
 }

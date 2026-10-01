@@ -254,3 +254,4 @@ g:hover > .viz-hit { fill: var(--fill); }
 .create-search .prefix { width: 16px; height: 16px; }
 @media (prefers-color-scheme: dark) { .create-models img { filter: brightness(0.82); } }
 .cols-3 > * { min-width: 0; }
+.create-models .ams-need { color: var(--muted); font-size: var(--text-sm); padding: 0 2px; margin-top: calc(-1 * var(--space-1)); }
