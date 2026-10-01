@@ -48,7 +48,7 @@ const input = (qty: number): OrderInput => ({
   paymentMethod: "Pix",
   notes: "",
   freight: 0,
-  items: [{ productId, description: "Chaveiro", qty, unitPrice: 15, discountPct: 0, unitCost: 1, printMinutes: 10 }],
+  items: [{ productId, description: "Chaveiro", qty, unitPrice: 15, discountPct: 0, unitCost: 1, printMinutes: 10, custom: "" }],
 });
 const stockG = async () => (await filaments.list(db))[0].stockG;
 const productStock = async () => (await productsRepo.list(db))[0].stock;

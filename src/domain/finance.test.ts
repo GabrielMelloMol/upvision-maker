@@ -35,14 +35,14 @@ const order = (o: Partial<Order>): Order => ({
   createdAt: "2026-03-01 10:00:00",
   deliveredAt: "2026-03-05",
   quoteId: null,
-  items: [{ id: 1, productId: 1, description: "Chaveiro", qty: 10, unitPrice: 15, discountPct: 0, unitCost: 4, printMinutes: 12 }],
+  items: [{ id: 1, productId: 1, description: "Chaveiro", qty: 10, unitPrice: 15, discountPct: 0, unitCost: 4, printMinutes: 12, custom: "" }],
   ...o,
 });
 
 describe("resumo financeiro", () => {
   const orders = [
     order({}),
-    order({ id: 2, channel: "Shopee", deliveredAt: "2026-04-02", freight: 10, items: [{ id: 2, productId: 2, description: "Topo de bolo", qty: 1, unitPrice: 50, discountPct: 10, unitCost: 8, printMinutes: 60 }] }),
+    order({ id: 2, channel: "Shopee", deliveredAt: "2026-04-02", freight: 10, items: [{ id: 2, productId: 2, description: "Topo de bolo", qty: 1, unitPrice: 50, discountPct: 10, unitCost: 8, printMinutes: 60, custom: "" }] }),
     order({ id: 3, status: "production", deliveredAt: null }), // não entregue: fora
     order({ id: 4, status: "canceled", deliveredAt: "2026-03-06" }), // cancelado: fora
   ];

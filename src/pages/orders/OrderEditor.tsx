@@ -14,11 +14,12 @@ import { formatMoneyInput, parseMoney } from "../../ui/parse";
 import Sheet from "../../ui/Sheet";
 import { errorText, useToast } from "../../ui/Toast";
 import type { OrdersData } from "./data";
+import ItemCustom from "./ItemCustom";
 
 export const PAYMENT_METHODS = ["Pix", "Dinheiro", "Cartão de crédito", "Cartão de débito", "Transferência", "Pago no marketplace", "A combinar"];
 
 /** unitCost/printMinutes: custo e minutos guardados no item avulso (ex.: vindo da calculadora); item de produto recalcula. */
-type Line = { productId: string; description: string; qty: string; unitPrice: string; discountPct: string; manualPrice: boolean; unitCost?: number; printMinutes?: number };
+type Line = { productId: string; description: string; qty: string; unitPrice: string; discountPct: string; manualPrice: boolean; unitCost?: number; printMinutes?: number; custom: string };
 
 const str = (n: number) => String(n).replace(".", ",");
 const num = (s: string) => parseDecimal(s);
@@ -51,7 +52,7 @@ export default function OrderEditor({ data, order, draft, onClose, onSaved, save
   const [notes, setNotes] = useState(base.notes ?? "");
   const [freight, setFreight] = useState(base.freight ? brl(base.freight) : "");
   const [lines, setLines] = useState<Line[]>(
-    (base.items ?? []).map((i) => ({ productId: i.productId ? String(i.productId) : "", description: i.description, qty: str(i.qty), unitPrice: brl(i.unitPrice), discountPct: str(i.discountPct), manualPrice: true, unitCost: i.unitCost, printMinutes: i.printMinutes })),
+    (base.items ?? []).map((i) => ({ productId: i.productId ? String(i.productId) : "", description: i.description, qty: str(i.qty), unitPrice: brl(i.unitPrice), discountPct: str(i.discountPct), manualPrice: true, unitCost: i.unitCost, printMinutes: i.printMinutes, custom: i.custom ?? "" })),
   );
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [saving, setSaving] = useState(false);
@@ -115,6 +116,7 @@ export default function OrderEditor({ data, order, draft, onClose, onSaved, save
       discountPct: num(l.discountPct) || 0,
       unitCost,
       printMinutes: p ? p.printMinutes / p.piecesPerPlate : (l.printMinutes ?? 0),
+      custom: l.custom,
     };
   });
   const input: OrderInput = {
@@ -238,9 +240,10 @@ export default function OrderEditor({ data, order, draft, onClose, onSaved, save
               <button type="button" className="link danger" onClick={() => setLines(lines.filter((_, j) => j !== i))}>
                 Remover
               </button>
+              <ItemCustom value={l.custom} qty={l.qty} label={l.description} onChange={(custom) => update(i, { custom })} onQty={(n) => update(i, { qty: String(n) })} />
             </div>
           ))}
-          <Button size="sm" icon={Plus} onClick={() => setLines([...lines, { productId: "", description: "", qty: "1", unitPrice: "", discountPct: defaultDiscount, manualPrice: false }])}>
+          <Button size="sm" icon={Plus} onClick={() => setLines([...lines, { productId: "", description: "", qty: "1", unitPrice: "", discountPct: defaultDiscount, manualPrice: false, custom: "" }])}>
             Adicionar item
           </Button>
           {errors.items && <span className="error">{errors.items}</span>}

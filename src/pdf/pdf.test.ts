@@ -28,7 +28,7 @@ const quote = (items: number): Quote => ({
   freight: 12,
   validUntil: "2026-10-05",
   terms: "50% na aprovação.",
-  items: Array.from({ length: items }, (_, i) => ({ productId: null, description: `Chaveiro personalizado ${i + 1}`, qty: 2, unitPrice: 15, discountPct: 10, unitCost: 2, printMinutes: 20 })),
+  items: Array.from({ length: items }, (_, i) => ({ productId: null, description: `Chaveiro personalizado ${i + 1}`, qty: 2, unitPrice: 15, discountPct: 10, unitCost: 2, printMinutes: 20, custom: "" })),
 });
 /** Texto desenhado, com espaço normal no lugar do não separável do R$. */
 const txt = (trace: string[]) => trace.map((t) => t.replace(/\u00a0/g, " "));

@@ -6,6 +6,7 @@ import { itemFromCalc, orderChannelOf } from "./quotes";
 test("item avulso da calculadora: peças da mesa, preço e custo por peça, minutos de máquina por peça", () => {
   expect(itemFromCalc({ description: " Chaveiro ", pieces: 4, unitPrice: 12.9, unitCost: 3.21, printMinutes: 90 })).toEqual({
     productId: null,
+    custom: "",
     description: "Chaveiro",
     qty: 4,
     unitPrice: 12.9,

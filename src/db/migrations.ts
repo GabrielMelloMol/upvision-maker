@@ -93,6 +93,9 @@ export const MIGRATIONS: string[][] = [
   ["ALTER TABLE products ADD COLUMN variationLabel TEXT NOT NULL DEFAULT 'Cor'", "ALTER TABLE products ADD COLUMN variants TEXT NOT NULL DEFAULT '[]'"],
   // TD por filamento (#100): ordem e altura das faixas do quadro por camadas; vazio = sem medida.
   ["ALTER TABLE filaments ADD COLUMN td REAL"],
+  // Do pedido ao arquivo pronto (#164): personalização de cada item (uma cópia por linha, campos com ";", como o
+  // lote dos Modelos prontos) e o modelo pronto que o produto usa.
+  ["ALTER TABLE order_items ADD COLUMN custom TEXT NOT NULL DEFAULT ''", "ALTER TABLE products ADD COLUMN modelId TEXT"],
 ];
 
 export const SCHEMA_VERSION = MIGRATIONS.length;

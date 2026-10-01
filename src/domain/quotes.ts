@@ -36,6 +36,7 @@ export function itemFromCalc(c: { description: string; pieces: number; unitPrice
   const qty = Math.max(1, Math.floor(c.pieces) || 1);
   return {
     productId: null,
+    custom: "",
     description: c.description.trim() || "Peça impressa em 3D",
     qty,
     unitPrice: round2(c.unitPrice),

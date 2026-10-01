@@ -26,6 +26,8 @@ export const OrderItem = z.object({
   discountPct: z.number().min(0).max(100, "Máximo 100%"),
   unitCost: nonNeg, // foto do custo na criação (para o financeiro)
   printMinutes: nonNeg, // minutos de máquina por unidade (R$/hora)
+  /** Personalização (#164): uma cópia por linha ("Ana", "Bia;Mãe"), como o lote dos Modelos prontos. */
+  custom: z.string().max(4000, "Personalização muito longa.").default(""),
 });
 export type OrderItem = z.infer<typeof OrderItem>;
 
@@ -88,3 +90,11 @@ export function priceForChannel(p: Product, r: CalcResult, channel: string): num
 export const isLate = (o: Pick<Order, "dueDate" | "status">, today: string) => !!o.dueDate && o.dueDate < today && (o.status === "pending" || o.status === "production" || o.status === "done");
 
 export const todayIso = (d = new Date()) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+
+/** Cópias da personalização de um item (#164): uma por linha não vazia ("Bia;Mãe" vira "Bia · Mãe" na lista). */
+export const customCopies = (custom: string) =>
+  custom
+    .split("\n")
+    .map((l) => l.trim())
+    .filter(Boolean)
+    .map((l) => l.split(";").map((x) => x.trim()).filter(Boolean).join(" · "));

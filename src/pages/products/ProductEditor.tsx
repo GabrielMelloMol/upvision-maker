@@ -21,6 +21,7 @@ import type { Printer } from "../../domain/entities";
 import { spreadWarning, variantErrors } from "../../domain/variants";
 import VariantsFieldset, { toDraft, type VariantDraft } from "./VariantsFieldset";
 import PrinterCatalogButton from "../calculator/PrinterCatalogButton";
+import ModelSelect from "./ModelSelect";
 
 type Line = { id: string; qty: string };
 type Props = { initial: Partial<Product>; data: ProductsData; onClose: () => void; onSaved: () => void };
@@ -37,6 +38,7 @@ export default function ProductEditor({ initial, data, onClose, onSaved }: Props
   const [kind, setKind] = useState(base.kind);
   const [sku, setSku] = useState(base.sku);
   const [notes, setNotes] = useState(base.notes);
+  const [modelId, setModelId] = useState(base.modelId ?? null);
   const [printerId, setPrinterId] = useState(base.printerId ? String(base.printerId) : "");
   // impressoras cadastradas pelo catálogo aqui mesmo (os dados da página só recarregam ao fechar)
   const [added, setAdded] = useState<Printer[]>([]);
@@ -86,6 +88,7 @@ export default function ProductEditor({ initial, data, onClose, onSaved }: Props
     kind,
     sku,
     notes,
+    modelId,
     printerId: printerId ? Number(printerId) : null,
     printMinutes: parseDuration(n.time) || 0,
     laborMinutes: parseDuration(n.labor, "min") || 0,
@@ -202,6 +205,7 @@ export default function ProductEditor({ initial, data, onClose, onSaved }: Props
               <input value={sku} maxLength={60} onChange={(e) => setSku(e.target.value)} />
             </label>
           </div>
+          <ModelSelect value={modelId} onChange={setModelId} />
           <Segmented
             label="Tipo"
             value={kind}

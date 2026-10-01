@@ -5,6 +5,7 @@ Formato: `## <versão> — <data>` e itens `- …` em linguagem simples.
 
 ## Próxima versão (vira "## 0.9.3 — data" ou "## 0.10.0 — data" ao publicar; até lá o app não mostra)
 - **Aviso de atualização com o app aberto** (#155): o app procura versão nova a cada hora e quando você volta para a janela (se passou meia hora). Quando há versão nova, aparece uma faixa no topo com **Ver novidades**, **Atualizar agora** e **Depois** (some até a próxima vez que abrir o app). Com o app em segundo plano, chega também uma notificação do sistema, uma vez por versão. Ao atualizar, o que você estava fazendo nas ferramentas é guardado antes de reiniciar, e o app pergunta se alguma ferramenta ainda está gerando.
+- **Do pedido ao arquivo pronto** (#164): cada item do pedido ou orçamento pode ter **personalização** (uma cópia por linha, por exemplo os nomes dos 20 chaveiros; dá para colar a lista, e o app oferece usar o número de linhas como quantidade). No produto, escolha o **Modelo pronto** que ele usa. No pedido, **Preparar impressão** abre esse modelo com os nomes já no lote, arrumados na mesa com gramas, tempo e custo, e o pedido pendente passa para Em produção.
 
 ## 0.9.2 — 2026-10-01
 - **Abertura nova**: o bico imprime o símbolo camada por camada, passa um reflexo de vidro e ele voa para o canto da barra lateral enquanto o app aparece. Completa na primeira vez do dia; nas outras, bem rápida. Um clique pula.

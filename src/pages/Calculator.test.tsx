@@ -305,7 +305,7 @@ test("adicionar ao orçamento (#28): soma cálculos num rascunho com preço, cus
   const d = peekQuoteDraft()!;
   expect(d.channel).toBe("Consumidor final");
   expect(d.items).toHaveLength(2);
-  expect(d.items[0]).toEqual({ productId: null, description: "Chaveiro coração", qty: 2, unitPrice: 52.5, discountPct: 0, unitCost: 10.5, printMinutes: 60 });
+  expect(d.items[0]).toEqual({ productId: null, description: "Chaveiro coração", qty: 2, unitPrice: 52.5, discountPct: 0, unitCost: 10.5, printMinutes: 60, custom: "" });
   expect(d.items[1]).toMatchObject({ description: "Chaveiro coração", unitPrice: 29, unitCost: 10.5, printMinutes: 60 }); // Shopee (10,50 + 4) ÷ 0,5; o nome fica
   await user.click(screen.getByRole("button", { name: /2 itens no orçamento em rascunho · Abrir/ }));
   expect(go).toHaveBeenCalledWith("quotes");
@@ -386,7 +386,7 @@ test("preço por quantidade (#32): preparo diluído, desconto em relação a 1 u
   expect(cells("1").slice(0, 4)).toEqual(["1", "R$ 12,00", "R$ 20,00", "—"]); // 10 + preparo 10
   expect(cells("10").slice(0, 4)).toEqual(["10", "R$ 3,00", "R$ 11,00", "45%"]);
   await user.click(screen.getByRole("button", { name: "Usar 50 unidades no orçamento" }));
-  expect(peekQuoteDraft()!.items[0]).toEqual({ productId: null, description: "Lembrancinha", qty: 50, unitPrice: 10.2, discountPct: 0, unitCost: 2.2, printMinutes: 30 });
+  expect(peekQuoteDraft()!.items[0]).toEqual({ productId: null, description: "Lembrancinha", qty: 50, unitPrice: 10.2, discountPct: 0, unitCost: 2.2, printMinutes: 30, custom: "" });
   expect(screen.getByRole("button", { name: /1 item no orçamento em rascunho/ })).toBeInTheDocument();
 });
 

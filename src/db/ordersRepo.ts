@@ -8,7 +8,7 @@ type ItemRow = OrderItem & { id: number; orderId: number; position: number };
 export type HistoryEntry = { id: number; orderId: number; status: string; note: string; at: string };
 
 const ORDER_COLS = ["customerId", "customerName", "channel", "dueDate", "paymentMethod", "notes", "freight"] as const;
-const ITEM_COLS = ["productId", "description", "qty", "unitPrice", "discountPct", "unitCost", "printMinutes"] as const;
+const ITEM_COLS = ["productId", "description", "qty", "unitPrice", "discountPct", "unitCost", "printMinutes", "custom"] as const;
 
 const nowLocal = () => {
   const d = new Date();

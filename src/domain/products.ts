@@ -46,6 +46,8 @@ export const ProductInput = z.object({
   // Variações (#82), 1 nível: nome do nível (ex.: Cor) e as opções. Padrões para backups antigos.
   variationLabel: z.string().trim().min(1).max(20).default("Cor"),
   variants: z.array(Variant).max(50, "No máximo 50 variações.").default([]),
+  /** Modelo pronto que gera a peça (#164): "Preparar impressão" no pedido abre ele com a personalização. */
+  modelId: z.string().trim().max(60).nullable().default(null),
 });
 export type ProductInput = z.infer<typeof ProductInput>;
 export type Product = ProductInput & { id: number };
@@ -76,6 +78,7 @@ export const EMPTY_PRODUCT: ProductInput = {
   boxH: null,
   variationLabel: "Cor",
   variants: [],
+  modelId: null,
 };
 
 /** `fixedPerHour`: custos operacionais rateados (ver `fixedCostPerHour`); ausente = 0. */

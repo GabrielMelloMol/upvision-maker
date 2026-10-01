@@ -307,7 +307,7 @@ describe("Catálogo em PDF", () => {
 });
 
 describe("Orçamentos: rascunho da calculadora (#28)", () => {
-  const item = { productId: null, description: "Chaveiro coração", qty: 2, unitPrice: 52.63, discountPct: 0, unitCost: 10.53, printMinutes: 60 };
+  const item = { productId: null, description: "Chaveiro coração", qty: 2, unitPrice: 52.63, discountPct: 0, unitCost: 10.53, printMinutes: 60, custom: "" };
 
   test("Abrir na calculadora abre o editor com os itens; o orçamento guarda custo e minutos; o pedido convertido também", async () => {
     seed();

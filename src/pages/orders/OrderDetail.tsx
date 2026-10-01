@@ -5,7 +5,9 @@ import { getDb } from "../../db";
 import { ordersRepo, type HistoryEntry } from "../../db/ordersRepo";
 import { applyStock } from "../../db/stock";
 import { money } from "../../domain/format";
-import { lineTotal, orderTotals, STATUS_LABEL, STATUSES, type Order, type OrderStatus } from "../../domain/orders";
+import { customCopies, lineTotal, orderTotals, STATUS_LABEL, STATUSES, type Order, type OrderItem, type OrderStatus } from "../../domain/orders";
+import { openWith } from "../../tools/intent";
+import { requestNavigate } from "../../ui/navigate";
 import Button from "../../ui/Button";
 import Sheet from "../../ui/Sheet";
 import { errorText, useToast } from "../../ui/Toast";
@@ -29,6 +31,25 @@ export default function OrderDetail({ order, data, onClose, onChanged, onEdit }:
       .then(setHistory)
       .catch((e) => toast(`Erro ao carregar histórico: ${errorText(e)}`, "error"));
   }, [order.id, toast]);
+
+  /**
+   * "Preparar impressão" (#164): abre o modelo pronto do produto com a personalização do item no lote; o pedido
+   * pendente passa para "Em produção" (com a baixa de estoque, como ao mover à mão).
+   */
+  async function prepare(item: OrderItem) {
+    const modelId = data.products.find((p) => p.id === item.productId)?.modelId;
+    if (!modelId) return;
+    if (order.status === "pending") {
+      try {
+        await moveOrder(order, "production", data);
+        toast(`Pedido #${order.id}: ${STATUS_LABEL.production}.`);
+      } catch (e) {
+        toast(`Não mudei o status: ${errorText(e)}`, "error");
+      }
+    }
+    openWith("models", { id: modelId, batch: item.custom });
+    requestNavigate("models");
+  }
 
   async function move(to: OrderStatus) {
     if (to === "canceled" && !(await ask(`Cancelar o pedido #${order.id}?${order.stockApplied ? " O estoque volta automaticamente." : ""}`, { title: "Cancelar pedido", kind: "warning", okLabel: "Cancelar pedido", cancelLabel: "Voltar" }))) return;
@@ -95,7 +116,15 @@ export default function OrderDetail({ order, data, onClose, onChanged, onEdit }:
         <tbody>
           {order.items.map((i) => (
             <tr key={i.id}>
-              <td>{i.description}</td>
+              <td>
+                {i.description}
+                {customCopies(i.custom).length > 0 && <span className="hint order-custom">{customCopies(i.custom).join(", ")}</span>}
+                {data.products.find((p) => p.id === i.productId)?.modelId && (
+                  <button type="button" className="link" onClick={() => void prepare(i)} disabled={busy}>
+                    Preparar impressão
+                  </button>
+                )}
+              </td>
               <td className="num">{i.qty.toLocaleString("pt-BR")}</td>
               <td className="num">{money(i.unitPrice)}</td>
               <td className="num">{i.discountPct ? `${i.discountPct.toLocaleString("pt-BR")}%` : "—"}</td>

@@ -10,6 +10,7 @@ const printer: Printer = { id: 1, name: "A1", watts: 0, price: 0, lifeHours: 500
 function product(id: number, p: Partial<Product>): Product {
   return {
     id,
+    modelId: null,
     name: `P${id}`,
     kind: "simple",
     composition: { filaments: [], materials: [], items: [] },

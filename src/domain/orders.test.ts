@@ -4,7 +4,7 @@ import { lineTotal, orderTotals, planForOrder, priceForChannel, transition, type
 import { productPricing, type Product, type ProductCtx } from "./products";
 import { DEFAULT_SETTINGS } from "./settings";
 
-const item = (p: Partial<OrderItem>): OrderItem => ({ productId: null, description: "Peça", qty: 1, unitPrice: 10, discountPct: 0, unitCost: 0, printMinutes: 0, ...p });
+const item = (p: Partial<OrderItem>): OrderItem => ({ productId: null, description: "Peça", qty: 1, unitPrice: 10, discountPct: 0, unitCost: 0, printMinutes: 0, custom: "", ...p });
 
 describe("totais", () => {
   test("desconto por item e frete", () => {
@@ -40,6 +40,7 @@ describe("status", () => {
 const fil: Filament = { id: 1, material: "PLA", color: "", brand: "", pricePerKg: 100, spoolG: 1000, stockG: 1000, minG: 0 };
 const product = (id: number, p: Partial<Product>): Product => ({
   id,
+  modelId: null,
   name: `P${id}`,
   kind: "simple",
   composition: { filaments: [{ filamentId: 1, grams: 50 }], materials: [], items: [] },

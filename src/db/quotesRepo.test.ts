@@ -23,7 +23,7 @@ const quote: QuoteInput = {
   freight: 10,
   validUntil: "2026-10-05",
   terms: "50% na aprovação",
-  items: [{ productId: null, description: "Topo de bolo personalizado", qty: 1, unitPrice: 45, discountPct: 0, unitCost: 8, printMinutes: 90 }],
+  items: [{ productId: null, description: "Topo de bolo personalizado", qty: 1, unitPrice: 45, discountPct: 0, unitCost: 8, printMinutes: 90, custom: "" }],
 };
 
 test("converte em pedido uma única vez, levando itens, frete e prazo", async () => {

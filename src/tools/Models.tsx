@@ -81,7 +81,9 @@ export default function Models() {
   const [setId, setAll, setFont, setArt, setBatchOn, setBatchText] = [tool.field("id"), tool.field("all"), tool.field("font"), tool.field("art"), tool.field("batchOn"), tool.field("batchText")];
   const [artError, setArtError] = useState<string | null>(null);
   // aberto pela galeria Criar (#139): já vem com o modelo escolhido, sem virar passo de desfazer
-  const [wanted] = useState(() => MODELS.find((m) => m.id === takeIntent<{ id: string }>("models")?.id));
+  // ou pelo pedido (#164, "Preparar impressão"): com a personalização do item no lote
+  const [intent] = useState(() => takeIntent<{ id: string; batch?: string }>("models"));
+  const [wanted] = useState(() => MODELS.find((m) => m.id === intent?.id));
   // a aba segue a família do modelo aberto (a família pode estar noutra categoria que o modelo, #141)
   const [category, setCategory] = useState<Category>(() => familyOf(wanted?.id ?? tool.state.id).category);
   // o modelo mudou por fora (continuar rascunho, reabrir projeto, desfazer): a aba vai para a família dele
@@ -91,8 +93,10 @@ export default function Models() {
     setCategory(familyOf(id).category);
   }
   useEffect(() => {
-    if (wanted) adopt((cur) => ({ ...cur, id: wanted.id }));
-  }, [adopt, wanted]);
+    if (!wanted) return;
+    const batch = intent?.batch?.trim();
+    adopt((cur) => (batch && BATCH_FIELDS[wanted.id] ? { ...cur, id: wanted.id, batchOn: true, batchText: { ...cur.batchText, [wanted.id]: batch } } : { ...cur, id: wanted.id }));
+  }, [adopt, wanted, intent]);
   const [query, setQuery] = useState("");
   const [missing, setMissing] = useState<string | null>(null);
   // ocasião ou favoritos: filtro que atravessa as categorias (como a busca)
