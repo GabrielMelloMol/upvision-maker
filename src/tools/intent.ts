@@ -10,3 +10,8 @@ export function takeIntent<T>(toolId: string): T | undefined {
   pending.delete(toolId);
   return v;
 }
+
+/** Meus projetos (#161): abrir um projeto salvo ou continuar o rascunho ao chegar na ferramenta (lido pelo useToolState). */
+export type ProjectIntent = { projectId: number } | { resume: true };
+export const projectIntentKey = (toolId: string) => `project:${toolId}`;
+export const openProjectIn = (toolId: string, intent: ProjectIntent) => openWith(projectIntentKey(toolId), intent);

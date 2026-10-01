@@ -1,6 +1,6 @@
 import { Award, Bot, Calculator as CalcIcon, Cookie, Cylinder, KeyRound, Layers, House, ImageUp, Package, Palette, Printer, Settings, ShoppingBag, Users, Building2, ClipboardList, FileText, LayoutDashboard, LineChart, Receipt, QrCode as QrIcon, Split } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
-import { Boxes, Braces, ChartNoAxesColumn, Globe, Grid3x3, LayoutGrid, Shapes, Sparkle, Sun, Tag, Wallet } from "lucide-react";
+import { Boxes, Braces, FolderOpen, ChartNoAxesColumn, Globe, Grid3x3, LayoutGrid, Shapes, Sparkle, Sun, Tag, Wallet } from "lucide-react";
 import { lazy, type ReactNode } from "react";
 import Home from "./pages/Home";
 
@@ -33,6 +33,7 @@ const Lithophane = lazy(() => import("./tools/Lithophane"));
 const ColorSplit = lazy(() => import("./tools/ColorSplit"));
 const ModelSearch = lazy(() => import("./tools/ModelSearch"));
 const ScadCustomizer = lazy(() => import("./tools/ScadCustomizer"));
+const MyProjects = lazy(() => import("./tools/projects/MyProjects"));
 const PixelArt = lazy(() => import("./tools/PixelArt"));
 const DrawerOrganizer = lazy(() => import("./tools/DrawerOrganizer"));
 
@@ -65,6 +66,7 @@ export type PageDef = {
 const ALL: PageDef[] = [
   { id: "home", section: "home", label: "Início", group: "", icon: House, render: (go) => <Home go={go} /> },
   { id: "create", section: "create", label: "Criar", group: "", icon: Sparkle, render: (go) => <Create go={go} /> },
+  { id: "projects", section: "create", label: "Meus projetos", group: "", icon: FolderOpen, blurb: "Tudo o que você criou, para abrir ou fazer de novo.", render: (go) => <MyProjects go={go} /> },
   { id: "svg", section: "create", label: "Imagem → SVG", group: "Ferramentas", icon: ImageUp, blurb: "Vetoriza logo ou desenho em 1 a 4 cores, em mm.", render: (go) => <ImageToSvg go={go} /> },
   { id: "cutter", section: "create", label: "Cortador de biscoito", group: "Ferramentas", icon: Cookie, blurb: "Lâmina + carimbo a partir do desenho.", render: () => <CookieCutter /> },
   { id: "keychain", section: "create", label: "Chaveiros", group: "Ferramentas", icon: KeyRound, blurb: "Nome + logo em 2 cores, também em lote.", render: () => <Keychain /> },

@@ -37,7 +37,7 @@ export default function Create({ go }: { go: Go }) {
   const [noAms, setNoAms] = useState(false);
   const term = normalize(q.trim());
   const hit = (text: string) => !term || normalize(text).includes(term);
-  const tools = PAGES.filter((p) => p.section === "create" && p.id !== "create" && p.id !== "models")
+  const tools = PAGES.filter((p) => p.section === "create" && p.id !== "create" && p.id !== "models" && p.id !== "projects") // Meus projetos não é ferramenta (#161)
     .filter((p) => kind === "all" || KIND_OF[p.id] === kind)
     .filter((p) => hit(`${p.label} ${p.blurb ?? ""}`));
   // modelos prontos em famílias (#141): o card abre a variação que a busca achou ("anilha" → Chaveiro › Anilha)
@@ -66,6 +66,10 @@ export default function Create({ go }: { go: Go }) {
         </label>
         <Segmented label="Tipo" value={kind} options={KINDS} onChange={setKind} />
         {(kind === "all" || kind === "make") && <Toggle label="Funciona sem AMS" checked={noAms} onChange={setNoAms} />}
+        {/* atalho fixo para a biblioteca (#161) */}
+        <a className="create-projects" href="#projects" data-page="projects" onClick={(e) => open(e, "projects")}>
+          Meus projetos →
+        </a>
       </div>
 
       {tools.length > 0 && (

@@ -37,7 +37,7 @@ describe("Home (#139)", () => {
     expect(screen.getByRole("heading", { name: text, level: 1 })).toBeInTheDocument();
   });
 
-  test("cinco ações; o rascunho vira Continuar e os prazos da semana abrem o pedido", async () => {
+  test("cinco ações; o rascunho aparece em Meus projetos e os prazos da semana abrem o pedido", async () => {
     vi.useFakeTimers({ toFake: ["Date"], now: new Date(2026, 8, 28, 14) });
     await t.db.execute("INSERT INTO tool_state (id, data, updatedAt) VALUES ('keychain', '{}', ?)", [new Date(2026, 8, 28, 12).toISOString()]);
     await t.db.execute("INSERT INTO orders (customerName, channel, status, dueDate, createdAt) VALUES ('Ana', 'Loja', 'pending', '2026-09-30', '2026-09-20 10:00:00'), ('Bia', 'Loja', 'pending', '2026-12-01', '2026-09-20 10:00:00')");
@@ -46,7 +46,7 @@ describe("Home (#139)", () => {
     const user = userEvent.setup();
     expect(within(screen.getByRole("list", { name: "Começar" })).getAllByRole("button")).toHaveLength(5);
     await user.click(screen.getByRole("button", { name: "Calcular preço" }));
-    await user.click(await screen.findByRole("button", { name: /Chaveiros há 2 horas/ }));
+    await user.click(await screen.findByRole("button", { name: /Chaveiros · rascunho há 2 horas/ }));
     const week = screen.getByRole("heading", { name: "Esta semana" }).closest("section")!;
     expect(within(week).queryByText("Bia")).not.toBeInTheDocument(); // prazo fora da semana
     await user.click(within(week).getByRole("button", { name: /Ana/ }));

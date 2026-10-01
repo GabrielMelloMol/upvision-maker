@@ -212,7 +212,7 @@ g:hover > .viz-hit { fill: var(--fill); }
 .create h2 { margin: var(--space-8) 0 var(--space-3); font-size: var(--title-3); font-weight: 650; }
 .create h2 .muted { font-weight: 500; }
 .create-filters { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-3); margin-top: var(--space-4); }
-.create-search { width: min(320px, 100%); }
+.create-search { width: min(260px, 100%); } /* 260: cabe o atalho Meus projetos na mesma linha a 1440 px (#161) */
 .create-tools, .create-models { list-style: none; margin: 0; padding: 0; display: grid; }
 .create-tools { grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 2px var(--space-4); }
 .create-tools a { display: flex; align-items: center; gap: var(--space-3); padding: var(--space-2) var(--space-2); border-radius: var(--r); color: inherit; text-decoration: none; transition: background var(--dur-fast) ease; }
@@ -265,3 +265,26 @@ g:hover > .viz-hit { fill: var(--fill); }
 .print-history { list-style: none; margin: 0; padding: 0; display: grid; gap: var(--space-1); }
 .print-history .ok { color: var(--ok); font-weight: 600; }
 .print-history .bad { color: var(--danger); font-weight: 600; }
+/* Meus projetos (#161): grade da galeria Criar com estrela e menu ⋯ sobre a miniatura */
+.projects-grid { margin-top: var(--space-5); }
+.projects-grid li { position: relative; }
+.projects-grid .project-open { all: unset; box-sizing: border-box; cursor: pointer; width: 100%; display: grid; gap: var(--space-2); font-size: var(--text-sm); border-radius: var(--r); }
+.projects-grid .project-open:focus-visible { outline: 2px solid var(--focus-ring); outline-offset: 2px; }
+.projects-grid .project-open:hover img { transform: scale(1.04); }
+.projects-grid strong { font-weight: 500; padding: 0 2px; display: flex; align-items: center; gap: 6px; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.projects-grid small { color: var(--muted); padding: 0 2px; }
+.project-actions { position: absolute; top: 6px; right: 6px; display: flex; gap: 2px; }
+/* estrela e ⋯ só no hover ou com foco no cartão (a miniatura respira); estrela marcada e menu aberto ficam à vista */
+.project-actions > button, .project-actions .menu-wrap { opacity: 0; transition: opacity var(--dur-fast) ease; }
+.projects-grid li:hover .project-actions > *, .projects-grid li:focus-within .project-actions > *, .project-actions > button[aria-pressed="true"], .project-actions .menu-wrap:has([aria-expanded="true"]) { opacity: 1; }
+.project-actions > button, .project-actions .menu-wrap > button { background: var(--surface); box-shadow: 0 0 0 0.5px var(--border); }
+.project-actions button[aria-pressed="true"] { color: var(--brand-orange); }
+.pill { display: inline-flex; align-items: center; padding: 1px 8px; border-radius: var(--r-pill); background: var(--fill); color: var(--muted); font-size: var(--text-xs); font-weight: 600; }
+/* Menu ⋯ (ui/Menu.tsx) */
+.menu-wrap { position: relative; }
+.menu-pop { position: absolute; top: calc(100% + 4px); right: 0; z-index: 20; min-width: 200px; display: grid; padding: 4px; border-radius: var(--r); background: var(--surface); box-shadow: 0 0 0 0.5px var(--border), 0 8px 24px rgb(0 0 0 / 0.18); }
+.menu-pop [role="menuitem"] { justify-content: flex-start; text-align: left; white-space: nowrap; min-height: 30px; padding: 0 10px; background: transparent; box-shadow: none; font-weight: 400; }
+.menu-pop [role="menuitem"]:hover, .menu-pop [role="menuitem"]:focus-visible { background: var(--fill); }
+.menu-pop [role="menuitem"].danger { color: var(--danger); }
+.menu-pop .menu-sep { height: 0.5px; margin: 4px 6px; background: var(--border); }
+.create-filters .create-projects { margin-left: auto; font-size: var(--text-sm); font-weight: 500; color: var(--accent-text); text-decoration: none; white-space: nowrap; }

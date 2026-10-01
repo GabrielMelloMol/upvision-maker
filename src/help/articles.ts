@@ -121,6 +121,13 @@ export const ARTICLES: HelpArticle[] = [
     ],
   },
   {
+    id: "projects",
+    title: "Meus projetos",
+    intro: "Tudo o que você salvou nas ferramentas e nos modelos prontos, e os rascunhos em andamento.",
+    steps: ["Busque pelo nome, pela ferramenta ou por uma tag.", "Toque num projeto para abrir na ferramenta, do jeito que estava.", "No ⋯, faça de novo (uma cópia), renomeie, ponha tags e ligue a um produto ou pedido.", "Marque os que você mais usa com a estrela e filtre por Só favoritos."],
+    tips: ["Excluiu sem querer? Toque em Desfazer no aviso.", "Rascunho é o que ficou aberto na ferramenta sem salvar o arquivo."],
+  },
+  {
     id: "scad",
     title: "OpenSCAD personalizável",
     intro: "Abra um .scad com parâmetros (formato do Customizer) e ajuste as medidas num formulário.",

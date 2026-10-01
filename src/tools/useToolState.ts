@@ -1,8 +1,9 @@
 import { trackSave } from "./pendingSaves";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { getDb } from "../db";
+import { projectIntentKey, takeIntent, type ProjectIntent } from "./intent";
 import { toolProjects, toolState, type ToolProject } from "../db/toolStateRepo";
-import { snapshotPreview } from "../ui/Preview3D";
+import { previewThumb } from "../ui/Preview3D";
 import { errorText, useToast } from "../ui/Toast";
 import { useHistory } from "../ui/useHistory";
 
@@ -41,6 +42,7 @@ const same = (a: unknown, b: unknown) => JSON.stringify(a, fileKey) === JSON.str
  */
 export function useToolState<T extends object>(toolId: string, initial: T | (() => T), opts: Options<T>) {
   const hist = useHistory<T>(initial);
+  const { reset } = hist;
   const state = hist.value;
   const version = opts.version ?? 1;
   const toast = useToast();
@@ -53,6 +55,8 @@ export function useToolState<T extends object>(toolId: string, initial: T | (() 
   const baseline = useRef<T>(state); // o que está na tela sem trabalho novo (inicial, rascunho aceito ou projeto aberto)
   const exported = useRef(true); // nada novo desde o último arquivo salvo
   const loaded = useRef(false);
+  // vindo de Meus projetos (#161): abrir aquele projeto ou já continuar o rascunho
+  const [wanted] = useState(() => takeIntent<ProjectIntent>(projectIntentKey(toolId)));
 
   const decode = useCallback(async (json: string): Promise<T | null> => {
     try {
@@ -74,8 +78,23 @@ export function useToolState<T extends object>(toolId: string, initial: T | (() 
         const [row, list] = await Promise.all([toolState.get(db, toolId), toolProjects.list(db, toolId)]);
         if (!alive) return;
         setProjects(list);
+        if (wanted && "projectId" in wanted) {
+          const p = await toolProjects.get(db, wanted.projectId);
+          const s = p ? await decode(p.data) : null;
+          if (!alive) return;
+          if (s) {
+            baseline.current = s;
+            reset(s);
+            return;
+          }
+          toast("Este projeto não pôde ser aberto (foi excluído ou é de outra versão do app).", "error");
+        }
         const s = row ? await decode(row.data) : null;
-        if (alive && s && !same(s, baseline.current)) setDraft({ state: s, at: row!.updatedAt });
+        if (!alive || !s || same(s, baseline.current)) return;
+        if (wanted && "resume" in wanted) {
+          baseline.current = s;
+          reset(s);
+        } else setDraft({ state: s, at: row!.updatedAt });
       } catch (e) {
         console.warn(`Rascunho de ${toolId} indisponível:`, e);
       } finally {
@@ -85,7 +104,7 @@ export function useToolState<T extends object>(toolId: string, initial: T | (() 
     return () => {
       alive = false;
     };
-  }, [toolId, decode]);
+  }, [toolId, decode, wanted, reset, toast]);
 
   // gravar o rascunho sozinho; mexer na ferramenta com o "Continuar" aberto é começar do zero
   useEffect(() => {
@@ -146,7 +165,6 @@ export function useToolState<T extends object>(toolId: string, initial: T | (() 
   }
 
   /** Preenchimento automático (ex.: dados da empresa ao abrir): muda o estado sem passo de desfazer e sem contar como trabalho novo. */
-  const { reset } = hist;
   const adopt = useCallback(
     (fn: (cur: T) => T) => {
       const next = fn(baseline.current);
@@ -189,7 +207,7 @@ export function useToolState<T extends object>(toolId: string, initial: T | (() 
       exported.current = true;
       try {
         const db = await getDb();
-        await toolProjects.add(db, { toolId, name, data: await encode(state), thumb: snapshotPreview(), at: new Date().toISOString() });
+        await toolProjects.add(db, { toolId, name, data: await encode(state), thumb: await previewThumb(), at: new Date().toISOString() });
         await reload();
       } catch (e) {
         console.warn(`Projeto de ${toolId} não entrou no histórico:`, e);

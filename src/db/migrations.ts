@@ -100,6 +100,14 @@ export const MIGRATIONS: string[][] = [
   [
     "CREATE TABLE print_logs (id INTEGER PRIMARY KEY, productId INTEGER, orderId INTEGER, at TEXT NOT NULL, printerId INTEGER, filaments TEXT NOT NULL DEFAULT '', layerHeight REAL, infillPct REAL, supports TEXT NOT NULL DEFAULT 'nenhum', brim INTEGER NOT NULL DEFAULT 0, orientation TEXT NOT NULL DEFAULT '', minutes REAL, grams REAL, result TEXT NOT NULL, reason TEXT NOT NULL DEFAULT '', notes TEXT NOT NULL DEFAULT '')",
   ],
+  // Meus projetos (#161): os projetos da #85 viram a biblioteca, com favorito, tags, data de mudança e ligação a produto/pedido.
+  [
+    "ALTER TABLE tool_projects ADD COLUMN favorite INTEGER NOT NULL DEFAULT 0",
+    "ALTER TABLE tool_projects ADD COLUMN tags TEXT NOT NULL DEFAULT '[]'",
+    "ALTER TABLE tool_projects ADD COLUMN updatedAt TEXT",
+    "ALTER TABLE tool_projects ADD COLUMN productId INTEGER",
+    "ALTER TABLE tool_projects ADD COLUMN orderId INTEGER",
+  ],
 ];
 
 export const SCHEMA_VERSION = MIGRATIONS.length;

@@ -1,6 +1,8 @@
 import { Calculator, ChevronRight, ClipboardList, FileText, KeyRound, Shapes } from "lucide-react";
 import { ordersRepo } from "../db/ordersRepo";
-import { toolState } from "../db/toolStateRepo";
+import { toolProjects, toolState } from "../db/toolStateRepo";
+import { openProjectIn } from "../tools/intent";
+import { libraryItems, type LibraryItem } from "../tools/projects/library";
 import type { Db } from "../db/types";
 import { money } from "../domain/format";
 import { isLate, orderTotals, STATUS_LABEL, todayIso, type Order } from "../domain/orders";
@@ -33,20 +35,28 @@ export function ago(iso: string, now = Date.now()) {
   return rtf.format(-Math.round(min / (24 * 60)), "day");
 }
 
-const load = async (db: Db) => ({ drafts: await toolState.recent(db), orders: await ordersRepo.list(db) });
+const RECENT = 4; // Meus projetos no Início (#161): os 4 últimos, rascunhos e projetos juntos
+const load = async (db: Db) => ({ recent: libraryItems(await toolProjects.recent(db, RECENT), await toolState.recent(db, RECENT)), orders: await ordersRepo.list(db) });
 
 /** Início (#139): poucas ações, o que ficou pela metade e os prazos da semana. O resto está a um clique na barra lateral. */
 export default function Home({ go }: { go: Go }) {
-  const [data] = useData(load, { drafts: [], orders: [] as Order[] });
+  const [data] = useData(load, { recent: [] as LibraryItem[], orders: [] as Order[] });
   const today = todayIso();
   const week = data.orders
     .filter((o) => OPEN.has(o.status) && o.dueDate && o.dueDate <= addDays(today, 7))
     .sort((a, b) => (a.dueDate ?? "").localeCompare(b.dueDate ?? ""))
     .slice(0, 5);
-  const drafts = data.drafts.flatMap((d) => {
-    const page = PAGES.find((p) => p.id === d.id);
-    return page ? [{ ...d, page }] : [];
-  });
+  const recent = data.recent
+    .flatMap((it) => {
+      const page = PAGES.find((p) => p.id === it.toolId);
+      return page ? [{ it, page }] : [];
+    })
+    .sort((a, b) => b.it.at.localeCompare(a.it.at))
+    .slice(0, RECENT);
+  const open = (it: LibraryItem) => {
+    openProjectIn(it.toolId, it.kind === "draft" ? { resume: true } : { projectId: it.project.id });
+    go(it.toolId);
+  };
 
   return (
     <div className="page home">
@@ -63,16 +73,21 @@ export default function Home({ go }: { go: Go }) {
       </ul>
       <StartHere go={go} />
 
-      {drafts.length > 0 && (
-        <section aria-labelledby="home-drafts">
-          <h2 id="home-drafts">Continuar</h2>
+      {recent.length > 0 && (
+        <section aria-labelledby="home-projects">
+          <div className="home-head">
+            <h2 id="home-projects">Meus projetos</h2>
+            <button className="link" onClick={() => go("projects")}>
+              Ver todos
+            </button>
+          </div>
           <ul className="home-list">
-            {drafts.map((d) => (
-              <li key={d.id}>
-                <button onClick={() => go(d.id)}>
-                  <d.page.icon aria-hidden />
-                  <span>{d.page.label}</span>
-                  <span className="muted">{ago(d.updatedAt)}</span>
+            {recent.map(({ it, page }) => (
+              <li key={it.key}>
+                <button onClick={() => open(it)}>
+                  <page.icon aria-hidden />
+                  <span>{it.kind === "draft" ? `${page.label} · rascunho` : `${it.name} · ${page.label}`}</span>
+                  <span className="muted">{ago(it.at)}</span>
                   <ChevronRight aria-hidden className="chev" />
                 </button>
               </li>

@@ -27,6 +27,23 @@ export function previewLabel(size: { x: number; y: number; z: number } | null, p
 
 // prévia na tela agora (uma por ferramenta): dá a miniatura dos "Últimos projetos" (#85)
 let active: ReturnType<typeof createViewer> | null = null;
+let activeModels: Model[] = [];
+const THUMB_W = 320, THUMB_H = 240;
+
+/**
+ * Miniatura do projeto (#161) no padrão das miniaturas da galeria (#149): render à parte, fundo transparente,
+ * sem a grade da mesa e com a câmera padrão. O renderizador só carrega na hora de salvar; se falhar, usa a prévia.
+ */
+export async function previewThumb(): Promise<string | null> {
+  if (!activeModels.length) return null;
+  try {
+    const { renderModels } = await import("../thumbs/renderThumb");
+    return renderModels(activeModels, THUMB_W, THUMB_H);
+  } catch (e) {
+    console.warn("Miniatura no padrão da galeria indisponível, usando a prévia:", e);
+    return snapshotPreview();
+  }
+}
 /** Miniatura WebP da prévia 3D aberta, ou null (sem prévia ou vazia). */
 export const snapshotPreview = (max?: number) => {
   try {
@@ -46,7 +63,10 @@ export default function Preview3D({ models, busy, busyText = "Gerando modelo…"
     viewer.current = v;
     active = v;
     return () => {
-      if (active === v) active = null;
+      if (active === v) {
+        active = null;
+        activeModels = [];
+      }
       v.dispose();
       viewer.current = null;
     };
@@ -54,6 +74,7 @@ export default function Preview3D({ models, busy, busyText = "Gerando modelo…"
 
   useEffect(() => {
     viewer.current?.setModels(models);
+    if (active === viewer.current) activeModels = models;
   }, [models]);
 
   const legend = [...new Map(models.flatMap((m) => m.parts).map((p) => [p.color + p.name, p])).values()].slice(0, 6);
