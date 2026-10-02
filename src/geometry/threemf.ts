@@ -1,4 +1,6 @@
 import { strToU8, zipSync } from "fflate";
+import { bed } from "./bed";
+import { modelsBounds } from "./bounds";
 import { nearestColor } from "./colorMatch";
 import { bambuObjectSettings, type PrintProfile } from "./printProfile";
 import type { Mesh, Model } from "./types";
@@ -50,12 +52,15 @@ export function filamentPlan(models: Model[], slots?: (string | null)[]): { extr
  * a extrusora é a posição da cor na lista de cores distintas (1ª cor = filamento 1) ou, com `slots`, o slot do AMS (#98).
  * `profile`: configuração de impressão recomendada, gravada em cada objeto (o Bambu Studio e o OrcaSlicer aplicam ao abrir).
  * `pauses`: alturas (mm) do topo da camada ANTES da qual a impressora pausa (ex.: colocar ímã ou tag NFC).
+ * Posição: o fatiador põe a origem do 3MF no canto da mesa; o conjunto vai com o centro no centro da mesa da impressora
+ * escolhida (um `transform` igual em todos os itens, o arranjo entre as peças fica), para abrir já dentro dela (#169).
  * O OrcaSlicer e o PrusaSlicer leem de qualquer 3MF (cada um no seu arquivo); o Bambu Studio só de projetos
  * gerados por ele: para ele use `bambuProject` (roda o CLI do Bambu Studio instalado).
  */
 export function write3mf(models: Model[], { pauses = [], profile, slots }: { pauses?: number[]; profile?: PrintProfile; slots?: (string | null)[] } = {}): Uint8Array {
   const objectSettings = profile ? bambuObjectSettings(profile).map(([k, v]) => `<metadata key="${k}" value="${esc(v)}"/>`).join("") : "";
   const extruder = filamentPlan(models, slots).extruderOf;
+  const at = bedTransform(models);
   let id = 1;
   const objects: string[] = [];
   const items: string[] = [];
@@ -67,7 +72,7 @@ export function write3mf(models: Model[], { pauses = [], profile, slots }: { pau
     });
     const objId = id++;
     objects.push(`<object id="${objId}" name="${esc(m.name)}" type="model"><components>${partIds.map((p) => `<component objectid="${p}"/>`).join("")}</components></object>`);
-    items.push(`<item objectid="${objId}" printable="1"/>`);
+    items.push(`<item objectid="${objId}" transform="${at}" printable="1"/>`);
     config.push(
       `<object id="${objId}"><metadata key="name" value="${esc(m.name)}"/><metadata key="extruder" value="${extruder(m.parts[0].color)}"/>${objectSettings}` +
         m.parts.map((p, i) => `<part id="${partIds[i]}" subtype="normal_part"><metadata key="name" value="${esc(p.name)}"/><metadata key="extruder" value="${extruder(p.color)}"/></part>`).join("") +
@@ -87,6 +92,14 @@ export function write3mf(models: Model[], { pauses = [], profile, slots }: { pau
       ? { "Metadata/custom_gcode_per_layer.xml": strToU8(pauseXml(pauses)), "Metadata/Prusa_Slicer_custom_gcode_per_print_z.xml": strToU8(prusaPauseXml(pauses)) }
       : {}),
   });
+}
+
+/** Translação que leva o centro do conjunto ao centro da mesa (matriz 3×4 do 3MF, linha a linha). */
+function bedTransform(models: Model[]): string {
+  const b = modelsBounds(models);
+  const { x, y } = bed();
+  const dx = b ? x / 2 - (b.min[0] + b.max[0]) / 2 : x / 2, dy = b ? y / 2 - (b.min[1] + b.max[1]) / 2 : y / 2;
+  return `1 0 0 0 1 0 0 0 1 ${num(dx)} ${num(dy)} 0`;
 }
 
 /** Formato do Bambu Studio / OrcaSlicer: type 1 = pausa (M400 U1 no firmware Bambu). */

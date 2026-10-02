@@ -1,7 +1,10 @@
-import { beforeAll, describe, expect, test } from "vitest";
+import { afterEach, beforeAll, describe, expect, test } from "vitest";
 import { EXAMPLE_OUTLINES } from "../../organizer/examples";
 import type { ToolOutline } from "../../organizer/types";
-import { bedMm } from "../bed";
+import { bedMm, setBed } from "../bed";
+import { read3mf } from "../threemfRead";
+import { write3mf } from "../threemf";
+import { BED_MARGIN } from "./gridDrawer";
 import { meshBounds } from "../bounds";
 import { getManifold, type ManifoldToplevel, type Solid } from "../manifold";
 import type { Mesh } from "../types";
@@ -117,5 +120,47 @@ describe("peça de teste (#169)", { timeout: 60_000 }, () => {
     const [, inside] = holesAt(m, 1);
     expect(inside[0]).toBeCloseTo(101.2, 1);
     expect(inside[1]).toBeCloseTo(21.2, 1);
+  });
+});
+
+describe("todas as saídas dentro da mesa (#169: gaveta e teste saíam no canto)", { timeout: 60_000 }, () => {
+  afterEach(() => setBed(null));
+  const OUTPUTS: [string, Partial<ToolFitParams>][] = [
+    ["bloco", { mode: "block" }],
+    ["Gridfinity", { mode: "gridfinity" }],
+    ["gaveta de uma bandeja", { mode: "drawer", drawerW: 260, drawerD: 260 }],
+    ["peça de teste", { mode: "test" }],
+  ];
+  for (const bed of [{ x: 256, y: 256, z: 256 }, { x: 350, y: 320, z: 325 }])
+    for (const [name, p] of OUTPUTS)
+      test(`${name} na mesa ${bed.x} × ${bed.y}: prévia centrada e 3MF dentro da mesa, com margem`, () => {
+        setBed(bed);
+        const half = bedMm() / 2 - BED_MARGIN + 1e-6;
+        const out = build(EXAMPLE_OUTLINES, { ...p, clearance: 0.6, finger: true });
+        expect(out.models.length).toBeGreaterThan(0);
+        // prévia: a grade da mesa é centrada na origem
+        const b = meshBounds(out.models.flatMap((m) => m.parts.map((q) => q.mesh)))!;
+        for (const v of [b.min[0], b.min[1], b.max[0], b.max[1]]) expect(Math.abs(v)).toBeLessThanOrEqual(half);
+        expect(Math.abs((b.min[0] + b.max[0]) / 2)).toBeLessThan(0.5);
+        expect(Math.abs((b.min[1] + b.max[1]) / 2)).toBeLessThan(0.5);
+        // 3MF: o fatiador põe a origem no canto da mesa
+        const f = meshBounds(read3mf(write3mf(out.models)).objects.flatMap((o) => o.parts.map((q) => q.mesh)))!;
+        expect(f.min[0]).toBeGreaterThanOrEqual(BED_MARGIN - 1e-6);
+        expect(f.min[1]).toBeGreaterThanOrEqual(BED_MARGIN - 1e-6);
+        expect(f.max[0]).toBeLessThanOrEqual(bed.x - BED_MARGIN + 1e-6);
+        expect(f.max[1]).toBeLessThanOrEqual(bed.y - BED_MARGIN + 1e-6);
+        expect(f.min[2]).toBeCloseTo(0, 3);
+      });
+
+  test("gaveta grande: cada bandeja cabe na mesa menos a margem; o conjunto sai centrado", () => {
+    const out = build([...EXAMPLE_OUTLINES, ...EXAMPLE_OUTLINES.map((o) => ({ ...o, id: `${o.id}-2` }))], { mode: "drawer", drawerW: 450, drawerD: 320 });
+    expect(out.models.length).toBeGreaterThan(1);
+    for (const t of out.models) {
+      const b = meshBounds(t.parts.map((q) => q.mesh))!;
+      expect(Math.max(b.max[0] - b.min[0], b.max[1] - b.min[1])).toBeLessThanOrEqual(bedMm() - 2 * BED_MARGIN + 1e-6);
+    }
+    const all = meshBounds(out.models.flatMap((m) => m.parts.map((q) => q.mesh)))!;
+    expect(Math.abs((all.min[0] + all.max[0]) / 2)).toBeLessThan(0.5);
+    expect(Math.abs((all.min[1] + all.max[1]) / 2)).toBeLessThan(0.5);
   });
 });

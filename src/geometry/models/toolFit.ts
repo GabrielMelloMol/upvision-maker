@@ -3,7 +3,8 @@ import { bedMm } from "../bed";
 import type { CS, ManifoldToplevel, Solid } from "../manifold";
 import { scoped } from "../shape2d";
 import type { Model } from "../types";
-import { moveMesh, roundedRect, solidMesh, type ModelOutput } from "./common";
+import { modelsBounds } from "../bounds";
+import { moveMesh, moveModel, roundedRect, solidMesh, type ModelOutput } from "./common";
 import { BED_MARGIN, DRAWER_GAP } from "./gridDrawer";
 import { BIN_GAP, BIN_R, FOOT_H, GRID, gridFeet, HEIGHT_UNIT, type K } from "./gridfinity";
 import { arrange } from "./toolFitLayout";
@@ -153,9 +154,22 @@ function buildTest(M: ManifoldToplevel, k: K, tools: ToolOutline[], p: ToolFitPa
   });
 }
 
+/** Conjunto com o centro na origem: a grade da mesa na prévia é centrada nela (o 3MF leva ao centro da mesa). */
+function centered(models: Model[]): Model[] {
+  const b = modelsBounds(models);
+  if (!b) return models;
+  const [cx, cy] = [(b.min[0] + b.max[0]) / 2, (b.min[1] + b.max[1]) / 2];
+  return models.map((m) => moveModel(m, -cx, -cy));
+}
+
 export function buildToolFit(M: ManifoldToplevel, tools: ToolOutline[], p: ToolFitParams): ModelOutput {
   tools.forEach(validate);
   if (!tools.length) return { models: [], warnings: [] };
+  const out = buildRaw(M, tools, p);
+  return { ...out, models: centered(out.models) };
+}
+
+function buildRaw(M: ManifoldToplevel, tools: ToolOutline[], p: ToolFitParams): ModelOutput {
   return scoped((k) => {
     const warnings: string[] = [];
     if (p.clearance === 0) warnings.push("Sem folga: a ferramenta pode não entrar. Imprima a peça de teste antes.");

@@ -1,6 +1,7 @@
 import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
-import { describe, expect, test } from "vitest";
+import { afterEach, describe, expect, test } from "vitest";
+import { setBed } from "./bed";
 import { meshBounds } from "./bounds";
 import { decodePaint, type Tri } from "./paint";
 import { read3mf } from "./threemfRead";
@@ -52,7 +53,21 @@ describe("ler 3MF", () => {
     ]);
   });
 
+  test("3MF salvo abre centrado na mesa da impressora escolhida, mantendo o arranjo entre as peças (#169)", () => {
+    const cube = (x: number) => ({ positions: new Float32Array([x, 0, 0, x + 10, 0, 0, x, 10, 0, x, 0, 10]), indices: new Uint32Array([0, 2, 1, 0, 1, 3, 1, 2, 3, 0, 3, 2]) });
+    const models = [{ name: "A", parts: [{ name: "A", color: "#000000", mesh: cube(0) }] }, { name: "B", parts: [{ name: "B", color: "#000000", mesh: cube(40) }] }];
+    const center = (bytes: Uint8Array) => {
+      const b = meshBounds(read3mf(bytes).objects.flatMap((o) => o.parts.map((q) => q.mesh)))!;
+      return [(b.min[0] + b.max[0]) / 2, (b.min[1] + b.max[1]) / 2, b.max[0] - b.min[0], b.min[2]];
+    };
+    expect(center(write3mf(models))).toEqual([128, 128, 50, 0]); // A1: 256 × 256, origem no canto da mesa
+    setBed({ x: 300, y: 200, z: 300 });
+    expect(center(write3mf(models))).toEqual([150, 100, 50, 0]);
+  });
+
   test("arquivo que não é 3MF: erro claro", () => {
     expect(() => read3mf(new Uint8Array([1, 2, 3]))).toThrow(/3MF válido/);
   });
 });
+
+afterEach(() => setBed(null));

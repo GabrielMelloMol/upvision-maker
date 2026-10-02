@@ -4,6 +4,7 @@ Cada versão aparece para a usuária na tela "O que há de novo" depois da atual
 Formato: `## <versão> — <data>` e itens `- …` em linguagem simples.
 
 ## Próxima versão (ainda não lançada)
+- **3MF já abre dentro da mesa**: o arquivo salvo sai com a peça no centro da mesa da impressora escolhida, no Bambu Studio e no OrcaSlicer, sem precisar arrumar. No Organizador pela foto, a gaveta e a peça de teste apareciam no canto da prévia, metade fora da mesa.
 - **Organizador pela foto** (em Ferramentas): cada ferramenta ganha um encaixe exato com a folga que você escolher (nenhuma, pequena, média, grande ou em mm), num bloco, numa caixa Gridfinity ou em bandejas arrumadas sozinhas para a sua gaveta, com recorte para o dedo. A peça de teste (só o contorno, 2 mm) confere o encaixe em minutos. Fotografe as ferramentas numa folha A4 ou Carta: a folha vira a régua e cada contorno sai em mm.
 - **Projeto do Bambu Studio com 2 ou mais cores**: o projeto saía com a tabela de purga de 4 filamentos e o fatiador do Bambu Studio podia recusar ("Failed slicing the model"). Agora a tabela acompanha o número de cores e cada parte sai no filamento dela.
 
