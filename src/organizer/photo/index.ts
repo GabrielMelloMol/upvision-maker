@@ -5,11 +5,13 @@ import { homography, type Pt } from "./homography";
 import { fillFakeHoles, rectSize } from "./holes";
 import type { Gray } from "./image";
 import { clean, erode, label, PX_PER_MM, rectify, relative, threshold, type Blob } from "./segment";
-import { order } from "./sheet";
+import { findMarkerCenters, LAYOUT, sheetFromMarkers } from "./markers";
+import { detectSheet, order } from "./sheet";
 
 export { exifFocal35, focalPxFrom35 } from "./camera";
 export { lightness, type Gray, type Rgba } from "./image";
-export { findSheetCorners } from "./sheet";
+export { LAYOUT, markerCenters } from "./markers";
+export { detectSheet, findSheetCorners, LOW_CONFIDENCE } from "./sheet";
 export type { Pt } from "./homography";
 
 export const A4: Sheet = { widthMm: 210, heightMm: 297 };
@@ -46,6 +48,10 @@ export type PhotoOptions = {
   heightMm?: number;
   /** Focal em px (do EXIF). Sem ela não há como saber a distância da câmera. */
   focalPx?: number | null;
+  /** Folha de medição impressa: as faixas dos marcadores, do título e da régua ficam fora da medição. */
+  printed?: boolean;
+  /** Número da 1ª ferramenta nos avisos (várias fotos numa lista); padrão 1. Não muda id nem label. */
+  firstNumber?: number;
 };
 
 export type PhotoResult = {
@@ -87,6 +93,7 @@ export function measureTools(g: Gray, opts: PhotoOptions): PhotoResult {
   const m = Math.round(MARGIN_MM * PX_PER_MM);
   const raw = new Uint8Array(w * h);
   for (let y = m; y < h - m; y++) for (let x = m; x < w - m; x++) raw[y * w + x] = rel[y * w + x] < t ? 1 : 0;
+  if (opts.printed) clearBands(raw, w, h);
   const height = opts.heightMm && opts.heightMm > 0 ? opts.heightMm : 0;
   const seen = clean(raw, w, h);
   const solid = camera && height ? unParallaxMask(seen, w, h, camera, height, PX_PER_MM) : seen;
@@ -94,6 +101,7 @@ export function measureTools(g: Gray, opts: PhotoOptions): PhotoResult {
   const { labels, blobs } = label(mask, w, h);
 
   const warnings: string[] = [];
+  const first = opts.firstNumber ?? 1;
   // px da folha endireitada → mm com y para cima
   const toMm = (loop: Pt[]): Pt[] => loop.map(([x, y]): Pt => [x / PX_PER_MM, H - y / PX_PER_MM]);
   const tools = blobs.filter((b) => b.area >= MIN_TOOL_MM2 * PX_PER_MM ** 2);
@@ -102,7 +110,7 @@ export function measureTools(g: Gray, opts: PhotoOptions): PhotoResult {
   const edge = m + Math.round(0.5 * PX_PER_MM);
   const outlines = tools.map((b, i): ToolOutline => {
     if (b.box[0] <= edge || b.box[1] <= edge || b.box[2] >= w - 1 - edge || b.box[3] >= h - 1 - edge)
-      warnings.push(`A ferramenta ${i + 1} sai da folha: o contorno foi cortado na borda. Fotografe de novo com ela toda em cima do papel.`);
+      warnings.push(`A ferramenta ${first + i} sai da folha: o contorno foi cortado na borda. Fotografe de novo com ela toda em cima do papel.`);
     const loops = regionLoops({ labels, width: w, id: b.id, box: b.box })
       .map((l) => toMm(simplifyLoop(l, SIMPLIFY_MM * PX_PER_MM)))
       .sort((a, c) => Math.abs(signedArea(c)) - Math.abs(signedArea(a)));
@@ -122,7 +130,7 @@ export function measureTools(g: Gray, opts: PhotoOptions): PhotoResult {
   if (!outlines.length) warnings.push("Não achei nenhuma ferramenta na folha. Use papel branco liso e ferramentas que contrastem com ele.");
   const tilted = camera ? camera.tiltDeg > MAX_TILT_DEG : Math.min(side(0), side(2)) / Math.max(side(0), side(2)) < MIN_SIDE_RATIO || Math.min(side(1), side(3)) / Math.max(side(1), side(3)) < MIN_SIDE_RATIO;
   if (tilted) warnings.push("A folha está muito inclinada na foto: fotografe mais de cima, com o celular paralelo à mesa, para medir melhor.");
-  const lighter = lighterPart(rel, erode(mask, w, h, EDGE_PX), labels, tools);
+  const lighter = lighterPart(rel, erode(mask, w, h, EDGE_PX), labels, tools, first);
   if (lighter.length)
     warnings.push(
       `${lighter.length === 1 ? `A ferramenta ${lighter[0]} tem` : `As ferramentas ${lighter.slice(0, -1).join(", ")} e ${lighter[lighter.length - 1]} têm`} uma parte colada bem mais clara que o resto: se for sombra, ela entrou no contorno e a medida sai maior. Fotografe com luz de cima ou difusa (perto de uma janela, sem lâmpada nem sol direto). Se for uma parte cromada da ferramenta, pode seguir.`,
@@ -136,8 +144,8 @@ export function measureTools(g: Gray, opts: PhotoOptions): PhotoResult {
 }
 
 /** Números (1, 2…) das ferramentas com uma parte grande bem mais clara que o miolo delas (provável sombra). */
-function lighterPart(rel: Float32Array, inner: Uint8Array, labels: Int32Array, tools: Blob[]): number[] {
-  const byId = new Map(tools.map((b, i) => [b.id, { n: i + 1, values: [] as number[] }]));
+function lighterPart(rel: Float32Array, inner: Uint8Array, labels: Int32Array, tools: Blob[], first: number): number[] {
+  const byId = new Map(tools.map((b, i) => [b.id, { n: first + i, values: [] as number[] }]));
   for (let i = 0; i < inner.length; i++) if (inner[i]) byId.get(labels[i])?.values.push(rel[i]);
   return [...byId.values()].flatMap(({ n, values }) => {
     if (values.length < 100) return [];
@@ -153,6 +161,31 @@ function lighterPart(rel: Float32Array, inner: Uint8Array, labels: Int32Array, t
  * ângulo (um dos lados dele sempre encosta num lado do fecho convexo).
  */
 export const sizeMm = (o: ToolOutline) => rectSize(o.points);
+
+/** Apaga as faixas impressas da folha de medição (nos dois lados curtos, onde quer que eles estejam na foto). */
+function clearBands(mask: Uint8Array, w: number, h: number): void {
+  const band = Math.round(LAYOUT.band * PX_PER_MM);
+  const alongY = h >= w; // folha em pé na imagem endireitada: faixas em cima e embaixo
+  for (let y = 0; y < h; y++)
+    for (let x = 0; x < w; x++) {
+      const d = alongY ? Math.min(y, h - 1 - y) : Math.min(x, w - 1 - x);
+      if (d < band) mask[y * w + x] = 0;
+    }
+}
+
+export type SheetLocation = { corners: Pt[]; confidence: number; printed: boolean } | null;
+
+/**
+ * Onde está a folha na foto: pelos 4 marcadores da folha de medição, se aparecerem (confiança total, qualquer
+ * fundo); senão pelas bordas e retas (`detectSheet`), com a confiança dela.
+ */
+export function locateSheet(g: Gray, sheet: Sheet, focalPx?: number | null): SheetLocation {
+  const fromMarkers = sheetFromMarkers(findMarkerCenters(g), sheet);
+  if (fromMarkers) return { corners: fromMarkers, confidence: 1, printed: true };
+  const ratio = Math.max(sheet.widthMm, sheet.heightMm) / Math.min(sheet.widthMm, sheet.heightMm);
+  const guess = detectSheet(g, { focalPx, ratios: [ratio] });
+  return guess && { ...guess, printed: false };
+}
 
 /**
  * Régua (sem EXIF): escala o contorno em torno do próprio centro para o comprimento medido. A paralaxe de uma

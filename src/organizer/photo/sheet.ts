@@ -1,26 +1,47 @@
+import { houghLines, lineQuads, scoreQuad } from "./edges";
 import type { Pt } from "./homography";
 import { otsu, sample, shrink, type Gray } from "./image";
 
 /** Lado maior da imagem reduzida usada para achar a folha (rápido; o refinamento usa a foto inteira). */
-const COARSE_SIDE = 640;
+const COARSE_SIDE = 1000;
+/** Abaixo disso a pessoa é avisada para conferir os cantos (nota 0–1: contraste nos lados × proporção de folha). */
+export const LOW_CONFIDENCE = 0.5;
+
+export type SheetGuess = { corners: Pt[]; confidence: number };
 
 /**
- * Os 4 cantos da folha na foto (px), em sentido horário na tela a partir do canto de cima à esquerda.
- * 1) Imagem reduzida → limiar de Otsu → maior região clara (a folha).
- * 2) Quadrilátero de maior área dentro do fecho convexo dessa região (os objetos em cima não atrapalham).
- * 3) Cada lado é refinado na foto inteira: acha a borda papel/mesa com subpixel ao longo do lado e ajusta uma reta;
- *    os cantos são os cruzamentos das retas. null = não achou uma região clara grande o bastante.
+ * Os 4 cantos da folha na foto (px), em sentido horário na tela a partir do canto de cima à esquerda, e a confiança.
+ * 1) Candidatos na imagem reduzida: o quadrilátero de maior área da maior região clara (mesa escura) e os
+ *    quadriláteros formados por 4 retas da imagem (mesa clara: só a borda fina e a sombra separam o papel).
+ * 2) Fica o de maior nota: contraste ao longo dos 4 lados × proporção de A4/Carta corrigida pela perspectiva.
+ * 3) Cada lado é refinado na foto inteira (borda com subpixel ao longo do lado, reta ajustada); os cantos são os
+ *    cruzamentos das retas. null = nenhum candidato.
  */
-export function findSheetCorners(g: Gray): Pt[] | null {
-  const k = Math.max(1, Math.floor(Math.max(g.width, g.height) / COARSE_SIDE));
-  const small = shrink(g, k);
+export function detectSheet(g: Gray, opts: { focalPx?: number | null; ratios?: number[] } = {}): SheetGuess | null {
+  const k = Math.max(1, Math.ceil(Math.max(g.width, g.height) / COARSE_SIDE));
+  const small = k > 1 ? shrink(g, k) : g;
+  const candidates = lineQuads(houghLines(small), small.width, small.height, small.width * small.height * 0.04);
+  const bright = brightQuad(small);
+  if (bright) candidates.push(bright);
+  const focal = opts.focalPx ? opts.focalPx / k : null;
+  let best: { quad: Pt[]; score: number } | null = null;
+  for (const quad of candidates) {
+    const { score } = scoreQuad(small, quad, focal, opts.ratios);
+    if (!best || score > best.score) best = { quad, score };
+  }
+  if (!best) return null;
+  const coarse = order(best.quad.map(([x, y]) => [x * k, y * k] as Pt));
+  const fine = refine(g, coarse, k);
+  return { corners: fine ?? coarse, confidence: best.score * (fine ? 1 : 0.7) };
+}
+
+export const findSheetCorners = (g: Gray, opts?: { focalPx?: number | null; ratios?: number[] }): Pt[] | null => detectSheet(g, opts)?.corners ?? null;
+
+/** Quadrilátero de maior área da maior região clara (o jeito antigo, ótimo com mesa escura). */
+function brightQuad(small: Gray): Pt[] | null {
   const region = largestBright(small);
   if (!region || region.length < small.width * small.height * 0.05) return null;
-  const hull = convexHull(region.map((i) => [(i % small.width) + 0.5, Math.floor(i / small.width) + 0.5] as Pt));
-  const quad = maxQuad(hull);
-  if (!quad) return null;
-  const coarse = order(quad.map(([x, y]) => [x * k, y * k] as Pt));
-  return refine(g, coarse, k) ?? coarse;
+  return maxQuad(convexHull(region.map((i) => [(i % small.width) + 0.5, Math.floor(i / small.width) + 0.5] as Pt)));
 }
 
 /** Pixels (índices) da maior região clara 4-conectada. */
@@ -123,7 +144,7 @@ type Line = { p: Pt; d: Pt }; // ponto e direção unitária
 /** Refina cada lado na foto inteira; null se algum lado não tiver borda clara (aí fica o quadrilátero grosso). */
 function refine(g: Gray, q: Pt[], k: number): Pt[] | null {
   const lines: Line[] = [];
-  const reach = 2 * k + 4;
+  const reach = 3 * k + 6; // erro do quadrilátero grosso + a faixa de sombra fora do papel
   for (let s = 0; s < 4; s++) {
     const a = q[s];
     const b = q[(s + 1) % 4];
@@ -146,19 +167,29 @@ function refine(g: Gray, q: Pt[], k: number): Pt[] | null {
   return out.every((p) => p !== null) ? (out as Pt[]) : null;
 }
 
-/** Posição (subpixel, ao longo de n) em que a claridade cruza o meio entre mesa (fora) e papel (dentro). */
+/** Degrau mínimo de claridade (em 2 px) para contar como borda. */
+const MIN_STEP = 8;
+
+/**
+ * Borda ao longo de n (subpixel; n aponta para dentro da folha): entre as transições fortes (pelo menos metade da
+ * maior, subindo ou descendo), a mais de dentro. Com mesa escura só há uma; com a faixa fina de sombra fora do papel
+ * há duas (mesa → sombra e sombra → papel) e a de dentro é a borda do papel.
+ */
 function edgeAlong(g: Gray, c: Pt, n: Pt, reach: number): number | null {
   const at = (t: number) => sample(g, c[0] + n[0] * t, c[1] + n[1] * t);
-  const outside = at(-reach);
-  const inside = at(reach);
-  if (inside - outside < 25) return null; // sem contraste: objeto em cima da borda ou sombra
-  const mid = (inside + outside) / 2;
   const step = 0.25;
-  let prev = at(-reach);
-  for (let t = -reach + step; t <= reach; t += step) {
-    const v = at(t);
-    if (prev < mid && v >= mid) return t - step + (step * (mid - prev)) / (v - prev);
-    prev = v;
+  const ts: number[] = [];
+  const ds: number[] = [];
+  for (let t = -reach; t <= reach; t += step) {
+    ts.push(t);
+    ds.push(Math.abs(at(t + 1) - at(t - 1))); // degrau em 2 px: não depende de como a borda cai na grade de pixels
+  }
+  const peak = Math.max(...ds);
+  if (peak < MIN_STEP) return null; // sem borda: objeto em cima dela ou papel igual à mesa
+  for (let i = ds.length - 2; i > 0; i--) {
+    if (ds[i] < peak / 2 || ds[i] < ds[i - 1] || ds[i] <= ds[i + 1]) continue;
+    const den = ds[i - 1] - 2 * ds[i] + ds[i + 1];
+    return ts[i] + (den < 0 ? (step * (ds[i - 1] - ds[i + 1])) / (2 * den) : 0);
   }
   return null;
 }

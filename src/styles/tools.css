@@ -251,3 +251,14 @@ details.advanced[open] > .stack, details.advanced[open] > .grid { margin-top: va
 .photo-list b { color: var(--text); font-weight: 600; }
 .sheet-preview figcaption { display: grid; gap: var(--space-2); margin-top: var(--space-2); }
 @media (prefers-reduced-motion: reduce) { .photo-found { animation: none; } }
+
+/* Folha na mesa clara (#169): botões da folha de medição, cantos destacados quando a confiança é baixa e lupa ao arrastar */
+.photo-sheet-pdf { display: flex; flex-wrap: wrap; gap: var(--space-2); }
+.photo-sheet-pdf svg { width: 14px; height: 14px; }
+.photo-corners .corner.low .corner-dot { fill: var(--brand-orange); animation: corner-pulse 1.2s ease-in-out infinite; }
+@keyframes corner-pulse { 50% { stroke-width: 7px; } }
+.photo-corners .corner-lens { pointer-events: none; }
+.photo-corners { overflow: visible; } /* canto na borda da foto continua visível e pegável */
+.photo-corners .corner-lens path { stroke: var(--accent); stroke-width: 1.5px; vector-effect: non-scaling-stroke; }
+.photo-corners .corner-lens .lens-ring { fill: none; stroke: #fff; stroke-width: 3px; vector-effect: non-scaling-stroke; filter: drop-shadow(0 2px 6px rgb(0 0 0 / 0.5)); }
+@media (prefers-reduced-motion: reduce) { .photo-corners .corner.low .corner-dot { animation: none; stroke-width: 5px; } }

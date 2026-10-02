@@ -1,4 +1,6 @@
 import { resolve } from "node:path";
+import jpeg from "jpeg-js";
+import { renderScene, type Scene } from "../../src/organizer/photo/testPhoto";
 import { expect, go, openApp, test, toastWith } from "./tauri";
 
 test("organizador pela foto: ferramentas de exemplo com medida, Gridfinity em 3D e salvar 3MF (#169)", async ({ page, tauri }) => {
@@ -64,4 +66,27 @@ test("organizador pela foto: altura 0 avisa com exemplos; óculos com 40 mm suge
   await expect(page.getByRole("spinbutton", { name: /^Profundidade/ })).toHaveValue("24");
   await expect(page.getByText(/16 mm ficam para fora/)).toBeVisible();
   await expect(page.getByText(/A peça fica com 26 mm de altura/)).toBeVisible();
+});
+
+test("organizador pela foto: mesa branca sem borda avisa, destaca os cantos e mostra a lupa ao arrastar (#169)", async ({ page }) => {
+  test.setTimeout(120_000);
+  // folha branca numa mesa do mesmo tom, sem sombra: não dá para achar a folha sozinho
+  const scene: Scene = { sheet: { w: 210, h: 297 }, boxes: [{ x: 55, y: 120, w: 100, d: 40, h: 0 }], camera: [160, 330, 420], target: [105, 150, 0], focalPx: 1300, size: [1600, 1200], roll: 8, table: { tone: 233 } };
+  const img = renderScene(scene, 2);
+  const buffer = Buffer.from(jpeg.encode({ data: Buffer.from(img.data.buffer), width: img.width, height: img.height }, 92).data);
+  await openApp(page);
+  await go(page, "Organizador pela foto");
+  await page.locator(".photo-step input[type=file]").setInputFiles({ name: "mesa-branca.jpg", mimeType: "image/jpeg", buffer });
+  await expect(page.getByText(/use a folha de medição/)).toBeVisible({ timeout: 60_000 });
+  const corner = page.getByRole("button", { name: "Canto 1 da folha (setas movem)" });
+  await expect(corner).toHaveClass(/low/);
+  await page.locator(".photo-corners").scrollIntoViewIfNeeded();
+  const box = (await corner.boundingBox())!;
+  await page.mouse.move(box.x + box.width / 2, box.y + box.height / 2);
+  await page.mouse.down();
+  await page.mouse.move(box.x + box.width / 2 + 30, box.y + box.height / 2 + 20, { steps: 5 });
+  await expect(page.locator(".corner-lens")).toBeVisible();
+  if (process.env.SHOTS) await page.locator(".photo-corners").screenshot({ path: process.env.SHOTS });
+  await page.mouse.up();
+  await expect(page.locator(".corner-lens")).toHaveCount(0);
 });

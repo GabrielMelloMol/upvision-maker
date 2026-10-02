@@ -20,6 +20,13 @@ export type Scene = {
   shadow?: { width: number; strength: number };
   /** Rola a câmera em torno do eixo de visão (graus). */
   roll?: number;
+  /**
+   * Mesa clara (tom 0–255) no lugar da cinza, quase do tom do papel; `shadow` = sombra fina da borda do papel, uma
+   * faixa de `width` mm em volta da folha (multiplica a mesa por `strength`): o único contraste que sobra.
+   */
+  table?: { tone: number; shadow?: { width: number; strength: number } };
+  /** O que está impresso no papel (tom 0–255 em x, y mm da folha; null = papel). */
+  print?: (x: number, y: number) => number | null;
 };
 
 type V3 = [number, number, number];
@@ -88,7 +95,14 @@ function shade(s: Scene, o: V3, d: V3): number {
   if (t <= 0) return 90;
   const x = o[0] + t * d[0];
   const y = o[1] + t * d[1];
-  if (x < 0 || y < 0 || x > s.sheet.w || y > s.sheet.h) return 85 + 10 * Math.sin(x / 7) * Math.sin(y / 5); // mesa com textura
+  if (x < 0 || y < 0 || x > s.sheet.w || y > s.sheet.h) {
+    if (!s.table) return 85 + 10 * Math.sin(x / 7) * Math.sin(y / 5); // mesa com textura
+    const sh = s.table.shadow;
+    const shaded = sh && x > -sh.width && y > -sh.width && x < s.sheet.w + sh.width && y < s.sheet.h + sh.width;
+    return (s.table.tone + 3 * Math.sin(x / 3) * Math.sin(y / 4)) * (shaded ? sh.strength : 1);
+  }
+  const printed = s.print?.(x, y);
+  if (printed !== undefined && printed !== null) return printed;
   // papel com iluminação desigual (mais claro no meio)
   let v = 238 - 18 * Math.hypot((x - s.sheet.w / 2) / s.sheet.w, (y - s.sheet.h / 2) / s.sheet.h);
   if (s.shadow) for (const b of s.boxes) if (x > b.x + b.w && x < b.x + b.w + s.shadow.width && y > b.y + 3 && y < b.y + b.d + 3) v *= s.shadow.strength;
