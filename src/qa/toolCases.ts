@@ -20,6 +20,7 @@ import type { Model } from "../geometry/types";
 import { bedWarnings } from "../tools/models/bedCheck";
 import { testArt, type QaCase } from "./cases";
 import { drawerCases } from "./drawerCases";
+import { toolFitCases } from "./toolFitCases";
 
 /**
  * Ferramentas avulsas (fora dos Modelos prontos) na varredura (#90): mesma geometria que a tela chama, com os limites
@@ -176,5 +177,7 @@ export function toolCases(M: ManifoldToplevel): QaCase[] {
     ]),
     // organizador de gaveta e talheres (#140): casos do Torno
     ...drawerCases(M),
+    // organizador pela foto (#169): casos do Torno
+    ...toolFitCases(M),
   ];
 }

@@ -93,6 +93,13 @@ export const ARTICLES: HelpArticle[] = [
     example: "Usar uma foto de exemplo",
   },
   {
+    id: "toolfit",
+    title: "Organizador pela foto",
+    intro: "Cada ferramenta ganha um encaixe exato, com folga, num bloco, numa caixa Gridfinity ou em bandejas para a gaveta.",
+    steps: ["Confira as ferramentas e a medida de cada uma na folha.", "Escolha a folga: pequena (0,3 mm) fica justa na A1.", "Imprima a peça de teste (só o contorno, 2 mm) e encaixe a ferramenta.", "Escolha a saída: bloco, Gridfinity ou gaveta (com as medidas dela) e salve o 3MF."],
+    tips: ["Frouxa na peça de teste: diminua a folga; não entra: aumente.", "O recorte para o dedo ajuda a tirar ferramentas baixas, que ficam todas dentro do encaixe."],
+  },
+  {
     id: "colorsplit",
     title: "Separar 3MF por cor",
     intro: "Abra um 3MF pintado no fatiador e separe cada cor numa peça, para imprimir sem AMS.",

@@ -10,8 +10,8 @@ import { BED_MARGIN, drawerPlan, GRID, HEIGHT_UNIT, planSummary, splitAxis, type
  * Grade de 42 mm, altura em unidades de 7 mm; a caixinha tem 0,5 mm de folga (41,5 mm por unidade).
  */
 export { GRID, HEIGHT_UNIT };
-const BIN_GAP = 0.5;
-const BIN_R = 3.75; // canto da caixinha
+export const BIN_GAP = 0.5;
+export const BIN_R = 3.75; // canto da caixinha
 const BASE_R = 4; // canto da base
 // perfil do pé (de baixo para cima): chanfro 0,8 · reto 1,8 · chanfro 2,15 = 4,75 mm
 const FOOT = [0.8, 1.8, 2.15] as const;
@@ -88,7 +88,7 @@ export type GridBaseParams = {
 };
 export const DEFAULT_GRID_BASE: GridBaseParams = { unitsX: 4, unitsY: 3, magnets: false, color: "#1c1c1e", mode: "cells", drawerW: 500, drawerD: 420, drawerH: 80, align: "center", bedMargin: BED_MARGIN };
 
-type K = <D extends { delete(): void }>(o: D) => D;
+export type K = <D extends { delete(): void }>(o: D) => D;
 
 /** Retângulo arredondado de lados `w`×`h` encolhido `inset` em cada lado (raio encolhe junto), numa fatia fina em `z`. */
 function layer(M: ManifoldToplevel, k: K, w: number, h: number, r: number, inset: number, z: number): Solid {
@@ -121,6 +121,11 @@ function foot(M: ManifoldToplevel, k: K): Solid {
   ]);
 }
 
+/** Pés de uma grade nx×ny centrada na origem (z de 0 a FOOT_H), no escopo `k` de quem chama. */
+export function gridFeet(M: ManifoldToplevel, k: K, nx: number, ny: number): Solid {
+  return k(M.Manifold.union(cellCenters(nx, ny).map(([x, y]) => k(foot(M, k).translate([x, y, 0])))));
+}
+
 /** Centros das casas de uma grade nx×ny centrada na origem. */
 export function cellCenters(nx: number, ny: number): [number, number][] {
   return Array.from({ length: nx * ny }, (_, i) => [(i % nx - (nx - 1) / 2) * GRID, (Math.floor(i / nx) - (ny - 1) / 2) * GRID]);
@@ -136,7 +141,7 @@ export function buildGridBin({ M, text }: ModelCtx, p: GridBinParams): ModelOutp
     const W = nx * GRID - BIN_GAP, D = ny * GRID - BIN_GAP;
     const H = Math.round(p.unitsZ) * HEIGHT_UNIT; // altura do topo da parede (a borda empilhável sobe além)
     const warnings: string[] = [];
-    let feet = k(M.Manifold.union(cellCenters(nx, ny).map(([x, y]) => k(foot(M, k).translate([x, y, 0])))));
+    let feet = gridFeet(M, k, nx, ny);
     if (p.magnets || p.screws) {
       const holes: Solid[] = [];
       for (const [cx, cy] of cellCenters(nx, ny))

@@ -3574,5 +3574,116 @@
   "minutes": 100,
   "grams": 72.4,
   "plates": 1
+ },
+ {
+  "key": "toolfit:gaveta",
+  "owner": "Torno",
+  "group": "tools",
+  "label": "Organizador pela foto (ferramenta)",
+  "variant": "gaveta",
+  "status": "aviso",
+  "reasons": [
+   "o conjunto arrumado ocupa 459,0 × 248,0 mm: passa da mesa de 256 mm",
+   "não coube numa placa: 2 placas",
+   "app: Gaveta de 450 × 320 mm: 2 bandeja(s) (248 × 248, 201 × 248 mm); 2 espaço(s) da gaveta ficam livres."
+  ],
+  "date": "2026-10-02",
+  "slicers": "Bambu ✓ · Orca ✓",
+  "minutes": 558,
+  "grams": 522.1,
+  "plates": 2
+ },
+ {
+  "key": "toolfit:gaveta pequena",
+  "owner": "Torno",
+  "group": "tools",
+  "label": "Organizador pela foto (ferramenta)",
+  "variant": "gaveta pequena",
+  "status": "ok",
+  "reasons": [
+   "app: Gaveta de 200 × 150 mm: 1 bandeja(s) (199 × 149 mm).",
+   "app: Chave combinada não coube na gaveta."
+  ],
+  "date": "2026-10-02",
+  "slicers": "Bambu ✓ · Orca ✓",
+  "minutes": 162,
+  "grams": 142,
+  "plates": 1
+ },
+ {
+  "key": "toolfit:gridfinity",
+  "owner": "Torno",
+  "group": "tools",
+  "label": "Organizador pela foto (ferramenta)",
+  "variant": "gridfinity",
+  "status": "ok",
+  "reasons": [
+   "app: Caixa Gridfinity de 5×4 casas e 3 unidades de altura (21 mm)."
+  ],
+  "date": "2026-10-02",
+  "slicers": "Bambu ✓ · Orca ✓",
+  "minutes": 285,
+  "grams": 227.1,
+  "plates": 1
+ },
+ {
+  "key": "toolfit:máximo",
+  "owner": "Torno",
+  "group": "tools",
+  "label": "Organizador pela foto (ferramenta)",
+  "variant": "máximo",
+  "status": "ok",
+  "reasons": [],
+  "date": "2026-10-02",
+  "slicers": "Bambu ✓ · Orca ✓",
+  "minutes": 692,
+  "grams": 660.1,
+  "plates": 1
+ },
+ {
+  "key": "toolfit:mínimo",
+  "owner": "Torno",
+  "group": "tools",
+  "label": "Organizador pela foto (ferramenta)",
+  "variant": "mínimo",
+  "status": "ok",
+  "reasons": [
+   "app: Sem folga: a ferramenta pode não entrar. Imprima a peça de teste antes."
+  ],
+  "date": "2026-10-02",
+  "slicers": "Bambu ✓ · Orca ✓",
+  "minutes": 64,
+  "grams": 47.9,
+  "plates": 1
+ },
+ {
+  "key": "toolfit:padrão",
+  "owner": "Torno",
+  "group": "tools",
+  "label": "Organizador pela foto (ferramenta)",
+  "variant": "padrão",
+  "status": "ok",
+  "reasons": [],
+  "date": "2026-10-02",
+  "slicers": "Bambu ✓ · Orca ✓",
+  "minutes": 178,
+  "grams": 145.9,
+  "plates": 1
+ },
+ {
+  "key": "toolfit:peça de teste",
+  "owner": "Torno",
+  "group": "tools",
+  "label": "Organizador pela foto (ferramenta)",
+  "variant": "peça de teste",
+  "status": "ok",
+  "reasons": [
+   "app: Encaixe a ferramenta no contorno: deve entrar sem forçar e não sair ao virar de cabeça para baixo. Frouxa: diminua a folga; não entra: aumente."
+  ],
+  "date": "2026-10-02",
+  "slicers": "Bambu ✓ · Orca ✓",
+  "minutes": 15,
+  "grams": 9.4,
+  "plates": 1
  }
 ]

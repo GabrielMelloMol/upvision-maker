@@ -23,7 +23,7 @@ Peça maior que a mesa de 256 mm do A1 conta como **aviso** quando o app avisa n
 impressoras de mesa maior); sem o aviso do app, é **falha**.
 
 
-**Total:** 228 casos · 175 ok · 52 com aviso · 1 com falha · 0 n/a
+**Total:** 235 casos · 181 ok · 53 com aviso · 1 com falha · 0 n/a
 
 ## Forja
 
@@ -262,3 +262,10 @@ impressoras de mesa maior); sem o aviso do app, é **falha**.
 | Painel de nomes (namesPanel) | máximo | ⚠️ aviso | Bambu ✓ · Orca ✓ · Projeto Bambu ✓ | – | – | – | – | o conjunto arrumado ocupa 600,0 × 600,0 mm: passa da mesa de 256 mm; Bambu: torre de purga em cima de uma peça depois do --arrange do CLI (na tela, arraste a torre ou use Arrumar); Orca: torre de purga em cima de uma peça depois do --arrange do CLI (na tela, arraste a torre ou use Arrumar); Projeto Bambu: torre de purga em cima de uma peça depois do --arrange do CLI (na tela, arraste a torre ou use Arrumar); app: Maior que a mesa de 256 mm: o painel saiu em 9 partes para colar lado a lado. |
 | Painel de nomes (namesPanel) | mínimo | ✅ ok | Bambu ✓ · Orca ✓ · Projeto Bambu ✓ | 11 | 6,0 | 1 | – | app: Com 12 nomes a letra fica com 4.1 mm: aumente a placa para ler bem. |
 | Painel de nomes (namesPanel) | padrão | ✅ ok | Bambu ✓ · Orca ✓ · Projeto Bambu ✓ | 100 | 72,4 | 1 | – | – |
+| Organizador pela foto (ferramenta) | gaveta | ⚠️ aviso | Bambu ✓ · Orca ✓ | 558 | 522,1 | 2 | – | o conjunto arrumado ocupa 459,0 × 248,0 mm: passa da mesa de 256 mm; não coube numa placa: 2 placas; app: Gaveta de 450 × 320 mm: 2 bandeja(s) (248 × 248, 201 × 248 mm); 2 espaço(s) da gaveta ficam livres. |
+| Organizador pela foto (ferramenta) | gaveta pequena | ✅ ok | Bambu ✓ · Orca ✓ | 162 | 142,0 | 1 | – | app: Gaveta de 200 × 150 mm: 1 bandeja(s) (199 × 149 mm).; app: Chave combinada não coube na gaveta. |
+| Organizador pela foto (ferramenta) | gridfinity | ✅ ok | Bambu ✓ · Orca ✓ | 285 | 227,1 | 1 | – | app: Caixa Gridfinity de 5×4 casas e 3 unidades de altura (21 mm). |
+| Organizador pela foto (ferramenta) | máximo | ✅ ok | Bambu ✓ · Orca ✓ | 692 | 660,1 | 1 | – | – |
+| Organizador pela foto (ferramenta) | mínimo | ✅ ok | Bambu ✓ · Orca ✓ | 64 | 47,9 | 1 | – | app: Sem folga: a ferramenta pode não entrar. Imprima a peça de teste antes. |
+| Organizador pela foto (ferramenta) | padrão | ✅ ok | Bambu ✓ · Orca ✓ | 178 | 145,9 | 1 | – | – |
+| Organizador pela foto (ferramenta) | peça de teste | ✅ ok | Bambu ✓ · Orca ✓ | 15 | 9,4 | 1 | – | app: Encaixe a ferramenta no contorno: deve entrar sem forçar e não sair ao virar de cabeça para baixo. Frouxa: diminua a folga; não entra: aumente. |
