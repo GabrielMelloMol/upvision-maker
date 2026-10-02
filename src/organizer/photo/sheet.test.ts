@@ -14,7 +14,8 @@ export const A4_SCENE: Scene = {
   roll: 8,
 };
 
-describe("folha na foto (#169)", () => {
+// renderiza uma foto de 1600 × 1200 com supersample (~1 s, mais com a máquina carregada)
+describe("folha na foto (#169)", { timeout: 30_000 }, () => {
   test("homografia leva os 4 pontos exatamente e a inversa volta", () => {
     const from: Pt[] = [[0, 0], [210, 0], [210, 297], [0, 297]];
     const to: Pt[] = [[100, 80], [900, 120], [950, 1100], [60, 1000]];
