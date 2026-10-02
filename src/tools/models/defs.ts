@@ -9,7 +9,7 @@ import type { ModelDef, Params } from "./fields";
 export { CATEGORIES, type Category, type FieldDef, type ModelDef, type Params, type Section } from "./fields";
 
 /**
- * Registro único dos Modelos prontos: um arquivo por categoria em `catalog/` (veja o README, "Como adicionar um
+ * Registro único dos Modelos prontos: um arquivo por categoria em `catalog/` (veja docs/DESENVOLVIMENTO.md, "Como adicionar um
  * modelo pronto"). A ordem aqui é a da galeria; o 1º modelo (Placa Pix) é o que abre. Todos passam pela checagem
  * de mesa (#129, #130, #131).
  */

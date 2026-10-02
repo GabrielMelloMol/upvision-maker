@@ -44,7 +44,7 @@ jobs:
         with:
           tagName: ${{ github.ref_name }}
           releaseName: UpVision Maker ${{ github.ref_name }}
-          releaseBody: Baixe o instalador do seu sistema abaixo. Veja o README para abrir sem assinatura de código.
+          releaseBody: Baixe o instalador do seu sistema abaixo. No Mac, baixe o .dmg; no Windows, o .exe. O passo a passo para abrir na primeira vez está no README.
           releaseDraft: true
           prerelease: false
           args: ${{ matrix.args }}

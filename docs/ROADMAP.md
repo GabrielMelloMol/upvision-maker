@@ -58,7 +58,7 @@ Extra entregue a partir do feedback: modo **Silhueta** (MediaPipe local), Aplica
 | 4 | Chaveiros: texto com fontes (texto → forma), logo, argola/furo, **2 cores como volumes** no 3MF (Bambu Studio/OrcaSlicer), **lote a partir de lista de nomes** | §F6 #17, #20 | ✅ | M | Metadados de cor do Bambu mudam entre versões: validar abrindo no Bambu Studio |
 | 5 | Medalhas: formato, texto, imagem central, furo para fita, cores por volume | §F6 #12 | ✅ | M | — |
 | 6 | **Pedir à IA**: chave Anthropic local (paga por uso, botão Testar), descrição → Claude gera OpenSCAD → openscad-wasm → prévia → ajustes em conversa → 3MF; tokens e custo por pedido | — | 🟡 | M | Custo por uso na conta dela; OpenSCAD gerado pode não compilar (repetir com o erro); openscad-wasm pesa ~10 MB (carregar sob demanda) |
-| 7 | Botão **Sugerir ferramenta**: envio pelo app para o Worker de sugestões (#83, `services/feedback-worker`), WhatsApp com texto pronto ou Copiar texto; diagnóstico junto opcional | — | ✅ | P | O Worker precisa ser publicado pelo Gabriel (passo a passo no README da pasta) |
+| 7 | Botão **Sugerir ferramenta**: envio pelo app para o Worker de sugestões (#83, `services/feedback-worker`), WhatsApp com texto pronto ou Copiar texto; diagnóstico junto opcional | — | ✅ | P | O Worker precisa ser publicado pelo Gabriel (passo a passo em services/feedback-worker/README.md) |
 | 8 | Tela **O que há de novo** após cada atualização (`CHANGELOG.md`) | — | ✅ | P | — |
 
 ## Fase 3 — Cadastros de venda
@@ -151,6 +151,6 @@ Estratégia: gerador TypeScript + manifold-3d por modelo, reaproveitando os núc
 
 ## Riscos transversais
 - **Chave do updater:** guardada fora do repo (`~/.tauri/upvision-maker.key`). Perdeu = não dá para publicar atualizações para quem já instalou. Fazer cópia em cofre de senhas.
-- **Sem assinatura de código:** Windows mostra SmartScreen ("Mais informações → Executar assim mesmo"); macOS bloqueia app não notarizado (clique direito → Abrir, ou `xattr -dr com.apple.quarantine`). Ver `README.md`.
+- **Sem assinatura de código:** Windows mostra SmartScreen ("Mais informações → Executar assim mesmo"); macOS bloqueia app não notarizado (clique direito → Abrir, ou `xattr -dr com.apple.quarantine`). Ver `README.md` (seção "Baixar e instalar").
 - **Dados locais:** um computador = uma base. Sincronização entre máquinas fica para depois (opção: exportar/importar backup).
 - **Webview diferente por SO:** WebView2 (Windows) × WKWebView (macOS): testar impressão A4 e WASM nos dois.
