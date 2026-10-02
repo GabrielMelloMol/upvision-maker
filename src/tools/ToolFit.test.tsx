@@ -43,12 +43,28 @@ describe("Organizador pela foto (#169)", () => {
     const user = userEvent.setup();
     const { container } = renderWithApp(<ToolFit />);
     expect(screen.getByText(/ferramentas de exemplo/)).toBeInTheDocument();
+    expect(screen.queryByText(/Falta a altura/)).not.toBeInTheDocument(); // sem foto, nada a medir
     await user.upload(container.querySelector<HTMLInputElement>('input[type="file"]')!, new File(["x"], "ferramentas.jpg", { type: "image/jpeg" }));
     const sheet = await screen.findByRole("img", { name: /Folha de 210 × 297 mm\. Ferramenta 1: 10\d × (39|40|41) mm$/ }, BUILD);
     expect(sheet).toBeInTheDocument();
+    // altura 0 não passa calada: aviso com exemplos (#169, óculos)
+    expect(screen.getByText(/Falta a altura das ferramentas.*óculos dobrados ~40 mm/)).toBeInTheDocument();
     expect(screen.queryByText(/ferramentas de exemplo/)).not.toBeInTheDocument();
     await waitFor(() => expect(screen.getByRole("button", { name: /Salvar 3MF/ })).toBeEnabled(), BUILD);
   }, 60_000);
+
+  test("ferramenta mais alta que o encaixe: sugere altura × 0,6 com Usar e diz quanto fica para fora (#169)", async () => {
+    const user = userEvent.setup();
+    renderWithApp(<ToolFit />);
+    // exemplos: chave de fenda com 26 mm de altura, encaixe padrão de 12 mm
+    expect(screen.getByText(/A ferramenta mais alta tem 26 mm e o encaixe 12 mm: 14 mm ficam para fora/)).toBeInTheDocument();
+    expect(screen.getByText(/A peça fica com 14 mm de altura/)).toBeInTheDocument();
+    await user.click(screen.getByRole("button", { name: "Usar 16 mm" }));
+    expect(screen.getByRole("spinbutton", { name: /^Profundidade/ })).toHaveValue(16);
+    expect(screen.getByText(/10 mm ficam para fora/)).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: /^Usar/ })).not.toBeInTheDocument();
+    expect(screen.getByText(/A peça fica com 18 mm de altura/)).toBeInTheDocument();
+  });
 
   test("gaveta: pede as medidas e avisa quantas bandejas", async () => {
     const user = userEvent.setup();

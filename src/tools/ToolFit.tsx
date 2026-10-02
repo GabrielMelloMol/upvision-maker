@@ -1,6 +1,6 @@
 import { useCallback } from "react";
 import { getManifold } from "../geometry/manifold";
-import { buildToolFit, CLEARANCES, DEFAULT_TOOL_FIT, type ToolFitMode, type ToolFitParams } from "../geometry/models/toolFit";
+import { buildToolFit, CLEARANCES, DEFAULT_TOOL_FIT, DEPTH_RANGE, suggestedDepth, type ToolFitMode, type ToolFitParams } from "../geometry/models/toolFit";
 import { A4, EXAMPLE_OUTLINES } from "../organizer/examples";
 import PhotoStep from "../organizer/PhotoStep";
 import type { Sheet, ToolOutline } from "../organizer/types";
@@ -16,9 +16,11 @@ import SheetPreview from "./toolfit/SheetPreview";
 import ToolSessionBar from "./ToolSessionBar";
 import { useToolState } from "./useToolState";
 
+const br = (n: number) => n.toLocaleString("pt-BR", { maximumFractionDigits: 1 });
+
 const LIMITS = {
   clearance: [0, 2],
-  depth: [3, 60],
+  depth: DEPTH_RANGE,
   floor: [1, 10],
   wall: [1.2, 10],
   drawerW: [60, 1000],
@@ -47,6 +49,8 @@ export default function ToolFit() {
   const setState = tool.set;
   const onOutlines = useCallback((found: ToolOutline[], s: Sheet) => setState((cur) => ({ ...cur, outlines: found, sheet: s, fromPhoto: true }), "outlines"), [setState]);
   const set = <K extends keyof ToolFitParams>(key: K) => (v: ToolFitParams[K]) => tool.set((cur) => ({ ...cur, p: { ...cur.p, [key]: v } }), `p.${String(key)}`);
+  const suggested = suggestedDepth(outlines);
+  const tallest = Math.max(0, ...outlines.map((o) => o.heightMm ?? 0));
   const preset = CLEARANCES.find(([, , mm]) => mm === p.clearance)?.[0] ?? "custom";
 
   const valid = (Object.entries(LIMITS) as [keyof typeof LIMITS, readonly [number, number]][]).every(([k, [lo, hi]]) => inRange(p[k], lo, hi));
@@ -77,7 +81,26 @@ export default function ToolFit() {
               full
             />
             <NumField label="Folga" value={p.clearance} onChange={set("clearance")} min={LIMITS.clearance[0]} max={LIMITS.clearance[1]} step={0.05} hint="Por lado. Pequena (0,3 mm) fica justa na A1; imprima a peça de teste para conferir." />
-            <NumField label="Profundidade" value={p.depth} onChange={set("depth")} min={LIMITS.depth[0]} max={LIMITS.depth[1]} step={1} />
+            <NumField
+              label="Profundidade"
+              value={p.depth}
+              onChange={set("depth")}
+              min={LIMITS.depth[0]}
+              max={LIMITS.depth[1]}
+              step={1}
+              hint={`A peça fica com ${br(p.floor + p.depth)} mm de altura (fundo + profundidade)${p.mode === "gridfinity" ? ", arredondada para cima em unidades de 7 mm" : ""}.`}
+            />
+            {tallest > p.depth && suggested !== null && (
+              <Alert kind="info">
+                A ferramenta mais alta tem {br(tallest)} mm e o encaixe {br(p.depth)} mm: {br(tallest - p.depth)} mm ficam para fora da peça.
+                {suggested !== p.depth && <> Sugestão: {br(suggested)} mm (60% da altura): segura firme e o resto fica para fora, para pegar. </>}
+                {suggested !== p.depth && (
+                  <button type="button" className="sm" onClick={() => set("depth")(suggested)}>
+                    Usar {br(suggested)} mm
+                  </button>
+                )}
+              </Alert>
+            )}
             <Toggle label="Recorte para o dedo" checked={p.finger} onChange={set("finger")} hint="Um semicírculo no meio de cada ferramenta para tirá-la do encaixe." />
           </div>
           <div className="card stack">

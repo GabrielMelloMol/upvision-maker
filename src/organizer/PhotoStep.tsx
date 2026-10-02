@@ -231,8 +231,11 @@ export default function PhotoStep({ onOutlines }: { onOutlines: (outlines: ToolO
         min={0}
         max={100}
         step={1}
-        hint="Da mesa até o ponto mais alto da ferramenta deitada (a mais alta, se forem várias). Corrige a perspectiva: quanto mais alta, maior ela parece na foto."
+        hint="Da mesa até o ponto mais alto da ferramenta deitada (a mais alta, se forem várias), por exemplo alicate ~15 mm, óculos dobrados ~40 mm. Corrige a perspectiva: quanto mais alta, maior ela parece na foto."
       />
+      {photo && !(height > 0) && (
+        <Alert kind="warn">Falta a altura das ferramentas: sem ela a medida sai maior (a ferramenta parece maior na foto) e o encaixe pode ficar raso. Meça a ferramenta deitada, da mesa ao ponto mais alto: alicate ~15 mm, óculos dobrados ~40 mm.</Alert>
+      )}
       {result?.needsRuler && result.outlines[0] && (
         <label>
           Comprimento real da Ferramenta 1 (mm)

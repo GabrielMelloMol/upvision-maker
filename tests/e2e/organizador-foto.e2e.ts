@@ -46,3 +46,22 @@ test(`organizador pela foto: dicas de como fotografar, foto realista (${ext}) me
     expect(Math.abs(w - REAL[i][1]), `largura da ferramenta ${i + 1}`).toBeLessThan(2);
   });
 });
+
+test("organizador pela foto: altura 0 avisa com exemplos; óculos com 40 mm sugerem encaixe de 24 mm com Usar (#169)", async ({ page }) => {
+  test.setTimeout(120_000);
+  await openApp(page);
+  await go(page, "Organizador pela foto");
+  await page.locator(".photo-step input[type=file]").setInputFiles(resolve("tests/fixtures/organizador/ferramentas-a4-celular.jpg"));
+  await expect(page.getByRole("button", { name: "Canto 1 da folha (setas movem)" })).toBeVisible({ timeout: 60_000 });
+  const missing = page.getByText(/Falta a altura das ferramentas/);
+  await expect(missing).toBeVisible();
+  await expect(missing).toContainText("óculos dobrados ~40 mm");
+  await page.getByLabel("Altura das ferramentas").fill("40");
+  await page.getByLabel("Altura das ferramentas").blur();
+  await expect(missing).toHaveCount(0);
+  await expect(page.getByText(/A ferramenta mais alta tem 40 mm e o encaixe 12 mm: 28 mm ficam para fora/)).toBeVisible({ timeout: 60_000 });
+  await page.getByRole("button", { name: "Usar 24 mm" }).click();
+  await expect(page.getByRole("spinbutton", { name: /^Profundidade/ })).toHaveValue("24");
+  await expect(page.getByText(/16 mm ficam para fora/)).toBeVisible();
+  await expect(page.getByText(/A peça fica com 26 mm de altura/)).toBeVisible();
+});

@@ -9,7 +9,7 @@ import { meshBounds } from "../bounds";
 import { getManifold, type ManifoldToplevel, type Solid } from "../manifold";
 import type { Mesh } from "../types";
 import { FOOT_H, GRID } from "./gridfinity";
-import { buildToolFit, DEFAULT_TOOL_FIT as D, type ToolFitParams } from "./toolFit";
+import { buildToolFit, DEFAULT_TOOL_FIT as D, suggestedDepth, type ToolFitParams } from "./toolFit";
 
 let M: ManifoldToplevel;
 beforeAll(async () => {
@@ -63,6 +63,21 @@ describe("bloco com encaixe (#169)", { timeout: 60_000 }, () => {
     const m = build([scissors], { mode: "block", finger: false }).models[0].parts[0].mesh;
     // corte do bolsão: bloco + bolsão + 2 pinos
     expect(holesAt(m, D.floor + 1)).toHaveLength(4);
+  });
+
+  test("furo pequeno (lado menor até 5 mm) não vira pino; furo maior vira (#169, óculos)", () => {
+    const sq = (cx: number, side: number): [number, number][] => [[cx - side / 2, 25 - side / 2], [cx + side / 2, 25 - side / 2], [cx + side / 2, 25 + side / 2], [cx - side / 2, 25 + side / 2]];
+    const slot = (cx: number): [number, number][] => [[cx - 15, 23], [cx + 15, 23], [cx + 15, 27], [cx - 15, 27]]; // 30 × 4: comprido mas fino
+    const tool: ToolOutline = { id: "f", points: [[0, 10], [120, 10], [120, 40], [0, 40]], holes: [sq(15, 4), sq(40, 8), slot(80)] };
+    const m = build([tool], { mode: "block", finger: false, clearance: 0 }).models[0].parts[0].mesh;
+    expect(holesAt(m, D.floor + 1)).toHaveLength(3); // bloco + bolsão + 1 pino (só o de 8 mm)
+  });
+
+  test("altura total acompanha a profundidade (fundo + profundidade)", () => {
+    for (const depth of [12, 24]) {
+      const b = meshBounds(build([bar(60, 20)], { mode: "block", depth, floor: 2 }).models[0].parts.map((q) => q.mesh))!;
+      expect(b.max[2]).toBeCloseTo(2 + depth, 3);
+    }
   });
 
   test("contorno inválido dá erro claro", () => {
@@ -162,5 +177,16 @@ describe("todas as saídas dentro da mesa (#169: gaveta e teste saíam no canto)
     const all = meshBounds(out.models.flatMap((m) => m.parts.map((q) => q.mesh)))!;
     expect(Math.abs((all.min[0] + all.max[0]) / 2)).toBeLessThan(0.5);
     expect(Math.abs((all.min[1] + all.max[1]) / 2)).toBeLessThan(0.5);
+  });
+});
+
+describe("profundidade sugerida pela altura (#169)", () => {
+  test("altura × 0,6, arredondada em mm, nos limites da tela; sem altura não sugere", () => {
+    expect(suggestedDepth([{ id: "a", points: [], heightMm: 40 }])).toBe(24); // óculos dobrados
+    expect(suggestedDepth([{ id: "a", points: [], heightMm: 15 }, { id: "b", points: [], heightMm: 26 }])).toBe(16); // a mais alta manda
+    expect(suggestedDepth([{ id: "a", points: [], heightMm: 2 }])).toBe(3);
+    expect(suggestedDepth([{ id: "a", points: [], heightMm: 200 }])).toBe(60);
+    expect(suggestedDepth([{ id: "a", points: [] }])).toBeNull();
+    expect(suggestedDepth([{ id: "a", points: [], heightMm: 0 }])).toBeNull();
   });
 });

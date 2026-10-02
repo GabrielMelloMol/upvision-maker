@@ -7,7 +7,7 @@ import { modelsBounds } from "../bounds";
 import { moveMesh, moveModel, roundedRect, solidMesh, type ModelOutput } from "./common";
 import { BED_MARGIN, DRAWER_GAP } from "./gridDrawer";
 import { BIN_GAP, BIN_R, FOOT_H, GRID, gridFeet, HEIGHT_UNIT, type K } from "./gridfinity";
-import { arrange } from "./toolFitLayout";
+import { arrange, boundsOf, orient } from "./toolFitLayout";
 
 /**
  * Organizador pela foto (#169): contornos das ferramentas (mm) viram bolsões com folga num bloco, numa caixa
@@ -39,6 +39,12 @@ export const CLEARANCES = [
 ] as const;
 export const DEFAULT_TOOL_FIT: ToolFitParams = { mode: "block", clearance: 0.3, depth: 12, floor: 2, wall: 3, finger: true, drawerW: 400, drawerD: 300, color: "#2563eb" };
 
+/** Limites da profundidade na tela; a sugestão pela altura fica dentro deles. */
+export const DEPTH_RANGE = [3, 60] as const;
+/** Fração da altura da ferramenta que entra no bolsão: segura bem e o resto fica para fora, para pegar (#169). */
+export const DEPTH_RATIO = 0.6;
+/** Furo com o lado menor até isso não vira pino: o pino sairia fino e quebradiço (#169: furinhos dos óculos). */
+export const MIN_PIN_MM = 5;
 const FINGER_R = 11; // um dedo de adulto com sobra
 const TEST_H = 2;
 const EPS = 0.01;
@@ -51,9 +57,23 @@ function validate(o: ToolOutline) {
   if (!ok(o.points) || !(o.holes ?? []).every(ok)) throw new Error(`O contorno de "${o.label ?? o.id}" é inválido (precisa de 3 ou mais pontos em mm).`);
 }
 
-/** Bolsão de uma ferramenta já no lugar: contorno (com os furos virando pinos) crescido da folga. */
+/** Profundidade sugerida pela ferramenta mais alta (altura × 0,6, em mm inteiros); null se a foto veio sem altura. */
+export function suggestedDepth(tools: ToolOutline[]): number | null {
+  const h = Math.max(0, ...tools.map((t) => t.heightMm ?? 0));
+  return h > 0 ? Math.min(DEPTH_RANGE[1], Math.max(DEPTH_RANGE[0], Math.round(h * DEPTH_RATIO))) : null;
+}
+
+/** Furos que viram pino: lado menor (do menor retângulo que contém o furo) acima de MIN_PIN_MM. */
+function pinHoles(o: ToolOutline): Pt[][] {
+  return (o.holes ?? []).filter((h) => {
+    const b = boundsOf(orient({ id: o.id, points: h }).points);
+    return Math.min(b.maxX - b.minX, b.maxY - b.minY) > MIN_PIN_MM;
+  });
+}
+
+/** Bolsão de uma ferramenta já no lugar: contorno (furos grandes virando pinos) crescido da folga. */
 function pocketOf(M: ManifoldToplevel, k: K, o: ToolOutline, clearance: number, holes = true): CS {
-  const cs = k(new M.CrossSection([o.points, ...(holes ? o.holes ?? [] : [])], "EvenOdd"));
+  const cs = k(new M.CrossSection([o.points, ...(holes ? pinHoles(o) : [])], "EvenOdd"));
   return clearance > 0 ? k(cs.offset(clearance, "Round")) : cs;
 }
 
