@@ -2,9 +2,10 @@ import type { Sheet, ToolOutline } from "../types";
 import { cameraFromHomography, unParallaxMask, type Camera } from "./camera";
 import { regionLoops, signedArea, simplifyLoop } from "./contour";
 import { homography, type Pt } from "./homography";
+import { fillFakeHoles, rectSize } from "./holes";
 import type { Gray } from "./image";
 import { clean, erode, label, PX_PER_MM, rectify, relative, threshold, type Blob } from "./segment";
-import { convexHull, order } from "./sheet";
+import { order } from "./sheet";
 
 export { exifFocal35, focalPxFrom35 } from "./camera";
 export { lightness, type Gray, type Rgba } from "./image";
@@ -18,7 +19,6 @@ export const LETTER: Sheet = { widthMm: 215.9, heightMm: 279.4 };
 const MARGIN_MM = 1.5;
 /** Menor ferramenta considerada (mm²): menos que isso é sujeira ou furo do papel. */
 const MIN_TOOL_MM2 = 30;
-const MIN_HOLE_MM2 = 5;
 /** Tolerância da simplificação do contorno (mm). */
 const SIMPLIFY_MM = 0.1;
 const MAX_TILT_DEG = 35;
@@ -89,7 +89,8 @@ export function measureTools(g: Gray, opts: PhotoOptions): PhotoResult {
   for (let y = m; y < h - m; y++) for (let x = m; x < w - m; x++) raw[y * w + x] = rel[y * w + x] < t ? 1 : 0;
   const height = opts.heightMm && opts.heightMm > 0 ? opts.heightMm : 0;
   const seen = clean(raw, w, h);
-  const mask = camera && height ? unParallaxMask(seen, w, h, camera, height, PX_PER_MM) : seen;
+  const solid = camera && height ? unParallaxMask(seen, w, h, camera, height, PX_PER_MM) : seen;
+  const mask = fillFakeHoles(solid, rel, rect.data, w, h); // reflexo na lente não vira furo (nem pino no encaixe)
   const { labels, blobs } = label(mask, w, h);
 
   const warnings: string[] = [];
@@ -106,7 +107,7 @@ export function measureTools(g: Gray, opts: PhotoOptions): PhotoResult {
       .map((l) => toMm(simplifyLoop(l, SIMPLIFY_MM * PX_PER_MM)))
       .sort((a, c) => Math.abs(signedArea(c)) - Math.abs(signedArea(a)));
     const [outer, ...rest] = loops;
-    const holes = rest.filter((l) => Math.abs(signedArea(l)) >= MIN_HOLE_MM2).map((l) => (signedArea(l) > 0 ? [...l].reverse() : l));
+    const holes = rest.map((l) => (signedArea(l) > 0 ? [...l].reverse() : l));
     return {
       id: `ferramenta-${i + 1}`,
       label: `Ferramenta ${i + 1}`,
@@ -151,26 +152,7 @@ function lighterPart(rel: Float32Array, inner: Uint8Array, labels: Int32Array, t
  * Comprimento × largura da ferramenta como a régua mede: lados do menor retângulo que a envolve, em qualquer
  * ângulo (um dos lados dele sempre encosta num lado do fecho convexo).
  */
-export function sizeMm(o: ToolOutline): { length: number; width: number } {
-  const hull = convexHull(o.points);
-  let best = { area: Infinity, length: 0, width: 0 };
-  hull.forEach((a, i) => {
-    const b = hull[(i + 1) % hull.length];
-    const len = Math.hypot(b[0] - a[0], b[1] - a[1]);
-    if (!len) return;
-    const ux = (b[0] - a[0]) / len;
-    const uy = (b[1] - a[1]) / len;
-    let [lo, hi, nlo, nhi] = [Infinity, -Infinity, Infinity, -Infinity];
-    for (const [x, y] of hull) {
-      const along = x * ux + y * uy;
-      const across = -x * uy + y * ux;
-      [lo, hi, nlo, nhi] = [Math.min(lo, along), Math.max(hi, along), Math.min(nlo, across), Math.max(nhi, across)];
-    }
-    const [d1, d2] = [hi - lo, nhi - nlo];
-    if (d1 * d2 < best.area) best = { area: d1 * d2, length: Math.max(d1, d2), width: Math.min(d1, d2) };
-  });
-  return { length: best.length, width: best.width };
-}
+export const sizeMm = (o: ToolOutline) => rectSize(o.points);
 
 /**
  * Régua (sem EXIF): escala o contorno em torno do próprio centro para o comprimento medido. A paralaxe de uma

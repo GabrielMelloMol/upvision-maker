@@ -112,4 +112,43 @@ describe("foto → contornos em mm (#169)", { timeout: 60_000 }, () => {
     expect(s.length).toBeCloseTo(100, 6);
     expect(s.width).toBeCloseTo(40, 6);
   });
+
+  test("reflexo de luz na lente não vira furo (nem pino); aro vazado de verdade vira", () => {
+    // "óculos": lente escura de 120 × 45 mm com um reflexo grande (Ø 14 mm, 154 mm²) e um pequeno (Ø 5 mm), estourados
+    // no branco; ao lado, um aro de 50 × 40 mm com vão de 30 × 20 mm mostrando o papel
+    const scene: Scene = {
+      ...BASE,
+      boxes: [
+        { x: 40, y: 40, w: 120, d: 45, h: 0, glints: [{ x: 75, y: 60, r: 7 }, { x: 130, y: 70, r: 2.5 }] },
+        { x: 60, y: 180, w: 50, d: 10, h: 0 },
+        { x: 60, y: 210, w: 50, d: 10, h: 0 },
+        { x: 60, y: 190, w: 10, d: 20, h: 0 },
+        { x: 100, y: 190, w: 10, d: 20, h: 0 },
+      ],
+    };
+    const r = run(scene);
+    expect(r.outlines).toHaveLength(2);
+    const lens = r.outlines.find((o) => sizeMm(o).length > 100)!;
+    const ring = r.outlines.find((o) => sizeMm(o).length < 100)!;
+    expect(lens.holes).toBeUndefined();
+    expect(ring.holes).toHaveLength(1);
+    const hole = sizeMm({ id: "furo", points: ring.holes![0] });
+    expect(Math.abs(hole.length - 30)).toBeLessThan(0.5);
+    expect(Math.abs(hole.width - 20)).toBeLessThan(0.5);
+  });
+
+  test("vão estreito (lado menor < 5 mm) não vira furo, mesmo mostrando o papel", () => {
+    const scene: Scene = {
+      ...BASE,
+      boxes: [
+        { x: 50, y: 100, w: 100, d: 10, h: 0 },
+        { x: 50, y: 114, w: 100, d: 10, h: 0 }, // vão de 4 × 80 mm entre as duas barras, fechado pelas pontas
+        { x: 50, y: 110, w: 10, d: 4, h: 0 },
+        { x: 140, y: 110, w: 10, d: 4, h: 0 },
+      ],
+    };
+    const r = run(scene);
+    expect(r.outlines).toHaveLength(1);
+    expect(r.outlines[0].holes).toBeUndefined();
+  });
 });

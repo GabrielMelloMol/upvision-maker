@@ -7,7 +7,8 @@ import type { Rgba } from "./image";
  * resto → mesa. Supersample 3×3 para a borda ter o meio-tom de uma foto de verdade.
  * Mundo em mm: x e y no plano da folha (origem num canto), z para cima.
  */
-export type Box = { x: number; y: number; w: number; d: number; h: number; tone?: number };
+/** `glints`: reflexos de luz no topo da caixa (círculos estourados no branco, centro e raio em mm). */
+export type Box = { x: number; y: number; w: number; d: number; h: number; tone?: number; glints?: { x: number; y: number; r: number }[] };
 export type Scene = {
   sheet: { w: number; h: number };
   boxes: Box[];
@@ -77,7 +78,12 @@ function hitsBox(o: V3, d: V3, b: Box): boolean {
 }
 
 function shade(s: Scene, o: V3, d: V3): number {
-  for (const b of s.boxes) if (hitsBox(o, d, b)) return b.tone ?? 35;
+  for (const b of s.boxes) {
+    if (!hitsBox(o, d, b)) continue;
+    const t = (b.h - o[2]) / d[2]; // onde o raio cruza o topo da caixa
+    const [x, y] = [o[0] + t * d[0], o[1] + t * d[1]];
+    return b.glints?.some((g) => Math.hypot(x - g.x, y - g.y) <= g.r) ? 255 : (b.tone ?? 35);
+  }
   const t = -o[2] / d[2];
   if (t <= 0) return 90;
   const x = o[0] + t * d[0];
