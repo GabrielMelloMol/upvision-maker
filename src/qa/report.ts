@@ -15,6 +15,8 @@ export type QaRow = {
   grams?: number;
   plates?: number;
   pauses?: string;
+  /** Resultado em cada fatiador, ex.: "Bambu ✓ · Orca ✓ · Projeto Bambu ✓". */
+  slicers?: string;
   date: string;
 };
 
@@ -35,9 +37,9 @@ export function renderReport(rows: QaRow[], header: string): string {
   const count = (s: QaStatus) => rows.filter((r) => r.status === s).length;
   const lines = [header, "", `**Total:** ${rows.length} casos · ${count("ok")} ok · ${count("aviso")} com aviso · ${count("falha")} com falha · ${count("n/a")} n/a`, ""];
   for (const owner of owners) {
-    lines.push(`## ${owner}`, "", "| Modelo | Valores | Resultado | Tempo (min) | PLA (g) | Placas | Pausas (Z) | Motivo |", "|---|---|---|---:|---:|---:|---|---|");
+    lines.push(`## ${owner}`, "", "| Modelo | Valores | Resultado | Fatiadores | Tempo (min) | PLA (g) | Placas | Pausas (Z) | Motivo |", "|---|---|---|---|---:|---:|---:|---|---|");
     for (const r of rows.filter((x) => x.owner === owner))
-      lines.push(`| ${cell(r.label)} | ${r.variant} | ${ICON[r.status]} | ${num(r.minutes)} | ${num(r.grams, 1)} | ${r.plates ?? "–"} | ${r.pauses ?? "–"} | ${cell(r.reasons.join("; ")) || "–"} |`);
+      lines.push(`| ${cell(r.label)} | ${r.variant} | ${ICON[r.status]} | ${r.slicers ?? "–"} | ${num(r.minutes)} | ${num(r.grams, 1)} | ${r.plates ?? "–"} | ${r.pauses ?? "–"} | ${cell(r.reasons.join("; ")) || "–"} |`);
     lines.push("");
   }
   return lines.join("\n");

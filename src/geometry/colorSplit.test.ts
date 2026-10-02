@@ -37,6 +37,12 @@ describe("separar 3MF por cor", () => {
     for (let i = 1; i < boxes.length; i++) expect(boxes[i].min[0]).toBeGreaterThan(boxes[i - 1].max[0]);
   });
 
+  test("profundidade menor que a linha do bico com cor nas laterais: avisa que ela some (#90)", () => {
+    const thin = splitByColor(M, fixture("cubo-pintado-bambu.3mf"), { depth: 0.2, mode: "parts" });
+    expect(thin.warnings.join()).toMatch(/some no fatiador/);
+    expect(splitByColor(M, fixture("cubo-pintado-bambu.3mf"), { depth: 0.4, mode: "parts" }).warnings).toEqual([]);
+  });
+
   test("profundidade maior = volume de cor maior", () => {
     const thin = splitByColor(M, fixture("cubo-pintado-bambu.3mf"), { depth: 0.6, mode: "parts" }).colors.find((c) => c.filament === 2)!.volume;
     const thick = splitByColor(M, fixture("cubo-pintado-bambu.3mf"), { depth: 2, mode: "parts" }).colors.find((c) => c.filament === 2)!.volume;

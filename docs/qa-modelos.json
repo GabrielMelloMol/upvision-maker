@@ -9,9 +9,10 @@
   "reasons": [
    "app: Dobradiça com folga de 0,6 mm: imprima um teste; se as letras grudarem, aumente a folga."
   ],
-  "date": "2026-09-30",
-  "minutes": 47,
-  "grams": 23.6,
+  "date": "2026-10-02",
+  "slicers": "Bambu ✓ · Orca ✓ · Projeto Bambu ✓",
+  "minutes": 51,
+  "grams": 25.3,
   "plates": 1
  },
  {
@@ -24,9 +25,10 @@
   "reasons": [
    "app: Dobradiça com folga de 0,15 mm: imprima um teste; se as letras grudarem, aumente a folga."
   ],
-  "date": "2026-09-30",
-  "minutes": 12,
-  "grams": 3.9,
+  "date": "2026-10-02",
+  "slicers": "Bambu ✓ · Orca ✓ · Projeto Bambu ✓",
+  "minutes": 15,
+  "grams": 5.2,
   "plates": 1
  },
  {
@@ -39,9 +41,10 @@
   "reasons": [
    "app: Dobradiça com folga de 0,3 mm: imprima um teste; se as letras grudarem, aumente a folga."
   ],
-  "date": "2026-09-30",
-  "minutes": 18,
-  "grams": 7,
+  "date": "2026-10-02",
+  "slicers": "Bambu ✓ · Orca ✓ · Projeto Bambu ✓",
+  "minutes": 22,
+  "grams": 8.3,
   "plates": 1
  },
  {
@@ -55,9 +58,10 @@
    "app: Encaixe feito para chave tipo Cherry MX (e compatíveis). Imprima a chapa e a cruz primeiro: se ficar justo, aumente as folgas.",
    "app: A chave entra por cima na chapa do corpo; a tecla encaixa na haste."
   ],
-  "date": "2026-09-30",
-  "minutes": 11,
-  "grams": 4.8,
+  "date": "2026-10-02",
+  "slicers": "Bambu ✓ · Orca ✓ · Projeto Bambu ✓",
+  "minutes": 78,
+  "grams": 21.3,
   "plates": 1
  },
  {
@@ -71,9 +75,10 @@
    "app: Encaixe feito para chave tipo Cherry MX (e compatíveis). Imprima a chapa e a cruz primeiro: se ficar justo, aumente as folgas.",
    "app: A chave entra por cima na chapa do corpo; a tecla encaixa na haste."
   ],
-  "date": "2026-09-30",
-  "minutes": 10,
-  "grams": 4.1,
+  "date": "2026-10-02",
+  "slicers": "Bambu ✓ · Orca ✓ · Projeto Bambu ✓",
+  "minutes": 67,
+  "grams": 18.7,
   "plates": 1
  },
  {
@@ -87,9 +92,10 @@
    "app: Encaixe feito para chave tipo Cherry MX (e compatíveis). Imprima a chapa e a cruz primeiro: se ficar justo, aumente as folgas.",
    "app: A chave entra por cima na chapa do corpo; a tecla encaixa na haste."
   ],
-  "date": "2026-09-30",
-  "minutes": 11,
-  "grams": 4.2,
+  "date": "2026-10-02",
+  "slicers": "Bambu ✓ · Orca ✓ · Projeto Bambu ✓",
+  "minutes": 72,
+  "grams": 20,
   "plates": 1
  },
  {
@@ -100,9 +106,10 @@
   "variant": "máximo",
   "status": "ok",
   "reasons": [],
-  "date": "2026-09-30",
-  "minutes": 18,
-  "grams": 13.3,
+  "date": "2026-10-02",
+  "slicers": "Bambu ✓ · Orca ✓ · Projeto Bambu ✓",
+  "minutes": 45,
+  "grams": 19.2,
   "plates": 1
  },
  {
@@ -113,9 +120,10 @@
   "variant": "mínimo",
   "status": "ok",
   "reasons": [],
-  "date": "2026-09-30",
-  "minutes": 4,
-  "grams": 1.6,
+  "date": "2026-10-02",
+  "slicers": "Bambu ✓ · Orca ✓ · Projeto Bambu ✓",
+  "minutes": 8,
+  "grams": 2.7,
   "plates": 1
  },
  {
@@ -126,9 +134,10 @@
   "variant": "padrão",
   "status": "ok",
   "reasons": [],
-  "date": "2026-09-30",
-  "minutes": 8,
-  "grams": 4.4,
+  "date": "2026-10-02",
+  "slicers": "Bambu ✓ · Orca ✓ · Projeto Bambu ✓",
+  "minutes": 18,
+  "grams": 6.9,
   "plates": 1
  },
  {
@@ -139,9 +148,10 @@
   "variant": "máximo",
   "status": "ok",
   "reasons": [],
-  "date": "2026-09-30",
-  "minutes": 40,
-  "grams": 33.1,
+  "date": "2026-10-02",
+  "slicers": "Bambu ✓ · Orca ✓ · Projeto Bambu ✓",
+  "minutes": 44,
+  "grams": 34.5,
   "plates": 1
  },
  {
@@ -152,9 +162,10 @@
   "variant": "mínimo",
   "status": "ok",
   "reasons": [],
-  "date": "2026-09-30",
-  "minutes": 2,
-  "grams": 0.5,
+  "date": "2026-10-02",
+  "slicers": "Bambu ✓ · Orca ✓ · Projeto Bambu ✓",
+  "minutes": 4,
+  "grams": 1.5,
   "plates": 1
  },
  {
@@ -165,9 +176,10 @@
   "variant": "padrão",
   "status": "ok",
   "reasons": [],
-  "date": "2026-09-30",
-  "minutes": 8,
-  "grams": 4.2,
+  "date": "2026-10-02",
+  "slicers": "Bambu ✓ · Orca ✓ · Projeto Bambu ✓",
+  "minutes": 10,
+  "grams": 5.2,
   "plates": 1
  },
  {
@@ -180,9 +192,10 @@
   "reasons": [
    "app: Espelho de 60 mm × 4 mm: cole no bolsão com cola para espelho."
   ],
-  "date": "2026-09-30",
-  "minutes": 25,
-  "grams": 17.9,
+  "date": "2026-10-02",
+  "slicers": "Bambu ✓ · Orca ✓ · Projeto Bambu ✓",
+  "minutes": 36,
+  "grams": 20.2,
   "plates": 1
  },
  {
@@ -195,9 +208,10 @@
   "reasons": [
    "app: Espelho de 20 mm × 1 mm: cole no bolsão com cola para espelho."
   ],
-  "date": "2026-09-30",
-  "minutes": 4,
-  "grams": 2,
+  "date": "2026-10-02",
+  "slicers": "Bambu ✓ · Orca ✓ · Projeto Bambu ✓",
+  "minutes": 13,
+  "grams": 4.1,
   "plates": 1
  },
  {
@@ -210,9 +224,10 @@
   "reasons": [
    "app: Espelho de 40 mm × 2 mm: cole no bolsão com cola para espelho."
   ],
-  "date": "2026-09-30",
-  "minutes": 10,
-  "grams": 6.2,
+  "date": "2026-10-02",
+  "slicers": "Bambu ✓ · Orca ✓ · Projeto Bambu ✓",
+  "minutes": 20,
+  "grams": 8.5,
   "plates": 1
  },
  {
@@ -226,9 +241,10 @@
    "app: Pausa em Z = 3,52 mm: a impressora para, você coloca a tag no bolsão e retoma.",
    "app: OrcaSlicer e PrusaSlicer já abrem com a pausa. Para o Bambu Studio, use “Projeto do Bambu Studio (pausa pronta)”."
   ],
-  "date": "2026-09-30",
-  "minutes": 18,
-  "grams": 14.5,
+  "date": "2026-10-02",
+  "slicers": "Bambu ✓ · Orca ✓ · Projeto Bambu ✓",
+  "minutes": 20,
+  "grams": 15.2,
   "plates": 1,
   "pauses": "3,40"
  },
@@ -243,9 +259,10 @@
    "app: Pausa em Z = 1,44 mm: a impressora para, você coloca a tag no bolsão e retoma.",
    "app: OrcaSlicer e PrusaSlicer já abrem com a pausa. Para o Bambu Studio, use “Projeto do Bambu Studio (pausa pronta)”."
   ],
-  "date": "2026-09-30",
-  "minutes": 8,
-  "grams": 2.2,
+  "date": "2026-10-02",
+  "slicers": "Bambu ✓ · Orca ✓ · Projeto Bambu ✓",
+  "minutes": 13,
+  "grams": 3.2,
   "plates": 1,
   "pauses": "1,40"
  },
@@ -260,9 +277,10 @@
    "app: Pausa em Z = 2,00 mm: a impressora para, você coloca a tag no bolsão e retoma.",
    "app: OrcaSlicer e PrusaSlicer já abrem com a pausa. Para o Bambu Studio, use “Projeto do Bambu Studio (pausa pronta)”."
   ],
-  "date": "2026-09-30",
-  "minutes": 7,
-  "grams": 3.5,
+  "date": "2026-10-02",
+  "slicers": "Bambu ✓ · Orca ✓ · Projeto Bambu ✓",
+  "minutes": 9,
+  "grams": 4.3,
   "plates": 1,
   "pauses": "2,00"
  },
@@ -276,9 +294,10 @@
   "reasons": [
    "app: Peça que faz força: imprima com 4+ paredes e 40%+ de preenchimento; PETG aguenta mais que PLA."
   ],
-  "date": "2026-09-30",
-  "minutes": 18,
-  "grams": 16,
+  "date": "2026-10-02",
+  "slicers": "Bambu ✓ · Orca ✓ · Projeto Bambu ✓",
+  "minutes": 22,
+  "grams": 17.7,
   "plates": 1
  },
  {
@@ -291,9 +310,10 @@
   "reasons": [
    "app: Peça que faz força: imprima com 4+ paredes e 40%+ de preenchimento; PETG aguenta mais que PLA."
   ],
-  "date": "2026-09-30",
-  "minutes": 28,
-  "grams": 8.6,
+  "date": "2026-10-02",
+  "slicers": "Bambu ✓ · Orca ✓ · Projeto Bambu ✓",
+  "minutes": 36,
+  "grams": 10.5,
   "plates": 1
  },
  {
@@ -306,9 +326,10 @@
   "reasons": [
    "app: Peça que faz força: imprima com 4+ paredes e 40%+ de preenchimento; PETG aguenta mais que PLA."
   ],
-  "date": "2026-09-30",
-  "minutes": 16,
-  "grams": 9.9,
+  "date": "2026-10-02",
+  "slicers": "Bambu ✓ · Orca ✓ · Projeto Bambu ✓",
+  "minutes": 20,
+  "grams": 11.4,
   "plates": 1
  },
  {
@@ -321,9 +342,10 @@
   "reasons": [
    "app: Furo de 12 mm: lápis comum tem ~7,5 mm. Se ficar justo ou folgado, ajuste e imprima de novo."
   ],
-  "date": "2026-09-30",
-  "minutes": 28,
-  "grams": 15.6,
+  "date": "2026-10-02",
+  "slicers": "Bambu ✓ · Orca ✓ · Projeto Bambu ✓",
+  "minutes": 34,
+  "grams": 18,
   "plates": 1
  },
  {
@@ -336,9 +358,10 @@
   "reasons": [
    "app: Furo de 5 mm: lápis comum tem ~7,5 mm. Se ficar justo ou folgado, ajuste e imprima de novo."
   ],
-  "date": "2026-09-30",
-  "minutes": 7,
-  "grams": 2.4,
+  "date": "2026-10-02",
+  "slicers": "Bambu ✓ · Orca ✓ · Projeto Bambu ✓",
+  "minutes": 10,
+  "grams": 4,
   "plates": 1
  },
  {
@@ -351,9 +374,10 @@
   "reasons": [
    "app: Furo de 7,8 mm: lápis comum tem ~7,5 mm. Se ficar justo ou folgado, ajuste e imprima de novo."
   ],
-  "date": "2026-09-30",
-  "minutes": 12,
-  "grams": 4.9,
+  "date": "2026-10-02",
+  "slicers": "Bambu ✓ · Orca ✓ · Projeto Bambu ✓",
+  "minutes": 16,
+  "grams": 6.9,
   "plates": 1
  },
  {
@@ -364,9 +388,10 @@
   "variant": "máximo",
   "status": "ok",
   "reasons": [],
-  "date": "2026-09-30",
-  "minutes": 17,
-  "grams": 6.4,
+  "date": "2026-10-02",
+  "slicers": "Bambu ✓ · Orca ✓ · Projeto Bambu ✓",
+  "minutes": 23,
+  "grams": 8.9,
   "plates": 1
  },
  {
@@ -379,9 +404,10 @@
   "reasons": [
    "app: O nome encosta na borda da tag e foi cortado: arraste de volta ou use \"Centralizar tudo\"."
   ],
-  "date": "2026-09-30",
-  "minutes": 3,
-  "grams": 0.6,
+  "date": "2026-10-02",
+  "slicers": "Bambu ✓ · Orca ✓ · Projeto Bambu ✓",
+  "minutes": 9,
+  "grams": 2.7,
   "plates": 1
  },
  {
@@ -392,9 +418,10 @@
   "variant": "padrão",
   "status": "ok",
   "reasons": [],
-  "date": "2026-09-30",
-  "minutes": 8,
-  "grams": 2.3,
+  "date": "2026-10-02",
+  "slicers": "Bambu ✓ · Orca ✓ · Projeto Bambu ✓",
+  "minutes": 15,
+  "grams": 4.6,
   "plates": 1
  },
  {
@@ -405,9 +432,10 @@
   "variant": "máximo",
   "status": "ok",
   "reasons": [],
-  "date": "2026-09-30",
-  "minutes": 27,
-  "grams": 17.2,
+  "date": "2026-10-02",
+  "slicers": "Bambu ✓ · Orca ✓ · Projeto Bambu ✓",
+  "minutes": 93,
+  "grams": 31.6,
   "plates": 1
  },
  {
@@ -418,9 +446,10 @@
   "variant": "mínimo",
   "status": "ok",
   "reasons": [],
-  "date": "2026-09-30",
-  "minutes": 6,
-  "grams": 2.5,
+  "date": "2026-10-02",
+  "slicers": "Bambu ✓ · Orca ✓ · Projeto Bambu ✓",
+  "minutes": 40,
+  "grams": 10.2,
   "plates": 1
  },
  {
@@ -431,9 +460,10 @@
   "variant": "padrão",
   "status": "ok",
   "reasons": [],
-  "date": "2026-09-30",
-  "minutes": 9,
-  "grams": 4.7,
+  "date": "2026-10-02",
+  "slicers": "Bambu ✓ · Orca ✓ · Projeto Bambu ✓",
+  "minutes": 51,
+  "grams": 14.2,
   "plates": 1
  },
  {
@@ -444,9 +474,10 @@
   "variant": "máximo",
   "status": "ok",
   "reasons": [],
-  "date": "2026-09-30",
-  "minutes": 74,
-  "grams": 66.8,
+  "date": "2026-10-02",
+  "slicers": "Bambu ✓ · Orca ✓ · Projeto Bambu ✓",
+  "minutes": 78,
+  "grams": 67.8,
   "plates": 1
  },
  {
@@ -457,9 +488,10 @@
   "variant": "mínimo",
   "status": "ok",
   "reasons": [],
-  "date": "2026-09-30",
-  "minutes": 7,
-  "grams": 3.3,
+  "date": "2026-10-02",
+  "slicers": "Bambu ✓ · Orca ✓ · Projeto Bambu ✓",
+  "minutes": 9,
+  "grams": 4,
   "plates": 1
  },
  {
@@ -470,9 +502,10 @@
   "variant": "padrão",
   "status": "ok",
   "reasons": [],
-  "date": "2026-09-30",
-  "minutes": 17,
-  "grams": 11.1,
+  "date": "2026-10-02",
+  "slicers": "Bambu ✓ · Orca ✓ · Projeto Bambu ✓",
+  "minutes": 19,
+  "grams": 11.7,
   "plates": 1
  },
  {
@@ -486,9 +519,10 @@
    "o conjunto arrumado ocupa 210,6 × 291,5 mm: passa da mesa de 256 mm",
    "app: As 2 peças não cabem juntas na mesa de 256 mm: o fatiador vai usar mais de uma mesa (ou imprima uma de cada vez)."
   ],
-  "date": "2026-09-30",
-  "minutes": 182,
-  "grams": 175.6,
+  "date": "2026-10-02",
+  "slicers": "Bambu ✓ · Orca ✓ · Projeto Bambu ✓",
+  "minutes": 272,
+  "grams": 199.4,
   "plates": 1
  },
  {
@@ -499,9 +533,10 @@
   "variant": "mínimo",
   "status": "ok",
   "reasons": [],
-  "date": "2026-09-30",
-  "minutes": 41,
-  "grams": 32.8,
+  "date": "2026-10-02",
+  "slicers": "Bambu ✓ · Orca ✓ · Projeto Bambu ✓",
+  "minutes": 108,
+  "grams": 50.7,
   "plates": 1
  },
  {
@@ -512,9 +547,10 @@
   "variant": "padrão",
   "status": "ok",
   "reasons": [],
-  "date": "2026-09-30",
-  "minutes": 68,
-  "grams": 55.3,
+  "date": "2026-10-02",
+  "slicers": "Bambu ✓ · Orca ✓ · Projeto Bambu ✓",
+  "minutes": 137,
+  "grams": 73.7,
   "plates": 1
  },
  {
@@ -526,10 +562,13 @@
   "status": "aviso",
   "reasons": [
    "\"Ana\" não cabe na mesa de 256 mm (266,0 × 290,6 × 9,0 mm)",
-   "o Bambu Studio recusa na mesa de 256 mm do A1 (o app avisa)",
+   "Bambu recusa na mesa de 256 mm do A1 (o app avisa)",
+   "Orca recusa na mesa de 256 mm do A1 (o app avisa)",
+   "Projeto Bambu recusa na mesa de 256 mm do A1 (o app avisa)",
    "app: \"Ana\" tem 266 × 291 × 9 mm e passa da mesa de 256 mm: diminua o tamanho."
   ],
-  "date": "2026-09-30"
+  "date": "2026-10-02",
+  "slicers": "Bambu ✓ · Orca ✓ · Projeto Bambu ✓"
  },
  {
   "key": "cake:mínimo",
@@ -539,9 +578,10 @@
   "variant": "mínimo",
   "status": "ok",
   "reasons": [],
-  "date": "2026-09-30",
-  "minutes": 11,
-  "grams": 5.4,
+  "date": "2026-10-02",
+  "slicers": "Bambu ✓ · Orca ✓ · Projeto Bambu ✓",
+  "minutes": 13,
+  "grams": 6.1,
   "plates": 1
  },
  {
@@ -552,9 +592,10 @@
   "variant": "padrão",
   "status": "ok",
   "reasons": [],
-  "date": "2026-09-30",
-  "minutes": 48,
-  "grams": 28.9,
+  "date": "2026-10-02",
+  "slicers": "Bambu ✓ · Orca ✓ · Projeto Bambu ✓",
+  "minutes": 50,
+  "grams": 29,
   "plates": 1
  },
  {
@@ -565,9 +606,10 @@
   "variant": "máximo",
   "status": "ok",
   "reasons": [],
-  "date": "2026-09-30",
-  "minutes": 59,
-  "grams": 25.8,
+  "date": "2026-10-02",
+  "slicers": "Bambu ✓ · Orca ✓ · Projeto Bambu ✓",
+  "minutes": 62,
+  "grams": 26.8,
   "plates": 1
  },
  {
@@ -578,9 +620,10 @@
   "variant": "mínimo",
   "status": "ok",
   "reasons": [],
-  "date": "2026-09-30",
-  "minutes": 6,
-  "grams": 1.6,
+  "date": "2026-10-02",
+  "slicers": "Bambu ✓ · Orca ✓ · Projeto Bambu ✓",
+  "minutes": 8,
+  "grams": 2.4,
   "plates": 1
  },
  {
@@ -591,9 +634,10 @@
   "variant": "padrão",
   "status": "ok",
   "reasons": [],
-  "date": "2026-09-30",
-  "minutes": 13,
-  "grams": 4.5,
+  "date": "2026-10-02",
+  "slicers": "Bambu ✓ · Orca ✓ · Projeto Bambu ✓",
+  "minutes": 15,
+  "grams": 5.3,
   "plates": 1
  },
  {
@@ -604,9 +648,10 @@
   "variant": "máximo",
   "status": "ok",
   "reasons": [],
-  "date": "2026-09-30",
-  "minutes": 119,
-  "grams": 95.9,
+  "date": "2026-10-02",
+  "slicers": "Bambu ✓ · Orca ✓ · Projeto Bambu ✓",
+  "minutes": 220,
+  "grams": 122.9,
   "plates": 1
  },
  {
@@ -620,9 +665,10 @@
    "\"Placa\": parede/traço < 0,4 mm em Z 2,6 mm",
    "app: \"1º LUGAR\" ficou com 2,2 mm de altura: os traços ficam com menos de 0,4 mm e somem na impressão. Aumente o texto ou a peça, encurte a linha ou use uma fonte mais grossa."
   ],
-  "date": "2026-09-30",
-  "minutes": 19,
-  "grams": 10.2,
+  "date": "2026-10-02",
+  "slicers": "Bambu ✓ · Orca ✓ · Projeto Bambu ✓",
+  "minutes": 48,
+  "grams": 18.1,
   "plates": 1
  },
  {
@@ -633,9 +679,10 @@
   "variant": "padrão",
   "status": "ok",
   "reasons": [],
-  "date": "2026-09-30",
-  "minutes": 36,
-  "grams": 24.7,
+  "date": "2026-10-02",
+  "slicers": "Bambu ✓ · Orca ✓ · Projeto Bambu ✓",
+  "minutes": 84,
+  "grams": 37.5,
   "plates": 1
  },
  {
@@ -648,9 +695,10 @@
   "reasons": [
    "app: \"1º LUGAR\" ficou com 3,2 mm de altura: os traços ficam com menos de 0,4 mm e somem na impressão. Aumente o texto ou a peça, encurte a linha ou use uma fonte mais grossa."
   ],
-  "date": "2026-09-30",
-  "minutes": 118,
-  "grams": 100.9,
+  "date": "2026-10-02",
+  "slicers": "Bambu ✓ · Orca ✓ · Projeto Bambu ✓",
+  "minutes": 273,
+  "grams": 140.6,
   "plates": 1
  },
  {
@@ -664,9 +712,10 @@
    "app: \"CAMPEONATO 2026\" ficou com 1,9 mm de altura: os traços ficam com menos de 0,4 mm e somem na impressão. Aumente o texto ou a peça, encurte a linha ou use uma fonte mais grossa.",
    "app: \"1º LUGAR\" ficou com 3,2 mm de altura: os traços ficam com menos de 0,4 mm e somem na impressão. Aumente o texto ou a peça, encurte a linha ou use uma fonte mais grossa."
   ],
-  "date": "2026-09-30",
-  "minutes": 20,
-  "grams": 11.4,
+  "date": "2026-10-02",
+  "slicers": "Bambu ✓ · Orca ✓ · Projeto Bambu ✓",
+  "minutes": 88,
+  "grams": 29.1,
   "plates": 1
  },
  {
@@ -679,9 +728,10 @@
   "reasons": [
    "app: \"1º LUGAR\" ficou com 3,2 mm de altura: os traços ficam com menos de 0,4 mm e somem na impressão. Aumente o texto ou a peça, encurte a linha ou use uma fonte mais grossa."
   ],
-  "date": "2026-09-30",
-  "minutes": 38,
-  "grams": 25.4,
+  "date": "2026-10-02",
+  "slicers": "Bambu ✓ · Orca ✓ · Projeto Bambu ✓",
+  "minutes": 134,
+  "grams": 50,
   "plates": 1
  },
  {
@@ -693,10 +743,13 @@
   "status": "aviso",
   "reasons": [
    "\"Placa\" não cabe na mesa de 256 mm (270,0 × 276,9 × 12,0 mm)",
-   "o Bambu Studio recusa na mesa de 256 mm do A1 (o app avisa)",
+   "Bambu recusa na mesa de 256 mm do A1 (o app avisa)",
+   "Orca recusa na mesa de 256 mm do A1 (o app avisa)",
+   "Projeto Bambu recusa na mesa de 256 mm do A1 (o app avisa)",
    "app: \"Placa\" tem 270 × 277 × 12 mm e passa da mesa de 256 mm: diminua o tamanho."
   ],
-  "date": "2026-09-30"
+  "date": "2026-10-02",
+  "slicers": "Bambu ✓ · Orca ✓ · Projeto Bambu ✓"
  },
  {
   "key": "adaptivePlate:mínimo",
@@ -706,9 +759,10 @@
   "variant": "mínimo",
   "status": "ok",
   "reasons": [],
-  "date": "2026-09-30",
-  "minutes": 2,
-  "grams": 0.5,
+  "date": "2026-10-02",
+  "slicers": "Bambu ✓ · Orca ✓ · Projeto Bambu ✓",
+  "minutes": 4,
+  "grams": 1.5,
   "plates": 1
  },
  {
@@ -719,9 +773,10 @@
   "variant": "padrão",
   "status": "ok",
   "reasons": [],
-  "date": "2026-09-30",
-  "minutes": 41,
-  "grams": 32.4,
+  "date": "2026-10-02",
+  "slicers": "Bambu ✓ · Orca ✓ · Projeto Bambu ✓",
+  "minutes": 43,
+  "grams": 33.2,
   "plates": 1
  },
  {
@@ -734,9 +789,10 @@
   "reasons": [
    "app: Cada módulo ficou com 1,03 mm: aumente a placa ou encurte o texto (mínimo recomendado 1,2 mm)."
   ],
-  "date": "2026-09-30",
-  "minutes": 19,
-  "grams": 15.2,
+  "date": "2026-10-02",
+  "slicers": "Bambu ✓ · Orca ✓ · Projeto Bambu ✓",
+  "minutes": 21,
+  "grams": 16.3,
   "plates": 1
  },
  {
@@ -749,9 +805,10 @@
   "reasons": [
    "app: Cada módulo ficou com 1,03 mm: aumente a placa ou encurte o texto (mínimo recomendado 1,2 mm)."
   ],
-  "date": "2026-09-30",
-  "minutes": 20,
-  "grams": 7.4,
+  "date": "2026-10-02",
+  "slicers": "Bambu ✓ · Orca ✓ · Projeto Bambu ✓",
+  "minutes": 24,
+  "grams": 8.5,
   "plates": 1
  },
  {
@@ -764,9 +821,10 @@
   "reasons": [
    "app: Cada módulo ficou com 1,03 mm: aumente a placa ou encurte o texto (mínimo recomendado 1,2 mm)."
   ],
-  "date": "2026-09-30",
-  "minutes": 14,
-  "grams": 9.6,
+  "date": "2026-10-02",
+  "slicers": "Bambu ✓ · Orca ✓ · Projeto Bambu ✓",
+  "minutes": 17,
+  "grams": 10.6,
   "plates": 1
  },
  {
@@ -775,12 +833,14 @@
   "group": "plates",
   "label": "Plaquinha de colorir (coloring)",
   "variant": "máximo",
-  "status": "ok",
-  "reasons": [],
-  "date": "2026-09-30",
-  "minutes": 161,
-  "grams": 128.6,
-  "plates": 1
+  "status": "aviso",
+  "reasons": [
+   "Bambu: torre de purga em cima de uma peça depois do --arrange do CLI (na tela, arraste a torre ou use Arrumar)",
+   "Orca: torre de purga em cima de uma peça depois do --arrange do CLI (na tela, arraste a torre ou use Arrumar)",
+   "Projeto Bambu: torre de purga em cima de uma peça depois do --arrange do CLI (na tela, arraste a torre ou use Arrumar)"
+  ],
+  "date": "2026-10-02",
+  "slicers": "Bambu ✓ · Orca ✓ · Projeto Bambu ✓"
  },
  {
   "key": "coloring:mínimo",
@@ -790,9 +850,10 @@
   "variant": "mínimo",
   "status": "ok",
   "reasons": [],
-  "date": "2026-09-30",
-  "minutes": 5,
-  "grams": 2.6,
+  "date": "2026-10-02",
+  "slicers": "Bambu ✓ · Orca ✓ · Projeto Bambu ✓",
+  "minutes": 7,
+  "grams": 3.1,
   "plates": 1
  },
  {
@@ -803,9 +864,10 @@
   "variant": "padrão",
   "status": "ok",
   "reasons": [],
-  "date": "2026-09-30",
-  "minutes": 23,
-  "grams": 16.1,
+  "date": "2026-10-02",
+  "slicers": "Bambu ✓ · Orca ✓ · Projeto Bambu ✓",
+  "minutes": 26,
+  "grams": 16.6,
   "plates": 1
  },
  {
@@ -816,9 +878,10 @@
   "variant": "máximo",
   "status": "ok",
   "reasons": [],
-  "date": "2026-09-30",
-  "minutes": 38,
-  "grams": 28.7,
+  "date": "2026-10-02",
+  "slicers": "Bambu ✓ · Orca ✓ · Projeto Bambu ✓",
+  "minutes": 41,
+  "grams": 29.5,
   "plates": 1
  },
  {
@@ -829,9 +892,10 @@
   "variant": "mínimo",
   "status": "ok",
   "reasons": [],
-  "date": "2026-09-30",
-  "minutes": 29,
-  "grams": 20.9,
+  "date": "2026-10-02",
+  "slicers": "Bambu ✓ · Orca ✓ · Projeto Bambu ✓",
+  "minutes": 32,
+  "grams": 21.4,
   "plates": 1
  },
  {
@@ -842,9 +906,10 @@
   "variant": "padrão",
   "status": "ok",
   "reasons": [],
-  "date": "2026-09-30",
-  "minutes": 32,
-  "grams": 23.3,
+  "date": "2026-10-02",
+  "slicers": "Bambu ✓ · Orca ✓ · Projeto Bambu ✓",
+  "minutes": 35,
+  "grams": 23.9,
   "plates": 1
  },
  {
@@ -853,13 +918,15 @@
   "group": "plates",
   "label": "Totem NFC (nfcTotem)",
   "variant": "máximo",
-  "status": "ok",
+  "status": "aviso",
   "reasons": [
+   "Orca: torre de purga em cima de uma peça depois do --arrange do CLI (na tela, arraste a torre ou use Arrumar)",
    "app: Pausa em Z = 3,52 mm: coloque a tag NFC (grave o link de avaliação antes) e retome."
   ],
-  "date": "2026-09-30",
-  "minutes": 151,
-  "grams": 149,
+  "date": "2026-10-02",
+  "slicers": "Bambu ✓ · Orca ✓ · Projeto Bambu ✓",
+  "minutes": 177,
+  "grams": 154.7,
   "plates": 1,
   "pauses": "3,40"
  },
@@ -869,15 +936,15 @@
   "group": "plates",
   "label": "Totem NFC (nfcTotem)",
   "variant": "mínimo",
-  "status": "ok",
+  "status": "aviso",
   "reasons": [
+   "Bambu: torre de purga passa da mesa na posição padrão do CLI (na tela, arraste a torre ou use Arrumar)",
+   "Orca: torre de purga passa da mesa na posição padrão do CLI (na tela, arraste a torre ou use Arrumar)",
+   "Projeto Bambu: torre de purga passa da mesa na posição padrão do CLI (na tela, arraste a torre ou use Arrumar)",
    "app: Pausa em Z = 1,44 mm: coloque a tag NFC (grave o link de avaliação antes) e retome."
   ],
-  "date": "2026-09-30",
-  "minutes": 63,
-  "grams": 23.5,
-  "plates": 1,
-  "pauses": "1,40"
+  "date": "2026-10-02",
+  "slicers": "Bambu ✓ · Orca ✓ · Projeto Bambu ✓"
  },
  {
   "key": "nfcTotem:padrão",
@@ -889,9 +956,10 @@
   "reasons": [
    "app: Pausa em Z = 2,00 mm: coloque a tag NFC (grave o link de avaliação antes) e retome."
   ],
-  "date": "2026-09-30",
-  "minutes": 56,
-  "grams": 42.7,
+  "date": "2026-10-02",
+  "slicers": "Bambu ✓ · Orca ✓ · Projeto Bambu ✓",
+  "minutes": 82,
+  "grams": 49.1,
   "plates": 1,
   "pauses": "2,00"
  },
@@ -904,11 +972,13 @@
   "status": "aviso",
   "reasons": [
    "o conjunto arrumado ocupa 200,0 × 276,0 mm: passa da mesa de 256 mm",
+   "Orca: torre de purga em cima de uma peça depois do --arrange do CLI (na tela, arraste a torre ou use Arrumar)",
    "app: As 2 peças não cabem juntas na mesa de 256 mm: o fatiador vai usar mais de uma mesa (ou imprima uma de cada vez)."
   ],
-  "date": "2026-09-30",
-  "minutes": 302,
-  "grams": 204.7,
+  "date": "2026-10-02",
+  "slicers": "Bambu ✓ · Orca ✓ · Projeto Bambu ✓",
+  "minutes": 340,
+  "grams": 209.9,
   "plates": 1
  },
  {
@@ -921,9 +991,10 @@
   "reasons": [
    "app: Cada módulo ficou com 1,03 mm: aumente a placa ou encurte o texto (mínimo recomendado 1,2 mm)."
   ],
-  "date": "2026-09-30",
-  "minutes": 29,
-  "grams": 17.7,
+  "date": "2026-10-02",
+  "slicers": "Bambu ✓ · Orca ✓ · Projeto Bambu ✓",
+  "minutes": 33,
+  "grams": 18.9,
   "plates": 1
  },
  {
@@ -934,9 +1005,10 @@
   "variant": "padrão",
   "status": "ok",
   "reasons": [],
-  "date": "2026-09-30",
-  "minutes": 61,
-  "grams": 37.4,
+  "date": "2026-10-02",
+  "slicers": "Bambu ✓ · Orca ✓ · Projeto Bambu ✓",
+  "minutes": 73,
+  "grams": 40.6,
   "plates": 1
  },
  {
@@ -950,9 +1022,10 @@
    "app: Três peças: cole o símbolo no rebaixo da placa e encaixe a placa na base.",
    "app: Pausa em Z = 8,32 mm: coloque moedas ou arruelas nos 2 bolsões da base e retome (a base fica pesada e não tomba)."
   ],
-  "date": "2026-09-30",
-  "minutes": 144,
-  "grams": 142.7,
+  "date": "2026-10-02",
+  "slicers": "Bambu ✓ · Orca ✓ · Projeto Bambu ✓",
+  "minutes": 215,
+  "grams": 159.7,
   "plates": 1,
   "pauses": "8,20"
  },
@@ -962,16 +1035,16 @@
   "group": "plates",
   "label": "Placa de profissão (profession)",
   "variant": "mínimo",
-  "status": "ok",
+  "status": "aviso",
   "reasons": [
+   "Bambu: torre de purga passa da mesa na posição padrão do CLI (na tela, arraste a torre ou use Arrumar)",
+   "Orca: torre de purga passa da mesa na posição padrão do CLI (na tela, arraste a torre ou use Arrumar)",
+   "Projeto Bambu: torre de purga passa da mesa na posição padrão do CLI (na tela, arraste a torre ou use Arrumar)",
    "app: Três peças: cole o símbolo no rebaixo da placa e encaixe a placa na base.",
    "app: Pausa em Z = 8,08 mm: coloque moedas ou arruelas nos 2 bolsões da base e retome (a base fica pesada e não tomba)."
   ],
-  "date": "2026-09-30",
-  "minutes": 88,
-  "grams": 32.5,
-  "plates": 1,
-  "pauses": "8,04"
+  "date": "2026-10-02",
+  "slicers": "Bambu ✓ · Orca ✓ · Projeto Bambu ✓"
  },
  {
   "key": "profession:padrão",
@@ -984,9 +1057,10 @@
    "app: Três peças: cole o símbolo no rebaixo da placa e encaixe a placa na base.",
    "app: Pausa em Z = 8,20 mm: coloque moedas ou arruelas nos 2 bolsões da base e retome (a base fica pesada e não tomba)."
   ],
-  "date": "2026-09-30",
-  "minutes": 74,
-  "grams": 56.6,
+  "date": "2026-10-02",
+  "slicers": "Bambu ✓ · Orca ✓ · Projeto Bambu ✓",
+  "minutes": 139,
+  "grams": 71.9,
   "plates": 1,
   "pauses": "8,20"
  },
@@ -998,9 +1072,10 @@
   "variant": "máximo",
   "status": "ok",
   "reasons": [],
-  "date": "2026-09-30",
-  "minutes": 202,
-  "grams": 125.9,
+  "date": "2026-10-02",
+  "slicers": "Bambu ✓ · Orca ✓ · Projeto Bambu ✓",
+  "minutes": 231,
+  "grams": 133.7,
   "plates": 1
  },
  {
@@ -1016,9 +1091,10 @@
    "app: \"Instagram\" ficou com 3,9 mm de altura: os traços ficam com menos de 0,4 mm e somem na impressão. Aumente o texto ou a peça, encurte a linha ou use uma fonte mais grossa.",
    "app: \"WhatsApp\" ficou com 3,6 mm de altura: os traços ficam com menos de 0,4 mm e somem na impressão. Aumente o texto ou a peça, encurte a linha ou use uma fonte mais grossa."
   ],
-  "date": "2026-09-30",
-  "minutes": 35,
-  "grams": 22.2,
+  "date": "2026-10-02",
+  "slicers": "Bambu ✓ · Orca ✓ · Projeto Bambu ✓",
+  "minutes": 39,
+  "grams": 23.4,
   "plates": 1
  },
  {
@@ -1029,9 +1105,10 @@
   "variant": "padrão",
   "status": "ok",
   "reasons": [],
-  "date": "2026-09-30",
-  "minutes": 75,
-  "grams": 49.3,
+  "date": "2026-10-02",
+  "slicers": "Bambu ✓ · Orca ✓ · Projeto Bambu ✓",
+  "minutes": 86,
+  "grams": 52.4,
   "plates": 1
  },
  {
@@ -1044,9 +1121,13 @@
   "reasons": [
    "o conjunto arrumado ocupa 200,0 × 300,0 mm: passa da mesa de 256 mm",
    "\"Wi-Fi\" não cabe na mesa de 256 mm (200,0 × 260,0 × 9,0 mm)",
+   "Bambu: a cor 2 (#1c1c1e) não saiu no G-code (o app avisa)",
+   "Orca: a cor 2 (#1c1c1e) não saiu no G-code (o app avisa)",
+   "Projeto Bambu: a cor 2 (#1c1c1e) não saiu no G-code (o app avisa)",
    "app: \"Wi-Fi\" tem 200 × 260 × 9 mm e passa da mesa de 256 mm: diminua o tamanho."
   ],
-  "date": "2026-09-30",
+  "date": "2026-10-02",
+  "slicers": "Bambu ✓ · Orca ✓ · Projeto Bambu ✓",
   "minutes": 34,
   "grams": 23.9,
   "plates": 1
@@ -1062,9 +1143,10 @@
    "\"Wi-Fi\": parede/traço < 0,4 mm em Z 2,2 mm",
    "app: \"Aponte a câmera\" ficou com 4,2 mm de altura: os traços ficam com menos de 0,4 mm e somem na impressão. Aumente o texto ou a peça, encurte a linha ou use uma fonte mais grossa."
   ],
-  "date": "2026-09-30",
-  "minutes": 30,
-  "grams": 18.6,
+  "date": "2026-10-02",
+  "slicers": "Bambu ✓ · Orca ✓ · Projeto Bambu ✓",
+  "minutes": 34,
+  "grams": 19.9,
   "plates": 1
  },
  {
@@ -1075,9 +1157,10 @@
   "variant": "padrão",
   "status": "ok",
   "reasons": [],
-  "date": "2026-09-30",
-  "minutes": 61,
-  "grams": 39.7,
+  "date": "2026-10-02",
+  "slicers": "Bambu ✓ · Orca ✓ · Projeto Bambu ✓",
+  "minutes": 72,
+  "grams": 42.8,
   "plates": 1
  },
  {
@@ -1089,10 +1172,13 @@
   "status": "aviso",
   "reasons": [
    "\"Placa\" não cabe na mesa de 256 mm (300,0 × 120,0 × 10,0 mm)",
-   "o Bambu Studio recusa na mesa de 256 mm do A1 (o app avisa)",
+   "Bambu recusa na mesa de 256 mm do A1 (o app avisa)",
+   "Orca recusa na mesa de 256 mm do A1 (o app avisa)",
+   "Projeto Bambu recusa na mesa de 256 mm do A1 (o app avisa)",
    "app: \"Placa\" tem 300 × 120 × 10 mm e passa da mesa de 256 mm: diminua o tamanho."
   ],
-  "date": "2026-09-30"
+  "date": "2026-10-02",
+  "slicers": "Bambu ✓ · Orca ✓ · Projeto Bambu ✓"
  },
  {
   "key": "sign:mínimo",
@@ -1102,9 +1188,10 @@
   "variant": "mínimo",
   "status": "ok",
   "reasons": [],
-  "date": "2026-09-30",
-  "minutes": 5,
-  "grams": 2.6,
+  "date": "2026-10-02",
+  "slicers": "Bambu ✓ · Orca ✓ · Projeto Bambu ✓",
+  "minutes": 8,
+  "grams": 3.7,
   "plates": 1
  },
  {
@@ -1115,9 +1202,10 @@
   "variant": "padrão",
   "status": "ok",
   "reasons": [],
-  "date": "2026-09-30",
-  "minutes": 30,
-  "grams": 20.2,
+  "date": "2026-10-02",
+  "slicers": "Bambu ✓ · Orca ✓ · Projeto Bambu ✓",
+  "minutes": 32,
+  "grams": 21.1,
   "plates": 1
  },
  {
@@ -1128,9 +1216,10 @@
   "variant": "corte com pino",
   "status": "ok",
   "reasons": [],
-  "date": "2026-09-30",
-  "minutes": 12,
-  "grams": 5.6,
+  "date": "2026-10-02",
+  "slicers": "Bambu ✓ · Orca ✓ · Projeto Bambu ✓",
+  "minutes": 96,
+  "grams": 24.6,
   "plates": 1
  },
  {
@@ -1141,9 +1230,10 @@
   "variant": "máximo",
   "status": "ok",
   "reasons": [],
-  "date": "2026-09-30",
-  "minutes": 13,
-  "grams": 4.2,
+  "date": "2026-10-02",
+  "slicers": "Bambu ✓ · Orca ✓ · Projeto Bambu ✓",
+  "minutes": 15,
+  "grams": 5.7,
   "plates": 1
  },
  {
@@ -1152,11 +1242,17 @@
   "group": "tools",
   "label": "Separar 3MF por cor (ferramenta)",
   "variant": "mínimo",
-  "status": "ok",
-  "reasons": [],
-  "date": "2026-09-30",
-  "minutes": 13,
-  "grams": 4.2,
+  "status": "aviso",
+  "reasons": [
+   "Bambu: a cor 3 (#2563eb) não saiu no G-code (o app avisa)",
+   "Orca: a cor 3 (#2563eb) não saiu no G-code (o app avisa)",
+   "Projeto Bambu: a cor 3 (#2563eb) não saiu no G-code (o app avisa)",
+   "app: Com 0,2 mm de profundidade, a cor pintada nas laterais fica mais fina que a linha do bico (0,4 mm) e some no fatiador: use 0,4 mm ou mais."
+  ],
+  "date": "2026-10-02",
+  "slicers": "Bambu ✓ · Orca ✓ · Projeto Bambu ✓",
+  "minutes": 16,
+  "grams": 6.8,
   "plates": 1
  },
  {
@@ -1167,9 +1263,10 @@
   "variant": "padrão",
   "status": "ok",
   "reasons": [],
-  "date": "2026-09-30",
-  "minutes": 13,
-  "grams": 4.2,
+  "date": "2026-10-02",
+  "slicers": "Bambu ✓ · Orca ✓ · Projeto Bambu ✓",
+  "minutes": 85,
+  "grams": 21.5,
   "plates": 1
  },
  {
@@ -1182,10 +1279,14 @@
   "reasons": [
    "o conjunto arrumado ocupa 542,0 × 292,8 mm: passa da mesa de 256 mm",
    "\"Cortador\" não cabe na mesa de 256 mm (286,0 × 292,8 × 40,0 mm)",
+   "Bambu: a cor 1 (#2563eb) não saiu no G-code (o app avisa)",
+   "Orca: a cor 1 (#2563eb) não saiu no G-code (o app avisa)",
+   "Projeto Bambu: a cor 1 (#2563eb) não saiu no G-code (o app avisa)",
    "app: Sem desenho interno para o carimbo marcar: ele sai liso.",
    "app: \"Cortador\" tem 286 × 293 × 40 mm e passa da mesa de 256 mm: diminua o tamanho."
   ],
-  "date": "2026-09-30",
+  "date": "2026-10-02",
+  "slicers": "Bambu ✓ · Orca ✓ · Projeto Bambu ✓",
   "minutes": 133,
   "grams": 128.1,
   "plates": 1
@@ -1201,9 +1302,10 @@
    "app: Sem borda de apoio, a lâmina precisa de pelo menos 0,8 mm (2 filetes) para imprimir: saiu com 0,8 mm.",
    "app: Sem desenho interno para o carimbo marcar: ele sai liso."
   ],
-  "date": "2026-09-30",
-  "minutes": 4,
-  "grams": 0.8,
+  "date": "2026-10-02",
+  "slicers": "Bambu ✓ · Orca ✓ · Projeto Bambu ✓",
+  "minutes": 14,
+  "grams": 3.6,
   "plates": 1
  },
  {
@@ -1216,9 +1318,10 @@
   "reasons": [
    "app: Sem desenho interno para o carimbo marcar: ele sai liso."
   ],
-  "date": "2026-09-30",
-  "minutes": 27,
-  "grams": 16.5,
+  "date": "2026-10-02",
+  "slicers": "Bambu ✓ · Orca ✓ · Projeto Bambu ✓",
+  "minutes": 48,
+  "grams": 22,
   "plates": 1
  },
  {
@@ -1230,10 +1333,13 @@
   "status": "aviso",
   "reasons": [
    "\"Extrusão\" não cabe na mesa de 256 mm (359,9 × 368,2 × 120,0 mm)",
-   "o Bambu Studio recusa na mesa de 256 mm do A1 (o app avisa)",
+   "Bambu recusa na mesa de 256 mm do A1 (o app avisa)",
+   "Orca recusa na mesa de 256 mm do A1 (o app avisa)",
+   "Projeto Bambu recusa na mesa de 256 mm do A1 (o app avisa)",
    "app: \"Extrusão\" tem 360 × 368 × 120 mm e passa da mesa de 256 mm: diminua o tamanho."
   ],
-  "date": "2026-09-30"
+  "date": "2026-10-02",
+  "slicers": "Bambu ✓ · Orca ✓ · Projeto Bambu ✓"
  },
  {
   "key": "extrude:mínimo",
@@ -1243,9 +1349,10 @@
   "variant": "mínimo",
   "status": "ok",
   "reasons": [],
-  "date": "2026-09-30",
-  "minutes": 1,
-  "grams": 0.1,
+  "date": "2026-10-02",
+  "slicers": "Bambu ✓ · Orca ✓ · Projeto Bambu ✓",
+  "minutes": 3,
+  "grams": 0.8,
   "plates": 1
  },
  {
@@ -1256,7 +1363,8 @@
   "variant": "padrão",
   "status": "ok",
   "reasons": [],
-  "date": "2026-09-30",
+  "date": "2026-10-02",
+  "slicers": "Bambu ✓ · Orca ✓",
   "minutes": 9,
   "grams": 5.7,
   "plates": 1
@@ -1269,9 +1377,10 @@
   "variant": "3 camadas",
   "status": "ok",
   "reasons": [],
-  "date": "2026-09-30",
-  "minutes": 6,
-  "grams": 2,
+  "date": "2026-10-02",
+  "slicers": "Bambu ✓ · Orca ✓ · Projeto Bambu ✓",
+  "minutes": 10,
+  "grams": 3.6,
   "plates": 1
  },
  {
@@ -1282,9 +1391,10 @@
   "variant": "etiqueta",
   "status": "ok",
   "reasons": [],
-  "date": "2026-09-30",
-  "minutes": 5,
-  "grams": 2.1,
+  "date": "2026-10-02",
+  "slicers": "Bambu ✓ · Orca ✓ · Projeto Bambu ✓",
+  "minutes": 8,
+  "grams": 3.2,
   "plates": 1
  },
  {
@@ -1293,11 +1403,14 @@
   "group": "tools",
   "label": "Chaveiro (ferramenta)",
   "variant": "lote 30",
-  "status": "ok",
-  "reasons": [],
-  "date": "2026-09-30",
-  "minutes": 186,
-  "grams": 81.1,
+  "status": "aviso",
+  "reasons": [
+   "Orca: torre de purga em cima de uma peça depois do --arrange do CLI (na tela, arraste a torre ou use Arrumar)"
+  ],
+  "date": "2026-10-02",
+  "slicers": "Bambu ✓ · Orca ✓ · Projeto Bambu ✓",
+  "minutes": 188,
+  "grams": 82.3,
   "plates": 1
  },
  {
@@ -1308,9 +1421,10 @@
   "variant": "máximo",
   "status": "ok",
   "reasons": [],
-  "date": "2026-09-30",
-  "minutes": 55,
-  "grams": 40.9,
+  "date": "2026-10-02",
+  "slicers": "Bambu ✓ · Orca ✓ · Projeto Bambu ✓",
+  "minutes": 59,
+  "grams": 41.8,
   "plates": 1
  },
  {
@@ -1321,9 +1435,10 @@
   "variant": "mínimo",
   "status": "ok",
   "reasons": [],
-  "date": "2026-09-30",
-  "minutes": 1,
-  "grams": 0.2,
+  "date": "2026-10-02",
+  "slicers": "Bambu ✓ · Orca ✓ · Projeto Bambu ✓",
+  "minutes": 4,
+  "grams": 1.1,
   "plates": 1
  },
  {
@@ -1334,9 +1449,10 @@
   "variant": "padrão",
   "status": "ok",
   "reasons": [],
-  "date": "2026-09-30",
-  "minutes": 4,
-  "grams": 1.7,
+  "date": "2026-10-02",
+  "slicers": "Bambu ✓ · Orca ✓ · Projeto Bambu ✓",
+  "minutes": 7,
+  "grams": 2.8,
   "plates": 1
  },
  {
@@ -1347,7 +1463,8 @@
   "variant": "máximo",
   "status": "ok",
   "reasons": [],
-  "date": "2026-09-30",
+  "date": "2026-10-02",
+  "slicers": "Bambu ✓ · Orca ✓ · Projeto Bambu ✓",
   "minutes": 313,
   "grams": 406.2,
   "plates": 1,
@@ -1361,7 +1478,8 @@
   "variant": "mínimo",
   "status": "ok",
   "reasons": [],
-  "date": "2026-09-30",
+  "date": "2026-10-02",
+  "slicers": "Bambu ✓ · Orca ✓ · Projeto Bambu ✓",
   "minutes": 2,
   "grams": 0.2,
   "plates": 1,
@@ -1375,7 +1493,8 @@
   "variant": "padrão",
   "status": "ok",
   "reasons": [],
-  "date": "2026-09-30",
+  "date": "2026-10-02",
+  "slicers": "Bambu ✓ · Orca ✓ · Projeto Bambu ✓",
   "minutes": 28,
   "grams": 13.2,
   "plates": 1,
@@ -1389,7 +1508,8 @@
   "variant": "caixa",
   "status": "ok",
   "reasons": [],
-  "date": "2026-09-30",
+  "date": "2026-10-02",
+  "slicers": "Bambu ✓ · Orca ✓",
   "minutes": 162,
   "grams": 81.5,
   "plates": 1
@@ -1402,7 +1522,8 @@
   "variant": "curva",
   "status": "ok",
   "reasons": [],
-  "date": "2026-09-30",
+  "date": "2026-10-02",
+  "slicers": "Bambu ✓ · Orca ✓",
   "minutes": 77,
   "grams": 21.9,
   "plates": 1
@@ -1415,7 +1536,8 @@
   "variant": "máximo",
   "status": "ok",
   "reasons": [],
-  "date": "2026-09-30",
+  "date": "2026-10-02",
+  "slicers": "Bambu ✓ · Orca ✓",
   "minutes": 934,
   "grams": 381.6,
   "plates": 1
@@ -1428,7 +1550,8 @@
   "variant": "mínimo",
   "status": "ok",
   "reasons": [],
-  "date": "2026-09-30",
+  "date": "2026-10-02",
+  "slicers": "Bambu ✓ · Orca ✓",
   "minutes": 9,
   "grams": 1.3,
   "plates": 1
@@ -1441,7 +1564,8 @@
   "variant": "padrão",
   "status": "ok",
   "reasons": [],
-  "date": "2026-09-30",
+  "date": "2026-10-02",
+  "slicers": "Bambu ✓ · Orca ✓",
   "minutes": 86,
   "grams": 24.6,
   "plates": 1
@@ -1454,9 +1578,10 @@
   "variant": "máximo",
   "status": "ok",
   "reasons": [],
-  "date": "2026-09-30",
-  "minutes": 103,
-  "grams": 88.4,
+  "date": "2026-10-02",
+  "slicers": "Bambu ✓ · Orca ✓ · Projeto Bambu ✓",
+  "minutes": 150,
+  "grams": 99.1,
   "plates": 1
  },
  {
@@ -1470,9 +1595,10 @@
    "\"CAMPEÃ\": parede/traço < 0,4 mm em Z 1,7 mm",
    "app: \"CAMPEÃ\" ficou com 2,0 mm de altura: os traços ficam com menos de 0,4 mm e somem na impressão. Aumente o texto ou a peça, encurte a linha ou use uma fonte mais grossa."
   ],
-  "date": "2026-09-30",
-  "minutes": 4,
-  "grams": 1.7,
+  "date": "2026-10-02",
+  "slicers": "Bambu ✓ · Orca ✓ · Projeto Bambu ✓",
+  "minutes": 6,
+  "grams": 2.3,
   "plates": 1
  },
  {
@@ -1483,9 +1609,10 @@
   "variant": "padrão",
   "status": "ok",
   "reasons": [],
-  "date": "2026-09-30",
-  "minutes": 13,
-  "grams": 8.7,
+  "date": "2026-10-02",
+  "slicers": "Bambu ✓ · Orca ✓ · Projeto Bambu ✓",
+  "minutes": 24,
+  "grams": 11.3,
   "plates": 1
  },
  {
@@ -1494,12 +1621,14 @@
   "group": "tools",
   "label": "QR Code (ferramenta)",
   "variant": "máximo",
-  "status": "ok",
-  "reasons": [],
-  "date": "2026-09-30",
-  "minutes": 218,
-  "grams": 167.3,
-  "plates": 1
+  "status": "aviso",
+  "reasons": [
+   "Bambu: torre de purga em cima de uma peça depois do --arrange do CLI (na tela, arraste a torre ou use Arrumar)",
+   "Orca: torre de purga em cima de uma peça depois do --arrange do CLI (na tela, arraste a torre ou use Arrumar)",
+   "Projeto Bambu: torre de purga em cima de uma peça depois do --arrange do CLI (na tela, arraste a torre ou use Arrumar)"
+  ],
+  "date": "2026-10-02",
+  "slicers": "Bambu ✓ · Orca ✓ · Projeto Bambu ✓"
  },
  {
   "key": "qr:mínimo",
@@ -1511,9 +1640,10 @@
   "reasons": [
    "app: Cada módulo ficou com 0,56 mm: aumente a placa ou encurte o texto (mínimo recomendado 1,2 mm)."
   ],
-  "date": "2026-09-30",
-  "minutes": 2,
-  "grams": 0.4,
+  "date": "2026-10-02",
+  "slicers": "Bambu ✓ · Orca ✓ · Projeto Bambu ✓",
+  "minutes": 4,
+  "grams": 0.8,
   "plates": 1
  },
  {
@@ -1524,9 +1654,10 @@
   "variant": "padrão",
   "status": "ok",
   "reasons": [],
-  "date": "2026-09-30",
-  "minutes": 14,
-  "grams": 6.7,
+  "date": "2026-10-02",
+  "slicers": "Bambu ✓ · Orca ✓ · Projeto Bambu ✓",
+  "minutes": 17,
+  "grams": 7.3,
   "plates": 1
  },
  {
@@ -1535,12 +1666,14 @@
   "group": "tools",
   "label": "Plaquinhas de rolo (ferramenta)",
   "variant": "máximo",
-  "status": "ok",
-  "reasons": [],
-  "date": "2026-09-30",
-  "minutes": 158,
-  "grams": 82.3,
-  "plates": 1
+  "status": "aviso",
+  "reasons": [
+   "Bambu: torre de purga em cima de uma peça depois do --arrange do CLI (na tela, arraste a torre ou use Arrumar)",
+   "Orca: torre de purga em cima de uma peça depois do --arrange do CLI (na tela, arraste a torre ou use Arrumar)",
+   "Projeto Bambu: torre de purga em cima de uma peça depois do --arrange do CLI (na tela, arraste a torre ou use Arrumar)"
+  ],
+  "date": "2026-10-02",
+  "slicers": "Bambu ✓ · Orca ✓ · Projeto Bambu ✓"
  },
  {
   "key": "spool:padrão",
@@ -1550,9 +1683,10 @@
   "variant": "padrão",
   "status": "ok",
   "reasons": [],
-  "date": "2026-09-30",
-  "minutes": 8,
-  "grams": 4,
+  "date": "2026-10-02",
+  "slicers": "Bambu ✓ · Orca ✓ · Projeto Bambu ✓",
+  "minutes": 17,
+  "grams": 6.1,
   "plates": 1
  },
  {
@@ -1565,9 +1699,10 @@
   "reasons": [
    "app: Brinquedo: para menores de 3 anos, use cubos de 45 mm ou mais e confira se nada solta."
   ],
-  "date": "2026-09-30",
-  "minutes": 139,
-  "grams": 132.7,
+  "date": "2026-10-02",
+  "slicers": "Bambu ✓ · Orca ✓ · Projeto Bambu ✓",
+  "minutes": 701,
+  "grams": 295.3,
   "plates": 1
  },
  {
@@ -1580,9 +1715,10 @@
   "reasons": [
    "app: Cubo pequeno: não é brinquedo para menores de 3 anos (risco de engasgo)."
   ],
-  "date": "2026-09-30",
-  "minutes": 12,
-  "grams": 4.3,
+  "date": "2026-10-02",
+  "slicers": "Bambu ✓ · Orca ✓ · Projeto Bambu ✓",
+  "minutes": 136,
+  "grams": 40.1,
   "plates": 1
  },
  {
@@ -1595,9 +1731,10 @@
   "reasons": [
    "app: Cubo pequeno: não é brinquedo para menores de 3 anos (risco de engasgo)."
   ],
-  "date": "2026-09-30",
-  "minutes": 33,
-  "grams": 22.1,
+  "date": "2026-10-02",
+  "slicers": "Bambu ✓ · Orca ✓ · Projeto Bambu ✓",
+  "minutes": 294,
+  "grams": 95.7,
   "plates": 1
  },
  {
@@ -1611,11 +1748,14 @@
    "o conjunto arrumado ocupa 402,4 × 469,9 mm: passa da mesa de 256 mm",
    "\"A\" não cabe na mesa de 256 mm (272,4 × 280,0 × 30,0 mm)",
    "\"Alice\" não cabe na mesa de 256 mm (120,0 × 379,9 × 6,0 mm)",
-   "o Bambu Studio recusa na mesa de 256 mm do A1 (o app avisa)",
+   "Bambu recusa na mesa de 256 mm do A1 (o app avisa)",
+   "Orca recusa na mesa de 256 mm do A1 (o app avisa)",
+   "Projeto Bambu recusa na mesa de 256 mm do A1 (o app avisa)",
    "app: Boa parte do nome está fora da letra: mude a posição ou o tamanho do nome.",
    "app: A letra tem 280 mm: passa da mesa de 256 mm. Diminua a altura ou corte em partes."
   ],
-  "date": "2026-09-30"
+  "date": "2026-10-02",
+  "slicers": "Bambu ✓ · Orca ✓ · Projeto Bambu ✓"
  },
  {
   "key": "bigLetter:mínimo",
@@ -1627,9 +1767,10 @@
   "reasons": [
    "app: Boa parte do nome está fora da letra: mude a posição ou o tamanho do nome."
   ],
-  "date": "2026-09-30",
-  "minutes": 6,
-  "grams": 3,
+  "date": "2026-10-02",
+  "slicers": "Bambu ✓ · Orca ✓ · Projeto Bambu ✓",
+  "minutes": 17,
+  "grams": 6.1,
   "plates": 1
  },
  {
@@ -1640,9 +1781,10 @@
   "variant": "padrão",
   "status": "ok",
   "reasons": [],
-  "date": "2026-09-30",
-  "minutes": 73,
-  "grams": 59.2,
+  "date": "2026-10-02",
+  "slicers": "Bambu ✓ · Orca ✓ · Projeto Bambu ✓",
+  "minutes": 102,
+  "grams": 67.2,
   "plates": 1
  },
  {
@@ -1653,9 +1795,10 @@
   "variant": "máximo",
   "status": "ok",
   "reasons": [],
-  "date": "2026-09-30",
-  "minutes": 59,
-  "grams": 45.2,
+  "date": "2026-10-02",
+  "slicers": "Bambu ✓ · Orca ✓ · Projeto Bambu ✓",
+  "minutes": 63,
+  "grams": 46,
   "plates": 1
  },
  {
@@ -1666,9 +1809,10 @@
   "variant": "mínimo",
   "status": "ok",
   "reasons": [],
-  "date": "2026-09-30",
-  "minutes": 5,
-  "grams": 2.1,
+  "date": "2026-10-02",
+  "slicers": "Bambu ✓ · Orca ✓ · Projeto Bambu ✓",
+  "minutes": 7,
+  "grams": 3.1,
   "plates": 1
  },
  {
@@ -1679,9 +1823,10 @@
   "variant": "padrão",
   "status": "ok",
   "reasons": [],
-  "date": "2026-09-30",
-  "minutes": 20,
-  "grams": 12.7,
+  "date": "2026-10-02",
+  "slicers": "Bambu ✓ · Orca ✓ · Projeto Bambu ✓",
+  "minutes": 23,
+  "grams": 13.8,
   "plates": 1
  },
  {
@@ -1693,15 +1838,14 @@
   "status": "aviso",
   "reasons": [
    "o conjunto arrumado ocupa 1535,0 × 3391,5 mm: passa da mesa de 256 mm",
-   "mais de 24 h de impressão",
-   "não coube numa placa: 36 placas",
+   "Bambu: torre de purga em cima de uma peça depois do --arrange do CLI (na tela, arraste a torre ou use Arrumar)",
+   "Orca: torre de purga em cima de uma peça depois do --arrange do CLI (na tela, arraste a torre ou use Arrumar)",
+   "Projeto Bambu: torre de purga em cima de uma peça depois do --arrange do CLI (na tela, arraste a torre ou use Arrumar)",
    "app: A bandeja desliza para o fundo nos trilhos: empurre para chegar nas caixinhas da frente.",
    "app: Gaveta alta: a bandeja fica a 200 mm do fundo (trilhos de até 200 mm cabem na mesa) e sobra 152 mm em cima dela."
   ],
-  "date": "2026-09-30",
-  "minutes": 3416,
-  "grams": 2607.9,
-  "plates": 36
+  "date": "2026-10-02",
+  "slicers": "Bambu ✓ · Orca ✓ · Projeto Bambu ✓"
  },
  {
   "key": "cutlery:mínimo",
@@ -1716,7 +1860,8 @@
    "app: Gaveta estreita: as 4 divisões de talheres ficam apertadas (137 mm para 265 mm ideais).",
    "app: A gaveta não tem fundo para a bandeja deslizar (precisaria de 450 mm): ela fica apoiada nos trilhos e levanta pelas alças para chegar embaixo."
   ],
-  "date": "2026-09-30",
+  "date": "2026-10-02",
+  "slicers": "Bambu ✓ · Orca ✓ · Projeto Bambu ✓",
   "minutes": 716,
   "grams": 576,
   "plates": 6
@@ -1730,13 +1875,12 @@
   "status": "aviso",
   "reasons": [
    "o conjunto arrumado ocupa 495,0 × 563,5 mm: passa da mesa de 256 mm",
-   "não coube numa placa: 11 placas",
+   "Bambu: torre de purga em cima de uma peça depois do --arrange do CLI (na tela, arraste a torre ou use Arrumar)",
+   "Projeto Bambu: torre de purga em cima de uma peça depois do --arrange do CLI (na tela, arraste a torre ou use Arrumar)",
    "app: A bandeja desliza para o fundo nos trilhos: empurre para chegar nas caixinhas da frente."
   ],
-  "date": "2026-09-30",
-  "minutes": 1399,
-  "grams": 1101.6,
-  "plates": 11
+  "date": "2026-10-02",
+  "slicers": "Bambu ✓ · Orca ✓ · Projeto Bambu ✓"
  },
  {
   "key": "deskOrganizer:máximo",
@@ -1744,12 +1888,14 @@
   "group": "home",
   "label": "Organizador de mesa (deskOrganizer)",
   "variant": "máximo",
-  "status": "ok",
-  "reasons": [],
-  "date": "2026-09-30",
-  "minutes": 878,
-  "grams": 798.9,
-  "plates": 1
+  "status": "aviso",
+  "reasons": [
+   "Bambu: torre de purga em cima de uma peça depois do --arrange do CLI (na tela, arraste a torre ou use Arrumar)",
+   "Orca: torre de purga em cima de uma peça depois do --arrange do CLI (na tela, arraste a torre ou use Arrumar)",
+   "Projeto Bambu: torre de purga em cima de uma peça depois do --arrange do CLI (na tela, arraste a torre ou use Arrumar)"
+  ],
+  "date": "2026-10-02",
+  "slicers": "Bambu ✓ · Orca ✓ · Projeto Bambu ✓"
  },
  {
   "key": "deskOrganizer:mínimo",
@@ -1759,9 +1905,10 @@
   "variant": "mínimo",
   "status": "ok",
   "reasons": [],
-  "date": "2026-09-30",
-  "minutes": 18,
-  "grams": 10.5,
+  "date": "2026-10-02",
+  "slicers": "Bambu ✓ · Orca ✓ · Projeto Bambu ✓",
+  "minutes": 91,
+  "grams": 31.8,
   "plates": 1
  },
  {
@@ -1772,9 +1919,10 @@
   "variant": "padrão",
   "status": "ok",
   "reasons": [],
-  "date": "2026-09-30",
-  "minutes": 152,
-  "grams": 140,
+  "date": "2026-10-02",
+  "slicers": "Bambu ✓ · Orca ✓ · Projeto Bambu ✓",
+  "minutes": 358,
+  "grams": 198.9,
   "plates": 1
  },
  {
@@ -1786,13 +1934,11 @@
   "status": "aviso",
   "reasons": [
    "o conjunto arrumado ocupa 1559,0 × 1559,0 mm: passa da mesa de 256 mm",
-   "mais de 24 h de impressão",
-   "não coube numa placa: 36 placas"
+   "Bambu: torre de purga em cima de uma peça depois do --arrange do CLI (na tela, arraste a torre ou use Arrumar)",
+   "Projeto Bambu: torre de purga em cima de uma peça depois do --arrange do CLI (na tela, arraste a torre ou use Arrumar)"
   ],
-  "date": "2026-09-30",
-  "minutes": 2529,
-  "grams": 1543.1,
-  "plates": 36
+  "date": "2026-10-02",
+  "slicers": "Bambu ✓ · Orca ✓ · Projeto Bambu ✓"
  },
  {
   "key": "drawer:mínimo",
@@ -1804,7 +1950,8 @@
   "reasons": [
    "app: Gaveta baixa: a caixinha mais alta que cabe tem 1 unidade (o mínimo útil é 2)."
   ],
-  "date": "2026-09-30",
+  "date": "2026-10-02",
+  "slicers": "Bambu ✓ · Orca ✓",
   "minutes": 6,
   "grams": 3.8,
   "plates": 1
@@ -1818,12 +1965,12 @@
   "status": "aviso",
   "reasons": [
    "o conjunto arrumado ocupa 519,0 × 429,0 mm: passa da mesa de 256 mm",
-   "não coube numa placa: 6 placas"
+   "Bambu: torre de purga em cima de uma peça depois do --arrange do CLI (na tela, arraste a torre ou use Arrumar)",
+   "Orca: torre de purga em cima de uma peça depois do --arrange do CLI (na tela, arraste a torre ou use Arrumar)",
+   "Projeto Bambu: torre de purga em cima de uma peça depois do --arrange do CLI (na tela, arraste a torre ou use Arrumar)"
   ],
-  "date": "2026-09-30",
-  "minutes": 504,
-  "grams": 333.6,
-  "plates": 6
+  "date": "2026-10-02",
+  "slicers": "Bambu ✓ · Orca ✓ · Projeto Bambu ✓"
  },
  {
   "key": "goalBoard:máximo",
@@ -1833,9 +1980,10 @@
   "variant": "máximo",
   "status": "ok",
   "reasons": [],
-  "date": "2026-09-30",
-  "minutes": 160,
-  "grams": 134.5,
+  "date": "2026-10-02",
+  "slicers": "Bambu ✓ · Orca ✓ · Projeto Bambu ✓",
+  "minutes": 179,
+  "grams": 139.6,
   "plates": 1
  },
  {
@@ -1846,9 +1994,10 @@
   "variant": "mínimo",
   "status": "ok",
   "reasons": [],
-  "date": "2026-09-30",
-  "minutes": 26,
-  "grams": 18,
+  "date": "2026-10-02",
+  "slicers": "Bambu ✓ · Orca ✓ · Projeto Bambu ✓",
+  "minutes": 30,
+  "grams": 19.2,
   "plates": 1
  },
  {
@@ -1859,9 +2008,10 @@
   "variant": "padrão",
   "status": "ok",
   "reasons": [],
-  "date": "2026-09-30",
-  "minutes": 66,
-  "grams": 49.7,
+  "date": "2026-10-02",
+  "slicers": "Bambu ✓ · Orca ✓ · Projeto Bambu ✓",
+  "minutes": 74,
+  "grams": 51.9,
   "plates": 1
  },
  {
@@ -1876,7 +2026,8 @@
    "não coube numa placa: 16 placas",
    "app: Base de 20×20 casas não cabe inteira na mesa: saiu em 16 pedaços cortados nas divisas das casas."
   ],
-  "date": "2026-09-30",
+  "date": "2026-10-02",
+  "slicers": "Bambu ✓ · Orca ✓",
   "minutes": 916,
   "grams": 554.9,
   "plates": 16
@@ -1889,7 +2040,8 @@
   "variant": "mínimo",
   "status": "ok",
   "reasons": [],
-  "date": "2026-09-30",
+  "date": "2026-10-02",
+  "slicers": "Bambu ✓ · Orca ✓",
   "minutes": 3,
   "grams": 1.6,
   "plates": 1
@@ -1902,7 +2054,8 @@
   "variant": "padrão",
   "status": "ok",
   "reasons": [],
-  "date": "2026-09-30",
+  "date": "2026-10-02",
+  "slicers": "Bambu ✓ · Orca ✓",
   "minutes": 27,
   "grams": 16.9,
   "plates": 1
@@ -1921,9 +2074,10 @@
    "app: Parede mais grossa que a borda empilhável: a borda fica com degrau por dentro.",
    "app: As 2 peças não cabem juntas na mesa de 256 mm: o fatiador vai usar mais de uma mesa (ou imprima uma de cada vez)."
   ],
-  "date": "2026-09-30",
-  "minutes": 2433,
-  "grams": 2308.8,
+  "date": "2026-10-02",
+  "slicers": "Bambu ✓ · Orca ✓ · Projeto Bambu ✓",
+  "minutes": 2437,
+  "grams": 2309.2,
   "plates": 2
  },
  {
@@ -1934,9 +2088,10 @@
   "variant": "mínimo",
   "status": "ok",
   "reasons": [],
-  "date": "2026-09-30",
-  "minutes": 19,
-  "grams": 10.1,
+  "date": "2026-10-02",
+  "slicers": "Bambu ✓ · Orca ✓ · Projeto Bambu ✓",
+  "minutes": 35,
+  "grams": 14.5,
   "plates": 1
  },
  {
@@ -1947,9 +2102,10 @@
   "variant": "padrão",
   "status": "ok",
   "reasons": [],
-  "date": "2026-09-30",
-  "minutes": 36,
-  "grams": 23.6,
+  "date": "2026-10-02",
+  "slicers": "Bambu ✓ · Orca ✓ · Projeto Bambu ✓",
+  "minutes": 52,
+  "grams": 28.1,
   "plates": 1
  },
  {
@@ -1966,7 +2122,8 @@
    "app: Cabem 23 × 23 casas; margem 16,5 mm de cada lado na largura e 16,5 mm de cada lado na profundidade. Caixinhas de até 41 unidades (291,4 mm). A base sai em 25 pedaços.",
    "app: As 25 peças não cabem juntas na mesa de 256 mm: o fatiador vai usar mais de uma mesa (ou imprima uma de cada vez)."
   ],
-  "date": "2026-09-30",
+  "date": "2026-10-02",
+  "slicers": "Bambu ✓ · Orca ✓",
   "minutes": 1500,
   "grams": 924,
   "plates": 25
@@ -1982,7 +2139,8 @@
    "app: Cabem 1 × 1 casas; margem 3,5 mm de cada lado na largura e 3,5 mm de cada lado na profundidade. Caixinhas de até 1 unidade (11,4 mm). A base sai em 1 pedaço.",
    "app: Gaveta baixa: a caixinha mais alta que cabe tem 1 unidade (o mínimo útil é 2)."
   ],
-  "date": "2026-09-30",
+  "date": "2026-10-02",
+  "slicers": "Bambu ✓ · Orca ✓",
   "minutes": 6,
   "grams": 3.8,
   "plates": 1
@@ -2000,9 +2158,10 @@
    "app: Cabem 11 × 9 casas; margem 18,5 mm de cada lado na largura e 20,5 mm de cada lado na profundidade. Caixinhas de até 10 unidades (74,4 mm). A base sai em 6 pedaços.",
    "app: As 6 peças não cabem juntas na mesa de 256 mm: o fatiador vai usar mais de uma mesa (ou imprima uma de cada vez)."
   ],
-  "date": "2026-09-30",
+  "date": "2026-10-02",
+  "slicers": "Bambu ✓ · Orca ✓",
   "minutes": 365,
-  "grams": 236.8,
+  "grams": 236.7,
   "plates": 6
  },
  {
@@ -2015,7 +2174,8 @@
   "reasons": [
    "app: A caixinha deve entrar e sair da base sem forçar e sem folga de lado. Frouxa: a impressora está extrudando demais; não entra: de menos. Calibre o fluxo antes de imprimir a gaveta."
   ],
-  "date": "2026-09-30",
+  "date": "2026-10-02",
+  "slicers": "Bambu ✓ · Orca ✓",
   "minutes": 17,
   "grams": 10.3,
   "plates": 1
@@ -2029,11 +2189,14 @@
   "status": "aviso",
   "reasons": [
    "\"Porta-chave\" não cabe na mesa de 256 mm (235,0 × 271,3 × 20,0 mm)",
-   "o Bambu Studio recusa na mesa de 256 mm do A1 (o app avisa)",
+   "Bambu recusa na mesa de 256 mm do A1 (o app avisa)",
+   "Orca recusa na mesa de 256 mm do A1 (o app avisa)",
+   "Projeto Bambu recusa na mesa de 256 mm do A1 (o app avisa)",
    "app: Furos de 4,5 mm para parafuso com bucha 6. Ganchos aguentam chaves; para bolsa, aumente a espessura.",
    "app: \"Porta-chave\" tem 235 × 271 × 20 mm e passa da mesa de 256 mm: diminua o tamanho."
   ],
-  "date": "2026-09-30"
+  "date": "2026-10-02",
+  "slicers": "Bambu ✓ · Orca ✓ · Projeto Bambu ✓"
  },
  {
   "key": "keyHolder:mínimo",
@@ -2045,9 +2208,10 @@
   "reasons": [
    "app: Furos de 4,5 mm para parafuso com bucha 6. Ganchos aguentam chaves; para bolsa, aumente a espessura."
   ],
-  "date": "2026-09-30",
-  "minutes": 40,
-  "grams": 28.7,
+  "date": "2026-10-02",
+  "slicers": "Bambu ✓ · Orca ✓ · Projeto Bambu ✓",
+  "minutes": 44,
+  "grams": 29.8,
   "plates": 1
  },
  {
@@ -2060,9 +2224,10 @@
   "reasons": [
    "app: Furos de 4,5 mm para parafuso com bucha 6. Ganchos aguentam chaves; para bolsa, aumente a espessura."
   ],
-  "date": "2026-09-30",
-  "minutes": 130,
-  "grams": 111.3,
+  "date": "2026-10-02",
+  "slicers": "Bambu ✓ · Orca ✓ · Projeto Bambu ✓",
+  "minutes": 141,
+  "grams": 114,
   "plates": 1
  },
  {
@@ -2074,12 +2239,14 @@
   "status": "aviso",
   "reasons": [
    "o conjunto arrumado ocupa 239,9 × 500,9 mm: passa da mesa de 256 mm",
+   "Orca: torre de purga em cima de uma peça depois do --arrange do CLI (na tela, arraste a torre ou use Arrumar)",
    "não coube numa placa: 2 placas",
    "app: Use filamento branco no difusor (1ª camada). Cabe fita de LED de até 36 mm de altura.",
    "app: As 2 peças não cabem juntas na mesa de 256 mm: o fatiador vai usar mais de uma mesa (ou imprima uma de cada vez)."
   ],
-  "date": "2026-09-30",
-  "minutes": 255,
+  "date": "2026-10-02",
+  "slicers": "Bambu ✓ · Orca ✓ · Projeto Bambu ✓",
+  "minutes": 256,
   "grams": 231.6,
   "plates": 2
  },
@@ -2093,9 +2260,10 @@
   "reasons": [
    "app: Use filamento branco no difusor (1ª camada). Cabe fita de LED de até 11 mm de altura."
   ],
-  "date": "2026-09-30",
-  "minutes": 35,
-  "grams": 26.3,
+  "date": "2026-10-02",
+  "slicers": "Bambu ✓ · Orca ✓ · Projeto Bambu ✓",
+  "minutes": 44,
+  "grams": 28.4,
   "plates": 1
  },
  {
@@ -2111,9 +2279,10 @@
    "app: Use filamento branco no difusor (1ª camada). Cabe fita de LED de até 18 mm de altura.",
    "app: As 2 peças não cabem juntas na mesa de 256 mm: o fatiador vai usar mais de uma mesa (ou imprima uma de cada vez)."
   ],
-  "date": "2026-09-30",
-  "minutes": 112,
-  "grams": 94.2,
+  "date": "2026-10-02",
+  "slicers": "Bambu ✓ · Orca ✓ · Projeto Bambu ✓",
+  "minutes": 113,
+  "grams": 94.4,
   "plates": 2
  },
  {
@@ -2130,7 +2299,8 @@
    "app: Maior que a mesa de 256 mm: a caixa saiu em 9 partes para colar.",
    "app: Use filamento branco no difusor, com 2 a 3 camadas para a luz espalhar sem mostrar os pontos do LED."
   ],
-  "date": "2026-09-30",
+  "date": "2026-10-02",
+  "slicers": "Bambu ✓ · Orca ✓ · Projeto Bambu ✓",
   "minutes": 1970,
   "grams": 1639.4,
   "plates": 14
@@ -2145,9 +2315,10 @@
   "reasons": [
    "app: Use filamento branco no difusor, com 2 a 3 camadas para a luz espalhar sem mostrar os pontos do LED."
   ],
-  "date": "2026-09-30",
-  "minutes": 20,
-  "grams": 10.6,
+  "date": "2026-10-02",
+  "slicers": "Bambu ✓ · Orca ✓ · Projeto Bambu ✓",
+  "minutes": 23,
+  "grams": 11.5,
   "plates": 1
  },
  {
@@ -2163,7 +2334,8 @@
    "app: Use filamento branco no difusor, com 2 a 3 camadas para a luz espalhar sem mostrar os pontos do LED.",
    "app: As 2 peças não cabem juntas na mesa de 256 mm: o fatiador vai usar mais de uma mesa (ou imprima uma de cada vez)."
   ],
-  "date": "2026-09-30",
+  "date": "2026-10-02",
+  "slicers": "Bambu ✓ · Orca ✓ · Projeto Bambu ✓",
   "minutes": 181,
   "grams": 157.9,
   "plates": 2
@@ -2179,10 +2351,13 @@
    "o conjunto arrumado ocupa 526,0 × 258,0 mm: passa da mesa de 256 mm",
    "\"Caixa\" não cabe na mesa de 256 mm (258,0 × 258,0 × 204,0 mm)",
    "\"Tampa\" não cabe na mesa de 256 mm (258,0 × 258,0 × 10,0 mm)",
-   "o Bambu Studio recusa na mesa de 256 mm do A1 (o app avisa)",
+   "Bambu recusa na mesa de 256 mm do A1 (o app avisa)",
+   "Orca recusa na mesa de 256 mm do A1 (o app avisa)",
+   "Projeto Bambu recusa na mesa de 256 mm do A1 (o app avisa)",
    "app: A caixa tem 258 mm e passa da mesa de 256 mm."
   ],
-  "date": "2026-09-30"
+  "date": "2026-10-02",
+  "slicers": "Bambu ✓ · Orca ✓ · Projeto Bambu ✓"
  },
  {
   "key": "lidBox:mínimo",
@@ -2192,9 +2367,10 @@
   "variant": "mínimo",
   "status": "ok",
   "reasons": [],
-  "date": "2026-09-30",
-  "minutes": 5,
-  "grams": 0.9,
+  "date": "2026-10-02",
+  "slicers": "Bambu ✓ · Orca ✓ · Projeto Bambu ✓",
+  "minutes": 10,
+  "grams": 2.3,
   "plates": 1
  },
  {
@@ -2205,9 +2381,10 @@
   "variant": "padrão",
   "status": "ok",
   "reasons": [],
-  "date": "2026-09-30",
-  "minutes": 47,
-  "grams": 40.1,
+  "date": "2026-10-02",
+  "slicers": "Bambu ✓ · Orca ✓ · Projeto Bambu ✓",
+  "minutes": 52,
+  "grams": 41.5,
   "plates": 1
  },
  {
@@ -2221,9 +2398,10 @@
    "o conjunto arrumado ocupa 217,1 × 277,3 mm: passa da mesa de 256 mm",
    "app: As 2 peças não cabem juntas na mesa de 256 mm: o fatiador vai usar mais de uma mesa (ou imprima uma de cada vez)."
   ],
-  "date": "2026-09-30",
-  "minutes": 186,
-  "grams": 175.3,
+  "date": "2026-10-02",
+  "slicers": "Bambu ✓ · Orca ✓ · Projeto Bambu ✓",
+  "minutes": 258,
+  "grams": 193.8,
   "plates": 1
  },
  {
@@ -2234,9 +2412,10 @@
   "variant": "mínimo",
   "status": "ok",
   "reasons": [],
-  "date": "2026-09-30",
-  "minutes": 25,
-  "grams": 15.4,
+  "date": "2026-10-02",
+  "slicers": "Bambu ✓ · Orca ✓ · Projeto Bambu ✓",
+  "minutes": 80,
+  "grams": 29.7,
   "plates": 1
  },
  {
@@ -2247,9 +2426,10 @@
   "variant": "padrão",
   "status": "ok",
   "reasons": [],
-  "date": "2026-09-30",
-  "minutes": 66,
-  "grams": 51.7,
+  "date": "2026-10-02",
+  "slicers": "Bambu ✓ · Orca ✓ · Projeto Bambu ✓",
+  "minutes": 119,
+  "grams": 65.3,
   "plates": 1
  },
  {
@@ -2263,9 +2443,10 @@
    "app: Pausa em Z = 3,52 mm: coloque a tag no bolsão da tampa e retome. Se o pote estiver na mesma mesa, ele só espera junto.",
    "app: A tampa imprime com o sulco para baixo (ponte curta) e encaixa na gola do pote."
   ],
-  "date": "2026-09-30",
-  "minutes": 93,
-  "grams": 101.9,
+  "date": "2026-10-02",
+  "slicers": "Bambu ✓ · Orca ✓ · Projeto Bambu ✓",
+  "minutes": 107,
+  "grams": 106.1,
   "plates": 1,
   "pauses": "3,40"
  },
@@ -2280,9 +2461,10 @@
    "app: Pausa em Z = 1,44 mm: coloque a tag no bolsão da tampa e retome. Se o pote estiver na mesma mesa, ele só espera junto.",
    "app: A tampa imprime com o sulco para baixo (ponte curta) e encaixa na gola do pote."
   ],
-  "date": "2026-09-30",
-  "minutes": 32,
-  "grams": 10.2,
+  "date": "2026-10-02",
+  "slicers": "Bambu ✓ · Orca ✓ · Projeto Bambu ✓",
+  "minutes": 47,
+  "grams": 13.8,
   "plates": 1,
   "pauses": "1,40"
  },
@@ -2297,9 +2479,10 @@
    "app: Pausa em Z = 2,00 mm: coloque a tag no bolsão da tampa e retome. Se o pote estiver na mesma mesa, ele só espera junto.",
    "app: A tampa imprime com o sulco para baixo (ponte curta) e encaixa na gola do pote."
   ],
-  "date": "2026-09-30",
-  "minutes": 36,
-  "grams": 25.2,
+  "date": "2026-10-02",
+  "slicers": "Bambu ✓ · Orca ✓ · Projeto Bambu ✓",
+  "minutes": 44,
+  "grams": 27.5,
   "plates": 1,
   "pauses": "2,00"
  },
@@ -2311,9 +2494,10 @@
   "variant": "máximo",
   "status": "ok",
   "reasons": [],
-  "date": "2026-09-30",
-  "minutes": 754,
-  "grams": 525,
+  "date": "2026-10-02",
+  "slicers": "Bambu ✓ · Orca ✓ · Projeto Bambu ✓",
+  "minutes": 781,
+  "grams": 530.5,
   "plates": 1
  },
  {
@@ -2324,9 +2508,10 @@
   "variant": "mínimo",
   "status": "ok",
   "reasons": [],
-  "date": "2026-09-30",
-  "minutes": 7,
-  "grams": 1.6,
+  "date": "2026-10-02",
+  "slicers": "Bambu ✓ · Orca ✓ · Projeto Bambu ✓",
+  "minutes": 11,
+  "grams": 2.5,
   "plates": 1
  },
  {
@@ -2337,9 +2522,10 @@
   "variant": "padrão",
   "status": "ok",
   "reasons": [],
-  "date": "2026-09-30",
-  "minutes": 47,
-  "grams": 32.2,
+  "date": "2026-10-02",
+  "slicers": "Bambu ✓ · Orca ✓ · Projeto Bambu ✓",
+  "minutes": 54,
+  "grams": 33.8,
   "plates": 1
  },
  {
@@ -2350,9 +2536,10 @@
   "variant": "máximo",
   "status": "ok",
   "reasons": [],
-  "date": "2026-09-30",
-  "minutes": 438,
-  "grams": 356,
+  "date": "2026-10-02",
+  "slicers": "Bambu ✓ · Orca ✓ · Projeto Bambu ✓",
+  "minutes": 687,
+  "grams": 430.1,
   "plates": 1
  },
  {
@@ -2363,9 +2550,10 @@
   "variant": "mínimo",
   "status": "ok",
   "reasons": [],
-  "date": "2026-09-30",
-  "minutes": 24,
-  "grams": 7.8,
+  "date": "2026-10-02",
+  "slicers": "Bambu ✓ · Orca ✓ · Projeto Bambu ✓",
+  "minutes": 82,
+  "grams": 26.3,
   "plates": 1
  },
  {
@@ -2376,9 +2564,10 @@
   "variant": "padrão",
   "status": "ok",
   "reasons": [],
-  "date": "2026-09-30",
-  "minutes": 77,
-  "grams": 70.7,
+  "date": "2026-10-02",
+  "slicers": "Bambu ✓ · Orca ✓ · Projeto Bambu ✓",
+  "minutes": 197,
+  "grams": 106.6,
   "plates": 1
  },
  {
@@ -2392,9 +2581,10 @@
    "app: A base sai de cabeça para baixo para a face de cima ficar lisa; o texto sai à parte para colar na frente.",
    "app: O texto foi reduzido para caber na frente da base."
   ],
-  "date": "2026-09-30",
-  "minutes": 165,
-  "grams": 164.5,
+  "date": "2026-10-02",
+  "slicers": "Bambu ✓ · Orca ✓ · Projeto Bambu ✓",
+  "minutes": 208,
+  "grams": 174.8,
   "plates": 1
  },
  {
@@ -2407,9 +2597,10 @@
   "reasons": [
    "app: A base sai de cabeça para baixo para a face de cima ficar lisa; o texto sai à parte para colar na frente."
   ],
-  "date": "2026-09-30",
-  "minutes": 24,
-  "grams": 16.3,
+  "date": "2026-10-02",
+  "slicers": "Bambu ✓ · Orca ✓ · Projeto Bambu ✓",
+  "minutes": 34,
+  "grams": 18.7,
   "plates": 1
  },
  {
@@ -2422,9 +2613,10 @@
   "reasons": [
    "app: A base sai de cabeça para baixo para a face de cima ficar lisa; o texto sai à parte para colar na frente."
   ],
-  "date": "2026-09-30",
-  "minutes": 53,
-  "grams": 44.1,
+  "date": "2026-10-02",
+  "slicers": "Bambu ✓ · Orca ✓ · Projeto Bambu ✓",
+  "minutes": 70,
+  "grams": 48.1,
   "plates": 1
  },
  {
@@ -2436,16 +2628,15 @@
   "status": "aviso",
   "reasons": [
    "o conjunto arrumado ocupa 373,0 × 373,0 mm: passa da mesa de 256 mm",
-   "mais de 24 h de impressão",
-   "não coube numa placa: 2 placas",
+   "Bambu: torre de purga em cima de uma peça depois do --arrange do CLI (na tela, arraste a torre ou use Arrumar)",
+   "Orca: torre de purga em cima de uma peça depois do --arrange do CLI (na tela, arraste a torre ou use Arrumar)",
+   "Projeto Bambu: torre de purga em cima de uma peça depois do --arrange do CLI (na tela, arraste a torre ou use Arrumar)",
    "app: Peças pequenas: não é brinquedo para menores de 3 anos (risco de engasgo).",
    "app: Pescoço do encaixe fino demais: aumente o tamanho da orelha ou das peças.",
    "app: As 256 peças não cabem juntas na mesa de 256 mm: o fatiador vai usar mais de uma mesa (ou imprima uma de cada vez)."
   ],
-  "date": "2026-10-01",
-  "minutes": 1488,
-  "grams": 449.9,
-  "plates": 2
+  "date": "2026-10-02",
+  "slicers": "Bambu ✓ · Orca ✓ · Projeto Bambu ✓"
  },
  {
   "key": "puzzle:mínimo",
@@ -2458,9 +2649,10 @@
    "app: Peças pequenas: não é brinquedo para menores de 3 anos (risco de engasgo).",
    "app: Pescoço do encaixe fino demais: aumente o tamanho da orelha ou das peças."
   ],
-  "date": "2026-10-01",
-  "minutes": 9,
-  "grams": 3.7,
+  "date": "2026-10-02",
+  "slicers": "Bambu ✓ · Orca ✓ · Projeto Bambu ✓",
+  "minutes": 14,
+  "grams": 5,
   "plates": 1
  },
  {
@@ -2473,9 +2665,10 @@
   "reasons": [
    "app: Peças pequenas: não é brinquedo para menores de 3 anos (risco de engasgo)."
   ],
-  "date": "2026-10-01",
-  "minutes": 91,
-  "grams": 44.2,
+  "date": "2026-10-02",
+  "slicers": "Bambu ✓ · Orca ✓ · Projeto Bambu ✓",
+  "minutes": 101,
+  "grams": 46.7,
   "plates": 1
  },
  {
@@ -2488,7 +2681,8 @@
   "reasons": [
    "app: Imprima deitada, com a face das marcas para cima; confira com uma régua de verdade ou com a régua de papel."
   ],
-  "date": "2026-09-30",
+  "date": "2026-10-02",
+  "slicers": "Bambu ✓ · Orca ✓",
   "minutes": 26,
   "grams": 11.5,
   "plates": 1
@@ -2503,7 +2697,8 @@
   "reasons": [
    "app: Imprima deitada, com a face das marcas para cima; confira com uma régua de verdade ou com a régua de papel."
   ],
-  "date": "2026-09-30",
+  "date": "2026-10-02",
+  "slicers": "Bambu ✓ · Orca ✓",
   "minutes": 7,
   "grams": 2,
   "plates": 1
@@ -2518,7 +2713,8 @@
   "reasons": [
    "app: Imprima deitada, com a face das marcas para cima; confira com uma régua de verdade ou com a régua de papel."
   ],
-  "date": "2026-09-30",
+  "date": "2026-10-02",
+  "slicers": "Bambu ✓ · Orca ✓",
   "minutes": 16,
   "grams": 4.8,
   "plates": 1
@@ -2529,11 +2725,14 @@
   "group": "home",
   "label": "Estojo com tampa de rosca (screwCase)",
   "variant": "máximo",
-  "status": "ok",
-  "reasons": [],
-  "date": "2026-09-30",
-  "minutes": 532,
-  "grams": 324.9,
+  "status": "aviso",
+  "reasons": [
+   "mais de 24 h de impressão"
+  ],
+  "date": "2026-10-02",
+  "slicers": "Bambu ✓ · Orca ✓ · Projeto Bambu ✓",
+  "minutes": 1779,
+  "grams": 612.9,
   "plates": 1
  },
  {
@@ -2544,9 +2743,10 @@
   "variant": "mínimo",
   "status": "ok",
   "reasons": [],
-  "date": "2026-09-30",
-  "minutes": 13,
-  "grams": 3.2,
+  "date": "2026-10-02",
+  "slicers": "Bambu ✓ · Orca ✓ · Projeto Bambu ✓",
+  "minutes": 152,
+  "grams": 40.2,
   "plates": 1
  },
  {
@@ -2557,9 +2757,10 @@
   "variant": "padrão",
   "status": "ok",
   "reasons": [],
-  "date": "2026-09-30",
-  "minutes": 62,
-  "grams": 27.9,
+  "date": "2026-10-02",
+  "slicers": "Bambu ✓ · Orca ✓ · Projeto Bambu ✓",
+  "minutes": 471,
+  "grams": 140.6,
   "plates": 1
  },
  {
@@ -2574,7 +2775,8 @@
    "\"Molde\" não cabe na mesa de 256 mm (331,9 × 340,0 × 10,0 mm)",
    "app: O molde tem 340 mm: passa da mesa de 256 mm."
   ],
-  "date": "2026-09-30",
+  "date": "2026-10-02",
+  "slicers": "Bambu ✓ · Orca ✓",
   "minutes": 15,
   "grams": 6.3,
   "plates": 1
@@ -2587,7 +2789,8 @@
   "variant": "mínimo",
   "status": "ok",
   "reasons": [],
-  "date": "2026-09-30",
+  "date": "2026-10-02",
+  "slicers": "Bambu ✓ · Orca ✓",
   "minutes": 14,
   "grams": 5.9,
   "plates": 1
@@ -2600,7 +2803,8 @@
   "variant": "padrão",
   "status": "ok",
   "reasons": [],
-  "date": "2026-09-30",
+  "date": "2026-10-02",
+  "slicers": "Bambu ✓ · Orca ✓",
   "minutes": 40,
   "grams": 26.1,
   "plates": 1
@@ -2615,9 +2819,10 @@
   "reasons": [
    "app: Sem fundo, a peça fica presa só pelos fios: tire da mesa com cuidado (espátula fina)."
   ],
-  "date": "2026-09-30",
-  "minutes": 151,
-  "grams": 88.7,
+  "date": "2026-10-02",
+  "slicers": "Bambu ✓ · Orca ✓ · Projeto Bambu ✓",
+  "minutes": 174,
+  "grams": 94.9,
   "plates": 1
  },
  {
@@ -2630,9 +2835,10 @@
   "reasons": [
    "app: Sem fundo, a peça fica presa só pelos fios: tire da mesa com cuidado (espátula fina)."
   ],
-  "date": "2026-09-30",
-  "minutes": 8,
-  "grams": 1.8,
+  "date": "2026-10-02",
+  "slicers": "Bambu ✓ · Orca ✓ · Projeto Bambu ✓",
+  "minutes": 14,
+  "grams": 3.2,
   "plates": 1
  },
  {
@@ -2645,9 +2851,10 @@
   "reasons": [
    "app: Sem fundo, a peça fica presa só pelos fios: tire da mesa com cuidado (espátula fina)."
   ],
-  "date": "2026-09-30",
-  "minutes": 37,
-  "grams": 16.2,
+  "date": "2026-10-02",
+  "slicers": "Bambu ✓ · Orca ✓ · Projeto Bambu ✓",
+  "minutes": 44,
+  "grams": 17.8,
   "plates": 1
  },
  {
@@ -2660,7 +2867,8 @@
   "reasons": [
    "app: Modo vaso: o 3MF já vai com o modo espiral ligado (uma parede contínua, sem topo). Use bico 0,4 e 1 perímetro."
   ],
-  "date": "2026-09-30",
+  "date": "2026-10-02",
+  "slicers": "Bambu ✓ · Orca ✓",
   "minutes": 136,
   "grams": 35.1,
   "plates": 1
@@ -2675,7 +2883,8 @@
   "reasons": [
    "app: Modo vaso: o 3MF já vai com o modo espiral ligado (uma parede contínua, sem topo). Use bico 0,4 e 1 perímetro."
   ],
-  "date": "2026-09-30",
+  "date": "2026-10-02",
+  "slicers": "Bambu ✓ · Orca ✓",
   "minutes": 46,
   "grams": 21.1,
   "plates": 1
@@ -2690,7 +2899,8 @@
   "reasons": [
    "app: Modo vaso: o 3MF já vai com o modo espiral ligado (uma parede contínua, sem topo). Use bico 0,4 e 1 perímetro."
   ],
-  "date": "2026-09-30",
+  "date": "2026-10-02",
+  "slicers": "Bambu ✓ · Orca ✓",
   "minutes": 87,
   "grams": 27.3,
   "plates": 1
@@ -2706,12 +2916,15 @@
    "o conjunto arrumado ocupa 475,1 × 208,0 mm: passa da mesa de 256 mm",
    "\"AMOR\" não cabe na mesa de 256 mm (475,1 × 120,0 × 20,0 mm)",
    "\"Família\" não cabe na mesa de 256 mm (355,0 × 80,0 × 6,0 mm)",
-   "o Bambu Studio recusa na mesa de 256 mm do A1 (o app avisa)",
+   "Bambu recusa na mesa de 256 mm do A1 (o app avisa)",
+   "Orca recusa na mesa de 256 mm do A1 (o app avisa)",
+   "Projeto Bambu recusa na mesa de 256 mm do A1 (o app avisa)",
    "app: A palavra de encaixe sai separada: cole no rebaixo da palavra base (a folga é para ela entrar sem forçar).",
    "app: \"AMOR\" tem 475 × 120 × 20 mm e passa da mesa de 256 mm: diminua o tamanho.",
    "app: \"Família\" tem 355 × 80 × 6 mm e passa da mesa de 256 mm: diminua o tamanho."
   ],
-  "date": "2026-09-30"
+  "date": "2026-10-02",
+  "slicers": "Bambu ✓ · Orca ✓ · Projeto Bambu ✓"
  },
  {
   "key": "wordDecor:mínimo",
@@ -2723,9 +2936,10 @@
   "reasons": [
    "app: A palavra de encaixe sai separada: cole no rebaixo da palavra base (a folga é para ela entrar sem forçar)."
   ],
-  "date": "2026-09-30",
-  "minutes": 17,
-  "grams": 7.2,
+  "date": "2026-10-02",
+  "slicers": "Bambu ✓ · Orca ✓ · Projeto Bambu ✓",
+  "minutes": 31,
+  "grams": 11.3,
   "plates": 1
  },
  {
@@ -2738,9 +2952,10 @@
   "reasons": [
    "app: A palavra de encaixe sai separada: cole no rebaixo da palavra base (a folga é para ela entrar sem forçar)."
   ],
-  "date": "2026-09-30",
-  "minutes": 70,
-  "grams": 40.4,
+  "date": "2026-10-02",
+  "slicers": "Bambu ✓ · Orca ✓ · Projeto Bambu ✓",
+  "minutes": 98,
+  "grams": 48.4,
   "plates": 1
  },
  {
@@ -2751,9 +2966,10 @@
   "variant": "máximo",
   "status": "ok",
   "reasons": [],
-  "date": "2026-09-30",
-  "minutes": 52,
-  "grams": 30.8,
+  "date": "2026-10-02",
+  "slicers": "Bambu ✓ · Orca ✓ · Projeto Bambu ✓",
+  "minutes": 80,
+  "grams": 37,
   "plates": 1
  },
  {
@@ -2764,9 +2980,10 @@
   "variant": "mínimo",
   "status": "ok",
   "reasons": [],
-  "date": "2026-09-30",
-  "minutes": 6,
-  "grams": 1.7,
+  "date": "2026-10-02",
+  "slicers": "Bambu ✓ · Orca ✓ · Projeto Bambu ✓",
+  "minutes": 11,
+  "grams": 3,
   "plates": 1
  },
  {
@@ -2777,9 +2994,10 @@
   "variant": "padrão",
   "status": "ok",
   "reasons": [],
-  "date": "2026-09-30",
-  "minutes": 14,
-  "grams": 5.9,
+  "date": "2026-10-02",
+  "slicers": "Bambu ✓ · Orca ✓ · Projeto Bambu ✓",
+  "minutes": 25,
+  "grams": 8.5,
   "plates": 1
  },
  {
@@ -2791,13 +3009,15 @@
   "status": "aviso",
   "reasons": [
    "\"Clipe de saco\" não cabe na mesa de 256 mm (256,8 × 64,8 × 20,0 mm)",
+   "Orca: torre de purga em cima de uma peça depois do --arrange do CLI (na tela, arraste a torre ou use Arrumar)",
    "app: Na ponta a fenda fica com 1,8 mm, menor que o saco: é isso que aperta. Se não fechar, aumente a folga; se soltar, diminua.",
    "app: Imprima deitado (como sai no arquivo), PLA ou PETG, 3 paredes.",
    "app: \"Clipe de saco\" tem 257 × 65 × 20 mm e passa da mesa de 256 mm: diminua o tamanho."
   ],
-  "date": "2026-09-30",
-  "minutes": 72,
-  "grams": 54.8,
+  "date": "2026-10-02",
+  "slicers": "Bambu ✓ · Orca ✓ · Projeto Bambu ✓",
+  "minutes": 102,
+  "grams": 63.6,
   "plates": 1
  },
  {
@@ -2811,9 +3031,10 @@
    "app: Na ponta a fenda fica com 0,3 mm, menor que o saco: é isso que aperta. Se não fechar, aumente a folga; se soltar, diminua.",
    "app: Imprima deitado (como sai no arquivo), PLA ou PETG, 3 paredes."
   ],
-  "date": "2026-09-30",
-  "minutes": 5,
-  "grams": 2.2,
+  "date": "2026-10-02",
+  "slicers": "Bambu ✓ · Orca ✓ · Projeto Bambu ✓",
+  "minutes": 10,
+  "grams": 3.5,
   "plates": 1
  },
  {
@@ -2827,9 +3048,10 @@
    "app: Na ponta a fenda fica com 0,5 mm, menor que o saco: é isso que aperta. Se não fechar, aumente a folga; se soltar, diminua.",
    "app: Imprima deitado (como sai no arquivo), PLA ou PETG, 3 paredes."
   ],
-  "date": "2026-09-30",
-  "minutes": 15,
-  "grams": 10.8,
+  "date": "2026-10-02",
+  "slicers": "Bambu ✓ · Orca ✓ · Projeto Bambu ✓",
+  "minutes": 26,
+  "grams": 14.2,
   "plates": 1
  },
  {
@@ -2841,10 +3063,13 @@
   "status": "aviso",
   "reasons": [
    "\"Boleira\" não cabe na mesa de 256 mm (270,0 × 270,0 × 200,0 mm)",
-   "o Bambu Studio recusa na mesa de 256 mm do A1 (o app avisa)",
+   "Bambu recusa na mesa de 256 mm do A1 (o app avisa)",
+   "Orca recusa na mesa de 256 mm do A1 (o app avisa)",
+   "Projeto Bambu recusa na mesa de 256 mm do A1 (o app avisa)",
    "app: O prato tem 270 mm: passa da mesa de 256 mm. Diminua o diâmetro."
   ],
-  "date": "2026-09-30"
+  "date": "2026-10-02",
+  "slicers": "Bambu ✓ · Orca ✓ · Projeto Bambu ✓"
  },
  {
   "key": "cakeStand:mínimo",
@@ -2854,9 +3079,10 @@
   "variant": "mínimo",
   "status": "ok",
   "reasons": [],
-  "date": "2026-09-30",
-  "minutes": 30,
-  "grams": 15,
+  "date": "2026-10-02",
+  "slicers": "Bambu ✓ · Orca ✓ · Projeto Bambu ✓",
+  "minutes": 36,
+  "grams": 16.6,
   "plates": 1
  },
  {
@@ -2867,9 +3093,10 @@
   "variant": "padrão",
   "status": "ok",
   "reasons": [],
-  "date": "2026-09-30",
-  "minutes": 152,
-  "grams": 106.7,
+  "date": "2026-10-02",
+  "slicers": "Bambu ✓ · Orca ✓ · Projeto Bambu ✓",
+  "minutes": 157,
+  "grams": 108.2,
   "plates": 1
  },
  {
@@ -2882,7 +3109,8 @@
   "reasons": [
    "app: Sem desenho interno para marcar: sai só o cortador."
   ],
-  "date": "2026-09-30",
+  "date": "2026-10-02",
+  "slicers": "Bambu ✓ · Orca ✓",
   "minutes": 62,
   "grams": 51.5,
   "plates": 1
@@ -2897,7 +3125,8 @@
   "reasons": [
    "app: Sem desenho interno para marcar: sai só o cortador."
   ],
-  "date": "2026-09-30",
+  "date": "2026-10-02",
+  "slicers": "Bambu ✓ · Orca ✓",
   "minutes": 7,
   "grams": 1.8,
   "plates": 1
@@ -2912,7 +3141,8 @@
   "reasons": [
    "app: Sem desenho interno para marcar: sai só o cortador."
   ],
-  "date": "2026-09-30",
+  "date": "2026-10-02",
+  "slicers": "Bambu ✓ · Orca ✓",
   "minutes": 13,
   "grams": 5.9,
   "plates": 1
@@ -2925,9 +3155,10 @@
   "variant": "máximo",
   "status": "ok",
   "reasons": [],
-  "date": "2026-09-30",
-  "minutes": 62,
-  "grams": 38.7,
+  "date": "2026-10-02",
+  "slicers": "Bambu ✓ · Orca ✓ · Projeto Bambu ✓",
+  "minutes": 395,
+  "grams": 114.4,
   "plates": 1
  },
  {
@@ -2938,9 +3169,10 @@
   "variant": "mínimo",
   "status": "ok",
   "reasons": [],
-  "date": "2026-09-30",
-  "minutes": 12,
-  "grams": 2.7,
+  "date": "2026-10-02",
+  "slicers": "Bambu ✓ · Orca ✓ · Projeto Bambu ✓",
+  "minutes": 79,
+  "grams": 18.4,
   "plates": 1
  },
  {
@@ -2951,9 +3183,10 @@
   "variant": "padrão",
   "status": "ok",
   "reasons": [],
-  "date": "2026-09-30",
-  "minutes": 21,
-  "grams": 7.3,
+  "date": "2026-10-02",
+  "slicers": "Bambu ✓ · Orca ✓ · Projeto Bambu ✓",
+  "minutes": 169,
+  "grams": 41.8,
   "plates": 1
  },
  {
@@ -2965,10 +3198,13 @@
   "status": "aviso",
   "reasons": [
    "\"Cortador em grade\" não cabe na mesa de 256 mm (1534,0 × 1454,0 × 40,0 mm)",
-   "o Bambu Studio recusa na mesa de 256 mm do A1 (o app avisa)",
+   "Bambu recusa na mesa de 256 mm do A1 (o app avisa)",
+   "Orca recusa na mesa de 256 mm do A1 (o app avisa)",
+   "Projeto Bambu recusa na mesa de 256 mm do A1 (o app avisa)",
    "app: A grade tem 1534 × 1454 mm: passa da mesa de 256 mm. Diminua as células ou as colunas."
   ],
-  "date": "2026-09-30"
+  "date": "2026-10-02",
+  "slicers": "Bambu ✓ · Orca ✓ · Projeto Bambu ✓"
  },
  {
   "key": "gridCutter:mínimo",
@@ -2976,9 +3212,15 @@
   "group": "kitchen",
   "label": "Cortador em grade (gridCutter)",
   "variant": "mínimo",
-  "status": "ok",
-  "reasons": [],
-  "date": "2026-09-30",
+  "status": "aviso",
+  "reasons": [
+   "Bambu: a cor 2 (#ffffff) não saiu no G-code (o app avisa)",
+   "Orca: a cor 2 (#ffffff) não saiu no G-code (o app avisa)",
+   "Projeto Bambu: a cor 2 (#ffffff) não saiu no G-code (o app avisa)",
+   "app: \"Doces\" ficou com 1,1 mm de altura: os traços ficam com menos de 0,4 mm e somem na impressão. Aumente o texto ou a peça, encurte a linha ou use uma fonte mais grossa."
+  ],
+  "date": "2026-10-02",
+  "slicers": "Bambu ✓ · Orca ✓ · Projeto Bambu ✓",
   "minutes": 4,
   "grams": 0.7,
   "plates": 1
@@ -2991,9 +3233,10 @@
   "variant": "padrão",
   "status": "ok",
   "reasons": [],
-  "date": "2026-09-30",
-  "minutes": 64,
-  "grams": 28.1,
+  "date": "2026-10-02",
+  "slicers": "Bambu ✓ · Orca ✓ · Projeto Bambu ✓",
+  "minutes": 72,
+  "grams": 30.5,
   "plates": 1
  },
  {
@@ -3004,9 +3247,10 @@
   "variant": "máximo",
   "status": "ok",
   "reasons": [],
-  "date": "2026-09-30",
-  "minutes": 69,
-  "grams": 39.8,
+  "date": "2026-10-02",
+  "slicers": "Bambu ✓ · Orca ✓ · Projeto Bambu ✓",
+  "minutes": 107,
+  "grams": 50.9,
   "plates": 1
  },
  {
@@ -3017,9 +3261,10 @@
   "variant": "mínimo",
   "status": "ok",
   "reasons": [],
-  "date": "2026-09-30",
-  "minutes": 12,
-  "grams": 2,
+  "date": "2026-10-02",
+  "slicers": "Bambu ✓ · Orca ✓ · Projeto Bambu ✓",
+  "minutes": 19,
+  "grams": 4.4,
   "plates": 1
  },
  {
@@ -3030,9 +3275,10 @@
   "variant": "padrão",
   "status": "ok",
   "reasons": [],
-  "date": "2026-09-30",
-  "minutes": 24,
-  "grams": 9.4,
+  "date": "2026-10-02",
+  "slicers": "Bambu ✓ · Orca ✓ · Projeto Bambu ✓",
+  "minutes": 43,
+  "grams": 15.1,
   "plates": 1
  },
  {
@@ -3044,10 +3290,12 @@
   "status": "aviso",
   "reasons": [
    "\"Suporte de palitos\" não cabe na mesa de 256 mm (550,0 × 550,0 × 70,0 mm)",
-   "o Bambu Studio recusa na mesa de 256 mm do A1 (o app avisa)",
+   "Bambu recusa na mesa de 256 mm do A1 (o app avisa)",
+   "Orca recusa na mesa de 256 mm do A1 (o app avisa)",
    "app: O suporte tem 550 mm: passa da mesa de 256 mm. Diminua os furos ou o espaçamento."
   ],
-  "date": "2026-09-30"
+  "date": "2026-10-02",
+  "slicers": "Bambu ✓ · Orca ✓"
  },
  {
   "key": "stickStand:mínimo",
@@ -3057,7 +3305,8 @@
   "variant": "mínimo",
   "status": "ok",
   "reasons": [],
-  "date": "2026-09-30",
+  "date": "2026-10-02",
+  "slicers": "Bambu ✓ · Orca ✓",
   "minutes": 9,
   "grams": 4.3,
   "plates": 1
@@ -3070,7 +3319,8 @@
   "variant": "padrão",
   "status": "ok",
   "reasons": [],
-  "date": "2026-09-30",
+  "date": "2026-10-02",
+  "slicers": "Bambu ✓ · Orca ✓",
   "minutes": 118,
   "grams": 62,
   "plates": 1
@@ -3083,7 +3333,8 @@
   "variant": "máximo",
   "status": "ok",
   "reasons": [],
-  "date": "2026-09-30",
+  "date": "2026-10-02",
+  "slicers": "Bambu ✓ · Orca ✓",
   "minutes": 413,
   "grams": 347.8,
   "plates": 1
@@ -3096,7 +3347,8 @@
   "variant": "mínimo",
   "status": "ok",
   "reasons": [],
-  "date": "2026-09-30",
+  "date": "2026-10-02",
+  "slicers": "Bambu ✓ · Orca ✓",
   "minutes": 13,
   "grams": 3.7,
   "plates": 1
@@ -3109,7 +3361,8 @@
   "variant": "padrão",
   "status": "ok",
   "reasons": [],
-  "date": "2026-09-30",
+  "date": "2026-10-02",
+  "slicers": "Bambu ✓ · Orca ✓",
   "minutes": 76,
   "grams": 37.6,
   "plates": 1
@@ -3125,10 +3378,13 @@
    "o conjunto arrumado ocupa 771,2 × 219,9 mm: passa da mesa de 256 mm",
    "\"Letreiro\" não cabe na mesa de 256 mm (771,2 × 179,9 × 15,0 mm)",
    "\"Suporte\" não cabe na mesa de 256 mm (539,8 × 30,0 × 12,0 mm)",
-   "o Bambu Studio recusa na mesa de 256 mm do A1 (o app avisa)",
+   "Bambu recusa na mesa de 256 mm do A1 (o app avisa)",
+   "Orca recusa na mesa de 256 mm do A1 (o app avisa)",
+   "Projeto Bambu recusa na mesa de 256 mm do A1 (o app avisa)",
    "app: O letreiro tem 771 × 180 mm: passa da mesa de 256 mm. Diminua as alturas das linhas."
   ],
-  "date": "2026-09-30"
+  "date": "2026-10-02",
+  "slicers": "Bambu ✓ · Orca ✓ · Projeto Bambu ✓"
  },
  {
   "key": "layeredSign:mínimo",
@@ -3136,11 +3392,15 @@
   "group": "party",
   "label": "Letreiro em camadas (layeredSign)",
   "variant": "mínimo",
-  "status": "ok",
-  "reasons": [],
-  "date": "2026-09-30",
-  "minutes": 16,
-  "grams": 9.1,
+  "status": "aviso",
+  "reasons": [
+   "Orca: torre de purga passa da mesa na posição padrão do CLI (na tela, arraste a torre ou use Arrumar)",
+   "Projeto Bambu: torre de purga passa da mesa na posição padrão do CLI (na tela, arraste a torre ou use Arrumar)"
+  ],
+  "date": "2026-10-02",
+  "slicers": "Bambu ✓ · Orca ✓ · Projeto Bambu ✓",
+  "minutes": 24,
+  "grams": 11.1,
   "plates": 1
  },
  {
@@ -3149,11 +3409,15 @@
   "group": "party",
   "label": "Letreiro em camadas (layeredSign)",
   "variant": "padrão",
-  "status": "ok",
-  "reasons": [],
-  "date": "2026-09-30",
-  "minutes": 75,
-  "grams": 49.1,
+  "status": "aviso",
+  "reasons": [
+   "Orca: torre de purga passa da mesa na posição padrão do CLI (na tela, arraste a torre ou use Arrumar)",
+   "Projeto Bambu: torre de purga passa da mesa na posição padrão do CLI (na tela, arraste a torre ou use Arrumar)"
+  ],
+  "date": "2026-10-02",
+  "slicers": "Bambu ✓ · Orca ✓ · Projeto Bambu ✓",
+  "minutes": 114,
+  "grams": 57.5,
   "plates": 1
  },
  {
@@ -3164,12 +3428,15 @@
   "variant": "máximo",
   "status": "falha",
   "reasons": [
+   "Bambu: Bambu Studio: Some objects are located over the boundary of the heated bed. (código -52)",
+   "Orca: OrcaSlicer: Some objects are located over the boundary of the heated bed. (código -52)",
+   "Projeto Bambu: Bambu Studio: Some objects are located over the boundary of the heated bed. (código -52)",
    "o conjunto arrumado ocupa 3905,4 × 1600,0 mm: passa da mesa de 256 mm",
-   "Bambu Studio: Some objects are located over the boundary of the heated bed. (código -52)",
    "app: 5 letra(s) passam da mesa de 256 mm e saíram em partes: una com cola e um pedaço de filamento de 1,75 mm nos furos.",
    "app: Gabarito: cole a tira na parede com fita, alinhe cada letra entre os riscos dela e retire a tira depois."
   ],
-  "date": "2026-09-30"
+  "date": "2026-10-02",
+  "slicers": "Bambu ✗ · Orca ✗ · Projeto Bambu ✗"
  },
  {
   "key": "wallLetters:mínimo",
@@ -3181,9 +3448,10 @@
   "reasons": [
    "app: Gabarito: cole a tira na parede com fita, alinhe cada letra entre os riscos dela e retire a tira depois."
   ],
-  "date": "2026-09-30",
+  "date": "2026-10-02",
+  "slicers": "Bambu ✓ · Orca ✓ · Projeto Bambu ✓",
   "minutes": 33,
-  "grams": 16.1,
+  "grams": 16,
   "plates": 1
  },
  {
@@ -3195,14 +3463,14 @@
   "status": "aviso",
   "reasons": [
    "o conjunto arrumado ocupa 1167,6 × 483,0 mm: passa da mesa de 256 mm",
-   "não coube numa placa: 8 placas",
+   "Bambu: torre de purga em cima de uma peça depois do --arrange do CLI (na tela, arraste a torre ou use Arrumar)",
+   "Orca: torre de purga em cima de uma peça depois do --arrange do CLI (na tela, arraste a torre ou use Arrumar)",
+   "Projeto Bambu: torre de purga em cima de uma peça depois do --arrange do CLI (na tela, arraste a torre ou use Arrumar)",
    "app: 5 letra(s) passam da mesa de 256 mm e saíram em partes: una com cola e um pedaço de filamento de 1,75 mm nos furos.",
    "app: Gabarito: cole a tira na parede com fita, alinhe cada letra entre os riscos dela e retire a tira depois."
   ],
-  "date": "2026-09-30",
-  "minutes": 944,
-  "grams": 849.9,
-  "plates": 8
+  "date": "2026-10-02",
+  "slicers": "Bambu ✓ · Orca ✓ · Projeto Bambu ✓"
  },
  {
   "key": "windowFrame:máximo",
@@ -3214,12 +3482,15 @@
   "reasons": [
    "o conjunto arrumado ocupa 200,0 × 308,0 mm: passa da mesa de 256 mm",
    "\"Janela\" não cabe na mesa de 256 mm (200,0 × 260,0 × 18,3 mm)",
+   "Orca: torre de purga em cima de uma peça depois do --arrange do CLI (na tela, arraste a torre ou use Arrumar)",
+   "Projeto Bambu: torre de purga em cima de uma peça depois do --arrange do CLI (na tela, arraste a torre ou use Arrumar)",
    "app: Pausa em 15.36 mm: coloque o glitter na câmara, deslize a folha de acetato na ranhura e continue.",
    "app: \"Janela\" tem 200 × 260 × 18 mm e passa da mesa de 256 mm: diminua o tamanho."
   ],
-  "date": "2026-09-30",
-  "minutes": 158,
-  "grams": 156.7,
+  "date": "2026-10-02",
+  "slicers": "Bambu ✓ · Orca ✓ · Projeto Bambu ✓",
+  "minutes": 180,
+  "grams": 161.9,
   "plates": 1,
   "pauses": "15,24"
  },
@@ -3233,9 +3504,10 @@
   "reasons": [
    "app: Pausa em 2 mm: coloque o glitter na câmara, deslize a folha de acetato na ranhura e continue."
   ],
-  "date": "2026-09-30",
-  "minutes": 10,
-  "grams": 2.8,
+  "date": "2026-10-02",
+  "slicers": "Bambu ✓ · Orca ✓ · Projeto Bambu ✓",
+  "minutes": 21,
+  "grams": 5.1,
   "plates": 1,
   "pauses": "1,96"
  },
@@ -3249,9 +3521,10 @@
   "reasons": [
    "app: Pausa em 5.2 mm: coloque o glitter na câmara, deslize a folha de acetato na ranhura e continue."
   ],
-  "date": "2026-09-30",
-  "minutes": 23,
-  "grams": 16.6,
+  "date": "2026-10-02",
+  "slicers": "Bambu ✓ · Orca ✓ · Projeto Bambu ✓",
+  "minutes": 33,
+  "grams": 18.9,
   "plates": 1,
   "pauses": "5,20"
  },
@@ -3264,13 +3537,13 @@
   "status": "aviso",
   "reasons": [
    "o conjunto arrumado ocupa 600,0 × 600,0 mm: passa da mesa de 256 mm",
-   "não coube numa placa: 9 placas",
+   "Bambu: torre de purga em cima de uma peça depois do --arrange do CLI (na tela, arraste a torre ou use Arrumar)",
+   "Orca: torre de purga em cima de uma peça depois do --arrange do CLI (na tela, arraste a torre ou use Arrumar)",
+   "Projeto Bambu: torre de purga em cima de uma peça depois do --arrange do CLI (na tela, arraste a torre ou use Arrumar)",
    "app: Maior que a mesa de 256 mm: o painel saiu em 9 partes para colar lado a lado."
   ],
-  "date": "2026-09-30",
-  "minutes": 1394,
-  "grams": 1202,
-  "plates": 9
+  "date": "2026-10-02",
+  "slicers": "Bambu ✓ · Orca ✓ · Projeto Bambu ✓"
  },
  {
   "key": "namesPanel:mínimo",
@@ -3282,9 +3555,10 @@
   "reasons": [
    "app: Com 12 nomes a letra fica com 4.1 mm: aumente a placa para ler bem."
   ],
-  "date": "2026-09-30",
-  "minutes": 8,
-  "grams": 5,
+  "date": "2026-10-02",
+  "slicers": "Bambu ✓ · Orca ✓ · Projeto Bambu ✓",
+  "minutes": 11,
+  "grams": 6,
   "plates": 1
  },
  {
@@ -3295,9 +3569,10 @@
   "variant": "padrão",
   "status": "ok",
   "reasons": [],
-  "date": "2026-09-30",
-  "minutes": 96,
-  "grams": 71.3,
+  "date": "2026-10-02",
+  "slicers": "Bambu ✓ · Orca ✓ · Projeto Bambu ✓",
+  "minutes": 100,
+  "grams": 72.4,
   "plates": 1
  }
 ]

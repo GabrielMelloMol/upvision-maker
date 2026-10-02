@@ -23,6 +23,14 @@ test("status: falha pesa mais que aviso; n/a quando falta entrada", () => {
 
 test("G-code do Bambu: tempo total e Z de cada pausa M400 U1", () => {
   const g = ["; total estimated time: 1h 2m 3s", "; Z_HEIGHT: 1.8", "; Z_HEIGHT: 2", "M400 U1", "; Z_HEIGHT: 2.2"].join("\n");
-  expect(parseGcode(g)).toEqual({ seconds: 3723, pauseZ: [2] });
+  expect(parseGcode(g)).toEqual({ seconds: 3723, grams: [], used: [], pauseZ: [2] });
   expect(parseGcode("; total estimated time: 45s").seconds).toBe(45);
+});
+
+test("gramas por filamento no G-code do Bambu e do Orca (#90)", () => {
+  expect(parseGcode("; total filament weight [g] : 1.76,1.20,0.45").grams).toEqual([1.76, 1.2, 0.45]);
+  expect(parseGcode("; filament used [mm] = 1156.53\n; filament used [g] = 1.94, 0.80, 0.00").grams).toEqual([1.94, 0.8, 0]);
+  expect(parseGcode("; total filament weight [g] : \n; filament_density: 1.26").grams).toEqual([]); // placa sem filamento
+  // Bambu 02.08: placa só com o filamento 2 sai com o peso vazio no cabeçalho, mas lista o filamento usado
+  expect(parseGcode("; total filament weight [g] : \n; filament: 2").used).toEqual([2]);
 });

@@ -1,4 +1,8 @@
+import { readFileSync } from "node:fs";
+import { resolve } from "node:path";
+import opentype from "opentype.js";
 import { beforeAll, describe, expect, test } from "vitest";
+import { textToCrossSection } from "../text";
 import { meshBounds, modelsBounds } from "../bounds";
 import { getManifold, type ManifoldToplevel, type Solid } from "../manifold";
 import { checkModels } from "../../qa/checks";
@@ -63,6 +67,15 @@ describe("cortador em grade (#63)", { timeout: 30_000 }, () => {
   test("grade maior que a mesa avisa", () => {
     const { warnings } = buildGridCutter(ctx(), { ...G, cols: 10, cellWidth: 30 });
     expect(warnings?.join()).toMatch(/mesa/);
+  });
+
+  test("texto da aba espremido no mínimo avisa que os traços somem (#90: a cor do texto não saía no fatiador)", () => {
+    const b = readFileSync(resolve(__dirname, "../../assets/fonts/hanken-grotesk-800.ttf"));
+    const font = opentype.parse(b.buffer.slice(b.byteOffset, b.byteOffset + b.byteLength));
+    const real: ModelCtx = { ...ctx(), text: (s, h) => (s.trim() ? textToCrossSection(M, font, s, h) : null) };
+    const tiny = { ...G, cellWidth: 10, cellHeight: 10, cols: 1, rows: 1, tabLength: 12 };
+    expect(buildGridCutter(real, tiny).warnings?.join()).toMatch(/somem na impressão/);
+    expect(buildGridCutter(real, G).warnings?.join() ?? "").not.toMatch(/somem/);
   });
 });
 

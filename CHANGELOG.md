@@ -3,6 +3,9 @@
 Cada versão aparece para a usuária na tela "O que há de novo" depois da atualização.
 Formato: `## <versão> — <data>` e itens `- …` em linguagem simples.
 
+## Próxima versão (ainda não lançada)
+- **Projeto do Bambu Studio com 2 ou mais cores**: o projeto saía com a tabela de purga de 4 filamentos e o fatiador do Bambu Studio podia recusar ("Failed slicing the model"). Agora a tabela acompanha o número de cores e cada parte sai no filamento dela.
+
 ## 0.10.2 — 2026-10-02
 - **Barra lateral divide o espaço com a tela**: abre e fecha só pelo botão no topo ou por ⌘⌥S (Ctrl+Alt+S) — passar o mouse não abre mais nada. Aberta, a tela encolhe e fica ao lado, nunca por baixo do menu; recolhida, mostra só os ícones, com o nome de cada um ao parar o mouse em cima. A barra e a tela andam juntas, sem saltos, e o app lembra como você deixou. Em janela estreita ela começa recolhida, mas o botão abre do mesmo jeito.
 - **A abertura aparece toda vez**: a escolha antiga "Curta/Desligada" ficava salva e escondia a animação; agora ela sempre toca (uns 3,5 s) e termina abrindo o app em íris. Com "Reduzir movimento" do sistema, o símbolo fica parado o mesmo tempo e o app entra suave. Um clique ou tecla continua pulando.

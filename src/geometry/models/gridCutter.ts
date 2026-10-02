@@ -1,6 +1,7 @@
 import { bedMm } from "../bed";
 import type { CS } from "../manifold";
 import { fitInto, scoped } from "../shape2d";
+import { thinLineWarning } from "../textCheck";
 import { roundedRect, slab, solidMesh, type ModelCtx, type ModelOutput } from "./common";
 
 export type GridCutterParams = {
@@ -73,15 +74,20 @@ export function buildGridCutter({ M, text }: ModelCtx, p: GridCutterParams): Mod
     const body = k(k(flange.extrude(p.flangeHeight)).add(k(blade.extrude(p.height))));
     const parts = [{ name: "Cortador", color: p.bodyColor, mesh: solidMesh(body) }];
     const label = p.tabs ? text(p.tabText, 10) : null;
+    let thinText: string | null = null;
     if (label) {
       const fitted = k(fitInto(k(label), tabH - 2 * TAB_MARGIN, p.tabLength - 2 * TAB_MARGIN, 0));
+      thinText = thinLineWarning(fitted, p.tabText);
       const turned = k(fitted.rotate(90)); // lê de baixo para cima na aba
       const both = k(M.CrossSection.union([k(turned.translate([tabX, 0])), k(k(turned.rotate(180)).translate([-tabX, 0]))]));
       parts.push({ name: "Texto", color: p.textColor, mesh: slab(both, p.relief, p.flangeHeight) });
     }
     const totalW = W + p.wall + 2 * p.flangeWidth + (p.tabs ? 2 * p.tabLength : 0);
     const totalH = H + p.wall + 2 * p.flangeWidth;
-    const warnings = Math.max(totalW, totalH) > bedMm() ? [`A grade tem ${Math.round(totalW)} × ${Math.round(totalH)} mm: passa da mesa de ${bedMm()} mm. Diminua as células ou as colunas.`] : [];
+    const warnings = [
+      ...(Math.max(totalW, totalH) > bedMm() ? [`A grade tem ${Math.round(totalW)} × ${Math.round(totalH)} mm: passa da mesa de ${bedMm()} mm. Diminua as células ou as colunas.`] : []),
+      ...(thinText ? [thinText] : []),
+    ];
     return { models: [{ name: "Cortador em grade", parts }], warnings };
   });
 }

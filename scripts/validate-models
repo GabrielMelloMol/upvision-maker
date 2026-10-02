@@ -1,13 +1,15 @@
 #!/bin/sh
 # Varredura de QA (#90): gera cada Modelo pronto / ferramenta (padrão, mínimo, máximo), confere a geometria, fatia no
-# Bambu Studio CLI (A1, PLA) e atualiza docs/QA-modelos.md (+ docs/qa-modelos.json).
+# Bambu Studio CLI, no OrcaSlicer CLI e o "Projeto do Bambu Studio" (A1, PLA, um filamento por cor) e atualiza
+# docs/QA-modelos.md (+ docs/qa-modelos.json). Resumo da rodada em docs/QA-fatiador.md.
 #
 #   scripts/validate-models                         tudo
 #   scripts/validate-models --groups keychains,plates,party,tools
 #   scripts/validate-models --ids nfc,opener --no-slice
 #   scripts/validate-models --owners Torno --jobs 4
 #
-# Grupos: keychains, plates, party, home, kitchen, tools. BAMBU_APP=/caminho/BambuStudio.app se não estiver em /Applications.
+# Grupos: keychains, plates, party, home, kitchen, tools. BAMBU_APP=/caminho/BambuStudio.app e ORCA_APP=/caminho/OrcaSlicer.app
+# se não estiverem em /Applications (fatiador ausente = pula; brew install --cask orcaslicer).
 set -e
 cd "$(dirname "$0")/.."
 while [ $# -gt 0 ]; do
