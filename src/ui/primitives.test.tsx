@@ -1,5 +1,5 @@
 // @vitest-environment happy-dom
-import { fireEvent, render, screen } from "@testing-library/react";
+import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { Home, Plus, Printer } from "lucide-react";
 import { useState } from "react";
@@ -283,7 +283,7 @@ describe("Sidebar (#139)", () => {
     expect(screen.queryByRole("button", { name: "Chaveiros" })).not.toBeInTheDocument(); // ferramentas ficam na galeria
   });
 
-  test("recolher: o botão alterna e diz o atalho; em janela estreita não aparece (#139)", async () => {
+  test("recolher: o botão alterna e diz o atalho; recolhida, o ícone mostra a dica ao lado sem abrir a barra (#167)", async () => {
     const onToggle = vi.fn();
     const { rerender } = render(<Sidebar pages={pages} current="home" {...noop} onToggle={onToggle} />);
     const user = userEvent.setup();
@@ -291,11 +291,18 @@ describe("Sidebar (#139)", () => {
     expect(btn).toHaveAttribute("aria-keyshortcuts", "Meta+Alt+S Control+Alt+S");
     await user.click(btn);
     expect(onToggle).toHaveBeenCalledOnce();
+    await user.hover(screen.getByRole("button", { name: "Vender" }));
+    expect(document.querySelector(".rail-tip")).toBeNull(); // aberta: sem dica
     rerender(<Sidebar pages={pages} current="home" {...noop} onToggle={onToggle} rail />);
     expect(screen.getByRole("button", { name: "Expandir barra lateral" })).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: "Vender" })).toHaveAttribute("title", "Vender"); // dica na faixa de ícones
-    rerender(<Sidebar pages={pages} current="home" {...noop} onToggle={onToggle} rail narrow />);
-    expect(screen.queryByRole("button", { name: /barra lateral/ })).not.toBeInTheDocument();
+    await user.unhover(screen.getByRole("button", { name: "Vender" }));
+    await user.hover(screen.getByRole("button", { name: "Vender" }));
+    await waitFor(() => expect(document.querySelector(".rail-tip")).toHaveTextContent("Vender"));
+    await user.unhover(screen.getByRole("button", { name: "Vender" }));
+    await user.hover(screen.getByRole("navigation"));
+    await user.unhover(screen.getByRole("navigation"));
+    expect(document.querySelector(".rail-tip")).toBeNull();
+    expect(onToggle).toHaveBeenCalledOnce(); // passar o mouse nunca abre a barra
   });
 
   test("a ferramenta aberta aparece embaixo de Criar", () => {

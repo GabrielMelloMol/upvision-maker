@@ -118,7 +118,6 @@ export default function App() {
     <div className="app" data-sidebar={sidebar.rail ? "rail" : "full"}>
       <Sidebar
         rail={sidebar.rail}
-        narrow={sidebar.narrow}
         onToggle={sidebar.toggle}
         pages={PAGES}
         current={page.id}

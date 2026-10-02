@@ -3,15 +3,13 @@ import { resetTours, setToursEnabled, toursEnabled } from "../help/tours";
 import { modKey } from "./shortcuts";
 import Segmented from "./Segmented";
 import Toggle from "./Toggle";
-import { saveSplashMode, SPLASH_MODES, storedSplashMode, type SplashMode } from "./splashMode";
 import { applyTheme, THEMES, useTheme } from "./theme";
 import { applyZoom, storedZoom, ZOOMS, type Zoom } from "./zoom";
 
-/** Aparência: claro/escuro (#152), tamanho do texto do app inteiro (#144) e animação de abertura (#153). */
+/** Aparência: claro/escuro (#152), tamanho do texto do app inteiro (#144). */
 export default function AppearanceCard() {
   const [zoom, setZoom] = useState<Zoom>(storedZoom);
   const theme = useTheme();
-  const [splash, setSplash] = useState<SplashMode>(storedSplashMode);
   const [tips, setTips] = useState(toursEnabled);
   const [tipsReset, setTipsReset] = useState(false);
   const shortcut = `${modKey()}${modKey() === "⌘" ? "⇧" : "+Shift+"}L`;
@@ -36,19 +34,6 @@ export default function AppearanceCard() {
             onChange={(z) => {
               setZoom(z);
               void applyZoom(z, true);
-            }}
-          />
-        </div>
-        <div className="row-control">
-          <span className="row-label">Animação de abertura</span>
-          <span className="hint">Uns 3 segundos ao abrir; clique ou tecla pulam.</span>
-          <Segmented
-            label="Animação de abertura"
-            value={splash}
-            options={SPLASH_MODES}
-            onChange={(m) => {
-              setSplash(m);
-              saveSplashMode(m);
             }}
           />
         </div>

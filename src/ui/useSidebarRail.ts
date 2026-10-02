@@ -1,8 +1,8 @@
 import { useCallback, useEffect, useState } from "react";
 
 const KEY = "upvision:sidebar";
-/** Abaixo disso a barra lateral vira faixa de ícones sozinha (#139). */
-export const NARROW_QUERY = "(max-width: 1099px)";
+/** Abaixo disso a barra lateral começa recolhida em faixa de ícones (#139). */
+const NARROW_QUERY = "(max-width: 1099px)";
 
 const narrowNow = () => typeof matchMedia === "function" && matchMedia(NARROW_QUERY).matches;
 function stored(): boolean {
@@ -13,18 +13,26 @@ function stored(): boolean {
   }
 }
 
-/** Barra lateral recolhida em faixa de ícones: escolha da pessoa (lembrada) ou janela estreita. */
+/**
+ * Barra lateral recolhida em faixa de ícones (#167): só o botão e o atalho abrem e fecham. A escolha fica lembrada;
+ * janela estreita começa recolhida, e abrir nela vale até a janela mudar de largura.
+ */
 export function useSidebarRail() {
   const [pinned, setPinned] = useState(stored);
   const [narrow, setNarrow] = useState(narrowNow);
+  const [narrowOpen, setNarrowOpen] = useState(false);
   useEffect(() => {
     if (typeof matchMedia !== "function") return;
     const m = matchMedia(NARROW_QUERY);
-    const on = () => setNarrow(m.matches);
+    const on = () => {
+      setNarrow(m.matches);
+      setNarrowOpen(false);
+    };
     m.addEventListener("change", on);
     return () => m.removeEventListener("change", on);
   }, []);
   const toggle = useCallback(() => {
+    if (narrow) return setNarrowOpen((o) => !o);
     setPinned((p) => {
       try {
         localStorage.setItem(KEY, p ? "full" : "rail");
@@ -33,6 +41,6 @@ export function useSidebarRail() {
       }
       return !p;
     });
-  }, []);
-  return { rail: pinned || narrow, narrow, toggle };
+  }, [narrow]);
+  return { rail: narrow ? !narrowOpen : pinned, toggle };
 }

@@ -1,13 +1,14 @@
 import { Moon, PanelLeftClose, PanelLeftOpen, Sun } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
-
-/** Intenção do hover na faixa recolhida (#156): abrir só com o mouse parado nela; fechar sem pressa ao sair. */
-const PEEK_OPEN_MS = 150;
-const PEEK_CLOSE_MS = 300;
+import { createPortal } from "react-dom";
 import { SECTIONS, type PageDef, type SectionDef } from "../pages";
 import { modKey } from "./shortcuts";
 import BrandMark, { Wordmark } from "./BrandMark";
 import { toggleTheme, useDarkNow } from "./theme";
+
+/** Dica dos ícones da faixa recolhida (#167): espera um pouco para não piscar quando o mouse só passa por cima. */
+const TIP_DELAY_MS = 300;
+const TIP_GAP_PX = 8;
 
 type Props = {
   pages: PageDef[];
@@ -21,10 +22,8 @@ type Props = {
   version?: string | null;
   updateAvailable?: boolean;
   onAbout?: () => void;
-  /** Recolhida em faixa de ícones (#139): passar o mouse ou o foco expande por cima do conteúdo. */
+  /** Recolhida em faixa de ícones (#167): só o botão e o atalho abrem e fecham; o conteúdo divide o espaço com ela. */
   rail?: boolean;
-  /** Janela estreita: fica recolhida sem escolha, então o botão some. */
-  narrow?: boolean;
   onToggle?: () => void;
 };
 
@@ -32,35 +31,11 @@ type Props = {
  * Barra lateral (#139): cinco seções e Ajustes. Só a seção aberta mostra as telas dela, recuadas e sem ícone.
  * As ferramentas ficam na galeria Criar; a que estiver aberta aparece embaixo de Criar.
  */
-export default function Sidebar({ pages, current, onNavigate, onNews, onSuggest, onBackup, onRestore, version, updateAvailable, onAbout, rail = false, narrow = false, onToggle }: Props) {
+export default function Sidebar({ pages, current, onNavigate, onNews, onSuggest, onBackup, onRestore, version, updateAvailable, onAbout, rail = false, onToggle }: Props) {
   const page = pages.find((p) => p.id === current);
   const open = page?.section ?? "home";
-  // recolhida (#156): o painel abre por cima com o mouse parado nela (150 ms) e fecha 300 ms depois de sair; o foco do
-  // teclado também abre. Ao recolher, fecha na hora (mesmo com o mouse em cima).
-  const [peek, setPeek] = useState(false);
-  const timer = useRef(0);
-  const navRef = useRef<HTMLElement>(null);
-  const later = (open: boolean, ms: number) => {
-    clearTimeout(timer.current);
-    timer.current = window.setTimeout(() => setPeek(open), ms);
-  };
-  useEffect(() => {
-    clearTimeout(timer.current);
-    // eslint-disable-next-line react-hooks/set-state-in-effect -- recolher/expandir zera o painel (o rail vem de fora)
-    setPeek(false);
-    const el = document.activeElement as HTMLElement | null;
-    if (rail && el?.closest(".sidebar") && !el.matches(".sidebar-toggle")) el.blur();
-  }, [rail]);
-  useEffect(() => () => clearTimeout(timer.current), []);
-  const peekProps = rail
-    ? {
-        "data-peek": peek || undefined,
-        onPointerEnter: (e: React.PointerEvent) => e.pointerType === "mouse" && later(true, PEEK_OPEN_MS),
-        onPointerLeave: () => later(false, PEEK_CLOSE_MS),
-        onFocus: (e: React.FocusEvent) => (e.target as HTMLElement).matches(":focus-visible") && later(true, 0),
-        onBlur: (e: React.FocusEvent) => !navRef.current?.contains(e.relatedTarget as Node) && later(false, 0),
-      }
-    : {};
+  const tip = useRailTip(rail);
+  const toggleKeys = `${modKey()}${modKey() === "⌘" ? "⌥" : "+Alt+"}S`;
   const sub = (s: SectionDef) => {
     if (s.id !== open) return [];
     if (s.id === "create") return page && page.id !== "create" ? [page] : [];
@@ -81,7 +56,7 @@ export default function Sidebar({ pages, current, onNavigate, onNews, onSuggest,
     return (
       <div className="nav-section" key={s.id}>
         {/* a seção só fica marcada quando não mostra telas embaixo; senão quem fica marcada é a tela */}
-        <button className={`nav ${s.id === open ? "open" : ""} ${s.id === open && !children.length ? "active" : ""}`} aria-current={s.id === open && !children.length ? "page" : undefined} data-page={s.landing} title={rail ? s.label : undefined} onClick={() => onNavigate(s.landing)}>
+        <button className={`nav ${s.id === open ? "open" : ""} ${s.id === open && !children.length ? "active" : ""}`} aria-current={s.id === open && !children.length ? "page" : undefined} data-page={s.landing} data-tip={s.label} onClick={() => onNavigate(s.landing)}>
           <s.icon aria-hidden />
           <span className="label">{s.label}</span>
         </button>
@@ -105,15 +80,15 @@ export default function Sidebar({ pages, current, onNavigate, onNews, onSuggest,
   };
 
   return (
-    <nav ref={navRef} className="sidebar" aria-label="Navegação principal" {...peekProps}>
+    <nav className="sidebar" aria-label="Navegação principal" {...tip.handlers}>
       <div className="drag" data-tauri-drag-region />
       <div className="sidebar-head">
         <button className="brand" onClick={() => onNavigate("home")}>
           <BrandMark />
           <Wordmark className="brand-name" />
         </button>
-        {onToggle && !narrow && (
-          <button type="button" className="ghost icon-only sm sidebar-toggle" onClick={onToggle} aria-label={rail ? "Expandir barra lateral" : "Recolher barra lateral"} title={`${rail ? "Expandir" : "Recolher"} (${modKey()}${modKey() === "⌘" ? "⌥" : "+Alt+"}S)`} aria-keyshortcuts="Meta+Alt+S Control+Alt+S">
+        {onToggle && (
+          <button type="button" className="ghost icon-only sm sidebar-toggle" onClick={onToggle} aria-label={rail ? "Expandir barra lateral" : "Recolher barra lateral"} title={rail ? undefined : `Recolher (${toggleKeys})`} data-tip={`Expandir (${toggleKeys})`} aria-keyshortcuts="Meta+Alt+S Control+Alt+S">
             {rail ? <PanelLeftOpen aria-hidden /> : <PanelLeftClose aria-hidden />}
           </button>
         )}
@@ -131,8 +106,50 @@ export default function Sidebar({ pages, current, onNavigate, onNews, onSuggest,
           <ThemeButton />
         </div>
       </div>
+      {tip.node}
     </nav>
   );
+}
+
+/**
+ * Dica ao lado do ícone na faixa recolhida (#167), como o Tooltip do shadcn/ui: mouse parado ou foco do teclado. Fica no
+ * body porque a barra corta o que passa da borda dela. O nome do botão continua no texto escondido (leitor de tela).
+ */
+function useRailTip(rail: boolean) {
+  const [tip, setTip] = useState<{ label: string; x: number; y: number } | null>(null);
+  const timer = useRef(0);
+  const hide = () => {
+    clearTimeout(timer.current);
+    setTip(null);
+  };
+  const show = (target: EventTarget, ms: number) => {
+    const el = (target as Element).closest?.<HTMLElement>("[data-tip]");
+    clearTimeout(timer.current);
+    if (!rail || !el) return setTip(null);
+    timer.current = window.setTimeout(() => {
+      const r = el.getBoundingClientRect();
+      setTip({ label: el.dataset.tip!, x: r.right + TIP_GAP_PX, y: r.top + r.height / 2 });
+    }, ms);
+  };
+  useEffect(() => hide, [rail]);
+  const handlers = rail
+    ? {
+        onPointerOver: (e: React.PointerEvent) => e.pointerType === "mouse" && show(e.target, TIP_DELAY_MS),
+        onPointerLeave: hide,
+        onPointerDown: hide,
+        onFocus: (e: React.FocusEvent) => (e.target as HTMLElement).matches(":focus-visible") && show(e.target, 0),
+        onBlur: hide,
+      }
+    : {};
+  const node =
+    tip &&
+    createPortal(
+      <div className="rail-tip" aria-hidden style={{ left: tip.x, top: tip.y }}>
+        {tip.label}
+      </div>,
+      document.body,
+    );
+  return { handlers, node };
 }
 
 /** Sol/lua no rodapé (#152): alterna claro e escuro; Automático fica em Ajustes → Preferências → Aparência. */

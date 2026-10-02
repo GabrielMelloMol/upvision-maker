@@ -1,6 +1,6 @@
 /* Abertura (#139, #150, #153) e a impressão do símbolo camada por camada (também no Sobre). Carrega antes dos tokens:
    cores com fallback. Só transform/opacity/clip-path no que se repete (60 fps em máquina fraca).
-   Linha do tempo da completa (~3,6 s, conta de quando a janela aparece):
+   Linha do tempo (~3,6 s, toda vez que o app abre, #168, conta de quando a janela aparece):
    0–700 ms o mini-ícone sobe com mola · 500–2100 o bico deposita as 3 camadas, com calma · 1500–2500 o nome entra
    letra a letra · 2300–2900 reflexo de vidro · 3000 o app se abre num círculo a partir da peça (íris, splash.ts). */
 #splash {
@@ -20,7 +20,6 @@
 #splash .brand-mark { position: relative; width: 132px; height: 132px; border-radius: 30px; overflow: hidden; will-change: transform; }
 #splash .brand-mark svg { overflow: visible; }
 #splash .wordmark { display: inline-flex; white-space: pre; }
-#splash.short .wordmark, #splash.short .nozzle { display: none; }
 /* tudo parado até a janela aparecer (splash.ts põe .play): o app pronto antes não "atropela" a animação */
 #splash:not(.play), #splash:not(.play) *, #splash:not(.play)::before { animation-play-state: paused !important; }
 
@@ -46,7 +45,6 @@
   background: linear-gradient(115deg, transparent 38%, rgb(255 255 255 / 0.75) 50%, transparent 62%) no-repeat; background-size: 300% 100%;
 }
 #splash.full .sheen { animation: splash-sheen 620ms cubic-bezier(0.4, 0, 0.2, 1) 2300ms both; }
-#splash.short .sheen { animation: splash-sheen 500ms cubic-bezier(0.4, 0, 0.2, 1) 40ms both; }
 
 /* 6. abrir o app (splash.ts põe .out.iris): o app se abre num círculo a partir da peça (clip-path no #root), que brilha. */
 #splash.out { pointer-events: none; }
@@ -85,4 +83,5 @@
 @keyframes print-layer { from { opacity: 0; transform: scaleY(0.15); } }
 @media (prefers-reduced-motion: reduce) {
   #splash *, #splash::before, .brand-mark.printing :is(.bed, .layer) { animation: none !important; }
+  #splash .nozzle { display: none; } /* parado, o bico ficaria solto em cima da peça */
 }
