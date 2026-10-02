@@ -21,20 +21,24 @@ const REAL: [number, number][] = [
   [182, 28],
 ];
 
-test("organizador pela foto: dicas de como fotografar, foto realista medida a menos de 2 mm e o contorno numerado em cima dela (#169)", async ({ page }) => {
+// a mesma foto em JPEG e em HEIC (sips -s format heic, como o iPhone/AirDrop manda): o Chromium não abre HEIC, então
+// este caso passa pelo decodificador WASM e pela focal do EXIF de dentro do HEIC
+for (const ext of ["jpg", "heic"])
+test(`organizador pela foto: dicas de como fotografar, foto realista (${ext}) medida a menos de 2 mm e o contorno numerado em cima dela (#169)`, async ({ page }) => {
   test.setTimeout(120_000); // decodificar e medir a foto leva alguns segundos
   await openApp(page);
   await go(page, "Organizador pela foto");
   const tips = page.getByRole("list", { name: "Como fotografar" });
   await expect(tips).toContainText("De longe, com zoom 2x");
   await expect(tips).toContainText("Boa luz, sem sombra");
-  await page.locator(".photo-step input[type=file]").setInputFiles(resolve("tests/fixtures/organizador/ferramentas-a4-celular.jpg"));
+  await page.locator(".photo-step input[type=file]").setInputFiles(resolve(`tests/fixtures/organizador/ferramentas-a4-celular.${ext}`));
   await expect(page.getByRole("button", { name: "Canto 1 da folha (setas movem)" })).toBeVisible({ timeout: 60_000 });
   await expect(page.getByRole("button", { name: "Trocar foto" })).toBeVisible();
   await page.getByLabel("Altura das ferramentas").fill("8");
   await page.getByLabel("Altura das ferramentas").blur();
   await expect(page.getByRole("img", { name: /Contornos medidos na folha de (210 × 297|297 × 210) mm/ })).toBeVisible({ timeout: 60_000 });
   await expect(page.locator(".photo-found .tool-num")).toHaveCount(3);
+  await expect(page.getByLabel(/Comprimento real da Ferramenta 1/)).toHaveCount(0); // focal lida do EXIF: sem régua
   const items = await page.getByRole("list", { name: "Medidas" }).getByRole("listitem").allInnerTexts();
   const sizes = items.map((t) => [...t.matchAll(/(\d+,\d) × (\d+,\d)/g)][0].slice(1).map((n) => Number(n.replace(",", "."))));
   sizes.forEach(([l, w], i) => {

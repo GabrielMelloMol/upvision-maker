@@ -6,7 +6,7 @@ import Dropzone from "../ui/Dropzone";
 import NumField from "../ui/NumField";
 import Segmented from "../ui/Segmented";
 import { errorText } from "../ui/Toast";
-import { IMAGE_ACCEPT } from "../vectorize/client";
+import { PHOTO_ACCEPT } from "./heic";
 import { loadToolPhoto, type ToolPhoto } from "./photoFile";
 import { A4, findSheetCorners, LETTER, lightness, measureTools, rescale, sizeMm, type PhotoResult, type Pt } from "./photo";
 import { apply, homography } from "./photo/homography";
@@ -165,7 +165,7 @@ export default function PhotoStep({ onOutlines }: { onOutlines: (outlines: ToolO
     return (
       <Card title="Foto das ferramentas" icon={Camera} className="photo-step">
         <PhotoTips />
-        <Dropzone accept={IMAGE_ACCEPT} label="Escolha a foto das ferramentas" hint="Arraste a foto aqui ou clique para escolher." onFile={open} />
+        <Dropzone accept={PHOTO_ACCEPT} label="Escolha a foto das ferramentas" hint="Arraste a foto aqui ou clique para escolher." onFile={open} />
         {error && <Alert kind="error">{error}</Alert>}
       </Card>
     );
@@ -174,7 +174,7 @@ export default function PhotoStep({ onOutlines }: { onOutlines: (outlines: ToolO
     <Card title="Foto das ferramentas" icon={Camera} className="photo-step">
       <div className="photo-bar">
         <Segmented label="Folha" value={kind} onChange={setKind} options={[["a4", "A4"], ["carta", "Carta"]]} />
-        <Dropzone accept={IMAGE_ACCEPT} label="Trocar foto" onFile={open} compact />
+        <Dropzone accept={PHOTO_ACCEPT} label="Trocar foto" onFile={open} compact />
       </div>
       {error && <Alert kind="error">{error}</Alert>}
       {found ? (
