@@ -29,13 +29,13 @@ const MODES: [ToolFitMode, string][] = [
   ["block", "Bloco"],
   ["gridfinity", "Gridfinity"],
   ["drawer", "Gaveta"],
-  ["test", "Peça de teste"],
+  ["test", "Teste"], // "Peça de teste" quebrava em 3 linhas no seletor; a dica embaixo explica
 ];
 const MODE_HINT: Record<ToolFitMode, string> = {
   block: "Um bloco com o encaixe de cada ferramenta, do tamanho que precisar (até a mesa).",
   gridfinity: "Caixa na grade de 42 mm, com o pé padrão: encaixa nas bases Gridfinity.",
   drawer: "Bandejas que enchem a gaveta, cada uma do tamanho da mesa; as ferramentas são arrumadas sozinhas.",
-  test: "Só o contorno, com 2 mm de altura: imprime em minutos e confere a folga antes do organizador.",
+  test: "Peça de teste: só o contorno, com 2 mm de altura: imprime em minutos e confere a folga antes do organizador.",
 };
 
 type State = { outlines: ToolOutline[]; sheet: Sheet; fromPhoto: boolean; p: ToolFitParams };
@@ -60,7 +60,7 @@ export default function ToolFit() {
   return (
     <div className="page">
       <h1>Organizador pela foto</h1>
-      <p className="lead">Encaixe exato da ferramenta: bloco, Gridfinity ou gaveta.</p>
+      <p className="lead">Fotografe na folha A4 e imprima o encaixe exato.</p>
       <ToolSessionBar tool={tool} />
       <div className="tool-layout">
         <div className="controls">
@@ -101,11 +101,12 @@ export default function ToolFit() {
           <ExportButtons models={models} name={`organizador-${p.mode}`} busy={busy} onSaved={tool.exported} />
         </div>
         <div className="preview-col">
-          <SheetPreview outlines={outlines} sheet={sheet} />
+          {/* o 3D (o resultado) primeiro, à vista; a folha numerada embaixo (o contorno já aparece em cima da foto) */}
           <Preview3D models={models} busy={busy} busyText="Gerando os encaixes…" error={error} emptyText={valid ? "Sem ferramentas para encaixar." : "Corrija os campos em vermelho para ver a peça."} />
           {warnings.map((w) => (
             <Alert key={w} kind="warn">{w}</Alert>
           ))}
+          <SheetPreview outlines={outlines} sheet={sheet} />
         </div>
       </div>
     </div>

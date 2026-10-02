@@ -1,15 +1,22 @@
 import { Upload } from "lucide-react";
 import { useRef, useState } from "react";
 
-type Props = { accept: string; label: string; hint?: string; onFile: (f: File) => void };
+type Props = {
+  accept: string;
+  label: string;
+  hint?: string;
+  onFile: (f: File) => void;
+  /** Botão pequeno numa linha (ex.: "Trocar foto" depois de escolher), ainda aceitando soltar o arquivo. */
+  compact?: boolean;
+};
 
 /** Área de arrastar e soltar + clique para escolher arquivo. */
-export default function Dropzone({ accept, label, hint, onFile }: Props) {
+export default function Dropzone({ accept, label, hint, onFile, compact = false }: Props) {
   const input = useRef<HTMLInputElement>(null);
   const [over, setOver] = useState(false);
   return (
     <div
-      className={`dropzone ${over ? "over" : ""}`}
+      className={`dropzone ${compact ? "compact" : ""} ${over ? "over" : ""}`}
       role="button"
       tabIndex={0}
       // o clique programático no <input> sobe até aqui de novo: ignora para não entrar em loop
@@ -33,7 +40,7 @@ export default function Dropzone({ accept, label, hint, onFile }: Props) {
     >
       <Upload aria-hidden />
       <strong>{label}</strong>
-      {hint && <span className="small">{hint}</span>}
+      {hint && !compact && <span className="small">{hint}</span>}
       <input
         ref={input}
         type="file"

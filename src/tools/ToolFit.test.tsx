@@ -32,7 +32,7 @@ describe("Organizador pela foto (#169)", () => {
     renderWithApp(<ToolFit />);
     await user.click(screen.getByRole("button", { name: "Média" }));
     expect(screen.getByRole("spinbutton", { name: /^Folga/ })).toHaveValue(0.6);
-    await user.click(screen.getByRole("button", { name: "Peça de teste" }));
+    await user.click(screen.getByRole("button", { name: "Teste" }));
     await waitFor(() => expect(screen.getByRole("button", { name: /Salvar 3MF/ })).toBeEnabled(), BUILD);
     await user.click(screen.getByRole("button", { name: /Salvar 3MF/ }));
     await waitFor(() => expect(t.files.has("/saida/organizador-test.3mf")).toBe(true));

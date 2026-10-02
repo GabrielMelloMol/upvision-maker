@@ -27,15 +27,18 @@ describe("PhotoStep (#169)", { timeout: 30_000 }, () => {
   test("acha a folha, mostra os 4 cantos e entrega o contorno de 100 × 40 mm", async () => {
     const onOutlines = vi.fn<(o: ToolOutline[], s: Sheet) => void>();
     render(<PhotoStep onOutlines={onOutlines} />);
+    expect(screen.getByRole("list", { name: "Como fotografar" })).toHaveTextContent(/zoom 2x.*sem sombra/); // antes da foto: como fotografar
     await upload();
     expect(await screen.findByRole("button", { name: /Canto 1 da folha/ })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Trocar foto" })).toBeInTheDocument();
     expect(screen.getAllByRole("button", { name: /Canto \d da folha/ })).toHaveLength(4);
     await waitFor(() => expect(onOutlines).toHaveBeenCalled(), { timeout: 10_000 });
     const [outlines, sheet] = onOutlines.mock.lastCall!;
     expect(sheet).toEqual({ widthMm: 210, heightMm: 297 });
     expect(outlines).toHaveLength(1);
     expect(screen.getByText(/× 40,\d mm/)).toBeInTheDocument();
-    expect(screen.getByRole("img", { name: /Contornos medidos na folha de 210 × 297 mm/ })).toBeInTheDocument();
+    expect(screen.getByRole("img", { name: /Contornos medidos na folha de 210 × 297 mm/ })).toBeInTheDocument(); // em cima da foto
+    expect(screen.getByRole("list", { name: "Medidas" })).toHaveTextContent("Ferramenta 1");
   });
 
   test("sem EXIF e com altura: pede o comprimento medido com régua e reescala", async () => {

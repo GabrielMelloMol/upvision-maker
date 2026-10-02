@@ -222,14 +222,32 @@ details.advanced[open] > .stack, details.advanced[open] > .grid { margin-top: va
 .ai-error-detail pre { white-space: pre-wrap; word-break: break-word; max-height: 180px; overflow: auto; font-size: var(--text-sm); margin: 6px 0 0; }
 
 /* Organizador pela foto (#169): foto com os 4 cantos arrastáveis e a prévia dos contornos em mm */
+/* Organizador pela foto (#169): como fotografar, foto com os cantos arrastáveis e o contorno medido por cima dela */
 .photo-step { display: grid; gap: var(--space-3); }
-.photo-corners { width: 100%; max-height: 60vh; border-radius: var(--r-lg); background: var(--fill); touch-action: none; }
-.photo-corners polygon { fill: color-mix(in srgb, var(--accent) 12%, transparent); stroke: var(--accent); stroke-width: 0.25%; vector-effect: non-scaling-stroke; }
-.photo-corners circle { fill: var(--accent); stroke: #fff; stroke-width: 2px; vector-effect: non-scaling-stroke; cursor: grab; }
-.photo-corners circle:active { cursor: grabbing; }
-.photo-corners circle:focus-visible { outline: none; stroke: var(--text); stroke-width: 4px; }
-.photo-outlines { width: 100%; max-height: 40vh; }
-.photo-outlines rect { fill: var(--surface); stroke: var(--border); stroke-width: 0.5; }
-.photo-outlines path { fill: var(--text); fill-opacity: 0.85; }
-.photo-list { margin: 0; padding-left: 1.2em; font-size: var(--text-sm); color: var(--muted); font-variant-numeric: tabular-nums; }
+.photo-tips { list-style: none; margin: 0; padding: 0; display: grid; gap: var(--space-2); font-size: var(--text-sm); color: var(--muted); }
+.photo-tips li { display: grid; grid-template-columns: 28px 1fr; gap: var(--space-2); align-items: start; }
+.photo-tips svg { width: 28px; height: 28px; padding: 6px; border-radius: var(--r-sm); color: var(--accent-text); background: var(--accent-soft); }
+.photo-tips b { display: block; color: var(--text); font-weight: 600; }
+.photo-bar { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-2); }
+.photo-bar .dropzone { margin-left: auto; }
+.dropzone.compact { display: inline-flex; align-items: center; gap: 6px; padding: 6px 12px; min-height: 32px; border-style: dashed; font-size: var(--text-sm); }
+.dropzone.compact > svg { width: 16px; height: 16px; padding: 0; margin: 0; background: none; }
+.dropzone.compact strong { font-weight: 500; }
+.photo-corners { width: 100%; max-height: 60vh; border-radius: var(--r-lg); background: var(--fill); touch-action: none; user-select: none; }
+.photo-corners polygon { fill: color-mix(in srgb, var(--accent) 8%, transparent); stroke: var(--accent); stroke-width: 2px; stroke-dasharray: 6 4; vector-effect: non-scaling-stroke; pointer-events: none; }
+.photo-found { pointer-events: none; animation: fade-up var(--dur) var(--ease-out) both; }
+.photo-found path { fill: color-mix(in srgb, var(--accent) 28%, transparent); stroke: var(--accent); stroke-width: 2px; vector-effect: non-scaling-stroke; }
+.photo-corners .tool-num circle, .sheet-preview .tool-num circle, .photo-list .tool-num { fill: var(--accent); background: var(--accent); }
+.photo-corners .tool-num text, .sheet-preview .tool-num text { fill: #fff; font-weight: 700; text-anchor: middle; font-family: var(--font-display); }
+.photo-corners .corner { cursor: grab; outline: none; }
+.photo-corners.dragging .corner { cursor: grabbing; }
+.photo-corners .corner .corner-hit { fill: transparent; }
+.photo-corners .corner .corner-dot { fill: var(--accent); stroke: #fff; stroke-width: 2.5px; vector-effect: non-scaling-stroke; filter: drop-shadow(0 1px 2px rgb(0 0 0 / 0.45)); transition: stroke-width var(--dur-fast) ease; }
+.photo-corners .corner:hover .corner-dot { stroke-width: 4px; }
+.photo-corners .corner:focus-visible .corner-hit { stroke: var(--accent); stroke-width: 3px; vector-effect: non-scaling-stroke; } /* anel em volta do ponto: aparece sobre qualquer foto */
+.photo-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; font-size: var(--text-sm); color: var(--muted); font-variant-numeric: tabular-nums; }
+.photo-list li { display: flex; align-items: center; gap: var(--space-2); }
+.photo-list .tool-num { flex: none; display: grid; place-content: center; width: 22px; height: 22px; border-radius: 50%; color: #fff; font-size: 12px; font-weight: 700; }
 .photo-list b { color: var(--text); font-weight: 600; }
+.sheet-preview figcaption { display: grid; gap: var(--space-2); margin-top: var(--space-2); }
+@media (prefers-reduced-motion: reduce) { .photo-found { animation: none; } }
