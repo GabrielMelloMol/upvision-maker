@@ -96,7 +96,7 @@ export const ARTICLES: HelpArticle[] = [
     id: "toolfit",
     title: "Organizador pela foto",
     intro: "Cada ferramenta ganha um encaixe exato, com folga, num bloco, numa caixa Gridfinity ou em bandejas para a gaveta.",
-    steps: ["Confira as ferramentas e a medida de cada uma na folha.", "Escolha a folga: pequena (0,3 mm) fica justa na A1.", "Imprima a peça de teste (só o contorno, 2 mm) e encaixe a ferramenta.", "Escolha a saída: bloco, Gridfinity ou gaveta (com as medidas dela) e salve o 3MF."],
+    steps: ["Fotografe as ferramentas de cima, numa folha A4 branca, com os 4 cantos do papel na foto; confira os cantos e a medida de cada ferramenta.", "Escolha a folga: pequena (0,3 mm) fica justa na A1.", "Imprima a peça de teste (só o contorno, 2 mm) e encaixe a ferramenta.", "Escolha a saída: bloco, Gridfinity ou gaveta (com as medidas dela) e salve o 3MF."],
     tips: ["Frouxa na peça de teste: diminua a folga; não entra: aumente.", "O recorte para o dedo ajuda a tirar ferramentas baixas, que ficam todas dentro do encaixe."],
   },
   {

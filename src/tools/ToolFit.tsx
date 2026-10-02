@@ -1,6 +1,8 @@
+import { useCallback } from "react";
 import { getManifold } from "../geometry/manifold";
 import { buildToolFit, CLEARANCES, DEFAULT_TOOL_FIT, type ToolFitMode, type ToolFitParams } from "../geometry/models/toolFit";
 import { A4, EXAMPLE_OUTLINES } from "../organizer/examples";
+import PhotoStep from "../organizer/PhotoStep";
 import type { Sheet, ToolOutline } from "../organizer/types";
 import Alert from "../ui/Alert";
 import ExportButtons from "../ui/ExportButtons";
@@ -36,12 +38,14 @@ const MODE_HINT: Record<ToolFitMode, string> = {
   test: "Só o contorno, com 2 mm de altura: imprime em minutos e confere a folga antes do organizador.",
 };
 
-type State = { outlines: ToolOutline[]; sheet: Sheet; p: ToolFitParams };
+type State = { outlines: ToolOutline[]; sheet: Sheet; fromPhoto: boolean; p: ToolFitParams };
 
-/** Organizador pela foto (#169): contornos das ferramentas viram encaixe exato. A foto (PhotoStep) entra aqui depois. */
+/** Organizador pela foto (#169): a foto (PhotoStep, da Forja) dá os contornos em mm; aqui eles viram encaixe exato. */
 export default function ToolFit() {
-  const tool = useToolState<State>("toolfit", () => ({ outlines: EXAMPLE_OUTLINES, sheet: A4, p: DEFAULT_TOOL_FIT }), { label: "Organizador pela foto" });
-  const { outlines, sheet, p } = tool.state;
+  const tool = useToolState<State>("toolfit", () => ({ outlines: EXAMPLE_OUTLINES, sheet: A4, fromPhoto: false, p: DEFAULT_TOOL_FIT }), { label: "Organizador pela foto" });
+  const { outlines, sheet, fromPhoto, p } = tool.state;
+  const setState = tool.set;
+  const onOutlines = useCallback((found: ToolOutline[], s: Sheet) => setState((cur) => ({ ...cur, outlines: found, sheet: s, fromPhoto: true }), "outlines"), [setState]);
   const set = <K extends keyof ToolFitParams>(key: K) => (v: ToolFitParams[K]) => tool.set((cur) => ({ ...cur, p: { ...cur.p, [key]: v } }), `p.${String(key)}`);
   const preset = CLEARANCES.find(([, , mm]) => mm === p.clearance)?.[0] ?? "custom";
 
@@ -60,10 +64,9 @@ export default function ToolFit() {
       <ToolSessionBar tool={tool} />
       <div className="tool-layout">
         <div className="controls">
-          <div className="card stack">
-            <h3>Ferramentas</h3>
-            <Alert kind="info">Por enquanto com 3 ferramentas de exemplo. Em breve: foto das ferramentas numa folha A4.</Alert>
-          </div>
+          <PhotoStep onOutlines={onOutlines} />
+          {!fromPhoto && <Alert kind="info">Sem foto ainda: a prévia usa 3 ferramentas de exemplo.</Alert>}
+          {fromPhoto && !outlines.length && <Alert kind="warn">Nenhuma ferramenta achada na foto: confira os 4 cantos da folha e se as ferramentas contrastam com o papel.</Alert>}
           <div className="card stack">
             <h3>Encaixe</h3>
             <Segmented
