@@ -136,6 +136,9 @@ function morph(mask: Uint8Array, w: number, h: number, r: number, grow: boolean)
   return pass(pass(mask, true), false);
 }
 
+/** Encolhe a máscara `r` px (tira a faixa de meio-tom da borda). */
+export const erode = (mask: Uint8Array, w: number, h: number, r: number) => morph(mask, w, h, r, false);
+
 /** Fecha falhas finas e tira pontinhos (0,3 mm). */
 export function clean(mask: Uint8Array, w: number, h: number): Uint8Array {
   const r = 3;

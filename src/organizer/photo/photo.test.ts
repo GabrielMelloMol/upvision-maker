@@ -94,6 +94,10 @@ describe("foto → contornos em mm (#169)", { timeout: 60_000 }, () => {
     expect(out.warnings.join(" ")).toMatch(/sai da folha/);
     const shadow = run({ ...BASE, shadow: { width: 25, strength: 0.7 } });
     expect(shadow.warnings.join(" ")).toMatch(/Sombra forte/);
+    // luz direta: sombra escura (rel ≈ 0,45) passa do limiar e entra no contorno; sem o aviso, a medida sairia 12 mm maior
+    const hard = run({ ...BASE, shadow: { width: 12, strength: 0.45 } });
+    expect(hard.warnings.join(" ")).toMatch(/A ferramenta 1 tem uma parte colada bem mais clara/);
+    expect(shadow.warnings.join(" ")).not.toMatch(/parte colada/);
     const steep = run({ ...BASE, camera: [105, 520, 260], target: [105, 150, 0], roll: 0 });
     expect(steep.warnings.join(" ")).toMatch(/muito inclinada/);
     const cut = run({ ...BASE, camera: [40, -60, 300], roll: 20 });

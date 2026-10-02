@@ -3,7 +3,7 @@ import { cameraFromHomography, unParallaxMask, type Camera } from "./camera";
 import { regionLoops, signedArea, simplifyLoop } from "./contour";
 import { homography, type Pt } from "./homography";
 import type { Gray } from "./image";
-import { clean, label, PX_PER_MM, rectify, relative, threshold } from "./segment";
+import { clean, erode, label, PX_PER_MM, rectify, relative, threshold, type Blob } from "./segment";
 import { convexHull, order } from "./sheet";
 
 export { exifFocal35, focalPxFrom35 } from "./camera";
@@ -27,6 +27,14 @@ const MIN_SIDE_RATIO = 0.7;
 /** Sombra forte: área de papel acinzentado maior que esta fração da área das ferramentas. */
 const SHADOW_SHARE = 0.08;
 const SHADOW_TOP = 0.85;
+/**
+ * Sombra dura dentro do contorno: luz direta faz uma sombra escura o bastante para passar do limiar e entrar na
+ * ferramenta. Ela aparece como uma parte bem mais clara (mais de `SHADOW_STEP` acima do miolo da ferramenta) que ocupa
+ * mais de `SHADOW_INSIDE` da área, longe da borda de meio-tom.
+ */
+const SHADOW_STEP = 0.15;
+const SHADOW_INSIDE = 0.08;
+const EDGE_PX = 4;
 /** Canto a menos disso da borda da foto = a folha foi cortada. */
 const CORNER_EDGE_PX = 4;
 
@@ -113,12 +121,30 @@ export function measureTools(g: Gray, opts: PhotoOptions): PhotoResult {
   if (!outlines.length) warnings.push("Não achei nenhuma ferramenta na folha. Use papel branco liso e ferramentas que contrastem com ele.");
   const tilted = camera ? camera.tiltDeg > MAX_TILT_DEG : Math.min(side(0), side(2)) / Math.max(side(0), side(2)) < MIN_SIDE_RATIO || Math.min(side(1), side(3)) / Math.max(side(1), side(3)) < MIN_SIDE_RATIO;
   if (tilted) warnings.push("A folha está muito inclinada na foto: fotografe mais de cima, com o celular paralelo à mesa, para medir melhor.");
+  const lighter = lighterPart(rel, erode(mask, w, h, EDGE_PX), labels, tools);
+  if (lighter.length)
+    warnings.push(
+      `${lighter.length === 1 ? `A ferramenta ${lighter[0]} tem` : `As ferramentas ${lighter.slice(0, -1).join(", ")} e ${lighter[lighter.length - 1]} têm`} uma parte colada bem mais clara que o resto: se for sombra, ela entrou no contorno e a medida sai maior. Fotografe com luz de cima ou difusa (perto de uma janela, sem lâmpada nem sol direto). Se for uma parte cromada da ferramenta, pode seguir.`,
+    );
   let gray = 0;
   for (let y = m; y < h - m; y += 2) for (let x = m; x < w - m; x += 2) if (rel[y * w + x] >= t && rel[y * w + x] < SHADOW_TOP) gray += 4;
   if (toolArea > 0 && gray > toolArea * SHADOW_SHARE)
     warnings.push("Sombra forte perto das ferramentas: ela pode entrar no contorno. Use luz de cima ou difusa (perto de uma janela, sem sol direto).");
 
   return { outlines, sheet, warnings, camera, needsRuler: height > 0 && !camera };
+}
+
+/** Números (1, 2…) das ferramentas com uma parte grande bem mais clara que o miolo delas (provável sombra). */
+function lighterPart(rel: Float32Array, inner: Uint8Array, labels: Int32Array, tools: Blob[]): number[] {
+  const byId = new Map(tools.map((b, i) => [b.id, { n: i + 1, values: [] as number[] }]));
+  for (let i = 0; i < inner.length; i++) if (inner[i]) byId.get(labels[i])?.values.push(rel[i]);
+  return [...byId.values()].flatMap(({ n, values }) => {
+    if (values.length < 100) return [];
+    values.sort((a, b) => a - b);
+    const core = values[Math.floor(values.length * 0.25)];
+    const firstLight = values.findIndex((v) => v > core + SHADOW_STEP);
+    return firstLight >= 0 && values.length - firstLight > values.length * SHADOW_INSIDE ? [n] : [];
+  });
 }
 
 /**
