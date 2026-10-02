@@ -1,4 +1,5 @@
 import { numList, parseDuration, round2, splitList, type SlicerFilament, type SlicerReport } from "./types";
+import { featureGrams } from "./features";
 import { flushMatrix, purgeWaste, toolSequence, type SlicerWaste } from "./waste";
 
 const HEAD_TAIL = 256 * 1024; // estatísticas ficam no começo (Bambu/Cura) ou no fim (Prusa)
@@ -73,9 +74,22 @@ function fromBambu(text: string, kv: Map<string, string>, full: () => string[]):
   if (!filaments.length || filaments.every((f) => !f.grams)) throw new Error("Não encontrei o peso do filamento neste G-code. Confira a densidade do filamento no fatiador.");
   const matrix = flushMatrix(numList(kv.get("flush_volumes_matrix")));
   const density = numList(kv.get("filament_density"));
-  const seq = matrix ? full().flatMap(toolSequence).filter((t, i, a) => i === 0 || a[i - 1] !== t) : [];
-  const waste = matrix ? purgeWaste(seq, matrix, Number(kv.get("flush_multiplier")) || 1, (i) => density[i] || DENSITY.PLA, "gcode") : null;
-  return { source: "Bambu Studio / OrcaSlicer (G-code)", printer: kv.get("printer_model") || undefined, seconds: time ? parseDuration(time) : undefined, pieces: labels ? splitList(labels).length : undefined, filaments, ...(waste && { waste }), warnings: [] };
+  const densityOf = (i: number) => density[i] || DENSITY.PLA;
+  const body = full();
+  const seq = matrix ? body.flatMap(toolSequence).filter((t, i, a) => i === 0 || a[i - 1] !== t) : [];
+  const waste = matrix ? purgeWaste(seq, matrix, Number(kv.get("flush_multiplier")) || 1, densityOf, "gcode") : null;
+  const extra = featureGrams(body, densityOf, numList(kv.get("filament_diameter"))[0] || DEFAULT_DIAMETER_MM);
+  return {
+    source: "Bambu Studio / OrcaSlicer (G-code)",
+    printer: kv.get("printer_model") || undefined,
+    seconds: time ? parseDuration(time) : undefined,
+    pieces: labels ? splitList(labels).length : undefined,
+    filaments,
+    ...(waste && { waste }),
+    ...(extra.support > 0 && { support: { grams: extra.support, tree: /tree/i.test(kv.get("support_type") ?? "") } }),
+    ...(extra.tower > 0 && { tower: extra.tower }),
+    warnings: [],
+  };
 }
 
 function fromCura(text: string, kv: Map<string, string>): SlicerReport {

@@ -45,8 +45,8 @@ export default function FullForm({ data, fil, setFil, ext, setExt, f, setText, s
         <Lines lines={fil} setLines={setFil} options={data.filaments} priceLabel="Preço por kg" qtyLabel="Gramas" addLabel="Adicionar filamento" />
         {/* purga multicor sem o arquivo do fatiador (#147); com o arquivo ela já vem somada nas gramas */}
         <div className="grid two">
-          <SmartField label="Trocas de cor" inputMode="decimal" parse={parseDecimal} invalidText="Digite quantas trocas, ex.: 40." value={f.swaps} onChange={setText("swaps")} placeholder="0" hint="Sem o arquivo do fatiador. Se importou, a purga já veio nas gramas." />
-          <SmartField label="Purga por troca (g)" inputMode="decimal" parse={parseDecimal} invalidText="Digite as gramas, ex.: 0,8." value={f.perSwap} onChange={setText("perSwap")} hint="A1 com AMS: de 0,5 a 1 g por troca." />
+          <SmartField label="Trocas de cor" inputMode="decimal" parse={parseDecimal} invalidText="Digite quantas trocas, ex.: 40." value={f.swaps} onChange={setText("swaps")} placeholder="0" hint="Só sem o arquivo do fatiador (importado, a purga já vem nas gramas). Conta: camadas com mais de uma cor × (cores − 1); ex.: 2 cores em 60 camadas ≈ 60 trocas." />
+          <SmartField label="Purga por troca (g)" inputMode="decimal" parse={parseDecimal} invalidText="Digite as gramas, ex.: 0,8." value={f.perSwap} onChange={setText("perSwap")} hint="Bambu com AMS (A1, A1 mini, P1S), PLA: cada troca joga fora ~0,3 g de cor clara para escura e ~0,8 g de escura para clara, mais ~0,05 g na torre. 0,8 g é a conta segura." />
         </div>
       </section>
       

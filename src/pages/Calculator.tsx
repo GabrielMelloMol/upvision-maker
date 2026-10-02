@@ -354,7 +354,7 @@ export default function Calculator({ go }: { go: Go }) {
             onAdded={setDraftCount}
             onOpen={() => go("quotes")}
           />
-          {mode === "full" && <CostBreakdown r={r} s={data.settings} machinePerHour={machinePerHour} fixedPerHour={data.fixedPerHour} failure={failure} purge={{ swaps: num(f.swaps), grams: num(f.swaps) * num(f.perSwap) }} />}
+          {mode === "full" && <CostBreakdown r={r} s={data.settings} machinePerHour={machinePerHour} fixedPerHour={data.fixedPerHour} failure={failure} purge={{ swaps: num(f.swaps), grams: num(f.swaps) * num(f.perSwap), filamentGrams: grams }} />}
           {mode === "full" && <PriceSplit r={r} rows={rows} freight={price(f.freight)} />}
         </aside>
       </div>

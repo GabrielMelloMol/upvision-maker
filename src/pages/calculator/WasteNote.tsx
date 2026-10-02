@@ -33,3 +33,26 @@ export default function WasteNote({ waste, modelGrams, priceOf }: { waste: Slice
     </Alert>
   );
 }
+
+/**
+ * Suportes e torre de limpeza lidos do G-code (#147): já estão nas gramas do fatiador, então só mostra quanto são e
+ * como gastar menos. `perGram` = R$/g médio dos filamentos escolhidos (null = algum sem preço).
+ */
+export function SupportNote({ support, tower, modelGrams, perGram }: { support?: { grams: number; tree: boolean }; tower?: number; modelGrams: number; perGram: number | null }) {
+  const part = (grams: number) => `${g(grams)}${perGram !== null ? ` (${money(grams * perGram)})` : ""}, ${modelGrams > 0 ? Math.round((grams / modelGrams) * 100) : 0}% do filamento`;
+  return (
+    <Alert kind="info">
+      {support && (
+        <>
+          <b>Suportes: {part(support.grams)}.</b> Já estão nas gramas acima. Para gastar menos: deite ou gire a peça para ficar menos parte no ar
+          {!support.tree && " ou use suporte em árvore (numa peça de teste na A1 o suporte caiu de 3,7 g para 2,2 g)"}.{" "}
+        </>
+      )}
+      {tower !== undefined && (
+        <>
+          <b>Torre de limpeza: {part(tower)}.</b> Também já está nas gramas. Ela recebe um pouco de cada cor em toda camada com troca; várias peças na mesma mesa dividem esse gasto.
+        </>
+      )}
+    </Alert>
+  );
+}

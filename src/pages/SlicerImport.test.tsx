@@ -1,6 +1,7 @@
 // @vitest-environment happy-dom
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
+import { gunzipSync } from "fflate";
 import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
 import { describe, expect, test, vi } from "vitest";
@@ -40,6 +41,18 @@ describe("Importar do fatiador", () => {
     await waitFor(() => expect(onApply.mock.lastCall![0].filaments[1]).toEqual({ filamentId: 1, pricePerKg: 120, grams: 1.33 }));
     await userEvent.selectOptions(second, "Nenhum (digitar preço)");
     await waitFor(() => expect(onApply.mock.lastCall![0].filaments[1]).toEqual({ filamentId: null, pricePerKg: null, grams: 1.33 }));
+  });
+
+  test("G-code real da A1 com suporte (#147): mostra quanto foi para o suporte, já dentro das gramas, e a dica da árvore", async () => {
+    const onApply = vi.fn<(a: SlicerApply) => void>();
+    render(<SlicerImport stock={[AZUL]} printers={[A1]} onApply={onApply} />);
+    const gz = readFileSync(resolve(__dirname, "../../tests/fixtures/slicer/bambu-a1-suporte-normal.gcode.gz"));
+    await upload(new File([gunzipSync(gz)], "peca-t.gcode"));
+    // 3,66 g de 7,04 g, a R$ 120/kg
+    expect(await screen.findByText(/^Suportes:/)).toBeInTheDocument();
+    expect(screen.getByText(/3,66 g \(R\$\s0,44\), 52% do filamento/)).toBeInTheDocument();
+    expect(screen.getByText(/suporte em árvore/)).toBeInTheDocument();
+    await waitFor(() => expect(onApply.mock.lastCall![0].filaments[0].grams).toBe(7.04)); // não soma de novo
   });
 
   test("impressora não cadastrada avisa que a potência fica em branco; cadastro que chega depois é casado", async () => {

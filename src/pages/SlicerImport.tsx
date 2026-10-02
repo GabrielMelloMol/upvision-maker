@@ -7,7 +7,7 @@ import { round2, type SlicerFilament } from "../domain/slicer/types";
 import { colorHex, filamentDraft, isCloseMatch, matchFilament, matchPrinter } from "../domain/slicer/match";
 import { FILAMENT_COLORS } from "../ui/ColorDots";
 import NewFilamentSheet from "./calculator/NewFilamentSheet";
-import WasteNote, { purgeFor } from "./calculator/WasteNote";
+import WasteNote, { purgeFor, SupportNote } from "./calculator/WasteNote";
 import { takePendingSlicerFile } from "./calculator/pendingFile";
 import Alert from "../ui/Alert";
 import Card from "../ui/Card";
@@ -56,6 +56,11 @@ export default function SlicerImport({ stock, printers, onApply, onStockAdded }:
     f.estimatedDiameterMm !== undefined && f.meters !== undefined
       ? gramsFromMeters(f.meters, stock.find((s) => s.id === mapping[i])?.material ?? f.type, f.estimatedDiameterMm)
       : null;
+  const lineGrams = report ? report.filaments.map((f, i) => weigh(f, i)?.grams ?? f.grams ?? 0) : [];
+  const modelGrams = lineGrams.reduce((t, x) => t + x, 0);
+  // R$/g médio dos filamentos escolhidos, para dar preço ao suporte e à torre (null = algum sem preço)
+  const prices = mapping.map((id) => stock.find((s) => s.id === id)?.pricePerKg ?? null);
+  const perGram = modelGrams > 0 && prices.every((p) => p !== null) ? prices.reduce((t, p, i) => t + (p! / 1000) * lineGrams[i], 0) / modelGrams : null;
   const mappingKey = JSON.stringify([mapping, stock.map((x) => [x.id, x.pricePerKg]), printers.map((p) => [p.id, p.watts])]);
 
   const apply = (r: SlicerReport, map: (number | null)[]) => {
@@ -181,9 +186,12 @@ export default function SlicerImport({ stock, printers, onApply, onStockAdded }:
           {report.waste && (
             <WasteNote
               waste={report.waste}
-              modelGrams={report.filaments.reduce((s, f, i) => s + (weigh(f, i)?.grams ?? f.grams ?? 0), 0)}
+              modelGrams={modelGrams}
               priceOf={(index) => stock.find((s) => s.id === mapping[report.filaments.findIndex((f) => f.index === index)])?.pricePerKg ?? null}
             />
+          )}
+          {(report.support || report.tower !== undefined) && (
+            <SupportNote support={report.support} tower={report.tower} modelGrams={modelGrams} perGram={perGram} />
           )}
           {report.warnings.map((w) => (
             <Alert key={w} kind="warn">

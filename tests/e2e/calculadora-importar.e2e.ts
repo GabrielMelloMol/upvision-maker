@@ -1,4 +1,6 @@
+import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
+import { gunzipSync } from "fflate";
 import { expect, go, openApp, test } from "./tauri";
 
 const fixture = (name: string) => resolve("tests/fixtures/slicer", name);
@@ -59,4 +61,16 @@ test("calculadora: importa G-code do Simplify3D e do Creality Print (#42)", asyn
   await input.setInputFiles(fixture("creality-print-k1.gcode"));
   await expect(page.getByText("Creality Print (G-code)")).toBeVisible();
   await expect(page.getByLabel("Gramas").first()).toHaveValue("0,12");
+});
+
+test("calculadora: G-code real da A1 com suporte mostra as gramas do suporte, sem somar de novo (#147)", async ({ page, tauri }) => {
+  await openApp(page);
+  tauri.db.exec(`INSERT INTO filaments (material, color, brand, pricePerKg, spoolG, stockG, minG) VALUES ('PLA', 'Branco', 'Bambu', 120, 1000, 900, 200);`);
+  await go(page, "Calculadora");
+  await page.getByRole("button", { name: "Completo" }).click();
+  const buffer = Buffer.from(gunzipSync(readFileSync(fixture("bambu-a1-suporte-normal.gcode.gz"))));
+  await page.locator(".card", { hasText: "Importar do fatiador" }).locator('input[type="file"]').setInputFiles({ name: "peca-t.gcode", mimeType: "text/plain", buffer });
+  await expect(page.getByText("Suportes:")).toBeVisible();
+  await expect(page.getByText(/3,66 g \(R\$\s0,44\), 52% do filamento/)).toBeVisible();
+  await expect(page.getByLabel("Gramas").first()).toHaveValue("7,04");
 });

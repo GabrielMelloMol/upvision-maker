@@ -63,14 +63,14 @@ const Row = ({ label, hint, value }: { label: string; hint?: string; value: numb
 );
 
 /** Parcelas do custo da mesa, com o parâmetro de cada uma em cinza. */
-export function CostBreakdown({ r, s, machinePerHour, fixedPerHour, failure, purge }: { r: CalcResult; s: Settings; machinePerHour: number; fixedPerHour: number; failure: { pct: number; source?: string }; purge?: { swaps: number; grams: number } }) {
+export function CostBreakdown({ r, s, machinePerHour, fixedPerHour, failure, purge }: { r: CalcResult; s: Settings; machinePerHour: number; fixedPerHour: number; failure: { pct: number; source?: string }; purge?: { swaps: number; grams: number; filamentGrams: number } }) {
   return (
     <section className="card">
       <h2 className="card-title">Resultado por peça</h2>
       <table>
         <tbody>
           <Row label="Filamento" value={r.filament} />
-          {r.purge > 0 && purge && <Row label="Desperdício multicor" hint={`${purge.swaps.toLocaleString("pt-BR")} trocas · ${purge.grams.toLocaleString("pt-BR", { maximumFractionDigits: 1 })} g`} value={r.purge} />}
+          {r.purge > 0 && purge && <Row label="Desperdício multicor" hint={`${purge.swaps.toLocaleString("pt-BR")} trocas · ${purge.grams.toLocaleString("pt-BR", { maximumFractionDigits: 1 })} g · ${Math.round((purge.grams / (purge.filamentGrams + purge.grams)) * 100)}% do filamento`} value={r.purge} />}
           <Row label="Materiais extras" value={r.extras} />
           <Row label="Energia" value={r.energy} />
           <Row label="Máquina" hint={machinePerHour > 0 ? `${money(machinePerHour)}/h` : "cadastre o preço da impressora"} value={r.machine} />

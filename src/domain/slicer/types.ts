@@ -14,6 +14,10 @@ export type SlicerReport = {
   filaments: SlicerFilament[];
   /** Purga/torre de impressão multicor (#147), quando o arquivo permite calcular. */
   waste?: SlicerWaste;
+  /** Gramas de suporte (já dentro das gramas dos filamentos), pelo G-code completo do Bambu/Orca (#147). */
+  support?: { grams: number; tree: boolean };
+  /** Gramas da torre de limpeza (já dentro das gramas dos filamentos), idem. */
+  tower?: number;
   warnings: string[];
 };
 

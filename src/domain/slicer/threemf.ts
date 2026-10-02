@@ -1,4 +1,5 @@
 import { strFromU8, unzipSync } from "fflate";
+import { featureGrams } from "./features";
 import { pieceName, round2, type SlicerFilament, type SlicerReport } from "./types";
 import { flushMatrix, purgeWaste, sequenceFromLayers, toolSequence, type SlicerWaste } from "./waste";
 
@@ -37,8 +38,22 @@ export function parse3mf(bytes: Uint8Array): SlicerReport {
   const settings = readSettings(files["Metadata/project_settings.config"]);
   const printer = settings.printer_model || undefined;
   const waste = multicolorWaste(files, plates, settings);
+  // suporte e torre (#147): só com o G-code das mesas dentro do 3MF ("Exportar 3MF fatiado")
+  const gcodes = plates.flatMap((_, p) => files[`Metadata/plate_${p + 1}.gcode`] ?? []).map((g) => strFromU8(g));
+  const extra = featureGrams(gcodes, (i) => Number(settings.filament_density?.[i]) || 1.24);
   const [only] = names;
-  return { source: "Bambu Studio / OrcaSlicer (3MF)", name: names.size === 1 && only ? only : undefined, printer, seconds: seconds || undefined, pieces: pieces || undefined, filaments, ...(waste && { waste }), warnings: plates.length > 1 ? [`O projeto tem ${plates.length} mesas: os valores foram somados.`] : [] };
+  return {
+    source: "Bambu Studio / OrcaSlicer (3MF)",
+    name: names.size === 1 && only ? only : undefined,
+    printer,
+    seconds: seconds || undefined,
+    pieces: pieces || undefined,
+    filaments,
+    ...(waste && { waste }),
+    ...(extra.support > 0 && { support: { grams: extra.support, tree: /tree/i.test(String(settings.support_type ?? "")) } }),
+    ...(extra.tower > 0 && { tower: extra.tower }),
+    warnings: plates.length > 1 ? [`O projeto tem ${plates.length} mesas: os valores foram somados.`] : [],
+  };
 }
 
 function readSettings(raw: Uint8Array | undefined): ProjectSettings {
@@ -49,7 +64,7 @@ function readSettings(raw: Uint8Array | undefined): ProjectSettings {
   }
 }
 
-type ProjectSettings = { printer_model?: string; flush_volumes_matrix?: string[]; flush_multiplier?: string[] | string; filament_density?: string[] };
+type ProjectSettings = { printer_model?: string; flush_volumes_matrix?: string[]; flush_multiplier?: string[] | string; filament_density?: string[]; support_type?: string };
 
 /**
  * Purga das trocas de cor (#147), somando as mesas. Trocas pelo G-code de cada mesa quando o 3MF o traz

@@ -46,7 +46,7 @@ describe("Calculator", () => {
     await user.type(screen.getByLabelText("Trocas de cor"), "25");
     // 25 × 0,8 g = 20 g a R$ 0,10/g = R$ 2,00 (+ 5% de manutenção): 21,00 + 2,10
     const row = screen.getByRole("row", { name: /^Desperdício multicor/ });
-    expect(row).toHaveTextContent("25 trocas · 20 g");
+    expect(row).toHaveTextContent("25 trocas · 20 g · 9% do filamento"); // 20 de 220 g
     expect(row).toHaveTextContent(brl("2,00"));
     expect(unitCost()).toHaveTextContent(brl("23,10"));
   });
