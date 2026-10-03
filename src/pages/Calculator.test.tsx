@@ -161,7 +161,7 @@ describe("Calculator", () => {
     await waitFor(() => expect(screen.getByRole("row", { name: /^Para lojista/ })).toHaveTextContent("abaixo da margem mínima"));
   });
 
-  test("salvar como produto leva só linhas cadastradas, avisa as puladas e abre Produtos", async () => {
+  test("salvar como produto leva as linhas cadastradas e abre Produtos; linha vazia não conta (C1)", async () => {
     await t.db.execute("INSERT INTO filaments (material, color, brand, pricePerKg) VALUES ('PLA', 'Preto', '', 100)");
     await t.db.execute("INSERT INTO printers (name, watts) VALUES ('A1', 95)");
     const go = vi.fn();
@@ -182,7 +182,8 @@ describe("Calculator", () => {
       printMinutes: 90,
       piecesPerPlate: 1,
     });
-    expect(await screen.findByRole("alert")).toHaveTextContent("1 linha(s) sem item cadastrado ficaram de fora do produto.");
+    expect(screen.queryByRole("alert")).toBeNull(); // a linha vazia não é "pulada": não tinha nada
+    expect(screen.queryByRole("dialog", { name: "Cadastrar o que você digitou?" })).toBeNull();
   });
 
   test("arquivo do fatiador preenche filamentos, impressora, tempo e peças", async () => {

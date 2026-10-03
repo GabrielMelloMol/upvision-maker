@@ -22,6 +22,8 @@ import { takePendingEstimate } from "./calculator/pendingFile";
 import { type SlicerApply } from "./SlicerImport";
 import type { Go } from "../pages";
 import { setProductDraft } from "./products/draft";
+import { draftComposition, hasTyped, registerTyped, typedItems, type Registered, type Typed } from "./calculator/productDraft";
+import TypedItemsSheet from "./calculator/TypedItemsSheet";
 import { errorText, useToast } from "../ui/Toast";
 import ChannelTable from "./calculator/ChannelTable";
 import PlugSheet from "./calculator/PlugSheet";
@@ -196,22 +198,35 @@ export default function Calculator({ go }: { go: Go }) {
     if (a.name) autoName.current = a.name;
   }
 
-  /** Leva a composição atual para um produto novo (só linhas com filamento/material cadastrado). */
+  /** Leva a composição atual para um produto novo. Itens digitados sem cadastro: pergunta antes de cadastrar (C1). */
+  const [typedAsk, setTypedAsk] = useState<Typed | null>(null);
   function saveAsProduct() {
-    const reg = (ls: Line[]) => ls.filter((l) => l.ref && num(l.qty) > 0);
-    const skipped = fil.length + ext.length - reg(fil).length - reg(ext).length;
+    const t = typedItems(fil, ext, printerId, f.watts, num, num);
+    if (hasTyped(t)) return setTypedAsk(t);
+    finishProduct(null);
+  }
+  async function registerAndSave(t: Typed) {
+    try {
+      const ids = await registerTyped(await getDb(), t, f.name.trim());
+      setTypedAsk(null);
+      finishProduct(ids);
+    } catch (e) {
+      toast(errorText(e), "error");
+    }
+  }
+  function finishProduct(ids: Registered | null) {
+    setTypedAsk(null);
+    const composition = draftComposition(fil, ext, num, num, ids);
+    const skipped = [...fil, ...ext].filter((l) => num(l.qty) > 0).length - composition.filaments.length - composition.materials.length;
     if (skipped > 0) toast(`${skipped} linha(s) sem item cadastrado ficaram de fora do produto.`, "error");
     setProductDraft({
-      composition: {
-        filaments: reg(fil).map((l) => ({ filamentId: Number(l.ref), grams: num(l.qty) })),
-        materials: reg(ext).map((l) => ({ materialId: Number(l.ref), qty: num(l.qty) })),
-        items: [],
-      },
-      printerId: printerId ? Number(printerId) : null,
+      composition,
+      printerId: ids?.printerId ?? (printerId ? Number(printerId) : null),
       printMinutes: printMin,
       laborMinutes: laborMin,
       piecesPerPlate: Math.max(1, Math.floor(num(f.quantity)) || 1),
       freight: price(f.freight),
+      ...(price(competitor) > 0 && { manualPrice: price(competitor) }), // "Vou vender por" vira o preço do produto
       ...(f.name.trim() && { name: f.name.trim() }),
     });
     go("products");
@@ -274,6 +289,7 @@ export default function Calculator({ go }: { go: Go }) {
 
   return (
     <div className="page">
+      {typedAsk && <TypedItemsSheet typed={typedAsk} onRegister={() => void registerAndSave(typedAsk)} onSkip={() => finishProduct(null)} onClose={() => setTypedAsk(null)} />}
       {plugOpen && <PlugSheet catalogWatts={catalog?.watts} onUse={applyWatts} onClose={() => setPlugOpen(false)} />}
       {/* redesign (#139): título com os controles da tela na mesma linha; subtítulo de 1 linha (#143) */}
       <div className="title-row">
