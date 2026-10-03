@@ -3,7 +3,12 @@
 Cada versão aparece para a usuária na tela "O que há de novo" depois da atualização.
 Formato: `## <versão> — <data>` e itens `- …` em linguagem simples.
 
-## Próxima versão (ainda não lançada)
+## 0.10.3 — 2026-10-03
+- **Foto do iPhone direto no Organizador**: aceita HEIC (o formato padrão do iPhone, como chega pelo AirDrop), no Mac e no Windows, usando os dados da câmera para corrigir a altura.
+- **Folha achada até em mesa clara**: o app procura as bordas e o formato da A4/Carta. Para qualquer mesa, imprima a **folha de medição** (botão na tela), com marcadores nos cantos e régua de 100 mm. Quando o app fica em dúvida, os cantos piscam em laranja e uma lupa ajuda a arrastar.
+- **Organizador mais esperto**: avisa quando a altura está em 0, sugere a profundidade certa pela altura (botão Usar), e reflexo de luz na peça não vira mais furo nem pino.
+- **Calculadora com suportes e torre de limpeza**: ao importar o arquivo fatiado do Bambu Studio ou do OrcaSlicer, mostra quanto foi para os suportes (com a dica de suporte em árvore) e explica a purga de cada troca de cor do AMS, com a porcentagem do filamento.
+- **Sugerir ferramenta envia direto**: a sugestão vai pelo próprio app, com print opcional, sem precisar copiar e mandar por mensagem.
 - **3MF já abre dentro da mesa**: o arquivo salvo sai com a peça no centro da mesa da impressora escolhida, no Bambu Studio e no OrcaSlicer, sem precisar arrumar. No Organizador pela foto, a gaveta e a peça de teste apareciam no canto da prévia, metade fora da mesa.
 - **Organizador pela foto** (em Ferramentas): cada ferramenta ganha um encaixe exato com a folga que você escolher (nenhuma, pequena, média, grande ou em mm), num bloco, numa caixa Gridfinity ou em bandejas arrumadas sozinhas para a sua gaveta, com recorte para o dedo. A peça de teste (só o contorno, 2 mm) confere o encaixe em minutos. Fotografe as ferramentas numa folha A4 ou Carta: a folha vira a régua e cada contorno sai em mm.
 - **Projeto do Bambu Studio com 2 ou mais cores**: o projeto saía com a tabela de purga de 4 filamentos e o fatiador do Bambu Studio podia recusar ("Failed slicing the model"). Agora a tabela acompanha o número de cores e cada parte sai no filamento dela.
