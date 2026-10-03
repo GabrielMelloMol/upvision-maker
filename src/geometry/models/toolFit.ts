@@ -6,7 +6,7 @@ import type { Model } from "../types";
 import { modelsBounds } from "../bounds";
 import { moveMesh, moveModel, roundedRect, solidMesh, type ModelOutput } from "./common";
 import { BED_MARGIN, DRAWER_GAP } from "./gridDrawer";
-import { BIN_GAP, BIN_R, FOOT_H, GRID, gridFeet, HEIGHT_UNIT, type K } from "./gridfinity";
+import { BIN_GAP, BIN_R, FOOT_H, GRID, gridFeet, HEIGHT_UNIT, stackingLip, type K } from "./gridfinity";
 import { arrange, boundsOf, orient } from "./toolFitLayout";
 
 /**
@@ -28,6 +28,14 @@ export type ToolFitParams = {
   finger: boolean;
   drawerW: number;
   drawerD: number;
+  /** Altura útil da gaveta (limita a altura das caixinhas da gaveta modular). */
+  drawerH: number;
+  /** Gaveta em bandejas (do tamanho das ferramentas, até a mesa) ou em caixinhas Gridfinity, uma por ferramenta. */
+  drawerKind: "trays" | "bins";
+  /** Altura das caixinhas da gaveta modular: todas pela mais alta (niveladas), todas pela gaveta, ou cada uma a sua. */
+  binHeight: "tallest" | "drawer" | "each";
+  /** Borda de empilhar (padrão Gridfinity) em cima das caixinhas da gaveta modular. */
+  lip: boolean;
   color: string;
 };
 /** Folgas prontas da tela: nenhuma, pequena (A1 justa), média, grande. */
@@ -37,7 +45,7 @@ export const CLEARANCES = [
   ["medium", "Média", 0.6],
   ["large", "Grande", 1],
 ] as const;
-export const DEFAULT_TOOL_FIT: ToolFitParams = { mode: "block", clearance: 0.3, depth: 12, floor: 2, wall: 3, finger: true, drawerW: 400, drawerD: 300, color: "#2563eb" };
+export const DEFAULT_TOOL_FIT: ToolFitParams = { mode: "block", clearance: 0.3, depth: 12, floor: 2, wall: 3, finger: true, drawerW: 400, drawerD: 300, drawerH: 80, drawerKind: "trays", binHeight: "tallest", lip: true, color: "#2563eb" };
 
 /** Limites da profundidade na tela; a sugestão pela altura fica dentro deles. */
 export const DEPTH_RANGE = [3, 60] as const;
@@ -50,6 +58,7 @@ const TEST_H = 2;
 const EPS = 0.01;
 const BLOCK_R = 3;
 const TRAY_SPACING = 10; // entre as bandejas no 3MF
+const TRAY_ROUND = 5; // mm: a bandeja arredonda para cima de 5 em 5
 
 type Pt = [number, number];
 function validate(o: ToolOutline) {
@@ -105,7 +114,7 @@ function carve(k: K, body: CS, cuts: CS, z0: number, top: number, depth: number)
 const arrangeFor = (tools: ToolOutline[], p: ToolFitParams, width: number, height?: number) =>
   arrange(tools, { width, height, inflate: p.clearance, gap: p.wall, reserveTop: p.finger ? FINGER_R : 0 });
 const usableBed = () => bedMm() - 2 * BED_MARGIN;
-const missingNote = (ids: string[], tools: ToolOutline[], where: string) =>
+export const missingNote = (ids: string[], tools: ToolOutline[], where: string) =>
   ids.length ? [`${ids.map((id) => tools.find((t) => t.id === id)?.label ?? id).join(", ")} não ${ids.length > 1 ? "couberam" : "coube"} ${where}.`] : [];
 /** Lados das bandejas num eixo: inteiras do tamanho da mesa e a última com o que sobra. */
 function traySizes(total: number, max: number): number[] {
@@ -113,25 +122,62 @@ function traySizes(total: number, max: number): number[] {
   return Array.from({ length: n }, (_, i) => (i < n - 1 ? max : total - (n - 1) * max));
 }
 
-function buildBlock(M: ManifoldToplevel, k: K, tools: ToolOutline[], p: ToolFitParams, name = "Bloco", w = usableBed(), d?: number): { model: Model | null; missing: string[] } {
+/**
+ * Bloco com os bolsões. Com `d` (bandeja da gaveta), as ferramentas são arrumadas na área `w`×`d`, mas o bloco tem só
+ * o tamanho que elas ocupam (+ parede), arredondado: nunca a área inteira à toa (#169: 1 óculos virava 248 × 248 mm).
+ */
+function buildBlock(M: ManifoldToplevel, k: K, tools: ToolOutline[], p: ToolFitParams, name = "Bloco", w = usableBed(), d?: number): { model: Model | null; missing: string[]; size: [number, number] } {
   const r = arrangeFor(tools, p, w, d);
-  if (!r.placed.length) return { model: null, missing: r.missing };
-  const [bw, bd] = r.size;
+  if (!r.placed.length) return { model: null, missing: r.missing, size: [0, 0] };
+  const round = (n: number, max: number) => Math.min(max, Math.ceil(n / TRAY_ROUND - 1e-9) * TRAY_ROUND);
+  const [bw, bd] = d === undefined ? r.size : [round(r.used[0], w), round(r.used[1], d)];
   const body = k(k(roundedRect(M, bw, bd, BLOCK_R)).translate([bw / 2, bd / 2]));
   const s = carve(k, body, cutsOf(M, k, r.placed, p), 0, p.floor + p.depth, p.depth);
-  return { model: { name, parts: [{ name, color: p.color, mesh: solidMesh(k(s.translate([-bw / 2, -bd / 2, 0]))) }] }, missing: r.missing };
+  return { model: { name, parts: [{ name, color: p.color, mesh: solidMesh(k(s.translate([-bw / 2, -bd / 2, 0]))) }] }, missing: r.missing, size: [bw, bd] };
 }
 
-function buildGridfinity(M: ManifoldToplevel, k: K, tools: ToolOutline[], p: ToolFitParams): { model: Model | null; missing: string[]; note: string } {
+/** Bandeja maciça do tamanho útil da mesa: só para comparar gramas e tempo com as bandejas do tamanho das ferramentas. */
+export function fullTray(M: ManifoldToplevel, p: ToolFitParams): Model {
+  const side = usableBed();
+  return scoped((k) => ({ name: "Bandeja cheia", parts: [{ name: "Bandeja cheia", color: p.color, mesh: solidMesh(k(M.Manifold.cube([side, side, p.floor + p.depth]))) }] }));
+}
+
+/** Casas (menor número que cabe as ferramentas arrumadas + parede) e unidades de 7 mm (pés + fundo + encaixe). */
+function gridfinitySize(tools: ToolOutline[], p: ToolFitParams) {
   const r = arrangeFor(tools, p, usableBed());
-  const nx = Math.max(1, Math.ceil((r.size[0] + BIN_GAP) / GRID)), ny = Math.max(1, Math.ceil((r.size[1] + BIN_GAP) / GRID));
-  const W = nx * GRID - BIN_GAP, D = ny * GRID - BIN_GAP;
+  const nx = Math.max(1, Math.ceil((r.size[0] + BIN_GAP) / GRID - 1e-9)), ny = Math.max(1, Math.ceil((r.size[1] + BIN_GAP) / GRID - 1e-9));
   const units = Math.ceil((FOOT_H + p.floor + p.depth) / HEIGHT_UNIT - 1e-9);
+  return { r, nx, ny, units };
+}
+
+/** Tamanho da caixinha de uma ferramenta na grade: casas (w × h) e altura em unidades de 7 mm. Sem geometria. */
+export function binCells(tool: ToolOutline, p: ToolFitParams): { w: number; h: number; u: number } {
+  const { nx, ny, units } = gridfinitySize([tool], p);
+  return { w: nx, h: ny, u: units };
+}
+
+/** Caixinha Gridfinity de uma ferramenta (gaveta modular), centrada na origem, com o nome e a medida na grade. */
+export function toolBin(M: ManifoldToplevel, tool: ToolOutline, p: ToolFitParams, units?: number): { model: Model; w: number; h: number; u: number } {
+  validate(tool);
+  const cells = binCells(tool, p);
+  const { w, h } = cells, u = Math.max(units ?? cells.u, cells.u);
+  const name = `Caixinha ${tool.label ?? tool.id} ${w}×${h}×${u}`;
+  const model = scoped((k) => buildGridfinity(M, k, [tool], p, { units: u, lip: p.lip }).model!);
+  return { model: { ...model, name, parts: model.parts.map((q) => ({ ...q, name })) }, w, h, u };
+}
+
+/** `units`: altura (≥ a que o encaixe pede), para niveladas; `lip`: borda de empilhar em cima. */
+function buildGridfinity(M: ManifoldToplevel, k: K, tools: ToolOutline[], p: ToolFitParams, opts: { units?: number; lip?: boolean } = {}): { model: Model | null; missing: string[]; note: string } {
+  const size = gridfinitySize(tools, p);
+  const { r, nx, ny } = size;
+  const units = Math.max(opts.units ?? size.units, size.units);
+  const W = nx * GRID - BIN_GAP, D = ny * GRID - BIN_GAP;
   const top = units * HEIGHT_UNIT;
   const body = k(roundedRect(M, W, D, BIN_R));
   // bolsões no centro da caixa
   const cuts = k(cutsOf(M, k, r.placed, p).translate([-r.size[0] / 2, -r.size[1] / 2]));
-  const bin = k(gridFeet(M, k, nx, ny).add(carve(k, body, k(cuts.intersect(k(body.offset(-EPS)))), FOOT_H, top, p.depth)));
+  let bin = k(gridFeet(M, k, nx, ny).add(carve(k, body, k(cuts.intersect(k(body.offset(-EPS)))), FOOT_H, top, p.depth)));
+  if (opts.lip) bin = k(bin.add(stackingLip(M, k, W, D, top, p.wall)));
   return { model: { name: "Caixa Gridfinity", parts: [{ name: "Caixa Gridfinity", color: p.color, mesh: solidMesh(bin) }] }, missing: r.missing, note: `Caixa Gridfinity de ${nx}×${ny} casas e ${units} unidades de altura (${top} mm).` };
 }
 
@@ -145,20 +191,19 @@ function buildDrawer(M: ManifoldToplevel, k: K, tools: ToolOutline[], p: ToolFit
   for (const td of ys) {
     let x0 = 0;
     for (const tw of xs) {
-      const { model, missing } = left.length ? buildBlock(M, k, left, p, `Bandeja ${models.length + 1}`, tw, td) : { model: null, missing: [] };
+      const { model, missing, size } = left.length ? buildBlock(M, k, left, p, `Bandeja ${models.length + 1}`, tw, td) : { model: null, missing: [] as string[], size: [0, 0] as [number, number] };
       left = left.filter((t) => missing.includes(t.id));
-      // bandeja na posição dela na gaveta, afastada das vizinhas no 3MF
+      // bandeja no canto do espaço dela na gaveta, afastada das vizinhas no 3MF
       if (model) {
-        models.push({ ...model, parts: model.parts.map((q) => ({ ...q, mesh: moveMesh(q.mesh, x0 + tw / 2, y0 + td / 2) })) });
-        sizes.push(`${Math.floor(tw)} × ${Math.floor(td)}`);
+        models.push({ ...model, parts: model.parts.map((q) => ({ ...q, mesh: moveMesh(q.mesh, x0 + size[0] / 2, y0 + size[1] / 2) })) });
+        sizes.push(`Bandeja de ${Math.round(size[0])} × ${Math.round(size[1])} mm`);
       }
       x0 += tw + TRAY_SPACING;
     }
     y0 += td + TRAY_SPACING;
   }
-  const free = xs.length * ys.length - models.length;
   const note = models.length
-    ? `Gaveta de ${p.drawerW} × ${p.drawerD} mm: ${models.length} bandeja(s) (${sizes.join(", ")} mm)${free > 0 ? `; ${free} espaço(s) da gaveta ficam livres` : ""}.`
+    ? `Gaveta de ${p.drawerW} × ${p.drawerD} mm: ${sizes.join("; ")} (só o tamanho das ferramentas, o resto da gaveta fica livre).`
     : `Gaveta de ${p.drawerW} × ${p.drawerD} mm: nenhuma ferramenta cabe nela.`;
   return { models, missing: left.map((t) => t.id), note };
 }

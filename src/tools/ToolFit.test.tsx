@@ -1,5 +1,5 @@
 // @vitest-environment happy-dom
-import { screen, waitFor } from "@testing-library/react";
+import { fireEvent, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { strFromU8, unzipSync } from "fflate";
 import { describe, expect, test, vi } from "vitest";
@@ -66,11 +66,66 @@ describe("Organizador pela foto (#169)", () => {
     expect(screen.getByText(/A peça fica com 18 mm de altura/)).toBeInTheDocument();
   });
 
-  test("gaveta: pede as medidas e avisa quantas bandejas", async () => {
+  test("gaveta: pede as medidas, bandeja do tamanho das ferramentas e gramas comparadas com a bandeja cheia", async () => {
     const user = userEvent.setup();
     renderWithApp(<ToolFit />);
     await user.click(screen.getByRole("button", { name: "Gaveta" }));
     expect(screen.getByRole("spinbutton", { name: /Largura da gaveta/ })).toBeInTheDocument();
-    expect(await screen.findByText(/bandeja\(s\)/, undefined, BUILD)).toBeInTheDocument();
+    expect(await screen.findByText(/Bandeja de \d+ × \d+ mm \(só o tamanho das ferramentas/, undefined, BUILD)).toBeInTheDocument();
+    // gramas e tempo comparados com uma bandeja do tamanho da mesa (#169: 1 óculos virava 248 × 248 mm)
+    const cmp = await screen.findByText(/Bandejas do tamanho das ferramentas: ≈ [\d.]+ g .* Uma bandeja do tamanho da mesa \(248 × 248 mm\) gastaria ≈ [\d.]+ g/, undefined, BUILD);
+    const [mine, full] = [...cmp.textContent!.matchAll(/≈ ([\d.]+) g/g)].map((m) => Number(m[1].replace(/\./g, "")));
+    expect(mine).toBeLessThan(full);
   }, 60_000);
+
+  test("gaveta modular: uma caixinha por ferramenta no mapa (setas movem) e cada mesa num 3MF com nomes (#169)", async () => {
+    const user = userEvent.setup();
+    renderWithApp(<ToolFit />);
+    await user.click(screen.getByRole("button", { name: "Gaveta" }));
+    await user.click(screen.getByRole("button", { name: "Caixinhas" }));
+    expect(screen.getByRole("spinbutton", { name: /Altura útil da gaveta/ })).toBeInTheDocument();
+    // altura: niveladas pela mais alta por padrão; borda de empilhar ligada
+    expect(screen.getByRole("button", { name: "Mais alta" })).toHaveAttribute("aria-pressed", "true");
+    expect(screen.getByRole("switch", { name: /Borda de empilhar/ })).toBeChecked();
+    expect(screen.getByRole("img", { name: /Gaveta com 9 × 7 casas de 42 mm; 3 caixinha\(s\)/ })).toBeInTheDocument();
+    const bins = screen.getAllByRole("button", { name: /^Caixinha \d / });
+    expect(bins.map((b) => b.getAttribute("aria-label")!.match(/^Caixinha (\d)/)![1]).sort()).toEqual(["1", "2", "3"]); // mesmo número da lista
+    // seta para cima: pelo menos uma caixinha anda (as de trás não batem em nada)
+    const before = bins.map((b) => b.getAttribute("aria-label"));
+    for (const b of bins) fireEvent.keyDown(b, { key: "ArrowUp" });
+    const after = screen.getAllByRole("button", { name: /^Caixinha \d / }).map((b) => b.getAttribute("aria-label"));
+    expect(after).not.toEqual(before);
+    expect(screen.getByRole("button", { name: "Arrumar de novo sozinho" })).toBeInTheDocument();
+    // salvar: base em pedaços e as caixinhas, cada mesa num 3MF
+    const saveAll = await screen.findByRole("button", { name: "Salvar todas as mesas numa pasta" }, BUILD);
+    t.openPath = "/pasta";
+    await user.click(saveAll);
+    await waitFor(() => expect([...t.files.keys()].some((k) => k.startsWith("/pasta/organizador-gaveta-mesa-1"))).toBe(true));
+    const all = [...t.files].filter(([k]) => k.startsWith("/pasta/organizador-gaveta-mesa-")).map(([, v]) => strFromU8(unzipSync(v)["3D/3dmodel.model"])).join();
+    expect(all).toMatch(/name="Caixinha Chave de fenda \d+×\d+×\d+"/);
+    expect(all).toMatch(/name="Caixinha Tesoura/);
+    expect(all).toMatch(/name="Base( \d+)?"/);
+  }, 120_000);
+
+  test("várias fotos somam ferramentas: numeração contínua, renomear e remover (#169)", async () => {
+    const user = userEvent.setup();
+    const { container } = renderWithApp(<ToolFit />);
+    const upload = () => user.upload(container.querySelector<HTMLInputElement>('.photo-step input[type="file"]')!, new File(["x"], "ferramentas.jpg", { type: "image/jpeg" }));
+    await upload();
+    const first = await screen.findByRole("textbox", { name: "Nome da ferramenta 1" }, BUILD);
+    expect(first).toHaveValue("Ferramenta 1");
+    await user.click(screen.getByRole("button", { name: /Adicionar outra foto/ }));
+    await upload();
+    const second = await screen.findByRole("textbox", { name: "Nome da ferramenta 2" }, BUILD);
+    expect(second).toHaveValue("Ferramenta 2");
+    // a foto nova numera a partir de 2, como a lista (PhotoStep com firstNumber)
+    expect(screen.getByText(/Ferramenta 2/, { selector: ".photo-step *" })).toBeInTheDocument();
+    expect(screen.getByText(/2 fotos somadas/)).toBeInTheDocument();
+    await user.clear(first);
+    await user.type(first, "Alicate");
+    expect(screen.getByRole("textbox", { name: "Nome da ferramenta 1" })).toHaveValue("Alicate");
+    await user.click(screen.getByRole("button", { name: "Remover Ferramenta 2" }));
+    expect(screen.queryByRole("textbox", { name: "Nome da ferramenta 2" })).not.toBeInTheDocument();
+    expect(screen.getByRole("textbox", { name: "Nome da ferramenta 1" })).toHaveValue("Alicate");
+  }, 120_000);
 });

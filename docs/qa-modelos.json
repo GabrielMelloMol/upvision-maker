@@ -3583,15 +3583,70 @@
   "variant": "gaveta",
   "status": "aviso",
   "reasons": [
-   "o conjunto arrumado ocupa 459,0 × 248,0 mm: passa da mesa de 256 mm",
+   "o conjunto arrumado ocupa 438,0 × 230,0 mm: passa da mesa de 256 mm",
    "não coube numa placa: 2 placas",
-   "app: Gaveta de 450 × 320 mm: 2 bandeja(s) (248 × 248, 201 × 248 mm); 2 espaço(s) da gaveta ficam livres."
+   "app: Gaveta de 450 × 320 mm: Bandeja de 200 × 230 mm; Bandeja de 180 × 85 mm (só o tamanho das ferramentas, o resto da gaveta fica livre)."
   ],
   "date": "2026-10-02",
   "slicers": "Bambu ✓ · Orca ✓",
-  "minutes": 558,
-  "grams": 522.1,
+  "minutes": 362,
+  "grams": 296.6,
   "plates": 2
+ },
+ {
+  "key": "toolfit:gaveta modular",
+  "owner": "Torno",
+  "group": "tools",
+  "label": "Organizador pela foto (ferramenta)",
+  "variant": "gaveta modular",
+  "status": "aviso",
+  "reasons": [
+   "o conjunto arrumado ocupa 409,0 × 309,0 mm: passa da mesa de 256 mm",
+   "não coube numa placa: 5 placas",
+   "app: Cabem 9 × 7 casas; margem 10,5 mm de cada lado na largura e 2,5 mm de cada lado na profundidade. Caixinhas de até 10 unidades (70 mm). A base sai em 4 pedaços."
+  ],
+  "date": "2026-10-02",
+  "slicers": "Bambu ✓ · Orca ✓",
+  "minutes": 629,
+  "grams": 477,
+  "plates": 5
+ },
+ {
+  "key": "toolfit:gaveta modular cheia",
+  "owner": "Torno",
+  "group": "tools",
+  "label": "Organizador pela foto (ferramenta)",
+  "variant": "gaveta modular cheia",
+  "status": "aviso",
+  "reasons": [
+   "o conjunto arrumado ocupa 459,0 × 329,0 mm: passa da mesa de 256 mm",
+   "mais de 24 h de impressão",
+   "não coube numa placa: 7 placas",
+   "app: Cabem 10 × 7 casas; margem 14,5 mm de cada lado na largura e 12,5 mm de cada lado na profundidade. Caixinhas de até 7 unidades (49 mm). A base sai em 4 pedaços."
+  ],
+  "date": "2026-10-02",
+  "slicers": "Bambu ✓ · Orca ✓",
+  "minutes": 1448,
+  "grams": 1219.8,
+  "plates": 7
+ },
+ {
+  "key": "toolfit:gaveta modular individual",
+  "owner": "Torno",
+  "group": "tools",
+  "label": "Organizador pela foto (ferramenta)",
+  "variant": "gaveta modular individual",
+  "status": "aviso",
+  "reasons": [
+   "o conjunto arrumado ocupa 409,0 × 309,0 mm: passa da mesa de 256 mm",
+   "não coube numa placa: 5 placas",
+   "app: Cabem 9 × 7 casas; margem 10,5 mm de cada lado na largura e 2,5 mm de cada lado na profundidade. Caixinhas de até 10 unidades (70 mm). A base sai em 4 pedaços."
+  ],
+  "date": "2026-10-02",
+  "slicers": "Bambu ✓ · Orca ✓",
+  "minutes": 619,
+  "grams": 467.1,
+  "plates": 5
  },
  {
   "key": "toolfit:gaveta pequena",
@@ -3601,13 +3656,13 @@
   "variant": "gaveta pequena",
   "status": "ok",
   "reasons": [
-   "app: Gaveta de 200 × 150 mm: 1 bandeja(s) (199 × 149 mm).",
+   "app: Gaveta de 200 × 150 mm: Bandeja de 199 × 120 mm (só o tamanho das ferramentas, o resto da gaveta fica livre).",
    "app: Chave combinada não coube na gaveta."
   ],
   "date": "2026-10-02",
   "slicers": "Bambu ✓ · Orca ✓",
-  "minutes": 162,
-  "grams": 142,
+  "minutes": 139,
+  "grams": 116.1,
   "plates": 1
  },
  {

@@ -237,8 +237,8 @@ details.advanced[open] > .stack, details.advanced[open] > .grid { margin-top: va
 .photo-corners polygon { fill: color-mix(in srgb, var(--accent) 8%, transparent); stroke: var(--accent); stroke-width: 2px; stroke-dasharray: 6 4; vector-effect: non-scaling-stroke; pointer-events: none; }
 .photo-found { pointer-events: none; animation: fade-up var(--dur) var(--ease-out) both; }
 .photo-found path { fill: color-mix(in srgb, var(--accent) 28%, transparent); stroke: var(--accent); stroke-width: 2px; vector-effect: non-scaling-stroke; }
-.photo-corners .tool-num circle, .sheet-preview .tool-num circle, .photo-list .tool-num { fill: var(--accent); background: var(--accent); }
-.photo-corners .tool-num text, .sheet-preview .tool-num text { fill: #fff; font-weight: 700; text-anchor: middle; font-family: var(--font-display); }
+.photo-corners .tool-num circle, .sheet-preview .tool-num circle, .drawer-map .tool-num circle, .photo-list .tool-num { fill: var(--accent); background: var(--accent); }
+.photo-corners .tool-num text, .sheet-preview .tool-num text, .drawer-map .tool-num text { fill: #fff; font-weight: 700; text-anchor: middle; font-family: var(--font-display); }
 .photo-corners .corner { cursor: grab; outline: none; }
 .photo-corners.dragging .corner { cursor: grabbing; }
 .photo-corners .corner .corner-hit { fill: transparent; }
@@ -249,6 +249,12 @@ details.advanced[open] > .stack, details.advanced[open] > .grid { margin-top: va
 .photo-list li { display: flex; align-items: center; gap: var(--space-2); }
 .photo-list .tool-num { flex: none; display: grid; place-content: center; width: 22px; height: 22px; border-radius: 50%; color: #fff; font-size: 12px; font-weight: 700; }
 .photo-list b { color: var(--text); font-weight: 600; }
+/* lista de ferramentas do projeto (#169): nome editável no lugar, com cara de texto em negrito */
+.tool-list-name { flex: 1; min-width: 0; display: grid; }
+.tool-list .tool-name { padding: 2px 4px; margin-left: -4px; border: 1px solid transparent; border-radius: var(--r-sm); background: transparent; color: var(--text); font: inherit; font-weight: 600; }
+.tool-list .tool-name:hover { border-color: var(--border); }
+.tool-list .tool-name:focus-visible { border-color: var(--accent); background: var(--field); }
+.drawer-map .tool-num { pointer-events: none; }
 .sheet-preview figcaption { display: grid; gap: var(--space-2); margin-top: var(--space-2); }
 @media (prefers-reduced-motion: reduce) { .photo-found { animation: none; } }
 

@@ -80,7 +80,8 @@ export type ArrangeOptions = {
   /** Espaço a mais em cima de cada ferramenta (o recorte do dedo sai para lá). */
   reserveTop?: number;
 };
-export type Arranged = { placed: ToolOutline[]; size: [number, number]; missing: string[] };
+/** `size`: a área (com `height`, a área inteira); `used`: só o que as ferramentas ocupam, com a parede em volta. */
+export type Arranged = { placed: ToolOutline[]; size: [number, number]; used: [number, number]; missing: string[] };
 
 /** Prateleiras: cada ferramenta já deitada; se não couber na largura, tenta em pé (90°). */
 export function arrange(outlines: ToolOutline[], o: ArrangeOptions): Arranged {
@@ -121,5 +122,5 @@ export function arrange(outlines: ToolOutline[], o: ArrangeOptions): Arranged {
     used = Math.max(used, x);
   }
   const depth = placed.length ? y + shelf + o.gap : 0;
-  return { placed, size: [o.height === undefined ? used : o.width, o.height ?? depth], missing };
+  return { placed, size: [o.height === undefined ? used : o.width, o.height ?? depth], used: [used, depth], missing };
 }

@@ -12,8 +12,11 @@ export function toolSize(o: ToolOutline): [number, number] {
   return [b.maxX - b.minX, b.maxY - b.minY];
 }
 
-/** Prévia 2D (#169): a folha com o contorno de cada ferramenta e a medida dela, como a foto entregou. */
-export default function SheetPreview({ outlines, sheet }: { outlines: ToolOutline[]; sheet: Sheet }) {
+/**
+ * Prévia 2D (#169): a folha com o contorno de cada ferramenta e o número dela (o mesmo da lista, da foto e do mapa).
+ * Nome e medida ficam na lista de ferramentas do projeto.
+ */
+export default function SheetPreview({ outlines, sheet }: { outlines: (ToolOutline & { num?: number })[]; sheet: Sheet }) {
   const { widthMm: W, heightMm: H } = sheet;
   const desc = outlines.map((o) => `${o.label ?? o.id}: ${toolSize(o).map(mm).join(" × ")} mm`).join("; ");
   return (
@@ -34,7 +37,7 @@ export default function SheetPreview({ outlines, sheet }: { outlines: ToolOutlin
             <g key={o.id} className="tool-num" transform={`translate(${cx} ${cy})`}>
               <circle r={NUM_R} />
               <text fontSize={NUM_R * 1.2} dy="0.35em">
-                {i + 1}
+                {o.num ?? i + 1}
               </text>
             </g>
           );
@@ -44,18 +47,6 @@ export default function SheetPreview({ outlines, sheet }: { outlines: ToolOutlin
         </text>
       </svg>
       <figcaption>
-        <ol className="photo-list">
-          {outlines.map((o, i) => (
-            <li key={o.id}>
-              <span className="tool-num" aria-hidden>
-                {i + 1}
-              </span>
-              <span>
-                <b>{o.label ?? o.id}</b> · {toolSize(o).map(mm).join(" × ")} mm
-              </span>
-            </li>
-          ))}
-        </ol>
         <p className="hint">Medida de cada ferramenta no menor retângulo que a contém. Confira com uma régua antes de imprimir.</p>
       </figcaption>
     </figure>

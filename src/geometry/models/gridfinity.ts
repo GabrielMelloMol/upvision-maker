@@ -126,6 +126,26 @@ export function gridFeet(M: ManifoldToplevel, k: K, nx: number, ny: number): Sol
   return k(M.Manifold.union(cellCenters(nx, ny).map(([x, y]) => k(foot(M, k).translate([x, y, 0])))));
 }
 
+/**
+ * Borda de empilhar (perfil da especificação) em cima de uma caixinha W×D com o topo da parede em H: o pé de outra
+ * caixinha encaixa nela. `wall`: parede da caixinha (decide o apoio de 45° por baixo da borda).
+ */
+export function stackingLip(M: ManifoldToplevel, k: K, W: number, D: number, H: number, wall: number): Solid {
+  const [c1, v, c2] = LIP;
+  // apoio de 45° por baixo da borda (#140): sem ele a borda começa 1,4 mm para dentro da parede, no ar
+  const support = Math.max(0, c1 + c2 - wall);
+  const outer = k(roundedRect(M, W, D, BIN_R));
+  const shell = k(k(outer.extrude(LIP_H + support)).translate([0, 0, H - support]));
+  const cavity = profileSolid(M, k, W, D, BIN_R, [
+    ...(support > 0 ? ([[H - support - EPS, wall]] as [number, number][]) : []),
+    [H - (support > 0 ? 0 : EPS), c1 + c2 + 0.001],
+    [H + c1, c2],
+    [H + c1 + v, c2],
+    [H + LIP_H + EPS, 0],
+  ]);
+  return k(shell.subtract(cavity));
+}
+
 /** Centros das casas de uma grade nx×ny centrada na origem. */
 export function cellCenters(nx: number, ny: number): [number, number][] {
   return Array.from({ length: nx * ny }, (_, i) => [(i % nx - (nx - 1) / 2) * GRID, (Math.floor(i / nx) - (ny - 1) / 2) * GRID]);
@@ -177,20 +197,8 @@ export function buildGridBin({ M, text }: ModelCtx, p: GridBinParams): ModelOutp
       body = k(body.add(k(k(k(round.extrude(iw)).rotate([90, 0, 90])).translate([-iw / 2, -id / 2, floorZ]))));
     }
     if (p.lip) {
-      // borda empilhável: o pé de outra caixinha encaixa por cima
-      const [c1, v, c2] = LIP;
-      // apoio de 45° por baixo da borda (#140): sem ele a borda começa 1,4 mm para dentro da parede, no ar
-      const support = Math.max(0, c1 + c2 - p.wall);
-      const shell = k(k(outer.extrude(LIP_H + support)).translate([0, 0, H - support]));
-      const cavity = profileSolid(M, k, W, D, BIN_R, [
-        ...(support > 0 ? ([[H - support - EPS, p.wall]] as [number, number][]) : []),
-        [H - (support > 0 ? 0 : EPS), c1 + c2 + 0.001],
-        [H + c1, c2],
-        [H + c1 + v, c2],
-        [H + LIP_H + EPS, 0],
-      ]);
-      body = k(body.add(k(shell.subtract(cavity))));
-      if (c1 + c2 < p.wall) warnings.push("Parede mais grossa que a borda empilhável: a borda fica com degrau por dentro.");
+      body = k(body.add(stackingLip(M, k, W, D, H, p.wall)));
+      if (LIP[0] + LIP[2] < p.wall) warnings.push("Parede mais grossa que a borda empilhável: a borda fica com degrau por dentro.");
     }
     const bin = k(feet.add(body));
     const models: Model[] = [{ name: "Caixinha", parts: [{ name: "Caixinha", color: p.binColor, mesh: solidMesh(bin) }] }];

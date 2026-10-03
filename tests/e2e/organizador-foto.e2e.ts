@@ -90,3 +90,46 @@ test("organizador pela foto: mesa branca sem borda avisa, destaca os cantos e mo
   await page.mouse.up();
   await expect(page.locator(".corner-lens")).toHaveCount(0);
 });
+
+test("organizador pela foto: gaveta modular com uma caixinha Gridfinity por ferramenta, mapa arrastável e uma mesa por 3MF (#169)", async ({ page, tauri }) => {
+  test.setTimeout(180_000);
+  await openApp(page);
+  await go(page, "Organizador pela foto");
+  await page.getByRole("button", { name: "Gaveta" }).click();
+  await page.getByRole("button", { name: "Caixinhas" }).click();
+  const map = page.getByRole("img", { name: /Gaveta com 9 × 7 casas de 42 mm; 3 caixinha\(s\)/ });
+  await expect(map).toBeVisible();
+  // espera a peça terminar de gerar: os avisos que chegam com ela empurram o mapa para baixo (o arraste erraria o alvo)
+  const card = page.getByLabel("Impressão por mesa");
+  await expect(card.getByRole("row", { name: /Caixinha Chave de fenda \d+×\d+×\d+/ })).toBeVisible({ timeout: 120_000 });
+  // arrastar com o mouse a caixinha mais ao fundo uma casa para trás (no mapa, o fundo fica em cima)
+  const bins = page.getByRole("button", { name: /^Caixinha \d / });
+  const labels = await bins.evaluateAll((els) => els.map((e) => e.getAttribute("aria-label")!));
+  const pos = labels.map((l) => {
+    const [, , h] = /(\d+)×(\d+) casas/.exec(l)!.map(Number);
+    const [, , row] = /coluna (\d+), fileira (\d+)/.exec(l)!.map(Number);
+    return { l, h, top: row - 1 + h };
+  });
+  const back = pos.reduce((a, b) => (b.top > a.top ? b : a));
+  expect(back.top).toBeLessThan(7); // sobra fileira atrás
+  const bin = page.getByRole("button", { name: back.l });
+  await bin.scrollIntoViewIfNeeded(); // o mapa fica embaixo do 3D, na coluna que rola sozinha
+  const box = (await bin.boundingBox())!;
+  const cell = box.height / back.h;
+  // começa no meio da fileira de baixo da caixinha (o centro pode cair bem na divisa de duas fileiras)
+  const startY = box.y + box.height - cell / 2;
+  await page.mouse.move(box.x + box.width / 2, startY);
+  await page.mouse.down();
+  await page.mouse.move(box.x + box.width / 2, startY - cell, { steps: 5 });
+  await page.mouse.up();
+  await expect(page.getByRole("button", { name: back.l })).toHaveCount(0);
+  await expect(page.getByRole("button", { name: back.l.replace(/fileira (\d+)/, (_, r) => `fileira ${Number(r) + 1}`) })).toBeVisible();
+  await expect(page.getByRole("button", { name: "Arrumar de novo sozinho" })).toBeVisible();
+  // impressão (refeita com a caixinha no lugar novo): base em pedaços + caixinhas, cada mesa num 3MF
+  await expect(card.getByRole("row", { name: /Caixinha Chave de fenda \d+×\d+×\d+/ })).toBeVisible({ timeout: 120_000 });
+  await expect(card.getByRole("row", { name: /^Base/ }).first()).toBeVisible();
+  tauri.nextOpen = "/pasta";
+  await card.getByRole("button", { name: "Salvar todas as mesas numa pasta" }).click();
+  await expect(page.locator(".toast", { hasText: /mesas salvas em \/pasta/ })).toBeVisible();
+  expect([...tauri.files.keys()].filter((p) => p.startsWith("/pasta/organizador-gaveta-mesa-")).length).toBeGreaterThan(1);
+});

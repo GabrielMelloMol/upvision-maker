@@ -23,7 +23,7 @@ Peça maior que a mesa de 256 mm do A1 conta como **aviso** quando o app avisa n
 impressoras de mesa maior); sem o aviso do app, é **falha**.
 
 
-**Total:** 235 casos · 181 ok · 53 com aviso · 1 com falha · 0 n/a
+**Total:** 238 casos · 181 ok · 56 com aviso · 1 com falha · 0 n/a
 
 ## Forja
 
@@ -262,8 +262,11 @@ impressoras de mesa maior); sem o aviso do app, é **falha**.
 | Painel de nomes (namesPanel) | máximo | ⚠️ aviso | Bambu ✓ · Orca ✓ · Projeto Bambu ✓ | – | – | – | – | o conjunto arrumado ocupa 600,0 × 600,0 mm: passa da mesa de 256 mm; Bambu: torre de purga em cima de uma peça depois do --arrange do CLI (na tela, arraste a torre ou use Arrumar); Orca: torre de purga em cima de uma peça depois do --arrange do CLI (na tela, arraste a torre ou use Arrumar); Projeto Bambu: torre de purga em cima de uma peça depois do --arrange do CLI (na tela, arraste a torre ou use Arrumar); app: Maior que a mesa de 256 mm: o painel saiu em 9 partes para colar lado a lado. |
 | Painel de nomes (namesPanel) | mínimo | ✅ ok | Bambu ✓ · Orca ✓ · Projeto Bambu ✓ | 11 | 6,0 | 1 | – | app: Com 12 nomes a letra fica com 4.1 mm: aumente a placa para ler bem. |
 | Painel de nomes (namesPanel) | padrão | ✅ ok | Bambu ✓ · Orca ✓ · Projeto Bambu ✓ | 100 | 72,4 | 1 | – | – |
-| Organizador pela foto (ferramenta) | gaveta | ⚠️ aviso | Bambu ✓ · Orca ✓ | 558 | 522,1 | 2 | – | o conjunto arrumado ocupa 459,0 × 248,0 mm: passa da mesa de 256 mm; não coube numa placa: 2 placas; app: Gaveta de 450 × 320 mm: 2 bandeja(s) (248 × 248, 201 × 248 mm); 2 espaço(s) da gaveta ficam livres. |
-| Organizador pela foto (ferramenta) | gaveta pequena | ✅ ok | Bambu ✓ · Orca ✓ | 162 | 142,0 | 1 | – | app: Gaveta de 200 × 150 mm: 1 bandeja(s) (199 × 149 mm).; app: Chave combinada não coube na gaveta. |
+| Organizador pela foto (ferramenta) | gaveta | ⚠️ aviso | Bambu ✓ · Orca ✓ | 362 | 296,6 | 2 | – | o conjunto arrumado ocupa 438,0 × 230,0 mm: passa da mesa de 256 mm; não coube numa placa: 2 placas; app: Gaveta de 450 × 320 mm: Bandeja de 200 × 230 mm; Bandeja de 180 × 85 mm (só o tamanho das ferramentas, o resto da gaveta fica livre). |
+| Organizador pela foto (ferramenta) | gaveta modular | ⚠️ aviso | Bambu ✓ · Orca ✓ | 629 | 477,0 | 5 | – | o conjunto arrumado ocupa 409,0 × 309,0 mm: passa da mesa de 256 mm; não coube numa placa: 5 placas; app: Cabem 9 × 7 casas; margem 10,5 mm de cada lado na largura e 2,5 mm de cada lado na profundidade. Caixinhas de até 10 unidades (70 mm). A base sai em 4 pedaços. |
+| Organizador pela foto (ferramenta) | gaveta modular cheia | ⚠️ aviso | Bambu ✓ · Orca ✓ | 1448 | 1219,8 | 7 | – | o conjunto arrumado ocupa 459,0 × 329,0 mm: passa da mesa de 256 mm; mais de 24 h de impressão; não coube numa placa: 7 placas; app: Cabem 10 × 7 casas; margem 14,5 mm de cada lado na largura e 12,5 mm de cada lado na profundidade. Caixinhas de até 7 unidades (49 mm). A base sai em 4 pedaços. |
+| Organizador pela foto (ferramenta) | gaveta modular individual | ⚠️ aviso | Bambu ✓ · Orca ✓ | 619 | 467,1 | 5 | – | o conjunto arrumado ocupa 409,0 × 309,0 mm: passa da mesa de 256 mm; não coube numa placa: 5 placas; app: Cabem 9 × 7 casas; margem 10,5 mm de cada lado na largura e 2,5 mm de cada lado na profundidade. Caixinhas de até 10 unidades (70 mm). A base sai em 4 pedaços. |
+| Organizador pela foto (ferramenta) | gaveta pequena | ✅ ok | Bambu ✓ · Orca ✓ | 139 | 116,1 | 1 | – | app: Gaveta de 200 × 150 mm: Bandeja de 199 × 120 mm (só o tamanho das ferramentas, o resto da gaveta fica livre).; app: Chave combinada não coube na gaveta. |
 | Organizador pela foto (ferramenta) | gridfinity | ✅ ok | Bambu ✓ · Orca ✓ | 285 | 227,1 | 1 | – | app: Caixa Gridfinity de 5×4 casas e 3 unidades de altura (21 mm). |
 | Organizador pela foto (ferramenta) | máximo | ✅ ok | Bambu ✓ · Orca ✓ | 692 | 660,1 | 1 | – | – |
 | Organizador pela foto (ferramenta) | mínimo | ✅ ok | Bambu ✓ · Orca ✓ | 64 | 47,9 | 1 | – | app: Sem folga: a ferramenta pode não entrar. Imprima a peça de teste antes. |

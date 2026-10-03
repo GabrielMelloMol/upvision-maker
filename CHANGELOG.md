@@ -3,6 +3,10 @@
 Cada versão aparece para a usuária na tela "O que há de novo" depois da atualização.
 Formato: `## <versão> — <data>` e itens `- …` em linguagem simples.
 
+## Próxima versão (ainda não lançada)
+- **Organizador pela foto: gaveta modular**: na saída Gaveta, escolha Caixinhas e cada ferramenta ganha a sua caixinha Gridfinity (o menor número de casas que cabe ela), todas da mesma altura para trocar de lugar e com a borda de empilhar; a base sai pela medida da gaveta, em pedaços que cabem na mesa. Um mapa mostra onde fica cada caixinha (dá para arrastar) e o espaço livre, e cada mesa sai num 3MF com os nomes, com peso e tempo de cada peça. Várias fotos somam ferramentas numa lista só, com o mesmo número na foto, na lista e no mapa; dá para renomear e remover.
+- **Bandejas do tamanho das ferramentas**: na saída Gaveta (Bandejas), a bandeja tem só o tamanho que as ferramentas ocupam, e não mais a mesa inteira. Um par de óculos não vira mais uma bandeja de 248 × 248 mm; a tela compara as gramas e o tempo com a bandeja cheia.
+
 ## 0.10.3 — 2026-10-03
 - **Foto do iPhone direto no Organizador**: aceita HEIC (o formato padrão do iPhone, como chega pelo AirDrop), no Mac e no Windows, usando os dados da câmera para corrigir a altura.
 - **Folha achada até em mesa clara**: o app procura as bordas e o formato da A4/Carta. Para qualquer mesa, imprima a **folha de medição** (botão na tela), com marcadores nos cantos e régua de 100 mm. Quando o app fica em dúvida, os cantos piscam em laranja e uma lupa ajuda a arrastar.

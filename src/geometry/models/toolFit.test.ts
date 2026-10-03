@@ -7,6 +7,7 @@ import { write3mf } from "../threemf";
 import { BED_MARGIN } from "./gridDrawer";
 import { meshBounds } from "../bounds";
 import { getManifold, type ManifoldToplevel, type Solid } from "../manifold";
+import { volume } from "../testUtil";
 import type { Mesh } from "../types";
 import { FOOT_H, GRID } from "./gridfinity";
 import { buildToolFit, DEFAULT_TOOL_FIT as D, suggestedDepth, type ToolFitParams } from "./toolFit";
@@ -117,6 +118,28 @@ describe("organizador de gaveta (#169)", { timeout: 60_000 }, () => {
     }
     expect(area).toBeLessThanOrEqual(400 * 300);
     expect(out.warnings?.join()).not.toMatch(/não coube/);
+  });
+
+  test("bandeja do tamanho das ferramentas, não da mesa: 1 ferramenta pequena gasta menos de 25% de uma bandeja cheia (#169, óculos)", () => {
+    const p = { mode: "drawer" as const, drawerW: 400, drawerD: 300, clearance: 0.6, depth: 12, floor: 2 };
+    const out = build([bar(140, 50)], p);
+    expect(out.models).toHaveLength(1);
+    const tray = out.models[0].parts[0].mesh;
+    const b = meshBounds([tray])!;
+    const need = (n: number) => n + 2 * (0.6 + D.wall);
+    expect(b.max[0] - b.min[0]).toBeLessThanOrEqual(Math.ceil(need(140) / 5) * 5 + 1e-6); // arredondada em 5 mm
+    expect(b.max[1] - b.min[1]).toBeLessThanOrEqual(Math.ceil((need(50) + 11) / 5) * 5 + 1e-6); // + espaço do dedo
+    const full = (bedMm() - 2 * BED_MARGIN) ** 2 * 14; // bandeja maciça do tamanho da mesa
+    expect(volume(tray)).toBeLessThan(0.25 * full);
+    expect(out.warnings?.join()).toMatch(/Bandeja de \d+ × \d+ mm/);
+  });
+
+  test("ferramentas que precisam: a bandeja cresce até a mesa e reparte em mais bandejas", () => {
+    const out = build([...EXAMPLE_OUTLINES, ...EXAMPLE_OUTLINES.map((o) => ({ ...o, id: `${o.id}-2` }))], { mode: "drawer", drawerW: 600, drawerD: 500 });
+    for (const t of out.models) {
+      const b = meshBounds(t.parts.map((q) => q.mesh))!;
+      expect(Math.max(b.max[0] - b.min[0], b.max[1] - b.min[1])).toBeLessThanOrEqual(bedMm() - 2 * BED_MARGIN + 1e-6);
+    }
   });
 
   test("ferramenta que não cabe na gaveta é avisada", () => {
