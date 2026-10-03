@@ -7,12 +7,12 @@ compatibility_date = "2026-09-01"
 # Contadores do limite de envio. Crie com `npx wrangler kv namespace create RATE` e cole o id devolvido.
 [[kv_namespaces]]
 binding = "RATE"
-id = "COLE_AQUI_O_ID_DO_KV"
+id = "bb7dfd8647884aaba09e7bbd2982d0d4"
 
 # Valores que não são segredo (pode editar aqui ou deixar em branco).
 [vars]
 # Repositório PRIVADO que recebe as issues (deixe vazio para só usar e-mail).
-GITHUB_REPO = ""
+GITHUB_REPO = "GabrielMelloMol/upvision-suporte"
 # Quem recebe o e-mail e o remetente verificado no Resend.
 FEEDBACK_TO = ""
 FEEDBACK_FROM = ""
