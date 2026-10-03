@@ -1,5 +1,5 @@
 // @vitest-environment happy-dom
-import { fireEvent, screen, waitFor } from "@testing-library/react";
+import { fireEvent, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { strFromU8, unzipSync } from "fflate";
 import { describe, expect, test, vi } from "vitest";
@@ -70,7 +70,10 @@ describe("Organizador pela foto (#169)", () => {
     const user = userEvent.setup();
     renderWithApp(<ToolFit />);
     await user.click(screen.getByRole("button", { name: "Gaveta" }));
-    expect(screen.getByRole("spinbutton", { name: /Largura da gaveta/ })).toBeInTheDocument();
+    // rótulos curtos dentro do grupo "Gaveta" (revisão do Quartzo: o longo quebrava e desalinhava)
+    const drawer = screen.getByRole("group", { name: "Gaveta" });
+    expect(within(drawer).getByRole("spinbutton", { name: /^Largura/ })).toBeInTheDocument();
+    expect(within(drawer).getByRole("spinbutton", { name: /^Profundidade/ })).toBeInTheDocument();
     expect(await screen.findByText(/Bandeja de \d+ × \d+ mm \(só o tamanho das ferramentas/, undefined, BUILD)).toBeInTheDocument();
     // gramas e tempo comparados com uma bandeja do tamanho da mesa (#169: 1 óculos virava 248 × 248 mm)
     const cmp = await screen.findByText(/Bandejas do tamanho das ferramentas: ≈ [\d.]+ g .* Uma bandeja do tamanho da mesa \(248 × 248 mm\) gastaria ≈ [\d.]+ g/, undefined, BUILD);
@@ -83,11 +86,13 @@ describe("Organizador pela foto (#169)", () => {
     renderWithApp(<ToolFit />);
     await user.click(screen.getByRole("button", { name: "Gaveta" }));
     await user.click(screen.getByRole("button", { name: "Caixinhas" }));
-    expect(screen.getByRole("spinbutton", { name: /Altura útil da gaveta/ })).toBeInTheDocument();
+    expect(within(screen.getByRole("group", { name: "Gaveta" })).getByRole("spinbutton", { name: /^Altura útil/ })).toBeInTheDocument();
+    expect(screen.getByText("Altura das caixinhas", { selector: ".field-label" })).toBeInTheDocument(); // rótulo visível
     // altura: niveladas pela mais alta por padrão; borda de empilhar ligada
     expect(screen.getByRole("button", { name: "Mais alta" })).toHaveAttribute("aria-pressed", "true");
     expect(screen.getByRole("switch", { name: /Borda de empilhar/ })).toBeChecked();
-    expect(screen.getByRole("img", { name: /Gaveta com 9 × 7 casas de 42 mm; 3 caixinha\(s\)/ })).toBeInTheDocument();
+    const map = screen.getByRole("img", { name: /Gaveta com 9 × 7 casas de 42 mm, frente embaixo; 3 caixinhas; \d+ casas livres\./ });
+    expect(within(map).getByText("Frente")).toBeInTheDocument();
     const bins = screen.getAllByRole("button", { name: /^Caixinha \d / });
     expect(bins.map((b) => b.getAttribute("aria-label")!.match(/^Caixinha (\d)/)![1]).sort()).toEqual(["1", "2", "3"]); // mesmo número da lista
     // seta para cima: pelo menos uma caixinha anda (as de trás não batem em nada)
@@ -98,6 +103,9 @@ describe("Organizador pela foto (#169)", () => {
     expect(screen.getByRole("button", { name: "Arrumar de novo sozinho" })).toBeInTheDocument();
     // salvar: base em pedaços e as caixinhas, cada mesa num 3MF
     const saveAll = await screen.findByRole("button", { name: "Salvar todas as mesas numa pasta" }, BUILD);
+    // o resumo da grade é informação (azul), não aviso (amarelo)
+    const summary = screen.getByText(/^Cabem 9 × 7 casas/);
+    expect(summary.closest(".alert")).toHaveClass("info");
     t.openPath = "/pasta";
     await user.click(saveAll);
     await waitFor(() => expect([...t.files.keys()].some((k) => k.startsWith("/pasta/organizador-gaveta-mesa-1"))).toBe(true));

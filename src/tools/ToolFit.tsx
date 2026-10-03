@@ -51,7 +51,7 @@ const BIN_HEIGHTS: [ToolFitParams["binHeight"], string][] = [
 ];
 const BIN_HEIGHT_HINT: Record<ToolFitParams["binHeight"], string> = {
   tallest: "Todas com a altura da que precisa mais: ficam niveladas e trocam de lugar entre si.",
-  drawer: "Todas com a maior altura que cabe na gaveta (Altura útil da gaveta): niveladas e no máximo.",
+  drawer: "Todas com a maior altura que cabe na gaveta (Altura útil): niveladas e no máximo.",
   each: "Cada caixinha só com a altura do encaixe dela: gasta menos, mas ficam desniveladas.",
 };
 const g = (n: number) => `${Math.round(n).toLocaleString("pt-BR")} g`;
@@ -131,16 +131,19 @@ export default function ToolFit() {
   const valid = (Object.entries(LIMITS) as [keyof typeof LIMITS, readonly [number, number]][]).every(([k, [lo, hi]]) => inRange(p[k], lo, hi));
   const [print, setPrint] = useState<DrawerPrint | null>(null);
   const [compare, setCompare] = useState<string | null>(null);
+  const [notes, setNotes] = useState<string[]>([]); // informação da peça (azul); `warnings` fica para o que pede ação
   const { models, warnings, busy, error } = useModelBuilder(async () => {
     if (!valid || !tools.length) return null;
     const M = await getManifold();
     if (modular) {
       const out = buildModularDrawer(M, tools, p, layout.places);
       setPrint(drawerPrint(out.basePieces, out.groups));
+      setNotes(out.notes);
       return { models: out.preview, warnings: out.warnings };
     }
     setPrint(null);
     const out = buildToolFit(M, tools, p);
+    setNotes(out.notes);
     const w = out.warnings ?? [];
     // bandejas: gramas e tempo comparados com uma bandeja do tamanho da mesa (o que saía antes, #169)
     const mine = p.mode === "drawer" ? estimateModels(out.models) : null;
@@ -210,15 +213,22 @@ export default function ToolFit() {
             {p.mode === "drawer" && <Segmented label="Tipo de gaveta" value={p.drawerKind} options={DRAWER_KINDS} onChange={set("drawerKind")} full />}
             <p className="hint">{MODE_HINT[modular ? "bins" : p.mode]}</p>
             {p.mode === "drawer" && (
-              <div className="grid two">
-                <NumField label="Largura da gaveta" value={p.drawerW} onChange={set("drawerW")} min={LIMITS.drawerW[0]} max={LIMITS.drawerW[1]} step={1} />
-                <NumField label="Profundidade da gaveta" value={p.drawerD} onChange={set("drawerD")} min={LIMITS.drawerD[0]} max={LIMITS.drawerD[1]} step={1} />
-                {modular && <NumField label="Altura útil da gaveta" value={p.drawerH} onChange={set("drawerH")} min={LIMITS.drawerH[0]} max={LIMITS.drawerH[1]} step={1} />}
+              <div role="group" aria-label="Gaveta">
+                <span className="field-label">Gaveta</span>
+                {/* rótulos curtos: "Profundidade da gaveta" quebrava em 2 linhas e desalinhava os campos */}
+                <div className="grid two">
+                  <NumField label="Largura" value={p.drawerW} onChange={set("drawerW")} min={LIMITS.drawerW[0]} max={LIMITS.drawerW[1]} step={1} />
+                  <NumField label="Profundidade" value={p.drawerD} onChange={set("drawerD")} min={LIMITS.drawerD[0]} max={LIMITS.drawerD[1]} step={1} />
+                  {modular && <NumField label="Altura útil" value={p.drawerH} onChange={set("drawerH")} min={LIMITS.drawerH[0]} max={LIMITS.drawerH[1]} step={1} />}
+                </div>
               </div>
             )}
             {modular && (
               <>
-                <Segmented label="Altura das caixinhas" value={p.binHeight} options={BIN_HEIGHTS} onChange={set("binHeight")} full />
+                <div>
+                  <span className="field-label">Altura das caixinhas</span>
+                  <Segmented label="Altura das caixinhas" value={p.binHeight} options={BIN_HEIGHTS} onChange={set("binHeight")} full />
+                </div>
                 <p className="hint">{BIN_HEIGHT_HINT[p.binHeight]}</p>
                 <Toggle label="Borda de empilhar" checked={p.lip} onChange={set("lip")} hint="A borda padrão Gridfinity em cima de cada caixinha: é ela que deixa empilhar outra caixinha por cima. Soma 4,4 mm na altura." />
               </>
@@ -242,6 +252,9 @@ export default function ToolFit() {
           <Preview3D models={models} busy={busy} busyText="Gerando os encaixes…" error={error} emptyText={valid ? "Sem ferramentas para encaixar." : "Corrija os campos em vermelho para ver a peça."} />
           {warnings.map((w) => (
             <Alert key={w} kind="warn">{w}</Alert>
+          ))}
+          {notes.map((n) => (
+            <Alert key={n} kind="info">{n}</Alert>
           ))}
           {!modular && compare && <Alert kind="info">{compare}</Alert>}
           {modular && plan.nx > 0 && plan.ny > 0 && (

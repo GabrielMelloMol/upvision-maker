@@ -12,6 +12,8 @@ type Props = {
 };
 
 const NUM_R = 9;
+const FRONT_H = 14; // mm de desenho embaixo da gaveta para o rótulo "Frente"
+const plural = (n: number, one: string, many: string) => `${n} ${n === 1 ? one : many}`;
 const INSET = 1.5; // mm: vão entre caixinhas vizinhas no desenho
 
 /**
@@ -51,15 +53,19 @@ export default function DrawerMap({ plan, sizes, places, names, onMove }: Props)
     onMove(id, d[0], d[1]);
   }
 
-  const desc = `Gaveta com ${plan.nx} × ${plan.ny} casas de 42 mm; ${placed.length} caixinha(s); ${free} casa(s) livre(s).`;
+  const desc = `Gaveta com ${plan.nx} × ${plan.ny} casas de 42 mm, frente embaixo; ${plural(placed.length, "caixinha", "caixinhas")}; ${plural(free, "casa livre", "casas livres")}.`;
   return (
     <figure className="card stack drawer-map" style={{ margin: 0 }}>
       <h3>Mapa da gaveta</h3>
-      <svg className="drawer-editor" viewBox={`-2 -2 ${W + 4} ${D + 4}`} role="img" aria-label={desc} onPointerMove={(e) => drag && e.preventDefault()} onPointerUp={up}>
+      <svg className="drawer-editor" viewBox={`-2 -2 ${W + 4} ${D + 4 + FRONT_H}`} role="img" aria-label={desc} onPointerMove={(e) => drag && e.preventDefault()} onPointerUp={up}>
         <rect className="drawer-base" x={0} y={0} width={W} height={D} rx={4} />
         {Array.from({ length: plan.nx * plan.ny }, (_, i) => (
           <rect key={i} className="drawer-cell" x={sx(i % plan.nx)} y={sy(Math.floor(i / plan.nx) + 1)} width={GRID} height={GRID} />
         ))}
+        {/* a frente da gaveta (perto de quem abre) fica embaixo: o rótulo evita montar invertido */}
+        <text className="drawer-front" x={W / 2} y={D + FRONT_H * 0.75} textAnchor="middle" fontSize={FRONT_H * 0.7} fill="var(--muted)">
+          Frente
+        </text>
         {placed.map((s) => {
           const r = footprint(s, places[s.id]);
           const n = names[s.id];
@@ -90,7 +96,7 @@ export default function DrawerMap({ plan, sizes, places, names, onMove }: Props)
         })}
       </svg>
       <p className="hint">
-        {free > 0 ? `${free} casa(s) livre(s) de ${plan.nx * plan.ny}.` : "Gaveta cheia."} Arraste uma caixinha (ou use as setas) para mudar de lugar.
+        {free > 0 ? `${plural(free, "casa livre", "casas livres")} de ${plan.nx * plan.ny}.` : "Gaveta cheia."} Arraste uma caixinha (ou use as setas) para mudar de lugar.
       </p>
     </figure>
   );

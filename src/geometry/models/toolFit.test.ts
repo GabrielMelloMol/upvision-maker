@@ -102,6 +102,8 @@ describe("caixa Gridfinity (#169)", { timeout: 60_000 }, () => {
     const foot = s.slice(0.2).bounds(), body = s.slice(FOOT_H + 0.5).bounds();
     expect(foot.max[0] - foot.min[0]).toBeLessThan(body.max[0] - body.min[0]); // pé mais estreito embaixo
     expect(holesAt(m, b.max[2] - 1).length).toBeGreaterThan(3); // casca + 3 bolsões (+ pinos)
+    expect(out.notes.join()).toMatch(/Caixa Gridfinity de \d+×\d+ casas/);
+    expect(out.warnings?.join() ?? "").not.toMatch(/Caixa Gridfinity de/);
   });
 });
 
@@ -131,7 +133,8 @@ describe("organizador de gaveta (#169)", { timeout: 60_000 }, () => {
     expect(b.max[1] - b.min[1]).toBeLessThanOrEqual(Math.ceil((need(50) + 11) / 5) * 5 + 1e-6); // + espaço do dedo
     const full = (bedMm() - 2 * BED_MARGIN) ** 2 * 14; // bandeja maciça do tamanho da mesa
     expect(volume(tray)).toBeLessThan(0.25 * full);
-    expect(out.warnings?.join()).toMatch(/Bandeja de \d+ × \d+ mm/);
+    expect(out.notes.join()).toMatch(/Bandeja de \d+ × \d+ mm/); // informação, não aviso (#169, revisão do Quartzo)
+    expect(out.warnings?.join() ?? "").not.toMatch(/Bandeja de/);
   });
 
   test("ferramentas que precisam: a bandeja cresce até a mesa e reparte em mais bandejas", () => {
@@ -145,7 +148,7 @@ describe("organizador de gaveta (#169)", { timeout: 60_000 }, () => {
   test("ferramenta que não cabe na gaveta é avisada", () => {
     const out = build([bar(300, 20)], { mode: "drawer", drawerW: 200, drawerD: 150 });
     expect(out.warnings?.join()).toMatch(/não coube/);
-    expect(out.warnings?.join()).toMatch(/nenhuma ferramenta cabe/);
+    expect(out.notes.join()).toMatch(/nenhuma ferramenta cabe/);
     expect(out.models).toEqual([]);
   });
 });

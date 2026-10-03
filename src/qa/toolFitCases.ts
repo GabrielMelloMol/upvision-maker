@@ -16,13 +16,13 @@ const MANY = [...EXAMPLE_OUTLINES, ...EXAMPLE_OUTLINES.map((o) => ({ ...o, id: `
 export function toolFitCases(M: ManifoldToplevel): QaCase[] {
   const run = (p: Partial<ToolFitParams>, tools = EXAMPLE_OUTLINES) => async () => {
     const out = buildToolFit(M, tools, { ...DEFAULT_TOOL_FIT, ...p });
-    const warnings = out.warnings ?? [];
+    const warnings = [...(out.warnings ?? []), ...out.notes]; // no relatório entram os dois (notas são "app:" sem mudar o resultado)
     return { models: out.models, pauses: [], warnings: [...warnings, ...bedWarnings(out.models, warnings)] };
   };
   // gaveta modular: o que se imprime são os pedaços da base e uma caixinha por ferramenta
   const modular = (p: Partial<ToolFitParams>, tools = EXAMPLE_OUTLINES) => async () => {
     const out = buildModularDrawer(M, tools, { ...DEFAULT_TOOL_FIT, mode: "drawer", drawerKind: "bins", ...p }, {});
-    return { models: instances(out.basePieces, out.groups), pauses: [], warnings: out.warnings };
+    return { models: instances(out.basePieces, out.groups), pauses: [], warnings: [...out.warnings, ...out.notes] };
   };
   const list: [string, ReturnType<typeof run>][] = [
     ["padrão", run({})],

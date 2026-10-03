@@ -111,6 +111,9 @@ describe("gaveta modular montada (#169)", { timeout: 120_000 }, () => {
         const rel = (b.min[axis] - (base.b.min[axis] + margin)) / GRID;
         expect(Math.abs(rel - Math.round(rel) - 0.25 / GRID)).toBeLessThan(0.01 / GRID + 1e-6);
       }
+    // resumo da grade é informação (azul), não aviso
+    expect(out.notes.join()).toMatch(/Cabem 9 × 7 casas/);
+    expect(out.warnings.join()).not.toMatch(/Cabem/);
     // para imprimir: cada caixinha deitada no centro, uma de cada
     expect(out.groups.map((g) => g.count)).toEqual([1, 1, 1]);
   });

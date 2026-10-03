@@ -227,29 +227,32 @@ function centered(models: Model[]): Model[] {
   return models.map((m) => moveModel(m, -cx, -cy));
 }
 
-export function buildToolFit(M: ManifoldToplevel, tools: ToolOutline[], p: ToolFitParams): ModelOutput {
+/** `warnings`: o que pede ação (amarelo); `notes`: informação sobre a peça (tamanho, casas, como testar). */
+export type ToolFitOutput = ModelOutput & { notes: string[] };
+
+export function buildToolFit(M: ManifoldToplevel, tools: ToolOutline[], p: ToolFitParams): ToolFitOutput {
   tools.forEach(validate);
-  if (!tools.length) return { models: [], warnings: [] };
+  if (!tools.length) return { models: [], warnings: [], notes: [] };
   const out = buildRaw(M, tools, p);
   return { ...out, models: centered(out.models) };
 }
 
-function buildRaw(M: ManifoldToplevel, tools: ToolOutline[], p: ToolFitParams): ModelOutput {
+function buildRaw(M: ManifoldToplevel, tools: ToolOutline[], p: ToolFitParams): ToolFitOutput {
   return scoped((k) => {
     const warnings: string[] = [];
     if (p.clearance === 0) warnings.push("Sem folga: a ferramenta pode não entrar. Imprima a peça de teste antes.");
-    if (p.mode === "test") return { models: buildTest(M, k, tools, p), warnings: [...warnings, "Encaixe a ferramenta no contorno: deve entrar sem forçar e não sair ao virar de cabeça para baixo. Frouxa: diminua a folga; não entra: aumente."] };
+    if (p.mode === "test") return { models: buildTest(M, k, tools, p), warnings, notes: ["Encaixe a ferramenta no contorno: deve entrar sem forçar e não sair ao virar de cabeça para baixo. Frouxa: diminua a folga; não entra: aumente."] };
     const sunk = tools.filter((t) => t.heightMm !== undefined && t.heightMm < p.depth - 2);
     if (sunk.length && !p.finger) warnings.push(`${sunk.map((t) => t.label ?? t.id).join(", ")} fica(m) toda(s) dentro do bolsão: ligue o recorte para o dedo para tirar.`);
     if (p.mode === "gridfinity") {
       const g = buildGridfinity(M, k, tools, p);
-      return { models: g.model ? [g.model] : [], warnings: [...warnings, g.note, ...missingNote(g.missing, tools, "na caixa")] };
+      return { models: g.model ? [g.model] : [], warnings: [...warnings, ...missingNote(g.missing, tools, "na caixa")], notes: [g.note] };
     }
     if (p.mode === "drawer") {
       const d = buildDrawer(M, k, tools, p);
-      return { models: d.models, warnings: [...warnings, d.note, ...missingNote(d.missing, tools, "na gaveta")] };
+      return { models: d.models, warnings: [...warnings, ...missingNote(d.missing, tools, "na gaveta")], notes: [d.note] };
     }
     const b = buildBlock(M, k, tools, p);
-    return { models: b.model ? [b.model] : [], warnings: [...warnings, ...missingNote(b.missing, tools, "no bloco (maior que a mesa)")] };
+    return { models: b.model ? [b.model] : [], warnings: [...warnings, ...missingNote(b.missing, tools, "no bloco (maior que a mesa)")], notes: [] };
   });
 }

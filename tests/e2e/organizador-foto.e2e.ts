@@ -97,7 +97,7 @@ test("organizador pela foto: gaveta modular com uma caixinha Gridfinity por ferr
   await go(page, "Organizador pela foto");
   await page.getByRole("button", { name: "Gaveta" }).click();
   await page.getByRole("button", { name: "Caixinhas" }).click();
-  const map = page.getByRole("img", { name: /Gaveta com 9 × 7 casas de 42 mm; 3 caixinha\(s\)/ });
+  const map = page.getByRole("img", { name: /Gaveta com 9 × 7 casas de 42 mm, frente embaixo; 3 caixinhas/ });
   await expect(map).toBeVisible();
   // espera a peça terminar de gerar: os avisos que chegam com ela empurram o mapa para baixo (o arraste erraria o alvo)
   const card = page.getByLabel("Impressão por mesa");

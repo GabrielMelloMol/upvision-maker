@@ -80,16 +80,20 @@ export type ModularDrawer = {
   /** Uma caixinha por ferramenta, no centro, para imprimir. */
   bins: Model[];
   groups: { count: number; models: Model[] }[];
+  /** O que pede ação: não coube, passa da altura da gaveta. */
   warnings: string[];
+  /** Informação: casas, margens, quantos pedaços de base. */
+  notes: string[];
 };
 
 export function buildModularDrawer(M: ManifoldToplevel, tools: ToolOutline[], p: ToolFitParams, saved: Places): ModularDrawer {
   const plan = modularPlan(p);
   const sizes = tools.map((t) => ({ id: t.id, ...binCells(t, p) }));
   const { places, missing } = plan.nx && plan.ny ? placeBins(plan.nx, plan.ny, sizes, saved) : { places: {}, missing: tools.map((t) => t.id) };
-  const warnings = [...plan.notes];
-  if (!plan.nx || !plan.ny) return { plan, sizes, places, missing, preview: [], basePieces: [], bins: [], groups: [], warnings: [...warnings, "A gaveta é menor que uma casa de 42 mm."] };
-  warnings.push(planSummary(plan, false, 0));
+  const warnings: string[] = [];
+  const notes = [...plan.notes];
+  if (!plan.nx || !plan.ny) return { plan, sizes, places, missing, preview: [], basePieces: [], bins: [], groups: [], warnings: ["A gaveta é menor que uma casa de 42 mm."], notes };
+  notes.push(planSummary(plan, false, 0));
   const ctx = { M, art: null, text: () => null };
   const baseParams = { unitsX: 1, unitsY: 1, magnets: false, color: p.color, mode: "drawer" as const, drawerW: p.drawerW, drawerD: p.drawerD, drawerH: p.drawerH, align: "center" as const, bedMargin: BED_MARGIN };
   const assembled = buildGridBase(ctx, { ...baseParams, pieceGap: 0 }).models;
@@ -118,5 +122,5 @@ export function buildModularDrawer(M: ManifoldToplevel, tools: ToolOutline[], p:
     preview.push({ ...model, parts: model.parts.map((q) => ({ ...q, mesh: moveMesh(pl.turned ? turn(q.mesh) : q.mesh, cx, cy) })) });
   }
   warnings.push(...missingNote(missing, tools, "na gaveta"));
-  return { plan, sizes, places, missing, preview, basePieces, bins, groups: bins.map((m) => ({ count: 1, models: [m] })), warnings };
+  return { plan, sizes, places, missing, preview, basePieces, bins, groups: bins.map((m) => ({ count: 1, models: [m] })), warnings, notes };
 }
