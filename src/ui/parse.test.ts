@@ -1,5 +1,5 @@
 import { describe, expect, test } from "vitest";
-import { formatDuration, formatMass, formatMoneyInput, parseDuration, parseMass, parseMoney } from "./parse";
+import { formatDuration, numberNote, formatMass, formatMoneyInput, parseDuration, parseMass, parseMoney } from "./parse";
 
 describe("parseDuration (minutos)", () => {
   test.each([
@@ -86,5 +86,22 @@ describe("parseMoney", () => {
     expect(formatMoneyInput("1234.5")).toBe("1.234,50");
     expect(formatMoneyInput("abc")).toBe("abc"); // não esconde o que foi digitado
     expect(formatMoneyInput("")).toBe("");
+  });
+});
+
+describe("mesma leitura de número em todos os campos (M9, M12)", () => {
+  test("dinheiro com 3 casas não vira mil: 0.856 é R$ 0,856 (preço do kWh)", () => {
+    expect(parseMoney("0.856")).toBe(0.856);
+    expect(parseMoney("0.500")).toBe(0.5);
+  });
+  test("massa com ponto de milhar: 1.250 g é mil duzentos e cinquenta gramas", () => {
+    expect(parseMass("1.250", 1000)).toBe(1250);
+    expect(parseMass("1.200,5", 1000)).toBe(1201);
+  });
+  test("aviso quando dá para ler de dois jeitos", () => {
+    expect(numberNote("1.200")).toBe('Entendi "1.200" como 1.200. Se era 1,2, escreva 1,2.');
+    expect(numberNote("1,500 kg")).toBe('Entendi "1,500" como 1,5. Se era 1.500, escreva 1500.');
+    expect(numberNote("1.200,5")).toBeUndefined();
+    expect(numberNote("850")).toBeUndefined();
   });
 });

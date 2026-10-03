@@ -1,5 +1,6 @@
 import { beforeEach, expect, test } from "vitest";
-import { EMPTY_PRODUCT } from "../domain/products";
+import { EMPTY_PRODUCT, planConsumption, productPricing } from "../domain/products";
+import { DEFAULT_SETTINGS } from "../domain/settings";
 import { exportBackup, parseBackup, restoreBackup } from "./backup";
 import { migrate } from "./migrations";
 import { photosRepo, productsRepo } from "./productsRepo";
@@ -76,4 +77,20 @@ test("planToMovements: baixa negativa, estorno positivo, ignora zeros", () => {
     { kind: "product", id: 4, delta: -2 },
   ]);
   expect(planToMovements(plan, 1)[0].delta).toBe(150);
+});
+
+test("A4: composição ilegível marca o produto; custo e baixa de estoque recusam em vez de usar vazio", async () => {
+  await productsRepo.insert(db, { ...EMPTY_PRODUCT, name: "Antigo", composition: { filaments: [{ filamentId: 1, grams: 120 }], materials: [], items: [] } });
+  await db.execute(`UPDATE products SET composition = '{"filaments":[{"filamentId":"x"}]}'`);
+  const [p] = await productsRepo.list(db);
+  expect(p.readError).toMatch(/composição/);
+  const ctx = { filaments: [], materials: [], printers: [], products: [p], settings: DEFAULT_SETTINGS };
+  expect(() => productPricing(p, ctx)).toThrow(/Antigo/);
+  expect(() => planConsumption(p.id, 1, ctx, { useOwnStock: false })).toThrow(/Antigo/);
+});
+
+test("A4: variações ilegíveis também marcam o produto", async () => {
+  await productsRepo.insert(db, { ...EMPTY_PRODUCT, name: "Cores" });
+  await db.execute(`UPDATE products SET variants = 'não é json'`);
+  expect((await productsRepo.list(db))[0].readError).toMatch(/variações/);
 });

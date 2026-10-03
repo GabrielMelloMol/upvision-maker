@@ -217,8 +217,9 @@ tr.restock > td { background: var(--surface-2); animation: fade-up var(--dur) va
 .affix { position: relative; display: grid; }
 .affix .prefix { position: absolute; left: 11px; top: 50%; transform: translateY(-50%); color: var(--muted); font-size: var(--text-md); pointer-events: none; }
 .affix.has-prefix input { padding-left: 34px; }
-.field .error, .field .hint.ok { display: inline-flex; align-items: center; gap: 5px; }
-.field .error svg, .field .hint.ok svg { width: 13px; height: 13px; flex: none; }
+.field .error, .field .hint.ok, .field .hint.warn { display: inline-flex; align-items: center; gap: 5px; }
+.field .error svg, .field .hint.ok svg, .field .hint.warn svg { width: 13px; height: 13px; flex: none; }
+.field .hint.warn { color: var(--warn); } /* número lido de um jeito que pode não ser o pretendido ("1.200") */
 .hint.ok { color: var(--ok); }
 
 /* Bolinhas de cor */

@@ -1,9 +1,27 @@
+import { readNumber } from "../domain/format";
+
 /**
  * Leitura "humana" de campos: tempo (3h20, 3:20, 200 min), massa (850 g, 1,2 kg, 2 rolos) e dinheiro (R$ 1.234,56).
  * Tudo retorna NaN quando não entende, para o campo mostrar erro em vez de chutar.
  */
 
-const num = (s: string) => Number(s.replace(",", "."));
+const num = (s: string) => readNumber(s).value;
+
+const show = (n: number) => n.toLocaleString("pt-BR", { maximumFractionDigits: 6 });
+
+/**
+ * Aviso para um número que dá para ler de dois jeitos (A5, M12): "1.200" vira mil e duzentos, mas a pessoa pode ter
+ * querido 1,2. undefined quando não há dúvida.
+ */
+export function numberNote(text: string): string | undefined {
+  for (const [token] of text.matchAll(/\d[\d.,]*/g)) {
+    const r = readNumber(token);
+    if (!r.ambiguous || r.alt === undefined) continue;
+    const other = Number.isInteger(r.alt) ? String(r.alt) : show(r.alt);
+    return `Entendi "${token}" como ${show(r.value)}. Se era ${show(r.alt)}, escreva ${other}.`;
+  }
+  return undefined;
+}
 
 /** Minutos. Número solto vale `bare` (padrão horas: "3" = 3 h; mão de obra usa "min"). */
 export function parseDuration(raw: string, bare: "h" | "min" = "h"): number {
@@ -28,19 +46,13 @@ export function formatDuration(min: number): string {
   return m ? `${h}h${String(m).padStart(2, "0")}` : `${h}h`;
 }
 
-/** Número pt-BR: "1.500" = 1500, "1,5" = 1,5, "1234.5" = 1234,5. */
-function ptNumber(s: string): number {
-  if (/^\d{1,3}(\.\d{3})+(,\d+)?$/.test(s)) return Number(s.replace(/\./g, "").replace(",", "."));
-  if (/^\d+([.,]\d+)?$/.test(s)) return num(s);
-  return NaN;
-}
 
 /** Gramas. Aceita g, kg e rolos (usa o peso do rolo). */
 export function parseMass(raw: string, spoolG: number): number {
   const s = raw.trim().toLowerCase().replace(/\s+/g, "");
   const m = /^([\d.,]+)(g|kg|r|rolo|rolos)?$/.exec(s);
   if (!m) return NaN;
-  const v = ptNumber(m[1]);
+  const v = num(m[1]);
   if (!Number.isFinite(v)) return NaN;
   const unit = m[2] ?? "g";
   return Math.round(unit === "kg" ? v * 1000 : unit.startsWith("r") ? v * spoolG : v);
@@ -57,9 +69,7 @@ export function formatMass(g: number, spoolG?: number): string {
 /** Reais. Aceita "R$ 1.234,56", "1234.56", "15,9". */
 export function parseMoney(raw: string): number {
   const s = raw.trim().replace(/^r\$\s*/i, "").replace(/\s/g, "");
-  if (!s) return NaN;
-  if (/^\d+\.\d{3}$/.test(s)) return ptNumber(s); // "1.234" = mil duzentos e trinta e quatro
-  return ptNumber(s);
+  return s ? num(s) : NaN;
 }
 
 const money2 = new Intl.NumberFormat("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 });

@@ -22,6 +22,8 @@ import { productGrams } from "../../domain/marketplace/listing";
 import type { Printer } from "../../domain/entities";
 import { spreadWarning, variantErrors } from "../../domain/variants";
 import VariantsFieldset, { toDraft, type VariantDraft } from "./VariantsFieldset";
+import SmartField from "../../ui/SmartField";
+import { qtyInvalid } from "../calculator/Lines";
 import PrinterCatalogButton from "../calculator/PrinterCatalogButton";
 import ModelSelect from "./ModelSelect";
 import PrintSheet from "./PrintSheet";
@@ -134,8 +136,12 @@ export default function ProductEditor({ initial, data, onClose, onSaved }: Props
 
   async function save(e: React.FormEvent) {
     e.preventDefault();
+    if (initial.readError) return; // A4: gravaria listas vazias por cima do original
     const bad = variantErrors(input.variants);
     if (bad.length) return setErrors({ _: bad.join(" ") });
+    // A5: quantidade ilegível não vira 0 gravado em silêncio (custo e baixa de estoque errados)
+    if ([fil, mat, kind === "kit" ? items : []].some((ls) => lines(ls).some((l) => !(num(l.qty) > 0))))
+      return setErrors({ _: "Confira as quantidades: cada item escolhido precisa de uma quantidade, ex.: 1.200 g ou 2 un." });
     setSaving(true);
     try {
       const db = await getDb();
@@ -165,12 +171,17 @@ export default function ProductEditor({ initial, data, onClose, onSaved }: Props
       footer={
         <>
           <Button onClick={onClose}>Cancelar</Button>
-          <Button variant="primary" type="submit" disabled={saving}>
+          <Button variant="primary" type="submit" disabled={saving || !!initial.readError}>
             {initial.id ? "Salvar alterações" : "Salvar produto"}
           </Button>
         </>
       }
     >
+      {initial.readError && (
+        <Alert kind="error">
+          {initial.readError} Para não apagar o que está gravado, salvar está bloqueado; refaça o produto ou restaure um backup.
+        </Alert>
+      )}
       <div className="product-editor">
         <div className="stack">
           <div className="grid two">
@@ -386,10 +397,7 @@ function LineEditor(props: { lines: Line[]; setLines: (l: Line[]) => void; optio
               ))}
             </select>
           </label>
-          <label>
-            {props.qtyLabel}
-            <input inputMode="decimal" value={l.qty} onChange={(e) => update(i, { qty: e.target.value })} />
-          </label>
+          <SmartField label={props.qtyLabel} inputMode="decimal" parse={parseDecimal} invalidText={qtyInvalid(props.qtyLabel)} value={l.qty} onChange={(v) => update(i, { qty: v })} />
           <button type="button" className="link danger" onClick={() => setLines(lines.filter((_, j) => j !== i))}>
             Remover
           </button>

@@ -22,6 +22,24 @@ beforeEach(async () => {
 });
 
 describe("Calculator", () => {
+  test("gramas com ponto de milhar (A5): 1.200 g é mil e duzentos, com aviso; 1.200,5 também; lixo mostra erro", async () => {
+    const user = userEvent.setup();
+    renderWithApp(<Calculator go={() => {}} />);
+    await user.type(screen.getByLabelText("Preço por kg"), "120");
+    const grams = screen.getByLabelText("Gramas");
+    await user.type(grams, "1.200");
+    // 1200 g a R$ 120/kg = R$ 144,00 de filamento (antes lia 1,2 g = R$ 0,14)
+    expect(screen.getByRole("row", { name: /^Filamento/ })).toHaveTextContent(brl("144,00"));
+    expect(screen.getByText(/Entendi "1\.200" como 1\.200\. Se era 1,2/)).toBeInTheDocument();
+    await user.clear(grams);
+    await user.type(grams, "1.200,5");
+    expect(screen.getByRole("row", { name: /^Filamento/ })).toHaveTextContent(brl("144,06"));
+    await user.clear(grams);
+    await user.type(grams, "12 gramas");
+    await user.tab();
+    expect(screen.getByRole("alert")).toHaveTextContent(/Digite as gramas/);
+  });
+
   test("filamento digitado à mão + manutenção de 5% dão o custo por peça e os preços", async () => {
     const user = userEvent.setup();
     renderWithApp(<Calculator go={() => {}} />);

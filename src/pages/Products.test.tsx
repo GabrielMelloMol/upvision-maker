@@ -203,6 +203,29 @@ describe("Produtos: editor", () => {
     });
   });
 
+  test("gramas com ponto de milhar na composição (A5): 1.200 g gravado como 1200; quantidade ilegível bloqueia o salvar", async () => {
+    await seedSupplies();
+    const user = userEvent.setup();
+    renderWithApp(<Products />);
+    await user.click(await screen.findByRole("button", { name: "Novo produto" }));
+    const sheet = await dialog("Novo produto");
+    await user.type(within(sheet).getByLabelText("Nome"), "Vaso");
+    const fil = within(sheet).getByRole("group", { name: "Filamentos (mesa inteira)" });
+    await user.click(within(fil).getByRole("button", { name: "Adicionar" }));
+    await user.selectOptions(within(fil).getByLabelText("Item"), "PLA · Azul · X");
+    const grams = within(fil).getByLabelText("Gramas");
+    await user.type(grams, "abc");
+    await user.click(within(sheet).getByRole("button", { name: "Salvar produto" }));
+    expect(await within(sheet).findByText(/Confira as quantidades/)).toBeInTheDocument();
+    expect(await t.db.select("SELECT id FROM products")).toEqual([]);
+    await user.clear(grams);
+    await user.type(grams, "1.200");
+    await user.click(within(sheet).getByRole("button", { name: "Salvar produto" }));
+    expect(await screen.findByText("Produto salvo.")).toBeInTheDocument();
+    const [row] = await t.db.select<{ composition: string }>("SELECT composition FROM products");
+    expect(JSON.parse(row.composition).filaments).toEqual([{ filamentId: 1, grams: 1200 }]);
+  });
+
   test("remover linha da composição e 'Nada cadastrado ainda' sem insumos", async () => {
     await seedSupplies();
     const user = userEvent.setup();
@@ -278,6 +301,17 @@ describe("Produtos: editor", () => {
     await user.click(within(sheet).getByRole("button", { name: "Salvar alterações" }));
     expect(await screen.findByText("Produto atualizado.")).toBeInTheDocument();
     expect(await t.db.select("SELECT manualPrice, consignmentPrice FROM products")).toEqual([{ manualPrice: null, consignmentPrice: 8.5 }]);
+  });
+
+  test("A4: composição ilegível avisa no editor e não deixa salvar por cima do original", async () => {
+    t.raw.exec(`INSERT INTO products (name, kind, composition, piecesPerPlate) VALUES ('Velho', 'simple', '{"filaments":[{"filamentId":"x"}]}', 1)`);
+    const user = userEvent.setup();
+    renderWithApp(<Products />);
+    await user.click(await screen.findByRole("button", { name: "Editar Velho" }));
+    const sheet = await dialog("Editar Velho");
+    expect(within(sheet).getByText(/Não consegui ler a composição do produto "Velho"/)).toBeInTheDocument();
+    expect(within(sheet).getByRole("button", { name: "Salvar alterações" })).toBeDisabled();
+    expect(await t.db.select("SELECT composition FROM products")).toEqual([{ composition: '{"filaments":[{"filamentId":"x"}]}' }]);
   });
 
   test("fotos de produto novo ficam pendentes e são gravadas ao salvar; dá para tirar antes", async () => {

@@ -50,7 +50,8 @@ export const ProductInput = z.object({
   modelId: z.string().trim().max(60).nullable().default(null),
 });
 export type ProductInput = z.infer<typeof ProductInput>;
-export type Product = ProductInput & { id: number };
+/** `readError`: composição ou variações gravadas que não se conseguiu ler (A4); custo e baixa recusam o produto. */
+export type Product = ProductInput & { id: number; readError?: string };
 
 export const EMPTY_PRODUCT: ProductInput = {
   name: "",
@@ -86,6 +87,7 @@ export const EMPTY_PRODUCT: ProductInput = {
 export type ProductCtx = { filaments: Filament[]; materials: Material[]; printers: Printer[]; products: Product[]; settings: Settings; fixedPerHour?: number; measuredFailure?: Record<number, { pct: number; prints: number }> };
 
 function guard(p: Product, seen: Set<number>) {
+  if (p.readError) throw new Error(`${p.readError} Abra o produto e confira antes de usar.`);
   if (seen.has(p.id)) throw new Error(`O kit "${p.name}" está dentro de si mesmo.`);
   return new Set([...seen, p.id]);
 }

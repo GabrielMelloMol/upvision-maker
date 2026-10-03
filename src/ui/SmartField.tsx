@@ -1,4 +1,5 @@
 import HintText from "./HintText";
+import { numberNote } from "./parse";
 import { labelTerm, TermDesc, TermTip } from "./TermTip";
 import { CircleAlert, CircleCheck } from "lucide-react";
 import { useId, useState, type InputHTMLAttributes, type ReactNode } from "react";
@@ -36,6 +37,8 @@ export default function SmartField({ label, value, onChange, parse, preview, inv
   const bad = touched && ((empty && required) || (!empty && !Number.isFinite(n)));
   const message = error ?? (bad ? (empty ? "Obrigatório." : invalidText) : undefined);
   const ok = !message && !empty && Number.isFinite(n) && preview;
+  // número que dá para ler de dois jeitos ("1.200" = mil e duzentos ou 1,2?): fica a leitura brasileira, com aviso
+  const note = !message && !empty && Number.isFinite(n) ? numberNote(value) : undefined;
   // Dica e erro ficam fora do <label>: o nome do campo é só o rótulo; o resto vai por aria-describedby.
   return (
     <div className="field">
@@ -63,6 +66,11 @@ export default function SmartField({ label, value, onChange, parse, preview, inv
       {message ? (
         <span id={`${id}-d`} className="error" role="alert">
           <CircleAlert aria-hidden /> {message}
+        </span>
+      ) : note ? (
+        <span id={`${id}-d`} className="hint warn" role="status">
+          <CircleAlert aria-hidden /> {ok ? `${preview(n)}. ` : ""}
+          {note}
         </span>
       ) : ok ? (
         <span id={`${id}-d`} className="hint ok">

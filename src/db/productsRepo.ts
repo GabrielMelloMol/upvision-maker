@@ -9,20 +9,29 @@ type Row = Omit<Product, "composition" | "variants"> & { composition: string; va
 const COLS = Object.keys(ProductInput.shape) as (keyof ProductInput)[];
 export { MAX_PHOTOS } from "./photosRepo";
 
+/**
+ * Linha → produto. Composição ou variações que não se lê (backup antigo, dado estragado) não viram listas vazias em
+ * silêncio (A4: custo zero, estoque sem baixa e salvar apagando o original): o produto vem com `readError`, o custo e a
+ * baixa recusam, e o editor não deixa gravar por cima.
+ */
 function fromRow(r: Row): Product {
+  const bad: string[] = [];
   let composition = { filaments: [], materials: [], items: [] } as Product["composition"];
   try {
     composition = Composition.parse(JSON.parse(r.composition));
   } catch (e) {
     console.error(`Composição inválida no produto ${r.id}:`, e);
+    bad.push("a composição");
   }
   let variants: Product["variants"] = [];
   try {
     variants = z.array(Variant).parse(JSON.parse(r.variants || "[]"));
   } catch (e) {
     console.error(`Variações inválidas no produto ${r.id}:`, e);
+    bad.push("as variações");
   }
-  return { ...r, composition, variants };
+  const readError = bad.length ? `Não consegui ler ${bad.join(" e ")} do produto "${r.name}" (dado antigo ou estragado).` : undefined;
+  return { ...r, composition, variants, ...(readError && { readError }) };
 }
 
 // composição e variações ficam como JSON na linha
