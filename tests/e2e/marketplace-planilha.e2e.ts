@@ -14,6 +14,7 @@ test("produtos → planilha de upload em massa (#78): selecionar, prévia e salv
   await expect(sheet).toContainText("tudo preenchido");
   await sheet.getByRole("button", { name: "Mercado Livre" }).click();
   await expect(sheet.getByLabel("Preço do canal")).toHaveValue("Mercado Livre (clássico)");
+  tauri.nextOpen = "/pasta"; // planilha e fotos vão para a pasta escolhida (A12)
   await sheet.getByRole("button", { name: "Salvar planilha" }).click();
   await expect(toastWith(page, "Planilha salva em")).toBeVisible();
   expect([...tauri.files.keys()].some((p) => /ml-upload-em-massa-.*\.xlsx$/.test(p))).toBe(true);

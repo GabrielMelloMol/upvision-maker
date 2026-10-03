@@ -41,6 +41,14 @@ export type TauriState = {
   releases: unknown[] | null;
   /** Respostas extras por comando (ex.: comandos Rust novos). */
   handlers: Record<string, (args: Record<string, unknown>) => unknown>;
+  /**
+   * Escopo do plugin fs como no app instalado (auditoria A12): só grava na pasta do app, no arquivo devolvido pelo
+   * "Salvar como" e dentro da pasta escolhida no "Abrir" de pasta. Desligado por padrão (os testes antigos gravam em
+   * qualquer caminho).
+   */
+  fsScope: boolean;
+  /** Caminhos liberados pelos diálogos (para o `fsScope`). */
+  granted: { files: Set<string>; dirs: Set<string> };
 };
 
 const wrap = (raw: DatabaseSync): Db => ({
@@ -67,18 +75,27 @@ function handle(t: TauriState, cmd: string, a: unknown, headers?: Record<string,
     }
     case "plugin:dialog|save": {
       const name = ((args.options ?? {}) as { defaultPath?: string }).defaultPath ?? "arquivo";
-      return t.savePath ? t.savePath(name) : `/saida/${name}`;
+      const path = t.savePath ? t.savePath(name) : `/saida/${name}`;
+      if (path) t.granted.files.add(path);
+      return path;
     }
-    case "plugin:dialog|open":
+    case "plugin:dialog|open": {
+      const dir = ((args.options ?? {}) as { directory?: boolean }).directory;
+      if (t.openPath) (dir ? t.granted.dirs : t.granted.files).add(t.openPath);
       return t.openPath;
+    }
     case "plugin:dialog|message": {
       const custom = (args.buttons as { OkCancelCustom?: [string, string] } | undefined)?.OkCancelCustom;
       return custom ? custom[t.askAnswer ? 0 : 1] : t.askAnswer ? "Yes" : "No";
     }
     case "plugin:fs|write_file":
-    case "plugin:fs|write_text_file":
-      t.files.set(decodeURIComponent(headers?.path ?? ""), a instanceof Uint8Array ? a : new Uint8Array(a as ArrayBuffer));
+    case "plugin:fs|write_text_file": {
+      const path = decodeURIComponent(headers?.path ?? "");
+      const parent = path.replace(/\/[^/]*$/, "");
+      if (t.fsScope && !path.startsWith("/dados-app/") && !t.granted.files.has(path) && !t.granted.dirs.has(parent)) throw new Error(`forbidden path: ${path}`);
+      t.files.set(path, a instanceof Uint8Array ? a : new Uint8Array(a as ArrayBuffer));
       return null;
+    }
     case "plugin:fs|read_text_file": {
       const f = t.files.get(String(args.path));
       if (!f) throw new Error(`arquivo não existe: ${args.path}`);
@@ -154,7 +171,7 @@ function handle(t: TauriState, cmd: string, a: unknown, headers?: Record<string,
 
 /** Instala o mock do Tauri e um banco novo antes de cada teste do arquivo. */
 export function setupTauri(): TauriState {
-  const t = { files: new Map(), log: [], autoBackups: new Map(), savePath: null, openPath: null, askAnswer: true, calls: [], handlers: {}, windowStyle: { effect: "none", overlayTitlebar: false } } as unknown as TauriState;
+  const t = { files: new Map(), log: [], autoBackups: new Map(), savePath: null, openPath: null, askAnswer: true, calls: [], handlers: {}, fsScope: false, granted: { files: new Set(), dirs: new Set() }, windowStyle: { effect: "none", overlayTitlebar: false } } as unknown as TauriState;
   beforeEach(async () => {
     t.raw = new DatabaseSync(":memory:");
     t.db = wrap(t.raw);
@@ -165,6 +182,8 @@ export function setupTauri(): TauriState {
     t.calls.length = 0;
     t.savePath = null;
     t.openPath = null;
+    t.fsScope = false;
+    t.granted = { files: new Set(), dirs: new Set() };
     t.askAnswer = true;
     t.handlers = {};
     t.releases = [];

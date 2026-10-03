@@ -39,6 +39,7 @@ test("variações por cor (#82): custo da cor, estoque somado, nome repetido e u
   const exp = page.getByRole("dialog", { name: "Exportar para marketplace" });
   await expect(exp).toContainText("1 produto em 2 linhas (uma por variação)");
   await exp.getByLabel(/^Categoria/).fill("101152");
+  tauri.nextOpen = "/pasta"; // planilha e fotos vão para a pasta escolhida (A12)
   await exp.getByRole("button", { name: "Salvar planilha" }).click();
   await expect(toastWith(page, "Planilha salva em")).toBeVisible();
   const [, bytes] = [...tauri.files].find(([p]) => /shopee-upload-em-massa-.*\.xlsx$/.test(p))!;

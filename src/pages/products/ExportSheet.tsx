@@ -8,12 +8,14 @@ import { PRICE_NAMES } from "../../domain/pricing";
 import type { Product } from "../../domain/products";
 import Alert from "../../ui/Alert";
 import Dropzone from "../../ui/Dropzone";
-import { saveFile } from "../../ui/saveFile";
+import { join } from "@tauri-apps/api/path";
+import { open } from "@tauri-apps/plugin-dialog";
+import { writeFile } from "@tauri-apps/plugin-fs";
 import Segmented from "../../ui/Segmented";
 import Sheet from "../../ui/Sheet";
 import { errorText, useToast } from "../../ui/Toast";
 import type { ProductsData } from "./data";
-import { savePhotosBeside } from "./listingPhotos";
+import { savePhotosIn } from "./listingPhotos";
 
 const MARKETS = (Object.keys(MARKETPLACES) as Marketplace[]).map((m) => [m, MARKETPLACES[m].label] as const);
 const KEY = "upvision:exportar-marketplace";
@@ -55,14 +57,17 @@ export default function ExportSheet({ products, data, onClose }: Props) {
   async function exportFile() {
     try {
       const { bytes, note } = listingFile(rows, market, template?.bytes);
-      const path = await saveFile(`${market}-upload-em-massa-${todayIso()}.xlsx`, bytes, "xlsx", "Planilha");
-      if (!path) return;
+      // a pasta inteira, não "Salvar como": as fotos vão ao lado da planilha e só a pasta escolhida libera isso (A12)
+      const dir = await open({ directory: true, multiple: false, title: "Pasta para a planilha e as fotos" });
+      if (typeof dir !== "string") return;
+      const path = await join(dir, `${market}-upload-em-massa-${todayIso()}.xlsx`);
+      await writeFile(path, bytes);
       try {
         localStorage.setItem(KEY, JSON.stringify(f));
       } catch {
         // só não lembra da próxima vez
       }
-      const saved = await savePhotosBeside(path, products);
+      const saved = await savePhotosIn(dir, products);
       toast(`Planilha salva em ${path}. ${note}${saved ? ` ${saved} ${saved === 1 ? "foto salva" : "fotos salvas"} na mesma pasta.` : ""}`);
       onClose();
     } catch (e) {

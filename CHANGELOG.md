@@ -5,6 +5,7 @@ Formato: `## <versão> — <data>` e itens `- …` em linguagem simples.
 
 ## Próxima versão (ainda não lançada)
 - **Arrastar e soltar volta a funcionar no app instalado**: arrastar uma imagem para as ferramentas, fotos para a galeria e cartões entre as colunas de Pedidos. O zoom com Ctrl/⌘ + e − também volta, e a janela não aparece mais vazia antes da abertura.
+- **Fotos junto da planilha de marketplace**: ao exportar, você escolhe a pasta e a planilha e as fotos dos produtos vão juntas para ela; antes as fotos davam erro de permissão.
 - **Organizador pela foto: gaveta modular**: na saída Gaveta, escolha Caixinhas e cada ferramenta ganha a sua caixinha Gridfinity (o menor número de casas que cabe ela), todas da mesma altura para trocar de lugar e com a borda de empilhar; a base sai pela medida da gaveta, em pedaços que cabem na mesa. Um mapa mostra onde fica cada caixinha (dá para arrastar) e o espaço livre, e cada mesa sai num 3MF com os nomes, com peso e tempo de cada peça. Várias fotos somam ferramentas numa lista só, com o mesmo número na foto, na lista e no mapa; dá para renomear e remover.
 - **Bandejas do tamanho das ferramentas**: na saída Gaveta (Bandejas), a bandeja tem só o tamanho que as ferramentas ocupam, e não mais a mesa inteira. Um par de óculos não vira mais uma bandeja de 248 × 248 mm; a tela compara as gramas e o tempo com a bandeja cheia.
 

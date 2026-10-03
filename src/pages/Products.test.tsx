@@ -422,6 +422,23 @@ describe("Produtos: planilha de upload em massa (#78)", () => {
     );
   });
 
+  test("exportar com o escopo do fs do app instalado: planilha e fotos na pasta escolhida, sem 'forbidden path' (A12)", async () => {
+    await seed();
+    await t.db.execute("INSERT INTO photos (owner, position, dataUrl, createdAt) VALUES ('product:1', 0, 'data:image/jpeg;base64,/9j/', '2026-10-01')");
+    t.fsScope = true; // como no app: o diálogo libera só o que devolveu
+    t.openPath = "/Documentos/loja";
+    const user = userEvent.setup();
+    renderWithApp(<Products />);
+    await user.click(await screen.findByRole("checkbox", { name: "Selecionar todos" }));
+    await user.click(screen.getByRole("button", { name: "Exportar para marketplace" }));
+    const sheet = await dialog("Exportar para marketplace");
+    await user.click(within(sheet).getByRole("button", { name: "Salvar planilha" }));
+    expect(await screen.findByText(/Planilha salva em \/Documentos\/loja\/shopee-upload-em-massa-.*\.xlsx\. .*1 foto salva na mesma pasta/)).toBeInTheDocument();
+    const saved = [...t.files.keys()].filter((p) => p.startsWith("/Documentos/loja/"));
+    expect(saved.some((p) => p.endsWith(".xlsx"))).toBe(true);
+    expect(saved.some((p) => /-1\.jpg$/.test(p))).toBe(true);
+  });
+
   test("selecionar e exportar: prévia do que falta e planilha salva com uma linha por produto", async () => {
     await seed();
     const user = userEvent.setup();
@@ -434,6 +451,7 @@ describe("Produtos: planilha de upload em massa (#78)", () => {
     expect(sheet).toHaveTextContent("2 produtos · faltando: descrição (2), NCM (2), categoria (2)");
     await user.type(within(sheet).getByLabelText(/^Categoria/), "101152");
     expect(sheet).toHaveTextContent("faltando: descrição (2), NCM (2)");
+    t.openPath = "/saida"; // a pasta da planilha e das fotos (A12)
     await user.click(within(sheet).getByRole("button", { name: "Salvar planilha" }));
     expect(await screen.findByText(/Planilha salva em .*shopee-upload-em-massa-.*\.xlsx/)).toBeInTheDocument();
     const [path, bytes] = [...t.files.entries()].find(([p]) => p.endsWith(".xlsx"))!;

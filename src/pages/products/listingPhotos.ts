@@ -1,3 +1,4 @@
+import { join } from "@tauri-apps/api/path";
 import { writeFile } from "@tauri-apps/plugin-fs";
 import { getDb } from "../../db";
 import { ownerOf, photos } from "../../db/photosRepo";
@@ -17,12 +18,14 @@ export function photoFiles(items: { product: Pick<Product, "sku" | "name">; data
   );
 }
 
-/** Grava as fotos dos produtos na pasta da planilha; devolve quantas. */
-export async function savePhotosBeside(sheetPath: string, products: Product[]): Promise<number> {
+/**
+ * Grava as fotos dos produtos em `dir`, a pasta escolhida no diálogo (A12: o "Salvar como" libera só o arquivo da
+ * planilha, não a pasta, e o app instalado recusava as fotos com "forbidden path"); devolve quantas.
+ */
+export async function savePhotosIn(dir: string, products: Product[]): Promise<number> {
   const db = await getDb();
   const items = await Promise.all(products.map(async (product) => ({ product, dataUrls: (await photos.list(db, ownerOf("product", product.id))).map((p) => p.dataUrl) })));
-  const dir = sheetPath.replace(/[^/\\]+$/, "");
   const files = photoFiles(items);
-  for (const f of files) await writeFile(dir + f.name, f.bytes);
+  for (const f of files) await writeFile(await join(dir, f.name), f.bytes);
   return files.length;
 }
