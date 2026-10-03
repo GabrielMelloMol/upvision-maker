@@ -1,5 +1,7 @@
 import { test as base, expect, type Page } from "@playwright/test";
 import { DatabaseSync, type SQLInputValue } from "node:sqlite";
+import { runBatch } from "../../src/db/testDb";
+import type { Stmt } from "../../src/db/types";
 
 /**
  * Mock do IPC do Tauri para rodar o app no Vite puro.
@@ -121,6 +123,9 @@ function handler(m: TauriMock, cmd: string, a: Record<string, unknown> | null, h
       const r = m.db.prepare(String(args.query)).run(...params);
       return [Number(r.changes), Number(r.lastInsertRowid)];
     }
+    case "sql_batch":
+      runBatch(m.db, args.statements as Stmt[]);
+      return null;
     case "plugin:dialog|save": {
       const opts = (args.options ?? {}) as { defaultPath?: string };
       const name = opts.defaultPath ?? "arquivo";

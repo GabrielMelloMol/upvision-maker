@@ -4,7 +4,7 @@
 use serde::Deserialize;
 use sqlx::{Pool, Sqlite};
 use tauri::State;
-use tauri_plugin_sql::{DbInstances, DbPool};
+use tauri_plugin_sql::DbInstances;
 
 /// Variação de estoque de um item. `delta` negativo = baixa.
 #[derive(Debug, Deserialize)]
@@ -93,14 +93,7 @@ pub async fn apply(pool: &Pool<Sqlite>, movements: &[Movement], order: Option<&O
 
 #[tauri::command]
 pub async fn apply_stock(db: State<'_, DbInstances>, db_url: String, movements: Vec<Movement>, order: Option<OrderChange>) -> Result<(), String> {
-    let pool = {
-        let map = db.0.read().await;
-        match map.get(&db_url) {
-            Some(DbPool::Sqlite(p)) => p.clone(),
-            _ => return Err("Banco de dados não carregado.".into()),
-        }
-    };
-    apply(&pool, &movements, order.as_ref()).await
+    apply(&crate::sqlbatch::pool_of(&db, &db_url).await?, &movements, order.as_ref()).await
 }
 
 #[cfg(test)]

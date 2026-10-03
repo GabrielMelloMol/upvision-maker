@@ -14,7 +14,8 @@ import { DatabaseSync, type SQLInputValue } from "node:sqlite";
 import type { ReactElement } from "react";
 import { beforeEach, vi } from "vitest";
 import { migrate } from "../db/migrations";
-import type { Db } from "../db/types";
+import { nodeDb, runBatch } from "../db/testDb";
+import type { Db, Stmt } from "../db/types";
 import { ToastProvider } from "../ui/Toast";
 
 export type TauriState = {
@@ -51,14 +52,6 @@ export type TauriState = {
   granted: { files: Set<string>; dirs: Set<string> };
 };
 
-const wrap = (raw: DatabaseSync): Db => ({
-  select: async <T,>(sql: string, p: unknown[] = []) => raw.prepare(sql).all(...(p as SQLInputValue[])) as T[],
-  execute: async (sql: string, p: unknown[] = []) => {
-    const r = raw.prepare(sql).run(...(p as SQLInputValue[]));
-    return { rowsAffected: Number(r.changes), lastInsertId: Number(r.lastInsertRowid) };
-  },
-});
-
 function handle(t: TauriState, cmd: string, a: unknown, headers?: Record<string, string>): unknown {
   t.calls.push(cmd);
   const args = (a ?? {}) as Record<string, unknown>;
@@ -73,6 +66,9 @@ function handle(t: TauriState, cmd: string, a: unknown, headers?: Record<string,
       const r = t.raw.prepare(String(args.query)).run(...params);
       return [Number(r.changes), Number(r.lastInsertRowid)];
     }
+    case "sql_batch":
+      runBatch(t.raw, args.statements as Stmt[]);
+      return null;
     case "plugin:dialog|save": {
       const name = ((args.options ?? {}) as { defaultPath?: string }).defaultPath ?? "arquivo";
       const path = t.savePath ? t.savePath(name) : `/saida/${name}`;
@@ -174,7 +170,7 @@ export function setupTauri(): TauriState {
   const t = { files: new Map(), log: [], autoBackups: new Map(), savePath: null, openPath: null, askAnswer: true, calls: [], handlers: {}, fsScope: false, granted: { files: new Set(), dirs: new Set() }, windowStyle: { effect: "none", overlayTitlebar: false } } as unknown as TauriState;
   beforeEach(async () => {
     t.raw = new DatabaseSync(":memory:");
-    t.db = wrap(t.raw);
+    t.db = nodeDb(t.raw);
     await migrate(t.db);
     t.files.clear();
     t.autoBackups.clear();

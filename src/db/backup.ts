@@ -1,7 +1,7 @@
 import { z } from "zod";
 import { QUOTE_NUMBER_BACKFILL, SCHEMA_VERSION } from "./migrations";
 import { LegacyProductPhoto, TABLES, type TableName } from "./tables";
-import type { Db } from "./types";
+import type { Db, Stmt } from "./types";
 
 const APP = "upvision-maker";
 
@@ -58,18 +58,16 @@ function rowsOf(backup: Backup, t: TableName): Record<string, unknown>[] {
   return backup.tables.product_photos.map((p) => ({ id: p.id, owner: `product:${p.productId}`, position: p.position, dataUrl: p.dataUrl, createdAt: backup.exportedAt }));
 }
 
-/** Substitui todos os dados pelos do backup. */
+/** Substitui todos os dados pelos do backup, numa transação só: se algo falhar, nada muda (C1). */
 export async function restoreBackup(db: Db, backup: Backup): Promise<void> {
-  // ponytail: sem transação (o pool do tauri-plugin-sql não garante a mesma conexão entre chamadas);
-  // o backup já foi validado e a UI salva uma cópia de segurança antes. Mover para comando Rust se precisar de atomicidade.
+  const statements: Stmt[] = [];
   for (const t of names) {
     if (t === "photos" && backup.photosOmitted) continue; // backup leve: as fotos do app ficam
-    await db.execute(`DELETE FROM ${t}`);
+    statements.push({ sql: `DELETE FROM ${t}` });
     const cols = Object.keys(TABLES[t].shape);
     const sql = `INSERT INTO ${t} (${cols.join(", ")}) VALUES (${cols.map(() => "?").join(", ")})`;
-    for (const row of rowsOf(backup, t)) {
-      await db.execute(sql, cols.map((c) => row[c] ?? null));
-    }
+    for (const row of rowsOf(backup, t)) statements.push({ sql, params: cols.map((c) => row[c] ?? null) });
   }
-  for (const sql of QUOTE_NUMBER_BACKFILL) await db.execute(sql); // backup antigo: orçamentos sem número
+  for (const sql of QUOTE_NUMBER_BACKFILL) statements.push({ sql }); // backup antigo: orçamentos sem número
+  await db.batch(statements);
 }

@@ -1,8 +1,9 @@
 import { invoke } from "@tauri-apps/api/core";
 import { z } from "zod";
 import { backupStamp, loadAutoBackupConfig } from "../backup/auto";
-import { restoreFromText } from "../backupActions";
+import { replaceData } from "../backupActions";
 import { exportBackup, type Backup } from "../db/backup";
+import { exclusive } from "../db/dataLock";
 import { getSecret, setSecret } from "../db/repo";
 import type { Db } from "../db/types";
 
@@ -164,7 +165,11 @@ export type SyncResult =
  * Sincroniza agora. Na abertura (`since` = agora) e a cada minuto (`since` = quando pegou a trava).
  * `force` assume a trava de outro computador.
  */
-export async function syncNow(db: Db, me: Me, opts: { since: string; force?: boolean; now?: Date }): Promise<SyncResult> {
+export const syncNow = (db: Db, me: Me, opts: SyncOpts): Promise<SyncResult> => exclusive(() => syncStep(db, me, opts));
+
+type SyncOpts = { since: string; force?: boolean; now?: Date };
+
+async function syncStep(db: Db, me: Me, opts: SyncOpts): Promise<SyncResult> {
   const now = opts.now ?? new Date();
   const c = await loadSyncConfig(db);
   if (!c.enabled) return { kind: "desligado" };
@@ -186,7 +191,7 @@ export async function syncNow(db: Db, me: Me, opts: { since: string; force?: boo
     return { kind: "ok" };
   }
   if (d === "importar") {
-    await restoreFromText(remote.text); // guarda uma cópia dos dados daqui antes
+    await replaceData(remote.text); // guarda uma cópia dos dados daqui antes; numa transação só
     await remember(db, await dataHash(await exportBackup(db)), remote.mark.hash, now);
     return { kind: "importado", from: remote.mark };
   }
@@ -201,14 +206,15 @@ export async function syncNow(db: Db, me: Me, opts: { since: string; force?: boo
 }
 
 /** Ao fechar: sincroniza e solta a trava (se for minha). */
-export async function syncOnClose(db: Db, me: Me, since: string): Promise<void> {
-  const r = await syncNow(db, me, { since });
-  if (r.kind === "desligado" || r.kind === "trava") return;
-  await invoke("sync_remove", {
-    dir: (await loadSyncConfig(db)).dir,
-    kind: "lock",
+export const syncOnClose = (db: Db, me: Me, since: string): Promise<void> =>
+  exclusive(async () => {
+    const r = await syncStep(db, me, { since });
+    if (r.kind === "desligado" || r.kind === "trava") return;
+    await invoke("sync_remove", {
+      dir: (await loadSyncConfig(db)).dir,
+      kind: "lock",
+    });
   });
-}
 
 /** Esta sessão do app: desde quando tem a trava e se ainda sincroniza ("Continuar sem sincronizar" ou trava de outro desligam). */
 export const session = { since: new Date().toISOString(), active: true };
@@ -217,7 +223,9 @@ export const session = { since: new Date().toISOString(), active: true };
  * Ligar pela primeira vez. Se a pasta já tem dados de outro computador, a usuária escolhe:
  * "pasta" traz os de lá (os daqui ficam na cópia de segurança); "daqui" mantém estes (os de lá viram cópia de conflito).
  */
-export async function startSync(db: Db, me: Me, keep: "pasta" | "daqui"): Promise<SyncResult> {
+export const startSync = (db: Db, me: Me, keep: "pasta" | "daqui"): Promise<SyncResult> => exclusive(() => startStep(db, me, keep));
+
+async function startStep(db: Db, me: Me, keep: "pasta" | "daqui"): Promise<SyncResult> {
   await setSyncEnabled(db, true);
   if (keep === "pasta") {
     await setSecret(db, K.local, await dataHash(await exportBackup(db)));
@@ -227,7 +235,7 @@ export async function startSync(db: Db, me: Me, keep: "pasta" | "daqui"): Promis
     await setSecret(db, K.remote, "");
   }
   session.active = true;
-  return syncNow(db, me, { since: session.since, force: true });
+  return syncStep(db, me, { since: session.since, force: true });
 }
 
 export async function stopSync(db: Db, me: Me): Promise<void> {

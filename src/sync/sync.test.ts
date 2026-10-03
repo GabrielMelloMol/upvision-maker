@@ -1,6 +1,9 @@
 // @vitest-environment happy-dom
 import { beforeEach, describe, expect, test } from "vitest";
+import { restoreFromText } from "../backupActions";
 import { exportBackup } from "../db/backup";
+import { runBatch } from "../db/testDb";
+import type { Stmt } from "../db/types";
 import { setSecret } from "../db/repo";
 import { setupTauri } from "../test/harness";
 import { dataHash, decide, lockState, setSyncEnabled, syncNow, syncOnClose, whoAmI, type SyncLock } from "./sync";
@@ -169,5 +172,23 @@ describe("sincronizar pela pasta (#16)", () => {
     t.autoBackups.set(DIR, new Map([["upvision-sync.json", "{cortado"]]));
     await expect(syncNow(t.db, me, { since })).rejects.toThrow(/corrompido/);
     expect(await printers()).toEqual(["Bambu A1"]);
+  });
+
+  test("restaurar e sincronizar nunca rodam juntos: o tick espera a restauração terminar (C1)", async () => {
+    const backup = JSON.stringify(await exportBackup(t.db));
+    let release!: () => void;
+    const gate = new Promise<void>((r) => (release = r));
+    t.handlers.sql_batch = async (a) => {
+      await gate; // restauração "demorada" (fotos)
+      runBatch(t.raw, a.statements as Stmt[]);
+      return null;
+    };
+    const restoring = restoreFromText(backup);
+    const ticking = syncNow(t.db, await whoAmI(t.db), at("2026-09-29T15:01:00Z"));
+    await new Promise((r) => setTimeout(r, 20));
+    expect(t.calls).not.toContain("sync_read"); // o tick não leu a pasta com o banco pela metade
+    release();
+    await Promise.all([restoring, ticking]);
+    expect(t.calls.indexOf("sync_read")).toBeGreaterThan(t.calls.indexOf("sql_batch"));
   });
 });

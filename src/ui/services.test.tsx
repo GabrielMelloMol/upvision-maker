@@ -101,9 +101,9 @@ describe("loadSearchItems", () => {
 
   test("uma fonte com erro não derruba as outras", async () => {
     await t.db.execute("INSERT INTO printers (name, watts) VALUES ('A1', 95)");
-    const broken: Db = { select: async () => Promise.reject(new Error("tabela sumiu")), execute: async () => ({ rowsAffected: 0, lastInsertId: 0 }) };
+    const broken: Db = { select: async () => Promise.reject(new Error("tabela sumiu")), execute: async () => ({ rowsAffected: 0, lastInsertId: 0 }), batch: async () => {} };
     const real = await getDb();
-    const flaky: Db = { select: (sql, p) => (/printers/.test(sql) ? real.select(sql, p) : broken.select(sql, p)), execute: real.execute };
+    const flaky: Db = { select: (sql, p) => (/printers/.test(sql) ? real.select(sql, p) : broken.select(sql, p)), execute: real.execute, batch: real.batch };
 
     const items = await loadSearchItems(flaky);
 

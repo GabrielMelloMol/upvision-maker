@@ -6,6 +6,7 @@ mod lan;
 mod reveal;
 mod bambu;
 mod slicer;
+mod sqlbatch;
 mod stock;
 mod sync;
 mod vibrancy;
@@ -33,6 +34,7 @@ pub fn run() {
             vibrancy::window_style,
             reveal::reveal_window,
             stock::apply_stock,
+            sqlbatch::sql_batch,
             backup::backup_default_dir,
             backup::backup_write,
             backup::backup_list,

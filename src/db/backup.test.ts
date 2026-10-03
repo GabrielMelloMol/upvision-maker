@@ -21,6 +21,17 @@ describe("backup", () => {
     expect(await db.select("SELECT * FROM settings")).toEqual([{ id: 1, data: '{"kwhPrice":1}' }]);
   });
 
+  test("restaurar que falha no meio não mexe em nada: tudo ou nada (C1)", async () => {
+    const db = await seeded();
+    await db.execute("INSERT INTO printers (name, watts) VALUES ('Bambu A1', 95)");
+    const b = await exportBackup(db);
+    // duas impressoras com o mesmo id: o INSERT da 2ª falha depois de várias tabelas já trocadas
+    const broken = { ...b, tables: { ...b.tables, settings: [{ id: 1, data: '{"kwhPrice":7}' }], printers: [{ ...b.tables.printers[0] }, { ...b.tables.printers[0] }] } };
+    await expect(restoreBackup(db, parseBackup(JSON.stringify(broken)))).rejects.toThrow(/UNIQUE/);
+    expect(await db.select("SELECT name FROM printers")).toEqual([{ name: "Bambu A1" }]);
+    expect(await db.select("SELECT data FROM settings")).toEqual([{ data: '{"kwhPrice":1}' }]);
+  });
+
   test("backup antigo (impressora sem preço/vida útil) restaura com os padrões", async () => {
     const db = await seeded();
     const b = await exportBackup(db);

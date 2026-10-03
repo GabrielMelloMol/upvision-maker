@@ -11,6 +11,7 @@ Formato: `## <versão> — <data>` e itens `- …` em linguagem simples.
 - **Números como se escreve no Brasil, em todos os campos**: "1.200" é mil e duzentos (antes a Calculadora e o Produto liam 1,2 g e o preço saía até 150 vezes menor), "1.200,5" funciona, e "0,856" ou "0.856" no preço do kWh continua 0,856 (antes virava 856). Quando um número dá para ler de dois jeitos, o campo mostra como entendeu; quantidade que não dá para ler aparece em vermelho em vez de virar zero.
 - **Produto com dados antigos que não se consegue ler**: em vez de aparecer com custo zero e não baixar o estoque, ele avisa, não entra no preço nem nos pedidos, e não deixa salvar por cima do que está gravado.
 - **Calculadora → produto sem perder a conta**: se você digitou o preço do filamento (ou a potência da impressora) sem cadastrar, "Salvar como produto" pergunta se pode cadastrá-los e o produto guarda o custo calculado; o valor de "Vou vender por" vira o preço do produto. Antes ele saía com R$ 0,00.
+- **Restaurar backup é tudo ou nada**: se a restauração (ou a sincronização entre computadores) falhar no meio ou o app fechar, os dados continuam exatamente como estavam, em vez de ficarem pela metade. A sincronização também espera uma restauração terminar antes de enviar qualquer coisa para a pasta.
 
 ## 0.10.3 — 2026-10-03
 - **Foto do iPhone direto no Organizador**: aceita HEIC (o formato padrão do iPhone, como chega pelo AirDrop), no Mac e no Windows, usando os dados da câmera para corrigir a altura.
