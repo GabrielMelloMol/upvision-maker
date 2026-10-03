@@ -12,7 +12,10 @@
         "minHeight": 600,
         "transparent": true,
         "titleBarStyle": "Overlay",
-        "hiddenTitle": true
+        "hiddenTitle": true,
+        "visible": false,
+        "zoomHotkeysEnabled": true,
+        "dragDropEnabled": false
       }
     ]
   }
