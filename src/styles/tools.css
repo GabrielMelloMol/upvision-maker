@@ -251,10 +251,12 @@ details.advanced[open] > .stack, details.advanced[open] > .grid { margin-top: va
 .photo-list b { color: var(--text); font-weight: 600; }
 /* lista de ferramentas do projeto (#169): nome editável no lugar, com cara de texto em negrito */
 .tool-list-name { flex: 1; min-width: 0; display: grid; }
-.tool-list .tool-name { padding: 2px 4px; margin-left: -4px; border: 1px solid transparent; border-radius: var(--r-sm); background: transparent; color: var(--text); font: inherit; font-weight: 600; }
+.tool-list .tool-name { padding: 2px 4px; margin-left: -4px; border: 1px solid transparent; border-radius: var(--r-sm); background: transparent; color: var(--text); font: inherit; font-weight: 600; box-shadow: none; }
 .tool-list .tool-name:hover { border-color: var(--border); }
 .tool-list .tool-name:focus-visible { border-color: var(--accent); background: var(--field); }
 .drawer-map .tool-num { pointer-events: none; }
+/* Toggle com dica (.row-control) na coluna da ferramenta: rótulo e dica à esquerda, chave à direita, como em Ajustes */
+.controls .row-control { display: grid; grid-template-columns: minmax(0, 1fr) auto; column-gap: var(--space-3); row-gap: 2px; align-items: center; }
 .sheet-preview figcaption { display: grid; gap: var(--space-2); margin-top: var(--space-2); }
 @media (prefers-reduced-motion: reduce) { .photo-found { animation: none; } }
 

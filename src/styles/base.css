@@ -116,7 +116,7 @@ button:disabled { opacity: 0.45; cursor: not-allowed; }
 /* principal desabilitado: neutro nos dois temas (no escuro o azul a 45 % parecia ativo) — polimento */
 button.primary:disabled, button.action:disabled { opacity: 1; background: var(--fill); color: var(--tertiary); box-shadow: none; }
 /* excluir em lista: neutro até o mouse ou o foco chegar (vermelho só onde a ação acontece) */
-td button.danger:not(:hover):not(:focus-visible), td button.link.danger:not(:hover):not(:focus-visible) { color: var(--muted); }
+td button.danger:not(:hover):not(:focus-visible), td button.link.danger:not(:hover):not(:focus-visible), .tool-list button.danger:not(:hover):not(:focus-visible) { color: var(--muted); } /* lixeira por linha: vermelha só no hover/foco */
 button.primary { background: var(--accent); color: var(--on-accent); box-shadow: var(--highlight), 0 1px 2px rgb(37 99 235 / 0.3); }
 button.primary:hover:not(:disabled) { background: var(--accent-hover); }
 button.action { background: var(--action); color: var(--on-accent); box-shadow: var(--highlight); }
