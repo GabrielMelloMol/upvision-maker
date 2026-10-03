@@ -12,7 +12,7 @@ id = "bb7dfd8647884aaba09e7bbd2982d0d4"
 # Valores que não são segredo (pode editar aqui ou deixar em branco).
 [vars]
 # Repositório PRIVADO que recebe as issues (deixe vazio para só usar e-mail).
-GITHUB_REPO = "GabrielMelloMol/upvision-suporte"
+GITHUB_REPO = "GabrielMelloMol/upvision-maker"
 # Quem recebe o e-mail e o remetente verificado no Resend.
 FEEDBACK_TO = ""
 FEEDBACK_FROM = ""
