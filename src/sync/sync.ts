@@ -4,6 +4,7 @@ import { backupStamp, loadAutoBackupConfig } from "../backup/auto";
 import { replaceData } from "../backupActions";
 import { exportBackup, type Backup } from "../db/backup";
 import { SCHEMA_VERSION } from "../db/migrations";
+import { lockTuning } from "./tuning";
 import { exclusive } from "../db/dataLock";
 import { getSecret, setSecret } from "../db/repo";
 import type { Db } from "../db/types";
@@ -44,14 +45,32 @@ const MarkSchema = z.object({
     deviceName: z.string(),
     savedAt: z.string(),
     hash: z.string(),
+    /** Cópia de conflito (em Backups guardados) com os dados de quem perdeu o conflito que originou este arquivo (M1). */
+    conflict: z.string().optional(),
   }),
 });
 export type SyncMark = z.infer<typeof MarkSchema>["sync"];
 
+/** Parada há mais que isso, mesmo pela hora: sem dúvida abandonada (relógios diferentes não chegam a tanto). */
+export const STALE_ABS_MS = 30 * 60_000;
+/** O que este computador viu da trava de cada outro: o heartbeat e desde quando (pelo relógio DAQUI). */
+const lockSeen = new Map<string, { heartbeat: string; since: number }>();
+export const resetLockSeen = () => lockSeen.clear();
+
+/**
+ * A trava de outro computador vale enquanto o heartbeat dela MUDA entre as leituras deste computador. Comparar a hora
+ * gravada pelo outro com o relógio daqui errava quando os relógios divergem (M4): trava viva virava "livre" e o contrário.
+ */
 export function lockState(lock: SyncLock | null, me: string, now = new Date()): LockState {
   if (!lock) return "livre";
   if (lock.device === me) return "minha";
-  return now.getTime() - new Date(lock.heartbeat).getTime() > STALE_MS ? "livre" : "outro";
+  if (now.getTime() - new Date(lock.heartbeat).getTime() > STALE_ABS_MS) return "livre";
+  const seen = lockSeen.get(lock.device);
+  if (!seen || seen.heartbeat !== lock.heartbeat) {
+    lockSeen.set(lock.device, { heartbeat: lock.heartbeat, since: now.getTime() });
+    return "outro";
+  }
+  return now.getTime() - seen.since > STALE_MS ? "livre" : "outro";
 }
 
 export function decide(local: string, remote: string | null, last: Last | null): Decision {
@@ -68,6 +87,20 @@ export function decide(local: string, remote: string | null, last: Last | null):
 export async function dataHash(b: Backup): Promise<string> {
   const bytes = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(JSON.stringify(b.tables)));
   return [...new Uint8Array(bytes)].map((x) => x.toString(16).padStart(2, "0")).join("");
+}
+
+/** Tabelas que não contam como "ter dados": existem num app recém-instalado. */
+const NOT_DATA = new Set(["settings", "company", "tool_state", "quote_numbers"]);
+export const dataRows = (b: Pick<Backup, "tables">): number =>
+  Object.entries(b.tables).reduce((n, [table, rows]) => (NOT_DATA.has(table) ? n : n + (Array.isArray(rows) ? rows.length : 0)), 0);
+
+/** Quantas linhas de dados tem o arquivo da pasta (0 se não der para ler). */
+function rowsInText(text: string): number {
+  try {
+    return dataRows({ tables: (JSON.parse(text) as { tables?: Backup["tables"] }).tables ?? ({} as Backup["tables"]) });
+  } catch {
+    return 0;
+  }
 }
 
 export type SyncConfig = {
@@ -150,8 +183,8 @@ async function remember(db: Db, local: string, remote: string, now: Date) {
   await setSecret(db, K.at, now.toISOString());
 }
 
-async function exportTo(db: Db, dir: string, me: Me, backup: Backup, hash: string, now: Date) {
-  const sync: SyncMark = { ...me, savedAt: now.toISOString(), hash };
+async function exportTo(db: Db, dir: string, me: Me, backup: Backup, hash: string, now: Date, conflict?: string) {
+  const sync: SyncMark = { ...me, savedAt: now.toISOString(), hash, ...(conflict ? { conflict } : {}) };
   await invoke("sync_write", {
     dir,
     kind: "data",
@@ -167,6 +200,8 @@ export type SyncResult =
   | { kind: "conflito"; copy: string; from: SyncMark }
   /** A nuvem criou arquivos de conflito na pasta (um computador ficou sem internet): guardados como cópias restauráveis (A8). */
   | { kind: "copias"; names: string[] }
+  /** Nada a trocar porque um dos lados está vazio: não manda uma base vazia para a pasta nem importa uma por cima dos dados (A9). */
+  | { kind: "vazio"; where: "aqui" | "pasta" }
   /** Os dois computadores estão em versões diferentes do app: nada é trocado até atualizar (C2). */
   | { kind: "versao"; newer: boolean; from: SyncMark };
 
@@ -184,7 +219,14 @@ async function syncStep(db: Db, me: Me, opts: SyncOpts): Promise<SyncResult> {
   if (!c.enabled) return { kind: "desligado" };
   const lock = await readLock(c.dir);
   if (!opts.force && lock && lockState(lock, me.device, now) === "outro") return { kind: "trava", lock };
+  const acquiring = lock?.device !== me.device;
   await writeLock(c.dir, me, lock?.device === me.device ? lock.since : opts.since, now);
+  if (acquiring && !opts.force && lockTuning.settleMs > 0) {
+    // dois computadores pegando a trava juntos (a nuvem ainda não espalhou): espera e confere de quem ficou (M5)
+    await new Promise((r) => setTimeout(r, lockTuning.settleMs));
+    const after = await readLock(c.dir);
+    if (after && after.device !== me.device) return { kind: "trava", lock: after };
+  }
 
   // O cliente da nuvem resolve conflito sozinho criando "upvision-sync (1).json" etc.: o trabalho de um computador que
   // ficou sem internet estaria só ali. Vira cópia restaurável antes de qualquer importação ou envio (A8).
@@ -195,7 +237,15 @@ async function syncStep(db: Db, me: Me, opts: SyncOpts): Promise<SyncResult> {
   const backup = await exportBackup(db);
   const local = await dataHash(backup);
   const remote = await readRemote(c.dir);
-  const d = decide(local, remote?.mark.hash ?? null, c.last);
+  let d = decide(local, remote?.mark.hash ?? null, c.last);
+  const localRows = dataRows(backup);
+  const remoteRows = remote ? rowsInText(remote.text) : 0;
+  // Base vazia (A9): nunca vira "a verdade". Sem arquivo na pasta e sem dados aqui, não há o que enviar; um computador
+  // vazio importa o que a pasta tem em vez de resolver como conflito (que gravaria o vazio por cima); e uma pasta
+  // que ficou vazia não apaga os dados daqui.
+  if (!remote && localRows === 0 && !c.last) return { kind: "vazio", where: "aqui" };
+  if (remote && localRows === 0 && remoteRows > 0 && d !== "nada") d = "importar";
+  if (d === "importar" && remoteRows === 0 && localRows > 0) return { kind: "vazio", where: "pasta" };
   // Versões diferentes (C2): a versão antiga apagaria as tabelas e colunas novas. Pasta mais nova: este computador
   // não grava nada. Pasta mais antiga e mudada por outro: não importa nem resolve conflito. Pasta mais antiga só com
   // o que este mesmo computador gravou antes de atualizar: segue e exporta na versão nova.
@@ -222,7 +272,7 @@ async function syncStep(db: Db, me: Me, opts: SyncOpts): Promise<SyncResult> {
     stamp: backupStamp(now),
     json: remote.text,
   });
-  await exportTo(db, c.dir, me, backup, local, now);
+  await exportTo(db, c.dir, me, backup, local, now, copy.name);
   return { kind: "conflito", copy: copy.name, from: remote.mark };
 }
 

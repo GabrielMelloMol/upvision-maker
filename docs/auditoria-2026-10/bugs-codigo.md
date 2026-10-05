@@ -143,7 +143,7 @@ Só análise: nenhum código foi alterado e nenhuma issue foi criada. Base: `ori
   4. No tick seguinte, A vê "local igual ao último, remoto mudou" e importa. A sessão offline some.
 - **Correção sugerida:** procurar `upvision-sync*.json` com outros nomes e tratar como conflito; pedir confirmação antes de importar por cima de mudanças não exportadas.
 
-### A9. Ligar a sync no 2º computador antes de a nuvem baixar exporta a base vazia
+### A9. Ligar a sync no 2º computador antes de a nuvem baixar exporta a base vazia — ✅ CORRIGIDO (Lupa)
 - **Onde:** `src/sync/SyncSettingsCard.tsx:26-28` e `:40`; `src/sync/sync.ts:55` e `:184-186`.
 - **Como reproduzir:**
   1. No PC novo, escolha a pasta do OneDrive antes de ela terminar de baixar e ligue a sync.
@@ -177,7 +177,7 @@ Só análise: nenhum código foi alterado e nenhuma issue foi criada. Base: `ori
 
 ## Médio
 
-### M1. Um conflito tira a sessão inteira do outro computador
+### M1. Um conflito tira a sessão inteira do outro computador — ✅ CORRIGIDO (Lupa)
 - **Onde:** `src/sync/sync.ts:60` e `:193-200`; `src/sync/SyncBanner.tsx:19`, `:60-62`.
 - **Como reproduzir:** o B vê "Em uso no computador A" e escolhe "Continuar sem sincronizar". Quando a sync volta, quem detecta o conflito fica com os próprios dados e o trabalho do outro vai inteiro para uma cópia. O outro importa depois, sem aviso.
 - **Correção sugerida:** avisar também quem perdeu; idealmente juntar por linha (`updatedAt` + id), ou bloquear a edição enquanto outro computador tiver a trava.
@@ -192,12 +192,12 @@ Só análise: nenhum código foi alterado e nenhuma issue foi criada. Base: `ori
 - **Como reproduzir:** feche com Cmd+Q, ou instale uma atualização no Windows, onde o instalador encerra o processo. `onCloseRequested` só dispara ao fechar a janela. Confirmar o caso do Cmd+Q num Mac.
 - **Correção sugerida:** tratar `ExitRequested` no Rust (`prevent_exit`, avisar o front, sair depois) e chamar `syncOnClose` dentro do `install()`, antes do `downloadAndInstall`.
 
-### M4. Relógios diferentes entre os computadores desfazem a trava
+### M4. Relógios diferentes entre os computadores desfazem a trava — ✅ CORRIGIDO (Lupa)
 - **Onde:** `src/sync/sync.ts:48-52` e `:120-129` (compara o relógio local com o `heartbeat` gravado pelo outro).
 - **Como reproduzir:** com o relógio de B 6 min atrasado, B vê como velha uma trava que A acabou de gravar. No sentido inverso, quem está adiantado toma a trava do outro.
 - **Correção sugerida:** considerar a trava viva enquanto o `heartbeat` continuar mudando entre leituras deste computador, sem comparar relógios.
 
-### M5. A trava da pasta não é exclusiva
+### M5. A trava da pasta não é exclusiva — ✅ CORRIGIDO (Lupa)
 - **Onde:** `src/sync/sync.ts:171-173` (lê e depois grava, sem confirmar).
 - **Como reproduzir:** abra os dois computadores com segundos de diferença, antes de a nuvem replicar o `.lock`. Os dois exportam e a nuvem cria um arquivo de conflito (A8).
 - **Correção sugerida:** gravar a trava, esperar, reler e desempatar por `device` antes de exportar qualquer coisa.

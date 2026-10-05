@@ -136,6 +136,38 @@ describe("faixa da sincronização (#16)", () => {
     expect(screen.queryByText(/versão mais nova/)).not.toBeInTheDocument();
   });
 
+  test("a nuvem criou um arquivo de conflito: a faixa avisa que a versão está guardada em Restaurar backup (A8)", async () => {
+    await otherComputerSaves("Ender 3");
+    folder()!.set("upvision-sync (1).json", '{"offline":true}');
+    renderWithApp(<SyncBanner onImported={() => {}} onOpenBackups={() => {}} />);
+    expect(await screen.findByText(/A nuvem guardou uma versão a mais dos dados/)).toBeInTheDocument();
+    expect([...folder()!.keys()].some((k) => k.startsWith("upvision-conflito-"))).toBe(true);
+  });
+
+  test("a pasta ficou vazia e este computador tem dados: avisa e não importa o vazio (A9)", async () => {
+    const b = await exportBackup(t.db);
+    const mine = await dataHash(b);
+    await setSecret(t.db, "sync_local_hash", mine);
+    await setSecret(t.db, "sync_remote_hash", mine);
+    const empty = Object.fromEntries(Object.keys(b.tables).map((k) => [k, []]));
+    t.autoBackups.set(DIR, new Map([["upvision-sync.json", JSON.stringify({ ...b, tables: empty, sync: { device: "outro", deviceName: "PC-NOVO", savedAt: recent(), hash: "vazio" } })]]));
+    renderWithApp(<SyncBanner onImported={() => {}} onOpenBackups={() => {}} />);
+    expect(await screen.findByText(/A pasta de sincronização está sem dados/)).toBeInTheDocument();
+    expect(await printers()).toEqual(["Bambu A1"]);
+  });
+
+  test("importar depois de um conflito diz onde ficou o que foi guardado (M1)", async () => {
+    const b = await exportBackup(t.db);
+    const mine = await dataHash(b);
+    await setSecret(t.db, "sync_local_hash", mine);
+    await setSecret(t.db, "sync_remote_hash", mine);
+    await otherComputerSaves("Ender 3");
+    const file = JSON.parse(folder()!.get("upvision-sync.json")!);
+    folder()!.set("upvision-sync.json", JSON.stringify({ ...file, sync: { ...file.sync, conflict: "upvision-conflito-2026-09-29-150000.json" } }));
+    renderWithApp(<SyncBanner onImported={() => {}} onOpenBackups={() => {}} />);
+    expect(await screen.findByText(/os dois computadores tinham mudado dados.*Restaurar backup/i)).toBeInTheDocument();
+  });
+
   test("o outro computador salvou e este não mudou: traz e remonta a página", async () => {
     const b = await exportBackup(t.db);
     const mine = await dataHash(b);

@@ -44,6 +44,7 @@ export default function SyncSettingsCard({ dir, onChooseDir }: { dir: string; on
     } else if (r.kind === "conflito") toast(`Ficaram os dados daqui; os de ${r.from.deviceName} foram guardados em Backups guardados.`);
     else if (r.kind === "versao")
       toast(r.newer ? `${r.from.deviceName} está com uma versão mais nova do app: atualize este computador para sincronizar.` : `${r.from.deviceName} está com uma versão antiga do app: atualize lá para sincronizar.`, "error");
+    else if (r.kind === "vazio") toast("Sincronização ligada. Ainda não há dados aqui nem na pasta; quando houver, eles são enviados.");
     else toast("Sincronização ligada.");
   }
 

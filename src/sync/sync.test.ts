@@ -7,7 +7,8 @@ import type { Stmt } from "../db/types";
 import { setSecret } from "../db/repo";
 import { setupTauri } from "../test/harness";
 import { SCHEMA_VERSION } from "../db/migrations";
-import { dataHash, decide, lockState, setSyncEnabled, syncNow, syncOnClose, whoAmI, type SyncLock } from "./sync";
+import { dataHash, decide, lockState, resetLockSeen, setSyncEnabled, syncNow, syncOnClose, whoAmI, type SyncLock } from "./sync";
+import { lockTuning } from "./tuning";
 
 const t = setupTauri();
 const DIR = "C:/Users/ana/OneDrive/UpVision";
@@ -50,18 +51,19 @@ const lockOf = (device: string, heartbeat: string): SyncLock => ({
 });
 
 beforeEach(async () => {
+  resetLockSeen();
   await t.db.execute("INSERT INTO printers (name, watts) VALUES ('Bambu A1', 100)");
   await setSecret(t.db, "backup_dir", DIR);
   await setSyncEnabled(t.db, true);
 });
 
 describe("decisões (#16)", () => {
-  test("trava: livre, minha, de outro, e de outro sem sinal há mais de 5 min vira livre", () => {
+  test("trava: livre, minha, de outro, e de outro parada há muito tempo vira livre", () => {
     const now = new Date("2026-09-29T15:00:00Z");
     expect(lockState(null, "eu", now)).toBe("livre");
     expect(lockState(lockOf("eu", "2026-09-29T10:00:00Z"), "eu", now)).toBe("minha");
     expect(lockState(lockOf("outro", "2026-09-29T14:58:00Z"), "eu", now)).toBe("outro");
-    expect(lockState(lockOf("outro", "2026-09-29T14:54:00Z"), "eu", now)).toBe("livre");
+    expect(lockState(lockOf("outro", "2026-09-29T14:00:00Z"), "eu", now)).toBe("livre"); // parada há 1 h: sem dúvida
   });
 
   test("o que mudou desde a última sincronização decide o sentido", () => {
@@ -264,6 +266,70 @@ describe("computadores em versões diferentes (C2)", () => {
     expect(keys.filter((k) => /^upvision-sync.+\.json$/.test(k))).toEqual([]);
     expect(folder().get("upvision-sync.json")).toBe(official);
     expect(await printers()).toEqual(["Bambu A1"]); // nada foi importado neste passo
+  });
+
+  test("relógio atrasado do outro computador não derruba a trava: vale o que MUDA entre leituras, não a hora (M4)", () => {
+    const lock = lockOf("outro", "2026-09-29T14:54:00Z"); // 6 min "atrás" pelo relógio deste PC, mas acabou de ser gravada
+    const t0 = new Date("2026-09-29T15:00:00Z");
+    expect(lockState(lock, "eu", t0)).toBe("outro");
+    // o outro segue vivo: o heartbeat muda a cada minuto, mesmo com a hora "velha"
+    expect(lockState(lockOf("outro", "2026-09-29T14:55:00Z"), "eu", new Date("2026-09-29T15:01:00Z"))).toBe("outro");
+    expect(lockState(lockOf("outro", "2026-09-29T14:56:00Z"), "eu", new Date("2026-09-29T15:02:00Z"))).toBe("outro");
+    // parou de mudar há mais de 5 min (visto por este relógio): abandonada
+    expect(lockState(lockOf("outro", "2026-09-29T14:56:00Z"), "eu", new Date("2026-09-29T15:08:00Z"))).toBe("livre");
+  });
+
+  test("duas máquinas pegando a trava juntas: quem não é mais o dono depois da espera cede (M5)", async () => {
+    lockTuning.settleMs = 1;
+    const me = await whoAmI(t.db);
+    t.autoBackups.set(DIR, new Map());
+    let writes = 0;
+    t.handlers.sync_write = (a) => {
+      folder().set(a.kind === "lock" ? "upvision-sync.lock" : "upvision-sync.json", String(a.json));
+      if (a.kind === "lock" && ++writes === 1) folder().set("upvision-sync.lock", JSON.stringify(lockOf("outro", new Date().toISOString()))); // o outro gravou logo depois
+      return null;
+    };
+    const r = await syncNow(t.db, me, { since });
+    expect(r).toMatchObject({ kind: "trava", lock: { device: "outro" } });
+    expect(folder().has("upvision-sync.json")).toBe(false); // nada exportado enquanto a trava é do outro
+  });
+
+  test("este computador vazio e a pasta sem arquivo (nuvem ainda baixando): não envia uma base vazia (A9)", async () => {
+    await t.db.execute("DELETE FROM printers");
+    t.autoBackups.set(DIR, new Map());
+    const r = await syncNow(t.db, await whoAmI(t.db), at("2026-09-29T15:00:00Z"));
+    expect(r).toEqual({ kind: "vazio", where: "aqui" });
+    expect(folder().has("upvision-sync.json")).toBe(false);
+  });
+
+  test("este computador vazio e a pasta com dados: importa, nunca vira conflito que sobrescreve com o vazio (A9)", async () => {
+    t.autoBackups.set(DIR, new Map());
+    await otherComputerSaves(["Ender 3"]);
+    await t.db.execute("DELETE FROM printers");
+    const r = await syncNow(t.db, await whoAmI(t.db), at("2026-09-29T15:00:00Z"));
+    expect(r).toMatchObject({ kind: "importado" });
+    expect(await printers()).toEqual(["Ender 3"]);
+  });
+
+  test("a pasta passou a ter uma base vazia e este computador tem dados: não importa o vazio (A9)", async () => {
+    const me = await whoAmI(t.db);
+    await syncNow(t.db, me, at("2026-09-29T15:00:00Z")); // exporta e lembra o estado
+    const b = await exportBackup(t.db);
+    const empty = Object.fromEntries(Object.keys(b.tables).map((k) => [k, []]));
+    folder().set("upvision-sync.json", JSON.stringify({ ...b, tables: empty, sync: { device: "outro", deviceName: "PC-NOVO", savedAt: "2026-09-29T15:30:00.000Z", hash: "hash-de-uma-base-vazia" } }));
+    const r = await syncNow(t.db, me, at("2026-09-29T15:31:00Z"));
+    expect(r).toEqual({ kind: "vazio", where: "pasta" });
+    expect(await printers()).toEqual(["Bambu A1"]);
+  });
+
+  test("depois de um conflito, o arquivo da pasta diz qual cópia guarda o trabalho de quem perdeu (M1)", async () => {
+    const me = await whoAmI(t.db);
+    await syncNow(t.db, me, at("2026-09-29T14:32:00Z"));
+    await otherComputerSaves(["Ender 3"]);
+    await t.db.execute("INSERT INTO printers (name, watts) VALUES ('K1', 350)");
+    const r = await syncNow(t.db, me, at("2026-09-29T15:10:00Z"));
+    if (r.kind !== "conflito") throw new Error(`esperava conflito, veio ${r.kind}`);
+    expect(JSON.parse(folder().get("upvision-sync.json")!).sync.conflict).toBe(r.copy);
   });
 });
 

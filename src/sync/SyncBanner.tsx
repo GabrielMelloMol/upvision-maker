@@ -4,7 +4,7 @@ import { logError } from "../diagnostics/log";
 import { errorText, useToast } from "../ui/Toast";
 import { loadSyncConfig, session, syncNow, TICK_MS, whenLabel, whoAmI, type SyncResult } from "./sync";
 
-type Shown = Extract<SyncResult, { kind: "trava" | "conflito" | "versao" | "copias" }>;
+type Shown = Extract<SyncResult, { kind: "trava" | "conflito" | "versao" | "copias" | "vazio" }>;
 
 /** "Ok" no aviso de versão vale até fechar o app: ele volta a cada minuto enquanto as versões forem diferentes. */
 let versionDismissed = false;
@@ -27,10 +27,13 @@ export default function SyncBanner({ onImported, onOpenBackups }: { onImported: 
         force,
       });
       if (r.kind === "trava") session.active = false;
-      if (r.kind === "trava" || r.kind === "conflito") setShown(r);
+      if (r.kind === "trava" || r.kind === "conflito" || r.kind === "copias" || (r.kind === "vazio" && r.where === "pasta")) setShown(r);
       if (r.kind === "versao" && !versionDismissed) setShown(r);
       if (r.kind === "importado") {
-        toast(`Dados atualizados com o que ${r.from.deviceName} salvou (${whenLabel(r.from.savedAt)}).`);
+        toast(
+          `Dados atualizados com o que ${r.from.deviceName} salvou (${whenLabel(r.from.savedAt)}).` +
+            (r.from.conflict ? " Como os dois computadores tinham mudado dados, o que existia antes ficou guardado em Restaurar backup." : ""),
+        );
         onImported();
       }
     },
@@ -45,6 +48,15 @@ export default function SyncBanner({ onImported, onOpenBackups }: { onImported: 
   }, [run]);
 
   if (!shown) return null;
+  if (shown.kind === "vazio")
+    return (
+      <div className="banner warn" role="status">
+        <span>A pasta de sincronização está sem dados e este computador tem. Nada foi apagado nem enviado: confira se a pasta é a certa ou se a nuvem ainda está baixando os arquivos.</span>
+        <button className="ghost" onClick={() => setShown(null)}>
+          Ok
+        </button>
+      </div>
+    );
   if (shown.kind === "copias")
     return (
       <div className="banner warn" role="status">
