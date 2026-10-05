@@ -1,8 +1,9 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { getDb } from "../db";
 import { logError } from "../diagnostics/log";
 import { errorText, useToast } from "../ui/Toast";
-import { loadSyncConfig, session, syncNow, TICK_MS, whenLabel, whoAmI, type SyncResult } from "./sync";
+import { loadSyncConfig, session, syncNow, whenLabel, whoAmI, type SyncResult } from "./sync";
+import { syncTuning } from "./tuning";
 
 type Shown = Extract<SyncResult, { kind: "trava" | "conflito" | "versao" | "copias" | "vazio" }>;
 
@@ -15,6 +16,9 @@ let versionDismissed = false;
  */
 export default function SyncBanner({ onImported, onOpenBackups }: { onImported: () => void; onOpenBackups: () => void }) {
   const [shown, setShown] = useState<Shown | null>(null);
+  /** Erro da sincronização que a pessoa precisa ver (A10): arquivo corrompido na hora; outros depois da 2ª falha seguida. */
+  const [failure, setFailure] = useState<string | null>(null);
+  const failures = useRef(0);
   const toast = useToast();
 
   const run = useCallback(
@@ -41,13 +45,29 @@ export default function SyncBanner({ onImported, onOpenBackups }: { onImported: 
   );
 
   useEffect(() => {
-    const safe = () => run().catch((e) => logError("sincronização", e, "warn")); // pasta fora do ar: tenta no próximo minuto
+    const safe = () =>
+      run().then(
+        () => {
+          failures.current = 0;
+          setFailure(null);
+        },
+        (e) => {
+          logError("sincronização", e, "warn"); // pasta fora do ar: tenta no próximo minuto
+          failures.current += 1;
+          if (failures.current >= 2 || /corrompido/.test(errorText(e))) setFailure(errorText(e));
+        },
+      );
     void safe();
-    const id = window.setInterval(safe, TICK_MS);
+    const id = window.setInterval(safe, syncTuning.tickMs);
     return () => window.clearInterval(id);
   }, [run]);
 
-  if (!shown) return null;
+  const failed = failure && (
+    <div className="banner warn" role="alert">
+      <span>Não consegui sincronizar: {failure} O app tenta de novo a cada minuto; enquanto isso, as mudanças deste computador não chegam ao outro.</span>
+    </div>
+  );
+  if (!shown) return failed || null;
   if (shown.kind === "vazio")
     return (
       <div className="banner warn" role="status">

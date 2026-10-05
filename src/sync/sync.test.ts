@@ -8,7 +8,7 @@ import { setSecret } from "../db/repo";
 import { setupTauri } from "../test/harness";
 import { SCHEMA_VERSION } from "../db/migrations";
 import { dataHash, decide, lockState, resetLockSeen, setSyncEnabled, syncNow, syncOnClose, whoAmI, type SyncLock } from "./sync";
-import { lockTuning } from "./tuning";
+import { syncTuning } from "./tuning";
 
 const t = setupTauri();
 const DIR = "C:/Users/ana/OneDrive/UpVision";
@@ -280,7 +280,7 @@ describe("computadores em versões diferentes (C2)", () => {
   });
 
   test("duas máquinas pegando a trava juntas: quem não é mais o dono depois da espera cede (M5)", async () => {
-    lockTuning.settleMs = 1;
+    syncTuning.settleMs = 1;
     const me = await whoAmI(t.db);
     t.autoBackups.set(DIR, new Map());
     let writes = 0;

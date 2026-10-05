@@ -7,6 +7,7 @@ import { SCHEMA_VERSION } from "../db/migrations";
 import { setSecret } from "../db/repo";
 import { renderWithApp, setupTauri } from "../test/harness";
 import { dataHash, session, setSyncEnabled } from "./sync";
+import { syncTuning } from "./tuning";
 import SyncBanner from "./SyncBanner";
 import SyncSettingsCard from "./SyncSettingsCard";
 
@@ -166,6 +167,30 @@ describe("faixa da sincronização (#16)", () => {
     folder()!.set("upvision-sync.json", JSON.stringify({ ...file, sync: { ...file.sync, conflict: "upvision-conflito-2026-09-29-150000.json" } }));
     renderWithApp(<SyncBanner onImported={() => {}} onOpenBackups={() => {}} />);
     expect(await screen.findByText(/os dois computadores tinham mudado dados.*Restaurar backup/i)).toBeInTheDocument();
+  });
+
+  test("arquivo da pasta corrompido: a faixa mostra o erro na hora, em vez de só ir para o registro (A10)", async () => {
+    t.autoBackups.set(DIR, new Map([["upvision-sync.json", "{cortado"]]));
+    renderWithApp(<SyncBanner onImported={() => {}} onOpenBackups={() => {}} />);
+    expect(await screen.findByText(/Não consegui sincronizar.*corrompido/)).toBeInTheDocument();
+  });
+
+  test("falha repetida (pasta sem permissão): depois de 2 tentativas a faixa avisa; quando volta a funcionar, some (A10)", async () => {
+    syncTuning.tickMs = 80;
+    let broken = true;
+    t.handlers.sync_write = (a) => {
+      if (broken) throw new Error("Não consegui gravar: permissão negada");
+      folder()?.set(a.kind === "lock" ? "upvision-sync.lock" : "upvision-sync.json", String(a.json));
+      return null;
+    };
+    t.autoBackups.set(DIR, new Map());
+    renderWithApp(<SyncBanner onImported={() => {}} onOpenBackups={() => {}} />);
+    await waitFor(() => expect(t.calls.filter((c) => c === "sync_write").length).toBeGreaterThanOrEqual(1));
+    // a 1ª falha sozinha não assusta; a 2ª seguida mostra o erro
+    expect(await screen.findByText(/Não consegui sincronizar.*permissão negada/)).toBeInTheDocument();
+    expect(t.calls.filter((c) => c === "sync_write").length).toBeGreaterThanOrEqual(2);
+    broken = false;
+    await waitFor(() => expect(screen.queryByText(/Não consegui sincronizar/)).not.toBeInTheDocument());
   });
 
   test("o outro computador salvou e este não mudou: traz e remonta a página", async () => {

@@ -1,6 +1,6 @@
 import "@testing-library/jest-dom/vitest";
 import { afterEach, beforeEach } from "vitest";
-import { lockTuning } from "../sync/tuning";
+import { syncTuning } from "../sync/tuning";
 
 // Limpa o DOM entre testes de componente (arquivos com @vitest-environment happy-dom).
 afterEach(async () => {
@@ -16,6 +16,7 @@ beforeEach(() => {
 
 // Trava da sincronização (M5): sem a espera de 3 s da nuvem nos testes.
 beforeEach(() => {
-  lockTuning.settleMs = 0;
+  syncTuning.settleMs = 0;
+  syncTuning.tickMs = 60_000;
 });
 

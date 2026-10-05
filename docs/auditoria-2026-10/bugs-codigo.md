@@ -151,7 +151,7 @@ Só análise: nenhum código foi alterado e nenhuma issue foi criada. Base: `ori
   3. Se a nuvem ficar com essa versão, o computador principal importa a base vazia.
 - **Correção sugerida:** na primeira ligação com a base local vazia e sem arquivo na pasta, não exportar e avisar. Recusar ou perguntar ao importar uma base vazia ou muito menor que a local.
 
-### A10. Falhas de sincronização ficam invisíveis
+### A10. Falhas de sincronização ficam invisíveis — ✅ CORRIGIDO (Lupa)
 - **Onde:** `src/sync/SyncBanner.tsx:37` (`logError(..., "warn")`); a mensagem pronta em `src/sync/sync.ts:141` nunca chega à tela; `src/diagnostics/log.ts:40-41`.
 - **Como reproduzir:** corrompa `upvision-sync.json`, tire a permissão da pasta ou abra um computador com versão mais nova (C2). O app segue normal, sem faixa, e os computadores vão se afastando (o que leva a A8 e M1).
 - **Correção sugerida:** contar as falhas seguidas; na 2ª (ou de imediato em arquivo corrompido, permissão ou versão), mostrar uma faixa no SyncBanner com o texto do erro.

@@ -4,7 +4,7 @@ import { backupStamp, loadAutoBackupConfig } from "../backup/auto";
 import { replaceData } from "../backupActions";
 import { exportBackup, type Backup } from "../db/backup";
 import { SCHEMA_VERSION } from "../db/migrations";
-import { lockTuning } from "./tuning";
+import { syncTuning } from "./tuning";
 import { exclusive } from "../db/dataLock";
 import { getSecret, setSecret } from "../db/repo";
 import type { Db } from "../db/types";
@@ -221,9 +221,9 @@ async function syncStep(db: Db, me: Me, opts: SyncOpts): Promise<SyncResult> {
   if (!opts.force && lock && lockState(lock, me.device, now) === "outro") return { kind: "trava", lock };
   const acquiring = lock?.device !== me.device;
   await writeLock(c.dir, me, lock?.device === me.device ? lock.since : opts.since, now);
-  if (acquiring && !opts.force && lockTuning.settleMs > 0) {
+  if (acquiring && !opts.force && syncTuning.settleMs > 0) {
     // dois computadores pegando a trava juntos (a nuvem ainda não espalhou): espera e confere de quem ficou (M5)
-    await new Promise((r) => setTimeout(r, lockTuning.settleMs));
+    await new Promise((r) => setTimeout(r, syncTuning.settleMs));
     const after = await readLock(c.dir);
     if (after && after.device !== me.device) return { kind: "trava", lock: after };
   }
