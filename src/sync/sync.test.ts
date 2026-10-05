@@ -2,6 +2,7 @@
 import { beforeEach, describe, expect, test } from "vitest";
 import { restoreFromText } from "../backupActions";
 import { exportBackup } from "../db/backup";
+import { SCHEMA_VERSION } from "../db/migrations";
 import { runBatch } from "../db/testDb";
 import type { Stmt } from "../db/types";
 import { setSecret } from "../db/repo";
@@ -190,5 +191,21 @@ describe("sincronizar pela pasta (#16)", () => {
     release();
     await Promise.all([restoring, ticking]);
     expect(t.calls.indexOf("sync_read")).toBeGreaterThan(t.calls.indexOf("sql_batch"));
+  });
+
+  test("pasta com dados de uma versão mais nova do app: este computador não envia, não importa e não cria conflito (C2)", async () => {
+    t.autoBackups.set(DIR, new Map());
+    await otherComputerSaves(["Impressora do Mac"]);
+    const raw = JSON.parse(folder().get("upvision-sync.json")!);
+    folder().set("upvision-sync.json", JSON.stringify({ ...raw, schemaVersion: SCHEMA_VERSION + 1 }));
+    const before = folder().get("upvision-sync.json");
+    await t.db.execute("UPDATE printers SET watts = 150"); // este computador (antigo) mexeu nos dados
+
+    const r = await syncNow(t.db, await whoAmI(t.db), at("2026-09-29T15:01:00Z"));
+
+    expect(r).toMatchObject({ kind: "versao", remoteVersion: SCHEMA_VERSION + 1 });
+    expect(folder().get("upvision-sync.json")).toBe(before); // a pasta continua exatamente como o Mac deixou
+    expect([...folder().keys()].filter((k) => k.startsWith("upvision-conflito"))).toEqual([]);
+    expect(await printers()).toEqual(["Bambu A1"]); // nada importado
   });
 });

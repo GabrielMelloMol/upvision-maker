@@ -4,6 +4,7 @@ import { backupStamp, loadAutoBackupConfig } from "../backup/auto";
 import { replaceData } from "../backupActions";
 import { exportBackup, type Backup } from "../db/backup";
 import { exclusive } from "../db/dataLock";
+import { SCHEMA_VERSION } from "../db/migrations";
 import { getSecret, setSecret } from "../db/repo";
 import type { Db } from "../db/types";
 
@@ -37,6 +38,7 @@ const LockSchema = z.object({
   heartbeat: z.string(),
 });
 const MarkSchema = z.object({
+  schemaVersion: z.number().int().default(0),
   sync: z.object({
     device: z.string(),
     deviceName: z.string(),
@@ -130,12 +132,12 @@ export const writeLock = (dir: string, me: Me, since: string, now = new Date()) 
   });
 
 /** Os dados da pasta: o texto (um backup válido) e a marca de quem gravou. */
-export async function readRemote(dir: string): Promise<{ text: string; mark: SyncMark } | null> {
+export async function readRemote(dir: string): Promise<{ text: string; mark: SyncMark; schemaVersion: number } | null> {
   const text = await read(dir, "data");
   if (!text) return null;
   try {
     const r = MarkSchema.safeParse(JSON.parse(text));
-    if (r.success) return { text, mark: r.data.sync };
+    if (r.success) return { text, mark: r.data.sync, schemaVersion: r.data.schemaVersion };
   } catch {
     // cai no erro abaixo
   }
@@ -159,7 +161,7 @@ async function exportTo(db: Db, dir: string, me: Me, backup: Backup, hash: strin
 }
 
 export type SyncResult =
-  { kind: "desligado" | "ok" } | { kind: "importado"; from: SyncMark } | { kind: "trava"; lock: SyncLock } | { kind: "conflito"; copy: string; from: SyncMark };
+  { kind: "desligado" | "ok" } | { kind: "versao"; remoteVersion: number; from: SyncMark } | { kind: "importado"; from: SyncMark } | { kind: "trava"; lock: SyncLock } | { kind: "conflito"; copy: string; from: SyncMark };
 
 /**
  * Sincroniza agora. Na abertura (`since` = agora) e a cada minuto (`since` = quando pegou a trava).
@@ -181,6 +183,8 @@ async function syncStep(db: Db, me: Me, opts: SyncOpts): Promise<SyncResult> {
   const backup = await exportBackup(db);
   const local = await dataHash(backup);
   const remote = await readRemote(c.dir);
+  // Um computador com o app mais antigo NUNCA mexe numa pasta de esquema mais novo: não envia, não importa, não faz conflito (C2).
+  if (remote && remote.schemaVersion > SCHEMA_VERSION) return { kind: "versao", remoteVersion: remote.schemaVersion, from: remote.mark };
   const d = decide(local, remote?.mark.hash ?? null, c.last);
   if (d === "nada") {
     if (remote && (c.last?.local !== local || c.last.remote !== remote.mark.hash)) await remember(db, local, remote.mark.hash, now);

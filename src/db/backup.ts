@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { QUOTE_NUMBER_BACKFILL, SCHEMA_VERSION } from "./migrations";
+import { QUOTE_NUMBER_BACKFILL, SCHEMA_VERSION, tableSince } from "./migrations";
 import { LegacyProductPhoto, TABLES, type TableName } from "./tables";
 import type { Db, Stmt } from "./types";
 
@@ -63,9 +63,15 @@ export async function restoreBackup(db: Db, backup: Backup): Promise<void> {
   const statements: Stmt[] = [];
   for (const t of names) {
     if (t === "photos" && backup.photosOmitted) continue; // backup leve: as fotos do app ficam
-    statements.push({ sql: `DELETE FROM ${t}` });
+    // Backup de uma versão em que a tabela ainda não existia: ela não faz parte dele, então não é apagada (C2).
+    // Só as fotos de produto (que vinham em product_photos) são trocadas.
+    const older = backup.schemaVersion < tableSince(t);
+    if (older && t !== "photos") continue;
+    statements.push({ sql: older ? "DELETE FROM photos WHERE owner LIKE 'product:%'" : `DELETE FROM ${t}` });
     const cols = Object.keys(TABLES[t].shape);
-    const sql = `INSERT INTO ${t} (${cols.join(", ")}) VALUES (${cols.map(() => "?").join(", ")})`;
+    // as fotos de produto convertidas ficam ao lado das que sobraram: o id pula as que sobraram, para não colidir
+    const marks = cols.map((c) => (older && c === "id" ? "? + (SELECT COALESCE(MAX(id), 0) FROM photos WHERE owner NOT LIKE 'product:%')" : "?"));
+    const sql = `INSERT INTO ${t} (${cols.join(", ")}) VALUES (${marks.join(", ")})`;
     for (const row of rowsOf(backup, t)) statements.push({ sql, params: cols.map((c) => row[c] ?? null) });
   }
   for (const sql of QUOTE_NUMBER_BACKFILL) statements.push({ sql }); // backup antigo: orçamentos sem número

@@ -12,6 +12,7 @@ Formato: `## <versão> — <data>` e itens `- …` em linguagem simples.
 - **Produto com dados antigos que não se consegue ler**: em vez de aparecer com custo zero e não baixar o estoque, ele avisa, não entra no preço nem nos pedidos, e não deixa salvar por cima do que está gravado.
 - **Calculadora → produto sem perder a conta**: se você digitou o preço do filamento (ou a potência da impressora) sem cadastrar, "Salvar como produto" pergunta se pode cadastrá-los e o produto guarda o custo calculado; o valor de "Vou vender por" vira o preço do produto. Antes ele saía com R$ 0,00.
 - **Restaurar backup é tudo ou nada**: se a restauração (ou a sincronização entre computadores) falhar no meio ou o app fechar, os dados continuam exatamente como estavam, em vez de ficarem pela metade. A sincronização também espera uma restauração terminar antes de enviar qualquer coisa para a pasta.
+- **Dois computadores com versões diferentes do app**: se um computador já atualizou e o outro não, o mais antigo não envia nem recebe nada e avisa "atualize o app neste computador", em vez de apagar o trabalho do mais novo. Ao receber dados de uma versão anterior, o app também não apaga mais o que só a versão nova conhece (ficha de impressão, fotos de projetos e de impressões).
 
 ## 0.10.3 — 2026-10-03
 - **Foto do iPhone direto no Organizador**: aceita HEIC (o formato padrão do iPhone, como chega pelo AirDrop), no Mac e no Windows, usando os dados da câmera para corrigir a altura.

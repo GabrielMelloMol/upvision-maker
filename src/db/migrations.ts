@@ -119,6 +119,13 @@ export const MIGRATIONS: string[][] = [
 
 export const SCHEMA_VERSION = MIGRATIONS.length;
 
+/** Versão do esquema em que a tabela nasceu (0 = não achada). Um backup de versão anterior não conhece a tabela. */
+export function tableSince(table: string): number {
+  const re = new RegExp(`CREATE TABLE (IF NOT EXISTS )?${table}\\b`);
+  const v = MIGRATIONS.findIndex((group) => group.some((sql) => re.test(sql)));
+  return v + 1;
+}
+
 export async function migrate(db: Db): Promise<void> {
   const [{ user_version }] = await db.select<{ user_version: number }>("PRAGMA user_version");
   for (let v = user_version; v < MIGRATIONS.length; v++) {

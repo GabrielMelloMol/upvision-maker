@@ -1,6 +1,6 @@
 import { describe, expect, test } from "vitest";
 import { exportBackup, parseBackup, restoreBackup } from "./backup";
-import { migrate } from "./migrations";
+import { migrate, tableSince } from "./migrations";
 import { memoryDb } from "./testDb";
 
 async function seeded() {
@@ -30,6 +30,20 @@ describe("backup", () => {
     await expect(restoreBackup(db, parseBackup(JSON.stringify(broken)))).rejects.toThrow(/UNIQUE/);
     expect(await db.select("SELECT name FROM printers")).toEqual([{ name: "Bambu A1" }]);
     expect(await db.select("SELECT data FROM settings")).toEqual([{ data: '{"kwhPrice":1}' }]);
+  });
+
+  test("backup de versão anterior não apaga o que só as versões novas conhecem (C2)", async () => {
+    const db = await seeded();
+    await db.execute("INSERT INTO print_logs (at, result) VALUES ('2026-10-01', 'ok')");
+    await db.execute("INSERT INTO photos (owner, position, dataUrl, createdAt) VALUES ('project:1', 0, 'data:image/jpeg;base64,AA', 'x'), ('product:1', 0, 'data:image/jpeg;base64,BB', 'x')");
+    const b = await exportBackup(db);
+    // versão anterior à ficha de impressão e à tabela photos (as fotos de produto vinham em product_photos)
+    const old = { ...b, schemaVersion: tableSince("print_logs") - 1, tables: { ...b.tables, print_logs: [], photos: [], product_photos: [{ id: 1, productId: 2, position: 0, dataUrl: "data:image/jpeg;base64,CC" }] } };
+
+    await restoreBackup(db, parseBackup(JSON.stringify(old)));
+
+    expect(await db.select("SELECT result FROM print_logs")).toEqual([{ result: "ok" }]);
+    expect((await db.select<{ owner: string }>("SELECT owner FROM photos ORDER BY owner")).map((r) => r.owner)).toEqual(["product:2", "project:1"]);
   });
 
   test("backup antigo (impressora sem preço/vida útil) restaura com os padrões", async () => {

@@ -4,7 +4,7 @@ import { logError } from "../diagnostics/log";
 import { errorText, useToast } from "../ui/Toast";
 import { loadSyncConfig, session, syncNow, TICK_MS, whenLabel, whoAmI, type SyncResult } from "./sync";
 
-type Shown = Extract<SyncResult, { kind: "trava" | "conflito" }>;
+type Shown = Extract<SyncResult, { kind: "trava" | "conflito" | "versao" }>;
 
 /**
  * Sincronização entre 2 computadores rodando (#16): na abertura e a cada minuto. Mostra a faixa quando o app
@@ -24,7 +24,8 @@ export default function SyncBanner({ onImported, onOpenBackups }: { onImported: 
         force,
       });
       if (r.kind === "trava") session.active = false;
-      if (r.kind === "trava" || r.kind === "conflito") setShown(r);
+      if (r.kind === "trava" || r.kind === "conflito" || r.kind === "versao") setShown(r);
+      else if (r.kind === "ok") setShown((cur) => (cur?.kind === "versao" ? null : cur)); // atualizou o app: o aviso some sozinho
       if (r.kind === "importado") {
         toast(`Dados atualizados com o que ${r.from.deviceName} salvou (${whenLabel(r.from.savedAt)}).`);
         onImported();
@@ -41,6 +42,15 @@ export default function SyncBanner({ onImported, onOpenBackups }: { onImported: 
   }, [run]);
 
   if (!shown) return null;
+  if (shown.kind === "versao")
+    return (
+      <div className="banner warn" role="status">
+        <span>
+          Os dados na pasta foram salvos por {shown.from.deviceName} com uma versão mais nova do app. Atualize o app neste computador para voltar a sincronizar; até lá nada é enviado nem recebido,
+          para não apagar o trabalho de lá.
+        </span>
+      </div>
+    );
   if (shown.kind === "trava")
     return (
       <div className="banner warn" role="status">
