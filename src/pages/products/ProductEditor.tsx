@@ -67,6 +67,8 @@ export default function ProductEditor({ initial, data, onClose, onSaved }: Props
   const [swapFrom, setSwapFrom] = useState(() => String(base.variants.flatMap((v) => v.swaps)[0]?.from ?? base.composition.filaments[0]?.filamentId ?? ""));
   const [variationLabel, setVariationLabel] = useState(base.variationLabel);
   const [variantDrafts, setVariantDrafts] = useState<VariantDraft[]>(() => base.variants.map((v) => toDraft(v, Number(swapFrom) || null)));
+  const variantSum = variantDrafts.reduce((t, d) => t + (num(d.stock) || 0), 0);
+  const variantsEdited = variantDrafts.length !== base.variants.length || variantDrafts.some((d, i) => (num(d.stock) || 0) !== base.variants[i].stock);
   const [pending, setPending] = useState<string[]>([]); // fotos de produto ainda não salvo (sem id para a galeria)
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [saving, setSaving] = useState(false);
@@ -92,8 +94,9 @@ export default function ProductEditor({ initial, data, onClose, onSaved }: Props
     freight: parseMoney(n.freight) || 0,
     manualPrice: optMoney(n.manualPrice),
     consignmentPrice: optMoney(n.consignmentPrice),
-    // com variações, o estoque pronto do produto é a soma delas
-    stock: variantDrafts.length ? variantDrafts.reduce((t, d) => t + (num(d.stock) || 0), 0) : num(n.stock) || 0,
+    // com variações, o estoque pronto é a soma delas só quando a pessoa mexe nelas: pedidos e produção baixam o total
+    // (sem saber a cor), e recalcular ao salvar devolveria o que já foi vendido (A6)
+    stock: !variantDrafts.length ? num(n.stock) || 0 : variantsEdited ? variantSum : base.stock,
     variationLabel: variationLabel.trim() || "Cor",
     variants: variantDrafts.map((d) => ({
       name: d.name,
@@ -274,7 +277,11 @@ export default function ProductEditor({ initial, data, onClose, onSaved }: Props
                 <label>
                   Estoque pronto (un)
                   <input value={String(input.stock).replace(".", ",")} readOnly aria-describedby="stock-sum" />
-                  <span className="hint" id="stock-sum">Soma das variações.</span>
+                  <span className="hint" id="stock-sum">
+                    {input.stock === variantSum
+                      ? "Soma das variações."
+                      : `As variações somam ${variantSum.toLocaleString("pt-BR")}, mas o estoque pronto é ${input.stock.toLocaleString("pt-BR")} (pedidos e produção baixam o total, sem saber a cor). Ajuste as quantidades das variações para bater.`}
+                  </span>
                 </label>
               ) : (
                 <label>Estoque pronto (un)<input inputMode="decimal" value={n.stock} onChange={setNum("stock")} /></label>

@@ -77,7 +77,8 @@ export default function OrderEditor({ data, order, draft, onClose, onSaved, save
   function pickProduct(i: number, productId: string) {
     const p = data.products.find((x) => String(x.id) === productId);
     const price = suggested(productId, channel);
-    update(i, { productId, description: p?.name ?? lines[i].description, unitPrice: price === null ? lines[i].unitPrice : brl(price), manualPrice: false });
+    // produto trocado: custo e tempo voltam a ser os de hoje (A7)
+    update(i, { productId, description: p?.name ?? lines[i].description, unitPrice: price === null ? lines[i].unitPrice : brl(price), manualPrice: false, unitCost: undefined, printMinutes: undefined });
   }
 
   function changeChannel(ch: string) {
@@ -98,24 +99,29 @@ export default function OrderEditor({ data, order, draft, onClose, onSaved, save
     }
   }
 
-  const costOf = (p: (typeof data.products)[number]) => {
+  /** Custo de hoje do produto; null quando não dá para calcular (kit circular, composição ilegível). */
+  const costOf = (p: (typeof data.products)[number]): number | null => {
     try {
       return productPricing(p, data).result.unitCost;
     } catch {
-      return 0; // kit circular: o editor de produto já avisa
+      return null;
     }
   };
+  // produtos cujo custo não deu para calcular: o pedido não grava custo 0 (lucro = receita) no lugar (M17)
+  const noCost: string[] = [];
   const items = lines.map((l) => {
     const p = data.products.find((x) => String(x.id) === l.productId);
-    const unitCost = p ? costOf(p) : (l.unitCost ?? 0);
+    // item já salvo guarda o custo e o tempo da época; só linha nova ou produto trocado usa os de hoje (A7)
+    const today = p && l.unitCost === undefined ? costOf(p) : null;
+    if (p && l.unitCost === undefined && today === null) noCost.push(p.name);
     return {
       productId: p ? p.id : null,
       description: l.description,
       qty: num(l.qty),
       unitPrice: parseMoney(l.unitPrice),
       discountPct: num(l.discountPct) || 0,
-      unitCost,
-      printMinutes: p ? p.printMinutes / p.piecesPerPlate : (l.printMinutes ?? 0),
+      unitCost: l.unitCost ?? today ?? 0,
+      printMinutes: l.printMinutes ?? (p ? p.printMinutes / p.piecesPerPlate : 0),
       custom: l.custom,
     };
   });
@@ -134,6 +140,8 @@ export default function OrderEditor({ data, order, draft, onClose, onSaved, save
 
   async function save(e: React.FormEvent) {
     e.preventDefault();
+    if (noCost.length)
+      return setErrors({ items: `Não deu para calcular o custo de: ${[...new Set(noCost)].join(", ")}. Abra o produto e corrija (kit dentro de si mesmo, insumo ilegível) antes de salvar o pedido.` });
     setSaving(true);
     try {
       let id: number;

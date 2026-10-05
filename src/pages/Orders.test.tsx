@@ -347,6 +347,36 @@ describe("Pedidos: editar, detalhe e lista", () => {
     expect(t.raw.prepare("SELECT qty FROM order_items").all()).toEqual([{ qty: 4 }]);
   });
 
+  test("A7: editar um pedido antigo mantém o custo e o tempo gravados, mesmo com o filamento mais caro hoje", async () => {
+    seed();
+    insertOrder({ qty: 2 });
+    t.raw.exec("UPDATE order_items SET unitCost = 10, printMinutes = 30; UPDATE filaments SET pricePerKg = 900");
+    const user = userEvent.setup();
+    renderWithApp(<Orders />);
+    await user.click(await screen.findByRole("button", { name: /Abrir pedido #1/ }));
+    await user.click(within(await screen.findByRole("dialog", { name: "Pedido #1 · Bia" })).getByRole("button", { name: "Editar" }));
+    const ed = await screen.findByRole("dialog", { name: "Pedido #1" });
+    await user.type(within(ed).getByLabelText(/^Observações/), "entregar à tarde");
+    await user.click(within(ed).getByRole("button", { name: "Salvar alterações" }));
+    expect(await screen.findByText("Pedido atualizado.")).toBeInTheDocument();
+    expect(t.raw.prepare("SELECT unitCost, printMinutes FROM order_items").all()).toEqual([{ unitCost: 10, printMinutes: 30 }]);
+  });
+
+  test("M17: produto cujo custo não dá para calcular (kit dentro de si mesmo) não grava custo 0", async () => {
+    seed();
+    t.raw.exec(`INSERT INTO products (name, kind, composition, piecesPerPlate, stock, manualPrice) VALUES ('Kit', 'kit', '{"filaments":[],"materials":[],"items":[{"productId":2,"qty":1}]}', 1, 0, 30)`);
+    insertOrder({ qty: 1 });
+    const user = userEvent.setup();
+    renderWithApp(<Orders />);
+    await user.click(await screen.findByRole("button", { name: /Abrir pedido #1/ }));
+    await user.click(within(await screen.findByRole("dialog", { name: "Pedido #1 · Bia" })).getByRole("button", { name: "Editar" }));
+    const ed = await screen.findByRole("dialog", { name: "Pedido #1" });
+    await user.selectOptions(within(ed).getByLabelText("Produto"), "Kit");
+    await user.click(within(ed).getByRole("button", { name: "Salvar alterações" }));
+    expect(await within(ed).findByText(/Não deu para calcular o custo de: Kit/)).toBeInTheDocument();
+    expect(t.raw.prepare("SELECT productId FROM order_items").all()).toEqual([{ productId: 1 }]);
+  });
+
   test("com estoque baixado, editar quantidade é bloqueado com explicação", async () => {
     seed();
     insertOrder({});

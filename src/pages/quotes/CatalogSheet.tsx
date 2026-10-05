@@ -3,6 +3,7 @@ import { useState } from "react";
 import { productPricing, salePrice } from "../../domain/products";
 import { catalogPdf } from "../../pdf/catalog";
 import { loadPdfFonts } from "../../pdf/fonts";
+import Alert from "../../ui/Alert";
 import Button from "../../ui/Button";
 import { saveFile } from "../../ui/saveFile";
 import Segmented from "../../ui/Segmented";
@@ -17,24 +18,30 @@ export default function CatalogSheet({ data, company, onClose }: { data: Product
   const [price, setPrice] = useState<"consumer" | "resale">("consumer");
   const [title, setTitle] = useState("Catálogo");
   const [busy, setBusy] = useState(false);
+  const [noPrice, setNoPrice] = useState<string[]>([]);
   const toast = useToast();
 
   async function generate(e: React.FormEvent) {
     e.preventDefault();
+    const missing: string[] = [];
+    const items = data.products
+      .filter((p) => selected.has(p.id))
+      .map((p) => {
+        let value: number | null = p.manualPrice;
+        try {
+          const r = productPricing(p, data).result;
+          value = price === "consumer" ? salePrice(p, r) : r.resale;
+        } catch {
+          // custo que não dá para calcular (kit dentro de si mesmo, composição ilegível): só o preço manual serve
+        }
+        if (value === null) missing.push(p.name);
+        return { name: p.name, price: value ?? 0, photo: data.covers[p.id], sku: p.sku };
+      });
+    // M17: nada de "R$ 0,00" para o cliente; a pessoa desmarca ou põe um preço manual no produto
+    setNoPrice(missing);
+    if (missing.length) return;
     setBusy(true);
     try {
-      const items = data.products
-        .filter((p) => selected.has(p.id))
-        .map((p) => {
-          let value = p.manualPrice ?? 0;
-          try {
-            const r = productPricing(p, data).result;
-            value = price === "consumer" ? salePrice(p, r) : r.resale;
-          } catch {
-            // kit com problema: sai com o preço manual
-          }
-          return { name: p.name, price: value, photo: data.covers[p.id], sku: p.sku };
-        });
       const { bytes } = await catalogPdf(await loadPdfFonts(), company, items, title.trim() || "Catálogo");
       const path = await saveFile(`${title.trim() || "catalogo"}.pdf`.toLowerCase().replace(/\s+/g, "-"), bytes, "pdf", "PDF");
       if (path) {
@@ -70,6 +77,9 @@ export default function CatalogSheet({ data, company, onClose }: { data: Product
         </>
       }
     >
+      {noPrice.length > 0 && (
+        <Alert kind="error">Sem preço para mostrar: {noPrice.join(", ")}. O custo não dá para calcular e não há preço manual: desmarque ou ponha um preço manual no produto.</Alert>
+      )}
       <label>
         Título
         <input data-autofocus value={title} maxLength={60} onChange={(e) => setTitle(e.target.value)} />

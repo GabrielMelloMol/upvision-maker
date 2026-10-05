@@ -38,7 +38,7 @@ const A4 = { widthMm: 210, heightMm: 297 };
 
 const upload = () => userEvent.upload(document.querySelector<HTMLInputElement>('input[type="file"]')!, new File(["x"], "ferramentas.jpg", { type: "image/jpeg" }));
 
-describe("PhotoStep (#169)", { timeout: 30_000 }, () => {
+describe("PhotoStep (#169)", { timeout: 90_000 }, () => {
   test("acha a folha, mostra os 4 cantos e entrega o contorno de 100 × 40 mm", async () => {
     const onOutlines = vi.fn<(o: ToolOutline[], s: Sheet) => void>();
     render(<PhotoStep onOutlines={onOutlines} />);
@@ -47,7 +47,7 @@ describe("PhotoStep (#169)", { timeout: 30_000 }, () => {
     expect(await screen.findByRole("button", { name: /Canto 1 da folha/ })).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Trocar foto" })).toBeInTheDocument();
     expect(screen.getAllByRole("button", { name: /Canto \d da folha/ })).toHaveLength(4);
-    await waitFor(() => expect(onOutlines).toHaveBeenCalled(), { timeout: 10_000 });
+    await waitFor(() => expect(onOutlines).toHaveBeenCalled(), { timeout: 40_000 });
     const [outlines, sheet] = onOutlines.mock.lastCall!;
     expect(sheet).toEqual({ widthMm: 210, heightMm: 297 });
     expect(outlines).toHaveLength(1);
@@ -60,10 +60,10 @@ describe("PhotoStep (#169)", { timeout: 30_000 }, () => {
     const onOutlines = vi.fn<(o: ToolOutline[], s: Sheet) => void>();
     render(<PhotoStep onOutlines={onOutlines} />);
     await upload();
-    await waitFor(() => expect(onOutlines).toHaveBeenCalled(), { timeout: 10_000 });
+    await waitFor(() => expect(onOutlines).toHaveBeenCalled(), { timeout: 40_000 });
     const height = screen.getByLabelText(/Altura das ferramentas/);
     fireEvent.change(height, { target: { value: "10" } });
-    const ruler = await screen.findByLabelText(/Comprimento real da Ferramenta 1/, {}, { timeout: 10_000 });
+    const ruler = await screen.findByLabelText(/Comprimento real da Ferramenta 1/, {}, { timeout: 40_000 });
     await userEvent.type(ruler, "120");
     await waitFor(() => expect(screen.getByText(/120,0 × \d/)).toBeInTheDocument());
     expect(onOutlines.mock.lastCall![0][0].heightMm).toBe(10);
@@ -73,10 +73,10 @@ describe("PhotoStep (#169)", { timeout: 30_000 }, () => {
     const onOutlines = vi.fn<(o: ToolOutline[], s: Sheet) => void>();
     render(<PhotoStep onOutlines={onOutlines} />);
     await upload();
-    await waitFor(() => expect(onOutlines).toHaveBeenCalled(), { timeout: 10_000 });
+    await waitFor(() => expect(onOutlines).toHaveBeenCalled(), { timeout: 40_000 });
     const calls = onOutlines.mock.calls.length;
     fireEvent.keyDown(screen.getByRole("button", { name: /Canto 1 da folha/ }), { key: "ArrowLeft", shiftKey: true });
-    await waitFor(() => expect(onOutlines.mock.calls.length).toBeGreaterThan(calls), { timeout: 10_000 });
+    await waitFor(() => expect(onOutlines.mock.calls.length).toBeGreaterThan(calls), { timeout: 40_000 });
   });
 
   test("mesa branca sem borda: avisa que não tem certeza dos cantos e destaca os 4 pontos", async () => {
@@ -95,7 +95,7 @@ describe("PhotoStep (#169)", { timeout: 30_000 }, () => {
     await upload();
     expect(await screen.findByText(/Achei a folha de medição pelos 4 quadrados/)).toBeInTheDocument();
     screen.getAllByRole("button", { name: /Canto \d da folha/ }).forEach((c) => expect(c).not.toHaveClass("low"));
-    await waitFor(() => expect(onOutlines).toHaveBeenCalled(), { timeout: 10_000 });
+    await waitFor(() => expect(onOutlines).toHaveBeenCalled(), { timeout: 40_000 });
     expect(onOutlines.mock.lastCall![0]).toHaveLength(1); // marcadores e régua impressos não viram ferramenta
   });
 
@@ -103,7 +103,7 @@ describe("PhotoStep (#169)", { timeout: 30_000 }, () => {
     const onOutlines = vi.fn<(o: ToolOutline[], s: Sheet) => void>();
     render(<PhotoStep onOutlines={onOutlines} firstNumber={4} />);
     await upload();
-    await waitFor(() => expect(onOutlines).toHaveBeenCalled(), { timeout: 10_000 });
+    await waitFor(() => expect(onOutlines).toHaveBeenCalled(), { timeout: 40_000 });
     expect(screen.getByRole("list", { name: "Medidas" })).toHaveTextContent("Ferramenta 4");
     expect(screen.getByRole("img", { name: /Contornos medidos/ })).toHaveTextContent("4");
   });

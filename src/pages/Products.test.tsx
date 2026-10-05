@@ -314,6 +314,20 @@ describe("Produtos: editor", () => {
     expect(await t.db.select("SELECT composition FROM products")).toEqual([{ composition: '{"filaments":[{"filamentId":"x"}]}' }]);
   });
 
+  test("A6: com variações, salvar sem mexer nelas mantém o estoque pronto baixado pelos pedidos e avisa a diferença", async () => {
+    const variants = JSON.stringify([{ name: "Azul", sku: "", stock: 5, price: null, swaps: [] }, { name: "Verde", sku: "", stock: 5, price: null, swaps: [] }]);
+    t.raw.exec(`INSERT INTO products (name, kind, composition, piecesPerPlate, stock, variants) VALUES ('Vaso', 'simple', '${COMP([])}', 1, 7, '${variants}')`);
+    const user = userEvent.setup();
+    renderWithApp(<Products />);
+    await user.click(await screen.findByRole("button", { name: "Editar Vaso" }));
+    const sheet = await dialog("Editar Vaso");
+    expect(within(sheet).getByText(/As variações somam 10, mas o estoque pronto é 7/)).toBeInTheDocument();
+    await user.type(within(sheet).getByLabelText("Observações"), "nova descrição");
+    await user.click(within(sheet).getByRole("button", { name: "Salvar alterações" }));
+    expect(await screen.findByText("Produto atualizado.")).toBeInTheDocument();
+    expect(await t.db.select("SELECT stock FROM products")).toEqual([{ stock: 7 }]);
+  });
+
   test("fotos de produto novo ficam pendentes e são gravadas ao salvar; dá para tirar antes", async () => {
     const user = userEvent.setup();
     renderWithApp(<Products />);

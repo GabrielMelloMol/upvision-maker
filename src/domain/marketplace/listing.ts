@@ -1,6 +1,6 @@
 import { round2 } from "../format";
 import { productPricing, salePrice, type Product, type ProductCtx } from "../products";
-import { spreadWarning, swapComposition, type Variant } from "../variants";
+import { spreadWarning, swapComposition, type Variant, variantStocks } from "../variants";
 import { PRICE_NAMES } from "../pricing";
 import { MARKETPLACES, type ListingKey, type Marketplace } from "./columns";
 import { fillTemplate, writeXlsx, type Cell } from "./xlsx";
@@ -43,7 +43,7 @@ function channelPrice(p: Product, ctx: ProductCtx, channel: string): number | nu
 }
 
 /** Produto como a variação o vende: filamento da cor trocado e o preço da variação no lugar do manual (#82). */
-const asVariant = (p: Product, v: Variant): Product => ({ ...p, composition: swapComposition(p.composition, v.swaps), manualPrice: v.price ?? p.manualPrice, sku: v.sku, stock: v.stock });
+const asVariant = (p: Product, v: Variant, stock: number): Product => ({ ...p, composition: swapComposition(p.composition, v.swaps), manualPrice: v.price ?? p.manualPrice, sku: v.sku, stock });
 
 /**
  * Uma linha por produto (ou por variação, #82), já nas unidades do marketplace, e a lista do que falta preencher
@@ -52,8 +52,9 @@ const asVariant = (p: Product, v: Variant): Product => ({ ...p, composition: swa
 export function listingRows(products: Product[], ctx: ProductCtx, o: ListingOptions): ListingRow[] {
   return products.flatMap((p) => {
     if (!p.variants.length) return [productRow(p, p, ctx, o)];
-    const rows = p.variants.map((v) => {
-      const r = productRow(asVariant(p, v), p, ctx, o);
+    const stocks = variantStocks(p.stock, p.variants);
+    const rows = p.variants.map((v, i) => {
+      const r = productRow(asVariant(p, v, stocks[i]), p, ctx, o);
       return { ...r, variant: v, values: { ...r.values, skuParent: p.sku || null, variationGroup: `UV${p.id}`, variationName: p.variationLabel, variationOption: v.name } };
     });
     const spread = spreadWarning(rows.flatMap((r) => (typeof r.values.price === "number" ? [r.values.price] : [])));

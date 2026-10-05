@@ -27,6 +27,20 @@ export function swapComposition(c: Composition, swaps: Variant["swaps"]): Compos
   return { ...c, filaments: c.filaments.map((f) => (to.has(f.filamentId) ? { ...f, filamentId: to.get(f.filamentId)! } : f)) };
 }
 
+/**
+ * Estoque de cada variação que dá para anunciar (A6): os pedidos e a produção baixam só o total do produto (não sabem
+ * a cor), então a soma das variações pode passar do que existe. Distribui o total na ordem da lista, sem passar de
+ * nenhuma variação nem do total.
+ */
+export function variantStocks(total: number, list: Variant[]): number[] {
+  let left = Math.max(0, total);
+  return list.map((v) => {
+    const s = Math.min(Math.max(0, v.stock), left);
+    left -= s;
+    return s;
+  });
+}
+
 /** Problemas da lista que impedem salvar: nomes ou SKUs repetidos. */
 export function variantErrors(list: Variant[]): string[] {
   const out: string[] = [];

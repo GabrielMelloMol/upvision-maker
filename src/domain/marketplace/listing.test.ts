@@ -71,6 +71,15 @@ describe("linhas da planilha de upload em massa (#78)", () => {
     expect(sheet.rows[2][head.indexOf("Número de Integração de Variação")]).toBe("UV1");
   });
 
+  test("A6: variações que somam mais que o estoque pronto (pedido baixou o total) não anunciam o que não há", () => {
+    const sold = { ...lum, stock: 7, variants: [
+      { name: "Azul", sku: "A", stock: 5, price: null, swaps: [] },
+      { name: "Verde", sku: "V", stock: 5, price: null, swaps: [] },
+    ] };
+    const rows = listingRows([sold], ctx([sold]), opts);
+    expect(rows.map((r) => r.values.stock)).toEqual([5, 2]);
+  });
+
   test("variações com preços mais de 4× diferentes: aviso na Shopee, não no Mercado Livre", () => {
     const colored = { ...lum, variants: [
       { name: "P", sku: "", stock: 0, price: 10, swaps: [] },

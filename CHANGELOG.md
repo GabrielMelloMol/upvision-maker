@@ -3,6 +3,11 @@
 Cada versão aparece para a usuária na tela "O que há de novo" depois da atualização.
 Formato: `## <versão> — <data>` e itens `- …` em linguagem simples.
 
+## Próxima versão (ainda não lançada)
+- **Estoque pronto de produto com cores não volta ao valor antigo**: se você vendeu 3 de um produto com 10 em estoque (Azul 5 + Verde 5) e depois abre o produto só para mudar a descrição, o estoque continua 7, em vez de voltar para 10. A planilha do marketplace também não anuncia mais o que já foi vendido, e o produto avisa quando as cores somam mais que o estoque.
+- **Pedido antigo mantém o custo da época**: abrir um pedido de março e corrigir só uma observação não muda mais o custo nem o lucro daquele mês no Financeiro (antes o custo era refeito com o preço do filamento de hoje).
+- **Nada de custo R$ 0,00 sem aviso**: o pedido não é salvo com custo zero quando o custo de um produto não dá para calcular (por exemplo, kit dentro de si mesmo), e o catálogo em PDF avisa quais produtos estão sem preço em vez de imprimir R$ 0,00 para o cliente.
+
 ## 0.10.4 — 2026-10-05
 - **Dois computadores em versões diferentes não apagam mais dados**: se um estiver com o app desatualizado, nada é trocado entre eles e aparece um aviso dizendo qual computador precisa atualizar. Antes, o computador antigo podia apagar a ficha de impressão, os projetos e as fotos do mais novo.
 - **Restaurar um backup antigo** não apaga mais o que foi criado depois dele (ficha de impressão, projetos, fotos).

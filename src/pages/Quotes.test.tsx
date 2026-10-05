@@ -285,6 +285,22 @@ describe("Catálogo em PDF", () => {
     expect(isPdf(t.files.get("/saida/natal-2026.pdf")!)).toBe(true);
   });
 
+  test("M17: produto sem preço calculável nem manual não sai como R$ 0,00 no catálogo", async () => {
+    seed();
+    t.raw.exec(`INSERT INTO products (name, kind, composition, piecesPerPlate, stock) VALUES ('Kit quebrado', 'kit', '{"filaments":[],"materials":[],"items":[{"productId":3,"qty":1}]}', 1, 0)`);
+    const { user } = setup();
+    await user.click(await screen.findByRole("button", { name: "Catálogo PDF" }));
+    const c = await screen.findByRole("dialog", { name: "Catálogo em PDF" });
+    const names: string[] = [];
+    t.savePath = (n) => {
+      names.push(n);
+      return null;
+    };
+    await user.click(within(c).getByRole("button", { name: "Salvar PDF (3)" }));
+    expect(await within(c).findByText(/Sem preço para mostrar: Kit quebrado/)).toBeInTheDocument();
+    expect(names).toEqual([]); // nem chegou a pedir onde salvar
+  });
+
   test("título vazio usa 'catalogo'; cancelar o diálogo mantém a janela; erro vira aviso", async () => {
     seed();
     const { user } = setup();
