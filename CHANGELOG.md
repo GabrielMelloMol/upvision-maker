@@ -3,7 +3,7 @@
 Cada versão aparece para a usuária na tela "O que há de novo" depois da atualização.
 Formato: `## <versão> — <data>` e itens `- …` em linguagem simples.
 
-## Próxima versão (ainda não lançada)
+## 0.10.4 — 2026-10-05
 - **Dois computadores em versões diferentes não apagam mais dados**: se um estiver com o app desatualizado, nada é trocado entre eles e aparece um aviso dizendo qual computador precisa atualizar. Antes, o computador antigo podia apagar a ficha de impressão, os projetos e as fotos do mais novo.
 - **Restaurar um backup antigo** não apaga mais o que foi criado depois dele (ficha de impressão, projetos, fotos).
 - **Fechar o app durante uma atualização** não o impede mais de abrir: cada etapa da atualização dos dados é feita por inteiro ou não é feita.
