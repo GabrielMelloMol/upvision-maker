@@ -50,7 +50,8 @@ export const TABLES = {
   calc_history: CalcHistoryInput.extend({ id }),
   model_variants: ModelVariantInput.extend({ id }),
   tool_state: ToolStateRow,
-  tool_projects: ToolProjectInput.extend({ id }),
+  // favorito e tags são NOT NULL no banco; backup de antes da biblioteca (#161) não traz: ganham o padrão (A2)
+  tool_projects: ToolProjectInput.extend({ id, favorite: z.union([z.boolean(), z.number()]).default(0), tags: z.string().default("[]") }),
 };
 
 export type TableName = keyof typeof TABLES;

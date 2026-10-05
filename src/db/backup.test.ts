@@ -113,3 +113,16 @@ describe("fotos no backup (#162)", () => {
     expect((await exportBackup(db)).tables.photos).toHaveLength(1);
   });
 });
+
+test("backup das versões 15 a 19 com projetos salvos restaura: favorito e tags ganham o padrão (A2)", async () => {
+  const db = await seeded();
+  const b = await exportBackup(db);
+  // projeto de antes da biblioteca (#161): sem favorite, tags, updatedAt, productId e orderId
+  const project = { id: 1, toolId: "chaveiro", name: "Ana", data: "{}", thumb: null, at: "2026-09-01T10:00:00Z" };
+  const old = { ...b, schemaVersion: 15, tables: { ...b.tables, tool_projects: [project] } };
+
+  await restoreBackup(db, parseBackup(JSON.stringify(old)));
+
+  expect(await db.select("SELECT name, favorite, tags FROM tool_projects")).toEqual([{ name: "Ana", favorite: 0, tags: "[]" }]);
+});
+
