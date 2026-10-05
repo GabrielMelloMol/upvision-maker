@@ -74,6 +74,13 @@ export async function restoreBackup(db: Db, backup: Backup): Promise<void> {
     const sql = `INSERT INTO ${t} (${cols.join(", ")}) VALUES (${cols.map(() => "?").join(", ")})`;
     for (const row of rowsOf(backup, t)) statements.push({ sql, params: cols.map((c) => row[c] ?? null) });
   }
+  if (backup.photosOmitted) {
+    // Backup leve (B4): as fotos do app ficam, mas as de um produto, projeto ou impressão que o backup não tem sairiam
+    // grudadas no próximo cadastro que reaproveitar o mesmo id.
+    for (const [kind, table] of [["product", "products"], ["project", "tool_projects"], ["print", "print_logs"]] as const) {
+      statements.push({ sql: `DELETE FROM photos WHERE owner LIKE '${kind}:%' AND CAST(SUBSTR(owner, ${kind.length + 2}) AS INTEGER) NOT IN (SELECT id FROM ${table})` });
+    }
+  }
   for (const sql of QUOTE_NUMBER_BACKFILL) statements.push({ sql }); // backup antigo: orçamentos sem número
   await db.batch(statements);
 }

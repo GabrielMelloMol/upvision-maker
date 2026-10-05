@@ -101,6 +101,7 @@ describe("fotos no backup (#162)", () => {
 
   test("sem fotos no arquivo: o backup sai leve e restaurar não apaga as fotos que já estão no app", async () => {
     const db = await seeded();
+    await db.execute("INSERT INTO products (id, name, kind, composition) VALUES (1, 'Vaso', 'simple', '{\"filaments\":[],\"materials\":[],\"items\":[]}')");
     await db.execute("INSERT INTO photos (owner, position, dataUrl, createdAt) VALUES ('product:1', 0, ?, '2026-10-01T10:00:00Z')", [JPG]);
     const light = await exportBackup(db, { photos: false });
     expect(light.tables.photos).toEqual([]);
@@ -124,5 +125,21 @@ test("backup das versões 15 a 19 com projetos salvos restaura: favorito e tags 
   await restoreBackup(db, parseBackup(JSON.stringify(old)));
 
   expect(await db.select("SELECT name, favorite, tags FROM tool_projects")).toEqual([{ name: "Ana", favorite: 0, tags: "[]" }]);
+});
+
+test("restaurar um backup leve não deixa foto de um produto, projeto ou impressão que o backup não tem (B4)", async () => {
+  const db = await seeded();
+  await db.execute("INSERT INTO printers (name, watts) VALUES ('A1', 95)");
+  await db.execute("INSERT INTO products (id, name, kind, composition) VALUES (1, 'Vaso', 'simple', '{\"filaments\":[],\"materials\":[],\"items\":[]}')");
+  const light = await exportBackup(db, { photos: false }); // só o produto 1
+  // hoje o app tem mais produtos e projetos, cada um com foto, que o backup não conhece
+  await db.execute("INSERT INTO products (id, name, kind, composition) VALUES (2, 'Caneca', 'simple', '{\"filaments\":[],\"materials\":[],\"items\":[]}')");
+  await db.execute("INSERT INTO tool_projects (id, toolId, name, data, thumb, at) VALUES (7, 'chaveiro', 'Ana', '{}', NULL, 'x')");
+  const photo = (owner: string) => db.execute("INSERT INTO photos (owner, position, dataUrl, createdAt) VALUES (?, 0, 'data:image/jpeg;base64,AA', 'x')", [owner]);
+  for (const owner of ["product:1", "product:2", "project:7", "project:8", "print:3"]) await photo(owner);
+
+  await restoreBackup(db, parseBackup(JSON.stringify(light)));
+
+  expect((await db.select<{ owner: string }>("SELECT owner FROM photos ORDER BY owner")).map((r) => r.owner)).toEqual(["product:1"]);
 });
 
