@@ -4,6 +4,7 @@
 
 use serde::Serialize;
 use std::fs;
+use std::io::Write;
 use std::path::{Path, PathBuf};
 use tauri::{AppHandle, Manager};
 
@@ -12,6 +13,8 @@ const PREFIX: &str = "upvision-auto-";
 pub const CONFLICT_PREFIX: &str = "upvision-conflito-";
 const EXT: &str = ".json";
 const MAX_KEEP: usize = 365;
+/// Nunca menos de 2: com 1, um dia ruim apagaria o único backup bom (B3).
+const MIN_KEEP: usize = 2;
 
 #[derive(Debug, Serialize, PartialEq)]
 #[serde(rename_all = "camelCase")]
@@ -38,10 +41,29 @@ fn stamp_of(name: &str) -> &str {
 }
 
 /// Grava num temporário e renomeia: um arquivo cortado no meio nunca substitui um bom.
+/// O temporário tem nome único (dois arquivos na mesma pasta de nuvem não dividem o mesmo `.tmp`, B20), vai
+/// para o disco antes do rename (queda de energia não deixa o arquivo vazio, B3) e o rename tenta de novo uma
+/// vez: no Windows o OneDrive/antivírus às vezes segura o arquivo por um instante.
 pub fn write_atomic(path: &Path, json: &str) -> Result<(), String> {
-    let tmp = path.with_extension("tmp");
-    fs::write(&tmp, json).map_err(|e| format!("Não consegui gravar: {e}"))?;
-    fs::rename(&tmp, path).map_err(|e| format!("Não consegui gravar: {e}"))
+    let nanos = std::time::SystemTime::now().duration_since(std::time::UNIX_EPOCH).map(|d| d.as_nanos()).unwrap_or(0);
+    let mut tmp = path.as_os_str().to_owned();
+    tmp.push(format!(".{}.{nanos}.tmp", std::process::id()));
+    let tmp = PathBuf::from(tmp);
+    let fail = |e: std::io::Error| format!("Não consegui gravar: {e}");
+    let mut file = fs::File::create(&tmp).map_err(fail)?;
+    file.write_all(json.as_bytes()).and_then(|_| file.sync_all()).map_err(|e| {
+        let _ = fs::remove_file(&tmp);
+        fail(e)
+    })?;
+    drop(file);
+    fs::rename(&tmp, path).or_else(|_| {
+        std::thread::sleep(std::time::Duration::from_millis(150));
+        fs::rename(&tmp, path)
+    })
+    .map_err(|e| {
+        let _ = fs::remove_file(&tmp);
+        fail(e)
+    })
 }
 
 pub fn list_in(dir: &Path) -> Result<Vec<BackupEntry>, String> {
@@ -65,7 +87,7 @@ pub fn write_in(dir: &Path, stamp: &str, json: &str, keep: usize) -> Result<Back
     if !valid_stamp(stamp) {
         return Err("Data do backup inválida.".into());
     }
-    let keep = keep.clamp(1, MAX_KEEP);
+    let keep = keep.clamp(MIN_KEEP, MAX_KEEP);
     fs::create_dir_all(dir).map_err(|e| format!("Não consegui criar a pasta de backup: {e}"))?;
     let name = format!("{PREFIX}{stamp}{EXT}");
     let path = dir.join(&name);
@@ -146,7 +168,17 @@ mod tests {
         let names: Vec<_> = list_in(&d).unwrap().into_iter().map(|e| e.name).collect();
         assert_eq!(names, vec!["upvision-auto-2026-09-04-100000.json", "upvision-auto-2026-09-03-100000.json"]);
         assert!(d.join("nota.txt").exists(), "arquivos que não são backup ficam intactos");
-        assert!(!d.join("upvision-auto-2026-09-04-100000.json.tmp").exists() && !d.join("upvision-auto-2026-09-04-100000.tmp").exists());
+        let tmps = fs::read_dir(&d).unwrap().filter_map(|e| e.ok()).filter(|e| e.file_name().to_string_lossy().ends_with(".tmp")).count();
+        assert_eq!(tmps, 0, "nenhum temporário sobra");
+        fs::remove_dir_all(d).unwrap();
+    }
+
+    #[test]
+    fn manter_1_guarda_pelo_menos_2_para_um_dia_ruim_nao_apagar_o_unico_bom() {
+        let d = tmpdir("min");
+        write_in(&d, "2026-09-01-100000", "bom", 1).unwrap();
+        write_in(&d, "2026-09-02-100000", "ruim", 1).unwrap();
+        assert_eq!(read_in(&d, "upvision-auto-2026-09-01-100000.json").unwrap(), "bom");
         fs::remove_dir_all(d).unwrap();
     }
 

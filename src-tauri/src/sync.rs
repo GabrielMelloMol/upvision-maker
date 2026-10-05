@@ -47,6 +47,51 @@ fn conflict_in(dir: &Path, stamp: &str, json: &str) -> Result<BackupEntry, Strin
     Ok(BackupEntry { name, path: path.to_string_lossy().to_string(), bytes: json.len() as u64 })
 }
 
+/// Arquivos que o cliente da nuvem criou ao resolver um conflito por conta própria ("upvision-sync (1).json",
+/// "upvision-sync-NOTE-ANA.json"): viram cópias de conflito restauráveis, para o trabalho de um computador que
+/// ficou sem internet nunca ser sobrescrito sem aviso (A8). Só renomeia dentro da pasta; devolve os novos nomes.
+fn adopt_strays_in(dir: &Path, stamp: &str) -> Result<Vec<String>, String> {
+    if !valid_stamp(stamp) {
+        return Err("Data da cópia inválida.".into());
+    }
+    if !dir.exists() {
+        return Ok(vec![]);
+    }
+    let mut strays: Vec<String> = fs::read_dir(dir)
+        .map_err(|e| format!("Não consegui ler a pasta: {e}"))?
+        .filter_map(|e| e.ok())
+        .filter(|e| e.metadata().is_ok_and(|m| m.is_file()))
+        .map(|e| e.file_name().to_string_lossy().to_string())
+        .filter(|n| n.starts_with("upvision-sync") && n.ends_with(".json") && n != "upvision-sync.json")
+        .collect();
+    strays.sort();
+    let mut taken = std::collections::HashSet::new();
+    let mut out = vec![];
+    for stray in strays {
+        // um carimbo livre: mesma data, segundos seguintes
+        let (head, secs) = stamp.split_at(15);
+        let mut n: u32 = secs.parse().unwrap_or(0);
+        let name = loop {
+            let candidate = format!("{CONFLICT_PREFIX}{head}{:02}.json", n % 60);
+            n += 1;
+            if !dir.join(&candidate).exists() && taken.insert(candidate.clone()) {
+                break candidate;
+            }
+            if n > 400 {
+                return Err("Não achei um nome livre para a cópia.".into());
+            }
+        };
+        fs::rename(dir.join(&stray), dir.join(&name)).map_err(|e| format!("Não consegui guardar a cópia da nuvem: {e}"))?;
+        out.push(name);
+    }
+    Ok(out)
+}
+
+#[tauri::command]
+pub fn sync_adopt_strays(app: AppHandle, dir: String, stamp: String) -> Result<Vec<String>, String> {
+    adopt_strays_in(&resolve(&app, &dir)?, &stamp)
+}
+
 #[tauri::command]
 pub fn sync_read(app: AppHandle, dir: String, kind: String) -> Result<Option<String>, String> {
     read_in(&resolve(&app, &dir)?, &kind)
@@ -106,14 +151,35 @@ mod tests {
     }
 
     #[test]
+    fn arquivo_de_conflito_da_nuvem_vira_copia_restauravel_sem_tocar_nos_nomes_fixos() {
+        let d = tmpdir("stray");
+        fs::create_dir_all(&d).unwrap();
+        for (n, c) in [("upvision-sync.json", "oficial"), ("upvision-sync.lock", "{}"), ("upvision-sync (1).json", "do notebook"), ("upvision-sync-NOTE-ANA.json", "do offline"), ("nota.json", "x")] {
+            fs::write(d.join(n), c).unwrap();
+        }
+        let novos = adopt_strays_in(&d, "2026-10-05-101500").unwrap();
+        assert_eq!(novos.len(), 2);
+        assert!(novos.iter().all(|n| n.starts_with("upvision-conflito-2026-10-05-1015")));
+        let listed: Vec<_> = crate::backup::list_in(&d).unwrap().into_iter().map(|e| e.name).collect();
+        assert_eq!(listed.len(), 2, "aparecem em Backups guardados");
+        assert_eq!(fs::read_to_string(d.join("upvision-sync.json")).unwrap(), "oficial");
+        assert!(d.join("upvision-sync.lock").exists() && d.join("nota.json").exists());
+        assert!(!d.join("upvision-sync (1).json").exists());
+        assert!(adopt_strays_in(&d, "../x").is_err());
+        assert!(adopt_strays_in(&d, "2026-10-05-101500").unwrap().is_empty(), "uma 2ª vez não acha mais nada");
+        fs::remove_dir_all(d).unwrap();
+    }
+
+    #[test]
     fn copia_de_conflito_entra_na_lista_de_backups_e_nao_roda_com_os_automaticos() {
         let d = tmpdir("conf");
         conflict_in(&d, "2026-09-29-143200", "{}").unwrap();
         assert!(conflict_in(&d, "../x", "{}").is_err());
-        crate::backup::write_in(&d, "2026-09-29-150000", "{}", 1).unwrap();
-        crate::backup::write_in(&d, "2026-09-30-150000", "{}", 1).unwrap();
+        for s in ["2026-09-28-150000", "2026-09-29-150000", "2026-09-30-150000"] {
+            crate::backup::write_in(&d, s, "{}", 2).unwrap(); // o rodízio só apaga automáticos
+        }
         let names: Vec<_> = crate::backup::list_in(&d).unwrap().into_iter().map(|e| e.name).collect();
-        assert_eq!(names, vec!["upvision-auto-2026-09-30-150000.json", "upvision-conflito-2026-09-29-143200.json"]);
+        assert_eq!(names, vec!["upvision-auto-2026-09-30-150000.json", "upvision-auto-2026-09-29-150000.json", "upvision-conflito-2026-09-29-143200.json"]);
         assert_eq!(crate::backup::read_in(&d, "upvision-conflito-2026-09-29-143200.json").unwrap(), "{}");
         fs::remove_dir_all(d).unwrap();
     }

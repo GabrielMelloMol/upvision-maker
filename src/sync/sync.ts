@@ -165,6 +165,8 @@ export type SyncResult =
   | { kind: "importado"; from: SyncMark }
   | { kind: "trava"; lock: SyncLock }
   | { kind: "conflito"; copy: string; from: SyncMark }
+  /** A nuvem criou arquivos de conflito na pasta (um computador ficou sem internet): guardados como cópias restauráveis (A8). */
+  | { kind: "copias"; names: string[] }
   /** Os dois computadores estão em versões diferentes do app: nada é trocado até atualizar (C2). */
   | { kind: "versao"; newer: boolean; from: SyncMark };
 
@@ -183,6 +185,11 @@ async function syncStep(db: Db, me: Me, opts: SyncOpts): Promise<SyncResult> {
   const lock = await readLock(c.dir);
   if (!opts.force && lock && lockState(lock, me.device, now) === "outro") return { kind: "trava", lock };
   await writeLock(c.dir, me, lock?.device === me.device ? lock.since : opts.since, now);
+
+  // O cliente da nuvem resolve conflito sozinho criando "upvision-sync (1).json" etc.: o trabalho de um computador que
+  // ficou sem internet estaria só ali. Vira cópia restaurável antes de qualquer importação ou envio (A8).
+  const names = await invoke<string[]>("sync_adopt_strays", { dir: c.dir, stamp: backupStamp(now) });
+  if (names.length) return { kind: "copias", names };
 
   // ponytail: exporta e faz o hash de tudo a cada minuto (poucos milhares de linhas); marcar "sujo" nos repos se ficar pesado
   const backup = await exportBackup(db);

@@ -14,7 +14,7 @@ import { DatabaseSync, type SQLInputValue } from "node:sqlite";
 import type { ReactElement } from "react";
 import { beforeEach, vi } from "vitest";
 import { migrate } from "../db/migrations";
-import { nodeDb, runBatch } from "../db/testDb";
+import { adoptStrays, nodeDb, runBatch } from "../db/testDb";
 import type { Db, Stmt } from "../db/types";
 import { ToastProvider } from "../ui/Toast";
 
@@ -129,7 +129,7 @@ function handle(t: TauriState, cmd: string, a: unknown, headers?: Record<string,
       for (const k of [...folder.keys()]) if (k.startsWith(`upvision-auto-${String(args.stamp).slice(0, 10)}`)) folder.delete(k);
       folder.set(name, String(args.json));
       const autos = [...folder.keys()].filter((k) => k.startsWith("upvision-auto-"));
-      const keep = autos.sort().reverse().slice(0, Number(args.keep));
+      const keep = autos.sort().reverse().slice(0, Math.max(2, Number(args.keep))); // como o Rust: nunca menos de 2
       for (const k of autos) if (!keep.includes(k)) folder.delete(k);
       t.autoBackups.set(dir, folder);
       return { name, path: `${dir || "/dados-app/backups/auto"}/${name}`, bytes: String(args.json).length };
@@ -150,6 +150,8 @@ function handle(t: TauriState, cmd: string, a: unknown, headers?: Record<string,
       t.autoBackups.set(dir, folder);
       return cmd === "sync_conflict" ? { name, path: `${dir}/${name}`, bytes: String(args.json).length } : null;
     }
+    case "sync_adopt_strays":
+      return adoptStrays(t.autoBackups.get(String(args.dir ?? "")) ?? new Map(), String(args.stamp));
     case "sync_remove":
       t.autoBackups.get(String(args.dir ?? ""))?.delete(args.kind === "lock" ? "upvision-sync.lock" : "upvision-sync.json");
       return null;

@@ -9,6 +9,7 @@ Formato: `## <versão> — <data>` e itens `- …` em linguagem simples.
 - **Nada de custo R$ 0,00 sem aviso**: o pedido não é salvo com custo zero quando o custo de um produto não dá para calcular (por exemplo, kit dentro de si mesmo), e o catálogo em PDF avisa quais produtos estão sem preço em vez de imprimir R$ 0,00 para o cliente.
 - **Backup antigo com projetos salvos volta a restaurar**: backups feitos antes da biblioteca "Meus projetos" falhavam no fim da restauração; agora os projetos voltam sem favorito e sem etiquetas.
 - **Preferências e dados da empresa com um campo antigo inválido**: só esse campo volta ao padrão; os canais, o histórico de kWh, o logo e o Pix são mantidos e o próximo "Salvar" não apaga mais tudo.
+- **Dois computadores: arquivo de conflito da nuvem não se perde**: quando o OneDrive ou o Google Drive cria uma segunda versão dos dados (porque um computador ficou sem internet), o app guarda essa versão em Restaurar backup e avisa, em vez de importar por cima. Os arquivos de backup e de sincronização agora são gravados com mais cuidado (sem se misturarem na pasta da nuvem e sem ficarem vazios numa queda de energia), e o app sempre guarda pelo menos 2 backups.
 
 ## 0.10.4 — 2026-10-05
 - **Dois computadores em versões diferentes não apagam mais dados**: se um estiver com o app desatualizado, nada é trocado entre eles e aparece um aviso dizendo qual computador precisa atualizar. Antes, o computador antigo podia apagar a ficha de impressão, os projetos e as fotos do mais novo.

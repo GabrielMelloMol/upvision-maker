@@ -4,7 +4,7 @@ import { logError } from "../diagnostics/log";
 import { errorText, useToast } from "../ui/Toast";
 import { loadSyncConfig, session, syncNow, TICK_MS, whenLabel, whoAmI, type SyncResult } from "./sync";
 
-type Shown = Extract<SyncResult, { kind: "trava" | "conflito" | "versao" }>;
+type Shown = Extract<SyncResult, { kind: "trava" | "conflito" | "versao" | "copias" }>;
 
 /** "Ok" no aviso de versão vale até fechar o app: ele volta a cada minuto enquanto as versões forem diferentes. */
 let versionDismissed = false;
@@ -45,6 +45,20 @@ export default function SyncBanner({ onImported, onOpenBackups }: { onImported: 
   }, [run]);
 
   if (!shown) return null;
+  if (shown.kind === "copias")
+    return (
+      <div className="banner warn" role="status">
+        <span>
+          A nuvem guardou {shown.names.length === 1 ? "uma versão" : `${shown.names.length} versões`} a mais dos dados (provavelmente um computador ficou sem internet). Nada foi apagado: estão em Restaurar backup.
+        </span>
+        <button className="link" onClick={onOpenBackups}>
+          Ver em Restaurar backup
+        </button>
+        <button className="ghost" onClick={() => setShown(null)}>
+          Ok
+        </button>
+      </div>
+    );
   if (shown.kind === "trava")
     return (
       <div className="banner warn" role="status">

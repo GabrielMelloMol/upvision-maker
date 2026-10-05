@@ -9,7 +9,7 @@ import { errorText, useToast } from "../ui/Toast";
 import Toggle from "../ui/Toggle";
 import SyncSettingsCard from "../sync/SyncSettingsCard";
 import { photos } from "../db/photosRepo";
-import { AUTO_DEFAULTS, defaultBackupDir, listAutoBackups, loadAutoBackupConfig, readAutoBackup, runAutoBackup, saveAutoBackupConfig, type AutoBackupConfig, type BackupEntry } from "./auto";
+import { AUTO_DEFAULTS, KEEP_MAX, KEEP_MIN, defaultBackupDir, listAutoBackups, loadAutoBackupConfig, readAutoBackup, runAutoBackup, saveAutoBackupConfig, type AutoBackupConfig, type BackupEntry } from "./auto";
 
 /** Avisa o App (lembrete de backup) que acabou de haver um backup. */
 export const BACKUP_DONE_EVENT = "upvision:backup-done";
@@ -130,9 +130,9 @@ export default function BackupSettingsCard() {
             )}
           </div>
         </div>
-        <NumField label="Manter os últimos" unit="dias" value={keepDraft} min={1} max={365} step={1} onChange={(keep) => {
+        <NumField label="Manter os últimos" unit="dias" value={keepDraft} min={KEEP_MIN} max={KEEP_MAX} step={1} onChange={(keep) => {
             setKeepDraft(keep);
-            if (Number.isInteger(keep) && keep >= 1 && keep <= 365) void update({ keep });
+            if (Number.isInteger(keep) && keep >= KEEP_MIN && keep <= KEEP_MAX) void update({ keep });
           }} hint="Um backup por dia; os mais antigos são apagados." />
         <Toggle
           label="Incluir as fotos das peças"

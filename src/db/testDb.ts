@@ -29,3 +29,19 @@ export function nodeDb(raw: DatabaseSync): Db {
 
 /** Db em memória para testes (Node ≥ 22). */
 export const memoryDb = (): Db => nodeDb(new DatabaseSync(":memory:"));
+
+/** Como o `sync_adopt_strays` do Rust: arquivos "upvision-sync*.json" fora do nome oficial viram cópias de conflito. */
+export function adoptStrays(folder: Map<string, string>, stamp: string): string[] {
+  const out: string[] = [];
+  let sec = Number(stamp.slice(15));
+  for (const name of [...folder.keys()].sort()) {
+    if (!name.startsWith("upvision-sync") || !name.endsWith(".json") || name === "upvision-sync.json") continue;
+    const next = () => `upvision-conflito-${stamp.slice(0, 15)}${String(sec++ % 60).padStart(2, "0")}.json`;
+    let target = next();
+    while (folder.has(target)) target = next();
+    folder.set(target, folder.get(name)!);
+    folder.delete(name);
+    out.push(target);
+  }
+  return out;
+}

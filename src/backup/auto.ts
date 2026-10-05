@@ -11,6 +11,9 @@ import type { Db } from "../db/types";
 export type AutoBackupConfig = { enabled: boolean; dir: string; keep: number; photos: boolean };
 export type BackupEntry = { name: string; path: string; bytes: number };
 
+/** Quantos backups guardar: nunca menos de 2, senão um dia ruim apagaria o único bom (B3). */
+export const KEEP_MIN = 2;
+export const KEEP_MAX = 365;
 export const AUTO_DEFAULTS: AutoBackupConfig = { enabled: true, dir: "", keep: 10, photos: true };
 const DAY_MS = 86_400_000;
 export const REMIND_DAYS = 7;
@@ -38,7 +41,7 @@ export async function loadAutoBackupConfig(db: Db): Promise<AutoBackupConfig & {
   return {
     enabled: enabled === null ? AUTO_DEFAULTS.enabled : enabled === "1",
     dir: dir ?? AUTO_DEFAULTS.dir,
-    keep: Number.isInteger(n) && n >= 1 && n <= 365 ? n : AUTO_DEFAULTS.keep,
+    keep: Number.isInteger(n) && n >= 1 && n <= KEEP_MAX ? Math.max(n, KEEP_MIN) : AUTO_DEFAULTS.keep,
     photos: photos === null ? AUTO_DEFAULTS.photos : photos === "1",
     lastAt,
   };

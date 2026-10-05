@@ -247,4 +247,23 @@ describe("computadores em versões diferentes (C2)", () => {
     expect(remoteFile().schemaVersion).toBe(SCHEMA_VERSION);
     expect(remoteFile().tables.printers.map((p: { name: string }) => p.name)).toEqual(["Bambu A1", "K1"]);
   });
+
+  test("a nuvem criou um arquivo de conflito (computador sem internet): vira cópia restaurável e nada é importado por cima (A8)", async () => {
+    t.autoBackups.set(DIR, new Map());
+    await otherComputerSaves(["Impressora do B"]);
+    folder().set("upvision-sync-NOTE-ANA.json", '{"trabalho":"offline do notebook A"}');
+    folder().set("upvision-sync (1).json", '{"trabalho":"outra cópia"}');
+    const official = folder().get("upvision-sync.json");
+
+    const r = await syncNow(t.db, await whoAmI(t.db), at("2026-09-29T15:01:00Z"));
+
+    expect(r).toMatchObject({ kind: "copias" });
+    expect((r as { names: string[] }).names).toHaveLength(2);
+    const keys = [...folder().keys()];
+    expect(keys.filter((k) => k.startsWith("upvision-conflito-"))).toHaveLength(2);
+    expect(keys.filter((k) => /^upvision-sync.+\.json$/.test(k))).toEqual([]);
+    expect(folder().get("upvision-sync.json")).toBe(official);
+    expect(await printers()).toEqual(["Bambu A1"]); // nada foi importado neste passo
+  });
 });
+

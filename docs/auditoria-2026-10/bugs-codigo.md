@@ -134,7 +134,7 @@ Só análise: nenhum código foi alterado e nenhuma issue foi criada. Base: `ori
   - Esperado: manter R$ 10.
 - **Correção sugerida:** num pedido existente, manter `unitCost` e `printMinutes` do item salvo; recalcular só quando o produto ou a linha forem trocados.
 
-### A8. Cópias de conflito da nuvem e trabalho offline são descartados
+### A8. Cópias de conflito da nuvem e trabalho offline são descartados — ✅ CORRIGIDO (Lupa)
 - **Onde:** `src/sync/sync.ts:59-61` e `:188-191`; os nomes fixos em `src-tauri/src/sync.rs:10-16`; aviso em `SyncBanner.tsx:29`.
 - **Como reproduzir:**
   1. O notebook A fica sem internet e segue usando o app; a trava de A envelhece na nuvem.
@@ -314,7 +314,7 @@ Só análise: nenhum código foi alterado e nenhuma issue foi criada. Base: `ori
 - **Como reproduzir:** restaure ou receba uma importação da sync. A cópia não aparece em "Backups guardados", e cada importação acrescenta um arquivo com fotos que nada apaga.
 - **Correção sugerida:** um prefixo que `list_in` reconheça, mais um limite de quantidade.
 
-### B3. Com "manter 1", um dia ruim apaga o único backup bom; o rename é feito sem fsync
+### B3. Com "manter 1", um dia ruim apaga o único backup bom; o rename é feito sem fsync — ✅ CORRIGIDO (Lupa)
 - **Onde:** `src-tauri/src/backup.rs:41-45` (`write_atomic` sem `sync_all`) e `:73-80`; `src/backup/auto.ts:41` (aceita `keep` = 1).
 - **Como reproduzir:** com manter = 1, apague dados por engano (ou fique com um restore parcial) e feche o app: o backup bom some. Numa queda de energia, o arquivo novo pode ficar vazio depois que o antigo do mesmo dia já foi apagado.
 - **Correção sugerida:** mínimo de 2, ou sempre manter o backup do dia anterior; `sync_all` antes do rename.
@@ -402,7 +402,7 @@ Só análise: nenhum código foi alterado e nenhuma issue foi criada. Base: `ori
 - **Como reproduzir:** envie um pedido e troque de tela. A chamada paga continua, a resposta se perde e o worker do OpenSCAD roda até 90 s.
 - **Correção sugerida:** `useEffect(() => () => cancelRef.current(), [])`.
 
-### B20. Os arquivos de sincronização dividem o mesmo `.tmp` na pasta da nuvem
+### B20. Os arquivos de sincronização dividem o mesmo `.tmp` na pasta da nuvem — ✅ CORRIGIDO (Lupa)
 - **Onde:** `src-tauri/src/backup.rs:42` (`with_extension("tmp")`), usado em `sync.rs:28`.
 - **Como reproduzir:** não reproduzido. `upvision-sync.json` e `.lock` usam ambos `upvision-sync.tmp`; o OneDrive pode criar cópias "(1).tmp" ou fazer o `rename` falhar com "Acesso negado" enquanto segura o arquivo.
 - **Correção sugerida:** nome temporário único (`<nome>.<pid>.<nanos>.tmp`) e uma nova tentativa do `rename` no Windows.

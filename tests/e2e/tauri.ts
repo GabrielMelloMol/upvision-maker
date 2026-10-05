@@ -1,6 +1,6 @@
 import { test as base, expect, type Page } from "@playwright/test";
 import { DatabaseSync, type SQLInputValue } from "node:sqlite";
-import { runBatch } from "../../src/db/testDb";
+import { adoptStrays, runBatch } from "../../src/db/testDb";
 import type { Stmt } from "../../src/db/types";
 
 /**
@@ -178,7 +178,7 @@ function handler(m: TauriMock, cmd: string, a: Record<string, unknown> | null, h
       for (const k of [...folder.keys()]) if (k.startsWith(`upvision-auto-${String(args.stamp).slice(0, 10)}`)) folder.delete(k);
       folder.set(name, String(args.json));
       const autos = [...folder.keys()].filter((k) => k.startsWith("upvision-auto-"));
-      const keep = autos.sort().reverse().slice(0, Number(args.keep));
+      const keep = autos.sort().reverse().slice(0, Math.max(2, Number(args.keep)));
       for (const k of autos) if (!keep.includes(k)) folder.delete(k);
       m.autoBackups.set(dir, folder);
       return { name, path: `${dir || "/dados-app/backups/auto"}/${name}`, bytes: String(args.json).length };
@@ -199,6 +199,8 @@ function handler(m: TauriMock, cmd: string, a: Record<string, unknown> | null, h
       m.autoBackups.set(dir, folder);
       return cmd === "sync_conflict" ? { name, path: `${dir}/${name}`, bytes: String(args.json).length } : null;
     }
+    case "sync_adopt_strays":
+      return adoptStrays(m.autoBackups.get(String(args.dir ?? "")) ?? new Map(), String(args.stamp));
     case "sync_remove":
       m.autoBackups.get(String(args.dir ?? ""))?.delete(args.kind === "lock" ? "upvision-sync.lock" : "upvision-sync.json");
       return null;

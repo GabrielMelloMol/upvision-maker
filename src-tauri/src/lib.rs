@@ -43,6 +43,7 @@ pub fn run() {
             sync::sync_write,
             sync::sync_remove,
             sync::sync_conflict,
+            sync::sync_adopt_strays,
             sync::device_name,
             lan::lan_start,
             lan::lan_stop,
