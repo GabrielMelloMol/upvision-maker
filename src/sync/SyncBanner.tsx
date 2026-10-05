@@ -4,7 +4,10 @@ import { logError } from "../diagnostics/log";
 import { errorText, useToast } from "../ui/Toast";
 import { loadSyncConfig, session, syncNow, TICK_MS, whenLabel, whoAmI, type SyncResult } from "./sync";
 
-type Shown = Extract<SyncResult, { kind: "trava" | "conflito" }>;
+type Shown = Extract<SyncResult, { kind: "trava" | "conflito" | "versao" }>;
+
+/** "Ok" no aviso de versão vale até fechar o app: ele volta a cada minuto enquanto as versões forem diferentes. */
+let versionDismissed = false;
 
 /**
  * Sincronização entre 2 computadores rodando (#16): na abertura e a cada minuto. Mostra a faixa quando o app
@@ -25,6 +28,7 @@ export default function SyncBanner({ onImported, onOpenBackups }: { onImported: 
       });
       if (r.kind === "trava") session.active = false;
       if (r.kind === "trava" || r.kind === "conflito") setShown(r);
+      if (r.kind === "versao" && !versionDismissed) setShown(r);
       if (r.kind === "importado") {
         toast(`Dados atualizados com o que ${r.from.deviceName} salvou (${whenLabel(r.from.savedAt)}).`);
         onImported();
@@ -59,6 +63,25 @@ export default function SyncBanner({ onImported, onOpenBackups }: { onImported: 
         </button>
         <button className="ghost" onClick={() => setShown(null)}>
           Continuar sem sincronizar
+        </button>
+      </div>
+    );
+  if (shown.kind === "versao")
+    return (
+      <div className="banner warn" role="status">
+        <span>
+          {shown.newer
+            ? `${shown.from.deviceName} está com uma versão mais nova do app. Atualize o app neste computador para voltar a sincronizar; até lá, nada daqui vai para lá.`
+            : `${shown.from.deviceName} está com uma versão antiga do app. Atualize o app lá para voltar a sincronizar; até lá, os dados de um não passam para o outro.`}
+        </span>
+        <button
+          className="ghost"
+          onClick={() => {
+            versionDismissed = true;
+            setShown(null);
+          }}
+        >
+          Ok
         </button>
       </div>
     );

@@ -3,6 +3,7 @@ import { z } from "zod";
 import { backupStamp, loadAutoBackupConfig } from "../backup/auto";
 import { replaceData } from "../backupActions";
 import { exportBackup, type Backup } from "../db/backup";
+import { SCHEMA_VERSION } from "../db/migrations";
 import { exclusive } from "../db/dataLock";
 import { getSecret, setSecret } from "../db/repo";
 import type { Db } from "../db/types";
@@ -37,6 +38,7 @@ const LockSchema = z.object({
   heartbeat: z.string(),
 });
 const MarkSchema = z.object({
+  schemaVersion: z.number().int().default(0),
   sync: z.object({
     device: z.string(),
     deviceName: z.string(),
@@ -129,13 +131,13 @@ export const writeLock = (dir: string, me: Me, since: string, now = new Date()) 
     } satisfies SyncLock),
   });
 
-/** Os dados da pasta: o texto (um backup válido) e a marca de quem gravou. */
-export async function readRemote(dir: string): Promise<{ text: string; mark: SyncMark } | null> {
+/** Os dados da pasta: o texto (um backup válido), a marca de quem gravou e a versão do schema. */
+export async function readRemote(dir: string): Promise<{ text: string; mark: SyncMark; schemaVersion: number } | null> {
   const text = await read(dir, "data");
   if (!text) return null;
   try {
     const r = MarkSchema.safeParse(JSON.parse(text));
-    if (r.success) return { text, mark: r.data.sync };
+    if (r.success) return { text, mark: r.data.sync, schemaVersion: r.data.schemaVersion };
   } catch {
     // cai no erro abaixo
   }
@@ -159,7 +161,12 @@ async function exportTo(db: Db, dir: string, me: Me, backup: Backup, hash: strin
 }
 
 export type SyncResult =
-  { kind: "desligado" | "ok" } | { kind: "importado"; from: SyncMark } | { kind: "trava"; lock: SyncLock } | { kind: "conflito"; copy: string; from: SyncMark };
+  | { kind: "desligado" | "ok" }
+  | { kind: "importado"; from: SyncMark }
+  | { kind: "trava"; lock: SyncLock }
+  | { kind: "conflito"; copy: string; from: SyncMark }
+  /** Os dois computadores estão em versões diferentes do app: nada é trocado até atualizar (C2). */
+  | { kind: "versao"; newer: boolean; from: SyncMark };
 
 /**
  * Sincroniza agora. Na abertura (`since` = agora) e a cada minuto (`since` = quando pegou a trava).
@@ -182,6 +189,13 @@ async function syncStep(db: Db, me: Me, opts: SyncOpts): Promise<SyncResult> {
   const local = await dataHash(backup);
   const remote = await readRemote(c.dir);
   const d = decide(local, remote?.mark.hash ?? null, c.last);
+  // Versões diferentes (C2): a versão antiga apagaria as tabelas e colunas novas. Pasta mais nova: este computador
+  // não grava nada. Pasta mais antiga e mudada por outro: não importa nem resolve conflito. Pasta mais antiga só com
+  // o que este mesmo computador gravou antes de atualizar: segue e exporta na versão nova.
+  if (remote && remote.schemaVersion !== SCHEMA_VERSION) {
+    const newer = remote.schemaVersion > SCHEMA_VERSION;
+    if (newer || d === "importar" || d === "conflito") return { kind: "versao", newer, from: remote.mark };
+  }
   if (d === "nada") {
     if (remote && (c.last?.local !== local || c.last.remote !== remote.mark.hash)) await remember(db, local, remote.mark.hash, now);
     return { kind: "ok" };

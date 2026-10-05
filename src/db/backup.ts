@@ -20,7 +20,10 @@ const BackupSchema = z.object({
     // antes da #162 as fotos de produto ficavam em product_photos
     .extend({ product_photos: z.array(LegacyProductPhoto).default([]) }),
 });
-export type Backup = z.infer<typeof BackupSchema>;
+export type Backup = z.infer<typeof BackupSchema> & {
+  /** Tabelas que não existiam na versão do backup: restaurar não mexe nelas (C2). */
+  missing?: TableName[];
+};
 
 const names = Object.keys(TABLES) as TableName[];
 
@@ -49,7 +52,9 @@ export function parseBackup(json: string): Backup {
   }
   const full = BackupSchema.safeParse(raw);
   if (!full.success) throw new Error(`Backup corrompido: ${full.error.issues[0]?.path.join(".")} inválido.`);
-  return full.data;
+  const present = new Set(Object.keys((raw as { tables?: object }).tables ?? {}));
+  if (present.has("product_photos")) present.add("photos"); // antes da #162 as fotos vinham em product_photos
+  return { ...full.data, missing: names.filter((t) => !present.has(t)) };
 }
 
 /** Linhas da tabela no backup; fotos de backup antigo vêm de product_photos (dono "product:<id>"). */
@@ -63,6 +68,7 @@ export async function restoreBackup(db: Db, backup: Backup): Promise<void> {
   const statements: Stmt[] = [];
   for (const t of names) {
     if (t === "photos" && backup.photosOmitted) continue; // backup leve: as fotos do app ficam
+    if (backup.missing?.includes(t)) continue; // a tabela não existia na versão do backup: não apaga (C2)
     statements.push({ sql: `DELETE FROM ${t}` });
     const cols = Object.keys(TABLES[t].shape);
     const sql = `INSERT INTO ${t} (${cols.join(", ")}) VALUES (${cols.map(() => "?").join(", ")})`;

@@ -3,6 +3,7 @@ import { screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { afterEach, beforeEach, describe, expect, test, vi } from "vitest";
 import { exportBackup } from "../db/backup";
+import { SCHEMA_VERSION } from "../db/migrations";
 import { setSecret } from "../db/repo";
 import { renderWithApp, setupTauri } from "../test/harness";
 import { dataHash, session, setSyncEnabled } from "./sync";
@@ -15,8 +16,8 @@ const folder = () => t.autoBackups.get(DIR);
 const printers = async () => (await t.db.select<{ name: string }>("SELECT name FROM printers ORDER BY id")).map((p) => p.name);
 const recent = () => new Date(Date.now() - 30_000).toISOString();
 
-async function otherComputerSaves(name: string) {
-  const b = await exportBackup(t.db);
+async function otherComputerSaves(name: string, schemaVersion?: number) {
+  const b = { ...(await exportBackup(t.db)), ...(schemaVersion ? { schemaVersion } : {}) };
   const tables = { ...b.tables, printers: [{ ...b.tables.printers[0], name }] };
   const sync = { device: "outro", deviceName: "NOTE-ANA", savedAt: recent(), hash: await dataHash({ ...b, tables }) };
   t.autoBackups.set(DIR, new Map([...(folder() ?? []), ["upvision-sync.json", JSON.stringify({ ...b, tables, sync })]]));
@@ -116,6 +117,23 @@ describe("faixa da sincronização (#16)", () => {
     expect(await screen.findByText(/Os dois computadores mudaram os dados/)).toBeInTheDocument();
     await user.click(screen.getByRole("button", { name: "Ver em Restaurar backup" }));
     expect(onOpenBackups).toHaveBeenCalled();
+  });
+
+  test("o outro computador está numa versão mais nova: avisa para atualizar este e Ok esconde o aviso (C2)", async () => {
+    // Arrange
+    await setSecret(t.db, "sync_local_hash", "antigo");
+    await setSecret(t.db, "sync_remote_hash", "antigo");
+    await otherComputerSaves("Ender 3", SCHEMA_VERSION + 1);
+    const user = userEvent.setup();
+
+    // Act
+    renderWithApp(<SyncBanner onImported={() => {}} onOpenBackups={() => {}} />);
+
+    // Assert
+    expect(await screen.findByText(/NOTE-ANA está com uma versão mais nova do app/)).toBeInTheDocument();
+    expect(await printers()).toEqual(["Bambu A1"]);
+    await user.click(screen.getByRole("button", { name: "Ok" }));
+    expect(screen.queryByText(/versão mais nova/)).not.toBeInTheDocument();
   });
 
   test("o outro computador salvou e este não mudou: traz e remonta a página", async () => {

@@ -6,6 +6,7 @@ import { runBatch } from "../db/testDb";
 import type { Stmt } from "../db/types";
 import { setSecret } from "../db/repo";
 import { setupTauri } from "../test/harness";
+import { SCHEMA_VERSION } from "../db/migrations";
 import { dataHash, decide, lockState, setSyncEnabled, syncNow, syncOnClose, whoAmI, type SyncLock } from "./sync";
 
 const t = setupTauri();
@@ -16,8 +17,8 @@ const at = (iso: string) => ({ since, now: new Date(iso) });
 const printers = async () => (await t.db.select<{ name: string }>("SELECT name FROM printers ORDER BY id")).map((p) => p.name);
 
 /** O "outro computador" grava na pasta os dados de agora com as impressoras trocadas. */
-async function otherComputerSaves(names: string[]) {
-  const b = await exportBackup(t.db);
+async function otherComputerSaves(names: string[], schemaVersion?: number) {
+  const b = { ...(await exportBackup(t.db)), ...(schemaVersion ? { schemaVersion } : {}) };
   const tables = {
     ...b.tables,
     printers: names.map((name, i) => ({
@@ -190,5 +191,60 @@ describe("sincronizar pela pasta (#16)", () => {
     release();
     await Promise.all([restoring, ticking]);
     expect(t.calls.indexOf("sync_read")).toBeGreaterThan(t.calls.indexOf("sql_batch"));
+  });
+});
+
+describe("computadores em versões diferentes (C2)", () => {
+  const remoteFile = () => JSON.parse(folder().get("upvision-sync.json")!);
+
+  test("o outro computador, numa versão antiga, mudou os dados: não importa nem sobrescreve, avisa para atualizar lá", async () => {
+    // Arrange
+    const me = await whoAmI(t.db);
+    await syncNow(t.db, me, { since });
+    await otherComputerSaves(["Ender 3"], SCHEMA_VERSION - 1);
+    const theirs = folder().get("upvision-sync.json");
+
+    // Act
+    const r = await syncNow(t.db, me, { since });
+
+    // Assert
+    expect(r).toMatchObject({ kind: "versao", newer: false, from: { deviceName: "NOTE-ANA" } });
+    expect(await printers()).toEqual(["Bambu A1"]);
+    expect(folder().get("upvision-sync.json")).toBe(theirs);
+    expect(t.calls).not.toContain("sync_conflict");
+  });
+
+  test("os dados da pasta vieram de uma versão mais nova: este computador não grava nada, mesmo com mudanças aqui", async () => {
+    // Arrange
+    const me = await whoAmI(t.db);
+    await syncNow(t.db, me, { since });
+    await otherComputerSaves(["Ender 3"], SCHEMA_VERSION + 1);
+    const theirs = folder().get("upvision-sync.json");
+    await t.db.execute("INSERT INTO printers (name, watts) VALUES ('K1', 350)");
+
+    // Act
+    const r = await syncNow(t.db, me, { since });
+
+    // Assert
+    expect(r).toMatchObject({ kind: "versao", newer: true });
+    expect(folder().get("upvision-sync.json")).toBe(theirs);
+    expect(await printers()).toEqual(["Bambu A1", "K1"]);
+  });
+
+  test("a pasta tem os dados que este mesmo computador gravou antes de atualizar: exporta na versão nova (sem travar)", async () => {
+    // Arrange: a última exportação daqui ficou na pasta com o schema antigo e ninguém mexeu depois
+    const me = await whoAmI(t.db);
+    await syncNow(t.db, me, { since });
+    const old = remoteFile();
+    folder().set("upvision-sync.json", JSON.stringify({ ...old, schemaVersion: SCHEMA_VERSION - 1 }));
+    await t.db.execute("INSERT INTO printers (name, watts) VALUES ('K1', 350)");
+
+    // Act
+    const r = await syncNow(t.db, me, { since });
+
+    // Assert
+    expect(r).toEqual({ kind: "ok" });
+    expect(remoteFile().schemaVersion).toBe(SCHEMA_VERSION);
+    expect(remoteFile().tables.printers.map((p: { name: string }) => p.name)).toEqual(["Bambu A1", "K1"]);
   });
 });

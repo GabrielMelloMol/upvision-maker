@@ -121,8 +121,8 @@ export const SCHEMA_VERSION = MIGRATIONS.length;
 
 export async function migrate(db: Db): Promise<void> {
   const [{ user_version }] = await db.select<{ user_version: number }>("PRAGMA user_version");
+  // Cada versão, com o user_version dela, numa transação só: fechar o app no meio não deixa o banco pela metade (A1).
   for (let v = user_version; v < MIGRATIONS.length; v++) {
-    for (const sql of MIGRATIONS[v]) await db.execute(sql);
-    await db.execute(`PRAGMA user_version = ${v + 1}`);
+    await db.batch([...MIGRATIONS[v].map((sql) => ({ sql })), { sql: `PRAGMA user_version = ${v + 1}` }]);
   }
 }

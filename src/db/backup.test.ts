@@ -73,6 +73,20 @@ describe("backup", () => {
   });
 });
 
+test("backup de uma versão sem uma tabela não apaga o que já existe nela (C2)", async () => {
+  // Arrange: a ficha de impressão (print_logs) não existia na versão do backup
+  const db = await seeded();
+  await db.execute("INSERT INTO print_logs (at, result) VALUES ('2026-10-01T10:00:00Z', 'ok')");
+  const b = await exportBackup(db);
+  const tables = Object.fromEntries(Object.entries(b.tables).filter(([name]) => name !== "print_logs"));
+
+  // Act
+  await restoreBackup(db, parseBackup(JSON.stringify({ ...b, schemaVersion: 18, tables })));
+
+  // Assert
+  expect(await db.select("SELECT result FROM print_logs")).toEqual([{ result: "ok" }]);
+});
+
 describe("fotos no backup (#162)", () => {
   const JPG = "data:image/jpeg;base64,AAAA";
 

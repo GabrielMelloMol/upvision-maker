@@ -62,7 +62,7 @@ Só análise: nenhum código foi alterado e nenhuma issue foi criada. Base: `ori
   - Até lá: uma marca global "restaurando" (em memória e em `secrets`) que pause sync, backup automático e fechamento. Se a marca existir na abertura, avisar e oferecer a cópia de antes.
   - No erro, mostrar o caminho de `safetyCopy`.
 
-### C2. Computadores em versões diferentes: o antigo apaga tabelas e o trabalho do novo
+### C2. Computadores em versões diferentes: o antigo apaga tabelas e o trabalho do novo — ✅ CORRIGIDO (Claude Code, commit fix C2/A1)
 - **Onde:**
   - `src/db/backup.ts:47-49` — só recusa backup *mais novo*.
   - `src/db/backup.ts:16` — tabela ausente vira `[]`.
@@ -81,7 +81,7 @@ Só análise: nenhum código foi alterado e nenhuma issue foi criada. Base: `ori
 
 ## Alto
 
-### A1. Migração interrompida deixa o app sem abrir
+### A1. Migração interrompida deixa o app sem abrir — ✅ CORRIGIDO (Claude Code, commit fix C2/A1)
 - **Onde:** `src/db/migrations.ts:122-127`, o laço sem transação. Comandos que não podem ser repetidos: `:113` (`CREATE TABLE photos` sem `IF NOT EXISTS`), `:105-109` e `:67-69` (`ALTER TABLE ADD COLUMN`).
 - **Como reproduzir:** atualize e feche (ou derrube) o app durante a v21, que copia todas as fotos e é lenta com muitas fotos. Na próxima abertura, `getDb()` (`src/db/index.ts:11`) rejeita com "table photos already exists" e nenhuma tela carrega. Reproduzido aplicando até a v20 + o 1º comando da v21.
 - **Correção sugerida:** cada versão numa transação (comando Rust com `pool.begin()`, ou o `add_migrations` do tauri-plugin-sql), com `user_version` dentro dela.
