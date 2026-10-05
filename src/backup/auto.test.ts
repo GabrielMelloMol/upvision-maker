@@ -29,10 +29,10 @@ describe("backup automático: configuração no banco local", async () => {
   test("padrões, gravação e registro do último backup", async () => {
     const db = memoryDb();
     await migrate(db);
-    expect(await loadAutoBackupConfig(db)).toEqual({ ...AUTO_DEFAULTS, lastAt: null });
+    expect(await loadAutoBackupConfig(db)).toEqual({ ...AUTO_DEFAULTS, lastAt: null, lastError: null });
     await saveAutoBackupConfig(db, { enabled: false, dir: "C:/OneDrive/Backups", keep: 30, photos: false });
     await markBackupDone(db, new Date("2026-09-28T10:00:00Z"));
-    expect(await loadAutoBackupConfig(db)).toEqual({ enabled: false, dir: "C:/OneDrive/Backups", keep: 30, photos: false, lastAt: "2026-09-28T10:00:00.000Z" });
+    expect(await loadAutoBackupConfig(db)).toEqual({ enabled: false, dir: "C:/OneDrive/Backups", keep: 30, photos: false, lastAt: "2026-09-28T10:00:00.000Z", lastError: null });
   });
 
   test("manter 1 vira 2: um dia ruim não apaga o único backup bom (B3)", async () => {

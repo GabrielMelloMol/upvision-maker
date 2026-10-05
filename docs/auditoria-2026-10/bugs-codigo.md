@@ -182,12 +182,12 @@ Só análise: nenhum código foi alterado e nenhuma issue foi criada. Base: `ori
 - **Como reproduzir:** o B vê "Em uso no computador A" e escolhe "Continuar sem sincronizar". Quando a sync volta, quem detecta o conflito fica com os próprios dados e o trabalho do outro vai inteiro para uma cópia. O outro importa depois, sem aviso.
 - **Correção sugerida:** avisar também quem perdeu; idealmente juntar por linha (`updatedAt` + id), ou bloquear a edição enquanto outro computador tiver a trava.
 
-### M2. O limite de 4 s ao fechar corta a sync final, que roda depois do backup
+### M2. O limite de 4 s ao fechar corta a sync final, que roda depois do backup — ✅ CORRIGIDO (Lupa)
 - **Onde:** `src/backup/useAutoBackup.ts:9`, `:41-48`.
 - **Como reproduzir:** feche o app com uma base com fotos numa pasta do OneDrive. Backup mais sync passam de 4 s, a janela fecha sem exportar e com a trava viva: o outro computador vê "em uso" por até 5 min.
 - **Correção sugerida:** sincronizar antes do backup e mostrar "Sincronizando…" até terminar, em vez de cortar no tempo.
 
-### M3. Cmd+Q no Mac e a atualização no Windows pulam o backup e a sync de fechamento
+### M3. Cmd+Q no Mac e a atualização no Windows pulam o backup e a sync de fechamento — ✅ CORRIGIDO (Lupa)
 - **Onde:** `src-tauri/src/lib.rs:57` (não trata `RunEvent::ExitRequested`); `src/backup/useAutoBackup.ts:40`; `src/about/useUpdates.ts:99-100` com `installMode: "passive"`.
 - **Como reproduzir:** feche com Cmd+Q, ou instale uma atualização no Windows, onde o instalador encerra o processo. `onCloseRequested` só dispara ao fechar a janela. Confirmar o caso do Cmd+Q num Mac.
 - **Correção sugerida:** tratar `ExitRequested` no Rust (`prevent_exit`, avisar o front, sair depois) e chamar `syncOnClose` dentro do `install()`, antes do `downloadAndInstall`.
@@ -242,7 +242,7 @@ Só análise: nenhum código foi alterado e nenhuma issue foi criada. Base: `ori
 - **Como reproduzir:** digite "1.250" em "Quanto usou (g)": o app envia 1.25.
 - **Correção sugerida:** `parseMass(amount, spoolG)`.
 
-### M13. O backup automático pode falhar todo dia e só avisar no 7º
+### M13. O backup automático pode falhar todo dia e só avisar no 7º — ✅ CORRIGIDO (Lupa)
 - **Onde:** `src/backup/useAutoBackup.ts:25` (abertura) e `:48` (fechamento), os dois só com `console.warn`.
 - **Como reproduzir:** aponte o backup para um drive desmontado ou sem permissão. Nenhum aviso aparece até o lembrete de 7 dias (`REMIND_DAYS`).
 - **Correção sugerida:** quando o backup da abertura falhar, mostrar a faixa ou um toast na hora, com o erro.

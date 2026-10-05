@@ -47,7 +47,7 @@ export default function App() {
   const [firstRun, closeFirstRun] = useFirstRun();
   const [searching, setSearching] = useState(false);
   const toast = useToast();
-  const { reminderDays, neverBackedUp, backupNow } = useAutoBackup();
+  const { reminderDays, neverBackedUp, backupError, backupNow } = useAutoBackup();
   const page = PAGES.find((p) => p.id === pageId) ?? PAGES[0];
   const remount = useCallback(() => setReloadKey((k) => k + 1), []);
 
@@ -144,7 +144,18 @@ export default function App() {
         </Toolbar>
         <div className="view">
           <SyncBanner onImported={remount} onOpenBackups={() => navigate("preferences")} />
-          {reminderDays !== null && (
+          {backupError && (
+            <div className="banner warn" role="alert">
+              <span>O backup automático falhou: {backupError}</span>
+              <button className="primary" onClick={() => backupNow().then(() => toast("Backup feito."), (e) => toast(`Não foi possível fazer o backup: ${errorText(e)}`, "error"))}>
+                Tentar de novo
+              </button>
+              <button className="ghost" onClick={() => navigate("preferences")}>
+                Configurar
+              </button>
+            </div>
+          )}
+          {reminderDays !== null && !backupError && (
             <div className="banner warn" role="status">
               <span>{neverBackedUp ? "Você ainda não fez nenhum backup dos seus dados." : `Faz ${reminderDays} dias sem backup dos seus dados.`}</span>
               <button className="primary" onClick={() => backupNow().then(() => toast("Backup feito."), (e) => toast(`Não foi possível fazer o backup: ${errorText(e)}`, "error"))}>

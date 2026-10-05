@@ -1,4 +1,4 @@
-use tauri::Manager;
+use tauri::{Emitter, Manager, RunEvent};
 
 mod backup;
 mod diagnostics;
@@ -57,6 +57,28 @@ pub fn run() {
             slicer::slicers_installed,
             slicer::open_in_slicer
         ])
-        .run(tauri::generate_context!())
-        .expect("error while running tauri application");
+        .build(tauri::generate_context!())
+        .expect("error while building tauri application")
+        .run(on_run_event);
+}
+
+/// Se o app ainda não saiu depois disso, sai (rede de segurança do `exit-requested`).
+const EXIT_FALLBACK: std::time::Duration = std::time::Duration::from_secs(25);
+
+/// Cmd+Q no Mac (e sair pelo menu) encerra o app sem fechar a janela antes: o backup e a sincronização de
+/// fechamento nunca rodavam (M3). Aqui o fechamento é adiado: o front faz o trabalho e sai por conta própria. Se o
+/// front não responder, sai sozinho depois de 25 s: o app nunca fica preso sem conseguir fechar.
+fn on_run_event(app: &tauri::AppHandle, event: RunEvent) {
+    let RunEvent::ExitRequested { code, api, .. } = event else { return };
+    // `code` preenchido = o próprio app pediu para sair (já fez o trabalho); sem janela = o fechamento da janela já o fez
+    if code.is_some() || app.webview_windows().is_empty() {
+        return;
+    }
+    api.prevent_exit();
+    let _ = app.emit("exit-requested", ());
+    let app = app.clone();
+    std::thread::spawn(move || {
+        std::thread::sleep(EXIT_FALLBACK);
+        app.exit(0);
+    });
 }

@@ -4,6 +4,7 @@ import { isPermissionGranted, requestPermission, sendNotification } from "@tauri
 import { relaunch } from "@tauri-apps/plugin-process";
 import { check, type Update } from "@tauri-apps/plugin-updater";
 import { useCallback, useEffect, useRef, useState } from "react";
+import { runCloseJob } from "../backup/closeJob";
 import { flushPendingSaves } from "../tools/pendingSaves";
 import { fetchReleases, versionsBehind, type Release } from "./releases";
 
@@ -94,6 +95,7 @@ export function useUpdates() {
       if (!go) return;
     }
     await flushPendingSaves();
+    await runCloseJob(); // no Windows o instalador encerra o app: envia o daqui e solta a trava antes (M3)
     setS((c) => ({ ...c, status: "installing" }));
     try {
       await s.update.downloadAndInstall();
