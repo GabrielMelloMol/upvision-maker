@@ -80,3 +80,27 @@ test("segredos (chave da API) ficam no banco local e NÃO entram no backup", asy
   await deleteSecret(db, "anthropic_api_key");
   expect(await getSecret(db, "anthropic_api_key")).toBeNull();
 });
+
+describe("preferências com um campo inválido (A3)", () => {
+  test("só o campo ruim volta ao padrão; o resto (canais, kWh, histórico) é aproveitado e salvar não apaga", async () => {
+    const good = { ...DEFAULT_SETTINGS, kwhPrice: 0.9, kwhHistory: [{ month: "2026-09", total: 180, kwh: 200, flag: "verde" as const, price: 0.9 }] };
+    // failurePct passou a aceitar até 90%: um valor gravado antes (120) agora é inválido
+    await db.execute("INSERT INTO settings (id, data) VALUES (1, ?)", [JSON.stringify({ ...good, failurePct: 120 })]);
+
+    const loaded = await loadSettings(db);
+
+    expect(loaded.failurePct).toBe(DEFAULT_SETTINGS.failurePct);
+    expect(loaded.kwhPrice).toBe(0.9);
+    expect(loaded.kwhHistory).toEqual(good.kwhHistory);
+    await saveSettings(db, { ...loaded, bedPrinterId: 3 }); // como o cartão de Ajustes faz
+    const saved = await loadSettings(db);
+    expect(saved.kwhPrice).toBe(0.9);
+    expect(saved.bedPrinterId).toBe(3);
+  });
+
+  test("JSON ilegível no banco também não derruba: volta ao padrão", async () => {
+    await db.execute("INSERT INTO settings (id, data) VALUES (1, ?)", ["{não é json"]);
+    expect(await loadSettings(db)).toEqual(DEFAULT_SETTINGS);
+  });
+});
+

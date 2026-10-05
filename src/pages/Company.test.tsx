@@ -85,11 +85,9 @@ describe("Dados da empresa", () => {
 
   test("dados corrompidos no banco caem no padrão", async () => {
     t.raw.exec(`INSERT INTO company (id, data) VALUES (1, '{"quoteValidityDays":0}')`);
-    const err = vi.spyOn(console, "error").mockImplementation(() => {});
     renderWithApp(<CompanyPage />);
     expect(await screen.findByLabelText(/^Validade padrão/)).toHaveValue("7");
-    expect(err).toHaveBeenCalled();
-    err.mockRestore();
+    await waitFor(() => expect(t.log.join("\n")).toContain("quoteValidityDays")); // o campo descartado vai para o registro (A3)
   });
 
   test("logo: envia, troca e remove; erro de imagem vira aviso", async () => {

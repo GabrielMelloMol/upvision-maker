@@ -1,4 +1,5 @@
 import { CompanyInput, CustomerInput, DEFAULT_COMPANY, type Company, type Customer } from "../domain/customers";
+import { salvage } from "./salvage";
 import type { Db } from "./types";
 
 type Row = Omit<Customer, "active"> & { active: number };
@@ -24,12 +25,7 @@ export const customersRepo = {
 export async function loadCompany(db: Db): Promise<Company> {
   const [row] = await db.select<{ data: string }>("SELECT data FROM company WHERE id = 1");
   if (!row) return DEFAULT_COMPANY;
-  const parsed = CompanyInput.safeParse({ ...DEFAULT_COMPANY, ...JSON.parse(row.data) });
-  if (!parsed.success) {
-    console.error("Dados da empresa inválidos no banco, usando padrão:", parsed.error);
-    return DEFAULT_COMPANY;
-  }
-  return parsed.data;
+  return salvage("dados da empresa", CompanyInput, DEFAULT_COMPANY, row.data);
 }
 
 export async function saveCompany(db: Db, c: unknown): Promise<Company> {

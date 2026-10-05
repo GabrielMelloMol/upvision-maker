@@ -2,6 +2,7 @@ import type { z } from "zod";
 import { FilamentInput, MaterialInput, PrinterInput, type WithId } from "../domain/entities";
 import { DEFAULT_SETTINGS, SettingsSchema, type Settings } from "../domain/settings";
 import { weightedAverage } from "../domain/stock";
+import { salvage } from "./salvage";
 import type { Db } from "./types";
 
 /** CRUD de uma tabela. Só grava as colunas do schema (nada vindo de fora entra como coluna). */
@@ -78,12 +79,7 @@ export const materials = stockCrud("materials", MaterialInput, "stock", "unitPri
 export async function loadSettings(db: Db): Promise<Settings> {
   const [row] = await db.select<{ data: string }>("SELECT data FROM settings WHERE id = 1");
   if (!row) return DEFAULT_SETTINGS;
-  const parsed = SettingsSchema.safeParse({ ...DEFAULT_SETTINGS, ...JSON.parse(row.data) });
-  if (!parsed.success) {
-    console.error("Preferências inválidas no banco, usando padrão:", parsed.error);
-    return DEFAULT_SETTINGS;
-  }
-  return parsed.data;
+  return salvage("preferências", SettingsSchema, DEFAULT_SETTINGS, row.data);
 }
 
 export async function saveSettings(db: Db, s: Settings): Promise<void> {

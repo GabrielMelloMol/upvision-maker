@@ -37,3 +37,19 @@ test("empresa: padrão quando vazia, salva e relê; entra no backup", async () =
   expect((await loadCompany(db)).name).toBe("UpVision 3D");
   expect((await customersRepo.list(db))[0].active).toBe(true);
 });
+
+test("dados da empresa com um campo inválido: o resto é aproveitado em vez de virar tudo em branco (A3)", async () => {
+  const db = memoryDb();
+  await migrate(db);
+  await saveCompany(db, { ...DEFAULT_COMPANY, name: "UpVision 3D", phone: "21 99999-0000" });
+  const [{ data }] = await db.select<{ data: string }>("SELECT data FROM company WHERE id = 1");
+  // uma chave Pix que a validação de hoje recusa
+  await db.execute("UPDATE company SET data = ? WHERE id = 1", [JSON.stringify({ ...JSON.parse(data), pixKey: "chave-invalida" })]);
+
+  const company = await loadCompany(db);
+
+  expect(company.name).toBe("UpVision 3D");
+  expect(company.phone).toBe("21 99999-0000");
+  expect(company.pixKey).toBe("");
+});
+

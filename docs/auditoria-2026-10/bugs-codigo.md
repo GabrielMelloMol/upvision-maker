@@ -86,12 +86,12 @@ Só análise: nenhum código foi alterado e nenhuma issue foi criada. Base: `ori
 - **Como reproduzir:** atualize e feche (ou derrube) o app durante a v21, que copia todas as fotos e é lenta com muitas fotos. Na próxima abertura, `getDb()` (`src/db/index.ts:11`) rejeita com "table photos already exists" e nenhuma tela carrega. Reproduzido aplicando até a v20 + o 1º comando da v21.
 - **Correção sugerida:** cada versão numa transação (comando Rust com `pool.begin()`, ou o `add_migrations` do tauri-plugin-sql), com `user_version` dentro dela.
 
-### A2. Restaurar backup v15–v19 com projetos falha na última tabela
+### A2. Restaurar backup v15–v19 com projetos falha na última tabela — ✅ CORRIGIDO (Lupa)
 - **Onde:** `src/db/toolStateRepo.ts:22-23` (`favorite`/`tags` são `.optional()` sem default); `src/db/backup.ts:71` (`row[c] ?? null`); `src/db/migrations.ts:105-106` (`NOT NULL`).
 - **Como reproduzir:** restaure um backup com `schemaVersion` 15–19 e pelo menos 1 linha em `tool_projects`. O resultado é "NOT NULL constraint failed: tool_projects.favorite": todas as outras tabelas já foram trocadas, `tool_projects` fica vazia e o `QUOTE_NUMBER_BACKFILL` não roda. Com a sync ligada, o próximo tick publica esse estado (C1).
 - **Correção sugerida:** `favorite: ….default(0)` e `tags: ….default("[]")`, mais um teste de restore com backup v15–v19.
 
-### A3. Preferências ou empresa inválidas no banco viram o padrão sem aviso, e salvar grava o padrão por cima
+### A3. Preferências ou empresa inválidas no banco viram o padrão sem aviso, e salvar grava o padrão por cima — ✅ CORRIGIDO (Lupa)
 - **Onde:**
   - `src/db/repo.ts:82-85` (`loadSettings` → `DEFAULT_SETTINGS`) e `src/db/customersRepo.ts:28-31` (`loadCompany` → `DEFAULT_COMPANY`).
   - Quem relê e salva: `Preferences.tsx:91`, `preferences/SlicerCard.tsx:31`, `AmsCard.tsx:37`, `BedPrinterCard.tsx:40`, `onboarding/Onboarding.tsx:63`, `Company.tsx:54`.
