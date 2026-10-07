@@ -102,12 +102,12 @@ Só análise: nenhum código foi alterado e nenhuma issue foi criada. Base: `ori
   O que acontece: a Calculadora passa a usar kWh, taxas e canais padrão. Escolher o fatiador em Ajustes grava o padrão por cima de tudo: canais, histórico de kWh, logo, Pix.
 - **Correção sugerida:** aproveitar campo a campo (`.catch()` por campo no schema) e marcar `invalid` para a tela avisar. Nunca regravar o padrão sem confirmação.
 
-### A4. Produto com composição ilegível: custo zero, estoque não baixa, e salvar apaga
+### A4. ✅ Produto com composição ilegível: custo zero, estoque não baixa, e salvar apaga
 - **Onde:** `src/db/productsRepo.ts:13-24` — o `catch` faz só `console.error` e segue com a composição vazia; o mesmo vale para as variações.
 - **Como reproduzir:** deixe `products.composition` com um JSON que o schema `Composition` atual rejeita (backup antigo, schema mudou). O produto aparece com custo e preço baixos, pedidos e produção não baixam filamento, e abrir e salvar grava `{"filaments":[]…}` por cima do original.
 - **Correção sugerida:** expor `compositionError`, avisar no produto e bloquear pedido, produção e salvamento até corrigir. No mínimo, preservar o JSON cru.
 
-### A5. Gramas com ponto de milhar viram decimais (Calculadora e Produto)
+### A5. ✅ Gramas com ponto de milhar viram decimais (Calculadora e Produto)
 - **Onde:**
   - `src/domain/format.ts:2-5` — `parseDecimal` só troca a vírgula.
   - `src/pages/Calculator.tsx:67` (`num = parseDecimal(s) || 0`, usado em `:127` e `:145`).
@@ -119,12 +119,12 @@ Só análise: nenhum código foi alterado e nenhuma issue foi criada. Base: `ori
   - no Produto, a baixa de estoque passa a tirar 1,2 g por mesa.
 - **Correção sugerida:** ler gramas com `parseMass` (`src/ui/parse.ts`) e mostrar erro no campo em vez de usar `|| 0`. O `sanityWarnings` também poderia avisar quando o valor é baixo demais.
 
-### A6. Estoque pronto de produto com variações volta ao valor antigo ao salvar
+### A6. ✅ Estoque pronto de produto com variações volta ao valor antigo ao salvar
 - **Onde:** `src/pages/products/ProductEditor.tsx:94` (`stock` = soma de `variants[].stock`). Quem baixa só `products.stock`: `src-tauri/src/stock.rs:63` e `src/pages/products/ProduceSheet.tsx:49`. O estoque velho também vai para o marketplace em `src/domain/marketplace/listing.ts:46`.
 - **Como reproduzir:** Azul 5 + Verde 5 = 10. Um pedido de 3 é confirmado e `stock` fica em 7. Abrir o produto, mudar a descrição e salvar grava 10, e a planilha da Shopee publica 5 + 5 (risco de vender o que não há).
 - **Correção sugerida:** baixar e produzir por variação, ou não sobrescrever `stock` quando há variações e mostrar a diferença para redistribuir.
 
-### A7. Editar um pedido antigo muda o custo histórico no Financeiro
+### A7. ✅ Editar um pedido antigo muda o custo histórico no Financeiro
 - **Onde:** `src/pages/orders/OrderEditor.tsx:110` e `:118` (recalcula `costOf(p)` com os preços de hoje); gravação em `src/db/ordersRepo.ts:56-61`.
 - **Como reproduzir:**
   1. Um pedido entregue em março tem `unitCost` R$ 10.
@@ -217,7 +217,7 @@ Só análise: nenhum código foi alterado e nenhuma issue foi criada. Base: `ori
 - **Como reproduzir:** dê baixa de um pedido, exclua o filamento usado e cancele o pedido. Aparece "Item de estoque não encontrado (filaments #N)", e o pedido não muda mais de status nem pode ser excluído.
 - **Correção sugerida:** no estorno, pular itens inexistentes e anotar no histórico, ou impedir a exclusão de itens presentes num `appliedPlan` ativo.
 
-### M9. "0.856" vira R$ 856
+### M9. ✅ "0.856" vira R$ 856
 - **Onde:** `src/ui/parse.ts:33` (a regra de milhar aceita "0" como primeiro grupo; usada por `parseMoney`).
 - **Como reproduzir:**
   - `parseMoney("0.856")` dá 856 (esperado 0,856); "0.500" dá 500.
@@ -262,7 +262,7 @@ Só análise: nenhum código foi alterado e nenhuma issue foi criada. Base: `ori
 - **Como reproduzir:** deixe um orçamento cujo `data` não passa no `QuoteInput` atual. Ele desaparece e a numeração parece pular.
 - **Correção sugerida:** manter a linha com uma marca "não pôde ser lido" e avisar.
 
-### M17. Custo 0 gravado no pedido e R$ 0,00 no catálogo quando o cálculo falha
+### M17. ✅ Custo 0 gravado no pedido e R$ 0,00 no catálogo quando o cálculo falha
 - **Onde:** `src/pages/orders/OrderEditor.tsx:101-106` (`costOf` → 0, gravado em `unitCost`); `src/pages/quotes/CatalogSheet.tsx:29-35` (`manualPrice ?? 0`).
 - **Como reproduzir:** um kit circular, ou um produto cujo cálculo lança erro e que não tem preço manual. O pedido é gravado com custo 0 (lucro = receita) e o PDF do catálogo sai com R$ 0,00 para o cliente.
 - **Correção sugerida:** bloquear a gravação ou a exportação, ou pedir confirmação, listando os produtos sem custo ou preço calculável.
