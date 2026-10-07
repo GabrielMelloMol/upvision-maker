@@ -156,7 +156,7 @@ Só análise: nenhum código foi alterado e nenhuma issue foi criada. Base: `ori
 - **Como reproduzir:** corrompa `upvision-sync.json`, tire a permissão da pasta ou abra um computador com versão mais nova (C2). O app segue normal, sem faixa, e os computadores vão se afastando (o que leva a A8 e M1).
 - **Correção sugerida:** contar as falhas seguidas; na 2ª (ou de imediato em arquivo corrompido, permissão ou versão), mostrar uma faixa no SyncBanner com o texto do erro.
 
-### A11. Arrastar e soltar não funciona no app instalado do Windows (provavelmente também no Mac)
+### A11. ✅ Arrastar e soltar não funciona no app instalado do Windows (provavelmente também no Mac) — corrigido na v0.10.4 (dragDropEnabled:false nos 3 arquivos; teste src/platform/tauriConfig.test.ts); conferir no app instalado do Mac
 - **Onde:** `src-tauri/tauri.conf.json:13-23`, `tauri.windows.conf.json:4-15` e `tauri.macos.conf.json:5-17`, sem `"dragDropEnabled": false`. Quem depende disso:
   - `src/ui/Dropzone.tsx:34` (16 telas);
   - `src/ui/PhotoGallery.tsx:71,83`;
@@ -165,12 +165,12 @@ Só análise: nenhum código foi alterado e nenhuma issue foi criada. Base: `ori
 - **Como reproduzir:** no Windows instalado, arraste um PNG para "Imagem → SVG", ou um cartão de pedido para outra coluna: nada acontece. O próprio tauri-utils (`config.rs:1976`) avisa que é preciso desligar o drag-drop nativo para usar o do HTML5. No Mac, o wry (`wkwebview/drag_drop.rs:45`) também consome o evento; conferir no app instalado.
 - **Correção sugerida:** `"dragDropEnabled": false` na janela, **nos dois arquivos de plataforma** (ver M19). O app não usa `onDragDropEvent`.
 
-### A12. As fotos ao lado da planilha de marketplace são barradas pelo escopo do fs
+### A12. ✅ As fotos ao lado da planilha de marketplace são barradas pelo escopo do fs — corrigido na v0.10.4 (escolhe a pasta; planilha e fotos juntas)
 - **Onde:** `src/pages/products/listingPhotos.ts:24-26` (do #162; o autor é o próprio Lupa), chamado em `ExportSheet.tsx:65`; `src-tauri/capabilities/default.json:24` (só `fs:scope-appdata-recursive`).
 - **Como reproduzir:** exporte para a Shopee um produto com foto, salvando em Documentos. A planilha sai e depois aparece "forbidden path": o `save()` libera só o arquivo escolhido (tauri-plugin-dialog `commands.rs:211`), não a pasta. O E2E passou porque o mock do fs não aplica escopo.
 - **Correção sugerida:** escolher a pasta com `open({ directory: true })` (como as mesas por cor), ou gravar as fotos por um comando Rust com nomes validados (como `backup.rs`).
 
-### A13. O Worker de sugestões cria issues no repositório público
+### A13. O Worker de sugestões cria issues no repositório público — NÃO MUDAR: decisão consciente do Gabriel para a fase fechada (ver #176)
 - **Onde:** `services/feedback-worker/wrangler.toml:15` (`GITHUB_REPO = "GabrielMelloMol/upvision-maker"`, logo abaixo do comentário "Repositório PRIVADO"); `services/feedback-worker/src/handler.ts:116-119`. O repo é PUBLIC (conferido com `gh repo view`), e precisa ser, porque o updater lê as Releases dele.
 - **Como reproduzir:** publique o Worker com `GITHUB_TOKEN` usando esse `wrangler.toml` e mande uma sugestão ou um diagnóstico pelo app. O resultado é uma issue pública com o texto livre da usuária, um trecho do log e o id da instalação. Ainda não aconteceu: hoje não existe nenhuma issue desse tipo. Há também um risco de injeção de prompt: os agentes leem as issues desse repo.
 - **Correção sugerida:** deixar `GITHUB_REPO = ""` ou apontar para um repo privado de suporte (como o README do Worker já manda), com o token fine-grained só para esse repo.
@@ -272,7 +272,7 @@ Só análise: nenhum código foi alterado e nenhuma issue foi criada. Base: `ori
 - **Como reproduzir:** crie um produto com fotos pendentes e faça `photos.add` falhar (foto enorme, banco travado). O formulário mostra o erro e continua como "novo"; Salvar de novo cria um 2º produto igual.
 - **Correção sugerida:** depois do insert, passar o editor para modo edição com o id novo, ou fechar e avisar quantas fotos não entraram.
 
-### M19. A config de plataforma apaga `visible:false` e `zoomHotkeysEnabled`
+### M19. ✅ A config de plataforma apaga `visible:false` e `zoomHotkeysEnabled` — corrigido na v0.10.4 (visible, zoomHotkeysEnabled e dragDropEnabled repetidos nos arquivos de plataforma)
 - **Onde:** `src-tauri/tauri.conf.json:16` e `:22`, sobrescritos por `tauri.windows.conf.json:4-15` e `tauri.macos.conf.json:5-17`. O `json_patch::merge` (RFC 7396, tauri-utils `config/parse.rs:185`) troca arrays inteiros.
 - **Como reproduzir:** no app instalado, Ctrl/⌘ + e − não mudam o zoom (`src/ui/zoom.ts:1` promete que mudam). No Windows, a janela aparece vazia antes da abertura, que é o que a #150 queria evitar.
 - **Correção sugerida:** repetir `visible`, `zoomHotkeysEnabled` e `dragDropEnabled` (A11) nos dois arquivos de plataforma, ou tirar deles a lista `windows`.
@@ -292,7 +292,7 @@ Só análise: nenhum código foi alterado e nenhuma issue foi criada. Base: `ori
 - **Como reproduzir:** no Windows, numa rede "Pública" (o padrão para Wi-Fi novo), ligue o acesso do celular. Se o aviso do Defender for cancelado, o celular não conecta e o app não diz por quê.
 - **Correção sugerida:** orientar no cartão "Celular na rede de casa" (permitir no aviso, marcar a rede como Privada) e na documentação de instalação.
 
-### M23. O token do Worker vai dentro do app e o limite por instalação é contornável
+### M23. O token do Worker vai dentro do app e o limite por instalação é contornável — NÃO MUDAR: decisão consciente do Gabriel para a fase fechada (ver #176)
 - **Onde:** `src/feedback/SuggestDialog.tsx:15` (`VITE_FEEDBACK_TOKEN` no bundle, também servido em `/assets` do servidor do celular, `lan.rs:220`); `services/feedback-worker/src/handler.ts:143` (limite por `installId`, que é escolhido pelo cliente) e `:83-87` (contador não atômico).
 - **Como reproduzir:** extraia o token do instalador e faça POSTs trocando o `installId`: o limite de 5 por hora não pega, sobram só os 30 por dia por IP. Isso permite spam de e-mails e issues.
 - **Correção sugerida:** limite global por dia (`global:<dia>`) e, se precisar, Turnstile ou Rate Limiting da Cloudflare; não limitar por `installId`.
