@@ -22,7 +22,7 @@ beforeAll(() => {
     return { arrayBuffer: async () => b.buffer.slice(b.byteOffset, b.byteOffset + b.byteLength) };
   });
 });
-const BUILD = { timeout: 15_000 };
+const BUILD = { timeout: 30_000 };
 const gallery = () => within(screen.getByRole("group", { name: "Modelo" }));
 const families = () => within(screen.getByRole("group", { name: "Família" }));
 const variations = () => within(screen.getByRole("group", { name: "Variação" }));

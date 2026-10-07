@@ -12,7 +12,7 @@ vi.mock("../ui/viewerScene", () => ({ createViewer: () => ({ setModels() {}, dis
 const t = setupTauri();
 const RECT_SVG = '<svg xmlns="http://www.w3.org/2000/svg" width="40mm" height="20mm" viewBox="0 0 40 20"><rect x="0" y="0" width="40" height="20"/></svg>';
 const svgFile = (name = "placa.svg") => new File([RECT_SVG], name, { type: "image/svg+xml" });
-const BUILD = { timeout: 10_000 };
+const BUILD = { timeout: 30_000 };
 const legendColors = (c: HTMLElement) => [...c.querySelectorAll<HTMLElement>(".legend i")].map((i) => i.style.background);
 
 

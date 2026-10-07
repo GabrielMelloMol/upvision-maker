@@ -6,7 +6,7 @@ import { defineConfig } from "vite";
 import wasm from "vite-plugin-wasm";
 
 const host = process.env.TAURI_DEV_HOST;
-/** Testes que geram malhas com o manifold (3D): modelos, ferramentas 3D, a varredura de QA e a estimativa. */
+/** Testes pesados de verdade: malhas com o manifold (3D), a varredura de QA, a estimativa e o processamento de fotos. */
 const GEOMETRY_TESTS = [
   "src/geometry/**/*.test.{ts,tsx}",
   "src/tools/**/*.test.{ts,tsx}",
@@ -16,6 +16,7 @@ const GEOMETRY_TESTS = [
   "src/ui/EstimateCard.test.tsx",
   "src/ui/heavy.test.ts",
   "src/App.test.tsx",
+  "src/organizer/**/*.test.{ts,tsx}", // foto → contornos (renderiza imagens de 1600 × 1200) e decodificação HEIC em WASM
 ];
 
 // https://vite.dev/config/

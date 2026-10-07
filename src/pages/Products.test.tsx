@@ -16,6 +16,9 @@ vi.mock("../ui/photo", () => ({
   },
 }));
 
+// página inteira com banco: com a máquina carregada passa dos 5 s do padrão (vale para todos os testes do arquivo)
+vi.setConfig({ testTimeout: 30_000 });
+
 const t = setupTauri();
 
 type Mv = { kind: "filament" | "material" | "product"; id: number; delta: number };

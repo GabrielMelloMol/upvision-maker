@@ -14,7 +14,7 @@ vi.mock("../vectorize/client", async (orig) => ({ ...(await orig<typeof import("
 vi.mock("../vectorize/segment", () => ({ segmentSubject: vi.fn() }));
 
 const t = setupTauri();
-const BUILD = { timeout: 20_000 };
+const BUILD = { timeout: 30_000 };
 
 beforeEach(async () => {
   vi.mocked(loadRaster).mockReset().mockImplementation(async (_f, scale) => {

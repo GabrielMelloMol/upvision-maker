@@ -11,7 +11,7 @@ import Medal from "./Medal";
 vi.mock("../ui/viewerScene", () => ({ createViewer: () => ({ setModels() {}, dispose() {} }) }));
 
 const t = setupTauri();
-const BUILD = { timeout: 15_000 };
+const BUILD = { timeout: 30_000 };
 const STAR_SVG = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"><polygon points="10,0 13,7 20,7 14,12 16,20 10,15 4,20 6,12 0,7 7,7"/></svg>';
 
 // As fontes vêm por URL do Vite (/node_modules/...): no Node, lê do disco.

@@ -11,7 +11,7 @@ vi.mock("../ui/viewerScene", () => ({ createViewer: () => ({ setModels() {}, dis
 vi.mock("../vectorize/client", async (orig) => ({ ...(await orig<typeof import("../vectorize/client")>()), loadRaster: vi.fn() }));
 
 setupTauri();
-const BUILD = { timeout: 20_000 };
+const BUILD = { timeout: 30_000 };
 
 // 40×40: metade de cima vermelha, de baixo amarela
 beforeEach(() => {

@@ -9,6 +9,9 @@ import Calculator from "./Calculator";
 import { clearProductDraft, peekProductDraft } from "./products/draft";
 import { clearQuoteDraft, peekOpenQuoteDraft, peekQuoteDraft } from "./quotes/draft";
 
+// página inteira com banco: com a máquina carregada passa dos 5 s do padrão (vale para todos os testes do arquivo)
+vi.setConfig({ testTimeout: 30_000 });
+
 const t = setupTauri();
 const brl = (s: string) => new RegExp(`R\\$\\s${s}`);
 /** Valor da linha "Custo por peça" na tabela de resultado. */

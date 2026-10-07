@@ -10,7 +10,7 @@ vi.mock("../ui/viewerScene", () => ({ createViewer: () => ({ setModels() {}, dis
 
 const t = setupTauri();
 const HEART = '<svg xmlns="http://www.w3.org/2000/svg" width="60mm" height="60mm" viewBox="0 0 60 60"><circle cx="30" cy="30" r="28"/></svg>';
-const BUILD = { timeout: 15_000 };
+const BUILD = { timeout: 30_000 };
 
 describe("Cortador de biscoito", () => {
   test("sem desenho: pede um desenho", () => {

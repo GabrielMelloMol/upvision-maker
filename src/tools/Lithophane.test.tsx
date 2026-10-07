@@ -11,7 +11,7 @@ vi.mock("../ui/viewerScene", () => ({ createViewer: () => ({ setModels() {}, dis
 vi.mock("../vectorize/client", async (orig) => ({ ...(await orig<typeof import("../vectorize/client")>()), loadRaster: vi.fn() }));
 
 const t = setupTauri();
-const BUILD = { timeout: 20_000 };
+const BUILD = { timeout: 30_000 };
 
 /** Degradê horizontal do tamanho pedido pela tela (a largura em pontos vem do fator de escala). */
 beforeEach(() => {

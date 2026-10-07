@@ -26,7 +26,7 @@ beforeAll(() => {
   });
 });
 
-const BUILD = { timeout: 15_000 };
+const BUILD = { timeout: 30_000 };
 const OLD = "gymKeychain"; // antes: card solto "Chaveiro anilha"; agora: Chaveiro › Anilha
 /** Estado da tela como o app gravava antes das famílias (envelope do useToolState, v1). */
 const oldState = (text: string) => JSON.stringify({ v: 1, state: { id: OLD, all: { [OLD]: { ...MODELS.find((m) => m.id === OLD)!.defaults, text } }, font: "hanken", art: null, batchOn: false, batchText: {}, edits: {} } });

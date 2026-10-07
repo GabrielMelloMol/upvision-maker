@@ -10,7 +10,7 @@ import QrCode from "./QrCode";
 vi.mock("../ui/viewerScene", () => ({ createViewer: () => ({ setModels() {}, dispose() {} }) }));
 
 const t = setupTauri();
-const BUILD = { timeout: 15_000 };
+const BUILD = { timeout: 30_000 };
 const saved = (suffix: string) => new TextDecoder().decode([...t.files].find(([p]) => p.endsWith(suffix))![1]);
 const COMPANY = { name: "Ateliê da Ana", pixKey: "fulano@exemplo.com", pixName: "Ana Souza", pixCity: "Niterói" };
 

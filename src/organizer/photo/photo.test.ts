@@ -15,6 +15,9 @@ const BASE: Scene = {
   roll: 8,
 };
 
+/** A mesma cena em metade da resolução, para os testes de aviso, onde a medida em mm não é o que se confere. */
+const SMALL: Scene = { ...BASE, size: [800, 600], focalPx: 650 };
+
 function run(scene: Scene, heightMm = 0, focal: number | null = scene.focalPx) {
   const g = lightness(renderScene(scene));
   const corners = findSheetCorners(g)!;
@@ -90,6 +93,8 @@ describe("foto → contornos em mm (#169)", { timeout: 60_000 }, () => {
   });
 
   test("avisos: objeto saindo da folha, sombra forte e folha muito inclinada", () => {
+    // os avisos não dependem da resolução (medem claridade e geometria): foto de 800 × 600, 4× menos pixels que as de medida
+    const BASE = SMALL;
     const out = run({ ...BASE, boxes: [{ x: 150, y: 120, w: 80, d: 30, h: 0 }] });
     expect(out.warnings.join(" ")).toMatch(/sai da folha/);
     const shadow = run({ ...BASE, shadow: { width: 25, strength: 0.7 } });
