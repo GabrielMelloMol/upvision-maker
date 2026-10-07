@@ -1,6 +1,7 @@
 import * as THREE from "three";
 import { OrbitControls } from "three/addons/controls/OrbitControls.js";
 import { bedMm } from "../geometry/bed";
+import { encodeThumb } from "./thumbEncode";
 import type { Model } from "../geometry/types";
 
 const FLY_MS = 700;
@@ -210,7 +211,7 @@ export function createViewer(el: HTMLElement) {
       c.width = Math.max(1, Math.round(src.width * k));
       c.height = Math.max(1, Math.round(src.height * k));
       c.getContext("2d")?.drawImage(src, 0, 0, c.width, c.height);
-      return c.toDataURL("image/webp", 0.7);
+      return encodeThumb(c, 0.7, cssVar("--surface")); // WebP; sem ele (WebKit) JPEG sobre o fundo do tema (B22)
     },
     dispose() {
       cancelAnimationFrame(raf);

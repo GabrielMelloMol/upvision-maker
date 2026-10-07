@@ -411,7 +411,7 @@ Só análise: nenhum código foi alterado e nenhuma issue foi criada. Base: `ori
 - **Onde:** `src/ui/PhotoGallery.tsx:118`, `src/tools/models/LayersPanel.tsx:73,76`, `src/tools/DrawerOrganizer.tsx:137`; `src/tools/useToolState.ts:144`.
 - **Correção sugerida:** `modKey()` no texto e aceitar Ctrl+Y fora do Mac.
 
-### B22. Miniaturas em WebP provavelmente saem em PNG no Mac
+### B22. ✅ Miniaturas em WebP provavelmente saem em PNG no Mac
 - **Onde:** `src/ui/viewerScene.ts:213`, `src/thumbs/renderThumb.ts:121`.
 - **Por que:** o WebKit não codifica WebP em `toDataURL` e cai para PNG em silêncio: miniaturas e backups ficam maiores. Não confirmado.
 - **Correção sugerida:** conferir o prefixo do data URL e usar JPEG quando não for WebP.
