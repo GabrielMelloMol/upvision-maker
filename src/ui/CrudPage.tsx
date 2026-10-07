@@ -30,6 +30,8 @@ export type Field = {
   formOnly?: true;
   /** Número opcional: vazio grava null. */
   optional?: true;
+  /** Vai para "Opções avançadas" no formulário: fechada, e abre sozinha ao editar um cadastro com valor nelas ou com erro. */
+  advanced?: true;
   /** Ação embaixo do campo (ex.: assistente que preenche o valor). */
   extra?: (set: (v: string) => void, form: Record<string, string>) => ReactNode;
 };
@@ -102,6 +104,7 @@ export default function CrudPage({ pageId, title, singular, lead, repo, fields, 
   const [catalogOpen, setCatalogOpen] = useState(false);
   // o formulário de adicionar fica fechado atrás do botão do título; aberto ao editar e com a lista vazia
   const [adding, setAdding] = useState(false);
+  const [advOpen, setAdvOpen] = useState(false);
   const [focusTick, setFocusTick] = useState(0);
   const focusScroll = useRef<boolean | null>(null);
   const formRef = useRef<HTMLFormElement>(null);
@@ -112,6 +115,8 @@ export default function CrudPage({ pageId, title, singular, lead, repo, fields, 
   };
   const visible = rows.filter((r) => !hidden.has(r.id));
   const columns = fields.filter((f) => !f.formOnly);
+  const mainFields = fields.filter((f) => !f.advanced);
+  const advancedFields = fields.filter((f) => f.advanced);
   const formOpen = adding || editing !== null || (!loading && visible.length === 0);
 
   function focusFirst(scroll: boolean) {
@@ -181,6 +186,7 @@ export default function CrudPage({ pageId, title, singular, lead, repo, fields, 
   }
 
   function cancel() {
+    setAdvOpen(false);
     setAdding(false);
     setForm(defaults);
     setEditing(null);
@@ -188,6 +194,7 @@ export default function CrudPage({ pageId, title, singular, lead, repo, fields, 
   }
 
   function edit(r: Row) {
+    setAdvOpen(advancedFields.some((f) => r[f.key] != null && String(r[f.key]) !== ""));
     setEditing(r.id);
     setErrors({});
     setForm(Object.fromEntries(fields.map((f) => [f.key, toText(f, r[f.key])])));
@@ -322,7 +329,13 @@ export default function CrudPage({ pageId, title, singular, lead, repo, fields, 
               </button>
             )}
           </div>
-          <div className="rows">{fields.map(input)}</div>
+          <div className="rows">{mainFields.map(input)}</div>
+          {advancedFields.length > 0 && (
+            <details className="advanced-fields" open={advOpen || advancedFields.some((f) => errors[f.key])} onToggle={(e) => setAdvOpen(e.currentTarget.open)}>
+              <summary>Opções avançadas</summary>
+              <div className="rows">{advancedFields.map(input)}</div>
+            </details>
+          )}
           {errors._ && <p className="error">{errors._}</p>}
           <div className="row">
             <button className="primary" type="submit">

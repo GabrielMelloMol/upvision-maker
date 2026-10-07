@@ -40,6 +40,45 @@ describe("Filamentos: catálogo e duplicar (#3)", () => {
   });
 });
 
+describe("Filamentos: TD fica em Opções avançadas (UX M1)", () => {
+  const advanced = () => screen.getByText("Opções avançadas").closest("details")!;
+
+  test("no cadastro novo o TD fica numa seção fechada, com a explicação em português", async () => {
+    renderWithApp(<Filaments />);
+    await screen.findByRole("heading", { name: "Adicionar filamento" });
+    expect(advanced().open).toBe(false);
+    expect(within(advanced()).getByLabelText(/^TD/)).toBeInTheDocument();
+    expect(screen.getByText(/HueForge/)).toBeInTheDocument();
+    expect(screen.queryByText(/Transmission distance/)).not.toBeInTheDocument();
+    expect(screen.queryByLabelText("TD (mm)")).not.toBeInTheDocument(); // o rótulo seco foi trocado
+  });
+
+  test("editar um filamento que já tem TD abre a seção sozinha; sem TD ela continua fechada", async () => {
+    await t.db.execute("INSERT INTO filaments (material, color, brand, pricePerKg, spoolG, stockG, minG, td) VALUES ('PLA', 'Branco', 'A', 100, 1000, 500, 200, 0.8), ('PLA', 'Preto', 'B', 100, 1000, 500, 200, NULL)");
+    const user = userEvent.setup();
+    renderWithApp(<Filaments />);
+    const edit = await screen.findAllByRole("button", { name: /^Editar / }); // na ordem do cadastro: Branco (com TD), Preto (sem)
+    await user.click(edit[0]);
+    await waitFor(() => expect(advanced().open).toBe(true));
+    expect(within(advanced()).getByLabelText(/^TD/)).toHaveValue("0.8");
+    await user.click(screen.getByRole("button", { name: "Cancelar" }));
+    await user.click(screen.getAllByRole("button", { name: /^Editar / })[1]);
+    await waitFor(() => expect(advanced().open).toBe(false));
+  });
+
+  test("TD continua sendo gravado (campo opcional, número) mesmo dentro da seção", async () => {
+    const user = userEvent.setup();
+    renderWithApp(<Filaments />);
+    await screen.findByRole("heading", { name: "Adicionar filamento" });
+    await user.type(screen.getByLabelText(/^Marca/), "Voolt");
+    await user.type(screen.getByLabelText("Preço por kg"), "100");
+    await user.click(screen.getByRole("radio", { name: "Branco" }));
+    await user.type(within(advanced()).getByLabelText(/^TD/), "0,6");
+    await user.click(screen.getByRole("button", { name: /Adicionar/ }));
+    await waitFor(async () => expect(await t.db.select("SELECT brand, td FROM filaments")).toEqual([{ brand: "Voolt", td: 0.6 }]));
+  });
+});
+
 describe("M15: erro do banco nas telas de cadastro", () => {
   test("lista que não lê mostra 'Não foi possível ler os dados' e não 'Nada cadastrado ainda'", async () => {
     t.handlers["plugin:sql|select"] = () => {

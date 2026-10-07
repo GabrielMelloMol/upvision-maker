@@ -21,7 +21,7 @@ export default function Filaments() {
         { key: "spoolG", label: "Peso do rolo (g)", kind: "number" },
         { key: "stockG", label: "Estoque", kind: "mass" },
         { key: "minG", label: "Avisar abaixo de", kind: "mass", hint: "Avisa quando o estoque chegar aqui." },
-        { key: "td", label: "TD (mm)", kind: "number", optional: true, formOnly: true, hint: "Transmission distance: do HueForge ou medido; vazio = não usar." },
+        { key: "td", label: "TD (luz que passa, mm)", kind: "number", optional: true, formOnly: true, advanced: true, hint: "Só para quem usa o HueForge (quadro em camadas de cor): quanto de luz o filamento deixa passar. Deixe vazio se você não usa." },
       ]}
       defaults={{ material: "PLA", color: "", brand: "", pricePerKg: "", spoolG: "1000", stockG: "1 rolo", minG: "200", td: "" }}
       sticky={["material", "brand", "pricePerKg", "spoolG", "minG"]}
