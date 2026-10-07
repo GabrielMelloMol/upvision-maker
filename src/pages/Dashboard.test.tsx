@@ -92,6 +92,25 @@ describe("Painel", () => {
   });
 });
 
+describe("UX B6: variação do mês compara o mesmo trecho do mês passado", () => {
+  test("no começo do mês, R$ 0,00 não assusta com ▼100%: o mês passado só conta até o mesmo dia", async () => {
+    vi.setSystemTime(new Date(2026, 5, 3, 12)); // 3 de junho
+    await order({ name: "Caio", status: "delivered", deliveredAt: "2026-05-20", items: [{ productId: null, qty: 1, unitPrice: 100 }] });
+    renderWithApp(<Dashboard go={() => {}} />);
+    await waitFor(() => expect(text(tile("Receita do mês"))).toContain("R$ 0,00"));
+    expect(text(tile("Receita do mês"))).not.toContain("▼"); // antes: ▼ 100% vs. período anterior (maio inteiro)
+  });
+
+  test("até o mesmo dia do mês passado entra na conta (1 a 3 de maio)", async () => {
+    vi.setSystemTime(new Date(2026, 5, 3, 12));
+    await order({ name: "Dani", status: "delivered", deliveredAt: "2026-05-02", items: [{ productId: null, qty: 1, unitPrice: 50 }] });
+    await order({ name: "Ana", status: "delivered", deliveredAt: "2026-06-02", items: [{ productId: null, qty: 1, unitPrice: 100 }] });
+    renderWithApp(<Dashboard go={() => {}} />);
+    await waitFor(() => expect(text(tile("Receita do mês"))).toContain("R$ 100,00"));
+    expect(text(tile("Receita do mês"))).toContain("▲ 100% vs. período anterior"); // 100 contra os 50 de 1–3 de maio
+  });
+});
+
 describe("M15: erro do banco no Painel", () => {
   test("avisa que não deu para ler em vez de mostrar tudo zerado como se estivesse certo", async () => {
     t.handlers["plugin:sql|select"] = () => {

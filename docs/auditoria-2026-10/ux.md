@@ -177,7 +177,7 @@ A pergunta foi: uma vendedora de impressão 3D que acabou de instalar o app cons
 
 **B5 · Início · "Comece por aqui" continua aparecendo com dados** até clicar no X. Esconder sozinho depois que os 3 passos forem feitos (ou marcar cada um como feito).
 
-**B6 · Painel · "Mais vendidos" corta o nome ("Topo …") com espaço sobrando**, e "Receita do mês R$ 0,00 ▼100% vs. período anterior" no início do mês assusta. [print](ux/21-painel-claro.jpg). Coluna do nome flexível; comparar com o mesmo dia do mês anterior ou esconder a variação nos primeiros dias.
+**✅ B6 · Painel · "Mais vendidos" corta o nome ("Topo …") com espaço sobrando**, e "Receita do mês R$ 0,00 ▼100% vs. período anterior" no início do mês assusta. [print](ux/21-painel-claro.jpg). Coluna do nome flexível; comparar com o mesmo dia do mês anterior ou esconder a variação nos primeiros dias.
 
 **✅ B7 · Financeiro · "R$ por hora de impressão — / 0 h de máquina (faturamento, não lucro)"**: confuso quando não há tempo cadastrado. Esconder o cartão sem horas ou explicar "Cadastre o tempo de impressão dos produtos para ver este número".
 

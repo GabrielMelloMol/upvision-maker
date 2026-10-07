@@ -34,7 +34,10 @@ export default function Dashboard({ go }: { go: Go }) {
   const today = todayIso();
   const [mFrom, mTo] = periodRange("month", today);
   const month = financeSummary(data.orders, data.costs, mFrom, mTo);
-  const [lFrom, lTo] = periodRange("lastMonth", today);
+  const [lFrom, lEnd] = periodRange("lastMonth", today);
+  // compara com o mesmo trecho do mês passado (do dia 1 até o mesmo dia), não com o mês inteiro: no começo do mês,
+  // "R$ 0,00 ▼ 100%" assustava (UX B6)
+  const lTo = `${lEnd.slice(0, 8)}${String(Math.min(Number(today.slice(8)), Number(lEnd.slice(8)))).padStart(2, "0")}`;
   const last = financeSummary(data.orders, data.costs, lFrom, lTo);
   const open = data.orders.filter((o) => OPEN.has(o.status));
   const late = open.filter((o) => isLate(o, today));
