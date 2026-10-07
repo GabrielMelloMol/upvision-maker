@@ -73,6 +73,22 @@ pub fn host_ok(host: Option<&str>, ip: IpAddr, port: u16) -> bool {
     host.is_some_and(|h| [format!("{ip}:{port}"), format!("localhost:{port}"), format!("127.0.0.1:{port}")].iter().any(|ok| ok.eq_ignore_ascii_case(h.trim())))
 }
 
+/// Método e cabeçalho da API, antes de qualquer outra coisa (B24). O pareamento só aceita POST: um GET simples
+/// (uma `<img>` numa página aberta na rede) contava como tentativa errada e travava o pareamento de quem estava em casa.
+pub fn api_gate(method: &str, path: &str, x_upvision: Option<&str>) -> Result<(), (u16, &'static str)> {
+    if method != "GET" && method != "POST" {
+        return Err((405, "Método não aceito."));
+    }
+    if path == "/api/pair" && method != "POST" {
+        return Err((405, "Método não aceito."));
+    }
+    // cabeçalho próprio: um site de fora não consegue mandar sem pedir permissão (CORS), e aqui ninguém dá
+    if method == "POST" && x_upvision != Some("1") {
+        return Err((403, "Pedido recusado."));
+    }
+    Ok(())
+}
+
 fn random_hex(bytes: usize) -> String {
     let mut buf = vec![0u8; bytes];
     getrandom::fill(&mut buf).expect("gerador aleatório do sistema");
@@ -219,12 +235,8 @@ fn handle(app: &AppHandle, mut req: Request) {
         // a página e os scripts dela (não têm dados); fora isso, nada
         return if method == "GET" && (path == "/" || path.starts_with("/assets/")) && !path.contains("..") { serve_asset(app, req, &path) } else { error(req, 404, "Página não encontrada.") };
     }
-    if method != "GET" && method != "POST" {
-        return error(req, 405, "Método não aceito.");
-    }
-    // cabeçalho próprio: um site de fora não consegue mandar sem pedir permissão (CORS), e aqui ninguém dá
-    if method == "POST" && header(&req, "X-UpVision") != Some("1") {
-        return error(req, 403, "Pedido recusado.");
+    if let Err((status, message)) = api_gate(&method, &path, header(&req, "X-UpVision")) {
+        return error(req, status, message);
     }
     let is_pair = path == "/api/pair";
     // sessão antes de ler o corpo: quem não pareou não manda nada além do código
@@ -392,6 +404,18 @@ mod tests {
         let mut p = Pairing::new(t0);
         let code = p.code.clone();
         assert_eq!(p.check(&code, t0), PairResult::Ok, "gerar código novo destrava");
+    }
+
+    #[test]
+    fn so_get_e_post_o_pareamento_so_post_e_post_exige_o_cabecalho_proprio() {
+        assert_eq!(api_gate("GET", "/api/summary", None), Ok(()));
+        assert_eq!(api_gate("POST", "/api/pair", Some("1")), Ok(()));
+        assert_eq!(api_gate("GET", "/api/pair", None), Err((405, "Método não aceito.")), "GET no pareamento não conta tentativa (B24)");
+        assert_eq!(api_gate("GET", "/api/pair", Some("1")), Err((405, "Método não aceito.")));
+        assert_eq!(api_gate("POST", "/api/orders/3/done", None), Err((403, "Pedido recusado.")));
+        assert_eq!(api_gate("POST", "/api/pair", Some("0")), Err((403, "Pedido recusado.")));
+        assert_eq!(api_gate("PUT", "/api/summary", Some("1")), Err((405, "Método não aceito.")));
+        assert_eq!(api_gate("OPTIONS", "/api/summary", None), Err((405, "Método não aceito.")), "sem CORS: o preflight é negado");
     }
 
     #[test]

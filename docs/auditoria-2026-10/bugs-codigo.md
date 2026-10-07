@@ -421,7 +421,7 @@ Só análise: nenhum código foi alterado e nenhuma issue foi criada. Base: `ori
 - **Como reproduzir:** um SVG chamado `con.svg` → Abrir no fatiador. No Windows o arquivo não é criado direito.
 - **Correção sugerida:** acrescentar um sufixo quando o radical for um nome reservado.
 
-### B24. `/api/pair` aceita GET, e uma página qualquer pode travar o pareamento
+### B24. `/api/pair` aceita GET, e uma página qualquer pode travar o pareamento — ✅ CORRIGIDO (Lupa)
 - **Onde:** `src-tauri/src/lan.rs:226` (o cabeçalho `X-UpVision` é exigido só em POST), `:229` e `:240-244`.
 - **Como reproduzir:** 5 GETs (por exemplo um `<img src>` numa página aberta na rede) contam como 5 tentativas erradas e travam o pareamento até alguém gerar um código novo. É só negação de serviço, sem vazamento.
 - **Correção sugerida:** aceitar `/api/pair` só com `method == "POST"`.
