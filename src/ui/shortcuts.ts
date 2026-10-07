@@ -14,8 +14,18 @@ export function onNewShortcut(fn: () => void): () => void {
 /** Campo de digitação em foco: aí a tecla "?" é texto, não atalho. */
 const typing = (t: EventTarget | null) => !!(t as HTMLElement | null)?.closest?.("input, textarea, select, [contenteditable]");
 
-export function installShortcuts({ openPalette, openHelp, toggleSidebar, toggleTheme }: { openPalette: () => void; openHelp?: () => void; toggleSidebar?: () => void; toggleTheme?: () => void }): () => void {
+type Handlers = { openPalette: () => void; openHelp?: () => void; toggleSidebar?: () => void; toggleTheme?: () => void; blockReload?: boolean };
+
+/**
+ * `blockReload`: no app instalado F5 e Ctrl/⌘+R (com ou sem Shift) recarregariam o app inteiro, e se perderia o
+ * desfazer e o que não foi salvo (B15). Em desenvolvimento seguem valendo (o padrão acompanha o build).
+ */
+export function installShortcuts({ openPalette, openHelp, toggleSidebar, toggleTheme, blockReload = import.meta.env.PROD }: Handlers): () => void {
   const onKey = (e: KeyboardEvent) => {
+    if (blockReload && !e.altKey && (e.key === "F5" || ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === "r"))) {
+      e.preventDefault();
+      return;
+    }
     if (toggleTheme && (e.metaKey || e.ctrlKey) && e.shiftKey && !e.altKey && e.code === "KeyL") {
       e.preventDefault();
       toggleTheme();

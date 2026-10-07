@@ -377,7 +377,7 @@ Só análise: nenhum código foi alterado e nenhuma issue foi criada. Base: `ori
 - **Como reproduzir:** basta um panic com o lock tomado. O mutex fica envenenado e todo pedido seguinte também entra em pânico: o celular para de funcionar sem mensagem.
 - **Correção sugerida:** `lock().unwrap_or_else(|e| e.into_inner())`.
 
-### B15. F5 ou Ctrl+R recarregam o app inteiro no Windows
+### B15. ✅ F5 ou Ctrl+R recarregam o app inteiro no Windows
 - **Onde:** `src/ui/shortcuts.ts:17-47`.
 - **Como reproduzir:** F5 dentro de uma ferramenta: o app reinicia e perde o desfazer e o que não foi salvo.
 - **Correção sugerida:** `preventDefault` em F5, Ctrl+R e Ctrl+Shift+R em build de produção.
