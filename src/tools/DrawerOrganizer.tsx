@@ -24,6 +24,7 @@ import PrintPlanCard from "./drawer/PrintPlanCard";
 import { drawerPrint, type DrawerPrint } from "./drawer/printPlan";
 import ToolSessionBar from "./ToolSessionBar";
 import { useToolState } from "./useToolState";
+import { modKey } from "../ui/shortcuts";
 
 const ALIGNS = [
   ["center", "Centralizar"],
@@ -134,7 +135,7 @@ export default function DrawerOrganizer() {
           ) : (
             <div className="card stack">
               <h3>Caixinhas</h3>
-              <span className="hint">Arraste na grade para criar uma caixinha. Toque numa para ajustar; Shift ou ⌘ junta várias.</span>
+              <span className="hint">Arraste na grade para criar uma caixinha. Toque numa para ajustar; Shift ou {modKey()} junta várias.</span>
             </div>
           )}
           <RulerCard />

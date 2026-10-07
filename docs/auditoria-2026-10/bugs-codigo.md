@@ -397,7 +397,7 @@ Só análise: nenhum código foi alterado e nenhuma issue foi criada. Base: `ori
 - **Como reproduzir:** abrir uma imagem e sair da tela, várias vezes. Cada visita deixa um Blob vivo até o app fechar.
 - **Correção sugerida:** `useEffect(() => () => revoke(rasterRef.current?.raster.url), [])`.
 
-### B19. ✅ "Pedir à IA" não cancela ao sair da tela
+### B19. ✅ "Pedir à IA" não cancela ao sair da tela (corrigido no commit 1fabdee, cuja mensagem diz B18 por engano)
 - **Onde:** `src/tools/AskAI.tsx:41,90,101,131,141`.
 - **Como reproduzir:** envie um pedido e troque de tela. A chamada paga continua, a resposta se perde e o worker do OpenSCAD roda até 90 s.
 - **Correção sugerida:** `useEffect(() => () => cancelRef.current(), [])`.
@@ -407,7 +407,7 @@ Só análise: nenhum código foi alterado e nenhuma issue foi criada. Base: `ori
 - **Como reproduzir:** não reproduzido. `upvision-sync.json` e `.lock` usam ambos `upvision-sync.tmp`; o OneDrive pode criar cópias "(1).tmp" ou fazer o `rename` falhar com "Acesso negado" enquanto segura o arquivo.
 - **Correção sugerida:** nome temporário único (`<nome>.<pid>.<nanos>.tmp`) e uma nova tentativa do `rename` no Windows.
 
-### B21. Atalhos com ⌘ fixo no texto e sem Ctrl+Y no Windows
+### B21. ✅ Atalhos com ⌘ fixo no texto e sem Ctrl+Y no Windows
 - **Onde:** `src/ui/PhotoGallery.tsx:118`, `src/tools/models/LayersPanel.tsx:73,76`, `src/tools/DrawerOrganizer.tsx:137`; `src/tools/useToolState.ts:144`.
 - **Correção sugerida:** `modKey()` no texto e aceitar Ctrl+Y fora do Mac.
 

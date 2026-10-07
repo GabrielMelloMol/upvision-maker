@@ -7,6 +7,7 @@ import PhotoEditSheet from "./PhotoEditSheet";
 import { photoToDataUrl } from "./photo";
 import Sheet from "./Sheet";
 import { errorText, useToast } from "./Toast";
+import { modKey } from "./shortcuts";
 
 type Props = { owner: string; label?: string; onChange?: (list: PhotoRow[]) => void };
 
@@ -115,7 +116,7 @@ export default function PhotoGallery({ owner, label = "Fotos da peça impressa",
             <Camera aria-hidden size={16} /> Câmera
           </button>
         )}
-        <span className="hint">Ou arraste, ou cole (⌘V) uma foto aqui.</span>
+        <span className="hint">Ou arraste, ou cole ({modKey()}+V) uma foto aqui.</span>
       </div>
       <input
         ref={input}

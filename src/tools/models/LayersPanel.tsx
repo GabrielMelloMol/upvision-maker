@@ -10,6 +10,7 @@ import Toggle from "../../ui/Toggle";
 import { errorText } from "../../ui/Toast";
 import { DESIGN_ACCEPT, fileToSvg } from "../designInput";
 import { layerName, type Layer } from "./layers";
+import { redoHint, undoHint } from "../../ui/shortcuts";
 
 export const LAYER_LIMITS = { width: [2, 300], rotation: [-180, 180], depth: [0.2, 10] } as const;
 const MODES = [
@@ -70,10 +71,10 @@ export default function LayersPanel(props: Props) {
     <section className="card stack layers-panel" aria-label="Camadas livres">
       <div className="row layers-head">
         <h3>Desenhos e textos livres</h3>
-        <button type="button" className="ghost icon-only" aria-label="Desfazer" title="Desfazer (⌘Z)" disabled={!history.canUndo} onClick={history.undo}>
+        <button type="button" className="ghost icon-only" aria-label="Desfazer" title={`Desfazer (${undoHint()})`} disabled={!history.canUndo} onClick={history.undo}>
           <Undo2 aria-hidden />
         </button>
-        <button type="button" className="ghost icon-only" aria-label="Refazer" title="Refazer (⇧⌘Z)" disabled={!history.canRedo} onClick={history.redo}>
+        <button type="button" className="ghost icon-only" aria-label="Refazer" title={`Refazer (${redoHint()})`} disabled={!history.canRedo} onClick={history.redo}>
           <Redo2 aria-hidden />
         </button>
       </div>

@@ -4,6 +4,9 @@ const NEW_EVENT = "upvision:new";
 
 export const isMac = () => /Mac/i.test(navigator.platform || navigator.userAgent);
 export const modKey = () => (isMac() ? "⌘" : "Ctrl");
+/** Texto dos atalhos de desfazer e refazer na tela (B21): ⌘ no Mac, Ctrl no Windows (onde refazer é Ctrl+Y). */
+export const undoHint = () => (isMac() ? "⌘Z" : "Ctrl+Z");
+export const redoHint = () => (isMac() ? "⇧⌘Z" : "Ctrl+Y");
 
 /** Página que tem "novo cadastro" se inscreve aqui. Retorna o cancelamento (para useEffect). */
 export function onNewShortcut(fn: () => void): () => void {

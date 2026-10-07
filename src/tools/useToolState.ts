@@ -155,10 +155,14 @@ export function useToolState<T extends object>(toolId: string, initial: T | (() 
   const { undo, redo } = hist;
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
-      if (!(e.metaKey || e.ctrlKey) || e.key.toLowerCase() !== "z" || e.altKey) return;
+      if (!(e.metaKey || e.ctrlKey) || e.altKey) return;
+      const key = e.key.toLowerCase();
+      // Ctrl+Y refaz no Windows (B21); no Mac ⌘Y é outra coisa (histórico), então só ⇧⌘Z
+      const isRedo = (key === "z" && e.shiftKey) || (key === "y" && !e.shiftKey && !e.metaKey);
+      if (!(key === "z" || isRedo)) return;
       if ((e.target as HTMLElement | null)?.closest?.("input, textarea, select, [contenteditable]") || document.querySelector("dialog[open]")) return;
       e.preventDefault();
-      if (e.shiftKey) redo();
+      if (isRedo) redo();
       else undo();
     };
     window.addEventListener("keydown", onKey);

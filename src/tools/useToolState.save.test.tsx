@@ -74,3 +74,24 @@ test("flushPendingSaves ao fechar a janela grava o que ainda esperava", async ()
   await flushPendingSaves();
   expect(await saved()).toContain("Bia");
 });
+
+test("Ctrl+Y refaz fora do Mac, além de Ctrl+Shift+Z (B21)", async () => {
+  const { useToolState: use } = await import("./useToolState");
+  function Undoable() {
+    const tool = use("probe2", { n: 0 }, { label: "Probe" });
+    return (
+      <>
+        <output aria-label="n">{tool.state.n}</output>
+        <button onClick={() => tool.field("n")(tool.state.n + 1)}>soma</button>
+      </>
+    );
+  }
+  const { getByText } = renderWithApp(<Undoable />);
+  await screen.findByLabelText("n");
+  fireEvent.click(getByText("soma"));
+  expect(screen.getByLabelText("n")).toHaveTextContent("1");
+  fireEvent.keyDown(window, { key: "z", ctrlKey: true }); // desfaz
+  expect(screen.getByLabelText("n")).toHaveTextContent("0");
+  fireEvent.keyDown(window, { key: "y", ctrlKey: true }); // refaz
+  expect(screen.getByLabelText("n")).toHaveTextContent("1");
+});
