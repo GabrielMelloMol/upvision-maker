@@ -220,7 +220,9 @@ O app em /Applications é o build `c7d055f` (v0.10.3 + o C1), instalado em 05/10
 
 ## Fechamento da rodada de correções (07/10)
 
-**Corrigidos com teste:** C1, A1, A2, A3, A4, M2, M3, M4, M5, M7, M8, M12, M13, M14, M15, B1, B8 (Quartzo) e M10, M11, B4, B5, B6, B7, B9 (Forja). Cada correção está num commit pequeno, com teste de unidade, E2E ou visual, e a lista de "conhecidos" do teste visual perdeu os itens de contraste e de alvo pequeno. Proteções novas: `tests/e2e/acessibilidade-axe.e2e.ts` (axe em todas as telas), `src/styles/statusColors.test.ts`, `src/styles/targets.test.ts` e `tests/e2e/seletores-uma-linha.e2e.ts`.
+Três itens ficaram sem ✅ de propósito: A5, M6 e M9 (recurso novo ou redesenho; lista abaixo).
+
+**Corrigidos com teste (27 de 30):** C1, A1, A2, A3, A4, M2, M3, M4, M5, M7, M8, M12, M13, M14, M15, B1, B8 (Quartzo); M1 (Forja na Calculadora e em Produtos, Lupa no resto), M10, M11, B2, B3, B4, B5, B6, B7, B9 (Forja). Cada correção está num commit pequeno, com teste de unidade, E2E ou visual, e a lista de "conhecidos" do teste visual perdeu os itens de contraste e de alvo pequeno. Proteções novas: `tests/e2e/acessibilidade-axe.e2e.ts` (axe em todas as telas), `src/styles/statusColors.test.ts`, `src/styles/targets.test.ts` e `tests/e2e/seletores-uma-linha.e2e.ts`.
 
 **Parciais:**
 - **M4:** os seletores não quebram mais o texto, mas as legendas das variantes de modelo sob as miniaturas ("No contorno do desenho", "Redonda e formatos") continuam em 2 a 3 linhas (são nomes do catálogo).
