@@ -11,7 +11,7 @@ use std::io::Read;
 use std::net::{IpAddr, UdpSocket};
 use std::sync::atomic::{AtomicU64, AtomicUsize, Ordering};
 use std::sync::mpsc::{channel, Sender};
-use std::sync::{Arc, Mutex};
+use std::sync::{Arc, Mutex, MutexGuard};
 use std::time::{Duration, Instant};
 use tauri::{AppHandle, Emitter, Manager, State};
 use tiny_http::{Header, Request, Response, Server};
@@ -71,6 +71,13 @@ pub fn is_local(ip: IpAddr) -> bool {
 /// O Host precisa ser o endereço deste app (um site de fora apontando o próprio domínio para cá não passa).
 pub fn host_ok(host: Option<&str>, ip: IpAddr, port: u16) -> bool {
     host.is_some_and(|h| [format!("{ip}:{port}"), format!("localhost:{port}"), format!("127.0.0.1:{port}")].iter().any(|ok| ok.eq_ignore_ascii_case(h.trim())))
+}
+
+/// Trava um Mutex mesmo se outra thread entrou em pânico segurando-o (B14): o estado aqui são só sessões, o código
+/// de pareamento e os pedidos pendentes, que seguem consistentes; com `unwrap()` um pânico derrubava o acesso do
+/// celular para sempre, sem mensagem.
+fn lock<T>(m: &Mutex<T>) -> MutexGuard<'_, T> {
+    m.lock().unwrap_or_else(|e| e.into_inner())
 }
 
 /// Método e cabeçalho da API, antes de qualquer outra coisa (B24). O pareamento só aceita POST: um GET simples
@@ -218,7 +225,7 @@ fn handle_capped(app: &AppHandle, req: Request) {
 
 fn handle(app: &AppHandle, mut req: Request) {
     let lan = app.state::<Lan>();
-    let (ip, port) = match lan.running.lock().unwrap().as_ref() {
+    let (ip, port) = match lock(&lan.running).as_ref() {
         Some(r) => (r.ip, r.port),
         None => return,
     };
@@ -240,7 +247,7 @@ fn handle(app: &AppHandle, mut req: Request) {
     }
     let is_pair = path == "/api/pair";
     // sessão antes de ler o corpo: quem não pareou não manda nada além do código
-    let paired = cookie_token(header(&req, "Cookie")).is_some_and(|t| lan.running.lock().unwrap().as_ref().is_some_and(|r| r.sessions.contains(t)));
+    let paired = cookie_token(header(&req, "Cookie")).is_some_and(|t| lock(&lan.running).as_ref().is_some_and(|r| r.sessions.contains(t)));
     if !is_pair && !paired {
         return error(req, 401, "Conecte com o código que aparece no computador.");
     }
@@ -251,7 +258,7 @@ fn handle(app: &AppHandle, mut req: Request) {
 
     if is_pair {
         let given = serde_json::from_str::<serde_json::Value>(&body).ok().and_then(|v| v["code"].as_str().map(String::from)).unwrap_or_default();
-        let mut guard = lan.running.lock().unwrap();
+        let mut guard = lock(&lan.running);
         let Some(r) = guard.as_mut() else { return };
         return match r.pairing.check(&given, Instant::now()) {
             PairResult::Ok => {
@@ -285,10 +292,10 @@ fn handle(app: &AppHandle, mut req: Request) {
 
     let id = lan.next_id.fetch_add(1, Ordering::Relaxed);
     let (tx, rx) = channel();
-    lan.pending.lock().unwrap().insert(id, tx);
+    lock(&lan.pending).insert(id, tx);
     let _ = app.emit("lan-request", serde_json::json!({ "id": id, "method": method, "path": path, "body": body }));
     let answer = rx.recv_timeout(APP_TIMEOUT);
-    lan.pending.lock().unwrap().remove(&id);
+    lock(&lan.pending).remove(&id);
     match answer {
         Ok((status, body)) => json(req, status, &body),
         Err(_) => error(req, 504, "O computador demorou para responder. Toque em Atualizar e confira antes de repetir."),
@@ -296,7 +303,7 @@ fn handle(app: &AppHandle, mut req: Request) {
 }
 
 fn status_of(lan: &Lan) -> LanStatus {
-    match lan.running.lock().unwrap().as_ref() {
+    match lock(&lan.running).as_ref() {
         Some(r) => LanStatus { running: true, url: format!("http://{}:{}/", r.ip, r.port), code: r.pairing.code.clone(), phones: r.sessions.len(), locked: r.pairing.locked },
         None => LanStatus { running: false, url: String::new(), code: String::new(), phones: 0, locked: false },
     }
@@ -304,10 +311,10 @@ fn status_of(lan: &Lan) -> LanStatus {
 
 #[tauri::command]
 pub fn lan_start(app: AppHandle, lan: State<'_, Lan>) -> Result<LanStatus, String> {
-    if lan.running.lock().unwrap().is_none() {
+    if lock(&lan.running).is_none() {
         let server = Arc::new(Server::http("0.0.0.0:0").map_err(|e| format!("Não consegui ligar o acesso do celular: {e}"))?);
         let port = server.server_addr().to_ip().map(|a| a.port()).ok_or("Porta inválida.")?;
-        *lan.running.lock().unwrap() = Some(Running { server: server.clone(), ip: lan_ip(), port, pairing: Pairing::new(Instant::now()), sessions: HashSet::new() });
+        *lock(&lan.running) = Some(Running { server: server.clone(), ip: lan_ip(), port, pairing: Pairing::new(Instant::now()), sessions: HashSet::new() });
         std::thread::spawn(move || {
             // ponytail: uma thread por pedido; na rede de casa são poucos celulares
             for req in server.incoming_requests() {
@@ -321,7 +328,7 @@ pub fn lan_start(app: AppHandle, lan: State<'_, Lan>) -> Result<LanStatus, Strin
 
 #[tauri::command]
 pub fn lan_stop(lan: State<'_, Lan>) {
-    if let Some(r) = lan.running.lock().unwrap().take() {
+    if let Some(r) = lock(&lan.running).take() {
         r.server.unblock();
     }
 }
@@ -334,7 +341,7 @@ pub fn lan_status(lan: State<'_, Lan>) -> LanStatus {
 /// "Gerar código novo": destrava depois de tentativas erradas (os celulares já conectados continuam).
 #[tauri::command]
 pub fn lan_new_code(lan: State<'_, Lan>) -> LanStatus {
-    if let Some(r) = lan.running.lock().unwrap().as_mut() {
+    if let Some(r) = lock(&lan.running).as_mut() {
         r.pairing = Pairing::new(Instant::now());
     }
     status_of(&lan)
@@ -342,7 +349,7 @@ pub fn lan_new_code(lan: State<'_, Lan>) -> LanStatus {
 
 #[tauri::command]
 pub fn lan_disconnect_all(lan: State<'_, Lan>) -> LanStatus {
-    if let Some(r) = lan.running.lock().unwrap().as_mut() {
+    if let Some(r) = lock(&lan.running).as_mut() {
         r.sessions.clear();
         r.pairing = Pairing::new(Instant::now());
     }
@@ -352,7 +359,7 @@ pub fn lan_disconnect_all(lan: State<'_, Lan>) -> LanStatus {
 /// Resposta da janela do app para um `lan-request`.
 #[tauri::command]
 pub fn lan_respond(lan: State<'_, Lan>, id: u64, status: u16, body: String) {
-    if let Some(tx) = lan.pending.lock().unwrap().remove(&id) {
+    if let Some(tx) = lock(&lan.pending).remove(&id) {
         let _ = tx.send((status, body));
     }
 }
@@ -416,6 +423,19 @@ mod tests {
         assert_eq!(api_gate("POST", "/api/pair", Some("0")), Err((403, "Pedido recusado.")));
         assert_eq!(api_gate("PUT", "/api/summary", Some("1")), Err((405, "Método não aceito.")));
         assert_eq!(api_gate("OPTIONS", "/api/summary", None), Err((405, "Método não aceito.")), "sem CORS: o preflight é negado");
+    }
+
+    #[test]
+    fn mutex_envenenado_continua_usavel() {
+        let m = Arc::new(Mutex::new(7));
+        let m2 = m.clone();
+        let _ = std::thread::spawn(move || {
+            let _guard = m2.lock().unwrap();
+            panic!("pânico com o lock tomado");
+        })
+        .join();
+        assert!(m.is_poisoned());
+        assert_eq!(*lock(&m), 7, "B14: o acesso do celular não morre junto");
     }
 
     #[test]

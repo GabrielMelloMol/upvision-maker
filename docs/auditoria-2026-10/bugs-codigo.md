@@ -372,7 +372,7 @@ Só análise: nenhum código foi alterado e nenhuma issue foi criada. Base: `ori
 - **Como reproduzir:** com o conf ilegível, o projeto sai com o perfil A1 e o toast ainda diz "com a impressora e os filamentos".
 - **Correção sugerida:** informar ao front que usou o padrão e ajustar o toast.
 
-### B14. `unwrap()` nos mutexes do servidor do celular
+### B14. `unwrap()` nos mutexes do servidor do celular — ✅ CORRIGIDO (Lupa)
 - **Onde:** `src-tauri/src/lan.rs:205, 231, 242, 276, 279, 287, 295, 298, 312, 325, 333, 343`.
 - **Como reproduzir:** basta um panic com o lock tomado. O mutex fica envenenado e todo pedido seguinte também entra em pânico: o celular para de funcionar sem mensagem.
 - **Correção sugerida:** `lock().unwrap_or_else(|e| e.into_inner())`.
