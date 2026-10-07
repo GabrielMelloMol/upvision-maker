@@ -182,7 +182,7 @@ A pergunta foi: uma vendedora de impressão 3D que acabou de instalar o app cons
 
 **✅ B7 · Financeiro · "R$ por hora de impressão — / 0 h de máquina (faturamento, não lucro)"**: confuso quando não há tempo cadastrado. Esconder o cartão sem horas ou explicar "Cadastre o tempo de impressão dos produtos para ver este número".
 
-**B8 · Preferências · checkbox pequeno no meio de chaves** ("Incluir custos fixos no preço", "Multiplicar também a mão de obra (jeito antigo)") e um texto de histórico de versão na tela ("Desde a v0.6 a mão de obra…"). Usar a mesma chave das outras opções; tirar o histórico (ele já está em "O que há de novo").
+**✅ B8 · Preferências · checkbox pequeno no meio de chaves** ("Incluir custos fixos no preço", "Multiplicar também a mão de obra (jeito antigo)") e um texto de histórico de versão na tela ("Desde a v0.6 a mão de obra…"). Usar a mesma chave das outras opções; tirar o histórico (ele já está em "O que há de novo").
 
 **✅ B9 · Produtos · a legenda "manual" sob o preço** não diz o que significa. "preço digitado" / "preço calculado" com ⓘ.
 

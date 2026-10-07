@@ -61,13 +61,15 @@ describe("Preferences", () => {
     await user.type(screen.getByLabelText("Impostos sobre a venda (%)"), "6");
     const hours = screen.getByLabelText("Horas de impressão por mês");
     expect(hours).toBeDisabled();
-    await user.click(screen.getByRole("checkbox", { name: "Incluir custos fixos no preço" }));
+    await user.click(screen.getByRole("switch", { name: "Incluir custos fixos no preço" }));
     expect(hours).toBeEnabled();
     await user.clear(hours);
     await user.type(hours, "80");
-    await user.click(screen.getByRole("checkbox", { name: /jeito antigo/ }));
+    await user.click(screen.getByRole("switch", { name: /jeito antigo/ }));
     await user.selectOptions(screen.getByLabelText(/^Embalagem padrão/), "Caixinha");
     expect(screen.getByText(/loja, papelaria.*lucro de 200 % sobre o custo/)).toBeInTheDocument();
+    // a explicação do "jeito antigo" fica na própria linha, e não num parágrafo de histórico de versão (UX B8)
+    expect(screen.queryByText(/Desde a v0\.6/)).not.toBeInTheDocument();
     await user.click(screen.getByRole("button", { name: "Salvar preferências" }));
     expect(await screen.findByText("Preferências salvas.")).toBeInTheDocument();
     expect(await settings()).toMatchObject({ failurePct: 10, taxPct: 6, includeFixedCosts: true, productiveHoursMonth: 80, multiplyLabor: true, packagingMaterialId: 1 });

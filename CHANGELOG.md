@@ -30,6 +30,7 @@ Formato: `## <versão> — <data>` e itens `- …` em linguagem simples.
 - **Listas do Estoque como as outras**: em Filamentos, Materiais extras e Impressoras, editar e excluir viraram ícones (lápis e lixeira), como em Clientes, Custos e Produtos, e as ações da linha ficam numa linha só.
 - **Chave da IA guardada com mais segurança**: no Windows a chave da Anthropic fica no cofre de senhas do computador (Gerenciador de Credenciais), e não em texto no banco do app; quem já tinha uma chave salva não precisa fazer nada, ela é movida sozinha. No Mac ela continua no banco do app, que agora só o seu usuário consegue abrir e que não entra no backup nem na sincronização (o Keychain do Mac pediria a sua senha a cada atualização, porque o app não tem assinatura paga).
 - Em **Imagem → SVG**, o botão "Extrudar em 3D" virou "Fazer peça 3D" e cabe numa linha só.
+- Em **Preferências**, "Incluir custos fixos no preço" e "Multiplicar também a mão de obra" viraram chaves como as outras opções, cada uma com a explicação na própria linha.
 
 ## 0.10.5 — 2026-10-07
 - **Importar um 3MF fatiado com a configuração danificada avisa**: antes as gramas e o custo saíam sem a purga das trocas de cor e sem a impressora, sem dizer nada; agora aparece o aviso.

@@ -19,6 +19,7 @@ import PhoneSettingsCard from "../phone/PhoneSettingsCard";
 import MoneyField from "../ui/MoneyField";
 import SmartField from "../ui/SmartField";
 import Field from "../ui/Field";
+import Toggle from "../ui/Toggle";
 import { formatMoneyInput, parseMoney } from "../ui/parse";
 import { addKwhHistory, type KwhEntry } from "../domain/energy";
 import { money } from "../domain/format";
@@ -216,17 +217,10 @@ function PreferencesForm({ initial, materials }: { initial: Settings; materials:
               ))}
             </div>
           </details>
-          <label className="check">
-            <input type="checkbox" checked={flags.includeFixedCosts} onChange={(e) => setFlags({ ...flags, includeFixedCosts: e.target.checked })} /> Incluir custos fixos no preço
-          </label>
+          <Toggle label="Incluir custos fixos no preço" hint="Soma ao preço a parte dos custos operacionais (aluguel, internet…) que cabe em cada hora de impressão." checked={flags.includeFixedCosts} onChange={(v) => setFlags({ ...flags, includeFixedCosts: v })} />
           {f("productiveHoursMonth")}
-          <label className="check">
-            <input type="checkbox" checked={flags.multiplyLabor} onChange={(e) => setFlags({ ...flags, multiplyLabor: e.target.checked })} /> Multiplicar também a mão de obra (jeito antigo)
-          </label>
+          <Toggle label="Multiplicar também a mão de obra (jeito antigo)" hint="Desligado, a mão de obra e os custos fixos entram depois do multiplicador: com ×5, uma hora de R$ 30 fica R$ 30 no preço. Ligado, ela é multiplicada junto (R$ 150)." checked={flags.multiplyLabor} onChange={(v) => setFlags({ ...flags, multiplyLabor: v })} />
         </div>
-        <p className="hint group-note">
-          Desde a v0.6 a mão de obra e os custos fixos são somados depois do multiplicador: com ×5, uma hora de R$ 30 virava R$ 150 no preço.
-        </p>
       </section>
 
       <ChannelsCard channels={channels} setChannels={setChannels} error={errors.channels} />
