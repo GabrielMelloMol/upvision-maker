@@ -171,9 +171,9 @@ export default function AskAI({ go }: { go: Go }) {
         <h1>Pedir à IA</h1>
         <p className="lead">Descreva a peça e o Claude modela em 3D.</p>
         <div className="card stack" style={{ maxWidth: 560 }}>
-          <h3>Falta a chave da API</h3>
+          <h3>Falta a chave de acesso da IA</h3>
           <p>
-            Para usar, cadastre uma chave da API da Anthropic em Preferências. O uso é <strong>pago por pedido</strong> (normalmente alguns centavos de dólar), e cada
+            Para usar, cadastre em Preferências a chave de acesso (API) da Anthropic, a empresa do Claude. O uso é <strong>pago por pedido</strong> (normalmente alguns centavos de dólar), e cada
             pedido mostra o custo estimado.
           </p>
           <button className="primary" onClick={() => go("preferences")}>

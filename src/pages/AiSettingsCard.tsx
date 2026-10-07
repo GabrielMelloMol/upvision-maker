@@ -91,7 +91,7 @@ export default function AiSettingsCard() {
             Chave da API {saved && <span className="badge ok"><CircleCheck size={11} /> salva</span>}
           </span>
           <input type="password" autoComplete="off" spellCheck={false} placeholder={saved ? "•••••••• (cole outra para trocar)" : "sk-ant-…"} value={key} onChange={(e) => setKey(e.target.value)} />
-          <span className="hint">Crie dentro de um workspace: console.anthropic.com → Settings → Workspaces → escolha o workspace → API keys → Create key.</span>
+          <span className="hint">Crie a chave no site console.anthropic.com, dentro de um workspace: Settings (Configurações) → Workspaces → escolha o workspace → API keys (chaves de API) → Create key (criar chave).</span>
         </label>
         <label>
           ID do workspace (opcional)
@@ -125,7 +125,7 @@ export default function AiSettingsCard() {
         )}
       </div>
       <p className="hint group-note">
-        A ferramenta <strong>Pedir à IA</strong> usa a API da Anthropic, que é <strong>paga por uso</strong> e cobrada no cartão da conta dona da chave. Cada pedido
+        A ferramenta <strong>Pedir à IA</strong> usa o Claude, da Anthropic, por uma chave de acesso (a "API"), que é <strong>paga por uso</strong> e cobrada no cartão da conta dona da chave. Cada pedido
         mostra os tokens e o custo estimado. A chave fica guardada só neste computador e não entra no backup.
       </p>
       {status && <Alert kind={status.kind}>{status.text}</Alert>}

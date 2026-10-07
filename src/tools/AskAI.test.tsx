@@ -69,6 +69,9 @@ describe("Pedir à IA", () => {
     await user.click(await screen.findByRole("button", { name: "Ir para Preferências" }));
     expect(go).toHaveBeenCalledWith("preferences");
     expect(screen.getByText(/pago por pedido/)).toBeInTheDocument();
+    // sem "API" solta: a chave de acesso é explicada e os passos não ficam só em inglês (UX M1)
+    expect(screen.getByText(/chave de acesso \(API\) da Anthropic, a empresa do Claude/)).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: "Falta a chave de acesso da IA" })).toBeInTheDocument();
   });
 
   test("pedido: mostra explicação, código, tokens e custo; renderiza e permite exportar; ajuste manda o histórico", async () => {

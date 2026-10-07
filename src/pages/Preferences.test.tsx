@@ -19,6 +19,13 @@ const settings = async () => JSON.parse((await t.db.select<{ data: string }>("SE
 beforeEach(() => void testKey.mockClear());
 
 describe("Preferences", () => {
+  test("a manutenção fala em desgaste por hora, sem 'depreciação' (UX M1)", async () => {
+    renderWithApp(<Preferences />);
+    await screen.findByLabelText("Manutenção (%)");
+    expect(screen.getByText("Só vale para impressora sem preço cadastrado; com preço, a calculadora usa o desgaste por hora.")).toBeInTheDocument();
+    expect(screen.queryByText(/depreciação/)).not.toBeInTheDocument();
+  });
+
   test("carrega os padrões, edita custos e canais e salva", async () => {
     const user = userEvent.setup();
     renderWithApp(<Preferences />);
@@ -212,6 +219,13 @@ describe("Preferences", () => {
 });
 
 describe("AiSettingsCard", () => {
+  test("a chave é explicada em português: onde criar (com os nomes do site traduzidos) e o que é a API (UX M1)", async () => {
+    renderWithApp(<AiSettingsCard />);
+    expect(await screen.findByText(/Settings \(Configurações\) → Workspaces → escolha o workspace → API keys \(chaves de API\) → Create key \(criar chave\)/)).toBeInTheDocument();
+    expect(screen.getByText(/chave de acesso \(a "API"\)/)).toBeInTheDocument();
+    expect(screen.queryByText(/usa a API da Anthropic/)).not.toBeInTheDocument();
+  });
+
   test("chave com formato errado é recusada sem gravar", async () => {
     const user = userEvent.setup();
     renderWithApp(<AiSettingsCard />);

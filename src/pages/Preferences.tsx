@@ -32,7 +32,7 @@ type NumField = { key: NumKey; label: string; money?: true; hint?: string };
 const FIELDS: NumField[] = [
   { key: "kwhPrice", label: "Preço do kWh", money: true, hint: "Valor total da conta ÷ kWh consumidos." },
   { key: "laborHourCost", label: "Sua hora de trabalho", money: true, hint: "Use 0 para não cobrar mão de obra." },
-  { key: "maintenancePct", label: "Manutenção (%)", hint: "Só vale para impressora sem preço cadastrado; com preço, a calculadora usa a depreciação por hora." },
+  { key: "maintenancePct", label: "Manutenção (%)", hint: "Só vale para impressora sem preço cadastrado; com preço, a calculadora usa o desgaste por hora." },
   { key: "multResale", label: "Multiplicador para lojista / revenda (×)" },
   { key: "multConsumer", label: "Multiplicador venda direta / consumidor final (×)" },
   { key: "marketplaceMarginPct", label: "Margem padrão em marketplace (%)" },
