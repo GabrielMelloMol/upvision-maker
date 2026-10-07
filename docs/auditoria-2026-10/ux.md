@@ -114,7 +114,7 @@ A pergunta foi: uma vendedora de impressão 3D que acabou de instalar o app cons
 - **Sugestão:** rótulos de uma ou duas palavras ("AMS", "Pausas", "Por cor", "1 cor") com a explicação na dica embaixo, como já foi feito com "Teste" no Organizador. Ou trocar para um select quando houver mais de 3 opções longas.
 - **Feito:** os seletores (`.seg`) não quebram mais o texto (largura pelo conteúdo, e quebra de botão inteiro se não couber) e "Como vai imprimir" virou Multicor | Com pausas | Mesa por cor | 1 cor. **Ficou:** as legendas das variantes de modelo embaixo das miniaturas ("No contorno do desenho", "Redonda e formatos") continuam em 2 a 3 linhas; são nomes do catálogo, não seletores.
 
-**M5 · Modelos prontos que dependem de desenho abrem vazios**
+**✅ M5 · Modelos prontos que dependem de desenho abrem vazios**
 - Print: [Medalha adaptável](ux/08-modelo-vazio.jpg)
 - **O que acontece:** a miniatura mostra a peça pronta, mas Medalha adaptável, Chaveiro de logo e Cortador + carimbo abrem com o 3D em "Envie um desenho (SVG ou imagem) para ver o modelo", e o campo de enviar fica abaixo da dobra. Parece que não funcionou.
 - **Sugestão:** abrir com uma arte de exemplo (a mesma da miniatura) e o aviso "Troque pela sua arte"; o envio fica logo abaixo do nome do modelo.

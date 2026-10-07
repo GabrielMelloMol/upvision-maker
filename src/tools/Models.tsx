@@ -9,6 +9,7 @@ import { arcTextToCrossSection, hasEmoji, textToCrossSection } from "../geometry
 import { checkText, textWarnings } from "../geometry/textCheck";
 import FontPicker from "../ui/FontPicker";
 import Alert from "../ui/Alert";
+import { exampleFile } from "../help/helpStore";
 import Dropzone from "../ui/Dropzone";
 import ExportButtons from "../ui/ExportButtons";
 import Field from "../ui/Field";
@@ -299,6 +300,11 @@ export default function Models() {
                 <>
                   <Dropzone accept={DESIGN_ACCEPT} label={art ? art.name : def.art} hint="SVG ou imagem (vira vetor sozinha)." onFile={onArt} />
                   {artError && <Alert kind="error">{artError}</Alert>}
+                  {!art && (
+                    <button type="button" className="link" onClick={() => void exampleFile("heart").then(onArt)}>
+                      Usar um desenho de exemplo
+                    </button>
+                  )}
                   {art && (
                     <button className="link danger" onClick={() => setArt(null)}>
                       Remover desenho

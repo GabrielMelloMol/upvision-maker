@@ -1,5 +1,5 @@
 // @vitest-environment happy-dom
-import { screen, within } from "@testing-library/react";
+import { screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
@@ -15,7 +15,9 @@ setupTauri();
 
 // fontes: o app busca a URL do bundle; aqui lê o arquivo do node_modules
 beforeAll(() => {
+  const realFetch = globalThis.fetch;
   vi.stubGlobal("fetch", async (u: string) => {
+    if (u.startsWith("data:")) return realFetch(u); // o desenho de exemplo vem embutido no bundle
     const b = readFileSync(resolve(__dirname, "../..", `.${u}`));
     return { arrayBuffer: async () => b.buffer.slice(b.byteOffset, b.byteOffset + b.byteLength) };
   });
@@ -88,6 +90,11 @@ describe("Modelos prontos", () => {
     await user.click(families().getByRole("button", { name: "Placa" }));
     await user.click(variations().getByRole("button", { name: "No contorno do desenho" }));
     expect(await screen.findByText(/Envie um desenho/, undefined, BUILD)).toBeInTheDocument();
+    // sem arte, dá para ver o modelo com um desenho de exemplo (UX M5)
+    await user.click(screen.getByRole("button", { name: "Usar um desenho de exemplo" }));
+    expect(await screen.findByRole("button", { name: "Remover desenho" }, BUILD)).toBeInTheDocument();
+    await waitFor(() => expect(screen.queryByText(/Envie um desenho/)).not.toBeInTheDocument(), BUILD);
+    expect(screen.queryByRole("button", { name: "Usar um desenho de exemplo" })).not.toBeInTheDocument();
   }, 30_000);
 
   test("ocasião filtra por todas as categorias e desmarca a categoria; clicar de novo volta", async () => {
