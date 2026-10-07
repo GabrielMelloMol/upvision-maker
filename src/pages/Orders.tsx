@@ -1,6 +1,7 @@
 import { CalendarClock, ClipboardList, Plus } from "lucide-react";
 import { useState } from "react";
 import { money } from "../domain/format";
+import { addDays } from "../domain/quotes";
 import { isLate, orderTotals, STATUS_LABEL, STATUSES, todayIso, type Order, type OrderStatus } from "../domain/orders";
 import Button from "../ui/Button";
 import EmptyState from "../ui/EmptyState";
@@ -19,6 +20,8 @@ const NEXT: Partial<Record<OrderStatus, [OrderStatus, string]>> = {
   production: ["done", "Concluir"],
   done: ["delivered", "Marcar entregue"],
 };
+/** Entregues mais antigos que isto saem do quadro (continuam na Lista): a coluna não cresce para sempre (UX M10). */
+const RECENT_DELIVERED_DAYS = 30;
 const dateBr = (iso: string | null) => (iso ? iso.split("-").reverse().slice(0, 2).join("/") : "sem prazo");
 
 export default function Orders() {
@@ -43,6 +46,7 @@ export default function Orders() {
     reload();
   }
 
+  const recentCut = addDays(today, -RECENT_DELIVERED_DAYS);
   const byDue = (a: Order, b: Order) => (a.dueDate ?? "9999").localeCompare(b.dueDate ?? "9999") || a.id - b.id;
   const q = query.trim().toLowerCase();
   const filtered = data.orders.filter((o) => (!status || o.status === status) && (!q || `#${o.id} ${o.customerName} ${o.items.map((i) => i.description).join(" ")}`.toLowerCase().includes(q)));
@@ -62,15 +66,15 @@ export default function Orders() {
           <span className="muted small">#{o.id}</span> <b>{o.customerName}</b>
           <span className="small">{o.items.map((i) => `${i.qty}× ${i.description}`).join(", ")}</span>
           <span className="order-meta">
-            <span className={late ? "badge" : "muted small"}>
-              <CalendarClock size={12} aria-hidden /> {late ? "atrasado · " : ""}
+            <span className={late ? "badge nowrap" : "muted small"}>
+              <CalendarClock size={12} aria-hidden /> {late ? (o.status === "done" ? "entregar até " : "atrasado ") : ""}
               {dateBr(o.dueDate)}
             </span>
             <b>{money(orderTotals(o.items, o.freight).total)}</b>
           </span>
         </button>
         {next && (
-          <Button size="sm" variant="ghost" onClick={() => move(o, next[0])}>
+          <Button size="sm" variant="ghost" className="order-next" onClick={() => move(o, next[0])}>
             {next[1]} →
           </Button>
         )}
@@ -110,7 +114,8 @@ export default function Orders() {
       ) : view === "board" ? (
         <div className="board" aria-label="Quadro de pedidos">
           {BOARD.map((s) => {
-            const col = data.orders.filter((o) => o.status === s).sort(byDue);
+            const all = data.orders.filter((o) => o.status === s);
+            const col = (s === "delivered" ? all.filter((o) => !o.deliveredAt || o.deliveredAt >= recentCut) : all).sort(byDue);
             return (
               <section
                 key={s}
@@ -126,6 +131,17 @@ export default function Orders() {
                   {STATUS_LABEL[s]} <span className="muted small">{col.length}</span>
                 </h2>
                 {col.map(card)}
+                {col.length < all.length && (
+                  <button
+                    className="link"
+                    onClick={() => {
+                      setStatus("delivered");
+                      setView("list");
+                    }}
+                  >
+                    Ver todos os entregues ({all.length})
+                  </button>
+                )}
               </section>
             );
           })}

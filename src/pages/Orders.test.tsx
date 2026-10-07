@@ -443,6 +443,39 @@ describe("Pedidos: editar, detalhe e lista", () => {
     await waitFor(() => expect(screen.queryByRole("dialog", { name: "Pedido #1" })).not.toBeInTheDocument());
   });
 
+  test("UX M10: coluna Entregue mostra só os últimos 30 dias, com 'Ver todos' para a Lista", async () => {
+    seed();
+    const old = insertOrder({ name: "Antiga", status: "delivered" });
+    const recent = insertOrder({ name: "Recente", status: "delivered" });
+    t.raw.exec(`UPDATE orders SET deliveredAt = '2025-01-10' WHERE id = ${old}`);
+    t.raw.exec(`UPDATE orders SET deliveredAt = '${new Date().toISOString().slice(0, 10)}' WHERE id = ${recent}`);
+    const user = userEvent.setup();
+    renderWithApp(<Orders />);
+    expect(await screen.findByRole("button", { name: /Abrir pedido #2 de Recente/ })).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: /Abrir pedido #1 de Antiga/ })).not.toBeInTheDocument();
+    const col = screen.getByRole("region", { name: "Entregue" });
+    expect(within(col).getByRole("heading")).toHaveTextContent("1"); // só os recentes na contagem
+    await user.click(within(col).getByRole("button", { name: "Ver todos os entregues (2)" }));
+    expect(await screen.findByRole("row", { name: /Antiga/ })).toBeInTheDocument(); // a Lista, filtrada em Entregue
+    expect(screen.getByLabelText("Status")).toHaveValue("delivered");
+  });
+
+  test("UX M10: selo do prazo numa linha só; pedido Concluído com prazo vencido diz 'entregar até'; o botão de avançar tem a própria classe", async () => {
+    seed();
+    insertOrder({ name: "Bia", status: "pending", due: "2026-01-01" });
+    insertOrder({ name: "Caio", status: "done", due: "2026-01-01" });
+    insertOrder({ name: "Dani", status: "delivered", due: "2026-01-01" });
+    t.raw.exec(`UPDATE orders SET deliveredAt = '${new Date().toISOString().slice(0, 10)}' WHERE id = 3`);
+    renderWithApp(<Orders />);
+    expect(await screen.findByRole("button", { name: /Abrir pedido #1 de Bia/ })).toHaveTextContent("atrasado 01/01");
+    expect(screen.getByRole("button", { name: /Abrir pedido #2 de Caio/ })).toHaveTextContent("entregar até 01/01");
+    expect(screen.getByRole("button", { name: /Abrir pedido #2 de Caio/ })).not.toHaveTextContent("atrasado");
+    // sem botão de avançar na coluna Entregue, o botão do cartão não pode herdar o estilo dele (nome azul)
+    const delivered = screen.getByRole("button", { name: /Abrir pedido #3 de Dani/ }).closest("article")!;
+    expect(delivered.querySelector(".order-next")).toBeNull();
+    expect(screen.getByRole("button", { name: /Abrir pedido #1 de Bia/ }).closest("article")!.querySelector(".order-next")).not.toBeNull();
+  });
+
   test("lista: atrasados, filtro por status, busca por cliente/produto/#número e filtro vazio", async () => {
     insertOrder({ name: "Bia", due: "2020-01-01", productId: null });
     insertOrder({ name: "Caio", status: "delivered", due: "2020-01-01", productId: null, qty: 1 });

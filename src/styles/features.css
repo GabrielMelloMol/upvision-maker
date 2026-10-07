@@ -76,7 +76,8 @@ table.totals tr:last-child th { font-size: var(--text-lg); }
 .order-card .order-open:focus-visible { outline: 3px solid var(--focus-ring); outline-offset: 1px; }
 .order-card .order-open b { font-weight: 600; }
 .order-card .order-open .small { color: var(--muted); line-height: 1.35; }
-.order-card > button:last-child { justify-self: end; margin: 0 8px 8px; color: var(--accent-text); }
+.order-card > .order-next { justify-self: end; margin: 0 8px 8px; color: var(--accent-text); }
+.order-card .badge.nowrap { white-space: nowrap; }
 .order-meta { display: flex; justify-content: space-between; align-items: center; gap: 6px; margin-top: 2px; }
 .order-meta > b { font-variant-numeric: tabular-nums; }
 .order-meta svg { vertical-align: -1px; }

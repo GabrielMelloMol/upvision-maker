@@ -137,7 +137,7 @@ A pergunta foi: uma vendedora de impressão 3D que acabou de instalar o app cons
 - **O que acontece:** custos, preço, falhas e impostos, 3 canais com 4 campos cada, aparência, backup, sincronização, celular, IA, mesa, AMS e fatiador, tudo numa página de ~4.100 px.
 - **Sugestão:** "Essencial" aberto (kWh, hora de trabalho, multiplicadores, margem mínima) e o resto em seções recolhidas ou em telas próprias de Ajustes (Canais, Seus dados, Ferramentas), como já existem "Fazer backup" e "Restaurar backup".
 
-**M10 · Pedidos (Quadro) · a coluna "Entregue" cresce sem fim**
+**✅ M10 · Pedidos (Quadro) · a coluna "Entregue" cresce sem fim**
 - Print: [Quadro](ux/16-pedidos-quadro.jpg)
 - **O que acontece:** todos os pedidos entregues de sempre ficam na 4ª coluna. Só nela os nomes aparecem em azul (link), enquanto nas outras ficam em preto. O selo "atrasado · 20/09" quebra em 2 linhas no cartão. Um pedido já "Concluído" (pronto, esperando entrega) também aparece como atrasado.
 - **Sugestão:** "Entregue" mostrar só os últimos 7 ou 30 dias, com "ver todos" indo para a Lista. Nome com a mesma cor em todas as colunas. Selo numa linha só ("atrasado 20/09"). Em Concluído, o selo ser "entregar até…" em vez de atrasado.
