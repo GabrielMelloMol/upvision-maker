@@ -28,18 +28,36 @@ function crud<S extends z.ZodObject>(table: string, schema: S) {
   };
 }
 
+const SWAP_TRIES = 5;
+
+/**
+ * Lê o estoque, calcula o novo e grava só se o estoque continua o mesmo que foi lido (B7): se um pedido baixou no
+ * meio (pelo Rust, em outra conexão), refaz a conta em cima do valor novo em vez de gravar por cima dele.
+ * `compute` devolve as colunas a gravar; `stock` é a coluna de estoque (a comparação).
+ */
+async function swapStock<R extends Record<string, number>>(db: Db, table: string, stock: string, id: number, read: string, notFound: string, compute: (row: R) => Record<string, number>): Promise<{ row: R; wrote: Record<string, number> }> {
+  for (let i = 0; i < SWAP_TRIES; i++) {
+    const [row] = await db.select<R>(`SELECT ${read} FROM ${table} WHERE id = ?`, [id]);
+    if (!row) throw new Error(notFound);
+    const wrote = compute(row);
+    const r = await db.execute(`UPDATE ${table} SET ${Object.keys(wrote).map((c) => `${c} = ?`).join(", ")} WHERE id = ? AND ${stock} = ?`, [...Object.values(wrote), id, row[stock]]);
+    if (r.rowsAffected > 0) return { row, wrote };
+  }
+  throw new Error("O estoque estava sendo alterado ao mesmo tempo. Tente de novo.");
+}
+
 /** CRUD + reposição com custo médio ponderado. */
 function stockCrud<S extends z.ZodObject>(table: string, schema: S, stockCol: string, priceCol: string) {
   return {
     ...crud(table, schema),
     async restock(db: Db, id: number, addQty: number, addPrice: number) {
       if (!(addQty > 0) || !(addPrice >= 0)) throw new Error("Quantidade deve ser maior que zero e preço não pode ser negativo.");
-      const [row] = await db.select<Record<string, number>>(`SELECT ${stockCol} AS s, ${priceCol} AS p FROM ${table} WHERE id = ?`, [id]);
-      if (!row) throw new Error("Item não encontrado.");
-      const price = weightedAverage(row.s, row.p, addQty, addPrice);
       // M11: o saldo negativo é dívida com o estoque (um pedido já consumiu): a reposição o cobre, não o apaga.
       // Só o custo médio ignora o negativo (weightedAverage).
-      await db.execute(`UPDATE ${table} SET ${priceCol} = ?, ${stockCol} = ? WHERE id = ?`, [price, row.s + addQty, id]);
+      await swapStock<Record<string, number>>(db, table, stockCol, id, `${stockCol}, ${priceCol}`, "Item não encontrado.", (row) => ({
+        [priceCol]: weightedAverage(row[stockCol], row[priceCol], addQty, addPrice),
+        [stockCol]: row[stockCol] + addQty,
+      }));
     },
   };
 }
@@ -47,21 +65,13 @@ function stockCrud<S extends z.ZodObject>(table: string, schema: S, stockCol: st
 export const printers = crud("printers", PrinterInput);
 const round2g = (n: number) => Math.round(n * 100) / 100;
 
-async function filamentStock(db: Db, id: number): Promise<{ stockG: number; spoolG: number }> {
-  const [row] = await db.select<{ stockG: number; spoolG: number }>("SELECT stockG, spoolG FROM filaments WHERE id = ?", [id]);
-  if (!row) throw new Error("Filamento não encontrado.");
-  return row;
-}
-
 export const filaments = {
   ...stockCrud("filaments", FilamentInput, "stockG", "pricePerKg"),
   /** Baixa manual de gramas (ex.: leu o QR do rolo). Pode deixar o estoque negativo, como o consumo dos pedidos. Devolve o estoque novo. */
   async consume(db: Db, id: number, grams: number): Promise<number> {
     if (!Number.isFinite(grams) || grams <= 0) throw new Error("A quantidade precisa ser maior que zero.");
-    const { stockG } = await filamentStock(db, id);
-    const next = round2g(stockG - grams);
-    await db.execute("UPDATE filaments SET stockG = ? WHERE id = ?", [next, id]);
-    return next;
+    const { wrote } = await swapStock<{ stockG: number }>(db, "filaments", "stockG", id, "stockG", "Filamento não encontrado.", ({ stockG }) => ({ stockG: round2g(stockG - grams) }));
+    return wrote.stockG;
   },
   /**
    * "Rolo acabou": tira o que ainda constava do rolo aberto. O cadastro é por tipo (não por rolo), então o rolo aberto
@@ -69,11 +79,11 @@ export const filaments = {
    * ponytail: sem tabela de rolos; se ela passar a pesar rolos individuais, criar `spools` com o peso de cada um.
    */
   async finishSpool(db: Db, id: number): Promise<number> {
-    const { stockG, spoolG } = await filamentStock(db, id);
-    const rest = round2g(stockG % spoolG);
-    const next = stockG <= 0 ? 0 : Math.max(0, round2g(stockG - (rest > 0 ? rest : spoolG)));
-    await db.execute("UPDATE filaments SET stockG = ? WHERE id = ?", [next, id]);
-    return next;
+    const { wrote } = await swapStock<{ stockG: number; spoolG: number }>(db, "filaments", "stockG", id, "stockG, spoolG", "Filamento não encontrado.", ({ stockG, spoolG }) => {
+      const rest = round2g(stockG % spoolG);
+      return { stockG: stockG <= 0 ? 0 : Math.max(0, round2g(stockG - (rest > 0 ? rest : spoolG))) };
+    });
+    return wrote.stockG;
   },
 };
 export const materials = stockCrud("materials", MaterialInput, "stock", "unitPrice");

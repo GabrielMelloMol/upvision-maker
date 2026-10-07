@@ -334,7 +334,7 @@ Só análise: nenhum código foi alterado e nenhuma issue foi criada. Base: `ori
 - **Como reproduzir:** grave por cima do backup anterior num pendrive e fique sem espaço no meio. O backup antigo se perde e o novo fica cortado.
 - **Correção sugerida:** gravar por comando Rust com `write_atomic`.
 
-### B7. Baixa manual e "Rolo acabou" podem perder uma baixa simultânea
+### B7. Baixa manual e "Rolo acabou" podem perder uma baixa simultânea — ✅ CORRIGIDO (Forja)
 - **Onde:** `src/db/repo.ts:57-60` (`consume`), `:69-72` (`finishSpool`) e `:36-39` (`restock`), que leem, calculam e gravam em JS.
 - **Como reproduzir:** o celular pede −50 g (lê 1000) e, nesse intervalo, um pedido grava 900 pelo Rust. `consume` grava 950 em vez de 850.
 - **Correção sugerida:** `UPDATE … SET stockG = ROUND(stockG - ?, 2)` ou passar pelo `apply_stock`.

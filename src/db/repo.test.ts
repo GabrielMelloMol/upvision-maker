@@ -115,3 +115,35 @@ describe("preferências com um campo inválido (A3)", () => {
   });
 });
 
+describe("B7: baixa manual e reposição não perdem uma baixa simultânea", () => {
+  /** Db que, logo depois da 1ª leitura do estoque, deixa "um pedido" mexer no estoque (como o Rust faz no apply_stock). */
+  const racing = (concurrent: string): Db => {
+    let fired = false;
+    return {
+      ...db,
+      select: async <T>(sql: string, p?: unknown[]) => {
+        const rows = await db.select<T>(sql, p);
+        if (!fired && /FROM filaments/.test(sql)) {
+          fired = true;
+          await db.execute(concurrent);
+        }
+        return rows;
+      },
+    };
+  };
+
+  test("baixa manual: um pedido grava 900 g de baixa entre a leitura e a gravação; a baixa de 50 g vale em cima disso", async () => {
+    const id = await filaments.insert(db, { ...pla, stockG: 1000 });
+    const next = await filaments.consume(racing(`UPDATE filaments SET stockG = 100 WHERE id = ${id}`), id, 50);
+    expect(next).toBe(50); // antes: 950, a baixa do pedido sumia
+    expect((await filaments.list(db))[0].stockG).toBe(50);
+  });
+
+  test("'Rolo acabou' e reposição também refazem a conta em cima do estoque que mudou", async () => {
+    const id = await filaments.insert(db, { ...pla, stockG: 2000 });
+    expect(await filaments.finishSpool(racing(`UPDATE filaments SET stockG = 1500 WHERE id = ${id}`), id)).toBe(1000); // 1500: o aberto tinha 500
+    const id2 = await filaments.insert(db, { ...pla, stockG: 1000 });
+    await filaments.restock(racing(`UPDATE filaments SET stockG = 400 WHERE id = ${id2}`), id2, 600, 80);
+    expect((await filaments.list(db)).find((f) => f.id === id2)!.stockG).toBe(1000); // 400 + 600
+  });
+});
