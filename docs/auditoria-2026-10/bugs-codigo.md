@@ -431,7 +431,7 @@ Só análise: nenhum código foi alterado e nenhuma issue foi criada. Base: `ori
 - **Como reproduzir:** abra mais de 32 POSTs para `/api/pair` e mande o corpo byte a byte. Os celulares de verdade recebem 503, porque não há timeout de leitura.
 - **Correção sugerida:** timeout de leitura de alguns segundos.
 
-### B26. A chave da Anthropic fica em texto puro no SQLite
+### B26. A chave da Anthropic fica em texto puro no SQLite — ✅ CORRIGIDO (Lupa)
 - **Onde:** `src/ai/aiSettings.ts:5-19`, `src/db/repo.ts:94-103`, `src/db/migrations.ts:24` (`secrets`).
 - **Como reproduzir:** abra `upvision.db` com um leitor de SQLite. A chave **não** vai para o backup nem para a sync e é mascarada no log, mas qualquer programa rodando como o mesmo usuário a lê.
 - **Correção sugerida:** Keychain/Credential Manager (crate `keyring` num comando Rust).

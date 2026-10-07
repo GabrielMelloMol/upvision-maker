@@ -216,6 +216,7 @@ describe("AiSettingsCard", () => {
     await user.type(screen.getByLabelText(/Chave da API/), "abc");
     await user.click(screen.getByRole("button", { name: "Salvar" }));
     expect(screen.getByRole("alert")).toHaveTextContent("Isso não parece uma chave da Anthropic");
+    expect(t.keychain.has("anthropic_api_key")).toBe(false);
     expect(await secret("anthropic_api_key")).toBeUndefined();
   });
 
@@ -227,13 +228,15 @@ describe("AiSettingsCard", () => {
     await user.click(screen.getByRole("button", { name: "Salvar" }));
 
     expect(await screen.findByText("Preferências de IA salvas neste computador.")).toBeInTheDocument();
-    expect(await secret("anthropic_api_key")).toBe(KEY);
+    expect(t.keychain.get("anthropic_api_key")).toBe(KEY); // no cofre de senhas do sistema (B26)
+    expect(await secret("anthropic_api_key")).toBeUndefined(); // e não no banco
     expect(await secret("ai_model")).toBe("claude-haiku-4-5");
     expect(screen.getByText("salva")).toBeInTheDocument();
     expect(screen.getByLabelText(/Chave da API/)).toHaveValue("");
 
     await user.click(screen.getByRole("button", { name: "Remover chave" }));
     expect(await screen.findByText("Chave removida deste computador.")).toBeInTheDocument();
+    expect(t.keychain.has("anthropic_api_key")).toBe(false);
     expect(await secret("anthropic_api_key")).toBeUndefined();
     expect(screen.queryByRole("button", { name: "Remover chave" })).not.toBeInTheDocument();
   });
@@ -249,7 +252,7 @@ describe("AiSettingsCard", () => {
     await user.type(id, "claude-novo");
     await user.click(screen.getByRole("button", { name: "Salvar" }));
     await waitFor(async () => expect(await secret("ai_model")).toBe("claude-novo"));
-    expect(await secret("anthropic_api_key")).toBe(KEY);
+    expect(t.keychain.get("anthropic_api_key")).toBe(KEY); // a chave antiga do banco foi para o cofre e a troca de modelo não a perdeu
   });
 
   test("testar sem chave pede para colar; com chave mostra o modelo", async () => {

@@ -40,6 +40,8 @@ export type TauriState = {
   autoBackups: Map<string, Map<string, string>>;
   /** Resposta da API pública de releases do GitHub (fetch é interceptado; nada vai para a rede). null = sem internet. */
   releases: unknown[] | null;
+  /** Cofre de senhas do sistema (Keychain / Credential Manager): nome → valor. Fica fora do banco e do backup. */
+  keychain: Map<string, string>;
   /** Respostas extras por comando (ex.: comandos Rust novos). */
   handlers: Record<string, (args: Record<string, unknown>, headers?: Record<string, string>) => unknown>;
   /**
@@ -66,6 +68,14 @@ function handle(t: TauriState, cmd: string, a: unknown, headers?: Record<string,
       const r = t.raw.prepare(String(args.query)).run(...params);
       return [Number(r.changes), Number(r.lastInsertRowid)];
     }
+    case "secret_get":
+      return t.keychain.get(String(args.name)) ?? null;
+    case "secret_set":
+      t.keychain.set(String(args.name), String(args.value));
+      return null;
+    case "secret_delete":
+      t.keychain.delete(String(args.name));
+      return null;
     case "sql_batch":
       runBatch(t.raw, args.statements as Stmt[]);
       return null;
@@ -182,13 +192,14 @@ function handle(t: TauriState, cmd: string, a: unknown, headers?: Record<string,
 
 /** Instala o mock do Tauri e um banco novo antes de cada teste do arquivo. */
 export function setupTauri(): TauriState {
-  const t = { files: new Map(), log: [], autoBackups: new Map(), savePath: null, openPath: null, askAnswer: true, calls: [], handlers: {}, fsScope: false, granted: { files: new Set(), dirs: new Set() }, windowStyle: { effect: "none", overlayTitlebar: false } } as unknown as TauriState;
+  const t = { files: new Map(), log: [], autoBackups: new Map(), keychain: new Map(), savePath: null, openPath: null, askAnswer: true, calls: [], handlers: {}, fsScope: false, granted: { files: new Set(), dirs: new Set() }, windowStyle: { effect: "none", overlayTitlebar: false } } as unknown as TauriState;
   beforeEach(async () => {
     t.raw = new DatabaseSync(":memory:");
     t.db = nodeDb(t.raw);
     await migrate(t.db);
     t.files.clear();
     t.autoBackups.clear();
+    t.keychain.clear();
     t.log.length = 0;
     t.calls.length = 0;
     t.savePath = null;

@@ -3,6 +3,7 @@ use tauri::{Emitter, Manager, RunEvent};
 mod backup;
 mod diagnostics;
 mod ipc;
+mod keychain;
 mod lan;
 mod reveal;
 mod bambu;
@@ -35,6 +36,9 @@ pub fn run() {
             vibrancy::window_style,
             reveal::reveal_window,
             stock::apply_stock,
+            keychain::secret_get,
+            keychain::secret_set,
+            keychain::secret_delete,
             sqlbatch::sql_batch,
             backup::backup_default_dir,
             backup::backup_write,

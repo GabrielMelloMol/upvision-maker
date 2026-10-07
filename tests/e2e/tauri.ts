@@ -40,6 +40,8 @@ export type TauriMock = {
   /** Fatiadores "instalados" (slicer.rs, #160) e o que o app mandou abrir neles. */
   slicers: { id: string; name: string; path: string }[];
   slicerOpened: { name: string; slicer: string; model: Buffer }[];
+  /** Cofre de senhas do sistema (a chave da IA, B26): fora do banco e do backup. */
+  keychain: Map<string, string>;
 };
 
 const INIT = () => {
@@ -215,6 +217,14 @@ function handler(m: TauriMock, cmd: string, a: Record<string, unknown> | null, h
     case "sync_remove":
       m.autoBackups.get(String(args.dir ?? ""))?.delete(args.kind === "lock" ? "upvision-sync.lock" : "upvision-sync.json");
       return null;
+    case "secret_get":
+      return m.keychain.get(String(args.name)) ?? null;
+    case "secret_set":
+      m.keychain.set(String(args.name), String(args.value));
+      return null;
+    case "secret_delete":
+      m.keychain.delete(String(args.name));
+      return null;
     case "slicers_installed":
       return m.slicers;
     case "open_in_slicer": {
@@ -257,7 +267,7 @@ function handler(m: TauriMock, cmd: string, a: Record<string, unknown> | null, h
 
 /** Instala o mock do IPC numa página (o fixture `tauri` faz isso sozinho; o teste de desempenho usa em páginas próprias). */
 export async function installTauriMock(page: Page): Promise<TauriMock> {
-  const m: TauriMock = { db: new DatabaseSync(":memory:"), files: new Map(), nextOpen: null, savePath: null, askAnswer: true, calls: [], opened: [], log: [], update: null, releases: [], autoBackups: new Map(), lan: { running: false, url: "", code: "", phones: 0, locked: false }, windowStyle: { effect: "none", overlayTitlebar: false }, slicers: [], slicerOpened: [] };
+  const m: TauriMock = { db: new DatabaseSync(":memory:"), files: new Map(), nextOpen: null, savePath: null, askAnswer: true, calls: [], opened: [], log: [], update: null, releases: [], autoBackups: new Map(), lan: { running: false, url: "", code: "", phones: 0, locked: false }, windowStyle: { effect: "none", overlayTitlebar: false }, slicers: [], slicerOpened: [], keychain: new Map() };
   await page.exposeFunction("__tauriInvoke", (cmd: string, a: Record<string, unknown> | null, h: Record<string, string> | null) => {
     m.calls.push(cmd);
     try {
