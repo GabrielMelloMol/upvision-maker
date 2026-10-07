@@ -17,6 +17,7 @@ Formato: `## <versão> — <data>` e itens `- …` em linguagem simples.
 - **Fechar o app com segurança**: ao sair pelo Cmd+Q (Mac) ou ao instalar uma atualização, o app agora também envia os dados para o outro computador e faz o backup (antes só acontecia ao fechar a janela). A sincronização vai primeiro e ganha mais tempo, para o outro computador não ficar vendo "em uso". Se o backup automático falhar, uma faixa mostra o motivo logo na próxima abertura, sem esperar 7 dias.
 - **Restaurar backup leve (sem fotos)**: fotos de produtos, projetos ou impressões que o backup não tem deixam de ficar para trás e grudar no próximo cadastro.
 - **Cópia de segurança antes de restaurar aparece em "Backups guardados"**: ao restaurar um backup (ou receber dados do outro computador), a cópia dos dados de antes fica na mesma lista, pronta para restaurar, e o app guarda só as 5 mais novas. "Salvar backup" no menu também passou a gravar o arquivo por inteiro ou não mexer nele: uma queda no meio não corta mais o backup anterior.
+- **Boas-vindas sem beco sem saída**: no passo da impressora e do filamento, "Continuar" com os campos em branco segue em frente (dá para cadastrar depois em Impressoras e Filamentos). Ficaram só duas saídas: "Continuar" e "Agora não".
 
 ## 0.10.4 — 2026-10-05
 - **Dois computadores em versões diferentes não apagam mais dados**: se um estiver com o app desatualizado, nada é trocado entre eles e aparece um aviso dizendo qual computador precisa atualizar. Antes, o computador antigo podia apagar a ficha de impressão, os projetos e as fotos do mais novo.

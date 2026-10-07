@@ -48,7 +48,7 @@ A pergunta foi: uma vendedora de impressão 3D que acabou de instalar o app cons
 
 ### Crítica
 
-**C1 · Calculadora → Produtos · "Salvar como produto" perde o cálculo quando o filamento não está cadastrado**
+**✅ C1 · Calculadora → Produtos · "Salvar como produto" perde o cálculo quando o filamento não está cadastrado**
 - Print: [preenchida](ux/03-calc-preenchida.jpg) · [folha do produto](ux/02-calc-folha-produto.jpg) · [produto salvo](ux/01-calc-produto-r0.jpg)
 - **O que acontece:** na Calculadora (modo Rápido) o select "Cadastrado" vem em "Digitar preço". Ela digita R$ 120/kg, 12 g e 1h30 e vê custo de R$ 1,52 e venda direta de R$ 7,58. Ao clicar "Salvar como produto", a folha abre com "Filamentos (mesa inteira): Nada cadastrado ainda" e custo R$ 0,00. Salvando, o produto entra na lista com **custo R$ 0,00 e preço R$ 0,00**. O único aviso é o toast "1 linha(s) sem item cadastrado ficaram de fora do produto", e o tempo e a impressora também não vão junto.
 - **Por que é crítico:** é o caminho que a tela de Produtos manda seguir ("Dica: na Calculadora, use Salvar como produto"). Os pedidos e o Financeiro com esse produto ficam com custo e lucro errados sem ela perceber.
@@ -56,7 +56,7 @@ A pergunta foi: uma vendedora de impressão 3D que acabou de instalar o app cons
 
 ### Alta
 
-**A1 · Boas-vindas (primeiro uso) · o passo 2 trava quem não sabe a potência; três saídas ambíguas**
+**✅ A1 · Boas-vindas (primeiro uso) · o passo 2 trava quem não sabe a potência; três saídas ambíguas**
 - Print: [passo 2](ux/04-boasvindas-passo2.jpg)
 - **O que acontece:** o passo 2 de 3 ("Sua impressora") exige nome e potência. Com os campos vazios, "Continuar" só pinta os dois de vermelho ("Obrigatório", "Digite um número"), e repeti 6 vezes. Para seguir, é preciso entender que "Pular" pula o passo, "Agora não" fecha a apresentação e o X também fecha.
 - **Sugestão:** deixar "Continuar" passar com os campos vazios, usando a potência do catálogo e avisando "dá para cadastrar depois em Impressoras". Ou pôr "Não sei" ao lado do catálogo, abrindo a busca por modelo. Deixar só duas saídas: "Continuar" e "Fazer depois".

@@ -35,7 +35,7 @@ const STEPS: Step[] = [
   {
     icon: Printer,
     title: "Sua impressora",
-    text: "A potência média entra no custo de energia de cada impressão.",
+    text: "A potência média entra no custo de energia de cada impressão. Não sabe agora? Deixe em branco e continue: dá para cadastrar depois em Impressoras.",
     fields: [
       { key: "name", label: "Nome", kind: "text", hint: "Ex.: Bambu Lab A1" },
       { key: "watts", label: "Potência média (W)", kind: "number", hint: "Média imprimindo PLA. Não sabe? Escolha do catálogo." },
@@ -44,7 +44,7 @@ const STEPS: Step[] = [
   {
     icon: Cylinder,
     title: "Seu primeiro filamento",
-    text: "O estoque avisa quando estiver acabando e o preço entra na calculadora.",
+    text: "O estoque avisa quando estiver acabando e o preço entra na calculadora. Pode deixar em branco e cadastrar depois em Filamentos.",
     fields: [
       { key: "material", label: "Material", kind: "select", options: MATERIAL_TYPES },
       { key: "color", label: "Cor", kind: "color" },
@@ -56,6 +56,9 @@ const STEPS: Step[] = [
 
 const DEFAULTS: Record<string, string> = { kwhPrice: "0,90", laborHourCost: "0", name: "", watts: "", material: "PLA", color: "", pricePerKg: "", stockG: "1 rolo" };
 
+/** Passo da impressora ou do filamento sem nada digitado: "Continuar" segue sem gravar (UX A1). */
+const isBlank = (step: number, v: Record<string, string>) => (step === 1 ? !v.name?.trim() && !v.watts?.trim() : step === 2 ? !v.pricePerKg?.trim() && !v.color?.trim() : false);
+
 async function saveStep(step: number, v: Record<string, string>) {
   const db = await getDb();
   const n = (k: string) => parseDecimal(v[k] ?? "");
@@ -65,7 +68,7 @@ async function saveStep(step: number, v: Record<string, string>) {
   return filaments.insert(db, { material: v.material, color: v.color, brand: "", pricePerKg: m("pricePerKg"), spoolG: 1000, stockG: parseMass(v.stockG ?? "", 1000), minG: 200 });
 }
 
-/** Apresentação de primeiro uso em 3 passos; cada passo pode ser pulado. */
+/** Apresentação de primeiro uso em 3 passos: "Continuar" com o passo em branco segue sem gravar; "Agora não" fecha. */
 export default function Onboarding({ onClose }: { onClose: () => void }) {
   const [step, setStep] = useState(0);
   const [values, setValues] = useState(DEFAULTS);
@@ -85,6 +88,7 @@ export default function Onboarding({ onClose }: { onClose: () => void }) {
 
   async function submit(e: FormEvent) {
     e.preventDefault();
+    if (isBlank(step, values)) return next();
     try {
       await saveStep(step, values);
       next();
@@ -103,9 +107,6 @@ export default function Onboarding({ onClose }: { onClose: () => void }) {
         <>
           <button type="button" className="ghost" onClick={onClose} style={{ marginRight: "auto" }}>
             Agora não
-          </button>
-          <button type="button" onClick={next}>
-            Pular
           </button>
           <button type="submit" className="primary">
             {last ? "Concluir" : "Continuar"}

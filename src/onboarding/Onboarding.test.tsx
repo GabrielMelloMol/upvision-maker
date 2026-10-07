@@ -79,9 +79,9 @@ describe("Onboarding", () => {
     const [settings] = await t.db.select<{ data: string }>("SELECT data FROM settings");
     expect(JSON.parse(settings.data)).toMatchObject({ kwhPrice: 1.1, laborHourCost: 0 });
 
-    await user.click(screen.getByRole("button", { name: "Continuar" }));
-    expect(await screen.findByText("Obrigatório.")).toBeInTheDocument();
     await user.type(screen.getByLabelText(/^Nome/), "Bambu A1");
+    await user.click(screen.getByRole("button", { name: "Continuar" }));
+    expect(await screen.findByText("Digite um número.")).toBeInTheDocument(); // com algo digitado, o resto é cobrado
     await user.type(screen.getByLabelText(/^Potência média/), "95");
     await user.click(screen.getByRole("button", { name: "Continuar" }));
 
@@ -98,15 +98,27 @@ describe("Onboarding", () => {
     expect(screen.getByRole("status")).toHaveTextContent("Tudo pronto!");
   });
 
-  test("Pular avança sem gravar; 'Agora não' fecha", async () => {
+  test("passo em branco: Continuar segue sem gravar e sem erro; só 'Continuar' e 'Agora não' (UX A1)", async () => {
     const onClose = vi.fn();
     const user = userEvent.setup();
     renderWithApp(<Onboarding onClose={onClose} />);
-    await user.click(screen.getByRole("button", { name: "Pular" }));
-    await user.click(screen.getByRole("button", { name: "Pular" }));
-    expect(screen.getByText("Passo 3 de 3")).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: "Concluir" })).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "Pular" })).toBeNull();
+    await user.click(screen.getByRole("button", { name: "Continuar" }));
+    expect(await screen.findByText("Passo 2 de 3")).toBeInTheDocument();
+    expect(screen.getByText(/deixe em branco e continue/i)).toBeInTheDocument();
+    await user.click(screen.getByRole("button", { name: "Continuar" }));
+    expect(await screen.findByText("Passo 3 de 3")).toBeInTheDocument();
+    expect(screen.queryByText("Obrigatório.")).toBeNull();
     expect(await t.db.select("SELECT * FROM printers")).toEqual([]);
+    await user.click(screen.getByRole("button", { name: "Concluir" }));
+    expect(await t.db.select("SELECT * FROM filaments")).toEqual([]);
+    expect(onClose).toHaveBeenCalledOnce();
+  });
+
+  test("'Agora não' fecha", async () => {
+    const onClose = vi.fn();
+    const user = userEvent.setup();
+    renderWithApp(<Onboarding onClose={onClose} />);
     await user.click(screen.getByRole("button", { name: "Agora não" }));
     expect(onClose).toHaveBeenCalledOnce();
   });
