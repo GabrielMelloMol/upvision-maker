@@ -6,6 +6,7 @@ import { check, type Update } from "@tauri-apps/plugin-updater";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { runCloseJob } from "../backup/closeJob";
 import { flushPendingSaves } from "../tools/pendingSaves";
+import { hasUnsavedFields, watchEdits } from "./dirtyForms";
 import { fetchReleases, versionsBehind, type Release } from "./releases";
 
 /** Checagem automática enquanto o app fica aberto (#155: era 6 h e a pessoa com o app aberto não via a versão nova). */
@@ -82,11 +83,15 @@ export function useUpdates() {
     };
   }, [checkNow]);
 
+  // campos digitados e ainda não salvos: atualizar reinicia o app e os perderia (M6)
+  useEffect(() => watchEdits(), []);
+
   /** Baixa e instala sem fechar o app; reinicia no fim. Antes grava os rascunhos e pergunta se algo ainda está gerando. */
   const install = useCallback(async () => {
     if (!s.update) return;
-    if (document.querySelector('[aria-busy="true"]')) {
-      const go = await ask("Uma ferramenta ainda está gerando. Atualizar agora reinicia o app e interrompe isso (o que você fez fica guardado).", {
+    const generating = document.querySelector('[aria-busy="true"]');
+    if (generating || hasUnsavedFields()) {
+      const go = await ask(generating ? "Uma ferramenta ainda está gerando. Atualizar agora reinicia o app e interrompe isso (o que você fez fica guardado)." : "Tem campos digitados que ainda não foram salvos. Atualizar agora reinicia o app e eles se perdem. Volte, salve, e atualize depois.", {
         title: "Atualizar agora?",
         kind: "warning",
         okLabel: "Atualizar mesmo assim",

@@ -146,6 +146,37 @@ describe("useUpdates", () => {
     expect(t.calls.indexOf("plugin:process|restart")).toBeGreaterThan(-1);
   });
 
+  test("formulário com campo digitado e não salvo: pergunta antes de reiniciar; Esperar não reinicia (M6)", async () => {
+    t.handlers["plugin:updater|check"] = () => UPDATE;
+    t.handlers["plugin:updater|download_and_install"] = () => null;
+    t.handlers["plugin:process|restart"] = () => null;
+    const { result } = renderHook(() => useUpdates(), { wrapper });
+    await waitFor(() => expect(result.current.status).toBe("available"));
+    document.body.innerHTML = "<main class='page'><input id='obs'></main>";
+    const field = document.getElementById("obs") as HTMLInputElement;
+    field.value = "obs do pedido";
+    field.dispatchEvent(new Event("input", { bubbles: true }));
+    t.askAnswer = false; // "Esperar"
+    await act(() => result.current.install());
+    expect(t.calls).toContain("plugin:dialog|message");
+    expect(t.calls).not.toContain("plugin:process|restart");
+    t.askAnswer = true; // "Atualizar mesmo assim"
+    await act(() => result.current.install());
+    expect(t.calls).toContain("plugin:process|restart");
+    document.body.innerHTML = "";
+  });
+
+  test("sem nada digitado e sem formulário aberto, atualiza direto, sem perguntar (M6)", async () => {
+    t.handlers["plugin:updater|check"] = () => UPDATE;
+    t.handlers["plugin:updater|download_and_install"] = () => null;
+    t.handlers["plugin:process|restart"] = () => null;
+    const { result } = renderHook(() => useUpdates(), { wrapper });
+    await waitFor(() => expect(result.current.status).toBe("available"));
+    await act(() => result.current.install());
+    expect(t.calls).not.toContain("plugin:dialog|message");
+    expect(t.calls).toContain("plugin:process|restart");
+  });
+
   test("falha ao instalar volta para 'disponível' com a mensagem", async () => {
     t.handlers["plugin:updater|check"] = () => UPDATE;
     t.handlers["plugin:updater|download_and_install"] = () => {

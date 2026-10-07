@@ -202,7 +202,7 @@ Só análise: nenhum código foi alterado e nenhuma issue foi criada. Base: `ori
 - **Como reproduzir:** abra os dois computadores com segundos de diferença, antes de a nuvem replicar o `.lock`. Os dois exportam e a nuvem cria um arquivo de conflito (A8).
 - **Correção sugerida:** gravar a trava, esperar, reler e desempatar por `device` antes de exportar qualquer coisa.
 
-### M6. Atualizar reinicia o app e perde formulários abertos sem perguntar
+### M6. ✅ Atualizar reinicia o app e perde formulários abertos sem perguntar
 - **Onde:** `src/about/useUpdates.ts:87-96`; `trackSave` só existe em `src/tools/useToolState.ts:124`.
 - **Como reproduzir:** com um orçamento, cadastro, Calculadora, Empresa ou pedido com campos não salvos, clique em Atualizar. O app reinicia e o texto digitado some, apesar da mensagem "o que você fez fica guardado". Exports em andamento (`ExportButtons`) também não marcam `aria-busy`.
 - **Correção sugerida:** registrar "formulário sujo" (`trackSave` ou `data-dirty`), consultar isso no `install()` e perguntar antes de reiniciar.
