@@ -23,6 +23,12 @@ beforeAll(() => {
 const hud = (c: HTMLElement) => c.querySelector(".hud")?.textContent ?? "";
 
 describe("Chaveiros", () => {
+  test("a chamada explica o AMS em palavras do dia a dia (M1)", () => {
+    renderWithApp(<Keychain />);
+    expect(screen.getByText(/troca automática de cor \(AMS\)/)).toBeInTheDocument();
+    expect(screen.queryByText("Nome e logo em 2 cores, pronto para o AMS.")).not.toBeInTheDocument();
+  });
+
   test("um nome: base + texto em cores separadas, salva 3MF com o nome", async () => {
     const user = userEvent.setup();
     const { container } = renderWithApp(<Keychain />);

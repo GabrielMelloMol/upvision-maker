@@ -128,7 +128,7 @@ export default function Keychain() {
   return (
     <div className="page">
       <h1>Chaveiros</h1>
-      <p className="lead">Nome e logo em 2 cores, pronto para o AMS.</p>
+      <p className="lead">Nome e logo em 2 cores para troca automática de cor (AMS).</p>
       <ToolSessionBar tool={tool} />
       <div className="tool-layout">
         <div className="controls">

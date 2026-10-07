@@ -42,7 +42,7 @@ export default function Create({ go }: { go: Go }) {
     .filter((p) => hit(`${p.label} ${p.blurb ?? ""}`));
   // modelos prontos em famílias (#141): o card abre a variação que a busca achou ("anilha" → Chaveiro › Anilha)
   const variantText = (id: string, label: string) => `${label} ${modelOf(id).label} ${modelOf(id).blurb}`;
-  // "Funciona sem AMS" (#118): o card mostra a primeira variação que dá para imprimir sem AMS
+  // "Imprime sem troca automática de cor (AMS)" (#118): o card mostra a primeira variação que dá para imprimir sem AMS
   const pickIn = (f: Family) => {
     const ok = f.variants.filter((v) => !noAms || worksWithoutAms(v.id));
     return hit(f.label) ? ok[0] : ok.find((v) => hit(variantText(v.id, v.label)));
@@ -65,7 +65,7 @@ export default function Create({ go }: { go: Go }) {
           <input type="search" aria-label="Buscar ferramenta ou modelo" placeholder="Buscar ferramenta ou modelo" value={q} onChange={(e) => setQ(e.target.value)} />
         </label>
         <Segmented label="Tipo" value={kind} options={KINDS} onChange={setKind} />
-        {(kind === "all" || kind === "make") && <Toggle label="Funciona sem AMS" checked={noAms} onChange={setNoAms} />}
+        {(kind === "all" || kind === "make") && <Toggle label="Imprime sem troca automática de cor (AMS)" checked={noAms} onChange={setNoAms} />}
         {/* atalho fixo para a biblioteca (#161) */}
         <a className="create-projects" href="#projects" data-page="projects" onClick={(e) => open(e, "projects")}>
           Meus projetos →
