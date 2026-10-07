@@ -181,7 +181,7 @@ describe("Pedidos: novo pedido", () => {
     await user.click(within(sheet).getByRole("button", { name: "Adicionar item" }));
     await user.type(within(sheet).getByLabelText("Descrição"), "Peça");
     await user.type(within(sheet).getByLabelText("Preço un."), "5");
-    t.handlers["plugin:sql|execute"] = () => {
+    t.handlers["sql_batch"] = () => {
       throw new Error("disco cheio");
     };
     await user.click(within(sheet).getByRole("button", { name: "Criar pedido" }));

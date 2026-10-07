@@ -118,3 +118,36 @@ describe("pedidos", () => {
     expect(b.tables.order_history).toHaveLength(1);
   });
 });
+
+describe("M7: pedido e itens numa transação só", () => {
+  const two = (): OrderInput => ({ ...input(1), items: [input(1).items[0], { ...input(2).items[0], description: "Segundo" }] });
+  /** O 2º item não entra (como app fechado ou banco travado no meio da gravação). */
+  const failSecondItem = () => db.execute("CREATE TRIGGER falha BEFORE INSERT ON order_items WHEN NEW.position = 1 BEGIN SELECT RAISE(ABORT, 'banco travou'); END");
+
+  test("criar que falha no meio não deixa pedido sem itens nem histórico", async () => {
+    await failSecondItem();
+    await expect(ordersRepo.create(db, two())).rejects.toThrow(/banco travou/);
+    expect(await db.select("SELECT id FROM orders")).toEqual([]);
+    expect(await db.select("SELECT id FROM order_items")).toEqual([]);
+    expect(await db.select("SELECT id FROM order_history")).toEqual([]);
+  });
+
+  test("editar que falha no meio mantém o pedido e os itens como estavam", async () => {
+    await ordersRepo.create(db, two());
+    const before = await order();
+    await failSecondItem();
+    await expect(ordersRepo.update(db, before, { ...two(), customerName: "Outra", notes: "mudou" })).rejects.toThrow(/banco travou/);
+    const after = await order();
+    expect(after.customerName).toBe("Ana");
+    expect(after.items.map((i) => i.description)).toEqual(["Chaveiro", "Segundo"]);
+  });
+
+  test("criar devolve o id e grava itens na ordem; do orçamento, com a nota certa", async () => {
+    const id = await ordersRepo.create(db, two());
+    expect((await order()).id).toBe(id);
+    expect((await order()).items.map((i) => i.description)).toEqual(["Chaveiro", "Segundo"]);
+    const id2 = await ordersRepo.create(db, input(1), 7);
+    expect(id2).toBe(id + 1);
+    expect((await ordersRepo.history(db, id2))[0].note).toBe("Criado a partir do orçamento #7");
+  });
+});

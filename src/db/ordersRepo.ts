@@ -1,7 +1,7 @@
 import { OrderInput, STATUS_LABEL, todayIso, transition, planForOrder, type Order, type OrderItem, type OrderStatus } from "../domain/orders";
 import type { ConsumptionPlan, ProductCtx } from "../domain/products";
 import { planToMovements, type ApplyStock } from "./stock";
-import type { Db } from "./types";
+import type { Db, Stmt } from "./types";
 
 type OrderRow = Omit<Order, "items" | "stockApplied" | "appliedPlan"> & { stockApplied: number; appliedPlan: string | null };
 type ItemRow = OrderItem & { id: number; orderId: number; position: number };
@@ -15,11 +15,12 @@ const nowLocal = () => {
   return `${todayIso(d)} ${String(d.getHours()).padStart(2, "0")}:${String(d.getMinutes()).padStart(2, "0")}:${String(d.getSeconds()).padStart(2, "0")}`;
 };
 
-async function insertItems(db: Db, orderId: number, items: OrderItem[]) {
-  for (const [i, it] of items.entries()) {
-    await db.execute(`INSERT INTO order_items (orderId, position, ${ITEM_COLS.join(", ")}) VALUES (?, ?, ${ITEM_COLS.map(() => "?").join(", ")})`, [orderId, i, ...ITEM_COLS.map((c) => it[c])]);
-  }
-}
+/** Um INSERT por item, para entrar no mesmo lote (transação) do pedido. */
+const itemStatements = (orderId: number, items: OrderItem[]): Stmt[] =>
+  items.map((it, i) => ({
+    sql: `INSERT INTO order_items (orderId, position, ${ITEM_COLS.join(", ")}) VALUES (?, ?, ${ITEM_COLS.map(() => "?").join(", ")})`,
+    params: [orderId, i, ...ITEM_COLS.map((c) => it[c])],
+  }));
 
 const sameItems = (a: OrderItem[], b: OrderItem[]) => JSON.stringify(a.map((i) => [i.productId, i.qty])) === JSON.stringify(b.map((i) => [i.productId, i.qty]));
 
@@ -39,26 +40,32 @@ export const ordersRepo = {
 
   history: (db: Db, orderId: number) => db.select<HistoryEntry>("SELECT * FROM order_history WHERE orderId = ? ORDER BY id", [orderId]),
 
-  // ponytail: criar/editar usa várias instruções sem transação (o pool do plugin não garante a mesma conexão);
-  // a validação acontece antes e o estoque não é tocado aqui. Mover para comando Rust se aparecer pedido sem itens.
+  // Pedido, itens e histórico vão num lote só (transação no Rust, M7): fechar o app no meio não deixa pedido sem itens.
+  // O estoque não é tocado aqui. O id é escolhido antes (MAX+1) para os itens entrarem no mesmo lote; se outro
+  // processo pegar o mesmo id, o INSERT falha e o lote inteiro é desfeito.
   async create(db: Db, input: unknown, quoteId: number | null = null): Promise<number> {
     const v = OrderInput.parse(input);
-    const r = await db.execute(
-      `INSERT INTO orders (${ORDER_COLS.join(", ")}, status, createdAt, quoteId) VALUES (${ORDER_COLS.map(() => "?").join(", ")}, 'pending', ?, ?)`,
-      [...ORDER_COLS.map((c) => v[c]), nowLocal(), quoteId],
-    );
-    const id = Number(r.lastInsertId);
-    await insertItems(db, id, v.items);
-    await db.execute("INSERT INTO order_history (orderId, status, note, at) VALUES (?, 'pending', ?, ?)", [id, quoteId ? `Criado a partir do orçamento #${quoteId}` : "Pedido criado", nowLocal()]);
+    const [{ next }] = await db.select<{ next: number }>("SELECT COALESCE(MAX(id), 0) + 1 AS next FROM orders");
+    const id = Number(next);
+    await db.batch([
+      {
+        sql: `INSERT INTO orders (id, ${ORDER_COLS.join(", ")}, status, createdAt, quoteId) VALUES (?, ${ORDER_COLS.map(() => "?").join(", ")}, 'pending', ?, ?)`,
+        params: [id, ...ORDER_COLS.map((c) => v[c]), nowLocal(), quoteId],
+      },
+      ...itemStatements(id, v.items),
+      { sql: "INSERT INTO order_history (orderId, status, note, at) VALUES (?, 'pending', ?, ?)", params: [id, quoteId ? `Criado a partir do orçamento #${quoteId}` : "Pedido criado", nowLocal()] },
+    ]);
     return id;
   },
 
   async update(db: Db, order: Order, input: unknown): Promise<void> {
     const v = OrderInput.parse(input);
     if (order.stockApplied && !sameItems(order.items, v.items)) throw new Error("O estoque deste pedido já foi baixado. Volte para Pendente para mudar produtos ou quantidades.");
-    await db.execute(`UPDATE orders SET ${ORDER_COLS.map((c) => `${c} = ?`).join(", ")} WHERE id = ?`, [...ORDER_COLS.map((c) => v[c]), order.id]);
-    await db.execute("DELETE FROM order_items WHERE orderId = ?", [order.id]);
-    await insertItems(db, order.id, v.items);
+    await db.batch([
+      { sql: `UPDATE orders SET ${ORDER_COLS.map((c) => `${c} = ?`).join(", ")} WHERE id = ?`, params: [...ORDER_COLS.map((c) => v[c]), order.id] },
+      { sql: "DELETE FROM order_items WHERE orderId = ?", params: [order.id] },
+      ...itemStatements(order.id, v.items),
+    ]);
   },
 
   /** Muda o status; baixa ou estorna o estoque na mesma transação (comando Rust). */
