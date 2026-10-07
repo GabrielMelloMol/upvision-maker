@@ -62,21 +62,27 @@ input[type="color"] { width: 52px; height: 34px; padding: 3px; cursor: pointer; 
 input[type="color"]::-webkit-color-swatch-wrapper { padding: 0; }
 input[type="color"]::-webkit-color-swatch { border: 0; border-radius: 5px; }
 
-/* Checkbox desenhado à mão (o WKWebView ignora accent-color). */
+/* Checkbox desenhado à mão (o WKWebView ignora accent-color). A caixa é de 18 px e a área de toque, de 24 px (UX M14):
+   a caixa fica no ::before, e a margem negativa devolve o espaço de antes ao layout. */
 input[type="checkbox"] {
-  appearance: none; -webkit-appearance: none; flex: none; width: 18px; height: 18px; margin: 0; padding: 0;
-  border: 1px solid var(--border-strong); border-radius: var(--r-xs); background: var(--field);
+  appearance: none; -webkit-appearance: none; flex: none; width: 24px; height: 24px; margin: -3px; padding: 0;
+  border: 0; border-radius: var(--r-sm); background: transparent; box-shadow: none;
   display: inline-grid; place-content: center; cursor: pointer;
+}
+input[type="checkbox"]::before {
+  content: ""; grid-area: 1 / 1; box-sizing: border-box; width: 18px; height: 18px;
+  border: 1px solid var(--border-strong); border-radius: var(--r-xs); background: var(--field);
   transition: background var(--dur-fast) ease, border-color var(--dur-fast) ease, transform var(--dur) var(--spring);
 }
-input[type="checkbox"]:active { transform: scale(0.9); }
-input[type="checkbox"]:checked { background: var(--accent); border-color: var(--accent); box-shadow: var(--highlight); }
-input[type="checkbox"]:checked::after { content: ""; width: 9px; height: 5px; border: 2px solid var(--on-accent); border-top: 0; border-right: 0; transform: translateY(-1px) rotate(-45deg); }
+input[type="checkbox"]:active::before { transform: scale(0.9); }
+input[type="checkbox"]:checked::before { background: var(--accent); border-color: var(--accent); box-shadow: var(--highlight); }
+input[type="checkbox"]:checked::after { content: ""; grid-area: 1 / 1; width: 9px; height: 5px; border: 2px solid var(--on-accent); border-top: 0; border-right: 0; transform: translateY(-1px) rotate(-45deg); }
 
 /* Toggle (switch) — <input type="checkbox" role="switch" class="switch"> */
-input.switch { width: 38px; height: 22px; border-radius: var(--r-pill); border: 0; background: var(--fill-strong); position: relative; display: inline-block; box-shadow: none; }
+input.switch { width: 40px; height: 24px; margin: 0; border-radius: var(--r-pill); border: 0; background: var(--fill-strong); position: relative; display: inline-block; box-shadow: none; } /* 24 px de alto: alvo mínimo (UX M14) */
+input.switch::before { content: none; }
 input.switch::after, input.switch:checked::after {
-  content: ""; position: absolute; top: 2px; left: 2px; width: 18px; height: 18px; border: 0; border-radius: 50%;
+  content: ""; position: absolute; top: 2px; left: 2px; width: 20px; height: 20px; border: 0; border-radius: 50%;
   background: #fff; box-shadow: 0 1px 3px rgb(0 0 0 / 0.25), 0 0 0 0.5px rgb(0 0 0 / 0.04);
   transform: translateX(0); transition: transform var(--dur) var(--spring);
 }

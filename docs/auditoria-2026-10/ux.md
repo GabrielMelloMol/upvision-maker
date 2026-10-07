@@ -156,7 +156,7 @@ A pergunta foi: uma vendedora de impressão 3D que acabou de instalar o app cons
 - **O que acontece:** o texto `.hud` sobre o 3D. Já está nos "conhecidos" e falha no teste visual do main.
 - **Sugestão:** o fundo do HUD mais escuro (ou o vidro de sempre) no tema escuro.
 
-**M14 · Produtos e Preferências · alvos menores que 24 px**
+**✅ M14 · Produtos e Preferências · alvos menores que 24 px**
 - **O que acontece:** os checkboxes da tabela de Produtos têm 18 × 18 px e as chaves (switch) de Preferências têm 38 × 22. Também estão nos "conhecidos".
 - **Sugestão:** área de clique de 24 px ou mais (padding ou `::before` invisível), sem mudar o desenho.
 
