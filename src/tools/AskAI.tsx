@@ -39,6 +39,8 @@ export default function AskAI({ go }: { go: Go }) {
   // estimativa do próximo pedido, guardada com a "assinatura" do pedido que foi contado
   const [estimate, setEstimate] = useState<{ sig: string; tokens: number; usd: number | null } | { sig: string; error: true } | null>(null);
   const cancelRef = useRef<() => void>(() => {});
+  // sair da tela cancela o pedido (a chamada é paga) e o render do OpenSCAD em andamento (B19)
+  useEffect(() => () => cancelRef.current(), []);
   const total = turns.reduce((s, t) => s + (t.costUsd ?? 0), 0);
 
   useEffect(() => {

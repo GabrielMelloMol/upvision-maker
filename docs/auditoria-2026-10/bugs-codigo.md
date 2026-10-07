@@ -397,7 +397,7 @@ Só análise: nenhum código foi alterado e nenhuma issue foi criada. Base: `ori
 - **Como reproduzir:** abrir uma imagem e sair da tela, várias vezes. Cada visita deixa um Blob vivo até o app fechar.
 - **Correção sugerida:** `useEffect(() => () => revoke(rasterRef.current?.raster.url), [])`.
 
-### B19. "Pedir à IA" não cancela ao sair da tela
+### B19. ✅ "Pedir à IA" não cancela ao sair da tela
 - **Onde:** `src/tools/AskAI.tsx:41,90,101,131,141`.
 - **Como reproduzir:** envie um pedido e troque de tela. A chamada paga continua, a resposta se perde e o worker do OpenSCAD roda até 90 s.
 - **Correção sugerida:** `useEffect(() => () => cancelRef.current(), [])`.

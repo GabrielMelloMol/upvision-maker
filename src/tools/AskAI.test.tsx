@@ -40,13 +40,27 @@ beforeEach(async () => {
 async function start(text = "um cubo") {
   const user = userEvent.setup();
   const go = vi.fn();
-  renderWithApp(<AskAI go={go} />);
+  const { unmount } = renderWithApp(<AskAI go={go} />);
   await screen.findByText(/Modelo: claude-sonnet-5/);
   await user.type(screen.getByRole("textbox"), text);
-  return { user, go };
+  return { user, go, unmount };
 }
 
 describe("Pedir à IA", () => {
+  test("sair da tela cancela o pedido em andamento: a chamada paga não continua sem ninguém para receber (B19)", async () => {
+    let signal: AbortSignal | undefined;
+    askMock.mockImplementation((_k, _m, _h, _p, s) => {
+      signal = s;
+      return new Promise(() => {}); // fica esperando a resposta
+    });
+    const { user, unmount } = await start();
+    await user.click(screen.getByRole("button", { name: /Criar peça/ }));
+    await waitFor(() => expect(askMock).toHaveBeenCalled());
+    expect(signal?.aborted).toBe(false);
+    unmount(); // troca de tela: a página desmonta
+    expect(signal?.aborted).toBe(true);
+  });
+
   test("sem chave: explica o custo e leva a Preferências", async () => {
     await t.db.execute("DELETE FROM secrets WHERE key = 'anthropic_api_key'");
     const user = userEvent.setup();
