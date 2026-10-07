@@ -62,7 +62,7 @@ describe("BackupSettingsCard", () => {
     await user.click(within(list).getByRole("button", { name: /Restaurar/ }));
     await waitFor(async () => expect(await t.db.select("SELECT name FROM printers")).toEqual([{ name: "Antiga" }]));
     expect(reload).toHaveBeenCalled();
-    expect([...t.files.keys()].some((p) => p.includes("antes-de-restaurar-"))).toBe(true);
+    expect([...(t.autoBackups.get("") ?? new Map()).keys()].some((k) => k.startsWith("upvision-antes-"))).toBe(true);
     vi.unstubAllGlobals();
   });
 
@@ -78,6 +78,7 @@ describe("BackupSettingsCard", () => {
 
   test("backupLabel", () => {
     expect(backupLabel("upvision-auto-2026-09-28-153000.json")).toBe("28/09/2026 às 15:30");
+    expect(backupLabel("upvision-antes-2026-10-05-101500.json")).toBe("05/10/2026 às 10:15 · cópia de antes de restaurar"); // B2
     expect(backupLabel("outro.json")).toBe("outro.json");
   });
 });

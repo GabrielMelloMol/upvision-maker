@@ -20,7 +20,8 @@ export function backupLabel(name: string): string {
   const m = /(\d{4})-(\d{2})-(\d{2})-(\d{2})(\d{2})/.exec(name);
   if (!m) return name;
   const when = `${m[3]}/${m[2]}/${m[1]} às ${m[4]}:${m[5]}`;
-  return name.startsWith("upvision-conflito-") ? `${when} · cópia de conflito do outro computador` : when;
+  if (name.startsWith("upvision-conflito-")) return `${when} · cópia de conflito do outro computador`;
+  return name.startsWith("upvision-antes-") ? `${when} · cópia de antes de restaurar` : when;
 }
 const kb = (b: number) => `${Math.max(1, Math.round(b / 1024)).toLocaleString("pt-BR")} KB`;
 

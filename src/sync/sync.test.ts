@@ -122,7 +122,7 @@ describe("sincronizar pela pasta (#16)", () => {
       from: { deviceName: "NOTE-ANA" },
     });
     expect(await printers()).toEqual(["Ender 3", "Prusa MK4"]);
-    expect([...t.files.keys()].some((k) => k.includes("antes-de-restaurar"))).toBe(true);
+    expect([...folder().keys()].some((k) => k.startsWith("upvision-antes-"))).toBe(true); // na pasta dos backups, visível em Backups guardados (B2)
     expect(await syncNow(t.db, me, { since })).toEqual({ kind: "ok" }); // não importa de novo
   });
 

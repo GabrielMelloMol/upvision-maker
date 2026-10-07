@@ -183,9 +183,20 @@ function handler(m: TauriMock, cmd: string, a: Record<string, unknown> | null, h
       m.autoBackups.set(dir, folder);
       return { name, path: `${dir || "/dados-app/backups/auto"}/${name}`, bytes: String(args.json).length };
     }
+    case "backup_safety_write": {
+      const dir = String(args.dir ?? "");
+      const folder = m.autoBackups.get(dir) ?? new Map<string, string>();
+      const name = `upvision-antes-${args.stamp}.json`;
+      folder.set(name, String(args.json));
+      m.autoBackups.set(dir, folder);
+      return { name, path: `${dir || "/dados-app/backups/auto"}/${name}`, bytes: String(args.json).length };
+    }
+    case "backup_export":
+      m.files.set(String(args.path), Buffer.from(String(args.json)));
+      return null;
     case "backup_list":
       return [...(m.autoBackups.get(String(args.dir ?? "")) ?? new Map<string, string>()).entries()]
-        .filter(([name]) => /^upvision-(auto|conflito)-/.test(name))
+        .filter(([name]) => /^upvision-(auto|conflito|antes)-/.test(name))
         .sort(([a], [b]) => b.localeCompare(a))
         .map(([name, json]) => ({ name, path: `${args.dir || "/dados-app/backups/auto"}/${name}`, bytes: json.length }));
     case "sync_read":

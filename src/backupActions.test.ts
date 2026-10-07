@@ -44,10 +44,11 @@ describe("loadBackup", () => {
 
     const r = await loadBackup();
 
-    expect(r?.safetyCopy).toMatch(/^\/dados-app\/backups\/antes-de-restaurar-.+\.json$/);
-    expect(JSON.parse(text(r!.safetyCopy)).tables.printers).toEqual([expect.objectContaining({ name: "Nova" })]);
+    expect(r?.safetyCopy).toMatch(/^\/dados-app\/backups\/auto\/upvision-antes-.+\.json$/);
+    const name = r!.safetyCopy.split("/").pop()!;
+    expect(JSON.parse(t.autoBackups.get("")!.get(name)!).tables.printers).toEqual([expect.objectContaining({ name: "Nova" })]);
     expect(await t.db.select("SELECT name, watts FROM printers")).toEqual([{ name: "Antiga", watts: 100 }]);
-    expect(t.calls).toContain("plugin:fs|mkdir");
+    expect(t.calls).toContain("backup_safety_write"); // na pasta dos backups: aparece em Backups guardados (B2)
   });
 
   test("arquivo que não é backup falha antes de apagar qualquer dado", async () => {

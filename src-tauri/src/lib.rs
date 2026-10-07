@@ -37,6 +37,8 @@ pub fn run() {
             sqlbatch::sql_batch,
             backup::backup_default_dir,
             backup::backup_write,
+            backup::backup_safety_write,
+            backup::backup_export,
             backup::backup_list,
             backup::backup_read,
             sync::sync_read,

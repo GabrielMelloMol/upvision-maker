@@ -309,7 +309,7 @@ Só análise: nenhum código foi alterado e nenhuma issue foi criada. Base: `ori
 - **Como reproduzir:** preencha um orçamento enquanto o 1º tick importa, ou clique em "Assumir". O `remount` troca a `key` do `<main>` e o formulário some.
 - **Correção sugerida:** `flushPendingSaves` e perguntar antes de importar se houver formulário sujo.
 
-### B2. A cópia "antes-de-restaurar" é invisível e se acumula
+### B2. A cópia "antes-de-restaurar" é invisível e se acumula — ✅ CORRIGIDO (Lupa)
 - **Onde:** `src/backupActions.ts:26-29` (grava em `appData/backups/`, sempre com fotos); `src-tauri/src/backup.rs:47-62` (a lista só vê `upvision-auto-` e `upvision-conflito-`).
 - **Como reproduzir:** restaure ou receba uma importação da sync. A cópia não aparece em "Backups guardados", e cada importação acrescenta um arquivo com fotos que nada apaga.
 - **Correção sugerida:** um prefixo que `list_in` reconheça, mais um limite de quantidade.
@@ -329,7 +329,7 @@ Só análise: nenhum código foi alterado e nenhuma issue foi criada. Base: `ori
 - **Como reproduzir:** exclua o projeto mais recente pela lista da ferramenta e salve um novo. Ele reusa o id e mostra as fotos antigas.
 - **Correção sugerida:** limpar as fotos dentro de `toolProjects.remove` e da poda.
 
-### B6. Salvar o backup manual por cima de um arquivo existente não é atômico
+### B6. Salvar o backup manual por cima de um arquivo existente não é atômico — ✅ CORRIGIDO (Lupa)
 - **Onde:** `src/backupActions.ts:17` (`writeTextFile` direto no destino).
 - **Como reproduzir:** grave por cima do backup anterior num pendrive e fique sem espaço no meio. O backup antigo se perde e o novo fica cortado.
 - **Correção sugerida:** gravar por comando Rust com `write_atomic`.

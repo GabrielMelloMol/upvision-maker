@@ -1,7 +1,7 @@
-import { appDataDir, join } from "@tauri-apps/api/path";
+import { invoke } from "@tauri-apps/api/core";
 import { open, save } from "@tauri-apps/plugin-dialog";
-import { mkdir, readTextFile, writeTextFile } from "@tauri-apps/plugin-fs";
-import { loadAutoBackupConfig, markBackupDone } from "./backup/auto";
+import { readTextFile } from "@tauri-apps/plugin-fs";
+import { backupStamp, loadAutoBackupConfig, markBackupDone, type BackupEntry } from "./backup/auto";
 import { exportBackup, parseBackup, restoreBackup } from "./db/backup";
 import { getDb } from "./db";
 import { exclusive } from "./db/dataLock";
@@ -15,7 +15,8 @@ export async function saveBackup(): Promise<string | null> {
   if (!path) return null;
   const db = await getDb();
   const { photos } = await loadAutoBackupConfig(db); // "Incluir fotos" vale também para o backup do menu (#162)
-  await writeTextFile(path, JSON.stringify(await exportBackup(db, { photos }), null, 2));
+  // pelo Rust: o arquivo é gravado por inteiro ou não é tocado (queda no meio não corta o backup anterior, B6)
+  await invoke("backup_export", { path, json: JSON.stringify(await exportBackup(db, { photos }), null, 2) });
   await markBackupDone(db);
   return path;
 }
@@ -27,10 +28,10 @@ export async function saveBackup(): Promise<string | null> {
 export async function replaceData(text: string): Promise<{ safetyCopy: string }> {
   const backup = parseBackup(text);
   const db = await getDb();
-  const dir = await join(await appDataDir(), "backups");
-  await mkdir(dir, { recursive: true });
-  const safetyCopy = await join(dir, `antes-de-restaurar-${stamp()}.json`);
-  await writeTextFile(safetyCopy, JSON.stringify(await exportBackup(db)));
+  // Na mesma pasta dos backups: aparece em Backups guardados (restaurável) e só as 5 mais novas ficam (B2).
+  const { dir } = await loadAutoBackupConfig(db);
+  const safety = await invoke<BackupEntry>("backup_safety_write", { dir, stamp: backupStamp(new Date()), json: JSON.stringify(await exportBackup(db)) });
+  const safetyCopy = safety.path;
   try {
     await restoreBackup(db, backup);
   } catch (e) {

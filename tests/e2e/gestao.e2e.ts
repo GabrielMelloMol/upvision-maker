@@ -152,7 +152,7 @@ test("backup: salva JSON e restaura substituindo os dados (com cópia de seguran
   await go(page, "Estoque");
   await go(page, "Impressoras");
   await expect(page.getByRole("row", { name: /Ender 3/ })).toBeVisible();
-  expect([...tauri.files.keys()].some((p) => p.startsWith("/dados-app/backups/antes-de-restaurar-"))).toBe(true);
+  expect([...(tauri.autoBackups.get("") ?? new Map()).keys()].some((k) => k.startsWith("upvision-antes-"))).toBe(true);
 });
 
 test("backup: arquivo que não é backup mostra erro e não apaga nada", async ({ page, tauri }) => {

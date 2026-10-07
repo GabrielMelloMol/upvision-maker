@@ -16,7 +16,7 @@ test("backup automático: faz o do dia ao abrir, lista em Preferências e restau
   tauri.db.exec("DELETE FROM printers");
   await card.getByRole("button", { name: "Restaurar" }).first().click();
   await expect.poll(() => tauri.db.prepare("SELECT name FROM printers").all()).toEqual([{ name: "Bambu A1" }]);
-  expect([...tauri.files.keys()].some((p) => p.includes("antes-de-restaurar-"))).toBe(true); // cópia de segurança antes
+  expect([...(tauri.autoBackups.get("") ?? new Map()).keys()].some((k) => k.startsWith("upvision-antes-"))).toBe(true); // cópia de segurança antes, visível em Backups guardados
 });
 
 test("lembrete: desligado e 9 dias sem backup mostra aviso; 'Fazer backup agora' some com ele", async ({ page, tauri }) => {

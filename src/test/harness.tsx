@@ -134,9 +134,22 @@ function handle(t: TauriState, cmd: string, a: unknown, headers?: Record<string,
       t.autoBackups.set(dir, folder);
       return { name, path: `${dir || "/dados-app/backups/auto"}/${name}`, bytes: String(args.json).length };
     }
+    case "backup_safety_write": {
+      const dir = String(args.dir ?? "");
+      const folder = t.autoBackups.get(dir) ?? new Map<string, string>();
+      const name = `upvision-antes-${args.stamp}.json`;
+      folder.set(name, String(args.json));
+      const safeties = [...folder.keys()].filter((k) => k.startsWith("upvision-antes-")).sort().reverse();
+      for (const k of safeties.slice(5)) folder.delete(k); // como o Rust: só as 5 mais novas
+      t.autoBackups.set(dir, folder);
+      return { name, path: `${dir || "/dados-app/backups/auto"}/${name}`, bytes: String(args.json).length };
+    }
+    case "backup_export":
+      t.files.set(String(args.path), new TextEncoder().encode(String(args.json)));
+      return null;
     case "backup_list":
       return [...(t.autoBackups.get(String(args.dir ?? "")) ?? new Map()).entries()]
-        .filter(([name]) => /^upvision-(auto|conflito)-/.test(name))
+        .filter(([name]) => /^upvision-(auto|conflito|antes)-/.test(name))
         .sort(([a], [b]) => b.localeCompare(a))
         .map(([name, json]) => ({ name, path: `${args.dir || "/dados-app/backups/auto"}/${name}`, bytes: json.length }));
     case "sync_read":

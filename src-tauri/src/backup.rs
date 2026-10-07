@@ -11,6 +11,10 @@ use tauri::{AppHandle, Manager};
 const PREFIX: &str = "upvision-auto-";
 /// Cópias de conflito da sincronização (#16): listadas e restauráveis, mas fora do rodízio.
 pub const CONFLICT_PREFIX: &str = "upvision-conflito-";
+/// Cópia dos dados de antes de restaurar ou importar da sincronização (B2): listada, restauráveis e com rodízio próprio.
+pub const SAFETY_PREFIX: &str = "upvision-antes-";
+/// Quantas cópias de antes de restaurar ficam (cada uma leva as fotos: sem limite elas se acumulariam).
+const SAFETY_KEEP: usize = 5;
 const EXT: &str = ".json";
 const MAX_KEEP: usize = 365;
 /// Nunca menos de 2: com 1, um dia ruim apagaria o único backup bom (B3).
@@ -32,7 +36,7 @@ pub fn valid_stamp(s: &str) -> bool {
 
 /// Nome de arquivo de backup automático ou cópia de conflito (sem caminho, sem `..`).
 fn valid_name(name: &str) -> bool {
-    [PREFIX, CONFLICT_PREFIX].iter().any(|p| name.strip_prefix(p).and_then(|r| r.strip_suffix(EXT)).is_some_and(valid_stamp))
+    [PREFIX, CONFLICT_PREFIX, SAFETY_PREFIX].iter().any(|p| name.strip_prefix(p).and_then(|r| r.strip_suffix(EXT)).is_some_and(valid_stamp))
 }
 
 /// A data do nome (os 17 caracteres antes do `.json`), para ordenar automáticos e conflitos juntos.
@@ -104,6 +108,33 @@ pub fn write_in(dir: &Path, stamp: &str, json: &str, keep: usize) -> Result<Back
     Ok(BackupEntry { name, path: path.to_string_lossy().to_string(), bytes })
 }
 
+/// A cópia de segurança de antes de restaurar: na mesma pasta dos backups (aparece em Backups guardados) e só as
+/// `SAFETY_KEEP` mais novas ficam. Não entra no rodízio dos automáticos nem o desfaz.
+pub fn write_safety_in(dir: &Path, stamp: &str, json: &str) -> Result<BackupEntry, String> {
+    if !valid_stamp(stamp) {
+        return Err("Data da cópia inválida.".into());
+    }
+    fs::create_dir_all(dir).map_err(|e| format!("Não consegui criar a pasta de backup: {e}"))?;
+    let name = format!("{SAFETY_PREFIX}{stamp}{EXT}");
+    let path = dir.join(&name);
+    write_atomic(&path, json)?;
+    for old in list_in(dir)?.into_iter().filter(|e| e.name.starts_with(SAFETY_PREFIX)).skip(SAFETY_KEEP) {
+        let _ = fs::remove_file(old.path);
+    }
+    Ok(BackupEntry { name, path: path.to_string_lossy().to_string(), bytes: json.len() as u64 })
+}
+
+/// "Salvar backup" do menu: o arquivo escolhido na janela de salvar é gravado por inteiro ou não é tocado (B6).
+pub fn export_to(path: &Path, json: &str) -> Result<(), String> {
+    if path.extension().and_then(|e| e.to_str()).is_none_or(|e| !e.eq_ignore_ascii_case("json")) {
+        return Err("O backup precisa ser um arquivo .json.".into());
+    }
+    if path.is_dir() {
+        return Err("Escolha um arquivo, não uma pasta.".into());
+    }
+    write_atomic(path, json)
+}
+
 pub fn read_in(dir: &Path, name: &str) -> Result<String, String> {
     if !valid_name(name) {
         return Err("Esse arquivo não é um backup automático do UpVision Maker.".into());
@@ -127,6 +158,16 @@ pub fn backup_default_dir(app: AppHandle) -> Result<String, String> {
 #[tauri::command]
 pub fn backup_write(app: AppHandle, dir: String, stamp: String, json: String, keep: usize) -> Result<BackupEntry, String> {
     write_in(&resolve(&app, &dir)?, &stamp, &json, keep)
+}
+
+#[tauri::command]
+pub fn backup_safety_write(app: AppHandle, dir: String, stamp: String, json: String) -> Result<BackupEntry, String> {
+    write_safety_in(&resolve(&app, &dir)?, &stamp, &json)
+}
+
+#[tauri::command]
+pub fn backup_export(path: String, json: String) -> Result<(), String> {
+    export_to(Path::new(&path), &json)
 }
 
 #[tauri::command]
@@ -179,6 +220,40 @@ mod tests {
         write_in(&d, "2026-09-01-100000", "bom", 1).unwrap();
         write_in(&d, "2026-09-02-100000", "ruim", 1).unwrap();
         assert_eq!(read_in(&d, "upvision-auto-2026-09-01-100000.json").unwrap(), "bom");
+        fs::remove_dir_all(d).unwrap();
+    }
+
+    #[test]
+    fn copia_de_antes_de_restaurar_aparece_na_lista_e_so_as_5_mais_novas_ficam() {
+        let d = tmpdir("safety");
+        write_in(&d, "2026-09-01-100000", "auto", 5).unwrap();
+        for dia in 1..=7 {
+            write_safety_in(&d, &format!("2026-09-{dia:02}-120000"), &format!("antes {dia}")).unwrap();
+        }
+        assert!(valid_name("upvision-antes-2026-09-01-120000.json"));
+        let names: Vec<_> = list_in(&d).unwrap().into_iter().map(|e| e.name).collect();
+        assert_eq!(names.iter().filter(|n| n.starts_with(SAFETY_PREFIX)).count(), 5);
+        assert!(names.contains(&"upvision-antes-2026-09-07-120000.json".to_string()));
+        assert!(!names.contains(&"upvision-antes-2026-09-02-120000.json".to_string()));
+        assert!(names.contains(&"upvision-auto-2026-09-01-100000.json".to_string()), "o automático não é tocado");
+        assert_eq!(read_in(&d, "upvision-antes-2026-09-07-120000.json").unwrap(), "antes 7");
+        assert!(write_safety_in(&d, "../x", "{}").is_err());
+        fs::remove_dir_all(d).unwrap();
+    }
+
+    #[test]
+    fn salvar_backup_substitui_por_inteiro_e_so_aceita_json() {
+        let d = tmpdir("export");
+        fs::create_dir_all(&d).unwrap();
+        let alvo = d.join("meu-backup.json");
+        fs::write(&alvo, "antigo").unwrap();
+        export_to(&alvo, "novo e maior").unwrap();
+        assert_eq!(fs::read_to_string(&alvo).unwrap(), "novo e maior");
+        let tmps = fs::read_dir(&d).unwrap().filter_map(|e| e.ok()).filter(|e| e.file_name().to_string_lossy().ends_with(".tmp")).count();
+        assert_eq!(tmps, 0);
+        assert!(export_to(&d.join("passwd"), "x").is_err());
+        assert!(export_to(&d.join("a.txt"), "x").is_err());
+        assert!(export_to(&d, "x").is_err());
         fs::remove_dir_all(d).unwrap();
     }
 
