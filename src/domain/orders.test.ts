@@ -14,6 +14,24 @@ describe("totais", () => {
   });
 });
 
+describe("B8: total = subtotal − desconto + frete, em centavos, com quantidade fracionada", () => {
+  test("2 linhas de 1,5 × R$ 10,33: subtotal 31,00, sem desconto escondido de R$ 0,01", () => {
+    const lines = [item({ qty: 1.5, unitPrice: 10.33 }), item({ qty: 1.5, unitPrice: 10.33 })];
+    expect(orderTotals(lines, 0)).toEqual({ subtotal: 31, discount: 0, freight: 0, total: 31 }); // antes: 30,99 / 0,01 / 31,00
+  });
+
+  test("a conta fecha em qualquer combinação de quantidade, preço, desconto e frete", () => {
+    let seed = 7;
+    const rnd = () => (seed = (seed * 16807) % 2147483647) / 2147483647;
+    for (let n = 0; n < 500; n++) {
+      const lines = Array.from({ length: 1 + Math.floor(rnd() * 5) }, () => item({ qty: Math.round(rnd() * 900) / 100 + 0.01, unitPrice: Math.round(rnd() * 5000) / 100, discountPct: Math.round(rnd() * 30) }));
+      const freight = Math.round(rnd() * 3000) / 100;
+      const t = orderTotals(lines, freight);
+      expect(Math.round(t.total * 100), JSON.stringify(lines)).toBe(Math.round(t.subtotal * 100) - Math.round(t.discount * 100) + Math.round(t.freight * 100));
+    }
+  });
+});
+
 describe("status", () => {
   test("confirmar (pendente → produção) dá baixa; cancelar depois estorna", () => {
     expect(transition("pending", "production", false)).toEqual({ stock: "apply" });

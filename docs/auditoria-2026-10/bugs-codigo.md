@@ -339,7 +339,7 @@ Só análise: nenhum código foi alterado e nenhuma issue foi criada. Base: `ori
 - **Como reproduzir:** o celular pede −50 g (lê 1000) e, nesse intervalo, um pedido grava 900 pelo Rust. `consume` grava 950 em vez de 850.
 - **Correção sugerida:** `UPDATE … SET stockG = ROUND(stockG - ?, 2)` ou passar pelo `apply_stock`.
 
-### B8. Total ≠ Subtotal − Descontos + Frete com quantidade fracionada
+### B8. Total ≠ Subtotal − Descontos + Frete com quantidade fracionada — ✅ CORRIGIDO (Forja)
 - **Onde:** `src/domain/orders.ts:60-62`; exibido em `src/pdf/quote.ts:49-52` e `OrderEditor.tsx:265-268`.
 - **Como reproduzir:** 2 linhas de 1,5 × R$ 10,33 dão subtotal 30,99, desconto −0,01 (não exibido) e total 31,00, e o Pix cobra 31,00.
 - **Correção sugerida:** subtotal como a soma de `round2(qty*unitPrice)` por linha, ou `unitPrice` com 2 casas na validação.

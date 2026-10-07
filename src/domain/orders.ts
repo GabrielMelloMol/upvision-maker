@@ -57,7 +57,8 @@ export type Order = Omit<OrderInput, "items"> & {
 export const lineTotal = (i: Pick<OrderItem, "qty" | "unitPrice" | "discountPct">) => round2(i.qty * i.unitPrice * (1 - i.discountPct / 100));
 
 export function orderTotals(items: Pick<OrderItem, "qty" | "unitPrice" | "discountPct">[], freight: number) {
-  const subtotal = round2(items.reduce((s, i) => s + i.qty * i.unitPrice, 0));
+  // B8: cada linha em centavos antes de somar (como em `lineTotal`), senão subtotal − desconto ≠ total por R$ 0,01
+  const subtotal = round2(items.reduce((s, i) => s + round2(i.qty * i.unitPrice), 0));
   const lines = round2(items.reduce((s, i) => s + lineTotal(i), 0));
   return { subtotal, discount: round2(subtotal - lines), freight: round2(freight), total: round2(lines + freight) };
 }
