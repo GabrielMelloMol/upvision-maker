@@ -101,7 +101,13 @@ export default function ExportButtons({ models: input, name, busy, pauses: input
     setOpening(true);
     try {
       const r = await openInSlicer(models, name, { pauses, profile, slicer, slots: slots ?? null });
-      toast(r.project ? `Abrindo no ${slicer.name} como projeto, com a impressora e os filamentos.` : `Abrindo no ${slicer.name}.`);
+      toast(
+        !r.project
+          ? `Abrindo no ${slicer.name}.`
+          : r.defaultPresets
+            ? `Abrindo no ${slicer.name} como projeto, mas não consegui ler os presets do Bambu Studio: usei a impressora e o filamento padrão (A1). Confira antes de imprimir.`
+            : `Abrindo no ${slicer.name} como projeto, com a impressora e os filamentos.`,
+      );
       onSaved?.(name);
     } catch (e) {
       toast(`Não foi possível abrir no ${slicer.name}: ${errorText(e)}`, "error");

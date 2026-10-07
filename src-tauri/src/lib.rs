@@ -56,6 +56,7 @@ pub fn run() {
             diagnostics::log_append,
             diagnostics::log_read,
             bambu::bambu_project,
+            bambu::bambu_presets_found,
             slicer::slicers_installed,
             slicer::open_in_slicer
         ])

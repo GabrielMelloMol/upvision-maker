@@ -64,20 +64,22 @@ fn data_dir() -> Option<PathBuf> {
     }
 }
 
-/// Presets selecionados agora no Bambu Studio (impressora, processo, filamentos).
-fn current_presets(data: Option<&Path>) -> (String, String, Vec<String>) {
+/// Presets selecionados agora no Bambu Studio (impressora, processo, filamentos). O último valor diz se vieram do
+/// BambuStudio.conf (true) ou se são os padrões porque o arquivo não existe, está ilegível ou sem impressora (B13).
+fn current_presets(data: Option<&Path>) -> (String, String, Vec<String>, bool) {
     let conf: Value = data
         .and_then(|d| fs::read_to_string(d.join("BambuStudio.conf")).ok())
         .and_then(|s| serde_json::from_str(&s).ok())
         .unwrap_or(Value::Null);
     let p = &conf["presets"];
+    let found = p["machine"].as_str().is_some_and(|m| !m.is_empty());
     let text = |k: &str, d: &str| p[k].as_str().filter(|s| !s.is_empty()).unwrap_or(d).to_string();
     let filaments: Vec<String> = p["filaments"]
         .as_array()
         .map(|a| a.iter().filter_map(|v| v.as_str().map(String::from)).collect())
         .unwrap_or_default();
     let filaments = if filaments.is_empty() { vec![DEFAULT_FILAMENT.to_string()] } else { filaments };
-    (text("machine", DEFAULT_MACHINE), text("process", DEFAULT_PROCESS), filaments)
+    (text("machine", DEFAULT_MACHINE), text("process", DEFAULT_PROCESS), filaments, found)
 }
 
 /// Pastas onde procurar perfis de um tipo: do usuário, sistema atualizado e os que vêm com o app.
@@ -145,7 +147,7 @@ fn pause_json(pauses: &[f64], filaments: u32) -> Value {
 fn run(model: &[u8], pauses: &[f64], filaments: u32) -> Result<Vec<u8>, String> {
     let (exe, bundled) = install().ok_or("Bambu Studio não encontrado. Instale-o ou abra o 3MF no OrcaSlicer, que já lê a pausa.")?;
     let data = data_dir();
-    let (machine, process, fils) = current_presets(data.as_deref());
+    let (machine, process, fils, _) = current_presets(data.as_deref());
     let dirs = |kind| profile_dirs(kind, data.as_deref(), &bundled);
 
     let stamp = std::time::SystemTime::now().duration_since(std::time::UNIX_EPOCH).map(|d| d.as_nanos()).unwrap_or(0);
@@ -187,6 +189,12 @@ fn run(model: &[u8], pauses: &[f64], filaments: u32) -> Result<Vec<u8>, String> 
     })();
     let _ = fs::remove_dir_all(&tmp);
     result
+}
+
+/// O projeto usa os presets do Bambu Studio da pessoa? `false` = não deu para ler e vão a impressora e o filamento padrão.
+#[tauri::command]
+pub fn bambu_presets_found() -> bool {
+    current_presets(data_dir().as_deref()).3
 }
 
 /// 3MF do app → projeto do Bambu Studio com as pausas, usando os presets atuais do usuário.
@@ -245,8 +253,24 @@ mod tests {
 
     #[test]
     fn presets_padrao_sem_conf() {
-        let (m, p, f) = current_presets(None);
+        let (m, p, f, found) = current_presets(None);
         assert_eq!((m.as_str(), p.as_str(), f), (DEFAULT_MACHINE, DEFAULT_PROCESS, vec![DEFAULT_FILAMENT.to_string()]));
+        assert!(!found, "B13: sem conf, quem chama sabe que são os padrões");
+    }
+
+    #[test]
+    fn conf_ilegivel_ou_sem_impressora_conta_como_padrao_e_um_valido_nao() {
+        let d = std::env::temp_dir().join(format!("bambu-conf-test-{}", std::process::id()));
+        fs::create_dir_all(&d).unwrap();
+        fs::write(d.join("BambuStudio.conf"), "{cortado").unwrap();
+        assert!(!current_presets(Some(&d)).3);
+        fs::write(d.join("BambuStudio.conf"), r#"{"presets":{"machine":"","filaments":[]}}"#).unwrap();
+        assert!(!current_presets(Some(&d)).3);
+        fs::write(d.join("BambuStudio.conf"), r#"{"presets":{"machine":"Bambu Lab P1S 0.4 nozzle","process":"0.20mm Standard @BBL P1P","filaments":["Bambu PETG Basic @BBL P1P"]}}"#).unwrap();
+        let (m, _, f, found) = current_presets(Some(&d));
+        assert!(found);
+        assert_eq!((m.as_str(), f), ("Bambu Lab P1S 0.4 nozzle", vec!["Bambu PETG Basic @BBL P1P".to_string()]));
+        fs::remove_dir_all(d).unwrap();
     }
 
     /// Ponta a ponta com o Bambu Studio instalado: `BAMBU_3MF=/caminho/modelo.3mf cargo test -- --ignored`.

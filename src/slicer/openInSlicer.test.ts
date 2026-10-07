@@ -42,6 +42,16 @@ describe("abrir no fatiador (#160)", () => {
     expect(cfg.filament_colour).toEqual(["#FFFFFF", "#2563EB"]);
   });
 
+  test("Bambu Studio sem BambuStudio.conf legível: o projeto sai com a impressora padrão e o resultado avisa (B13)", async () => {
+    t.handlers["slicers_installed"] = () => [BAMBU];
+    t.handlers["bambu_project"] = () => Array.from(zipSync({ "Metadata/project_settings.config": strToU8("{}") }));
+    t.handlers["bambu_presets_found"] = () => false;
+    t.handlers["open_in_slicer"] = () => "/dados/abrir-no-fatiador/Chaveiro.3mf";
+    expect(await openInSlicer([model("#ffffff")], "Chaveiro")).toMatchObject({ project: true, defaultPresets: true });
+    t.handlers["bambu_presets_found"] = () => true;
+    expect(await openInSlicer([model("#ffffff")], "Chaveiro")).toMatchObject({ project: true, defaultPresets: false });
+  });
+
   test("OrcaSlicer escolhido em Ajustes: abre o 3MF com as configurações por objeto, sem passar pelo CLI do Bambu", async () => {
     await saveSettings(t.db, { ...DEFAULT_SETTINGS, slicer: "orca" });
     let opened: Record<string, unknown> = {};

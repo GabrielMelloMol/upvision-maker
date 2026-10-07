@@ -46,6 +46,7 @@ Formato: `## <versão> — <data>` e itens `- …` em linguagem simples.
 - **Celular no Windows: orientação do Firewall**: o cartão do celular explica o que fazer quando o aviso do Firewall do Windows aparece (ou foi fechado) e a rede está como Pública, que era o motivo de o celular não conectar sem dizer por quê.
 - **Abrir no fatiador com nome de arquivo especial (Windows)**: peças com nomes como "con", "nul" ou "com1" agora abrem normalmente no fatiador, em vez de o arquivo não ser criado.
 - **Caixas de marcar e chaves mais fáceis de acertar**: a área de toque dos checkboxes (como os da lista de Produtos) e das chaves das Preferências ficou com pelo menos 24 px, sem mudar o desenho.
+- **Abrir no Bambu Studio avisa quando usou a impressora padrão**: se o app não conseguir ler a impressora e os filamentos do seu Bambu Studio, o aviso diz que usou a A1 e o PLA padrão, em vez de afirmar que usou os seus.
 
 ## 0.10.4 — 2026-10-05
 - **Dois computadores em versões diferentes não apagam mais dados**: se um estiver com o app desatualizado, nada é trocado entre eles e aparece um aviso dizendo qual computador precisa atualizar. Antes, o computador antigo podia apagar a ficha de impressão, os projetos e as fotos do mais novo.

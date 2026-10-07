@@ -57,7 +57,12 @@ export async function slicerFile(models: Model[], slicer: SlicerId, { pauses = [
   return { bytes: write3mf(models, { pauses, profile, slots }), project: false };
 }
 
-export async function openInSlicer(models: Model[], name: string, opts: OpenOptions = {}): Promise<{ path: string; slicer: InstalledSlicer; project: boolean }> {
+/** O projeto do Bambu usou a impressora e o filamento padrão porque o BambuStudio.conf não deu para ler (B13). */
+async function usedDefaultPresets(): Promise<boolean> {
+  return invoke<boolean>("bambu_presets_found").then((found) => !found, () => false);
+}
+
+export async function openInSlicer(models: Model[], name: string, opts: OpenOptions = {}): Promise<{ path: string; slicer: InstalledSlicer; project: boolean; defaultPresets: boolean }> {
   if (!models.length) throw new OpenSlicerError("Nada para abrir: gere o modelo primeiro.");
   const db = await getDb();
   const [settings, ams] = await Promise.all([loadSettings(db), loadAms(db)]);
@@ -67,5 +72,5 @@ export async function openInSlicer(models: Model[], name: string, opts: OpenOpti
   const slots = opts.slots !== undefined ? (opts.slots ?? undefined) : multi && ams.some((s) => s.hex) ? ams.map((s) => s.hex) : undefined;
   const { bytes, project } = await slicerFile(models, slicer.id, opts, slots);
   const path = await invoke<string>("open_in_slicer", { model: Array.from(bytes), name, slicer: slicer.id });
-  return { path, slicer, project };
+  return { path, slicer, project, defaultPresets: project && (await usedDefaultPresets()) };
 }

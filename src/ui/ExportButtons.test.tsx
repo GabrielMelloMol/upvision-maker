@@ -196,6 +196,18 @@ describe("Abrir no fatiador (#160)", () => {
     expect(opened).toMatchObject({ name: "chaveiro", slicer: "bambu" });
   });
 
+  test("Bambu Studio sem presets legíveis: o aviso diz que usou a impressora padrão, não 'com a sua impressora' (B13)", async () => {
+    const { strToU8, zipSync } = await import("fflate");
+    t.handlers["slicers_installed"] = () => [{ id: "bambu", name: "Bambu Studio", path: "/Applications/BambuStudio.app" }];
+    t.handlers["bambu_project"] = () => Array.from(zipSync({ "Metadata/project_settings.config": strToU8("{}") }));
+    t.handlers["bambu_presets_found"] = () => false;
+    t.handlers["open_in_slicer"] = () => "/dados/abrir-no-fatiador/chaveiro.3mf";
+    const user = userEvent.setup();
+    renderWithApp(<ExportButtons models={[model("Chaveiro")]} name="chaveiro" />);
+    await user.click(await screen.findByRole("button", { name: "Abrir no Bambu Studio" }));
+    expect(await screen.findByText(/não consegui ler os presets do Bambu Studio.*padrão/)).toBeInTheDocument();
+  });
+
   test("sem fatiador instalado: links para baixar no lugar do botão", async () => {
     t.handlers["slicers_installed"] = () => [];
     renderWithApp(<ExportButtons models={[model("Chaveiro")]} name="chaveiro" />);

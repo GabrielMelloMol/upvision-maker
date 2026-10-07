@@ -367,7 +367,7 @@ Só análise: nenhum código foi alterado e nenhuma issue foi criada. Base: `ori
 - **Como reproduzir:** importe um 3MF multicor com `project_settings.config` corrompido. Gramas e custo saem sem a purga, e a lista de avisos fica vazia.
 - **Correção sugerida:** acrescentar um item em `warnings`.
 
-### B13. "Projeto do Bambu" usa a impressora padrão em silêncio quando o BambuStudio.conf não é lido
+### B13. "Projeto do Bambu" usa a impressora padrão em silêncio quando o BambuStudio.conf não é lido — ✅ CORRIGIDO (Lupa)
 - **Onde:** `src-tauri/src/bambu.rs:69-72` (`.ok()` + `unwrap_or(Value::Null)` → `DEFAULT_MACHINE`).
 - **Como reproduzir:** com o conf ilegível, o projeto sai com o perfil A1 e o toast ainda diz "com a impressora e os filamentos".
 - **Correção sugerida:** informar ao front que usou o padrão e ajustar o toast.
