@@ -4,6 +4,7 @@ Cada versão aparece para a usuária na tela "O que há de novo" depois da atual
 Formato: `## <versão> — <data>` e itens `- …` em linguagem simples.
 
 ## Próxima versão (ainda não lançada)
+- **Lista de Produtos explica de onde vem o preço**: sob o valor, "preço digitado" ou "preço calculado" (antes só aparecia "manual"), com um ⓘ que diz se ele muda quando o custo muda.
 - **Subtítulos que dizem o que fazer na tela**: Pedidos ("Acompanhe cada pedido, do pedido até a entrega."), Produtos (sem a palavra "insumos") e o modo Rápido da Calculadora ("Digite o filamento e o tempo para ver quanto custa e quanto cobrar.") deixam de descrever como o sistema funciona por dentro.
 - **Painel compara o mês com o mesmo trecho do mês passado**: no começo do mês, "Receita do mês R$ 0,00" não mostra mais "▼ 100%" contra o mês passado inteiro; a comparação vai do dia 1 até o mesmo dia do mês anterior.
 - **Financeiro explica o cartão "R$ por hora de impressão"**: sem tempo de impressão cadastrado nos produtos, em vez de "0 h de máquina" aparece "Cadastre o tempo de impressão dos produtos para ver este número."

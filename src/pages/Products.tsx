@@ -129,7 +129,16 @@ export default function Products() {
                 <td className="num">{cost === null ? "—" : money(cost)}</td>
                 <td className="num">
                   {price === null ? "—" : money(price)}
-                  {p.manualPrice !== null && <div className="muted small">manual</div>}
+                  {price !== null && (
+                    <div className="muted small">
+                      {p.manualPrice !== null ? "preço digitado" : "preço calculado"}
+                      <span
+                        className="term-tip"
+                        aria-hidden
+                        data-tip={p.manualPrice !== null ? "Você digitou este preço; ele não muda quando o custo muda." : "Calculado pelo custo e pelos multiplicadores das Preferências; muda quando o custo muda."}
+                      />
+                    </div>
+                  )}
                 </td>
                 <td className="num">
                   {p.stock.toLocaleString("pt-BR")} {p.minStock > 0 && p.stock <= p.minStock && <span className="badge">baixo</span>}

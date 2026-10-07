@@ -76,12 +76,16 @@ describe("Produtos: lista", () => {
     const lum = await screen.findByRole("row", { name: /Luminária/ });
     expect(lum).toHaveTextContent("R$ 15,96"); // custo por peça (mesmo exemplo do E2E)
     expect(lum).toHaveTextContent("R$ 79,80");
+    expect(lum).toHaveTextContent("preço calculado"); // UX B9: a legenda diz de onde vem o preço
+    expect(lum.querySelector(".term-tip")).toHaveAttribute("data-tip", expect.stringContaining("muda quando o custo muda"));
     expect(lum).toHaveTextContent("LUM-1");
     expect(lum).toHaveTextContent("baixo");
     expect(lum.querySelector("img.thumb")).toHaveAttribute("src", "data:image/png;base64,AAA");
     const chav = screen.getByRole("row", { name: /Chaveiro/ });
     expect(chav).toHaveTextContent("R$ 15,00");
-    expect(chav).toHaveTextContent("manual");
+    expect(chav).toHaveTextContent("preço digitado");
+    expect(chav).not.toHaveTextContent("preço calculado");
+    expect(chav.querySelector(".term-tip")).toHaveAttribute("data-tip", expect.stringContaining("não muda quando o custo muda"));
     expect(chav).not.toHaveTextContent("baixo");
     expect(screen.getByRole("row", { name: /Kit/ })).toHaveTextContent("kit");
     expect(screen.getByRole("row", { name: /Órfão/ })).toHaveTextContent("confira");
