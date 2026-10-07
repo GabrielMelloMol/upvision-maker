@@ -12,6 +12,7 @@ import { fieldErrors } from "../../ui/fieldErrors";
 import MoneyField from "../../ui/MoneyField";
 import { formatMoneyInput, parseMoney } from "../../ui/parse";
 import Sheet from "../../ui/Sheet";
+import SmartField from "../../ui/SmartField";
 import { errorText, useToast } from "../../ui/Toast";
 import type { OrdersData } from "./data";
 import ItemCustom from "./ItemCustom";
@@ -119,7 +120,7 @@ export default function OrderEditor({ data, order, draft, onClose, onSaved, save
       description: l.description,
       qty: num(l.qty),
       unitPrice: parseMoney(l.unitPrice),
-      discountPct: num(l.discountPct) || 0,
+      discountPct: l.discountPct.trim() === "" ? 0 : num(l.discountPct),
       unitCost: l.unitCost ?? today ?? 0,
       printMinutes: l.printMinutes ?? (p ? p.printMinutes / p.piecesPerPlate : 0),
       custom: l.custom,
@@ -132,7 +133,7 @@ export default function OrderEditor({ data, order, draft, onClose, onSaved, save
     dueDate: dueDate || null,
     paymentMethod: payment,
     notes,
-    freight: parseMoney(freight) || 0,
+    freight: freight.trim() === "" ? 0 : parseMoney(freight),
     items,
   };
   const valid = items.every((i) => Number.isFinite(i.qty) && Number.isFinite(i.unitPrice));
@@ -140,6 +141,10 @@ export default function OrderEditor({ data, order, draft, onClose, onSaved, save
 
   async function save(e: React.FormEvent) {
     e.preventDefault();
+    // B10: desconto ou frete que não dá para ler não vira 0 em silêncio (o pedido sairia com o valor errado)
+    const badDiscount = lines.some((l) => l.discountPct.trim() !== "" && !Number.isFinite(num(l.discountPct)));
+    const badFreight = freight.trim() !== "" && !Number.isFinite(parseMoney(freight));
+    if (badDiscount || badFreight) return setErrors({ ...(badDiscount && { items: "Confira o desconto: digite só o número, ex.: 10 para 10%." }), ...(badFreight && { freight: "Confira o frete: digite o valor em reais, ex.: 15,00." }) });
     if (noCost.length)
       return setErrors({ items: `Não deu para calcular o custo de: ${[...new Set(noCost)].join(", ")}. Abra o produto e corrija (kit dentro de si mesmo, insumo ilegível) antes de salvar o pedido.` });
     setSaving(true);
@@ -243,7 +248,9 @@ export default function OrderEditor({ data, order, draft, onClose, onSaved, save
               <div className="money">
                 <MoneyField label="Preço un." value={l.unitPrice} onChange={(v) => update(i, { unitPrice: v, manualPrice: true })} />
               </div>
-              <label className="narrow">Desc. %<input inputMode="decimal" value={l.discountPct} onChange={(e) => update(i, { discountPct: e.target.value })} /></label>
+              <div className="narrow">
+                <SmartField label="Desc. %" inputMode="decimal" parse={parseDecimal} invalidText="Digite o desconto, ex.: 10." value={l.discountPct} onChange={(v) => update(i, { discountPct: v })} />
+              </div>
               <span className="num line-total">{Number.isFinite(items[i].qty) && Number.isFinite(items[i].unitPrice) ? money(lineTotal(items[i])) : "—"}</span>
               <button type="button" className="link danger" onClick={() => setLines(lines.filter((_, j) => j !== i))}>
                 Remover
@@ -259,7 +266,7 @@ export default function OrderEditor({ data, order, draft, onClose, onSaved, save
       </fieldset>
 
       <div className="grid">
-        <MoneyField label="Frete cobrado" value={freight} onChange={setFreight} />
+        <MoneyField label="Frete cobrado" value={freight} onChange={setFreight} error={errors.freight} />
         <label className="span2">
           Observações (cor, acabamento, personalização)
           <textarea value={notes} maxLength={2000} rows={2} onChange={(e) => setNotes(e.target.value)} />

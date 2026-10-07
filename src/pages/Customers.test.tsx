@@ -83,6 +83,18 @@ describe("Clientes", () => {
     expect(await t.db.select("SELECT id FROM customers")).toEqual([]);
   });
 
+  test("B10: desconto padrão ilegível ('dez') avisa em vez de gravar 0", async () => {
+    const user = userEvent.setup();
+    renderWithApp(<Customers />);
+    const sheet = await openNew(user);
+    await user.type(within(sheet).getByLabelText(/^Nome/), "Loja da Bia");
+    await user.clear(within(sheet).getByLabelText(/Desconto/));
+    await user.type(within(sheet).getByLabelText(/Desconto/), "dez");
+    await user.click(within(sheet).getByRole("button", { name: /Cadastrar|Salvar/ }));
+    expect(await within(sheet).findByText(/Digite o desconto/)).toBeInTheDocument();
+    expect(await t.db.select("SELECT id FROM customers")).toEqual([]);
+  });
+
   test("editar desativa o cliente; inativo aparece esmaecido com selo", async () => {
     t.raw.exec("INSERT INTO customers (kind, name, city, uf, discountPct, active) VALUES ('pf', 'Bia', 'Niterói', 'RJ', 0, 1)");
     const user = userEvent.setup();

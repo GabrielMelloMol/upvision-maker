@@ -113,6 +113,34 @@ describe("Pedidos: novo pedido", () => {
     expect(card).toHaveTextContent("R$ 52,50");
   });
 
+  test("B10: desconto '10%' e frete '15 reais' não viram 0 em silêncio: bloqueiam o salvar com aviso", async () => {
+    seed();
+    const user = userEvent.setup();
+    renderWithApp(<Orders />);
+    await user.click((await screen.findAllByRole("button", { name: /Novo pedido|Criar o primeiro pedido/ }))[0]);
+    const sheet = await screen.findByRole("dialog", { name: "Novo pedido" });
+    await user.type(within(sheet).getByLabelText(/^Nome do cliente/), "Caio");
+    await user.click(within(sheet).getByRole("button", { name: "Adicionar item" }));
+    await user.selectOptions(within(sheet).getByLabelText("Produto"), "Chaveiro");
+    const discount = within(sheet).getByLabelText("Desc. %");
+    await user.clear(discount);
+    await user.type(discount, "10%");
+    await user.click(within(sheet).getByRole("button", { name: "Criar pedido" }));
+    expect(await within(sheet).findByText(/Digite o desconto/)).toBeInTheDocument();
+    expect(t.raw.prepare("SELECT id FROM orders").all()).toEqual([]);
+    await user.clear(discount);
+    await user.type(discount, "10");
+    await user.type(within(sheet).getByLabelText("Frete cobrado"), "15 reais");
+    await user.click(within(sheet).getByRole("button", { name: "Criar pedido" }));
+    expect(await within(sheet).findByText(/Confira o frete: digite o valor em reais/)).toBeInTheDocument();
+    expect(t.raw.prepare("SELECT id FROM orders").all()).toEqual([]);
+    await user.clear(within(sheet).getByLabelText("Frete cobrado"));
+    await user.type(within(sheet).getByLabelText("Frete cobrado"), "15");
+    await user.click(within(sheet).getByRole("button", { name: "Criar pedido" }));
+    expect(await screen.findByText("Pedido #1 criado.")).toBeInTheDocument();
+    expect(t.raw.prepare("SELECT freight FROM orders").get()).toEqual({ freight: 15 });
+  });
+
   test("canal troca o preço sugerido, mas não o digitado à mão; item avulso e remover linha", async () => {
     seed();
     const user = userEvent.setup();

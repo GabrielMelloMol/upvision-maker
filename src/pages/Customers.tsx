@@ -122,7 +122,10 @@ export function CustomerSheet({ initial, onClose, onSaved }: { initial: Partial<
     e.preventDefault();
     try {
       const db = await getDb();
-      const input = { ...v, discountPct: parseDecimal(discount) || 0 };
+      // B10: "dez" ou "10%" não viram 0 em silêncio
+      const pct = discount.trim() === "" ? 0 : parseDecimal(discount);
+      if (!Number.isFinite(pct)) return setErrors({ discountPct: "Digite o desconto, ex.: 10." });
+      const input = { ...v, discountPct: pct };
       let id = initial.id;
       if (id) await customersRepo.update(db, id, input);
       else id = await customersRepo.insert(db, input);

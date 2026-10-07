@@ -411,6 +411,19 @@ describe("Produtos: produzir", () => {
     await waitFor(() => expect(screen.getByRole("row", { name: /Luminária/ })).toHaveTextContent("5"));
   });
 
+  test("B10: produzir '1.000' unidades é mil, não uma", async () => {
+    await seedSupplies();
+    t.raw.exec(`INSERT INTO products (name, kind, composition, piecesPerPlate, stock) VALUES ('Botão', 'simple', '${COMP([[1, 10]])}', 1, 0)`);
+    const user = userEvent.setup();
+    renderWithApp(<Products />);
+    await user.click(await screen.findByRole("button", { name: "Produzir" }));
+    const sheet = await dialog("Produzir Botão");
+    const qty = within(sheet).getByLabelText("Quantas unidades ficaram prontas?");
+    await user.clear(qty);
+    await user.type(qty, "1.000");
+    expect(within(sheet).getByRole("row", { name: /PLA · Azul · X/ })).toHaveTextContent("10.000 g");
+  });
+
   test("quantidade inválida desabilita; insumo insuficiente avisa 'falta'; erro do Rust vira aviso", async () => {
     t.raw.exec(`INSERT INTO filaments (material, color, brand, pricePerKg, spoolG, stockG, minG) VALUES ('PETG', '', '', 100, 1000, 5, 0);
       INSERT INTO products (name, kind, composition, piecesPerPlate) VALUES ('Peça', 'simple', '${COMP([[1, 10], [9, 1]], [[9, 1]])}', 1)`);

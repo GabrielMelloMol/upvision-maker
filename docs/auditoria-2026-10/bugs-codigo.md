@@ -349,7 +349,7 @@ Só análise: nenhum código foi alterado e nenhuma issue foi criada. Base: `ori
 - **Como reproduzir:** valor 0,004 passa no `> 0` e gera um QR que os bancos recusam.
 - **Correção sugerida:** validar `Math.round(amount*100) >= 1`.
 
-### B10. Outros `parseX(...) || 0` que viram 0 sem aviso
+### B10. Outros `parseX(...) || 0` que viram 0 sem aviso — ✅ CORRIGIDO (Forja)
 - **Onde:**
   - `OrderEditor.tsx:116,129` (desconto "10%", frete "15 reais");
   - `Customers.tsx:122` (desconto do cliente);
