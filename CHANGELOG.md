@@ -35,6 +35,7 @@ Formato: `## <versão> — <data>` e itens `- …` em linguagem simples.
 - Em **Preferências**, "Incluir custos fixos no preço" e "Multiplicar também a mão de obra" viraram chaves como as outras opções, cada uma com a explicação na própria linha.
 - **Textos mais simples (AMS)**: em Criar e em Chaveiros, "AMS" agora vem explicado como "troca automática de cor".
 - **Filamentos: TD em "Opções avançadas"**: o campo TD (do HueForge) saiu do formulário básico e foi para uma seção fechada "Opções avançadas" (que abre sozinha ao editar um filamento que já tem TD), com a explicação em português.
+- **Impressoras com palavras mais simples**: "depreciação" virou "desgaste por hora" e a placa "PEI" aparece explicada (placa de impressão).
 
 ## 0.10.5 — 2026-10-07
 - **Importar um 3MF fatiado com a configuração danificada avisa**: antes as gramas e o custo saíam sem a purga das trocas de cor e sem a impressora, sem dizer nada; agora aparece o aviso.

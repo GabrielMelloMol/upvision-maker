@@ -39,9 +39,9 @@ export default function Printers() {
             </button>
           ),
         },
-        { key: "price", label: "Preço pago", kind: "money", hint: "Com o preço, a calculadora cobra a depreciação por hora e deixa de usar a manutenção %." },
+        { key: "price", label: "Preço pago", kind: "money", hint: "Com o preço, a calculadora cobra o desgaste por hora e ignora a % de manutenção." },
         { key: "lifeHours", label: "Vida útil (h)", kind: "number", hint: "Horas de impressão até trocar a máquina. 5000 h ≈ 2 anos imprimindo 7 h por dia." },
-        { key: "upkeepPerHour", label: "Desgaste por hora", kind: "money", hint: "Peças que gastam: bico, PEI, correias. Deixe 0 se não souber.", formOnly: true },
+        { key: "upkeepPerHour", label: "Desgaste por hora", kind: "money", hint: "Peças que gastam: bico, placa de impressão (PEI), correias. Deixe 0 se não souber.", formOnly: true },
       ]}
       defaults={DEFAULTS}
       catalog={{

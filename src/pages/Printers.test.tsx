@@ -78,3 +78,12 @@ test("potência medida com tomada inteligente preenche o campo (#22)", async () 
   await user.click(within(sheet).getByRole("button", { name: "Usar 100 W" }));
   expect(screen.getByLabelText(/^Potência/)).toHaveValue("100");
 });
+
+test("textos de Impressoras sem jargão solto: desgaste por hora e a placa PEI explicada (UX M1)", async () => {
+  renderWithApp(<Printers />);
+  await screen.findByLabelText(/^Nome/);
+  expect(screen.getByText("Com o preço, a calculadora cobra o desgaste por hora e ignora a % de manutenção.")).toBeInTheDocument();
+  expect(screen.getByText("Peças que gastam: bico, placa de impressão (PEI), correias. Deixe 0 se não souber.")).toBeInTheDocument();
+  expect(screen.queryByText(/depreciação/)).not.toBeInTheDocument();
+});
+
