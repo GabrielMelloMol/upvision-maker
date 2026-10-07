@@ -58,11 +58,17 @@ pub async fn apply(pool: &Pool<Sqlite>, movements: &[Movement], order: Option<&O
             _ => {}
         }
     }
+    // M8: devolver (delta positivo) um item que foi excluído depois da baixa não trava o estorno; fica anotado no histórico
+    let mut skipped: Vec<String> = vec![];
     for m in movements {
         let (table, col) = target(&m.kind)?;
         let sql = format!("UPDATE {table} SET {col} = {col} + ? WHERE id = ?");
         let r = sqlx::query(&sql).bind(m.delta).bind(m.id).execute(&mut *tx).await.map_err(|e| e.to_string())?;
         if r.rows_affected() == 0 {
+            if m.delta > 0.0 {
+                skipped.push(format!("{table} #{}", m.id));
+                continue;
+            }
             return Err(format!("Item de estoque não encontrado ({table} #{}).", m.id));
         }
     }
@@ -83,7 +89,7 @@ pub async fn apply(pool: &Pool<Sqlite>, movements: &[Movement], order: Option<&O
         sqlx::query("INSERT INTO order_history (orderId, status, note, at) VALUES (?, ?, ?, datetime('now', 'localtime'))")
             .bind(o.order_id)
             .bind(&o.status)
-            .bind(&o.note)
+            .bind(if skipped.is_empty() { o.note.clone() } else { format!("{} · não devolveu o que foi excluído do estoque ({})", o.note, skipped.join(", ")) })
             .execute(&mut *tx)
             .await
             .map_err(|e| e.to_string())?;
@@ -176,6 +182,28 @@ mod tests {
         assert_eq!(stock(&pool, "SELECT stockG FROM filaments").await, 1000.0);
         let applied: i64 = sqlx::query_scalar("SELECT stockApplied FROM orders").fetch_one(&pool).await.unwrap();
         assert_eq!(applied, 0);
+    }
+
+    #[tokio::test]
+    async fn estorno_pula_item_excluido_e_anota_no_historico() {
+        // M8: o filamento foi excluído depois da baixa; cancelar o pedido não pode travar
+        let pool = db().await;
+        apply(&pool, &[mv("filament", 1, -100.0), mv("material", 1, -2.0)], Some(&confirm(false, true))).await.unwrap();
+        sqlx::query("DELETE FROM filaments WHERE id = 1").execute(&pool).await.unwrap();
+        let back = OrderChange { expect_applied: true, set_applied: false, note: "Cancelado · Estoque devolvido".into(), ..confirm(true, false) };
+        apply(&pool, &[mv("filament", 1, 100.0), mv("material", 1, 2.0)], Some(&back)).await.unwrap();
+        assert_eq!(stock(&pool, "SELECT stock FROM materials").await, 10.0); // o que existe volta
+        let applied: i64 = sqlx::query_scalar("SELECT stockApplied FROM orders").fetch_one(&pool).await.unwrap();
+        assert_eq!(applied, 0);
+        let note: String = sqlx::query_scalar("SELECT note FROM order_history ORDER BY id DESC LIMIT 1").fetch_one(&pool).await.unwrap();
+        assert!(note.contains("filaments #1") && note.contains("excluído"), "{note}");
+    }
+
+    #[tokio::test]
+    async fn baixa_de_item_excluido_continua_erro() {
+        let pool = db().await;
+        sqlx::query("DELETE FROM filaments WHERE id = 1").execute(&pool).await.unwrap();
+        assert!(apply(&pool, &[mv("filament", 1, -100.0)], Some(&confirm(false, true))).await.is_err());
     }
 
     #[tokio::test]

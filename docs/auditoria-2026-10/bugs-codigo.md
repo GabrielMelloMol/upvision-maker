@@ -212,7 +212,7 @@ Só análise: nenhum código foi alterado e nenhuma issue foi criada. Base: `ori
 - **Como reproduzir:** salve um pedido com muitos itens e feche ou derrube o app logo em seguida. O pedido fica com 0 itens ou só parte deles.
 - **Correção sugerida:** comando Rust transacional, como `apply_stock`.
 
-### M8. Excluir um filamento ou produto já baixado num pedido trava o estorno
+### M8. Excluir um filamento ou produto já baixado num pedido trava o estorno — ✅ CORRIGIDO (Forja)
 - **Onde:** `src-tauri/src/stock.rs:64-66` (`Err` se `rows_affected == 0`); `src/db/ordersRepo.ts:84-86`; `src/db/productsRepo.ts:44-47`; `src/ui/CrudPage.tsx:220` (exclui sem conferir pedidos).
 - **Como reproduzir:** dê baixa de um pedido, exclua o filamento usado e cancele o pedido. Aparece "Item de estoque não encontrado (filaments #N)", e o pedido não muda mais de status nem pode ser excluído.
 - **Correção sugerida:** no estorno, pular itens inexistentes e anotar no histórico, ou impedir a exclusão de itens presentes num `appliedPlan` ativo.
