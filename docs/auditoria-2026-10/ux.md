@@ -95,7 +95,7 @@ A pergunta foi: uma vendedora de impressão 3D que acabou de instalar o app cons
   - Levar TD e HueForge para "Opções avançadas".
   - Pôr um ⓘ com uma frase onde o termo técnico tiver que ficar.
 
-**M2 · Extrusão 3D, OpenSCAD e Etiquetas de rolo · rótulo "Outros formatos:" sem nada depois**
+**✅ M2 · Extrusão 3D, OpenSCAD e Etiquetas de rolo · rótulo "Outros formatos:" sem nada depois**
 - Print: [OpenSCAD](ux/11-scad-outros-formatos.jpg)
 - **O que acontece:** sem peça carregada, o bloco de exportar mostra "Outros formatos:" e mais nada. Com peça, aparece "Salvar STL".
 - **Sugestão:** esconder a linha enquanto não houver peça, ou mostrar "Salvar STL" desabilitado.

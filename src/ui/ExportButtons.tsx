@@ -211,7 +211,7 @@ export default function ExportButtons({ models: input, name, busy, pauses: input
             Projeto do Bambu Studio (pausa pronta)
           </button>
         )}
-        {models.length === 1 ? (
+        {models.length <= 1 ? (
           <button className="link" disabled={disabled} onClick={() => save(`${slug(name)}.stl`, writeStl(models), "stl", "STL")}>
             Salvar STL
           </button>

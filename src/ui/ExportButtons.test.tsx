@@ -26,6 +26,8 @@ test("vários objetos: um STL por objeto com o nome no arquivo; 3MF junta tudo",
 test("sem modelos ou ocupado: desabilitado", () => {
   const { rerender } = renderWithApp(<ExportButtons models={[]} name="x" />);
   expect(screen.getByRole("button", { name: /Salvar 3MF/ })).toBeDisabled();
+  // "Outros formatos:" nunca fica sozinho (UX M2): sem peça, o STL aparece desativado
+  expect(screen.getByRole("button", { name: /Salvar STL/ })).toBeDisabled();
   rerender(<ExportButtons models={[model("A")]} name="x" busy />);
   expect(screen.getByRole("button", { name: /Salvar STL/ })).toBeDisabled();
 });

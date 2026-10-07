@@ -40,7 +40,7 @@ describe("Cortador de biscoito", () => {
     await user.selectOptions(screen.getByLabelText("O que marca na massa"), "holes");
     await user.click(screen.getByRole("checkbox", { name: /Carimbo do desenho interno/ }));
     expect(screen.queryByLabelText("O que marca na massa")).not.toBeInTheDocument();
-    expect(await screen.findByRole("button", { name: /Salvar STL/ }, BUILD)).toBeEnabled();
+    await waitFor(() => expect(screen.getByRole("button", { name: /Salvar STL/ })).toBeEnabled(), BUILD); // sem peça ainda, o STL aparece desativado (UX M2)
     expect(screen.queryByText(/Sem desenho interno/)).not.toBeInTheDocument();
   });
 
