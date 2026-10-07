@@ -35,14 +35,14 @@ describe("CrudPage (Impressoras)", () => {
     await t.db.execute("INSERT INTO printers (name, watts) VALUES ('Ender', 150)");
     const user = userEvent.setup();
     renderWithApp(<Printers />);
-    await user.click(await screen.findByRole("button", { name: "Editar" }));
+    await user.click(await screen.findByRole("button", { name: /^Editar / }));
     expect(screen.getByRole("heading", { name: "Editar impressora" })).toBeInTheDocument();
     const watts = screen.getByLabelText(/^Potência/);
     await user.clear(watts);
     await user.type(watts, "180");
     await user.click(screen.getByRole("button", { name: "Salvar alterações" }));
     await waitFor(async () => expect(await t.db.select("SELECT watts FROM printers")).toEqual([{ watts: 180 }]));
-    await user.click(screen.getByRole("button", { name: "Editar" }));
+    await user.click(screen.getByRole("button", { name: /^Editar / }));
     await user.click(screen.getByRole("button", { name: "Cancelar" }));
     expect(screen.queryByRole("heading", { name: /impressora$/ })).not.toBeInTheDocument();
     await user.click(screen.getByRole("button", { name: "Adicionar impressora" }));
@@ -56,12 +56,12 @@ describe("CrudPage (Impressoras)", () => {
     const user = userEvent.setup({ advanceTimers: vi.advanceTimersByTime });
     renderWithApp(<Printers />);
     const row = await screen.findByRole("row", { name: /Ender/ });
-    await user.click(within(row).getByRole("button", { name: "Excluir" }));
+    await user.click(within(row).getByRole("button", { name: /^Excluir / }));
     expect(screen.queryByRole("row", { name: /Ender/ })).not.toBeInTheDocument();
     await user.click(await screen.findByRole("button", { name: "Desfazer" }));
     expect(await screen.findByRole("row", { name: /Ender/ })).toBeInTheDocument();
 
-    await user.click(within(screen.getByRole("row", { name: /A1/ })).getByRole("button", { name: "Excluir" }));
+    await user.click(within(screen.getByRole("row", { name: /A1/ })).getByRole("button", { name: /^Excluir / }));
     await act(async () => vi.advanceTimersByTime(UNDO_MS + 100));
     await waitFor(async () => expect(await t.db.select("SELECT name FROM printers")).toEqual([{ name: "Ender" }]));
     vi.useRealTimers();
@@ -100,7 +100,7 @@ describe("CrudPage (Filamentos)", () => {
     vi.useFakeTimers({ shouldAdvanceTime: true });
     const user = userEvent.setup({ advanceTimers: vi.advanceTimersByTime });
     renderWithApp(<Filaments />);
-    await user.click(within(await screen.findByRole("row", { name: /PLA/ })).getByRole("button", { name: "Excluir" }));
+    await user.click(within(await screen.findByRole("row", { name: /PLA/ })).getByRole("button", { name: /^Excluir / }));
     await act(async () => vi.advanceTimersByTime(UNDO_MS + 100));
     expect(await screen.findByText(/Não foi possível excluir "PLA": disco cheio/)).toBeInTheDocument();
     expect(screen.getByRole("row", { name: /PLA/ })).toBeInTheDocument();

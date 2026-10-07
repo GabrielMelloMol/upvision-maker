@@ -150,8 +150,8 @@ ul.changes { margin: 0; padding-left: 18px; display: grid; gap: 6px; }
 .sheet-icon.brand-mark { width: 24px; height: 24px; color: var(--text); }
 .sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
 td.actions { white-space: nowrap; width: 1%; }
-/* ações da linha em até 2 linhas: a tabela cabe a 1100 px (polimento) */
-.row-actions { display: flex; flex-wrap: wrap; justify-content: flex-end; min-width: 10.5rem; }
+/* ações da linha: texto (Repor, Duplicar) e ícones (editar, excluir) numa linha; quebra só se faltar largura (UX M7) */
+.row-actions { display: flex; flex-wrap: wrap; align-items: center; justify-content: flex-end; min-width: 15rem; }
 tr.selected { background: var(--accent-soft); }
 tr.restock > td { background: var(--surface-2); animation: fade-up var(--dur) var(--ease-out) both; }
 

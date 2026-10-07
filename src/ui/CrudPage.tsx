@@ -1,5 +1,5 @@
 import HintText from "./HintText";
-import { Plus, type LucideIcon } from "lucide-react";
+import { Pencil, Plus, Trash2, type LucideIcon } from "lucide-react";
 import { Fragment, useEffect, useRef, useState, type ReactNode } from "react";
 import { getDb } from "../db";
 import type { Db } from "../db/types";
@@ -393,12 +393,9 @@ export default function CrudPage({ pageId, title, singular, lead, repo, fields, 
                         Duplicar
                       </button>
                     )}
-                    <button className="link" onClick={() => edit(r)}>
-                      Editar
-                    </button>
-                    <button className="link danger" onClick={() => remove(r)}>
-                      Excluir
-                    </button>
+                    {/* editar e excluir como ícones, igual a Clientes, Custos e Produtos (UX M7); o nome inclui a linha */}
+                    <Button variant="ghost" size="sm" icon={Pencil} aria-label={`Editar ${String(r[fields[0].key])}`} onClick={() => edit(r)} />
+                    <Button variant="ghost" size="sm" icon={Trash2} className="danger" aria-label={`Excluir ${String(r[fields[0].key])}`} onClick={() => remove(r)} />
                     </div>
                   </td>
                 </tr>

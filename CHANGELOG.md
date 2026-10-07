@@ -26,6 +26,7 @@ Formato: `## <versão> — <data>` e itens `- …` em linguagem simples.
 - **Abrir no Bambu Studio e no fatiador sem travar com arquivos grandes**: o arquivo da peça passa para o fatiador como está, em vez de ser convertido em uma lista enorme de números; uma litofania com foto grande não faz mais a tela congelar nem a memória saltar centenas de MB.
 - **Modelos prontos que pedem um desenho** (Medalha adaptável, Chaveiro de logo, Cortador + carimbo…): ao lado do envio há o botão "Usar um desenho de exemplo", para ver o modelo na hora e depois trocar pelo seu.
 - **Chave da IA guardada com mais segurança**: a chave da Anthropic agora fica no cofre de senhas do computador (Keychain no Mac, Gerenciador de Credenciais no Windows), e não mais em texto no banco do app. Quem já tinha uma chave salva não precisa fazer nada: ela é movida sozinha.
+- **Listas do Estoque como as outras**: em Filamentos, Materiais extras e Impressoras, editar e excluir viraram ícones (lápis e lixeira), como em Clientes, Custos e Produtos, e as ações da linha ficam numa linha só.
 
 ## 0.10.5 — 2026-10-07
 - **Importar um 3MF fatiado com a configuração danificada avisa**: antes as gramas e o custo saíam sem a purga das trocas de cor e sem a impressora, sem dizer nada; agora aparece o aviso.
