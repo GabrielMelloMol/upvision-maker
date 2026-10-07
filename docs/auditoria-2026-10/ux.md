@@ -100,7 +100,7 @@ A pergunta foi: uma vendedora de impressão 3D que acabou de instalar o app cons
 - **O que acontece:** sem peça carregada, o bloco de exportar mostra "Outros formatos:" e mais nada. Com peça, aparece "Salvar STL".
 - **Sugestão:** esconder a linha enquanto não houver peça, ou mostrar "Salvar STL" desabilitado.
 
-**M3 · Vazios que mandam para outra tela sem o link**
+**✅ M3 · Vazios que mandam para outra tela sem o link**
 - Print: [Etiquetas de rolo](ux/10-etiquetas-vazio.jpg) · [Pixel art](ux/17-pixel-vazio.jpg)
 - **Onde aparece:**
   - Etiquetas de rolo: "Nenhum filamento cadastrado… Cadastre os rolos em Filamentos", só texto.

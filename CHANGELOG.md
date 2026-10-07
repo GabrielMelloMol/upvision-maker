@@ -12,6 +12,7 @@ Formato: `## <versão> — <data>` e itens `- …` em linguagem simples.
 - **Organizador de gaveta mais acessível para leitor de tela**: a prévia 3D e o botão "Ver montado" deixaram de ser um controle dentro de outro.
 - **Arquivo 3MF ou planilha gigante não trava o app**: ao importar um arquivo que descompactaria para um tamanho absurdo (vários GB), o app recusa com uma mensagem clara em vez de travar a janela.
 - As dicas curtas dos campos não terminam mais em dois-pontos solto antes do ⓘ.
+- Quando falta cadastro, a tela diz o que fazer e leva até lá: **Etiquetas de rolo** e **Pixel art** têm botão "Cadastrar filamento(s)", e **Pedidos** vazio tem "Cadastrar produtos" ao lado de "Criar o primeiro pedido".
 
 ## 0.10.5 — 2026-10-07
 - **Importar um 3MF fatiado com a configuração danificada avisa**: antes as gramas e o custo saíam sem a purga das trocas de cor e sem a impressora, sem dizer nada; agora aparece o aviso.

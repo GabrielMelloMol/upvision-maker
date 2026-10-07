@@ -5,6 +5,7 @@ import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
 import { beforeAll, describe, expect, test, vi } from "vitest";
 import { renderWithApp, setupTauri } from "../test/harness";
+import { NAVIGATE_EVENT } from "../ui/navigate";
 import SpoolLabels from "./SpoolLabels";
 
 vi.mock("../ui/viewerScene", () => ({ createViewer: () => ({ setModels() {}, dispose() {} }) }));
@@ -28,6 +29,13 @@ describe("Etiquetas de rolo", () => {
   test("sem filamentos: estado vazio", async () => {
     renderWithApp(<SpoolLabels />);
     expect(await screen.findByText("Nenhum filamento cadastrado")).toBeInTheDocument();
+    // o vazio leva a quem resolve (UX M3)
+    const heard: string[] = [];
+    const on = (e: Event) => heard.push((e as CustomEvent<string>).detail);
+    window.addEventListener(NAVIGATE_EVENT, on);
+    await userEvent.click(screen.getByRole("button", { name: "Cadastrar filamento" }));
+    window.removeEventListener(NAVIGATE_EVENT, on);
+    expect(heard).toEqual(["filaments"]);
   });
 
   test("marca filamentos, salva o PDF de etiquetas e mostra as plaquinhas 3D", async () => {

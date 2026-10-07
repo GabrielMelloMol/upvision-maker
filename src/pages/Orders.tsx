@@ -8,6 +8,7 @@ import EmptyState from "../ui/EmptyState";
 import LoadError from "../ui/LoadError";
 import Segmented from "../ui/Segmented";
 import { errorText, useToast } from "../ui/Toast";
+import { requestNavigate } from "../ui/navigate";
 import { takePendingOpen } from "../ui/search";
 import { useData } from "../ui/useData";
 import { EMPTY_ORDERS, loadOrdersData } from "./orders/data";
@@ -108,7 +109,7 @@ export default function Orders() {
       {error ? (
         <LoadError error={error} onRetry={reload} />
       ) : data.orders.length === 0 ? (
-        <EmptyState icon={ClipboardList} title="Nenhum pedido ainda" action={<Button variant="primary" icon={Plus} onClick={() => setEditing("new")}>Criar o primeiro pedido</Button>}>
+        <EmptyState icon={ClipboardList} title="Nenhum pedido ainda" action={<><Button variant="primary" icon={Plus} onClick={() => setEditing("new")}>Criar o primeiro pedido</Button><Button onClick={() => requestNavigate("products")}>Cadastrar produtos</Button></>}>
           Cadastre produtos antes para o preço e a baixa de estoque saírem sozinhos.
         </EmptyState>
       ) : view === "board" ? (

@@ -15,7 +15,9 @@ import { loadPdfFonts } from "../pdf/fonts";
 import { spoolLabelsPdf, type LabelLayout } from "../pdf/spoolLabels";
 import Alert from "../ui/Alert";
 import { colorSwatch } from "../ui/ColorDots";
+import Button from "../ui/Button";
 import EmptyState from "../ui/EmptyState";
+import { requestNavigate } from "../ui/navigate";
 import ExportButtons from "../ui/ExportButtons";
 import { DEFAULT_PROFILE } from "../geometry/printProfile";
 import NumField, { inRange } from "../ui/NumField";
@@ -133,7 +135,7 @@ export default function SpoolLabels() {
           <div className="card stack">
             <h3>Imprimir etiquetas</h3>
             {!loading && !rows.length ? (
-              <EmptyState icon={Cylinder} title="Nenhum filamento cadastrado">
+              <EmptyState icon={Cylinder} title="Nenhum filamento cadastrado" action={<Button variant="primary" onClick={() => requestNavigate("filaments")}>Cadastrar filamento</Button>}>
                 Cadastre os rolos em Filamentos para gerar as etiquetas.
               </EmptyState>
             ) : (

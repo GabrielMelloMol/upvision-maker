@@ -4,6 +4,7 @@ import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, test, vi } from "vitest";
 import { renderWithApp, setupTauri } from "../test/harness";
 import { loadRaster } from "../vectorize/client";
+import { NAVIGATE_EVENT } from "../ui/navigate";
 import PixelArt from "./PixelArt";
 
 vi.mock("../ui/viewerScene", () => ({ createViewer: () => ({ setModels() {}, dispose() {} }) }));
@@ -43,4 +44,14 @@ describe("Pixel art (#95)", () => {
     await user.click(screen.getByRole("button", { name: "3D" }));
     expect(await screen.findByRole("button", { name: /STL pixels cor 2 \(50\)/ }, BUILD)).toBeInTheDocument();
   }, 30_000);
+});
+
+test("pixel art sem filamentos: link para cadastrar as cores (UX M3)", async () => {
+  const heard: string[] = [];
+  const on = (e: Event) => heard.push((e as CustomEvent<string>).detail);
+  window.addEventListener(NAVIGATE_EVENT, on);
+  renderWithApp(<PixelArt />);
+  await userEvent.click(await screen.findByRole("button", { name: "Cadastrar filamentos" }));
+  window.removeEventListener(NAVIGATE_EVENT, on);
+  expect(heard).toEqual(["filaments"]);
 });

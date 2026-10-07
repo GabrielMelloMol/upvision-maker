@@ -7,6 +7,7 @@ import { textToCrossSection } from "../geometry/text";
 import { Grid3x3 } from "lucide-react";
 import Alert from "../ui/Alert";
 import EmptyState from "../ui/EmptyState";
+import { requestNavigate } from "../ui/navigate";
 import Dropzone from "../ui/Dropzone";
 import ExportButtons from "../ui/ExportButtons";
 import NumField, { inRange } from "../ui/NumField";
@@ -119,6 +120,11 @@ export default function PixelArt() {
               <NumField label="Pixels no lado maior" value={size} onChange={setSize} min={MIN_SIZE} max={MAX_SIZE} step={1} unit="" />
               <NumField label="Cores" value={colors} onChange={setColors} min={2} max={8} step={1} unit="" hint={registered.length ? "Trocadas pelos filamentos cadastrados." : "Cadastre filamentos para usar as suas cores."} />
             </div>
+            {!registered.length && (
+              <button type="button" className="link" onClick={() => requestNavigate("filaments")}>
+                Cadastrar filamentos
+              </button>
+            )}
             <div className="row">
               <button type="button" disabled={!file || !valid} onClick={() => void makeGrid(file)}>
                 Refazer a grade

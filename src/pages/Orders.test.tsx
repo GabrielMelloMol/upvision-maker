@@ -4,6 +4,7 @@ import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, test } from "vitest";
 import { todayIso } from "../domain/orders";
 import { renderWithApp, setupTauri, type TauriState } from "../test/harness";
+import { NAVIGATE_EVENT } from "../ui/navigate";
 import { setPendingOpen } from "../ui/search";
 import Orders from "./Orders";
 
@@ -521,4 +522,15 @@ describe("Pedidos: editar, detalhe e lista", () => {
     await user.click(screen.getByRole("button", { name: /Abrir pedido #1/ }));
     expect(await screen.findByText(/Erro ao carregar histórico/)).toBeInTheDocument();
   });
+});
+
+test("pedidos vazio: além de criar o pedido, leva a cadastrar produtos (UX M3)", async () => {
+  const heard: string[] = [];
+  const on = (e: Event) => heard.push((e as CustomEvent<string>).detail);
+  window.addEventListener(NAVIGATE_EVENT, on);
+  renderWithApp(<Orders />);
+  expect(await screen.findByText("Nenhum pedido ainda")).toBeInTheDocument();
+  await userEvent.click(screen.getByRole("button", { name: "Cadastrar produtos" }));
+  window.removeEventListener(NAVIGATE_EVENT, on);
+  expect(heard).toEqual(["products"]);
 });
