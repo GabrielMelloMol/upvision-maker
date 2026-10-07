@@ -7,13 +7,22 @@ type Row = { id: number; data: string; createdAt: string; convertedOrderId: numb
 export const quotesRepo = {
   async list(db: Db): Promise<Quote[]> {
     const rows = await db.select<Row>("SELECT * FROM quotes ORDER BY id DESC");
-    return rows.flatMap((r) => {
-      const p = QuoteInput.safeParse(JSON.parse(r.data));
-      if (!p.success) {
-        console.error(`Orçamento ${r.id} inválido no banco:`, p.error);
-        return [];
+    return rows.map((r) => {
+      const meta = { id: r.id, createdAt: r.createdAt, convertedOrderId: r.convertedOrderId, year: r.year, seq: r.seq };
+      let p: ReturnType<typeof QuoteInput.safeParse> | null = null;
+      try {
+        p = QuoteInput.safeParse(JSON.parse(r.data));
+      } catch (e) {
+        console.error(`Orçamento ${r.id} com dados quebrados:`, e);
       }
-      return [{ ...p.data, id: r.id, createdAt: r.createdAt, convertedOrderId: r.convertedOrderId, year: r.year, seq: r.seq }];
+      if (p?.success) return { ...p.data, ...meta };
+      if (p) console.error(`Orçamento ${r.id} inválido no banco:`, p.error);
+      // M16: não some da lista (a numeração pareceria pular): fica marcado e só dá para excluir
+      return {
+        customerId: null, customerName: "(cliente ilegível)", channel: "", dueDate: null, paymentMethod: "", notes: "", freight: 0,
+        items: [], validUntil: "9999-12-31", terms: "", ...meta,
+        unreadable: "Este orçamento não pôde ser lido (dado antigo ou estragado). Exclua-o e refaça se precisar.",
+      };
     });
   },
   async create(db: Db, input: unknown, now: string): Promise<number> {

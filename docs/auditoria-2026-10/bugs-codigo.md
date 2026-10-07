@@ -257,7 +257,7 @@ Só análise: nenhum código foi alterado e nenhuma issue foi criada. Base: `ori
 - **Como reproduzir:** com o banco travado ou um pedido com `appliedPlan` corrompido, abra Pedidos. Aparece "Nenhum pedido ainda" com o botão "Criar o primeiro pedido", e o Financeiro mostra lucro 0.
 - **Correção sugerida:** devolver `error` no `useData` e mostrar "Não foi possível ler — Tentar de novo"; fazer o parse por linha em `ordersRepo.list`.
 
-### M16. Um orçamento inválido some da lista sem aviso
+### M16. Um orçamento inválido some da lista sem aviso — ✅ CORRIGIDO (Forja)
 - **Onde:** `src/db/quotesRepo.ts:11-14` (o `flatMap` descarta a linha com `console.error`).
 - **Como reproduzir:** deixe um orçamento cujo `data` não passa no `QuoteInput` atual. Ele desaparece e a numeração parece pular.
 - **Correção sugerida:** manter a linha com uma marca "não pôde ser lido" e avisar.

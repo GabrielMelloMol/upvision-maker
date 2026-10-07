@@ -9,7 +9,7 @@ export const QuoteInput = OrderInput.extend({
 });
 export type QuoteInput = z.infer<typeof QuoteInput>;
 /** year/seq: número do orçamento no ano (#36); null só em dado antigo que ainda não foi numerado. */
-export type Quote = QuoteInput & { id: number; createdAt: string; convertedOrderId: number | null; year: number | null; seq: number | null };
+export type Quote = QuoteInput & { id: number; createdAt: string; convertedOrderId: number | null; year: number | null; seq: number | null; /** Texto do problema quando o orçamento gravado não se lê mais (M16): aparece na lista, só dá para excluir. */ unreadable?: string };
 
 /** "ORC-2026-001"; sem número, "ORC-7" (o id). */
 export const quoteNumber = (q: Pick<Quote, "id" | "year" | "seq">, prefix: string) =>

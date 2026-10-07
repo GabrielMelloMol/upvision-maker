@@ -126,9 +126,11 @@ export default function Quotes({ go }: { go: Go }) {
               <tr key={q.id}>
                 <td>{num(q)}</td>
                 <td>{q.customerName}</td>
-                <td>{dateBr(q.validUntil)}</td>
+                <td>{q.unreadable ? "—" : dateBr(q.validUntil)}</td>
                 <td>
-                  {q.convertedOrderId ? (
+                  {q.unreadable ? (
+                    <span className="badge" title={q.unreadable}>não pôde ser lido</span>
+                  ) : q.convertedOrderId ? (
                     <button className="link" onClick={() => go("orders")}>virou o pedido #{q.convertedOrderId}</button>
                   ) : isExpired(q, today) ? (
                     <span className="badge">vencido</span>
@@ -136,13 +138,15 @@ export default function Quotes({ go }: { go: Go }) {
                     "aberto"
                   )}
                 </td>
-                <td className="num">{money(orderTotals(q.items, q.freight).total)}</td>
+                <td className="num">{q.unreadable ? "—" : money(orderTotals(q.items, q.freight).total)}</td>
                 <td>
                   <div className="list-actions">
-                    <Button variant="ghost" size="sm" icon={FileDown} onClick={() => pdf(q)}>
-                      PDF
-                    </Button>
-                    {!q.convertedOrderId && (
+                    {!q.unreadable && (
+                      <Button variant="ghost" size="sm" icon={FileDown} onClick={() => pdf(q)}>
+                        PDF
+                      </Button>
+                    )}
+                    {!q.convertedOrderId && !q.unreadable && (
                       <>
                         <Button variant="ghost" size="sm" icon={ArrowRightLeft} onClick={() => convert(q)}>
                           Virar pedido

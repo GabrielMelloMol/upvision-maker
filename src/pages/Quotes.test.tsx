@@ -282,6 +282,19 @@ describe("Contrato de consignação", () => {
   });
 });
 
+describe("M16: orçamento ilegível", () => {
+  test("aparece na lista como 'não pôde ser lido', sem PDF nem 'Virar pedido', e dá para excluir", async () => {
+    seed();
+    t.raw.exec(`INSERT INTO quotes (data, createdAt, year, seq) VALUES ('{"customerName":""}', '2026-09-01 10:00:00', 2026, 7)`);
+    const { user } = setup();
+    const row = (await screen.findByText("ORC-2026-007")).closest("tr") as HTMLElement;
+    expect(within(row).getByText(/não pôde ser lido/)).toBeInTheDocument();
+    expect(within(row).queryByRole("button", { name: /PDF|Virar pedido/ })).not.toBeInTheDocument();
+    await user.click(within(row).getByRole("button", { name: "Excluir orçamento ORC-2026-007" }));
+    await waitFor(() => expect(screen.queryByText("ORC-2026-007")).not.toBeInTheDocument());
+  });
+});
+
 describe("Catálogo em PDF", () => {
   test("marca/desmarca produtos, escolhe o preço e salva com o título no nome do arquivo", async () => {
     seed();

@@ -90,3 +90,18 @@ test("migração numera os orçamentos que já existiam pelo ano de criação", 
   const next = await quotesRepo.create(old, quote, "2026-03-01 10:00:00");
   expect(quoteNumber((await quotesRepo.list(old)).find((q) => q.id === next)!, "ORC")).toBe("ORC-2026-003");
 });
+
+test("M16: orçamento que não passa no formato atual (ou com JSON quebrado) continua na lista, marcado, com o número", async () => {
+  await quotesRepo.create(db, quote, "2026-09-28 10:00:00");
+  await quotesRepo.create(db, quote, "2026-09-28 11:00:00");
+  await quotesRepo.create(db, quote, "2026-09-28 12:00:00");
+  await db.execute(`UPDATE quotes SET data = '{"customerName":""}' WHERE seq = 2`);
+  await db.execute(`UPDATE quotes SET data = '{quebrado' WHERE seq = 3`);
+  const list = await quotesRepo.list(db);
+  expect(list.map((q) => q.seq)).toEqual([3, 2, 1]); // a numeração não parece pular
+  expect(list.map((q) => !!q.unreadable)).toEqual([true, true, false]);
+  expect(list[1].unreadable).toMatch(/não pôde ser lido/);
+  expect(list[0].year).toBe(2026);
+  await quotesRepo.remove(db, list[0].id); // dá para excluir
+  expect(await quotesRepo.list(db)).toHaveLength(2);
+});
