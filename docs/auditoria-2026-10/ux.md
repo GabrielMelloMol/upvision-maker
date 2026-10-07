@@ -168,7 +168,7 @@ A pergunta foi: uma vendedora de impressão 3D que acabou de instalar o app cons
 
 ### Baixa
 
-**B1 · Imagem → SVG · "Extrudar em 3D" quebra em 2 linhas** no rodapé de ações. [print](ux/22-svg-vazio.jpg). Rótulo menor ("Fazer 3D") ou botões empilhados.
+**✅ B1 · Imagem → SVG · "Extrudar em 3D" quebra em 2 linhas** no rodapé de ações. [print](ux/22-svg-vazio.jpg). Rótulo menor ("Fazer 3D") ou botões empilhados.
 
 **B2 · Modelos prontos · o nome da miniatura é diferente do título do modelo**: "Brinquedos" abre "Quebra-cabeça", "Medalha" abre "Medalha adaptável", "Gridfinity" abre "Gridfinity: caixinha". A Medalha ainda existe como modelo **e** como ferramenta (a variante "Redonda e formatos" leva para a outra tela). [print](ux/23-modelos-galeria.jpg). O mesmo nome nos dois lugares; deixar claro quando uma variante abre outra ferramenta.
 

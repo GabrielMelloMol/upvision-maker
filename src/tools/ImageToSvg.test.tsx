@@ -90,7 +90,7 @@ describe("Imagem → SVG", () => {
     await user.click(screen.getByRole("button", { name: /Fazer cortador/ }));
     expect(go).toHaveBeenCalledWith("cutter");
     expect(peekHandoff()?.name).toBe("meu-logo");
-    await user.click(screen.getByRole("button", { name: /Extrudar em 3D/ }));
+    await user.click(screen.getByRole("button", { name: /Fazer peça 3D/ }));
     expect(go).toHaveBeenCalledWith("extrude");
   });
 

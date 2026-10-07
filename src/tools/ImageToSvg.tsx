@@ -250,7 +250,7 @@ export default function ImageToSvg({ go }: { go: Go }) {
                 <Cookie aria-hidden /> Fazer cortador
               </button>
               <button disabled={!svg} onClick={() => sendTo("extrude")}>
-                <Layers aria-hidden /> Extrudar em 3D
+                <Layers aria-hidden /> Fazer peça 3D
               </button>
               <button disabled={!svg} onClick={() => sendTo("keychain")}>
                 <KeyRound aria-hidden /> Fazer chaveiro
