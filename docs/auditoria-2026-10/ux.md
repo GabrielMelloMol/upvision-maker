@@ -205,16 +205,33 @@ A pergunta foi: uma vendedora de impressão 3D que acabou de instalar o app cons
 
 ## App instalado
 
-O app instalado é o build de produção de `69e1258`, em /Applications. Já conferido nesta rodada e nas anteriores:
-- a abertura toca toda vez (~3,5 s) e termina em íris;
-- a barra lateral divide o espaço e abre só pelo botão ou pelo atalho;
-- a página interna "Design (interno)" fica fora do build de produção (`import.meta.env.DEV`).
+O app em /Applications é o build `c7d055f` (v0.10.3 + o C1), instalado em 05/10 para a conferência abaixo. As correções feitas depois (A1 a A4, M2 a M15, B1, B8 e as da Forja) estão no código, mas **não foram instaladas**.
 
-**Pendente:**
-- o formato da data em "Prazo de entrega": no Chromium do teste aparece `mm/dd/yyyy`; no WKWebView deve seguir o idioma do Mac;
-- os painéis nativos de abrir e salvar.
+**Conferido no app instalado, com mouse, em 05/10 (Mac livre e avisado):**
+- arrastar uma imagem do Finder para Imagem → SVG carrega a imagem (A11 da auditoria de código): **funciona**;
+- ⌘+, ⌘− e ⌘0 mudam e restauram o zoom (M19 da auditoria de código): **funcionam**;
+- a abertura toca toda vez (~3,5 s) e termina em íris, a barra lateral divide o espaço e abre só pelo botão ou pelo atalho, e a página "Design (interno)" fica fora do build de produção.
 
-A conferência só de teclado no app instalado estava esperando o Mac ficar livre: o Gabriel estava usando, com o Safari na frente e o UpVision fechado.
+**Não conferido** (o Gabriel não liberou mais o Mac para teste com mouse; nada foi criado nem alterado no banco do app instalado, que tem 0 pedidos e 0 produtos):
+- arrastar um cartão de Pedidos para outra coluna e ver o status mudar;
+- a janela não aparecer vazia antes da abertura;
+- o formato da data em "Prazo de entrega" (no Chromium do teste aparece `mm/dd/yyyy`; no WKWebView deve seguir o idioma do Mac);
+- os painéis nativos de abrir e salvar e a navegação só por teclado no app instalado.
+
+## Fechamento da rodada de correções (07/10)
+
+**Corrigidos com teste:** C1, A1, A2, A3, A4, M2, M3, M4, M5, M7, M8, M12, M13, M14, M15, B1, B8 (Quartzo) e M10, M11, B4, B5, B6, B7, B9 (Forja). Cada correção está num commit pequeno, com teste de unidade, E2E ou visual, e a lista de "conhecidos" do teste visual perdeu os itens de contraste e de alvo pequeno. Proteções novas: `tests/e2e/acessibilidade-axe.e2e.ts` (axe em todas as telas), `src/styles/statusColors.test.ts`, `src/styles/targets.test.ts` e `tests/e2e/seletores-uma-linha.e2e.ts`.
+
+**Parciais:**
+- **M4:** os seletores não quebram mais o texto, mas as legendas das variantes de modelo sob as miniaturas ("No contorno do desenho", "Redonda e formatos") continuam em 2 a 3 linhas (são nomes do catálogo).
+- **M7:** editar e excluir viraram ícones em Filamentos, Materiais e Impressoras; o menu "⋯" para o resto não foi feito.
+
+**Para virar issue (recurso novo ou redesenho; não entraram nesta rodada):**
+1. **A5 · Pedido pago / a receber e aviso de pronto ao cliente:** campo de pagamento no pedido, selo no cartão, filtro "A receber" no Painel e mensagem pronta para o WhatsApp.
+2. **M6 · Um padrão de cadastro no Estoque:** hoje Filamentos, Materiais e Impressoras abrem o formulário aberto quando a lista está vazia, enquanto Clientes, Produtos, Pedidos e Custos usam botão no título com folha. Unificar mexe no `CrudPage` e em vários fluxos e testes.
+3. **M9 · Preferências em seções ou telas** ("Essencial" aberto e o resto recolhido; hoje são 61 campos numa página de ~4.100 px).
+4. **M7 (resto) · Menu "⋯" nas linhas das tabelas** para as ações secundárias.
+5. **M4 (resto) · Legendas das variantes de modelo** mais curtas.
 
 ## Descartados (conferidos e não são problema)
 
