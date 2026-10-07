@@ -128,7 +128,7 @@ A pergunta foi: uma vendedora de impressão 3D que acabou de instalar o app cons
 - **O que acontece:** Filamentos tem 4 links de texto em 2×2 (Repor, Duplicar, Editar, Excluir), e "Excluir" na mesma cor das outras ações. Clientes e Custos usam lápis e lixeira. Produtos usa "Produzir" + lápis + lixeira.
 - **Sugestão:** ação principal da tela como botão de texto (Repor, Produzir), editar e excluir como ícones (lixeira cinza que fica vermelha no hover, padrão de `td button.danger`) e o resto num menu "⋯".
 
-**M8 · Preferências · dicas cortadas que terminam em ":"**
+**✅ M8 · Preferências · dicas cortadas que terminam em ":"**
 - Print: [dicas](ux/25-preferencias-dicas.jpg)
 - **O que acontece:** a dica longa mostra a 1ª frase e o resto no ⓘ, mas aqui a 1ª frase termina em dois pontos ("Para quem compra de você para revender: ⓘ"). Parece texto quebrado.
 - **Sugestão:** reescrever essas dicas para a 1ª frase fechar sozinha. Ou o corte da 1ª frase não parar em ":".

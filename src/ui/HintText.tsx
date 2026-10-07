@@ -8,7 +8,7 @@ export function splitHint(text: string): [string, string] {
   if (text.length <= HINT_MAX) return [text, ""];
   const m = /^(.+?[.:])\s+(\S[\s\S]*)$/.exec(text);
   if (!m || m[1].length > HINT_MAX + 30) return [text, ""]; // sem frase curta para mostrar: fica inteira
-  return [m[1], m[2]];
+  return [m[1].endsWith(":") ? `${m[1].slice(0, -1)}.` : m[1], m[2]]; // "…:" à vista parece texto quebrado (UX M8)
 }
 
 /** Texto da dica de um campo: a 1ª frase à vista e o resto no ⓘ (o leitor de tela ouve tudo). */
