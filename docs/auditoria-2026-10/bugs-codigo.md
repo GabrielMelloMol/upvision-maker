@@ -319,7 +319,7 @@ Só análise: nenhum código foi alterado e nenhuma issue foi criada. Base: `ori
 - **Como reproduzir:** com manter = 1, apague dados por engano (ou fique com um restore parcial) e feche o app: o backup bom some. Numa queda de energia, o arquivo novo pode ficar vazio depois que o antigo do mesmo dia já foi apagado.
 - **Correção sugerida:** mínimo de 2, ou sempre manter o backup do dia anterior; `sync_all` antes do rename.
 
-### B4. O backup leve deixa fotos que passam para outros produtos
+### B4. O backup leve deixa fotos que passam para outros produtos — ✅ CORRIGIDO (Lupa)
 - **Onde:** `src/db/backup.ts:66` (pula `photos`); ids reaproveitados (`INTEGER PRIMARY KEY` sem AUTOINCREMENT).
 - **Como reproduzir:** com os produtos 1–10 com fotos, restaure um backup leve com os produtos 1–8. O próximo produto novo recebe o id 9 e herda as fotos de outro. Ids 1–8 que no backup são outros produtos herdam fotos erradas também.
 - **Correção sugerida:** no restore leve, apagar as fotos cujo dono não existe no backup, ou avisar.
