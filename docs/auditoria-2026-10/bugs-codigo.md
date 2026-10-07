@@ -416,7 +416,7 @@ Só análise: nenhum código foi alterado e nenhuma issue foi criada. Base: `ori
 - **Por que:** o WebKit não codifica WebP em `toDataURL` e cai para PNG em silêncio: miniaturas e backups ficam maiores. Não confirmado.
 - **Correção sugerida:** conferir o prefixo do data URL e usar JPEG quando não for WebP.
 
-### B23. Nomes reservados do Windows no "Abrir no fatiador"
+### B23. Nomes reservados do Windows no "Abrir no fatiador" — ✅ CORRIGIDO (Lupa)
 - **Onde:** `src-tauri/src/slicer.rs:97-101` (`safe_name` não barra CON, PRN, AUX, NUL, COM1…).
 - **Como reproduzir:** um SVG chamado `con.svg` → Abrir no fatiador. No Windows o arquivo não é criado direito.
 - **Correção sugerida:** acrescentar um sufixo quando o radical for um nome reservado.

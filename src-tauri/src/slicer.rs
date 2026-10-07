@@ -97,7 +97,12 @@ fn launch_command(os: &str, slicer_path: &str, file: &str) -> (String, Vec<Strin
 fn safe_name(name: &str) -> String {
     let stem: String = name.trim().trim_end_matches(".3mf").chars().filter(|c| c.is_alphanumeric() || " -_.".contains(*c)).take(MAX_NAME_CHARS).collect();
     let stem = stem.trim_matches(|c: char| c == '.' || c == ' ');
-    format!("{}.3mf", if stem.is_empty() { "modelo" } else { stem })
+    let stem = if stem.is_empty() { "modelo".to_string() } else { stem.to_string() };
+    // No Windows, CON, PRN, AUX, NUL, COM1–9 e LPT1–9 são nomes de dispositivo, com ou sem extensão ("con.svg.3mf"):
+    // o arquivo não é criado direito (B23).
+    let first = stem.split('.').next().unwrap_or("").trim_end().to_ascii_uppercase();
+    let reserved = matches!(first.as_str(), "CON" | "PRN" | "AUX" | "NUL") || ["COM", "LPT"].iter().any(|p| first.strip_prefix(p).is_some_and(|n| n.len() == 1 && n != "0" && n.chars().all(|c| c.is_ascii_digit())));
+    format!("{}{stem}.3mf", if reserved { "modelo-" } else { "" })
 }
 
 #[tauri::command]
@@ -161,6 +166,15 @@ mod tests {
         assert_eq!(safe_name("../../etc/passwd"), "etcpasswd.3mf");
         assert_eq!(safe_name("medalha.3mf"), "medalha.3mf");
         assert_eq!(safe_name("  "), "modelo.3mf");
+        // nomes reservados do Windows ganham um prefixo, com ou sem extensão (B23)
+        assert_eq!(safe_name("con"), "modelo-con.3mf");
+        assert_eq!(safe_name("CON.svg"), "modelo-CON.svg.3mf");
+        assert_eq!(safe_name("Nul"), "modelo-Nul.3mf");
+        assert_eq!(safe_name("com1"), "modelo-com1.3mf");
+        assert_eq!(safe_name("LPT9.x"), "modelo-LPT9.x.3mf");
+        assert_eq!(safe_name("com10"), "com10.3mf");
+        assert_eq!(safe_name("console"), "console.3mf");
+        assert_eq!(safe_name("aux "), "modelo-aux.3mf");
         assert_eq!(safe_name(&"x".repeat(200)).len(), MAX_NAME_CHARS + 4);
     }
 }
