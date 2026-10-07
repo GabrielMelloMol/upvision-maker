@@ -344,7 +344,7 @@ Só análise: nenhum código foi alterado e nenhuma issue foi criada. Base: `ori
 - **Como reproduzir:** 2 linhas de 1,5 × R$ 10,33 dão subtotal 30,99, desconto −0,01 (não exibido) e total 31,00, e o Pix cobra 31,00.
 - **Correção sugerida:** subtotal como a soma de `round2(qty*unitPrice)` por linha, ou `unitPrice` com 2 casas na validação.
 
-### B9. Pix abaixo de meio centavo gera o campo 54 "0.00"
+### B9. Pix abaixo de meio centavo gera o campo 54 "0.00" — ✅ CORRIGIDO (Forja)
 - **Onde:** `src/domain/pix.ts:110` e `:118`.
 - **Como reproduzir:** valor 0,004 passa no `> 0` e gera um QR que os bancos recusam.
 - **Correção sugerida:** validar `Math.round(amount*100) >= 1`.

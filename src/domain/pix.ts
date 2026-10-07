@@ -107,7 +107,8 @@ export function pixPayload({ key, name, city, amount, txid = "***" }: PixInput):
   const c = ascii(city).toUpperCase().slice(0, MAX_CITY).trim();
   if (!n) throw new Error("Informe o nome de quem recebe o Pix.");
   if (!c) throw new Error("Informe a cidade de quem recebe o Pix.");
-  if (amount !== undefined && !(Number.isFinite(amount) && amount > 0 && amount <= MAX_AMOUNT)) throw new Error("O valor do Pix precisa ser maior que zero.");
+  // B9: o campo leva 2 casas; abaixo de meio centavo arredondaria para "0.00", que os bancos recusam
+  if (amount !== undefined && !(Number.isFinite(amount) && Number(amount.toFixed(2)) > 0 && amount <= MAX_AMOUNT)) throw new Error("O valor do Pix precisa ser maior que zero (ao menos R$ 0,01).");
   if (txid !== "***" && !/^[A-Za-z0-9]{1,25}$/.test(txid)) throw new Error("O identificador do Pix aceita só letras e números, até 25.");
 
   const body =

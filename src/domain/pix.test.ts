@@ -36,6 +36,8 @@ describe("pixPayload", () => {
     expect(() => pixPayload({ ...base, city: "" })).toThrow("cidade");
     expect(() => pixPayload({ ...base, amount: -1 })).toThrow("valor");
     expect(() => pixPayload({ ...base, amount: 0 })).toThrow("valor");
+    expect(() => pixPayload({ ...base, amount: 0.004 })).toThrow("valor"); // B9: arredondava para "0.00" e o banco recusa o QR
+    expect(pixPayload({ ...base, amount: 0.005 })).toContain("540401"); // meio centavo já é R$ 0,01 ("0.01")
     expect(() => pixPayload({ ...base, txid: "tem espaço" })).toThrow("identificador");
   });
 });
