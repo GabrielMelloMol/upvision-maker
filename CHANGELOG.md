@@ -3,7 +3,7 @@
 Cada versão aparece para a usuária na tela "O que há de novo" depois da atualização.
 Formato: `## <versão> — <data>` e itens `- …` em linguagem simples.
 
-## Próxima versão (ainda não lançada)
+## 0.10.5 — 2026-10-07
 - **Importar um 3MF fatiado com a configuração danificada avisa**: antes as gramas e o custo saíam sem a purga das trocas de cor e sem a impressora, sem dizer nada; agora aparece o aviso.
 - **Projeto novo não herda fotos de um projeto excluído**: ao excluir um projeto pela lista da ferramenta (ou quando a biblioteca passa do limite), as fotos dele agora saem junto; antes o projeto seguinte podia aparecer com as fotos antigas.
 - **A luz da webcam apaga ao fechar "Câmera"**: se você fechasse a janela da câmera antes de ela terminar de abrir, a webcam ficava ligada até fechar o app.
