@@ -46,6 +46,18 @@ async function withImage(go = vi.fn()) {
 }
 
 describe("Imagem → SVG", () => {
+  test("sair da tela revoga o blob da imagem carregada: cada visita deixava um Blob vivo (B18)", async () => {
+    const revoke = vi.spyOn(URL, "revokeObjectURL").mockImplementation(() => {});
+    const { container, unmount } = renderWithApp(<ImageToSvg go={vi.fn()} />);
+    const user = userEvent.setup();
+    await user.upload(container.querySelector<HTMLInputElement>('input[type="file"]')!, new File(["png"], "Meu Logo.png", { type: "image/png" }));
+    await screen.findByRole("img", { name: "Imagem original" });
+    revoke.mockClear();
+    unmount(); // sai da tela
+    expect(revoke).toHaveBeenCalledWith("blob:original");
+    revoke.mockRestore();
+  });
+
   test("sem imagem: Aplicar desabilitado e salvar bloqueado", () => {
     renderWithApp(<ImageToSvg go={vi.fn()} />);
     expect(screen.getByText("Envie uma imagem para começar.")).toBeInTheDocument();

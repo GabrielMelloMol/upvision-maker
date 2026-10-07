@@ -85,6 +85,14 @@ export default function ImageToSvg({ go }: { go: Go }) {
   const set = <K extends keyof TraceOptions>(k: K, v: TraceOptions[K]) => setOpts((o) => ({ ...o, [k]: v }));
 
   useEffect(() => () => job.current?.cancel(), []);
+  // ao sair da tela a última imagem ainda tem Blob vivo: revoga (B18)
+  const rasterUrl = useRef<string | null>(null);
+  useEffect(() => {
+    rasterUrl.current = loadedRaster?.raster.url ?? null;
+  }, [loadedRaster]);
+  useEffect(() => () => {
+    if (rasterUrl.current) URL.revokeObjectURL(rasterUrl.current);
+  }, []);
 
   // "Usar exemplo" da ajuda (#84): o logo de exemplo do app
   useExample("svg", () => void exampleFile("logo").then(onFile));

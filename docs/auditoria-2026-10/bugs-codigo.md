@@ -392,7 +392,7 @@ Só análise: nenhum código foi alterado e nenhuma issue foi criada. Base: `ori
 - **Como reproduzir:** troque muitas vezes entre ferramentas com prévia 3D. Aparece "Too many active WebGL contexts" e a prévia some.
 - **Correção sugerida:** `setModels([])` mais `renderer.forceContextLoss()` antes do `dispose()`, como `renderThumb.ts:122-134`.
 
-### B18. Imagem → SVG não revoga o último blob URL ao sair da tela
+### B18. ✅ Imagem → SVG não revoga o último blob URL ao sair da tela
 - **Onde:** `src/tools/ImageToSvg.tsx:87`, `:99-103` e `:116-122`.
 - **Como reproduzir:** abrir uma imagem e sair da tela, várias vezes. Cada visita deixa um Blob vivo até o app fechar.
 - **Correção sugerida:** `useEffect(() => () => revoke(rasterRef.current?.raster.url), [])`.
