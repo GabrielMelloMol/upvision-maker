@@ -287,7 +287,7 @@ Só análise: nenhum código foi alterado e nenhuma issue foi criada. Base: `ori
 - **Como reproduzir:** Litofania com foto grande → "Abrir no Bambu Studio". A memória salta centenas de MB e a tela congela (cerca de 8 a 12× o tamanho do arquivo, na ida e na volta).
 - **Correção sugerida:** corpo cru (`invoke(cmd, bytes, { headers })` com `tauri::ipc::Request`) e devolver `tauri::ipc::Response`.
 
-### M22. O celular esbarra no Firewall do Windows sem orientação
+### M22. O celular esbarra no Firewall do Windows sem orientação — ✅ CORRIGIDO (Lupa)
 - **Onde:** `src-tauri/src/lan.rs:296` (`0.0.0.0:0`); não há menção a firewall em `src/` nem em `docs/`.
 - **Como reproduzir:** no Windows, numa rede "Pública" (o padrão para Wi-Fi novo), ligue o acesso do celular. Se o aviso do Defender for cancelado, o celular não conecta e o app não diz por quê.
 - **Correção sugerida:** orientar no cartão "Celular na rede de casa" (permitir no aviso, marcar a rede como Privada) e na documentação de instalação.

@@ -41,6 +41,7 @@ Formato: `## <versão> — <data>` e itens `- …` em linguagem simples.
 - **"Outros formatos" nunca fica sozinho**: nas ferramentas sem peça ainda (Extrusão, OpenSCAD, Etiquetas de rolo…), a linha mostra "Salvar STL" desativado em vez de um rótulo solto.
 - **Celular reconecta a cada 12 horas**: a sessão do celular agora vence depois de 12 horas e é preciso digitar o código de novo, em vez de valer até fechar o app.
 - **Textos de apoio mais legíveis**: a mensagem do quadro escuro da Litofania e as medidas sobre a prévia (por exemplo no QR Code) agora têm contraste suficiente nos dois temas.
+- **Celular no Windows: orientação do Firewall**: o cartão do celular explica o que fazer quando o aviso do Firewall do Windows aparece (ou foi fechado) e a rede está como Pública, que era o motivo de o celular não conectar sem dizer por quê.
 
 ## 0.10.4 — 2026-10-05
 - **Dois computadores em versões diferentes não apagam mais dados**: se um estiver com o app desatualizado, nada é trocado entre eles e aparece um aviso dizendo qual computador precisa atualizar. Antes, o computador antigo podia apagar a ficha de impressão, os projetos e as fotos do mais novo.

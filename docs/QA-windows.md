@@ -64,6 +64,10 @@ Marque na issue #6. Em cada item, se algo sair diferente, abra **Sugerir ferrame
 - [ ] Fechar e abrir o app: o backup do dia continua lá (um por dia).
 - [ ] **Sugerir ferramenta → Enviar diagnóstico** abre o e-mail com o registro de erros anexado ou colado.
 
+### Celular na rede de casa
+- [ ] Em **Preferências → Celular na rede de casa**, ligar a chave: o Windows mostra o aviso do **Firewall**. Marcar **Redes privadas** e permitir; ler o QR no celular conecta.
+- [ ] Se o aviso foi fechado ou a rede está como **Pública**: seguir a orientação que aparece no cartão (Permitir um aplicativo pelo Firewall; marcar a rede do Wi-Fi como **Privada**) e o celular conecta.
+
 ### Atualização
 - [ ] Clicar na versão (rodapé) → **Sobre** → **Verificar atualizações**: mostra "Em dia" ou "Você está N versões atrás".
 - [ ] Quando sair a próxima versão: aparece o selo **Atualização disponível**; **Atualizar agora** baixa, instala e reinicia sozinho, e o rodapé mostra a versão nova.

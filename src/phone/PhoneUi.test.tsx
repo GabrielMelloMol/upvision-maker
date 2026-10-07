@@ -119,6 +119,9 @@ describe("Celular na rede de casa, no computador (#16)", () => {
     expect(await screen.findByText("http://192.168.0.10:51234/")).toBeInTheDocument();
     expect(screen.getByText("123 456")).toBeInTheDocument();
     expect(screen.getByRole("img", { name: /QR Code/ })).toBeInTheDocument();
+    // sem conectar no Windows? a orientação do Firewall está à vista, sem precisar procurar (M22)
+    expect(screen.getByText(/Não conectou\? No Windows.*Firewall.*marcada como Privada/s)).toBeInTheDocument();
+    expect(screen.getByText(/12 horas/)).toBeInTheDocument(); // a sessão vence (M24)
     await user.click(screen.getByRole("button", { name: "Desconectar todos" }));
     await waitFor(() => expect(screen.getByText("654 321")).toBeInTheDocument());
     expect(screen.getByText("Celulares conectados: 0")).toBeInTheDocument();

@@ -66,7 +66,11 @@ export default function PhoneSettingsCard() {
               <strong className="pair-code" aria-label={`Código ${status.code.split("").join(" ")}`}>
                 {groupCode(status.code)}
               </strong>
-              <span className="hint">O código vale para um celular e troca depois de usado.</span>
+              <span className="hint">O código vale para um celular e troca depois de usado. O celular fica conectado por 12 horas.</span>
+              <span className="hint">
+                Não conectou? No Windows, quando aparecer o aviso do Firewall, marque "Redes privadas" e permita o acesso; se o aviso foi fechado, abra "Permitir um aplicativo pelo Firewall" e libere o UpVision Maker, e confira se a rede do Wi-Fi está marcada como Privada (em Rede e Internet).
+                Num Wi-Fi de visitantes ou público o celular não alcança o computador.
+              </span>
               {status.locked && (
                 <Alert kind="warn">
                   Alguém errou o código 5 vezes e ninguém consegue entrar agora.{" "}
