@@ -158,8 +158,10 @@ test("Chaveiro NFC: Projeto do Bambu Studio manda o 3MF com a pausa e grava as c
     const real = w.__TAURI_INTERNALS__.invoke;
     w.__TAURI_INTERNALS__.invoke = async (cmd, args, opts) => {
       if (cmd !== "bambu_project") return real(cmd, args, opts);
-      w.__bambuArgs = args;
-      return project;
+      // o 3MF vai como bytes crus; pausas e nº de filamentos, em cabeçalhos (M21)
+      const h = (opts as { headers: Record<string, string> }).headers;
+      w.__bambuArgs = { model: Array.from(args as Uint8Array), pauses: JSON.parse(h["x-pauses"]), filaments: Number(h["x-filaments"]), raw: args instanceof Uint8Array };
+      return Uint8Array.from(project).buffer;
     };
   }, fakeProject);
   await openApp(page);
@@ -171,7 +173,8 @@ test("Chaveiro NFC: Projeto do Bambu Studio manda o 3MF com a pausa e grava as c
   await page.getByRole("button", { name: "Projeto do Bambu Studio (pausa pronta)" }).click();
   await expect(toastWith(page, "Arquivo salvo em")).toBeVisible();
 
-  const args = (await page.evaluate(() => (window as unknown as { __bambuArgs: unknown }).__bambuArgs)) as { model: number[]; pauses: number[]; filaments: number };
+  const args = (await page.evaluate(() => (window as unknown as { __bambuArgs: unknown }).__bambuArgs)) as { model: number[]; pauses: number[]; filaments: number; raw: boolean };
+  expect(args.raw).toBe(true); // bytes crus, não JSON de números
   expect(args.pauses).toEqual([2]);
   expect(args.filaments).toBe(2);
   const sent = unzipSync(Uint8Array.from(args.model));

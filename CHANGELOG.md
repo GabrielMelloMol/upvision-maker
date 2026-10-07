@@ -20,6 +20,7 @@ Formato: `## <versão> — <data>` e itens `- …` em linguagem simples.
 - Quando falta cadastro, a tela diz o que fazer e leva até lá: **Etiquetas de rolo** e **Pixel art** têm botão "Cadastrar filamento(s)", e **Pedidos** vazio tem "Cadastrar produtos" ao lado de "Criar o primeiro pedido".
 - **Endurecimentos de segurança**: o app só aceita conexão ao servidor de sugestões exato (em vez de qualquer servidor do mesmo serviço), recusa pastas de backup com caminho relativo, e o celular recebe só uma mensagem genérica quando algo dá errado no computador (o detalhe fica no registro de erros).
 - **Seletores mais limpos**: "Como vai imprimir" (Multicor | Com pausas | Mesa por cor | 1 cor) e os demais seletores da tela não quebram mais o texto em várias linhas.
+- **Abrir no Bambu Studio e no fatiador sem travar com arquivos grandes**: o arquivo da peça passa para o fatiador como está, em vez de ser convertido em uma lista enorme de números; uma litofania com foto grande não faz mais a tela congelar nem a memória saltar centenas de MB.
 
 ## 0.10.5 — 2026-10-07
 - **Importar um 3MF fatiado com a configuração danificada avisa**: antes as gramas e o custo saíam sem a purga das trocas de cor e sem a impressora, sem dizer nada; agora aparece o aviso.

@@ -14,8 +14,10 @@ const SETTINGS = "Metadata/project_settings.config";
 export async function bambuProject(models: Model[], pauses: number[], profile?: PrintProfile, slots?: (string | null)[]): Promise<Uint8Array> {
   // com AMS (#98): um filamento por slot, na cor do filamento carregado; a extrusora de cada parte é o slot
   const colors = filamentPlan(models, slots).filamentColors;
-  const out = await invoke<number[] | Uint8Array>("bambu_project", { model: Array.from(write3mf(models, { pauses, profile, slots })), pauses, filaments: Math.max(1, colors.length) });
-  return withFilamentColors(Uint8Array.from(out), colors);
+  // O 3MF vai e volta como bytes crus (um array JSON de números pesava 8 a 12 vezes o arquivo e congelava a tela, M21);
+  // as pausas e o número de filamentos vão em cabeçalhos.
+  const out = await invoke<ArrayBuffer>("bambu_project", write3mf(models, { pauses, profile, slots }), { headers: { "x-pauses": JSON.stringify(pauses), "x-filaments": String(Math.max(1, colors.length)) } });
+  return withFilamentColors(new Uint8Array(out), colors);
 }
 
 /** Purga (mm³) entre filamentos diferentes quando o projeto não traz outro valor: o padrão do Bambu Studio. */

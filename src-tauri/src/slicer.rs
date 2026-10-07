@@ -112,7 +112,11 @@ pub fn slicers_installed() -> Vec<Slicer> {
 
 /// Grava o 3MF na pasta do app e abre no fatiador `slicer` (id). Devolve o caminho do arquivo.
 #[tauri::command]
-pub fn open_in_slicer(app: tauri::AppHandle, model: Vec<u8>, name: String, slicer: String) -> Result<String, String> {
+pub fn open_in_slicer(app: tauri::AppHandle, request: tauri::ipc::Request<'_>) -> Result<String, String> {
+    // o 3MF vem como bytes crus; o nome (codificado, pode ter acento) e o fatiador, em cabeçalhos (M21)
+    let model = crate::ipc::raw_body(&request)?;
+    let name = crate::ipc::decode_text(crate::ipc::header(&request, "x-name")?)?;
+    let slicer = crate::ipc::header(&request, "x-slicer")?.to_string();
     if model.is_empty() || model.len() > MAX_MODEL_BYTES {
         return Err("Arquivo vazio ou grande demais para abrir no fatiador.".into());
     }
@@ -120,7 +124,7 @@ pub fn open_in_slicer(app: tauri::AppHandle, model: Vec<u8>, name: String, slice
     let dir = app.path().app_data_dir().map_err(|e| e.to_string())?.join(FOLDER);
     fs::create_dir_all(&dir).map_err(|e| format!("Não consegui criar a pasta do app: {e}"))?;
     let file = dir.join(safe_name(&name));
-    fs::write(&file, &model).map_err(|e| format!("Não consegui gravar o arquivo: {e}"))?;
+    fs::write(&file, model).map_err(|e| format!("Não consegui gravar o arquivo: {e}"))?;
     let file_str = file.to_string_lossy().into_owned();
     let (program, args) = launch_command(os(), &target.path, &file_str);
     Command::new(program).args(args).spawn().map_err(|e| format!("Não consegui abrir o {}: {e}", target.name))?;

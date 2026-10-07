@@ -282,7 +282,7 @@ Só análise: nenhum código foi alterado e nenhuma issue foi criada. Base: `ori
 - **Como reproduzir:** abra Tirar foto e feche enquanto a câmera ainda está abrindo. A luz da webcam fica acesa até fechar o app.
 - **Correção sugerida:** a marca `alive`, como em `QrScanner.tsx:58-60`.
 
-### M21. O 3MF vai e volta pelo IPC como array JSON de números
+### M21. O 3MF vai e volta pelo IPC como array JSON de números — ✅ CORRIGIDO (Lupa)
 - **Onde:** `src/slicer/openInSlicer.ts:69` e `src/geometry/bambuProject.ts:17` (`Array.from(bytes)`); `src-tauri/src/slicer.rs:110` e `bambu.rs:194` (`Vec<u8>` volta como `number[]`).
 - **Como reproduzir:** Litofania com foto grande → "Abrir no Bambu Studio". A memória salta centenas de MB e a tela congela (cerca de 8 a 12× o tamanho do arquivo, na ida e na volta).
 - **Correção sugerida:** corpo cru (`invoke(cmd, bytes, { headers })` com `tauri::ipc::Request`) e devolver `tauri::ipc::Response`.

@@ -45,9 +45,9 @@ test("falha ao gravar vira toast de erro", async () => {
 test("com pausa: botão do Bambu Studio gera o projeto pelo CLI e troca as cores dos filamentos", async () => {
   const { strFromU8, strToU8, unzipSync, zipSync } = await import("fflate");
   let args: Record<string, unknown> = {};
-  t.handlers["bambu_project"] = (a) => {
-    args = a as Record<string, unknown>;
-    return Array.from(zipSync({ "Metadata/project_settings.config": strToU8(JSON.stringify({ filament_colour: ["#00AE42"], printer_settings_id: "Bambu Lab A1 0.4 nozzle" })) }));
+  t.handlers["bambu_project"] = (a, h) => {
+    args = { model: a, pauses: JSON.parse(h!["x-pauses"]), filaments: Number(h!["x-filaments"]) };
+    return zipSync({ "Metadata/project_settings.config": strToU8(JSON.stringify({ filament_colour: ["#00AE42"], printer_settings_id: "Bambu Lab A1 0.4 nozzle" })) });
   };
   const user = userEvent.setup();
   const two: Model = { name: "NFC", parts: [{ name: "Base", color: "#ffffff", mesh }, { name: "Texto", color: "#2563eb", mesh }] };
@@ -58,7 +58,7 @@ test("com pausa: botão do Bambu Studio gera o projeto pelo CLI e troca as cores
   expect(args.pauses).toEqual([2]);
   expect(args.filaments).toBe(2);
   // o 3MF enviado ao CLI já leva a pausa
-  expect(unzipSync(Uint8Array.from(args.model as number[]))["Metadata/custom_gcode_per_layer.xml"]).toBeDefined();
+  expect(unzipSync(args.model as Uint8Array)["Metadata/custom_gcode_per_layer.xml"]).toBeDefined();
   const cfg = JSON.parse(strFromU8(unzipSync(t.files.get("/saida/chaveiro-nfc-bambu.3mf")!)["Metadata/project_settings.config"]));
   expect(cfg.filament_colour).toEqual(["#FFFFFF", "#2563EB"]);
   expect(cfg.printer_settings_id).toBe("Bambu Lab A1 0.4 nozzle");
@@ -184,9 +184,9 @@ describe("Abrir no fatiador (#160)", () => {
     const { strToU8, zipSync } = await import("fflate");
     let opened: Record<string, unknown> | null = null;
     t.handlers["slicers_installed"] = () => [{ id: "bambu", name: "Bambu Studio", path: "/Applications/BambuStudio.app" }];
-    t.handlers["bambu_project"] = () => Array.from(zipSync({ "Metadata/project_settings.config": strToU8("{}") }));
-    t.handlers["open_in_slicer"] = (a) => {
-      opened = a as Record<string, unknown>;
+    t.handlers["bambu_project"] = () => zipSync({ "Metadata/project_settings.config": strToU8("{}") });
+    t.handlers["open_in_slicer"] = (a, h) => {
+      opened = { model: a, name: decodeURIComponent(h!["x-name"]), slicer: h!["x-slicer"] };
       return "/dados/abrir-no-fatiador/chaveiro.3mf";
     };
     const user = userEvent.setup();
@@ -199,7 +199,7 @@ describe("Abrir no fatiador (#160)", () => {
   test("Bambu Studio sem presets legíveis: o aviso diz que usou a impressora padrão, não 'com a sua impressora' (B13)", async () => {
     const { strToU8, zipSync } = await import("fflate");
     t.handlers["slicers_installed"] = () => [{ id: "bambu", name: "Bambu Studio", path: "/Applications/BambuStudio.app" }];
-    t.handlers["bambu_project"] = () => Array.from(zipSync({ "Metadata/project_settings.config": strToU8("{}") }));
+    t.handlers["bambu_project"] = () => zipSync({ "Metadata/project_settings.config": strToU8("{}") });
     t.handlers["bambu_presets_found"] = () => false;
     t.handlers["open_in_slicer"] = () => "/dados/abrir-no-fatiador/chaveiro.3mf";
     const user = userEvent.setup();

@@ -2,6 +2,7 @@ use tauri::{Emitter, Manager, RunEvent};
 
 mod backup;
 mod diagnostics;
+mod ipc;
 mod lan;
 mod reveal;
 mod bambu;

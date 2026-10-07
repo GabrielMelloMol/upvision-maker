@@ -41,7 +41,7 @@ export type TauriState = {
   /** Resposta da API pública de releases do GitHub (fetch é interceptado; nada vai para a rede). null = sem internet. */
   releases: unknown[] | null;
   /** Respostas extras por comando (ex.: comandos Rust novos). */
-  handlers: Record<string, (args: Record<string, unknown>) => unknown>;
+  handlers: Record<string, (args: Record<string, unknown>, headers?: Record<string, string>) => unknown>;
   /**
    * Escopo do plugin fs como no app instalado (auditoria A12): só grava na pasta do app, no arquivo devolvido pelo
    * "Salvar como" e dentro da pasta escolhida no "Abrir" de pasta. Desligado por padrão (os testes antigos gravam em
@@ -55,7 +55,7 @@ export type TauriState = {
 function handle(t: TauriState, cmd: string, a: unknown, headers?: Record<string, string>): unknown {
   t.calls.push(cmd);
   const args = (a ?? {}) as Record<string, unknown>;
-  if (t.handlers[cmd]) return t.handlers[cmd](args);
+  if (t.handlers[cmd]) return t.handlers[cmd](args, headers);
   const params = (args.values as SQLInputValue[] | undefined) ?? [];
   switch (cmd) {
     case "plugin:sql|load":

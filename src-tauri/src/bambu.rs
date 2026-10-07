@@ -199,12 +199,14 @@ pub fn bambu_presets_found() -> bool {
 
 /// 3MF do app → projeto do Bambu Studio com as pausas, usando os presets atuais do usuário.
 #[tauri::command]
-pub async fn bambu_project(model: Vec<u8>, pauses: Vec<f64>, filaments: u32) -> Result<Vec<u8>, String> {
-    if pauses.iter().any(|z| !(z.is_finite() && *z > 0.0)) {
-        return Err("Altura de pausa inválida.".into());
-    }
+pub async fn bambu_project(request: tauri::ipc::Request<'_>) -> Result<tauri::ipc::Response, String> {
+    // o 3MF vem e volta como bytes crus; pausas e nº de filamentos, em cabeçalhos (M21)
+    let model = crate::ipc::raw_body(&request)?.to_vec();
+    let pauses = crate::ipc::parse_pauses(crate::ipc::header(&request, "x-pauses")?)?;
+    let filaments: u32 = crate::ipc::header(&request, "x-filaments")?.parse().map_err(|_| "Número de filamentos inválido.".to_string())?;
     let n = filaments.clamp(1, MAX_FILAMENTS);
-    tauri::async_runtime::spawn_blocking(move || run(&model, &pauses, n)).await.map_err(|e| e.to_string())?
+    let project = tauri::async_runtime::spawn_blocking(move || run(&model, &pauses, n)).await.map_err(|e| e.to_string())??;
+    Ok(tauri::ipc::Response::new(project))
 }
 
 #[cfg(test)]

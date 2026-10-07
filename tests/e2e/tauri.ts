@@ -218,8 +218,9 @@ function handler(m: TauriMock, cmd: string, a: Record<string, unknown> | null, h
     case "slicers_installed":
       return m.slicers;
     case "open_in_slicer": {
-      const name = String(args.name);
-      m.slicerOpened.push({ name, slicer: String(args.slicer), model: Buffer.from(args.model as number[]) });
+      // o 3MF vai como bytes crus e o resto em cabeçalhos (M21)
+      const name = decodeURIComponent(headers?.["x-name"] ?? "");
+      m.slicerOpened.push({ name, slicer: headers?.["x-slicer"] ?? "", model: Buffer.from(String(args.__bytes ?? ""), "base64") });
       return `/dados/abrir-no-fatiador/${name}.3mf`;
     }
     case "lan_status":

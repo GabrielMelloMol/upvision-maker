@@ -71,6 +71,7 @@ export async function openInSlicer(models: Model[], name: string, opts: OpenOpti
   const multi = new Set(models.flatMap((m) => m.parts.map((p) => p.color.toLowerCase()))).size > 1;
   const slots = opts.slots !== undefined ? (opts.slots ?? undefined) : multi && ams.some((s) => s.hex) ? ams.map((s) => s.hex) : undefined;
   const { bytes, project } = await slicerFile(models, slicer.id, opts, slots);
-  const path = await invoke<string>("open_in_slicer", { model: Array.from(bytes), name, slicer: slicer.id });
+  // bytes crus no corpo; o nome (pode ter acento) vai codificado no cabeçalho (M21)
+  const path = await invoke<string>("open_in_slicer", bytes, { headers: { "x-name": encodeURIComponent(name), "x-slicer": slicer.id } });
   return { path, slicer, project, defaultPresets: project && (await usedDefaultPresets()) };
 }

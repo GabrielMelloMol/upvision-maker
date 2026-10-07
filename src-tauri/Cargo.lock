@@ -5305,6 +5305,7 @@ version = "0.10.5"
 dependencies = [
  "getrandom 0.3.4",
  "objc2-app-kit",
+ "percent-encoding",
  "serde",
  "serde_json",
  "sqlx",
