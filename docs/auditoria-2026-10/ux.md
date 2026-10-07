@@ -147,12 +147,12 @@ A pergunta foi: uma vendedora de impressão 3D que acabou de instalar o app cons
 - **O que acontece:** sem pedidos, aparece um gráfico com eixos de 0 a 1 e nenhuma barra, e "Exportar planilha" fica como botão principal.
 - **Sugestão:** um vazio explicado ("Os números aparecem quando o primeiro pedido for marcado como entregue") com o botão "Ir para Pedidos"; exportar só com dados.
 
-**M12 · Litofania · texto do vazio com contraste 2,84:1**
+**✅ M12 · Litofania · texto do vazio com contraste 2,84:1**
 - Print: [Litofania](ux/12-litofania-contraste.jpg)
 - **O que acontece:** "Envie uma foto para ver o relevo." aparece em cinza `#5c5c63` sobre preto. Já está nos "conhecidos".
 - **Sugestão:** usar um cinza claro sobre o fundo escuro do quadro "Contra a luz".
 
-**M13 · QR Code (escuro) · medidas do 3D com contraste 2,87:1**
+**✅ M13 · QR Code (escuro) · medidas do 3D com contraste 2,87:1**
 - **O que acontece:** o texto `.hud` sobre o 3D. Já está nos "conhecidos" e falha no teste visual do main.
 - **Sugestão:** o fundo do HUD mais escuro (ou o vidro de sempre) no tema escuro.
 

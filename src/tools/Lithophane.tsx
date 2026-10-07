@@ -171,7 +171,7 @@ export default function Lithophane() {
                   <span>Contra a luz</span>
                   {busy && <span className="muted">atualizando…</span>}
                 </figcaption>
-                <div className="img" style={{ background: "#111" }}>
+                <div className="img dark-box">
                   {backlit && file ? <img className="fit" src={backlit} alt="Simulação da litofania contra a luz" /> : <span className="muted">{error ?? "Envie uma foto para ver o relevo."}</span>}
                 </div>
               </figure>

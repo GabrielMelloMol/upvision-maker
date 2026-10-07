@@ -27,3 +27,11 @@ test("o texto de bom e ruim usa --ok e --danger, e os dois passam de 4,5:1 nos d
   expect(css).toMatch(/\.stat-delta\.good\s*\{\s*color:\s*var\(--ok\)/);
   expect(css).toMatch(/\.stat-delta\.bad\s*\{\s*color:\s*var\(--danger\)/);
 });
+
+// Auditoria de UX (M12, M13): texto de apoio sobre fundos que não seguem o tema.
+test("legenda da litofania sobre o quadro preto e HUD das medidas têm contraste de texto", () => {
+  const tools = read("tools.css");
+  const color = /\.pair \.img\.dark-box \.muted\s*\{\s*color:\s*(#[0-9a-fA-F]{6})/.exec(tools)![1];
+  expect(ratio(color, "#111111")).toBeGreaterThanOrEqual(4.5);
+  expect(tools).toMatch(/\.viewer \.hud\s*\{\s*background:\s*color-mix\(in srgb, var\(--surface\) 9\d%/);
+});
