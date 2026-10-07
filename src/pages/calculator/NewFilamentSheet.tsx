@@ -4,6 +4,7 @@ import { getDb } from "../../db";
 import { filaments } from "../../db/repo";
 import { MATERIAL_TYPES } from "../../domain/entities";
 import ColorDots from "../../ui/ColorDots";
+import Alert from "../../ui/Alert";
 import Field from "../../ui/Field";
 import { fieldErrors } from "../../ui/fieldErrors";
 import MassField from "../../ui/MassField";
@@ -58,6 +59,7 @@ export default function NewFilamentSheet({ draft, onSaved, onClose }: Props) {
       }
     >
       <p className="muted">Material e cor vieram do arquivo. Só falta o preço.</p>
+      {errors._ && <Alert kind="error">{errors._}</Alert>}
       <div className="grid two">
         <Field label="Material" error={errors.material}>
           <select value={v.material} onChange={(e) => set("material")(e.target.value)}>
@@ -66,7 +68,7 @@ export default function NewFilamentSheet({ draft, onSaved, onClose }: Props) {
             ))}
           </select>
         </Field>
-        <Field label="Marca">
+        <Field label="Marca" error={errors.brand}>
           <input value={v.brand} onChange={(e) => set("brand")(e.target.value)} placeholder="Ex.: Voolt, 3D Fila, Bambu" />
         </Field>
         <div className="span-all">

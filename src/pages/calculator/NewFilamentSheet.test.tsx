@@ -46,4 +46,19 @@ describe("Cadastrar filamento a partir do arquivo (#3)", () => {
     await waitFor(() => expect(onApply.mock.lastCall![0].filaments[0]).toMatchObject({ filamentId: rows[0].id, pricePerKg: 129.9 }));
     expect(screen.queryByRole("button", { name: "Cadastrar o filamento 1" })).not.toBeInTheDocument();
   });
+
+  test("B11: banco que falha ao cadastrar mostra o erro na janela, em vez de não acontecer nada", async () => {
+    const user = userEvent.setup();
+    renderWithApp(<SlicerImport stock={[BRANCO]} printers={[]} onApply={vi.fn()} onStockAdded={vi.fn()} />);
+    await user.upload(document.querySelector<HTMLInputElement>('input[type="file"]')!, fixture("bambu-a1-2cores-fatiado.3mf"));
+    await user.click(await screen.findByRole("button", { name: "Cadastrar o filamento 1" }));
+    const sheet = await screen.findByRole("dialog", { name: "Cadastrar este filamento" });
+    await user.type(within(sheet).getByLabelText("Preço por kg"), "129,90");
+    t.handlers["plugin:sql|execute"] = () => {
+      throw new Error("banco travado");
+    };
+    await user.click(within(sheet).getByRole("button", { name: "Cadastrar e usar" }));
+    expect(await within(sheet).findByText(/banco travado/)).toBeInTheDocument();
+    expect(await t.db.select("SELECT id FROM filaments")).toEqual([]);
+  });
 });

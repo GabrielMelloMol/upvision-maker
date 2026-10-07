@@ -357,7 +357,7 @@ Só análise: nenhum código foi alterado e nenhuma issue foi criada. Base: `ori
   - `KwhBillSheet.tsx:24` ("1.234" kWh vira 1,234, mas pelo menos aparece no aviso de valor fora do comum).
 - **Correção sugerida:** o parser certo para cada campo (`parseMoney`/`parseMass`/inteiro pt-BR) e erro no campo em vez de 0.
 
-### B11. Erro do banco invisível no cadastro rápido de filamento
+### B11. Erro do banco invisível no cadastro rápido de filamento — ✅ CORRIGIDO (Forja)
 - **Onde:** `src/pages/calculator/NewFilamentSheet.tsx:38-40` (o formulário não mostra `errors._` nem `errors.brand`).
 - **Como reproduzir:** com o banco travado, clique em "Cadastrar e usar": nada acontece.
 - **Correção sugerida:** mostrar `errors._`.
