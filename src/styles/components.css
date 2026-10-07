@@ -39,8 +39,9 @@
 .seg button { min-height: 28px; padding: 0 14px; border-radius: 7px; background: transparent; box-shadow: none; color: var(--text); font-weight: 500; font-size: 13px; }
 .seg button:hover:not(:disabled) { background: var(--fill); }
 .seg button[aria-pressed="true"], .seg button[aria-checked="true"] { background: var(--seg-thumb); box-shadow: var(--glass-edge), 0 1px 3px rgb(0 0 0 / 0.12); font-weight: 600; } /* pílula de vidro (#139) */
-.seg.full { display: flex; }
-.seg.full button { flex: 1; }
+/* "full": os botões dividem a linha pelo tamanho do texto e o texto nunca quebra; se não couber, quebra de botão inteiro (UX M4) */
+.seg.full { display: flex; flex-wrap: wrap; }
+.seg.full button { flex: 1 1 auto; padding: 0 10px; white-space: nowrap; }
 
 /* Badge */
 .badge { display: inline-flex; align-items: center; gap: 4px; font-size: var(--text-xs); padding: 1px 8px; border-radius: var(--r-pill); background: var(--danger-soft); color: var(--danger); font-weight: 600; vertical-align: 1px; }

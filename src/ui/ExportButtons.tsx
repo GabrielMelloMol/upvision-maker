@@ -31,9 +31,9 @@ const loadSlicer = async (db: Db): Promise<InstalledSlicer | null> => pickSlicer
 /** "plates" (#118): cada cor numa mesa própria, para montar ou colar depois (sem AMS e sem pausas). */
 type Mode = PrintMode | "plates";
 const MODES: [Mode, string][] = [
-  ["ams", "Multicor (AMS)"],
-  ["manual", "Trocando o filamento"],
-  ["plates", "Uma mesa por cor"],
+  ["ams", "Multicor"],
+  ["manual", "Com pausas"],
+  ["plates", "Mesa por cor"],
   ["single", "1 cor"],
 ];
 

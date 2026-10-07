@@ -108,10 +108,11 @@ A pergunta foi: uma vendedora de impressão 3D que acabou de instalar o app cons
   - Pedidos vazio: "Cadastre produtos antes…".
 - **Sugestão:** pôr o botão "Cadastrar filamento" / "Ir para Produtos" no próprio vazio. Orçamentos já faz assim com o link "Dados da empresa".
 
-**M4 · Seletores com rótulos que quebram em 2 a 4 linhas**
+**✅ M4 · Seletores com rótulos que quebram em 2 a 4 linhas**
 - Print: [Chaveiro](ux/09-chaveiro-como-imprimir.jpg) · [modelo](ux/08-modelo-vazio.jpg)
 - **Onde aparece:** "Como vai imprimir" (Multicor (AMS) | Trocando o filamento | Uma mesa por cor | 1 cor) vira uma caixa de 4 linhas; "Quebra-cabeça" no Pixel art; variantes de modelo como "No contorno do desenho" e "Redonda e formatos".
 - **Sugestão:** rótulos de uma ou duas palavras ("AMS", "Pausas", "Por cor", "1 cor") com a explicação na dica embaixo, como já foi feito com "Teste" no Organizador. Ou trocar para um select quando houver mais de 3 opções longas.
+- **Feito:** os seletores (`.seg`) não quebram mais o texto (largura pelo conteúdo, e quebra de botão inteiro se não couber) e "Como vai imprimir" virou Multicor | Com pausas | Mesa por cor | 1 cor. **Ficou:** as legendas das variantes de modelo embaixo das miniaturas ("No contorno do desenho", "Redonda e formatos") continuam em 2 a 3 linhas; são nomes do catálogo, não seletores.
 
 **M5 · Modelos prontos que dependem de desenho abrem vazios**
 - Print: [Medalha adaptável](ux/08-modelo-vazio.jpg)

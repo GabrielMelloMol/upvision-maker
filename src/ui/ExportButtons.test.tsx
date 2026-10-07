@@ -90,7 +90,7 @@ describe("como vai imprimir", () => {
     const { rerender } = renderWithApp(<ExportButtons models={[model("A")]} name="x" />);
     expect(screen.queryByRole("group", { name: "Como vai imprimir" })).not.toBeInTheDocument();
     rerender(<ExportButtons models={[two]} name="placa" />);
-    await user.click(screen.getByRole("button", { name: "Trocando o filamento" }));
+    await user.click(screen.getByRole("button", { name: "Com pausas" }));
     expect(screen.getByText(/Z = 2,20 mm: a impressora pausa, troque para/)).toBeInTheDocument();
     expect(screen.getByRole("button", { name: /Projeto do Bambu Studio/ })).toBeInTheDocument();
     await user.click(screen.getByRole("button", { name: /Salvar 3MF/ }));
@@ -113,7 +113,7 @@ describe("como vai imprimir", () => {
     t.openPath = "/pasta";
     const user = userEvent.setup();
     renderWithApp(<ExportButtons models={[side]} name="pixel" />);
-    await user.click(screen.getByRole("button", { name: "Uma mesa por cor" }));
+    await user.click(screen.getByRole("button", { name: "Mesa por cor" }));
     await user.click(screen.getByRole("button", { name: "Salvar uma mesa por cor (2 arquivos)" }));
     await waitFor(() => expect([...t.files.keys()].filter((k) => k.startsWith("/pasta/")).sort()).toEqual(["/pasta/pixel-cor-1.3mf", "/pasta/pixel-cor-2.3mf"]));
     // cada arquivo com um filamento só
@@ -124,7 +124,7 @@ describe("como vai imprimir", () => {
   test("troca manual com cores lado a lado: aviso e salvar bloqueado; 1 cor salva num filamento", async () => {
     const user = userEvent.setup();
     renderWithApp(<ExportButtons models={[side]} name="lado" />);
-    await user.click(screen.getByRole("button", { name: "Trocando o filamento" }));
+    await user.click(screen.getByRole("button", { name: "Com pausas" }));
     expect(screen.getByText(/cores lado a lado/)).toBeInTheDocument();
     expect(screen.getByRole("button", { name: /Salvar 3MF/ })).toBeDisabled();
     await user.click(screen.getByRole("button", { name: "1 cor" }));
