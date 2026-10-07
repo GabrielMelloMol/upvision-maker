@@ -14,7 +14,7 @@ let versionDismissed = false;
  * Sincronização entre 2 computadores rodando (#16): na abertura e a cada minuto. Mostra a faixa quando o app
  * está em uso no outro computador (assumir ou seguir sem sincronizar) ou quando houve conflito.
  */
-export default function SyncBanner({ onImported, onOpenBackups }: { onImported: () => void; onOpenBackups: () => void }) {
+export default function SyncBanner({ onImported, onOpenBackups }: { onImported: (fromDevice: string) => void; onOpenBackups: () => void }) {
   const [shown, setShown] = useState<Shown | null>(null);
   /** Erro da sincronização que a pessoa precisa ver (A10): arquivo corrompido na hora; outros depois da 2ª falha seguida. */
   const [failure, setFailure] = useState<string | null>(null);
@@ -38,7 +38,7 @@ export default function SyncBanner({ onImported, onOpenBackups }: { onImported: 
           `Dados atualizados com o que ${r.from.deviceName} salvou (${whenLabel(r.from.savedAt)}).` +
             (r.from.conflict ? " Como os dois computadores tinham mudado dados, o que existia antes ficou guardado em Restaurar backup." : ""),
         );
-        onImported();
+        onImported(r.from.deviceName);
       }
     },
     [onImported, toast],

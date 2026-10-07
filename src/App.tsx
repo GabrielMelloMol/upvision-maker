@@ -2,6 +2,7 @@ import { lazy, useCallback, useEffect, useRef, useState, Suspense } from "react"
 import { loadBackup, saveBackup } from "./backupActions";
 import { errorText, useToast } from "./ui/Toast";
 import AboutSheet from "./about/AboutSheet";
+import { hasUnsavedFields } from "./about/dirtyForms";
 import { latestVersion, useUpdates } from "./about/useUpdates";
 import { useAutoBackup } from "./backup/useAutoBackup";
 import { notifyBackupDone } from "./backup/BackupSettingsCard";
@@ -16,6 +17,7 @@ import { PAGES } from "./pages";
 import PageSkeleton from "./ui/PageSkeleton";
 import { releaseHeavy } from "./ui/heavy";
 import { refreshBed } from "./tools/bedPrinter";
+import { flushPendingSaves } from "./tools/pendingSaves";
 import { getDb } from "./db";
 import { markStartup } from "./about/perf";
 import { NAVIGATE_EVENT } from "./ui/navigate";
@@ -49,7 +51,17 @@ export default function App() {
   const toast = useToast();
   const { reminderDays, neverBackedUp, backupError, backupNow } = useAutoBackup();
   const page = PAGES.find((p) => p.id === pageId) ?? PAGES[0];
-  const remount = useCallback(() => setReloadKey((k) => k + 1), []);
+  // gravações adiadas das ferramentas vão para o banco antes de a tela ser refeita (B1)
+  const remount = useCallback(() => void flushPendingSaves().then(() => setReloadKey((k) => k + 1)), []);
+  // dados que chegaram do outro computador com um formulário preenchido na tela: a tela só é refeita quando a pessoa quiser (B1)
+  const [arrived, setArrived] = useState<string | null>(null);
+  const onImported = useCallback(
+    (from: string) => {
+      if (hasUnsavedFields()) setArrived(from);
+      else remount();
+    },
+    [remount],
+  );
 
   // tela aberta para o atalho "?" (o atalho é instalado uma vez só)
   const pageRef = useRef(pageId);
@@ -143,7 +155,21 @@ export default function App() {
           )}
         </Toolbar>
         <div className="view">
-          <SyncBanner onImported={remount} onOpenBackups={() => navigate("preferences")} />
+          <SyncBanner onImported={onImported} onOpenBackups={() => navigate("preferences")} />
+          {arrived && (
+            <div className="banner warn" role="status">
+              <span>Chegaram dados novos de {arrived}. Termine o que está preenchendo e atualize a tela para ver (o formulário aberto será fechado).</span>
+              <button
+                className="primary"
+                onClick={() => {
+                  setArrived(null);
+                  remount();
+                }}
+              >
+                Atualizar a tela
+              </button>
+            </div>
+          )}
           {backupError && (
             <div className="banner warn" role="alert">
               <span>O backup automático falhou: {backupError}</span>

@@ -304,7 +304,7 @@ Só análise: nenhum código foi alterado e nenhuma issue foi criada. Base: `ori
 
 ## Baixo
 
-### B1. A importação no meio da sessão apaga o formulário aberto
+### B1. A importação no meio da sessão apaga o formulário aberto — ✅ CORRIGIDO (Forja)
 - **Onde:** `src/App.tsx:133,146`; `src/sync/SyncBanner.tsx:28-30`.
 - **Como reproduzir:** preencha um orçamento enquanto o 1º tick importa, ou clique em "Assumir". O `remount` troca a `key` do `<main>` e o formulário some.
 - **Correção sugerida:** `flushPendingSaves` e perguntar antes de importar se houver formulário sujo.

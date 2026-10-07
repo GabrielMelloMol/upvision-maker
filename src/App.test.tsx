@@ -3,7 +3,11 @@ import { fireEvent, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, test, vi } from "vitest";
 import App from "./App";
+import { exportBackup } from "./db/backup";
+import { setSecret } from "./db/repo";
 import { PAGES, SECTIONS } from "./pages";
+import { dataHash, session, setSyncEnabled } from "./sync/sync";
+import { syncTuning } from "./sync/tuning";
 import { renderWithApp, setupTauri } from "./test/harness";
 
 // Sem WebGL nem MediaPipe no happy-dom (as ferramentas abrem com prévia 3D / recorte de foto).
@@ -153,6 +157,34 @@ describe("App", () => {
     t.openPath = "/ruim.json";
     await user.click(await inSettings("Restaurar backup"));
     expect(await screen.findByRole("alert")).toHaveTextContent("Não foi possível restaurar: Este arquivo não é um backup do UpVision Maker.");
+  });
+
+  test("B1: dados que chegam do outro computador não apagam o formulário aberto; atualizar a tela é escolha", async () => {
+    await seenIntro();
+    const DIR = "C:/Users/ana/OneDrive/UpVision";
+    const b = await exportBackup(t.db);
+    const mine = await dataHash(b);
+    await setSecret(t.db, "sync_local_hash", mine);
+    await setSecret(t.db, "sync_remote_hash", mine);
+    await setSecret(t.db, "backup_dir", DIR);
+    await setSyncEnabled(t.db, true);
+    const tables = { ...b.tables, printers: [{ ...(b.tables.printers[0] ?? { id: 1, name: "x", watts: 1, price: 0, lifeHours: 5000, upkeepPerHour: 0 }), name: "Ender 3" }] };
+    const sync = { device: "outro", deviceName: "NOTE-ANA", savedAt: new Date(Date.now() - 30_000).toISOString(), hash: await dataHash({ ...b, tables }) };
+    t.autoBackups.set(DIR, new Map([["upvision-sync.json", JSON.stringify({ ...b, tables, sync })]]));
+    session.active = false; // o outro computador só "salva" depois de a pessoa começar a digitar
+    syncTuning.tickMs = 300;
+    const user = userEvent.setup();
+    renderWithApp(<App />);
+    await openPage(user, PAGES.find((p) => p.id === "customers")!);
+    await user.click((await screen.findAllByRole("button", { name: /Novo cliente|Cadastrar cliente/ }))[0]);
+    const sheet = await screen.findByRole("dialog", { name: "Novo cliente" });
+    await user.type(within(sheet).getByLabelText(/^Nome/), "Loja da Bia");
+    session.active = true;
+    expect(await screen.findByText(/Chegaram dados novos de NOTE-ANA/)).toBeInTheDocument();
+    expect(within(screen.getByRole("dialog", { name: "Novo cliente" })).getByLabelText(/^Nome/)).toHaveValue("Loja da Bia"); // antes: o formulário sumia
+    await user.click(screen.getByRole("button", { name: "Atualizar a tela" }));
+    await waitFor(() => expect(screen.queryByRole("dialog", { name: "Novo cliente" })).not.toBeInTheDocument());
+    expect(screen.queryByText(/Chegaram dados novos/)).not.toBeInTheDocument();
   });
 
   test("restaurar cancelado não faz nada", async () => {

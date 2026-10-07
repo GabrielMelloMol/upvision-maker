@@ -5,6 +5,7 @@ Formato: `## <versão> — <data>` e itens `- …` em linguagem simples.
 
 ## Próxima versão (ainda não lançada)
 - **F5 e Ctrl+R não reiniciam mais o app por engano** (Windows): apertar essas teclas dentro de uma ferramenta recarregava tudo e fazia você perder o que não estava salvo e o desfazer.
+- **Dados que chegam do outro computador não apagam o que você está preenchendo**: se você estiver com um formulário aberto (um cliente, um orçamento) quando a sincronização trouxer dados novos, a tela não é refeita por cima. Aparece um aviso "Chegaram dados novos de..." com o botão Atualizar a tela, e você decide quando.
 
 ## 0.10.5 — 2026-10-07
 - **Importar um 3MF fatiado com a configuração danificada avisa**: antes as gramas e o custo saíam sem a purga das trocas de cor e sem a impressora, sem dizer nada; agora aparece o aviso.
