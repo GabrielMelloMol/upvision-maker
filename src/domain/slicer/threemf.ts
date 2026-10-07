@@ -35,7 +35,8 @@ export function parse3mf(bytes: Uint8Array): SlicerReport {
   }
   const filaments = [...byId.values()].filter((f) => (f.grams ?? 0) > 0).sort((a, b) => a.index - b.index);
   if (!filaments.length) throw new Error("Este 3MF ainda não foi fatiado. Fatie no Bambu Studio/OrcaSlicer e salve o projeto, ou importe o G-code.");
-  const settings = readSettings(files["Metadata/project_settings.config"]);
+  const read = readSettings(files["Metadata/project_settings.config"]);
+  const settings = read.settings;
   const printer = settings.printer_model || undefined;
   const waste = multicolorWaste(files, plates, settings);
   // suporte e torre (#147): só com o G-code das mesas dentro do 3MF ("Exportar 3MF fatiado")
@@ -52,15 +53,19 @@ export function parse3mf(bytes: Uint8Array): SlicerReport {
     ...(waste && { waste }),
     ...(extra.support > 0 && { support: { grams: extra.support, tree: /tree/i.test(String(settings.support_type ?? "")) } }),
     ...(extra.tower > 0 && { tower: extra.tower }),
-    warnings: plates.length > 1 ? [`O projeto tem ${plates.length} mesas: os valores foram somados.`] : [],
+    warnings: [
+      ...(plates.length > 1 ? [`O projeto tem ${plates.length} mesas: os valores foram somados.`] : []),
+      ...(read.unreadable ? ["Não consegui ler a configuração do projeto (arquivo corrompido?): a purga das trocas de cor e a impressora ficaram de fora, então as gramas e o custo podem estar abaixo do real."] : []),
+    ],
   };
 }
 
-function readSettings(raw: Uint8Array | undefined): ProjectSettings {
+/** `unreadable`: o arquivo existe mas não é JSON (segue sem impressora nem purga, e quem chama avisa, B12). */
+function readSettings(raw: Uint8Array | undefined): { settings: ProjectSettings; unreadable: boolean } {
   try {
-    return raw ? (JSON.parse(strFromU8(raw)) as ProjectSettings) : {};
+    return { settings: raw ? (JSON.parse(strFromU8(raw)) as ProjectSettings) : {}, unreadable: false };
   } catch {
-    return {}; // configuração ilegível: segue sem impressora nem purga
+    return { settings: {}, unreadable: true };
   }
 }
 

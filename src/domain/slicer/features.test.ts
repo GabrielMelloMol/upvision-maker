@@ -55,4 +55,15 @@ describe("gramas de suporte e torre pelo G-code (#147)", () => {
     expect(r.support?.grams).toBeCloseTo(3.67, 1);
     expect(r.support?.tree).toBe(true);
   });
+
+  test("3MF com a configuração do projeto ilegível avisa que a purga e a impressora ficaram de fora (B12)", () => {
+    const slice = '<config><plate><metadata key="prediction" value="600"/><filament id="1" type="PLA" color="#FFFFFF" used_m="2.3" used_g="7.04"/></plate></config>';
+    const broken = parseSlicerFile("peca.3mf", zipSync({ "Metadata/slice_info.config": strToU8(slice), "Metadata/project_settings.config": strToU8("{ isto não é json") }));
+    expect(broken.warnings.join()).toMatch(/configuração do projeto/);
+    expect(broken.warnings.join()).toMatch(/purga/);
+    const ok = parseSlicerFile("peca.3mf", zipSync({ "Metadata/slice_info.config": strToU8(slice), "Metadata/project_settings.config": strToU8("{}") }));
+    expect(ok.warnings).toEqual([]);
+    const missing = parseSlicerFile("peca.3mf", zipSync({ "Metadata/slice_info.config": strToU8(slice) })); // sem o arquivo: nada a avisar
+    expect(missing.warnings).toEqual([]);
+  });
 });
