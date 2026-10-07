@@ -108,7 +108,7 @@ export function competitorHint(ours: number, competitor: number): { ok: boolean;
 const pctText = (n: number) => `${n.toLocaleString("pt-BR", { maximumFractionDigits: 1 })} %`;
 
 /** "×5" explicado: markup = mult − 1, margem = 1 − 1/mult (a "margem 500%" de outras calculadoras é markup). */
-export const markupText = (mult: number) => `markup ${pctText((mult - 1) * 100)} · margem ${pctText((1 - 1 / mult) * 100)} antes das taxas`;
+export const markupText = (mult: number) => `lucro de ${pctText((mult - 1) * 100)} sobre o custo (${pctText((1 - 1 / mult) * 100)} do preço), antes das taxas`;
 
 /** Preparo por pedido (atendimento, fatiar, trocar filamento): minutos × sua hora + um valor fixo. */
 export const prepCost = (minutes: number, fixed: number, s: Settings) => round2((Math.max(0, minutes) / 60) * s.laborHourCost + Math.max(0, fixed));

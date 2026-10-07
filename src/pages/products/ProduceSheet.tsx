@@ -91,7 +91,7 @@ export default function ProduceSheet({ product, data, onClose, onDone }: { produ
               ))}
             </tbody>
           </table>
-          {rows.some((r) => r.low) && <Alert kind="warn">Algum insumo vai ficar negativo. Registre mesmo assim se ele já foi usado, ou reponha antes.</Alert>}
+          {rows.some((r) => r.low) && <Alert kind="warn">Algum filamento ou material vai ficar negativo. Registre mesmo assim se ele já foi usado, ou reponha antes.</Alert>}
         </>
       )}
     </Sheet>

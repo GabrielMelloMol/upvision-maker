@@ -67,7 +67,7 @@ describe("Preferences", () => {
     await user.type(hours, "80");
     await user.click(screen.getByRole("checkbox", { name: /jeito antigo/ }));
     await user.selectOptions(screen.getByLabelText(/^Embalagem padrão/), "Caixinha");
-    expect(screen.getByText(/loja, papelaria.*markup 200 %/)).toBeInTheDocument();
+    expect(screen.getByText(/loja, papelaria.*lucro de 200 % sobre o custo/)).toBeInTheDocument();
     await user.click(screen.getByRole("button", { name: "Salvar preferências" }));
     expect(await screen.findByText("Preferências salvas.")).toBeInTheDocument();
     expect(await settings()).toMatchObject({ failurePct: 10, taxPct: 6, includeFixedCosts: true, productiveHoursMonth: 80, multiplyLabor: true, packagingMaterialId: 1 });

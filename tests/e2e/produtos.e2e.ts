@@ -8,11 +8,11 @@ test("produtos: salvar da calculadora leva a composição e o preço acompanha o
   await go(page, "Calculadora");
   await page.getByRole("button", { name: "Completo" }).click(); // abre no Rápido (#22)
   const filCard = page.locator("section.card", { hasText: "Filamentos" }).first();
-  await filCard.getByLabel("Cadastrado").selectOption({ label: "PLA · Azul · X" });
+  await filCard.getByLabel("Filamento").selectOption({ label: "PLA · Azul · X" });
   await filCard.getByLabel("Gramas").fill("120");
   const extCard = page.locator("section.card", { hasText: "Materiais extras" });
   await extCard.getByRole("button", { name: /Adicionar material/ }).click();
-  await extCard.getByLabel("Cadastrado").selectOption({ label: "Embalagem (un)" });
+  await extCard.getByLabel("Material").selectOption({ label: "Embalagem (un)" });
   await extCard.getByLabel("Quantidade").fill("1");
   await page.getByRole("button", { name: "Salvar como produto" }).click();
 

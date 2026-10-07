@@ -4,6 +4,7 @@ Cada versão aparece para a usuária na tela "O que há de novo" depois da atual
 Formato: `## <versão> — <data>` e itens `- …` em linguagem simples.
 
 ## Próxima versão (ainda não lançada)
+- **Menos jargão na Calculadora e em Produtos**: "markup 400 % · margem 80 %" virou "lucro de 400 % sobre o custo (80 % do preço), antes das taxas"; o seletor "Cadastrado" agora se chama "Filamento" ou "Material"; e "insumo" virou "filamento ou material" nos avisos.
 - **Lista de Produtos explica de onde vem o preço**: sob o valor, "preço digitado" ou "preço calculado" (antes só aparecia "manual"), com um ⓘ que diz se ele muda quando o custo muda.
 - **Miniaturas das ferramentas ocupam menos espaço no Mac**: quando o sistema não grava a miniatura em WebP, ela agora sai em JPEG leve em vez de PNG pesado, o que deixa os projetos e os backups menores.
 - **Subtítulos que dizem o que fazer na tela**: Pedidos ("Acompanhe cada pedido, do pedido até a entrega."), Produtos (sem a palavra "insumos") e o modo Rápido da Calculadora ("Digite o filamento e o tempo para ver quanto custa e quanto cobrar.") deixam de descrever como o sistema funciona por dentro.

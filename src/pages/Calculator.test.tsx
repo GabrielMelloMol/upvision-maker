@@ -98,10 +98,10 @@ describe("Calculator", () => {
     await user.type(screen.getByLabelText("Potência (W)"), "0");
     expect(screen.getByLabelText("Impressora")).toHaveValue("");
 
-    await user.selectOptions(screen.getByLabelText("Cadastrado"), "PLA · Preto · Voolt");
+    await user.selectOptions(screen.getByLabelText("Filamento"), "PLA · Preto · Voolt");
     expect(screen.getByLabelText("Preço por kg")).toHaveValue("120,00");
     await user.type(screen.getByLabelText("Preço por kg"), "1");
-    expect(screen.getByLabelText("Cadastrado")).toHaveValue("");
+    expect(screen.getByLabelText("Filamento")).toHaveValue("");
   });
 
   test("energia e mão de obra usam as preferências", async () => {
@@ -123,7 +123,7 @@ describe("Calculator", () => {
     renderWithApp(<Calculator go={() => {}} />);
     await user.click(screen.getByRole("button", { name: "Adicionar material" }));
     const extras = screen.getByRole("heading", { name: "Materiais extras" }).parentElement!;
-    await user.selectOptions(await within(extras).findByLabelText("Cadastrado"), "Argola (un)");
+    await user.selectOptions(await within(extras).findByLabelText("Material"), "Argola (un)");
     expect(screen.getByLabelText("Preço unitário")).toHaveValue("2,00");
     await user.type(screen.getByLabelText("Quantidade"), "3");
     expect(screen.getByRole("row", { name: /^Materiais extras/ })).toHaveTextContent(brl("6,00"));
@@ -175,7 +175,7 @@ describe("Calculator", () => {
     const user = userEvent.setup();
     renderWithApp(<Calculator go={go} />);
     await screen.findByRole("option", { name: "PLA · Preto" });
-    await user.selectOptions(screen.getByLabelText("Cadastrado"), "PLA · Preto");
+    await user.selectOptions(screen.getByLabelText("Filamento"), "PLA · Preto");
     await user.type(screen.getByLabelText("Gramas"), "50");
     await user.click(screen.getByRole("button", { name: "Adicionar filamento" }));
     await user.selectOptions(screen.getByLabelText("Impressora"), "A1");
@@ -252,7 +252,8 @@ describe("Calculadora (#22)", () => {
     expect(screen.getByText("Bambu Lab A1: 95 W (oficial)")).toBeInTheDocument();
     expect(screen.getByText(/Para lojista \(revenda\) ×3/)).toBeInTheDocument();
     expect(screen.getByText(/Venda direta \(consumidor final\) ×5/)).toBeInTheDocument();
-    expect(screen.getByText("markup 400 % · margem 80 % antes das taxas")).toBeInTheDocument();
+    expect(screen.getByText("lucro de 400 % sobre o custo (80 % do preço), antes das taxas")).toBeInTheDocument();
+    expect(screen.queryByText(/markup/i)).toBeNull(); // sem jargão à vista (o ⓘ do glossário explica o termo)
     await user.click(screen.getByText("Qual preço usar?"));
     expect(screen.getByText(/loja, papelaria/)).toBeVisible();
   });
@@ -449,7 +450,7 @@ test("falha por material (#35): filamento TPU usa a taxa do TPU e a linha mostra
   await t.db.execute("INSERT INTO filaments (material, color, brand, pricePerKg) VALUES ('TPU', 'Preto', '', 100)");
   const user = userEvent.setup();
   renderWithApp(<Calculator go={() => {}} />);
-  await user.selectOptions(await screen.findByLabelText("Cadastrado"), "TPU · Preto");
+  await user.selectOptions(await screen.findByLabelText("Filamento"), "TPU · Preto");
   await user.type(screen.getByLabelText("Gramas"), "88"); // 8,80 → 8,80 ÷ 0,88 − 8,80 = 1,20
   expect(screen.getByRole("row", { name: /^Falhas · 12\s%\s\(TPU\)/ })).toHaveTextContent(brl("1,20"));
 });

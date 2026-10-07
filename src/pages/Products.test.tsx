@@ -453,7 +453,7 @@ describe("Produtos: produzir", () => {
     expect(within(sheet).getByRole("row", { name: /PETG/ })).toHaveTextContent("falta");
     expect(within(sheet).getByRole("row", { name: /Filamento excluído/ })).toHaveTextContent("falta");
     expect(within(sheet).getByRole("row", { name: /Material excluído/ })).toBeInTheDocument();
-    expect(within(sheet).getByText(/Algum insumo vai ficar negativo/)).toBeInTheDocument();
+    expect(within(sheet).getByText(/Algum filamento ou material vai ficar negativo/)).toBeInTheDocument();
     await user.click(within(sheet).getByRole("button", { name: "Registrar produção" }));
     expect(await screen.findByText("Não foi possível registrar: Item de estoque não encontrado (filaments #9).")).toBeInTheDocument();
     expect(await t.db.select("SELECT stockG FROM filaments")).toEqual([{ stockG: 5 }]);

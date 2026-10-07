@@ -146,7 +146,7 @@ export default function OrderEditor({ data, order, draft, onClose, onSaved, save
     const badFreight = freight.trim() !== "" && !Number.isFinite(parseMoney(freight));
     if (badDiscount || badFreight) return setErrors({ ...(badDiscount && { items: "Confira o desconto: digite só o número, ex.: 10 para 10%." }), ...(badFreight && { freight: "Confira o frete: digite o valor em reais, ex.: 15,00." }) });
     if (noCost.length)
-      return setErrors({ items: `Não deu para calcular o custo de: ${[...new Set(noCost)].join(", ")}. Abra o produto e corrija (kit dentro de si mesmo, insumo ilegível) antes de salvar o pedido.` });
+      return setErrors({ items: `Não deu para calcular o custo de: ${[...new Set(noCost)].join(", ")}. Abra o produto e corrija (kit dentro de si mesmo, material ilegível) antes de salvar o pedido.` });
     setSaving(true);
     try {
       let id: number;

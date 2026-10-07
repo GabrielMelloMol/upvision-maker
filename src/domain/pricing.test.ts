@@ -77,9 +77,9 @@ describe("impostos", () => {
   });
 });
 
-test("markup × margem explicados com os números do multiplicador", () => {
-  expect(markupText(5)).toBe("markup 400 % · margem 80 % antes das taxas");
-  expect(markupText(3)).toBe("markup 200 % · margem 66,7 % antes das taxas");
+test("UX M1: markup e margem em palavras do dia a dia, com os números do multiplicador", () => {
+  expect(markupText(5)).toBe("lucro de 400 % sobre o custo (80 % do preço), antes das taxas");
+  expect(markupText(3)).toBe("lucro de 200 % sobre o custo (66,7 % do preço), antes das taxas");
 });
 
 describe("lucro por hora de máquina e meta de R$/h (#30)", () => {

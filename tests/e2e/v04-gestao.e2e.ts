@@ -181,7 +181,7 @@ test("calculadora: filamento do fatiador sem cadastro vira cadastro e a linha pa
   await expect(page.getByLabel("Filamento cadastrado para o filamento 1")).toHaveValue(String(created.id));
   await expect(page.getByRole("button", { name: "Cadastrar o filamento 1" })).toBeHidden();
   const main = page.getByRole("main");
-  await expect(main.getByRole("combobox", { name: /^Cadastrado/ }).nth(0)).toHaveValue(String(created.id));
+  await expect(main.getByRole("combobox", { name: /^Filamento/ }).nth(0)).toHaveValue(String(created.id));
   await expect(main.getByLabel("Preço por kg").nth(0)).toHaveValue("130,00");
   await expect(main.getByLabel("Gramas").nth(0)).toHaveValue("3,79");
 });

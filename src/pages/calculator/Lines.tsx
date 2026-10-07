@@ -24,7 +24,7 @@ export default function Lines(props: { lines: Line[]; setLines: (l: Line[]) => v
       {lines.map((l, i) => (
         <div className="row line" key={i}>
           <label>
-            Cadastrado
+            {props.qtyLabel === "Gramas" ? "Filamento" : "Material"}
             <select value={l.ref} onChange={(e) => pick(i, e.target.value)}>
               <option value="">Digitar preço</option>
               {options.map((o) => <option key={o.id} value={o.id}>{o.label}</option>)}
