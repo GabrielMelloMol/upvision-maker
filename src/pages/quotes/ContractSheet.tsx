@@ -1,6 +1,9 @@
 import { FileSignature } from "lucide-react";
 import { useState } from "react";
 import { money, parseDecimal } from "../../domain/format";
+import MoneyField from "../../ui/MoneyField";
+import SmartField from "../../ui/SmartField";
+import { parseMoney } from "../../ui/parse";
 import { todayIso } from "../../domain/orders";
 import { productPricing, salePrice } from "../../domain/products";
 import { contractPdf, DEFAULT_TERMS, type ContractTerms } from "../../pdf/contract";
@@ -42,9 +45,10 @@ export default function ContractSheet({ data, onClose }: { data: QuotesData; onC
   async function generate(e: React.FormEvent) {
     e.preventDefault();
     if (!customer) return toast("Escolha o consignatário (cliente).", "error");
+    if (!valid) return;
     setBusy(true);
     try {
-      const items = rows.map((r) => ({ name: data.products.find((p) => p.id === r.productId)?.name ?? "Peça", qty: parseDecimal(r.qty) || 0, transferPrice: parseDecimal(r.transfer) || 0, salePrice: parseDecimal(r.sale) || 0 }));
+      const items = rows.map((r) => ({ name: data.products.find((p) => p.id === r.productId)?.name ?? "Peça", qty: parseDecimal(r.qty), transferPrice: parseMoney(r.transfer), salePrice: parseMoney(r.sale) }));
       const { bytes } = await contractPdf(await loadPdfFonts(), data.company, customer, items, t);
       const path = await saveFile(`consignacao-${slug(customer.name)}-${t.date}.pdf`, bytes, "pdf", "PDF");
       if (path) {
@@ -58,6 +62,8 @@ export default function ContractSheet({ data, onClose }: { data: QuotesData; onC
     }
   }
 
+  // M10: valor ilegível não vira R$ 0,00 no PDF; precisa de quantidade > 0 e valores em R$ legíveis
+  const valid = rows.every((r) => parseDecimal(r.qty) > 0 && parseMoney(r.transfer) >= 0 && parseMoney(r.sale) >= 0);
   const upd = (i: number, patch: Partial<Row>) => setRows(rows.map((r, j) => (j === i ? { ...r, ...patch } : r)));
   return (
     <Sheet
@@ -69,7 +75,7 @@ export default function ContractSheet({ data, onClose }: { data: QuotesData; onC
       footer={
         <>
           <Button onClick={onClose}>Cancelar</Button>
-          <Button variant="action" type="submit" disabled={busy || !rows.length || !customer}>
+          <Button variant="action" type="submit" disabled={busy || !rows.length || !customer || !valid}>
             Salvar PDF do contrato
           </Button>
         </>
@@ -102,9 +108,9 @@ export default function ContractSheet({ data, onClose }: { data: QuotesData; onC
           {rows.map((r, i) => (
             <div className="row line" key={i}>
               <span className="grow">{data.products.find((p) => p.id === r.productId)?.name}</span>
-              <label className="narrow">Qtd<input inputMode="decimal" value={r.qty} onChange={(e) => upd(i, { qty: e.target.value })} /></label>
-              <label className="narrow">Repasse (R$)<input inputMode="decimal" value={r.transfer} onChange={(e) => upd(i, { transfer: e.target.value })} /></label>
-              <label className="narrow">Preço sugerido (R$)<input inputMode="decimal" value={r.sale} onChange={(e) => upd(i, { sale: e.target.value })} /></label>
+              <SmartField label="Qtd" inputMode="decimal" parse={parseDecimal} invalidText="Digite a quantidade, ex.: 20." value={r.qty} onChange={(v) => upd(i, { qty: v })} />
+              <MoneyField label="Repasse (R$)" value={r.transfer} onChange={(v) => upd(i, { transfer: v })} />
+              <MoneyField label="Preço sugerido (R$)" value={r.sale} onChange={(v) => upd(i, { sale: v })} />
               <button type="button" className="link danger" onClick={() => setRows(rows.filter((_, j) => j !== i))}>
                 Remover
               </button>
@@ -123,7 +129,7 @@ export default function ContractSheet({ data, onClose }: { data: QuotesData; onC
           </label>
           {rows.length > 0 && (
             <span className="hint">
-              Total em repasse: {money(rows.reduce((s, r) => s + (parseDecimal(r.qty) || 0) * (parseDecimal(r.transfer) || 0), 0))}. O repasse vem do cadastro do produto (ou do preço de revenda).
+              Total em repasse: {money(rows.reduce((s, r) => s + (parseDecimal(r.qty) || 0) * (parseMoney(r.transfer) || 0), 0))}. O repasse vem do cadastro do produto (ou do preço de revenda).
             </span>
           )}
         </div>

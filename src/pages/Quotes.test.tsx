@@ -244,6 +244,27 @@ describe("Contrato de consignação", () => {
     await waitFor(() => expect(screen.queryByRole("dialog")).not.toBeInTheDocument());
   });
 
+  test("M10: valores em R$ com milhar ou vírgula valem o que parecem; valor ilegível bloqueia o PDF em vez de sair R$ 0,00", async () => {
+    seed();
+    const { user } = setup();
+    await user.click(await screen.findByRole("button", { name: "Contrato de consignação" }));
+    const c = await screen.findByRole("dialog", { name: "Contrato de consignação" });
+    await user.selectOptions(within(c).getByLabelText("Consignatário (loja parceira)"), "Loja da Bia");
+    await user.selectOptions(within(c).getByLabelText("Adicionar produto"), "Chaveiro");
+    const transfer = within(c).getByLabelText("Repasse (R$)");
+    for (const [typed, total] of [["15,90", "R$ 15,90"], ["1.234,56", "R$ 1.234,56"], ["1.500", "R$ 1.500,00"]] as const) {
+      await user.clear(transfer);
+      await user.type(transfer, typed);
+      expect(within(c).getByText(new RegExp(`Total em repasse: ${total.replace(/[$.]/g, "\\$&")}`))).toBeInTheDocument();
+    }
+    await user.clear(transfer);
+    await user.type(transfer, "quinze reais");
+    await user.tab();
+    expect(within(c).getByText(/Digite um valor/)).toBeInTheDocument();
+    expect(within(c).getByRole("button", { name: "Salvar PDF do contrato" })).toBeDisabled();
+    expect(t.files.size).toBe(0);
+  });
+
   test("erro na geração vira aviso e mantém a janela", async () => {
     seed();
     pdfFonts.fail = true;

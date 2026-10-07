@@ -224,7 +224,7 @@ Só análise: nenhum código foi alterado e nenhuma issue foi criada. Base: `ori
   - O preço do kWh costuma ter 3 casas, então colar "0.856" deixa a energia 1000× mais cara.
 - **Correção sugerida:** `/^[1-9]\d{0,2}(\.\d{3})+(,\d+)?$/`.
 
-### M10. O contrato de consignação zera ou divide por mil os valores em R$
+### M10. O contrato de consignação zera ou divide por mil os valores em R$ — ✅ CORRIGIDO (Forja)
 - **Onde:** `src/pages/quotes/ContractSheet.tsx:47` e `:126` (`parseDecimal(...) || 0` num campo de dinheiro).
 - **Como reproduzir:** no Repasse, "R$ 15,90" ou "1.234,56" saem como R$ 0,00 no PDF, e "1.500" sai como R$ 1,50.
 - **Correção sugerida:** `MoneyField` + `parseMoney`, bloqueando a geração quando o valor for inválido.
