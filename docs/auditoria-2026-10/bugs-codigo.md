@@ -387,7 +387,7 @@ Só análise: nenhum código foi alterado e nenhuma issue foi criada. Base: `ori
 - **Como reproduzir:** título "Natal 24/25": o diálogo sugere "25.pdf". No Windows, "Natal: kits?" é recusado pelo diálogo.
 - **Correção sugerida:** `slug(title)`, como as outras telas.
 
-### B17. A prévia 3D não libera a GPU ao sair
+### B17. ✅ A prévia 3D não libera a GPU ao sair
 - **Onde:** `src/ui/viewerScene.ts:215-223` (sem descarte das malhas e sem `forceContextLoss`).
 - **Como reproduzir:** troque muitas vezes entre ferramentas com prévia 3D. Aparece "Too many active WebGL contexts" e a prévia some.
 - **Correção sugerida:** `setModels([])` mais `renderer.forceContextLoss()` antes do `dispose()`, como `renderThumb.ts:122-134`.

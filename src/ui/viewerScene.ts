@@ -218,7 +218,14 @@ export function createViewer(el: HTMLElement) {
       ro.disconnect();
       controls.dispose();
       grid?.dispose();
+      // libera a GPU como o renderThumb: sem isso, trocar muitas vezes de ferramenta estoura os contextos WebGL (B17)
+      for (const m of [...group.children] as THREE.Mesh[]) {
+        m.geometry.dispose();
+        (m.material as THREE.Material).dispose();
+        group.remove(m);
+      }
       renderer.dispose();
+      renderer.forceContextLoss();
       renderer.domElement.remove();
     },
   };

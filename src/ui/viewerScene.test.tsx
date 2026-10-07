@@ -7,7 +7,7 @@ import Preview3D from "./Preview3D";
 import { createViewer, fitDistance } from "./viewerScene";
 
 // happy-dom não tem WebGL: renderer falso que registra onde a câmera estava a cada quadro.
-const gl = vi.hoisted(() => ({ renders: [] as { x: number; y: number; z: number }[], sizes: [] as [number, number][], disposed: 0 }));
+const gl = vi.hoisted(() => ({ renders: [] as { x: number; y: number; z: number }[], sizes: [] as [number, number][], disposed: 0, contextLost: 0 }));
 vi.mock("three", async (orig) => {
   const mod = await orig<typeof import("three")>();
   class FakeRenderer {
@@ -21,6 +21,9 @@ vi.mock("three", async (orig) => {
     }
     dispose() {
       gl.disposed++;
+    }
+    forceContextLoss() {
+      gl.contextLost++;
     }
   }
   return { ...mod, WebGLRenderer: FakeRenderer };
@@ -128,6 +131,22 @@ describe("createViewer", () => {
     expect(orbit.last!.disposed).toBe(true);
     expect(schemeListeners).toHaveLength(0);
     expect(resizeCb).toBeNull();
+  });
+
+  test("sair da tela libera a GPU: descarta as malhas e solta o contexto WebGL, senão a prévia some depois de trocar de ferramenta (B17)", () => {
+    const disposeGeometry = vi.spyOn(THREE.BufferGeometry.prototype, "dispose");
+    const disposeMaterial = vi.spyOn(THREE.Material.prototype, "dispose");
+    const before = gl.contextLost;
+    const v = createViewer(host());
+    v.setModels([model(40), model(20)]);
+    disposeGeometry.mockClear();
+    disposeMaterial.mockClear();
+    v.dispose();
+    expect(disposeGeometry.mock.calls.length).toBeGreaterThanOrEqual(3); // as 2 malhas e a grade
+    expect(disposeMaterial.mock.calls.length).toBeGreaterThanOrEqual(3);
+    expect(gl.contextLost).toBe(before + 1);
+    disposeGeometry.mockRestore();
+    disposeMaterial.mockRestore();
   });
 
   test("1º modelo: câmera desliza até ele, gira alguns segundos e para sozinha", () => {

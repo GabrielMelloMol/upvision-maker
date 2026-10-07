@@ -4,6 +4,7 @@ Cada versão aparece para a usuária na tela "O que há de novo" depois da atual
 Formato: `## <versão> — <data>` e itens `- …` em linguagem simples.
 
 ## Próxima versão (ainda não lançada)
+- **A prévia 3D não some mais depois de trocar muitas vezes de ferramenta**: cada visita deixava um pedaço da placa de vídeo ocupado; agora ele é liberado ao sair da tela.
 - **O nome do catálogo em PDF vira um nome de arquivo seguro**: um título como "Natal 24/25" sugeria "25.pdf", e com ":" ou "?" o Windows recusava salvar.
 - **F5 e Ctrl+R não reiniciam mais o app por engano** (Windows): apertar essas teclas dentro de uma ferramenta recarregava tudo e fazia você perder o que não estava salvo e o desfazer.
 - **Dados que chegam do outro computador não apagam o que você está preenchendo**: se você estiver com um formulário aberto (um cliente, um orçamento) quando a sincronização trouxer dados novos, a tela não é refeita por cima. Aparece um aviso "Chegaram dados novos de..." com o botão Atualizar a tela, e você decide quando.
