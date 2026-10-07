@@ -297,7 +297,7 @@ Só análise: nenhum código foi alterado e nenhuma issue foi criada. Base: `ori
 - **Como reproduzir:** extraia o token do instalador e faça POSTs trocando o `installId`: o limite de 5 por hora não pega, sobram só os 30 por dia por IP. Isso permite spam de e-mails e issues.
 - **Correção sugerida:** limite global por dia (`global:<dia>`) e, se precisar, Turnstile ou Rate Limiting da Cloudflare; não limitar por `installId`.
 
-### M24. Celular na rede: HTTP sem TLS e sessão que não expira
+### M24. Celular na rede: HTTP sem TLS e sessão que não expira — ✅ CORRIGIDO (Lupa)
 - **Onde:** `src-tauri/src/lan.rs:296` (bind `0.0.0.0`), `:254` (cookie sem `Max-Age`), `:41` e `:231` (sessões sem validade), `:288` (`http://`).
 - **Como reproduzir:** numa rede compartilhada (convidados, hotel), quem escuta o tráfego vê o código no `/api/pair`, o cookie `upv` e o `/api/summary` (clientes, pedidos, estoque), e reaproveita a sessão até o app fechar. `is_local` não protege, porque todos ali têm IP privado.
 - **Correção sugerida:** validade de sessão (por exemplo 12 h), aviso "use só no Wi-Fi de casa" e desligamento automático após X horas. TLS na rede local não compensa.

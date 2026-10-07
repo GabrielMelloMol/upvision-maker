@@ -6,7 +6,7 @@
 //! Os pedidos da API vão para a janela do app (evento `lan-request`), que usa os mesmos repositórios do computador.
 
 use serde::Serialize;
-use std::collections::{HashMap, HashSet};
+use std::collections::HashMap;
 use std::io::Read;
 use std::net::{IpAddr, UdpSocket};
 use std::sync::atomic::{AtomicU64, AtomicUsize, Ordering};
@@ -22,6 +22,9 @@ const MAX_SESSIONS: usize = 10;
 const MAX_BODY: u64 = 16 * 1024;
 const APP_TIMEOUT: Duration = Duration::from_secs(15);
 const COOKIE: &str = "upv";
+/// Quanto tempo vale uma sessão do celular: depois disso o celular digita o código de novo (M24). Sem validade, um
+/// cookie visto na rede (é http) valia até o app fechar.
+const SESSION_TTL: Duration = Duration::from_secs(12 * 60 * 60);
 /// Pedidos ao mesmo tempo; acima disso, 503 (um aparelho da rede não esgota as threads do app).
 const MAX_INFLIGHT: usize = 32;
 
@@ -38,7 +41,7 @@ struct Running {
     ip: IpAddr,
     port: u16,
     pairing: Pairing,
-    sessions: HashSet<String>,
+    sessions: Sessions,
 }
 
 #[derive(Serialize, Clone)]
@@ -161,6 +164,35 @@ impl Pairing {
     }
 }
 
+/// Sessões pareadas, cada uma com a hora em que vence.
+#[derive(Default)]
+pub struct Sessions(HashMap<String, Instant>);
+
+impl Sessions {
+    pub fn insert(&mut self, token: String, now: Instant) {
+        self.0.retain(|_, expires| now <= *expires); // as vencidas saem aqui
+        self.0.insert(token, now + SESSION_TTL);
+    }
+
+    pub fn valid(&self, token: &str, now: Instant) -> bool {
+        self.0.get(token).is_some_and(|expires| now <= *expires)
+    }
+
+    /// Quantos celulares conectados de verdade (as vencidas não contam).
+    pub fn count(&self, now: Instant) -> usize {
+        self.0.values().filter(|expires| now <= **expires).count()
+    }
+
+    pub fn clear(&mut self) {
+        self.0.clear();
+    }
+}
+
+/// O cookie da sessão: some do celular junto com a validade do servidor.
+pub fn session_cookie(token: &str) -> String {
+    format!("{COOKIE}={token}; HttpOnly; SameSite=Strict; Path=/; Max-Age={}", SESSION_TTL.as_secs())
+}
+
 pub fn cookie_token(header: Option<&str>) -> Option<&str> {
     header?.split(';').filter_map(|p| p.trim().strip_prefix(COOKIE)?.strip_prefix('=')).next()
 }
@@ -252,7 +284,7 @@ fn handle(app: &AppHandle, mut req: Request) {
     }
     let is_pair = path == "/api/pair";
     // sessão antes de ler o corpo: quem não pareou não manda nada além do código
-    let paired = cookie_token(header(&req, "Cookie")).is_some_and(|t| lock(&lan.running).as_ref().is_some_and(|r| r.sessions.contains(t)));
+    let paired = cookie_token(header(&req, "Cookie")).is_some_and(|t| lock(&lan.running).as_ref().is_some_and(|r| r.sessions.valid(t, Instant::now())));
     if !is_pair && !paired {
         return error(req, 401, "Conecte com o código que aparece no computador.");
     }
@@ -264,15 +296,15 @@ fn handle(app: &AppHandle, mut req: Request) {
         let Some(r) = guard.as_mut() else { return };
         return match r.pairing.check(&given, Instant::now()) {
             PairResult::Ok => {
-                if r.sessions.len() >= MAX_SESSIONS {
+                if r.sessions.count(Instant::now()) >= MAX_SESSIONS {
                     drop(guard);
                     return error(req, 429, "Celulares demais conectados. No computador, toque em Desconectar todos.");
                 }
                 let token = random_hex(32);
-                r.sessions.insert(token.clone());
+                r.sessions.insert(token.clone(), Instant::now());
                 drop(guard);
                 let _ = app.emit("lan-changed", ());
-                let cookie = h("Set-Cookie", &format!("{COOKIE}={token}; HttpOnly; SameSite=Strict; Path=/"));
+                let cookie = h("Set-Cookie", &session_cookie(&token));
                 send(req, 200, "application/json; charset=utf-8", b"{\"ok\":true}".to_vec(), vec![cookie]);
             }
             PairResult::Wrong => {
@@ -310,7 +342,7 @@ fn handle(app: &AppHandle, mut req: Request) {
 
 fn status_of(lan: &Lan) -> LanStatus {
     match lock(&lan.running).as_ref() {
-        Some(r) => LanStatus { running: true, url: format!("http://{}:{}/", r.ip, r.port), code: r.pairing.code.clone(), phones: r.sessions.len(), locked: r.pairing.locked },
+        Some(r) => LanStatus { running: true, url: format!("http://{}:{}/", r.ip, r.port), code: r.pairing.code.clone(), phones: r.sessions.count(Instant::now()), locked: r.pairing.locked },
         None => LanStatus { running: false, url: String::new(), code: String::new(), phones: 0, locked: false },
     }
 }
@@ -320,7 +352,7 @@ pub fn lan_start(app: AppHandle, lan: State<'_, Lan>) -> Result<LanStatus, Strin
     if lock(&lan.running).is_none() {
         let server = Arc::new(Server::http("0.0.0.0:0").map_err(|e| format!("Não consegui ligar o acesso do celular: {e}"))?);
         let port = server.server_addr().to_ip().map(|a| a.port()).ok_or("Porta inválida.")?;
-        *lock(&lan.running) = Some(Running { server: server.clone(), ip: lan_ip(), port, pairing: Pairing::new(Instant::now()), sessions: HashSet::new() });
+        *lock(&lan.running) = Some(Running { server: server.clone(), ip: lan_ip(), port, pairing: Pairing::new(Instant::now()), sessions: Sessions::default() });
         std::thread::spawn(move || {
             // ponytail: uma thread por pedido; na rede de casa são poucos celulares
             for req in server.incoming_requests() {
@@ -429,6 +461,28 @@ mod tests {
         assert_eq!(api_gate("POST", "/api/pair", Some("0")), Err((403, "Pedido recusado.")));
         assert_eq!(api_gate("PUT", "/api/summary", Some("1")), Err((405, "Método não aceito.")));
         assert_eq!(api_gate("OPTIONS", "/api/summary", None), Err((405, "Método não aceito.")), "sem CORS: o preflight é negado");
+    }
+
+    #[test]
+    fn sessao_vale_12_horas_e_depois_pede_o_codigo_de_novo() {
+        let t0 = Instant::now();
+        let mut s = Sessions::default();
+        s.insert("a".into(), t0);
+        assert!(s.valid("a", t0 + Duration::from_secs(11 * 3600)));
+        assert!(!s.valid("a", t0 + SESSION_TTL + Duration::from_secs(1)), "vencida (M24)");
+        assert!(!s.valid("outra", t0));
+        assert_eq!(s.count(t0), 1);
+        assert_eq!(s.count(t0 + SESSION_TTL + Duration::from_secs(1)), 0, "vencida não conta como celular conectado");
+        s.insert("b".into(), t0 + SESSION_TTL + Duration::from_secs(2));
+        assert_eq!(s.0.len(), 1, "inserir limpa as vencidas");
+        s.clear();
+        assert_eq!(s.count(t0), 0);
+    }
+
+    #[test]
+    fn cookie_da_sessao_expira_junto() {
+        let c = session_cookie("abc");
+        assert!(c.starts_with("upv=abc;") && c.contains("HttpOnly") && c.contains("SameSite=Strict") && c.contains("Max-Age=43200"));
     }
 
     #[test]
