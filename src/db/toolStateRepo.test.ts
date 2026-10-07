@@ -1,7 +1,8 @@
 import { beforeEach, describe, expect, test } from "vitest";
 import { migrate } from "./migrations";
 import { memoryDb } from "./testDb";
-import { PROJECTS_MAX, projectTags, toolProjects, toolState } from "./toolStateRepo";
+import { photos } from "./photosRepo";
+import { LIBRARY_MAX, PROJECTS_MAX, projectTags, toolProjects, toolState } from "./toolStateRepo";
 import type { Db } from "./types";
 
 let db: Db;
@@ -64,4 +65,24 @@ describe("Meus projetos (#161)", () => {
     expect(p).toMatchObject({ name: "Wi-Fi", favorite: 0, tags: "[]" });
     expect(projectTags(p)).toEqual([]);
   });
+});
+
+test("excluir um projeto apaga as fotos dele; o próximo que reusar o id não herda fotos (B5)", async () => {
+  const id = await toolProjects.add(db, { toolId: "keychain", name: "k", data: "{}", thumb: null, at: "2026-10-01" });
+  await photos.add(db, `project:${id}`, "data:image/jpeg;base64,AAA");
+  await photos.add(db, "product:1", "data:image/jpeg;base64,BBB"); // de outro dono: fica
+  await toolProjects.remove(db, id);
+  expect(await photos.list(db, `project:${id}`)).toEqual([]);
+  expect(await photos.list(db, "product:1")).toHaveLength(1);
+  const again = await toolProjects.add(db, { toolId: "keychain", name: "novo", data: "{}", thumb: null, at: "2026-10-02" });
+  expect(await photos.list(db, `project:${again}`)).toEqual([]);
+});
+
+test("a poda da biblioteca também apaga as fotos dos projetos que saem (B5)", async () => {
+  const first = await toolProjects.add(db, { toolId: "qr", name: "velho", data: "{}", thumb: null, at: "2026-01-01" });
+  await photos.add(db, `project:${first}`, "data:image/jpeg;base64,AAA");
+  for (let i = 0; i < LIBRARY_MAX; i++) await db.execute("INSERT INTO tool_projects (toolId, name, data, thumb, at, favorite, tags) VALUES ('qr', ?, '{}', NULL, ?, 0, '[]')", [`p${i}`, `2026-02-01T00:00:${i}`]);
+  await toolProjects.add(db, { toolId: "qr", name: "novo", data: "{}", thumb: null, at: "2026-10-01" }); // passa do limite: o mais velho sai
+  expect(await toolProjects.get(db, first)).toBeNull();
+  expect(await photos.list(db, `project:${first}`)).toEqual([]);
 });

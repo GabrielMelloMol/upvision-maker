@@ -324,7 +324,7 @@ Só análise: nenhum código foi alterado e nenhuma issue foi criada. Base: `ori
 - **Como reproduzir:** com os produtos 1–10 com fotos, restaure um backup leve com os produtos 1–8. O próximo produto novo recebe o id 9 e herda as fotos de outro. Ids 1–8 que no backup são outros produtos herdam fotos erradas também.
 - **Correção sugerida:** no restore leve, apagar as fotos cujo dono não existe no backup, ou avisar.
 
-### B5. Fotos de projeto ficam órfãs ao excluir o projeto pela ferramenta
+### B5. ✅ ✅ Fotos de projeto ficam órfãs ao excluir o projeto pela ferramenta
 - **Onde:** `src/tools/useToolState.ts:228-230` (`removeProject` sem `photos.removeOwner`, ao contrário de `MyProjects.tsx:96`); `src/db/toolStateRepo.ts:86` (a poda de `LIBRARY_MAX` também não limpa).
 - **Como reproduzir:** exclua o projeto mais recente pela lista da ferramenta e salve um novo. Ele reusa o id e mostra as fotos antigas.
 - **Correção sugerida:** limpar as fotos dentro de `toolProjects.remove` e da poda.

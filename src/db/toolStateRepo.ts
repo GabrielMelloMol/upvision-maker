@@ -82,11 +82,17 @@ export const toolProjects = {
       v.productId ?? null,
       v.orderId ?? null,
     ]);
-    // biblioteca (#161): guarda até LIBRARY_MAX por ferramenta; favoritos nunca saem
-    await db.execute(`DELETE FROM tool_projects WHERE toolId = ? AND favorite = 0 AND id NOT IN (SELECT id FROM tool_projects WHERE toolId = ? ${NEWEST} LIMIT ?)`, [v.toolId, v.toolId, LIBRARY_MAX]);
+    // biblioteca (#161): guarda até LIBRARY_MAX por ferramenta; favoritos nunca saem. As fotos de quem sai vão junto (B5)
+    const pruned = `SELECT id FROM tool_projects WHERE toolId = ? AND favorite = 0 AND id NOT IN (SELECT id FROM tool_projects WHERE toolId = ? ${NEWEST} LIMIT ?)`;
+    await db.execute(`DELETE FROM photos WHERE owner IN (SELECT 'project:' || id FROM (${pruned}))`, [v.toolId, v.toolId, LIBRARY_MAX]);
+    await db.execute(`DELETE FROM tool_projects WHERE id IN (${pruned})`, [v.toolId, v.toolId, LIBRARY_MAX]);
     return Number(r.lastInsertId);
   },
-  remove: (db: Db, id: number) => db.execute("DELETE FROM tool_projects WHERE id = ?", [id]),
+  /** Apaga o projeto e as fotos dele: o id é reaproveitado, e o projeto novo herdaria as fotos antigas (B5). */
+  async remove(db: Db, id: number): Promise<void> {
+    await db.execute("DELETE FROM photos WHERE owner = ?", [`project:${id}`]);
+    await db.execute("DELETE FROM tool_projects WHERE id = ?", [id]);
+  },
   async get(db: Db, id: number): Promise<ToolProject | null> {
     const [row] = await db.select<ToolProject>("SELECT * FROM tool_projects WHERE id = ?", [id]);
     return row ?? null;
