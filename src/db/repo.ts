@@ -37,7 +37,9 @@ function stockCrud<S extends z.ZodObject>(table: string, schema: S, stockCol: st
       const [row] = await db.select<Record<string, number>>(`SELECT ${stockCol} AS s, ${priceCol} AS p FROM ${table} WHERE id = ?`, [id]);
       if (!row) throw new Error("Item não encontrado.");
       const price = weightedAverage(row.s, row.p, addQty, addPrice);
-      await db.execute(`UPDATE ${table} SET ${priceCol} = ?, ${stockCol} = ? WHERE id = ?`, [price, Math.max(row.s, 0) + addQty, id]);
+      // M11: o saldo negativo é dívida com o estoque (um pedido já consumiu): a reposição o cobre, não o apaga.
+      // Só o custo médio ignora o negativo (weightedAverage).
+      await db.execute(`UPDATE ${table} SET ${priceCol} = ?, ${stockCol} = ? WHERE id = ?`, [price, row.s + addQty, id]);
     },
   };
 }

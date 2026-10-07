@@ -229,7 +229,7 @@ Só análise: nenhum código foi alterado e nenhuma issue foi criada. Base: `ori
 - **Como reproduzir:** no Repasse, "R$ 15,90" ou "1.234,56" saem como R$ 0,00 no PDF, e "1.500" sai como R$ 1,50.
 - **Correção sugerida:** `MoneyField` + `parseMoney`, bloqueando a geração quando o valor for inválido.
 
-### M11. Repor um estoque negativo perde o déficit, e o estorno depois infla o estoque
+### M11. Repor um estoque negativo perde o déficit, e o estorno depois infla o estoque — ✅ CORRIGIDO (Forja)
 - **Onde:** `src/db/repo.ts:39` (`Math.max(row.s, 0) + addQty`).
 - **Como reproduzir:**
   1. Filamento com 0 g; um pedido consome 200 g e o estoque fica em −200.

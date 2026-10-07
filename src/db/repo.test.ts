@@ -39,6 +39,17 @@ describe("repositórios", () => {
     expect((await filaments.list(db))[0]).toMatchObject({ stockG: 1500, pricePerKg: 100 });
   });
 
+  test("M11: repor um estoque negativo desconta o déficit, e o estorno depois não infla o estoque", async () => {
+    const id = await filaments.insert(db, { ...pla, stockG: 0 });
+    await filaments.consume(db, id, 200); // um pedido consome 200 g e o estoque fica em −200
+    await filaments.restock(db, id, 1000, 100);
+    expect((await filaments.list(db))[0].stockG).toBe(800); // antes: 1000, o déficit sumia
+    await db.execute("UPDATE filaments SET stockG = stockG + 200 WHERE id = ?", [id]); // cancelar o pedido estorna +200
+    expect((await filaments.list(db))[0].stockG).toBe(1000); // antes: 1200
+    // o custo médio continua ignorando o saldo negativo (só o que existe pesa na média)
+    expect((await filaments.list(db))[0].pricePerKg).toBe(100);
+  });
+
   test("baixa de gramas (#12): tira do estoque, pode ficar negativo; valor inválido é recusado", async () => {
     const id = await filaments.insert(db, pla);
     expect(await filaments.consume(db, id, 120.5)).toBe(379.5);
