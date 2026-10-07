@@ -427,6 +427,10 @@ h3.subhead svg { width: 16px; height: 16px; color: var(--muted); }
 .row-control > :not(.row-label):not(.hint) { grid-column: 2; grid-row: 1 / span 2; justify-self: end; }
 @container (max-width: 520px) { .rows > .row-control { grid-template-columns: 1fr; } .row-control > :not(.row-label):not(.hint) { grid-column: 1; grid-row: auto; justify-self: start; } }
 .group-actions { margin: 0 0 var(--space-6); }
+/* barra de salvar das Preferências (UX A2): fica à vista no pé da janela enquanto o formulário rola */
+.save-bar { position: sticky; bottom: 0; z-index: 5; display: flex; align-items: center; justify-content: flex-end; gap: var(--space-4); padding: var(--space-3) var(--space-4); margin-inline: calc(var(--space-4) * -1); border-top: 1px solid var(--separator); background: color-mix(in srgb, var(--bg) 92%, transparent); -webkit-backdrop-filter: var(--blur); backdrop-filter: var(--blur); }
+.save-state { color: var(--muted); font-size: var(--text-sm); }
+.save-state.unsaved { color: var(--warn); font-weight: 600; }
 .row.line.channel-line { grid-template-columns: 1.4fr 0.8fr 1fr 1fr auto; align-items: end; }
 .rows .state-kwh select { max-width: none; }
 .rows .cep-field > label { color: inherit; font-size: inherit; font-weight: inherit; }

@@ -18,6 +18,7 @@ Formato: `## <versão> — <data>` e itens `- …` em linguagem simples.
 - **Restaurar backup leve (sem fotos)**: fotos de produtos, projetos ou impressões que o backup não tem deixam de ficar para trás e grudar no próximo cadastro.
 - **Cópia de segurança antes de restaurar aparece em "Backups guardados"**: ao restaurar um backup (ou receber dados do outro computador), a cópia dos dados de antes fica na mesma lista, pronta para restaurar, e o app guarda só as 5 mais novas. "Salvar backup" no menu também passou a gravar o arquivo por inteiro ou não mexer nele: uma queda no meio não corta mais o backup anterior.
 - **Boas-vindas sem beco sem saída**: no passo da impressora e do filamento, "Continuar" com os campos em branco segue em frente (dá para cadastrar depois em Impressoras e Filamentos). Ficaram só duas saídas: "Continuar" e "Agora não".
+- **Preferências avisa o que ainda não foi salvo**: a barra de baixo fica sempre à vista, diz "Tudo salvo" ou "Alterações não salvas", e se você sair da tela com uma alteração válida ela é salva sozinha, com um aviso.
 
 ## 0.10.4 — 2026-10-05
 - **Dois computadores em versões diferentes não apagam mais dados**: se um estiver com o app desatualizado, nada é trocado entre eles e aparece um aviso dizendo qual computador precisa atualizar. Antes, o computador antigo podia apagar a ficha de impressão, os projetos e as fotos do mais novo.

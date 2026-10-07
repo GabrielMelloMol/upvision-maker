@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { getDb } from "../db";
 import { loadSettings, materials, saveSettings } from "../db/repo";
 import type { Db } from "../db/types";
@@ -82,25 +82,54 @@ function PreferencesForm({ initial, materials }: { initial: Settings; materials:
   const toast = useToast();
 
 
-  async function submit(e: React.FormEvent) {
-    e.preventDefault();
-    const s = {
+  /** O que o formulário edita, já lido dos campos (o resto das preferências é preservado ao gravar). */
+  const build = () =>
+    ({
       ...Object.fromEntries(ALL_FIELDS.map((f) => [f.key, f.money ? parseMoney(nums[f.key]) : parseDecimal(nums[f.key])])),
       ...flags,
       packagingMaterialId: packaging ? Number(packaging) : null,
       failureByMaterial: Object.fromEntries(Object.entries(byMaterial).flatMap(([k, v]) => (v.trim() === "" ? [] : [[k, parseDecimal(v)]]))), // vazio = a geral
       channels: channels.map(fromChannelForm),
-    } as Omit<Settings, "kwhHistory" | "ams" | "slicer">;
+    }) as Omit<Settings, "kwhHistory" | "ams" | "slicer">;
+
+  // Alterações não salvas (UX A2): a barra de baixo mostra o estado e, ao sair da tela, o que está válido é salvo sozinho.
+  const [baseline, setBaseline] = useState(() => JSON.stringify(build()));
+  const dirty = JSON.stringify(build()) !== baseline;
+
+  async function persist() {
+    const s = build();
+    const db = await getDb();
+    // relê o que está gravado para não apagar o que este formulário não edita (ex.: histórico do kWh)
+    await saveSettings(db, { ...(await loadSettings(db)), ...s });
+    setBaseline(JSON.stringify(s));
+  }
+
+  async function submit(e: React.FormEvent) {
+    e.preventDefault();
     try {
-      const db = await getDb();
-      // relê o que está gravado para não apagar o que este formulário não edita (ex.: histórico do kWh)
-      await saveSettings(db, { ...(await loadSettings(db)), ...s });
+      await persist();
       setErrors({});
       toast("Preferências salvas.");
     } catch (err) {
       setErrors(fieldErrors(err));
     }
   }
+
+  const leaving = useRef({ dirty, persist, toast });
+  useEffect(() => {
+    leaving.current = { dirty, persist, toast };
+  });
+  useEffect(
+    () => () => {
+      const { dirty: d, persist: save, toast: say } = leaving.current;
+      if (!d) return;
+      save().then(
+        () => say("Preferências salvas ao sair da tela."),
+        (err) => say(`Alterações em Preferências não foram salvas: ${errorText(err)}`, "error"),
+      );
+    },
+    [],
+  );
 
   async function applyBill(entry: KwhEntry) {
     try {
@@ -202,8 +231,13 @@ function PreferencesForm({ initial, materials }: { initial: Settings; materials:
 
       <ChannelsCard channels={channels} setChannels={setChannels} error={errors.channels} />
       {errors._ && <p className="error">{errors._}</p>}
-      <div className="row group-actions">
-        <button className="primary" type="submit">Salvar preferências</button>
+      <div className="save-bar group-actions">
+        <span className={`save-state ${dirty ? "unsaved" : ""}`} role="status">
+          {dirty ? "Alterações não salvas" : "Tudo salvo"}
+        </span>
+        <button className="primary" type="submit">
+          Salvar preferências
+        </button>
       </div>
     </form>
     </>

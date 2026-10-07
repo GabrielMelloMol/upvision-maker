@@ -325,3 +325,30 @@ describe("AiSettingsCard", () => {
     expect(await screen.findByText("sem banco", { selector: ".alert div" })).toBeInTheDocument();
   });
 });
+
+describe("Preferências: alterações não salvas (UX A2)", () => {
+  test("a barra de baixo avisa da alteração, volta a 'Tudo salvo' ao salvar", async () => {
+    const user = userEvent.setup();
+    renderWithApp(<Preferences />);
+    const kwh = await screen.findByLabelText("Preço do kWh");
+    expect(screen.getByText("Tudo salvo")).toBeInTheDocument();
+    await user.clear(kwh);
+    await user.type(kwh, "1,10");
+    expect(screen.getByText("Alterações não salvas")).toBeInTheDocument();
+    await user.click(screen.getByRole("button", { name: "Salvar preferências" }));
+    expect(await screen.findByText("Tudo salvo")).toBeInTheDocument();
+  });
+
+  test("sair da tela com alteração válida salva sozinho e avisa", async () => {
+    const user = userEvent.setup();
+    const view = renderWithApp(<Preferences />);
+    const kwh = await screen.findByLabelText("Preço do kWh");
+    await user.clear(kwh);
+    await user.type(kwh, "1,35");
+    view.unmount();
+    await waitFor(async () => {
+      const [row] = await t.db.select<{ data: string }>("SELECT data FROM settings");
+      expect(JSON.parse(row.data).kwhPrice).toBe(1.35);
+    });
+  });
+});

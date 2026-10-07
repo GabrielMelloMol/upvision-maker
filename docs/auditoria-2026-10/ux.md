@@ -61,7 +61,7 @@ A pergunta foi: uma vendedora de impressão 3D que acabou de instalar o app cons
 - **O que acontece:** o passo 2 de 3 ("Sua impressora") exige nome e potência. Com os campos vazios, "Continuar" só pinta os dois de vermelho ("Obrigatório", "Digite um número"), e repeti 6 vezes. Para seguir, é preciso entender que "Pular" pula o passo, "Agora não" fecha a apresentação e o X também fecha.
 - **Sugestão:** deixar "Continuar" passar com os campos vazios, usando a potência do catálogo e avisando "dá para cadastrar depois em Impressoras". Ou pôr "Não sei" ao lado do catálogo, abrindo a busca por modelo. Deixar só duas saídas: "Continuar" e "Fazer depois".
 
-**A2 · Preferências · dois modos de salvar na mesma tela**
+**✅ A2 · Preferências · dois modos de salvar na mesma tela**
 - Print: [botão no meio](ux/24-preferencias-salvar.jpg)
 - **O que acontece:** custos da produção, preço de venda, falhas, impostos e canais só gravam com "Salvar preferências", que fica no meio da página, depois dos canais. Logo abaixo, Aparência, Backup, Sincronização, IA, Mesa, Meu AMS e Fatiador gravam na hora. Dados da empresa tem o botão no topo. São três modelos de salvar nas telas de Ajustes.
 - **Sugestão:** gravar tudo na hora, com "Salvo" discreto ao lado do campo, como já faz Aparência. Se precisar de botão, deixá-lo fixo no rodapé da tela e avisar ao sair com alteração não salva. (Não testei se esse aviso de saída já existe.)
