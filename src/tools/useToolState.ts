@@ -111,28 +111,42 @@ export function useToolState<T extends object>(toolId: string, initial: T | (() 
     if (!loaded.current || same(state, baseline.current)) return;
     exported.current = false;
     setDraft(null);
-    const save = async () => {
+    // devolve se gravou: o aviso de saída (abaixo) só diz "guardado" depois de saber (M14)
+    const save = async (): Promise<boolean> => {
       untrack();
       try {
         const db = await getDb();
         await toolState.save(db, { id: toolId, data: await encode(state), updatedAt: new Date().toISOString() });
+        return true;
       } catch (e) {
         console.warn(`Não deu para guardar o rascunho de ${toolId}:`, e);
+        return false;
       }
     };
-    // registrado até gravar: antes de reiniciar para atualizar, grava na hora (#155)
-    const untrack = trackSave(`tool:${toolId}`, save);
+    // registrado até gravar: antes de reiniciar para atualizar ou fechar a janela, grava na hora (#155, M14)
+    const untrack = trackSave(`tool:${toolId}`, async () => void (await save()));
     const t = setTimeout(() => void save(), AUTOSAVE_MS);
+    flushOnLeave.current = async () => {
+      clearTimeout(t);
+      return save();
+    };
     return () => {
       clearTimeout(t);
       untrack();
     };
   }, [state, toolId, encode]);
 
-  // aviso ao sair com trabalho não exportado: nada se perde, fica guardado para o "Continuar"
+  // ao sair da ferramenta: grava a última edição (antes o save adiado era descartado) e só então avisa (M14)
+  const flushOnLeave = useRef<(() => Promise<boolean>) | null>(null);
   useEffect(
     () => () => {
-      if (!exported.current) toast(`${optsRef.current.label}: seu trabalho ficou guardado. Ao voltar, é só tocar em Continuar.`);
+      const pending = flushOnLeave.current;
+      flushOnLeave.current = null;
+      if (exported.current) return;
+      const label = optsRef.current.label;
+      void (pending ? pending() : Promise.resolve(true)).then((ok) =>
+        ok ? toast(`${label}: seu trabalho ficou guardado. Ao voltar, é só tocar em Continuar.`) : toast(`${label}: não deu para guardar o seu trabalho. Salve o arquivo antes de sair.`, "error"),
+      );
     },
     [toast],
   );

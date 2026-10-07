@@ -3,6 +3,7 @@ import { beforeEach, describe, expect, test } from "vitest";
 import { setSecret } from "../db/repo";
 import { session, setSyncEnabled } from "../sync/sync";
 import { setupTauri } from "../test/harness";
+import { trackSave } from "../tools/pendingSaves";
 import { runCloseJob } from "./closeJob";
 
 const t = setupTauri();
@@ -24,6 +25,15 @@ describe("fechamento do app (M2)", () => {
     expect(sync).toBeGreaterThan(-1);
     expect(backup).toBeGreaterThan(sync);
     expect(t.autoBackups.get(DIR)?.has("upvision-sync.lock")).toBe(false); // soltou a trava
+  });
+
+  test("rascunhos de ferramentas que ainda esperavam o tempo de gravar são gravados antes do backup (M14)", async () => {
+    const order: string[] = [];
+    trackSave("tool:probe", async () => void order.push("rascunho"));
+    const mark = t.handlers;
+    mark.backup_write = () => void order.push("backup");
+    await runCloseJob();
+    expect(order.slice(0, 2)).toEqual(["rascunho", "backup"]);
   });
 
   test("com a sincronização desligada só faz o backup", async () => {

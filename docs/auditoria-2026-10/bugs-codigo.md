@@ -247,7 +247,7 @@ Só análise: nenhum código foi alterado e nenhuma issue foi criada. Base: `ori
 - **Como reproduzir:** aponte o backup para um drive desmontado ou sem permissão. Nenhum aviso aparece até o lembrete de 7 dias (`REMIND_DAYS`).
 - **Correção sugerida:** quando o backup da abertura falhar, mostrar a faixa ou um toast na hora, com o erro.
 
-### M14. Ferramentas: "seu trabalho ficou guardado" sem ter gravado
+### M14. ✅ Ferramentas: "seu trabalho ficou guardado" sem ter gravado
 - **Onde:** `src/tools/useToolState.ts:11`, `:119-121` (falha só com `console.warn`), `:125-129` (o cleanup cancela o save pendente), `:135` (toast), `:218-220` (`exported()` falha em silêncio); o fechamento (`useAutoBackup.ts:41-46`) não chama `flushPendingSaves`.
 - **Como reproduzir:** no Chaveiro, digite e troque de tela, ou feche a janela, em menos de 0,8 s. O toast diz que o trabalho ficou guardado, mas a última edição não está lá.
 - **Correção sugerida:** no cleanup, executar o `save()` pendente em vez de descartar; mostrar o toast só depois do sucesso; chamar `flushPendingSaves()` ao fechar.

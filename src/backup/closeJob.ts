@@ -2,6 +2,7 @@ import { getDb } from "../db";
 import { errorText } from "../ui/Toast";
 import { logError } from "../diagnostics/log";
 import { loadSyncConfig, session, syncOnClose, whoAmI } from "../sync/sync";
+import { flushPendingSaves } from "../tools/pendingSaves";
 import { loadAutoBackupConfig, runAutoBackup } from "./auto";
 
 /** Tempo máximo que o fechamento espera sem sincronização: só o backup. */
@@ -19,6 +20,7 @@ export async function runCloseJob(): Promise<void> {
   const db = await getDb();
   const syncing = session.active && (await loadSyncConfig(db)).enabled;
   const job = (async () => {
+    await flushPendingSaves(); // a última edição das ferramentas (gravação adiada em 0,8 s) entra na sync e no backup (M14)
     if (syncing) await syncOnClose(db, await whoAmI(db), session.since);
     const c = await loadAutoBackupConfig(db);
     if (c.enabled) await runAutoBackup(db, c);
