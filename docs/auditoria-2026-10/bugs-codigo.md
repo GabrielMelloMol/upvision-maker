@@ -441,7 +441,7 @@ Só análise: nenhum código foi alterado e nenhuma issue foi criada. Base: `ori
 - **Como reproduzir:** um .3mf ou .xlsx que descompacta para vários GB derruba a janela por falta de memória. Não há path traversal: nada é extraído para o disco.
 - **Correção sugerida:** somar `originalSize` no `filter` e recusar acima de ~200 MB.
 
-### B28. Endurecimentos menores
+### B28. Endurecimentos menores — ✅ CORRIGIDO (Lupa)
 - **Onde e o quê:**
   - `src-tauri/tauri.conf.json:26`: `connect-src https://*.workers.dev` libera qualquer Worker. Usar o host exato.
   - `src-tauri/src/backup.rs:93-98`: os comandos de backup e sync aceitam qualquer pasta, fora do escopo do fs. Os nomes de arquivo são fixos ou validados, então só pesa se o webview já estiver comprometido.

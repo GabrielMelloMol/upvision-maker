@@ -24,7 +24,7 @@
       }
     ],
     "security": {
-      "csp": "default-src 'self'; img-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; font-src 'self' data:; script-src 'self' 'wasm-unsafe-eval'; worker-src 'self' blob:; connect-src https://api.github.com/repos/GabrielMelloMol/upvision-maker/releases 'self' ipc: http://ipc.localhost https://api.anthropic.com https://viacep.com.br https://*.workers.dev data: blob:"
+      "csp": "default-src 'self'; img-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; font-src 'self' data:; script-src 'self' 'wasm-unsafe-eval'; worker-src 'self' blob:; connect-src https://api.github.com/repos/GabrielMelloMol/upvision-maker/releases 'self' ipc: http://ipc.localhost https://api.anthropic.com https://viacep.com.br data: blob:"
     }
   },
   "bundle": {

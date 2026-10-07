@@ -1,5 +1,5 @@
 // @vitest-environment happy-dom
-import { beforeEach, describe, expect, test } from "vitest";
+import { beforeEach, describe, expect, test, vi } from "vitest";
 import { setupTauri } from "../test/harness";
 import { handlePhone, oneAtATime } from "./api";
 import type { PhoneSummary } from "./types";
@@ -61,6 +61,19 @@ describe("API do celular (#16)", () => {
     expect((await call("GET", "/api/orders/1/done")).status).toBe(404);
     expect((await call("POST", "/api/orders/../secrets")).status).toBe(404);
     expect((await call("DELETE", "/api/summary")).status).toBe(404);
+  });
+});
+
+describe("erro interno no computador (B28)", () => {
+  test("o celular recebe uma mensagem genérica; o detalhe (caminho, SQL) vai só para o registro do computador", async () => {
+    const broken = { select: () => Promise.reject(new Error("no such table: orders em C:\\Users\\Ana\\AppData\\upvision.db")), execute: t.db.execute, batch: t.db.batch };
+
+    const r = await handlePhone(broken, { method: "GET", path: "/api/summary", body: "" });
+
+    expect(r.status).toBe(500);
+    expect(JSON.stringify(r.body)).not.toMatch(/no such table|AppData|upvision\.db/);
+    expect(r.body).toEqual({ error: "Algo deu errado no computador. Tente de novo; se continuar, veja o registro de erros no app." });
+    await vi.waitFor(() => expect(t.log.join("\n")).toContain("no such table")); // o detalhe fica no registro
   });
 });
 

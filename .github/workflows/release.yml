@@ -32,7 +32,12 @@ jobs:
           workspaces: src-tauri -> target
       - run: npm ci
       - run: npm run lint && npm test
-      - uses: tauri-apps/tauri-action@v0
+      # O CSP do app libera só o host exato do Worker de sugestões (B28); o tauri.conf.json do repositório não libera nenhum
+      - run: node scripts/csp-host.ts
+        env:
+          FEEDBACK_URL: ${{ secrets.FEEDBACK_URL }}
+      # Presa por commit, não pela tag móvel v0: este passo recebe a chave de assinatura do updater (B28)
+      - uses: tauri-apps/tauri-action@84b9d35b5fc46c1e45415bdb6144030364f7ebc5 # v0
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}

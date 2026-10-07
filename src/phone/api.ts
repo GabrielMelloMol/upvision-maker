@@ -73,7 +73,8 @@ export async function handlePhone(db: Db, req: PhoneRequest): Promise<PhoneRespo
     return { status: 404, body: { error: "Não encontrado." } };
   } catch (e) {
     logError("celular", e);
-    return { status: 500, body: { error: e instanceof Error ? e.message : "Algo deu errado no computador." } };
+    // o detalhe (caminhos, SQL) fica no registro do computador; o celular, na rede, recebe só um aviso genérico (B28)
+    return { status: 500, body: { error: "Algo deu errado no computador. Tente de novo; se continuar, veja o registro de erros no app." } };
   }
 }
 

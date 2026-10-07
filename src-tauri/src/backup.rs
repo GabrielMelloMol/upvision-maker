@@ -144,10 +144,24 @@ pub fn read_in(dir: &Path, name: &str) -> Result<String, String> {
 
 /// Pasta escolhida pela usuária, ou a padrão (dados do app/backups/auto).
 pub fn resolve(app: &AppHandle, dir: &str) -> Result<PathBuf, String> {
-    if !dir.trim().is_empty() {
-        return Ok(PathBuf::from(dir));
+    if let Some(custom) = parse_dir(dir)? {
+        return Ok(custom);
     }
     app.path().app_data_dir().map(|d| d.join("backups").join("auto")).map_err(|e| e.to_string())
+}
+
+/// A pasta que o front pediu (B28): vazia = a padrão (`None`); senão precisa ser um caminho completo, sem `..`. O front
+/// escolhe a pasta numa janela do sistema, então um caminho relativo ou com `..` não vem dela.
+pub fn parse_dir(dir: &str) -> Result<Option<PathBuf>, String> {
+    let dir = dir.trim();
+    if dir.is_empty() {
+        return Ok(None);
+    }
+    let path = PathBuf::from(dir);
+    if !path.is_absolute() || path.components().any(|c| matches!(c, std::path::Component::ParentDir)) {
+        return Err("Pasta de backup inválida: use o caminho completo da pasta.".into());
+    }
+    Ok(Some(path))
 }
 
 #[tauri::command]
@@ -188,6 +202,22 @@ mod tests {
         let d = std::env::temp_dir().join(format!("upvision-backup-test-{tag}-{}", std::process::id()));
         let _ = fs::remove_dir_all(&d);
         d
+    }
+
+    #[test]
+    fn pasta_do_backup_so_caminho_completo_sem_pontos_pontos() {
+        assert_eq!(parse_dir("").unwrap(), None);
+        assert_eq!(parse_dir("  ").unwrap(), None);
+        #[cfg(unix)]
+        assert_eq!(parse_dir("/Users/ana/OneDrive/UpVision").unwrap(), Some(PathBuf::from("/Users/ana/OneDrive/UpVision")));
+        #[cfg(windows)]
+        assert!(parse_dir("C:\\Users\\ana\\OneDrive\\UpVision").unwrap().is_some());
+        assert!(parse_dir("backups").is_err(), "relativo");
+        assert!(parse_dir("../fora").is_err());
+        #[cfg(unix)]
+        assert!(parse_dir("/Users/ana/../../etc").is_err());
+        #[cfg(windows)]
+        assert!(parse_dir("C:\\Users\\ana\\..\\..\\Windows").is_err());
     }
 
     #[test]
