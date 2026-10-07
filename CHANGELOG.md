@@ -4,6 +4,7 @@ Cada versão aparece para a usuária na tela "O que há de novo" depois da atual
 Formato: `## <versão> — <data>` e itens `- …` em linguagem simples.
 
 ## Próxima versão (ainda não lançada)
+- **A luz da webcam apaga ao fechar "Câmera"**: se você fechasse a janela da câmera antes de ela terminar de abrir, a webcam ficava ligada até fechar o app.
 - **Atualizar o app não apaga mais o que você estava digitando**: se tiver um campo preenchido e ainda não salvo (pedido, cadastro, Calculadora, Empresa), o app pergunta antes de reiniciar, e você pode voltar e salvar primeiro.
 - **O que você digita numa ferramenta não se perde mais ao trocar de tela ou fechar**: a última edição é gravada na hora (antes podia sumir se você saísse em menos de 1 segundo), e o aviso "seu trabalho ficou guardado" só aparece quando foi gravado mesmo; se não deu, ele avisa.
 - **Estoque pronto de produto com cores não volta ao valor antigo**: se você vendeu 3 de um produto com 10 em estoque (Azul 5 + Verde 5) e depois abre o produto só para mudar a descrição, o estoque continua 7, em vez de voltar para 10. A planilha do marketplace também não anuncia mais o que já foi vendido, e o produto avisa quando as cores somam mais que o estoque.

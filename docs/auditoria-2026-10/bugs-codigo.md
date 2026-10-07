@@ -277,7 +277,7 @@ Só análise: nenhum código foi alterado e nenhuma issue foi criada. Base: `ori
 - **Como reproduzir:** no app instalado, Ctrl/⌘ + e − não mudam o zoom (`src/ui/zoom.ts:1` promete que mudam). No Windows, a janela aparece vazia antes da abertura, que é o que a #150 queria evitar.
 - **Correção sugerida:** repetir `visible`, `zoomHotkeysEnabled` e `dragDropEnabled` (A11) nos dois arquivos de plataforma, ou tirar deles a lista `windows`.
 
-### M20. A câmera fica ligada se "Tirar foto" fechar antes da permissão
+### M20. ✅ A câmera fica ligada se "Tirar foto" fechar antes da permissão
 - **Onde:** `src/ui/PhotoGallery.tsx:153-163` (o cleanup roda com `stream` ainda null).
 - **Como reproduzir:** abra Tirar foto e feche enquanto a câmera ainda está abrindo. A luz da webcam fica acesa até fechar o app.
 - **Correção sugerida:** a marca `alive`, como em `QrScanner.tsx:58-60`.

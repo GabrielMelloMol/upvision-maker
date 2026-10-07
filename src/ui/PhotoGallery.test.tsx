@@ -49,3 +49,30 @@ test("arquivo que não é imagem é ignorado", async () => {
   await new Promise((r) => setTimeout(r, 50));
   expect(await urls()).toEqual([]);
 });
+
+test("fechar 'Tirar foto' antes de a câmera abrir desliga a câmera quando ela chegar (M20)", async () => {
+  const user = userEvent.setup();
+  let grant!: (s: MediaStream) => void;
+  const stop = vi.fn();
+  const stream = { getTracks: () => [{ stop }] } as unknown as MediaStream;
+  Object.defineProperty(navigator, "mediaDevices", { configurable: true, value: { getUserMedia: () => new Promise<MediaStream>((r) => (grant = r)) } });
+  renderWithApp(<PhotoGallery owner={OWNER} />);
+  await user.click(screen.getByRole("button", { name: "Câmera" }));
+  const sheet = await screen.findByRole("dialog", { name: "Tirar foto" });
+  await user.click(within(sheet).getByRole("button", { name: "Cancelar" })); // fecha enquanto espera a permissão
+  await waitFor(() => expect(screen.queryByRole("dialog", { name: "Tirar foto" })).toBeNull());
+  grant(stream); // a permissão chega depois de fechar
+  await waitFor(() => expect(stop).toHaveBeenCalled()); // a luz da webcam não pode ficar acesa
+});
+
+test("fechar depois de a câmera abrir também desliga (M20)", async () => {
+  const user = userEvent.setup();
+  const stop = vi.fn();
+  const stream = { getTracks: () => [{ stop }] } as unknown as MediaStream;
+  Object.defineProperty(navigator, "mediaDevices", { configurable: true, value: { getUserMedia: async () => stream } });
+  renderWithApp(<PhotoGallery owner={OWNER} />);
+  await user.click(screen.getByRole("button", { name: "Câmera" }));
+  const sheet = await screen.findByRole("dialog", { name: "Tirar foto" });
+  await user.click(within(sheet).getByRole("button", { name: "Cancelar" }));
+  await waitFor(() => expect(stop).toHaveBeenCalled());
+});

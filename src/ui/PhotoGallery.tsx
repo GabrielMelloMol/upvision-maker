@@ -152,14 +152,19 @@ function CameraSheet({ onShot, onClose }: { onShot: (dataUrl: string) => void; o
 
   useEffect(() => {
     let stream: MediaStream | null = null;
+    let alive = true; // fechou antes de a permissão chegar: a câmera que chegar depois é desligada na hora (M20)
     navigator.mediaDevices
       .getUserMedia({ video: { width: { ideal: 1920 } }, audio: false })
       .then((s) => {
+        if (!alive) return s.getTracks().forEach((t) => t.stop());
         stream = s;
         if (video.current) video.current.srcObject = s;
       })
-      .catch(() => setError("Não consegui abrir a câmera. Confira a permissão de câmera do app nos ajustes do sistema."));
-    return () => stream?.getTracks().forEach((t) => t.stop());
+      .catch(() => alive && setError("Não consegui abrir a câmera. Confira a permissão de câmera do app nos ajustes do sistema."));
+    return () => {
+      alive = false;
+      stream?.getTracks().forEach((t) => t.stop());
+    };
   }, []);
 
   function shoot() {
