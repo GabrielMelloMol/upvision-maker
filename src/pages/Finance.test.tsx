@@ -116,6 +116,9 @@ describe("Financeiro", () => {
     expect(text(tile("Custo das peças"))).toContain("R$ 25,00");
     expect(text(tile("Custos operacionais"))).toContain("R$ 100,00");
     expect(text(tile("R$ por hora de impressão"))).toContain("—"); // sem minutos de impressão
+    // UX B7: em vez de "0 h de máquina (faturamento, não lucro)", diz o que fazer
+    expect(text(tile("R$ por hora de impressão"))).toContain("Cadastre o tempo de impressão dos produtos para ver este número.");
+    expect(text(tile("R$ por hora de impressão"))).not.toContain("0 h de máquina");
   });
 
   test("filtros de canal, produto e impressora", async () => {

@@ -4,6 +4,7 @@ Cada versão aparece para a usuária na tela "O que há de novo" depois da atual
 Formato: `## <versão> — <data>` e itens `- …` em linguagem simples.
 
 ## Próxima versão (ainda não lançada)
+- **Financeiro explica o cartão "R$ por hora de impressão"**: sem tempo de impressão cadastrado nos produtos, em vez de "0 h de máquina" aparece "Cadastre o tempo de impressão dos produtos para ver este número."
 - **Sair de "Imagem → SVG" e de "Pedir à IA" não deixa trabalho para trás**: a imagem carregada é liberada da memória ao sair, e um pedido à IA em andamento é cancelado em vez de continuar rodando (e cobrando) sem ninguém para receber a resposta.
 - **Financeiro sem pedidos entregues explica o que fazer**: em vez de um gráfico vazio com eixos de 0 a 1, aparece "Os números aparecem quando o primeiro pedido for marcado como entregue" com o botão Ir para Pedidos, e o Exportar planilha só aparece quando há o que exportar.
 - **A prévia 3D não some mais depois de trocar muitas vezes de ferramenta**: cada visita deixava um pedaço da placa de vídeo ocupado; agora ele é liberado ao sair da tela.
