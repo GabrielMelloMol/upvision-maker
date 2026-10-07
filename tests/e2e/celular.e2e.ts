@@ -27,7 +27,7 @@ test("celular: conecta pelo código do QR, marca pedido pronto e dá baixa de fi
       posts.push(`${path} ${req.headers()["x-upvision"] ?? "-"}`);
     }
     if (path === "/api/pair") {
-      paired = JSON.parse(req.postData() ?? "{}").code === "123456";
+      paired = req.headers()["x-upvision-code"] === "123456" && req.postData() === null; // código no cabeçalho, sem corpo (B25)
       return route.fulfill({ status: paired ? 200 : 401, json: paired ? { ok: true } : { error: "Código errado." } });
     }
     if (!paired) return route.fulfill({ status: 401, json: { error: "Conecte." } });

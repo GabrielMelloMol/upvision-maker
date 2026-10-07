@@ -5,10 +5,16 @@ import type { PhoneSummary } from "./types";
 /** Lado do celular (#16): conversa com o app do computador pela rede de casa. */
 export class NotPaired extends Error {}
 
-async function api<T>(path: string, body?: unknown): Promise<T> {
+async function api<T>(path: string, body?: unknown, extra: { post?: boolean; headers?: Record<string, string> } = {}): Promise<T> {
   let res: Response;
+  const post = extra.post ?? body !== undefined;
   try {
-    res = await fetch(path, body === undefined ? { credentials: "same-origin" } : { method: "POST", credentials: "same-origin", headers: { "Content-Type": "application/json", "X-UpVision": "1" }, body: JSON.stringify(body) });
+    res = await fetch(
+      path,
+      post
+        ? { method: "POST", credentials: "same-origin", headers: { ...(body === undefined ? {} : { "Content-Type": "application/json" }), "X-UpVision": "1", ...extra.headers }, body: body === undefined ? undefined : JSON.stringify(body) }
+        : { credentials: "same-origin" },
+    );
   } catch {
     throw new Error("Sem conexão com o computador. Ele está ligado, com o app aberto e no mesmo Wi-Fi?");
   }
@@ -18,7 +24,8 @@ async function api<T>(path: string, body?: unknown): Promise<T> {
   return data;
 }
 
-export const pair = (code: string) => api<{ ok: true }>("/api/pair", { code: code.replace(/\D/g, "") });
+/** O código vai no cabeçalho, sem corpo: o servidor não precisa ler nada da conexão de quem ainda não pareou (B25). */
+export const pair = (code: string) => api<{ ok: true }>("/api/pair", undefined, { post: true, headers: { "X-UpVision-Code": code.replace(/\D/g, "") } });
 export const loadSummary = () => api<PhoneSummary>("/api/summary");
 export const finishOrder = (id: number) => api<{ ok: true }>(`/api/orders/${id}/done`, {});
 export const consumeFilament = (id: number, grams: number) => api<{ stockG: number }>(`/api/filaments/${id}/consume`, { grams });

@@ -73,6 +73,11 @@ pub fn host_ok(host: Option<&str>, ip: IpAddr, port: u16) -> bool {
     host.is_some_and(|h| [format!("{ip}:{port}"), format!("localhost:{port}"), format!("127.0.0.1:{port}")].iter().any(|ok| ok.eq_ignore_ascii_case(h.trim())))
 }
 
+/// O código de pareamento que o celular mandou no cabeçalho `X-UpVision-Code` (vazio se faltar ou for comprido demais).
+pub fn pair_code(header: Option<&str>) -> String {
+    header.map(str::trim).filter(|c| c.len() <= 16).unwrap_or_default().to_string()
+}
+
 /// Trava um Mutex mesmo se outra thread entrou em pânico segurando-o (B14): o estado aqui são só sessões, o código
 /// de pareamento e os pedidos pendentes, que seguem consistentes; com `unwrap()` um pânico derrubava o acesso do
 /// celular para sempre, sem mensagem.
@@ -251,13 +256,10 @@ fn handle(app: &AppHandle, mut req: Request) {
     if !is_pair && !paired {
         return error(req, 401, "Conecte com o código que aparece no computador.");
     }
-    let mut body = String::new();
-    if (&mut req.as_reader()).take(MAX_BODY + 1).read_to_string(&mut body).is_err() || body.len() as u64 > MAX_BODY {
-        return error(req, 413, "Pedido grande demais.");
-    }
-
     if is_pair {
-        let given = serde_json::from_str::<serde_json::Value>(&body).ok().and_then(|v| v["code"].as_str().map(String::from)).unwrap_or_default();
+        // o código vem no cabeçalho: quem ainda não pareou não faz o servidor ler nada da conexão (um aparelho da rede
+        // mandando o corpo byte a byte prendia as 32 vagas, B25)
+        let given = pair_code(header(&req, "X-UpVision-Code"));
         let mut guard = lock(&lan.running);
         let Some(r) = guard.as_mut() else { return };
         return match r.pairing.check(&given, Instant::now()) {
@@ -290,6 +292,10 @@ fn handle(app: &AppHandle, mut req: Request) {
         };
     }
 
+    let mut body = String::new();
+    if (&mut req.as_reader()).take(MAX_BODY + 1).read_to_string(&mut body).is_err() || body.len() as u64 > MAX_BODY {
+        return error(req, 413, "Pedido grande demais.");
+    }
     let id = lan.next_id.fetch_add(1, Ordering::Relaxed);
     let (tx, rx) = channel();
     lock(&lan.pending).insert(id, tx);
@@ -423,6 +429,13 @@ mod tests {
         assert_eq!(api_gate("POST", "/api/pair", Some("0")), Err((403, "Pedido recusado.")));
         assert_eq!(api_gate("PUT", "/api/summary", Some("1")), Err((405, "Método não aceito.")));
         assert_eq!(api_gate("OPTIONS", "/api/summary", None), Err((405, "Método não aceito.")), "sem CORS: o preflight é negado");
+    }
+
+    #[test]
+    fn codigo_do_pareamento_vem_do_cabecalho() {
+        assert_eq!(pair_code(Some(" 123456 ")), "123456");
+        assert_eq!(pair_code(None), "");
+        assert_eq!(pair_code(Some("1234567890123456789")), "", "comprido demais não vale");
     }
 
     #[test]

@@ -24,7 +24,9 @@ beforeEach(() => {
       sent.push({ path, init });
       const ok = (b: unknown) => new Response(JSON.stringify(b), { status: 200 });
       if (path === "/api/pair") {
-        isPaired = JSON.parse(String(init?.body)).code === "123456";
+        // o código vai no cabeçalho, nunca no corpo: o servidor não lê o corpo de quem ainda não pareou (B25)
+        expect(init?.body).toBeUndefined();
+        isPaired = (init?.headers as Record<string, string>)["X-UpVision-Code"] === "123456";
         return isPaired ? ok({ ok: true }) : new Response(JSON.stringify({ error: "Código errado." }), { status: 401 });
       }
       if (!isPaired) return new Response(JSON.stringify({ error: "Conecte." }), { status: 401 });

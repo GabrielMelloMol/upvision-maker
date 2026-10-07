@@ -426,7 +426,7 @@ Só análise: nenhum código foi alterado e nenhuma issue foi criada. Base: `ori
 - **Como reproduzir:** 5 GETs (por exemplo um `<img src>` numa página aberta na rede) contam como 5 tentativas erradas e travam o pareamento até alguém gerar um código novo. É só negação de serviço, sem vazamento.
 - **Correção sugerida:** aceitar `/api/pair` só com `method == "POST"`.
 
-### B25. Conexões lentas ocupam todas as vagas do servidor do celular
+### B25. Conexões lentas ocupam todas as vagas do servidor do celular — ✅ CORRIGIDO (Lupa)
 - **Onde:** `src-tauri/src/lan.rs:236` (lê o corpo do pareamento antes do login), `:26` (`MAX_INFLIGHT` 32), `:303`.
 - **Como reproduzir:** abra mais de 32 POSTs para `/api/pair` e mande o corpo byte a byte. Os celulares de verdade recebem 503, porque não há timeout de leitura.
 - **Correção sugerida:** timeout de leitura de alguns segundos.

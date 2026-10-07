@@ -32,6 +32,7 @@ Formato: `## <versão> — <data>` e itens `- …` em linguagem simples.
 - **Quadro de pedidos inteiro em janela estreita**: com a janela menor, as quatro colunas (inclusive "Entregue") passam a se arrumar em duas linhas em vez de ficarem cortadas à direita.
 - **Celular continua funcionando depois de um erro interno**: um problema inesperado no servidor do celular não derruba mais o acesso até fechar o app.
 - **Lucro e prejuízo legíveis no modo escuro**: os números e as variações do Painel e do Financeiro (vermelho e verde) ganharam cores com contraste suficiente nos dois temas.
+- **Celular: aparelho lento não ocupa o servidor**: o código de pareamento viaja num cabeçalho e o servidor não lê nada de quem ainda não conectou, então um aparelho da rede não consegue mais prender as vagas do acesso do celular.
 
 ## 0.10.4 — 2026-10-05
 - **Dois computadores em versões diferentes não apagam mais dados**: se um estiver com o app desatualizado, nada é trocado entre eles e aparece um aviso dizendo qual computador precisa atualizar. Antes, o computador antigo podia apagar a ficha de impressão, os projetos e as fotos do mais novo.
