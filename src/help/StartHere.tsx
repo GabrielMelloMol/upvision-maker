@@ -1,4 +1,4 @@
-import { Calculator, FileText, KeyRound, X } from "lucide-react";
+import { Calculator, Check, FileText, KeyRound, X } from "lucide-react";
 import { useState } from "react";
 import type { Go } from "../pages";
 import { openHelp, requestExample } from "./helpStore";
@@ -13,10 +13,16 @@ function loadDone(): boolean {
   }
 }
 
-/** "Comece por aqui" na tela inicial (#84): três primeiros passos até a pessoa fechar. */
-export default function StartHere({ go }: { go: Go }) {
+/** Quais dos três passos já têm algo feito no app. */
+export type StartSteps = { keychain: boolean; calculator: boolean; quote: boolean };
+
+/**
+ * "Comece por aqui" na tela inicial (#84): três primeiros passos. Cada passo já feito ganha o selo "feito"; com os três
+ * feitos o quadro some sozinho (UX B5). Antes disso, some quando a pessoa fecha.
+ */
+export default function StartHere({ go, done: finished }: { go: Go; done: StartSteps }) {
   const [done, setDone] = useState(loadDone);
-  if (done) return null;
+  if (done || (finished.keychain && finished.calculator && finished.quote)) return null;
   const close = () => {
     setDone(true);
     try {
@@ -26,8 +32,9 @@ export default function StartHere({ go }: { go: Go }) {
     }
   };
   const steps = [
-    { icon: KeyRound, title: "Crie um chaveiro", text: "Um nome, uma fonte bonita e o 3MF em 2 cores.", run: () => go("keychain") },
+    { key: "keychain", icon: KeyRound, title: "Crie um chaveiro", text: "Um nome, uma fonte bonita e o 3MF em 2 cores.", run: () => go("keychain") },
     {
+      key: "calculator",
       icon: Calculator,
       title: "Calcule um preço",
       text: "A calculadora abre com um exemplo preenchido.",
@@ -37,6 +44,7 @@ export default function StartHere({ go }: { go: Go }) {
       },
     },
     {
+      key: "quote",
       icon: FileText,
       title: "Faça um orçamento",
       text: "PDF com seu logo e o QR Pix do valor.",
@@ -62,7 +70,14 @@ export default function StartHere({ go }: { go: Go }) {
                 {i + 1}
               </span>
               <s.icon aria-hidden />
-              <strong>{s.title}</strong>
+              <strong>
+                {s.title}
+                {finished[s.key as keyof StartSteps] && (
+                  <span className="start-done">
+                    <Check aria-hidden /> feito
+                  </span>
+                )}
+              </strong>
               <span>{s.text}</span>
             </button>
           </li>

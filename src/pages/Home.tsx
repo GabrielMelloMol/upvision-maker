@@ -10,7 +10,7 @@ import { addDays } from "../domain/quotes";
 import { PAGES, type Go } from "../pages";
 import { setPendingOpen } from "../ui/search";
 import { useData } from "../ui/useData";
-import StartHere from "../help/StartHere";
+import StartHere, { type StartSteps } from "../help/StartHere";
 
 const ACTIONS = [
   { page: "keychain", label: "Chaveiro", icon: KeyRound },
@@ -36,11 +36,20 @@ export function ago(iso: string, now = Date.now()) {
 }
 
 const RECENT = 4; // Meus projetos no Início (#161): os 4 últimos, rascunhos e projetos juntos
-const load = async (db: Db) => ({ recent: libraryItems(await toolProjects.recent(db, RECENT), await toolState.recent(db, RECENT)), orders: await ordersRepo.list(db) });
+/** Quais dos 3 primeiros passos do "Comece por aqui" já têm algo feito no app (UX B5). */
+const startedSteps = async (db: Db): Promise<StartSteps> => {
+  const [r] = await db.select<{ keychain: number; calculator: number; quote: number }>(
+    `SELECT (SELECT COUNT(*) FROM tool_projects WHERE toolId = 'keychain') + (SELECT COUNT(*) FROM tool_state WHERE id = 'keychain') AS keychain,
+            (SELECT COUNT(*) FROM calc_history) AS calculator,
+            (SELECT COUNT(*) FROM quotes) AS quote`,
+  );
+  return { keychain: r.keychain > 0, calculator: r.calculator > 0, quote: r.quote > 0 };
+};
+const load = async (db: Db) => ({ recent: libraryItems(await toolProjects.recent(db, RECENT), await toolState.recent(db, RECENT)), orders: await ordersRepo.list(db), steps: await startedSteps(db) });
 
 /** Início (#139): poucas ações, o que ficou pela metade e os prazos da semana. O resto está a um clique na barra lateral. */
 export default function Home({ go }: { go: Go }) {
-  const [data] = useData(load, { recent: [] as LibraryItem[], orders: [] as Order[] });
+  const [data, , loading] = useData(load, { recent: [] as LibraryItem[], orders: [] as Order[], steps: { keychain: false, calculator: false, quote: false } });
   const today = todayIso();
   const week = data.orders
     .filter((o) => OPEN.has(o.status) && o.dueDate && o.dueDate <= addDays(today, 7))
@@ -71,7 +80,7 @@ export default function Home({ go }: { go: Go }) {
           </li>
         ))}
       </ul>
-      <StartHere go={go} />
+      {!loading && <StartHere go={go} done={data.steps} />}
 
       {recent.length > 0 && (
         <section aria-labelledby="home-projects">

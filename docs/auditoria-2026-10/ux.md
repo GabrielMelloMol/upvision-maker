@@ -176,7 +176,7 @@ A pergunta foi: uma vendedora de impressão 3D que acabou de instalar o app cons
 
 **✅ B4 · Subtítulos que descrevem o sistema, não a tarefa**: Pedidos ("O estoque baixa ao produzir e volta ao cancelar."), Calculadora ("O resto … vem das Preferências"), Produtos ("custo de hoje dos insumos"). Trocar pelo que ela faz ali ("Acompanhe cada pedido do pedido à entrega").
 
-**B5 · Início · "Comece por aqui" continua aparecendo com dados** até clicar no X. Esconder sozinho depois que os 3 passos forem feitos (ou marcar cada um como feito).
+**✅ B5 · Início · "Comece por aqui" continua aparecendo com dados** até clicar no X. Esconder sozinho depois que os 3 passos forem feitos (ou marcar cada um como feito).
 
 **✅ B6 · Painel · "Mais vendidos" corta o nome ("Topo …") com espaço sobrando**, e "Receita do mês R$ 0,00 ▼100% vs. período anterior" no início do mês assusta. [print](ux/21-painel-claro.jpg). Coluna do nome flexível; comparar com o mesmo dia do mês anterior ou esconder a variação nos primeiros dias.
 

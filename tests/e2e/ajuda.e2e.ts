@@ -82,3 +82,20 @@ test("ajuda com várias imagens: tutorial de como medir a gaveta em carrossel co
   await expect.poll(() => carousel.locator("img").evaluate((img: HTMLImageElement) => img.complete && img.naturalWidth)).toBeGreaterThan(0);
   if (SHOTS) await help.screenshot({ path: `${SHOTS}/ajuda-carrossel.png` });
 });
+
+test("Comece por aqui: passo já feito ganha o selo 'feito' e o quadro some com os três feitos (UX B5)", async ({ page, tauri }) => {
+  await openApp(page);
+  tauri.db.exec(`INSERT INTO quotes (data, createdAt) VALUES ('{}', '2026-09-20 10:00:00');
+    INSERT INTO calc_history (name, data, at) VALUES ('Chaveiro', '{}', '2026-09-20 10:00:00')`);
+  await go(page, "Calculadora");
+  await go(page, "Início");
+  const start = page.getByRole("region", { name: "Comece por aqui" });
+  await expect(start.getByRole("listitem").nth(1)).toContainText("feito");
+  await expect(start.getByRole("listitem").nth(2)).toContainText("feito");
+  await expect(start.getByRole("listitem").nth(0)).not.toContainText("feito");
+  if (SHOTS) await start.screenshot({ path: `${SHOTS}/comece-por-aqui-feito.png` });
+  tauri.db.exec(`INSERT INTO tool_state (id, data, updatedAt) VALUES ('keychain', '{}', '2026-09-20T10:00:00Z')`);
+  await go(page, "Calculadora");
+  await go(page, "Início");
+  await expect(page.getByRole("region", { name: "Comece por aqui" })).toHaveCount(0);
+});

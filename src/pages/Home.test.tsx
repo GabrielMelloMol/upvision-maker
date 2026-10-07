@@ -54,6 +54,44 @@ describe("Home (#139)", () => {
     expect(takePendingOpen("orders")).toBe(1);
   });
 
+  describe("UX B5: Comece por aqui acompanha o que já foi feito", () => {
+    const quote = () => t.db.execute("INSERT INTO quotes (data, createdAt) VALUES ('{}', '2026-09-20 10:00:00')");
+    const calc = () => t.db.execute("INSERT INTO calc_history (name, data, at) VALUES ('Chaveiro', '{}', '2026-09-20 10:00:00')");
+    const keychain = () => t.db.execute("INSERT INTO tool_state (id, data, updatedAt) VALUES ('keychain', '{}', '2026-09-20T10:00:00Z')");
+
+    test("ninguém fez nada: três passos, nenhum marcado como feito", async () => {
+      localStorage.removeItem("upvision.startHere.done");
+      renderWithApp(<Home go={() => {}} />);
+      const start = await screen.findByRole("region", { name: "Comece por aqui" });
+      expect(within(start).getAllByRole("listitem")).toHaveLength(3);
+      expect(within(start).queryByText("feito")).not.toBeInTheDocument();
+    });
+
+    test("passos já feitos ganham o selo 'feito' e o resto continua à vista", async () => {
+      localStorage.removeItem("upvision.startHere.done");
+      await quote();
+      await calc();
+      renderWithApp(<Home go={() => {}} />);
+      const start = await screen.findByRole("region", { name: "Comece por aqui" });
+      const items = within(start).getAllByRole("listitem");
+      expect(items[0]).not.toHaveTextContent("feito"); // chaveiro
+      expect(items[1]).toHaveTextContent("feito"); // calculadora
+      expect(items[2]).toHaveTextContent("feito"); // orçamento
+    });
+
+    test("os três feitos: o quadro some sozinho, sem precisar clicar no X", async () => {
+      localStorage.removeItem("upvision.startHere.done");
+      await keychain();
+      await calc();
+      await quote();
+      renderWithApp(<Home go={() => {}} />);
+      await screen.findByRole("heading", { name: /Bom dia|Boa tarde|Boa noite/, level: 1 });
+      await vi.waitFor(() => expect(screen.getByRole("list", { name: "Começar" })).toBeInTheDocument());
+      await new Promise((r) => setTimeout(r, 50));
+      expect(screen.queryByRole("region", { name: "Comece por aqui" })).not.toBeInTheDocument();
+    });
+  });
+
   test("ago: minutos, horas e dias", () => {
     const now = Date.parse("2026-09-28T12:00:00Z");
     expect(ago("2026-09-28T11:55:00Z", now)).toBe("há 5 minutos");

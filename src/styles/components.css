@@ -350,6 +350,8 @@ h3.subhead svg { width: 16px; height: 16px; color: var(--muted); }
 .start-here li svg { width: 18px; height: 18px; color: var(--brand-orange); }
 .start-here li strong { font-size: var(--text-md); }
 .start-here li span:last-child { grid-column: 2 / span 2; color: var(--muted); font-size: var(--text-sm); }
+.start-here li strong .start-done { display: inline-flex; align-items: center; gap: 3px; margin-left: 8px; padding: 1px 8px 1px 5px; border-radius: var(--r-pill); background: var(--ok-soft, var(--fill)); color: var(--ok); font-size: var(--text-sm); font-weight: 600; }
+.start-here li strong .start-done svg { width: 13px; height: 13px; color: currentColor; }
 
 /* Tour guiado (#158): escurece tudo menos o alvo (recorte arredondado que anda suave) e um balão com seta */
 .tour-block { position: fixed; inset: 0; z-index: 1500; }
