@@ -36,7 +36,7 @@ Só análise: nenhum código foi alterado e nenhuma issue foi criada. Base: `ori
 
 ## Crítico
 
-### C1. Restaurar/importar pela metade é publicado na nuvem e sobrescreve o backup do dia
+### C1. Restaurar/importar pela metade é publicado na nuvem e sobrescreve o backup do dia — ✅ CORRIGIDO (Lupa)
 - **Onde:**
   - `src/db/backup.ts:62-75` — DELETE + INSERT tabela por tabela, sem transação; o comentário `ponytail:` admite isso.
   - `src/sync/SyncBanner.tsx:37-39` — `setInterval` sem trava contra execução dupla; erro só no log.
