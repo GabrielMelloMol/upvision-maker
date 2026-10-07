@@ -382,7 +382,7 @@ Só análise: nenhum código foi alterado e nenhuma issue foi criada. Base: `ori
 - **Como reproduzir:** F5 dentro de uma ferramenta: o app reinicia e perde o desfazer e o que não foi salvo.
 - **Correção sugerida:** `preventDefault` em F5, Ctrl+R e Ctrl+Shift+R em build de produção.
 
-### B16. O nome do catálogo em PDF não é limpo
+### B16. ✅ O nome do catálogo em PDF não é limpo
 - **Onde:** `src/pages/quotes/CatalogSheet.tsx:39` (só troca espaços).
 - **Como reproduzir:** título "Natal 24/25": o diálogo sugere "25.pdf". No Windows, "Natal: kits?" é recusado pelo diálogo.
 - **Correção sugerida:** `slug(title)`, como as outras telas.

@@ -319,6 +319,18 @@ describe("Catálogo em PDF", () => {
     expect(isPdf(t.files.get("/saida/natal-2026.pdf")!)).toBe(true);
   });
 
+  test("B16: título com / : ? vira nome de arquivo seguro (o diálogo sugeria '25.pdf' ou recusava no Windows)", async () => {
+    seed();
+    const { user } = setup();
+    await user.click(await screen.findByRole("button", { name: "Catálogo PDF" }));
+    const c = await screen.findByRole("dialog", { name: "Catálogo em PDF" });
+    const title = within(c).getByLabelText("Título");
+    await user.clear(title);
+    await user.type(title, "Natal 24/25: kits?");
+    await user.click(within(c).getByRole("button", { name: "Salvar PDF (2)" }));
+    expect(await screen.findByText("Catálogo salvo em /saida/natal-24-25-kits.pdf")).toBeInTheDocument();
+  });
+
   test("M17: produto sem preço calculável nem manual não sai como R$ 0,00 no catálogo", async () => {
     seed();
     t.raw.exec(`INSERT INTO products (name, kind, composition, piecesPerPlate, stock) VALUES ('Kit quebrado', 'kit', '{"filaments":[],"materials":[],"items":[{"productId":3,"qty":1}]}', 1, 0)`);

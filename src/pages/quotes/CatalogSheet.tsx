@@ -5,7 +5,7 @@ import { catalogPdf } from "../../pdf/catalog";
 import { loadPdfFonts } from "../../pdf/fonts";
 import Alert from "../../ui/Alert";
 import Button from "../../ui/Button";
-import { saveFile } from "../../ui/saveFile";
+import { saveFile, slug } from "../../ui/saveFile";
 import Segmented from "../../ui/Segmented";
 import Sheet from "../../ui/Sheet";
 import { errorText, useToast } from "../../ui/Toast";
@@ -43,7 +43,7 @@ export default function CatalogSheet({ data, company, onClose }: { data: Product
     setBusy(true);
     try {
       const { bytes } = await catalogPdf(await loadPdfFonts(), company, items, title.trim() || "Catálogo");
-      const path = await saveFile(`${title.trim() || "catalogo"}.pdf`.toLowerCase().replace(/\s+/g, "-"), bytes, "pdf", "PDF");
+      const path = await saveFile(`${title.trim() ? slug(title) : "catalogo"}.pdf`, bytes, "pdf", "PDF");
       if (path) {
         toast(`Catálogo salvo em ${path}`);
         onClose();
