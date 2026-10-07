@@ -1,5 +1,5 @@
 // @vitest-environment happy-dom
-import { expect, test } from "vitest";
+import { describe, expect, test } from "vitest";
 import { setupTauri } from "../test/harness";
 import { loadAiSettings, looksLikeKey, looksLikeWorkspace, saveAiSettings } from "./aiSettings";
 import { DEFAULT_AI_MODEL } from "./cost";
@@ -18,40 +18,85 @@ test("salva chave, modelo e workspace; salvar sem chave/workspace apaga só eles
   expect(await t.db.select("SELECT key FROM secrets ORDER BY key")).toEqual([{ key: "ai_model" }]);
 });
 
-test("a chave fica no cofre de senhas do sistema e nunca no banco (B26)", async () => {
-  await saveAiSettings("sk-ant-segredo-1234567890abcdef", "claude-haiku-4-5", null);
-  expect(t.keychain.get("anthropic_api_key")).toBe("sk-ant-segredo-1234567890abcdef");
-  const rows = await t.db.select<{ key: string; value: string }>("SELECT key, value FROM secrets");
-  expect(rows.map((r) => r.key)).not.toContain("anthropic_api_key");
-  expect(JSON.stringify(rows)).not.toContain("segredo");
-  await expect(loadAiSettings()).resolves.toMatchObject({ apiKey: "sk-ant-segredo-1234567890abcdef" });
-  await saveAiSettings(null, "claude-haiku-4-5", null);
-  expect(t.keychain.has("anthropic_api_key")).toBe(false);
-});
+const KEY = "sk-ant-segredo-1234567890abcdef";
+const keyRows = () => t.db.select("SELECT key FROM secrets WHERE key = 'anthropic_api_key'");
 
-test("chave de versões anteriores (texto no banco) vai para o cofre na primeira leitura e some do banco (B26)", async () => {
-  await t.db.execute("INSERT INTO secrets (key, value) VALUES ('anthropic_api_key', 'sk-ant-antiga-1234567890abcdef')");
-  await expect(loadAiSettings()).resolves.toMatchObject({ apiKey: "sk-ant-antiga-1234567890abcdef" });
-  expect(t.keychain.get("anthropic_api_key")).toBe("sk-ant-antiga-1234567890abcdef");
-  expect(await t.db.select("SELECT key FROM secrets WHERE key = 'anthropic_api_key'")).toEqual([]);
-});
+describe("chave da IA (B26)", () => {
+  test("com cofre de senhas (Windows): a chave fica no cofre e nunca no banco", async () => {
+    await saveAiSettings(KEY, "claude-haiku-4-5", null);
+    expect(t.keychain.get("anthropic_api_key")).toBe(KEY);
+    expect(await keyRows()).toEqual([]);
+    await expect(loadAiSettings()).resolves.toMatchObject({ apiKey: KEY });
+    await saveAiSettings(null, "claude-haiku-4-5", null);
+    expect(t.keychain.has("anthropic_api_key")).toBe(false);
+    expect(await keyRows()).toEqual([]);
+  });
 
-test("cópia esquecida no banco é apagada quando o cofre já tem a chave (B26)", async () => {
-  t.keychain.set("anthropic_api_key", "sk-ant-cofre-1234567890abcdef");
-  await t.db.execute("INSERT INTO secrets (key, value) VALUES ('anthropic_api_key', 'sk-ant-velha-1234567890abcdef')");
-  await expect(loadAiSettings()).resolves.toMatchObject({ apiKey: "sk-ant-cofre-1234567890abcdef" });
-  expect(await t.db.select("SELECT key FROM secrets WHERE key = 'anthropic_api_key'")).toEqual([]);
-});
+  test("no Mac (app sem assinatura paga) o cofre NUNCA é usado: ele pediria senha a cada versão nova; a chave fica no banco", async () => {
+    t.vault = false;
+    await saveAiSettings(KEY, "claude-haiku-4-5", null);
+    await expect(loadAiSettings()).resolves.toMatchObject({ apiKey: KEY });
+    expect(await keyRows()).toHaveLength(1);
+    expect(t.calls.filter((c) => c === "secret_get" || c === "secret_set" || c === "secret_delete")).toEqual([]);
+    await saveAiSettings(null, "claude-haiku-4-5", null);
+    expect(await keyRows()).toEqual([]);
+  });
 
-test("sem cofre de senhas no sistema (erro): o recurso continua funcionando guardando no banco, como antes (B26)", async () => {
-  t.handlers["secret_get"] = () => {
-    throw new Error("Nenhum serviço de chaves disponível");
-  };
-  t.handlers["secret_set"] = () => {
-    throw new Error("Nenhum serviço de chaves disponível");
-  };
-  await saveAiSettings("sk-ant-sem-cofre-1234567890abcdef", "claude-haiku-4-5", null);
-  await expect(loadAiSettings()).resolves.toMatchObject({ apiKey: "sk-ant-sem-cofre-1234567890abcdef" });
+  test("chave que estava no banco vai para o cofre; só sai do banco depois de conferir que o cofre devolve a mesma", async () => {
+    await t.db.execute("INSERT INTO secrets (key, value) VALUES ('anthropic_api_key', ?)", [KEY]);
+    // o cofre "aceita" mas devolve outra coisa (ou nada): a cópia do banco NÃO pode ser apagada
+    t.handlers["secret_set"] = () => null;
+    t.handlers["secret_get"] = () => null;
+    await expect(loadAiSettings()).resolves.toMatchObject({ apiKey: KEY });
+    expect(await keyRows()).toHaveLength(1);
+    // agora o cofre funciona de verdade
+    delete t.handlers["secret_set"];
+    delete t.handlers["secret_get"];
+    await expect(loadAiSettings()).resolves.toMatchObject({ apiKey: KEY });
+    expect(t.keychain.get("anthropic_api_key")).toBe(KEY);
+    expect(await keyRows()).toEqual([]);
+  });
+
+  test("cofre que falha ao gravar (bloqueado, negado): a chave continua no banco e a IA funciona", async () => {
+    t.handlers["secret_set"] = () => {
+      throw new Error("Acesso negado pelo sistema");
+    };
+    await saveAiSettings(KEY, "claude-haiku-4-5", null);
+    expect(await keyRows()).toHaveLength(1);
+    await expect(loadAiSettings()).resolves.toMatchObject({ apiKey: KEY });
+  });
+
+  test("cofre que nega a leitura e nada no banco: sem chave, a IA pede de novo, sem erro nem perda de dados", async () => {
+    t.keychain.set("anthropic_api_key", KEY);
+    t.handlers["secret_get"] = () => {
+      throw new Error("Acesso negado pelo sistema");
+    };
+    await expect(loadAiSettings()).resolves.toEqual({ apiKey: null, model: DEFAULT_AI_MODEL, workspaceId: null });
+    await saveAiSettings(KEY, "claude-haiku-4-5", "wrkspc_abc12345"); // a pessoa cola a chave de novo: salva (no banco, o cofre está negando)
+    delete t.handlers["secret_get"];
+    delete t.handlers["secret_set"];
+    t.handlers["secret_set"] = () => {
+      throw new Error("Acesso negado pelo sistema");
+    };
+    await expect(loadAiSettings()).resolves.toMatchObject({ apiKey: KEY, workspaceId: "wrkspc_abc12345" });
+  });
+
+  test("a chave do banco, mais nova, vence a que ficou no cofre (o cofre estava negando quando ela foi salva)", async () => {
+    t.keychain.set("anthropic_api_key", "sk-ant-velha-1234567890abcdef");
+    await t.db.execute("INSERT INTO secrets (key, value) VALUES ('anthropic_api_key', ?)", [KEY]);
+    await expect(loadAiSettings()).resolves.toMatchObject({ apiKey: KEY });
+    expect(t.keychain.get("anthropic_api_key")).toBe(KEY);
+    expect(await keyRows()).toEqual([]);
+  });
+
+  test("remover a chave: se o cofre não deixar apagar, avisa em vez de a chave reaparecer depois", async () => {
+    await saveAiSettings(KEY, "claude-haiku-4-5", null);
+    t.handlers["secret_delete"] = () => {
+      throw new Error("Acesso negado pelo sistema");
+    };
+    await expect(saveAiSettings(null, "claude-haiku-4-5", null)).rejects.toThrow(/cofre de senhas/);
+    expect(await keyRows()).toEqual([]);
+  });
 });
 
 test("looksLikeKey: formato sk-ant-… com 20+ caracteres, ignora espaços nas pontas", () => {

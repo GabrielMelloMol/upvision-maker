@@ -27,6 +27,7 @@ Formato: `## <versão> — <data>` e itens `- …` em linguagem simples.
 - **Modelos prontos que pedem um desenho** (Medalha adaptável, Chaveiro de logo, Cortador + carimbo…): ao lado do envio há o botão "Usar um desenho de exemplo", para ver o modelo na hora e depois trocar pelo seu.
 - **Chave da IA guardada com mais segurança**: a chave da Anthropic agora fica no cofre de senhas do computador (Keychain no Mac, Gerenciador de Credenciais no Windows), e não mais em texto no banco do app. Quem já tinha uma chave salva não precisa fazer nada: ela é movida sozinha.
 - **Listas do Estoque como as outras**: em Filamentos, Materiais extras e Impressoras, editar e excluir viraram ícones (lápis e lixeira), como em Clientes, Custos e Produtos, e as ações da linha ficam numa linha só.
+- **Chave da IA guardada com mais segurança**: no Windows a chave da Anthropic fica no cofre de senhas do computador (Gerenciador de Credenciais), e não em texto no banco do app; quem já tinha uma chave salva não precisa fazer nada, ela é movida sozinha. No Mac ela continua no banco do app, que agora só o seu usuário consegue abrir e que não entra no backup nem na sincronização (o Keychain do Mac pediria a sua senha a cada atualização, porque o app não tem assinatura paga).
 
 ## 0.10.5 — 2026-10-07
 - **Importar um 3MF fatiado com a configuração danificada avisa**: antes as gramas e o custo saíam sem a purga das trocas de cor e sem a impressora, sem dizer nada; agora aparece o aviso.

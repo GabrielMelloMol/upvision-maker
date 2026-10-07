@@ -42,6 +42,8 @@ export type TauriState = {
   releases: unknown[] | null;
   /** Cofre de senhas do sistema (Keychain / Credential Manager): nome → valor. Fica fora do banco e do backup. */
   keychain: Map<string, string>;
+  /** O sistema oferece cofre de senhas sem pedir senha a cada versão (Windows); no Mac sem assinatura paga não (B26). */
+  vault: boolean;
   /** Respostas extras por comando (ex.: comandos Rust novos). */
   handlers: Record<string, (args: Record<string, unknown>, headers?: Record<string, string>) => unknown>;
   /**
@@ -68,6 +70,8 @@ function handle(t: TauriState, cmd: string, a: unknown, headers?: Record<string,
       const r = t.raw.prepare(String(args.query)).run(...params);
       return [Number(r.changes), Number(r.lastInsertRowid)];
     }
+    case "secret_vault_available":
+      return t.vault;
     case "secret_get":
       return t.keychain.get(String(args.name)) ?? null;
     case "secret_set":
@@ -192,7 +196,7 @@ function handle(t: TauriState, cmd: string, a: unknown, headers?: Record<string,
 
 /** Instala o mock do Tauri e um banco novo antes de cada teste do arquivo. */
 export function setupTauri(): TauriState {
-  const t = { files: new Map(), log: [], autoBackups: new Map(), keychain: new Map(), savePath: null, openPath: null, askAnswer: true, calls: [], handlers: {}, fsScope: false, granted: { files: new Set(), dirs: new Set() }, windowStyle: { effect: "none", overlayTitlebar: false } } as unknown as TauriState;
+  const t = { files: new Map(), log: [], autoBackups: new Map(), keychain: new Map(), vault: true, savePath: null, openPath: null, askAnswer: true, calls: [], handlers: {}, fsScope: false, granted: { files: new Set(), dirs: new Set() }, windowStyle: { effect: "none", overlayTitlebar: false } } as unknown as TauriState;
   beforeEach(async () => {
     t.raw = new DatabaseSync(":memory:");
     t.db = nodeDb(t.raw);
@@ -200,6 +204,7 @@ export function setupTauri(): TauriState {
     t.files.clear();
     t.autoBackups.clear();
     t.keychain.clear();
+    t.vault = true;
     t.log.length = 0;
     t.calls.length = 0;
     t.savePath = null;

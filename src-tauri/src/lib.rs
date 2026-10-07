@@ -26,6 +26,12 @@ pub fn run() {
         .manage(lan::Lan::default())
         .setup(|app| {
             diagnostics::install_panic_hook(app.handle());
+            // o banco (onde fica a chave da IA no Mac) só para o usuário, antes de o plugin abri-lo (B26)
+            if let Ok(dir) = app.path().app_config_dir() {
+                if let Err(e) = keychain::secure_data_dir(&dir) {
+                    eprintln!("Não consegui restringir a pasta de dados: {e}");
+                }
+            }
             let window = app.get_webview_window("main").expect("janela principal");
             app.manage(vibrancy::Applied(vibrancy::apply(&window)));
             // a janela nasce escondida e a abertura mostra depois do 1º paint (#150, #153)
@@ -36,6 +42,7 @@ pub fn run() {
             vibrancy::window_style,
             reveal::reveal_window,
             stock::apply_stock,
+            keychain::secret_vault_available,
             keychain::secret_get,
             keychain::secret_set,
             keychain::secret_delete,

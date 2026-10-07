@@ -22,7 +22,6 @@ tauri = { version = "2", features = ["macos-private-api"] }
 serde = { version = "1", features = ["derive"] }
 serde_json = "1"
 percent-encoding = "2"
-keyring = { version = "3", features = ["apple-native", "windows-native"] }
 tauri-plugin-sql = { version = "2.5.0", features = ["sqlite"] }
 tauri-plugin-dialog = "2.8.0"
 tauri-plugin-fs = "2.6.0"
@@ -42,6 +41,10 @@ lto = true
 opt-level = 3
 panic = "abort"
 strip = true
+
+# cofre de senhas só no Windows (no Mac o app não tem assinatura paga: ver src/keychain.rs)
+[target.'cfg(windows)'.dependencies]
+keyring = { version = "3", features = ["windows-native"] }
 
 [target.'cfg(any(target_os = "macos", windows, target_os = "linux"))'.dependencies]
 tauri-plugin-updater = "2.13.0"

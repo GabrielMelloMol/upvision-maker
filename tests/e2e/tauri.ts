@@ -217,6 +217,8 @@ function handler(m: TauriMock, cmd: string, a: Record<string, unknown> | null, h
     case "sync_remove":
       m.autoBackups.get(String(args.dir ?? ""))?.delete(args.kind === "lock" ? "upvision-sync.lock" : "upvision-sync.json");
       return null;
+    case "secret_vault_available":
+      return true;
     case "secret_get":
       return m.keychain.get(String(args.name)) ?? null;
     case "secret_set":
