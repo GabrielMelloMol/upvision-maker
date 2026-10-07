@@ -32,7 +32,7 @@ export default function DrawerView({ width, depth, height, focus, organizer, tra
 
   const desc = `Gaveta de ${width} × ${depth} mm com ${height} mm de altura útil${focus ? `; medindo a ${NAMES[focus]}` : ""}${organizer.length ? "; organizador montado dentro" : ""}${trays.length ? `; bandeja de talheres em cima${slide ? ", deslizando nos trilhos" : ", removível"}` : ""}.`;
   return (
-    <div className="viewer drawer-view" ref={host} role="img" aria-label={desc}>
+    <div className="viewer drawer-view" ref={host} role="group" aria-label={desc}>
       <div className="drawer-dims" ref={labels} aria-hidden />
       {organizer.length > 0 && (
         <button type="button" className="sm drawer-replay" onClick={() => scene.current?.replay()}>

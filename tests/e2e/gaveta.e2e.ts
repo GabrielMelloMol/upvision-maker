@@ -102,7 +102,7 @@ test("talheres em 2 andares: bandeja nos trilhos em cima, base e caixinhas embai
   await page.getByRole("switch", { name: "Dois andares: talheres em cima" }).check();
   await expect(page.getByText(/Cabem 11 × 11 casas/)).toBeVisible();
   await expect(page.getByText(/A bandeja desliza para o fundo nos trilhos/)).toBeVisible({ timeout: 90_000 });
-  await expect(page.getByRole("img", { name: /bandeja de talheres em cima, deslizando nos trilhos/ })).toBeVisible();
+  await expect(page.getByRole("group", { name: /bandeja de talheres em cima, deslizando nos trilhos/ })).toBeVisible();
   if (SHOTS)
     for (const scheme of ["light", "dark"] as const) {
       await page.emulateMedia({ colorScheme: scheme });

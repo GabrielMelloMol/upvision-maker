@@ -160,7 +160,7 @@ A pergunta foi: uma vendedora de impressão 3D que acabou de instalar o app cons
 - **O que acontece:** os checkboxes da tabela de Produtos têm 18 × 18 px e as chaves (switch) de Preferências têm 38 × 22. Também estão nos "conhecidos".
 - **Sugestão:** área de clique de 24 px ou mais (padding ou `::before` invisível), sem mudar o desenho.
 
-**M15 · Organizador de gaveta · controle interativo dentro de outro (axe: nested-interactive)**
+**✅ M15 · Organizador de gaveta · controle interativo dentro de outro (axe: nested-interactive)**
 - **O que acontece:** a prévia `.viewer` tem papel interativo e contém elementos focáveis. Leitor de tela e teclado se perdem aí.
 - **Sugestão:** tirar o papel de botão do contêiner da prévia e deixar a interação só nos elementos de dentro.
 
