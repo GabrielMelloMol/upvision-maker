@@ -21,6 +21,7 @@ Formato: `## <versão> — <data>` e itens `- …` em linguagem simples.
 - **Boas-vindas sem beco sem saída**: no passo da impressora e do filamento, "Continuar" com os campos em branco segue em frente (dá para cadastrar depois em Impressoras e Filamentos). Ficaram só duas saídas: "Continuar" e "Agora não".
 - **Preferências avisa o que ainda não foi salvo**: a barra de baixo fica sempre à vista, diz "Tudo salvo" ou "Alterações não salvas", e se você sair da tela com uma alteração válida ela é salva sozinha, com um aviso.
 - **Celular: pareamento não trava por visita ao endereço**: uma página aberta na rede de casa não consegue mais bloquear o pareamento só apontando para o endereço do app.
+- **Quadro de pedidos inteiro em janela estreita**: com a janela menor, as quatro colunas (inclusive "Entregue") passam a se arrumar em duas linhas em vez de ficarem cortadas à direita.
 
 ## 0.10.4 — 2026-10-05
 - **Dois computadores em versões diferentes não apagam mais dados**: se um estiver com o app desatualizado, nada é trocado entre eles e aparece um aviso dizendo qual computador precisa atualizar. Antes, o computador antigo podia apagar a ficha de impressão, os projetos e as fotos do mais novo.

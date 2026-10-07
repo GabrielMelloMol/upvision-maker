@@ -53,6 +53,10 @@ table.totals tr:last-child th { font-size: var(--text-lg); }
 
 /* Quadro (kanban) de pedidos — cada coluna tem sua cor de status */
 .board { display: grid; grid-template-columns: repeat(4, minmax(190px, 1fr)); gap: var(--space-3); align-items: start; overflow-x: auto; padding-bottom: var(--space-2); }
+/* janela estreita (UX A3): 4 colunas de 190 px não cabem com a barra lateral aberta (a última ficava cortada, sem sinal);
+   passam a 2 × 2, e o arrastar entre colunas continua igual */
+@media (max-width: 1180px) { .app[data-sidebar="full"] .board { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (max-width: 960px) { .board { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
 .board-col { --status: var(--tertiary); display: grid; gap: var(--space-2); align-content: start; min-height: 180px; padding: var(--space-3); border-radius: var(--r-lg); background: var(--fill); transition: background var(--dur) ease, box-shadow var(--dur) ease; }
 .board-col:nth-child(1) { --status: #8e8e93; }
 .board-col:nth-child(2) { --status: var(--accent); }

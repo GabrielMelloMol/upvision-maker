@@ -170,9 +170,10 @@ test("primeiro uso: apresentação em 3 passos grava custos, impressora e filame
   const sheet = page.getByRole("dialog", { name: "Boas-vindas ao UpVision Maker" });
   await sheet.getByLabel("Preço do kWh").fill("1,05");
   await sheet.getByRole("button", { name: "Continuar" }).click();
-  await sheet.getByRole("button", { name: "Continuar" }).click(); // nome vazio → erro
-  await expect(sheet.locator("label", { hasText: "Nome" }).locator(".error")).toHaveText("Obrigatório.");
+  // passo em branco não trava (UX A1): quem digitou o nome mas não a potência é cobrada só do que faltou
   await sheet.getByLabel("Nome").fill("Bambu Lab A1");
+  await sheet.getByRole("button", { name: "Continuar" }).click();
+  await expect(sheet.locator("label", { hasText: "Potência média" }).locator(".error")).toHaveText("Digite um número.");
   await sheet.getByLabel("Potência média (W)").fill("95");
   await sheet.getByRole("button", { name: "Continuar" }).click();
   await sheet.getByRole("radio", { name: "Branco" }).click();

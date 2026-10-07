@@ -66,7 +66,7 @@ A pergunta foi: uma vendedora de impressão 3D que acabou de instalar o app cons
 - **O que acontece:** custos da produção, preço de venda, falhas, impostos e canais só gravam com "Salvar preferências", que fica no meio da página, depois dos canais. Logo abaixo, Aparência, Backup, Sincronização, IA, Mesa, Meu AMS e Fatiador gravam na hora. Dados da empresa tem o botão no topo. São três modelos de salvar nas telas de Ajustes.
 - **Sugestão:** gravar tudo na hora, com "Salvo" discreto ao lado do campo, como já faz Aparência. Se precisar de botão, deixá-lo fixo no rodapé da tela e avisar ao sair com alteração não salva. (Não testei se esse aviso de saída já existe.)
 
-**A3 · Pedidos (Quadro) · na janela estreita a coluna "Entregue" fica cortada**
+**✅ A3 · Pedidos (Quadro) · na janela estreita a coluna "Entregue" fica cortada**
 - Print: [1000 px](ux/05-pedidos-estreita.jpg)
 - **O que acontece:** em 1000 px com a barra lateral aberta, as 4 colunas não cabem. "Entregue" aparece pela metade, com o nome cortado ("Doces da E") e o valor escondido ("R$"), sem nenhum sinal de que há mais à direita.
 - **Sugestão:** colunas com largura mínima e rolagem horizontal visível, com sombra na borda. Ou, abaixo de ~1100 px, empilhar as colunas ou abrir a vista "Lista". A barra recolhida (⌘⌥S) já resolve, mas ela não sabe disso.
