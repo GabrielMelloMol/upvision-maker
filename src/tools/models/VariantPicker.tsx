@@ -5,6 +5,9 @@ import { THUMBS } from "./thumbs";
 
 type Props = { id: string; onPick: (id: string) => void };
 
+/** Nome da ferramenta (no menu) para o aviso "abre a ferramenta X" do atalho; o rótulo do botão é o da variante. */
+const TOOL_NAMES: Record<string, string> = { medal: "Medalhas", keychain: "Chaveiros", drawer: "Organizador de gaveta", qr: "QR Code" };
+
 /**
  * Seletor de variação da família (#141): miniatura pequena + rótulo, agrupado quando a família tem grupos
  * ("Com arte" / "Com função"). Ferramentas com tela própria (Chaveiros, Medalhas…) aparecem como atalho.
@@ -24,7 +27,7 @@ export default function VariantPicker({ id, onPick }: Props) {
     );
   };
   const tool = (t: (typeof tools)[number]) => (
-    <button key={t.page} type="button" className="model-variant-tool" onClick={() => requestNavigate(t.page)}>
+    <button key={t.page} type="button" className="model-variant-tool" title={`Abre a ferramenta ${TOOL_NAMES[t.page] ?? t.label}, em outra tela`} onClick={() => requestNavigate(t.page)}>
       <span className="model-variant-thumb">
         <ArrowUpRight aria-hidden />
       </span>

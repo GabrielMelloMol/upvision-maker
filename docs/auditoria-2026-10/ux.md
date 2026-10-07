@@ -170,9 +170,9 @@ A pergunta foi: uma vendedora de impressão 3D que acabou de instalar o app cons
 
 **✅ B1 · Imagem → SVG · "Extrudar em 3D" quebra em 2 linhas** no rodapé de ações. [print](ux/22-svg-vazio.jpg). Rótulo menor ("Fazer 3D") ou botões empilhados.
 
-**B2 · Modelos prontos · o nome da miniatura é diferente do título do modelo**: "Brinquedos" abre "Quebra-cabeça", "Medalha" abre "Medalha adaptável", "Gridfinity" abre "Gridfinity: caixinha". A Medalha ainda existe como modelo **e** como ferramenta (a variante "Redonda e formatos" leva para a outra tela). [print](ux/23-modelos-galeria.jpg). O mesmo nome nos dois lugares; deixar claro quando uma variante abre outra ferramenta.
+**✅ B2 · Modelos prontos · o nome da miniatura é diferente do título do modelo**: "Brinquedos" abre "Quebra-cabeça", "Medalha" abre "Medalha adaptável", "Gridfinity" abre "Gridfinity: caixinha". A Medalha ainda existe como modelo **e** como ferramenta (a variante "Redonda e formatos" leva para a outra tela). [print](ux/23-modelos-galeria.jpg). O mesmo nome nos dois lugares; deixar claro quando uma variante abre outra ferramenta.
 
-**B3 · Modelos prontos · ao escolher um modelo, os campos ficam abaixo da galeria** (metade de baixo da tela) e o título continua "Modelos prontos". Rolar até o modelo escolhido, ou recolher a galeria depois da escolha.
+**✅ B3 · Modelos prontos · ao escolher um modelo, os campos ficam abaixo da galeria** (metade de baixo da tela) e o título continua "Modelos prontos". Rolar até o modelo escolhido, ou recolher a galeria depois da escolha.
 
 **✅ B4 · Subtítulos que descrevem o sistema, não a tarefa**: Pedidos ("O estoque baixa ao produzir e volta ao cancelar."), Calculadora ("O resto … vem das Preferências"), Produtos ("custo de hoje dos insumos"). Trocar pelo que ela faz ali ("Acompanhe cada pedido do pedido à entrega").
 

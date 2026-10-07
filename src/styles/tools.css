@@ -275,3 +275,4 @@ details.advanced[open] > .stack, details.advanced[open] > .grid { margin-top: va
 .photo-corners .corner-lens path { stroke: var(--accent); stroke-width: 1.5px; vector-effect: non-scaling-stroke; }
 .photo-corners .corner-lens .lens-ring { fill: none; stroke: #fff; stroke-width: 3px; vector-effect: non-scaling-stroke; filter: drop-shadow(0 2px 6px rgb(0 0 0 / 0.5)); }
 @media (prefers-reduced-motion: reduce) { .photo-corners .corner.low .corner-dot { animation: none; stroke-width: 5px; } }
+.page .tool-layout { scroll-margin-top: 72px; } /* a barra do alto não cobre o início ao rolar até aqui (UX B3) */

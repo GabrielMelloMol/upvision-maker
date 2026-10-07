@@ -62,6 +62,40 @@ describe("Modelos prontos", () => {
     expect(gallery().getByRole("button", { name: "Chaveiro anilha" })).toHaveAttribute("title", expect.stringMatching(/^Chaveiro · /));
   });
 
+  test("UX B2: o painel mostra o nome da família do card antes do título do modelo; atalho de outra ferramenta avisa", async () => {
+    const user = userEvent.setup();
+    renderWithApp(<Models />);
+    await user.click(screen.getByRole("button", { name: "Casa" }));
+    await user.click(families().getByRole("button", { name: "Brinquedos" }));
+    // o card se chama Brinquedos e o painel abre Quebra-cabeça: o painel mostra de qual card veio
+    expect(screen.getByRole("heading", { name: "Quebra-cabeça" })).toBeInTheDocument();
+    expect(document.querySelector(".model-family")).toHaveTextContent("Brinquedos");
+    await user.click(screen.getByRole("button", { name: "Festa e esporte" }));
+    await user.click(families().getByRole("button", { name: "Medalha" }));
+    expect(document.querySelector(".model-family")).toHaveTextContent("Medalha");
+    expect(variations().getByRole("button", { name: "Redonda e formatos" })).toHaveAttribute("title", "Abre a ferramenta Medalhas, em outra tela");
+  });
+
+  test("UX B3: escolher um modelo na galeria leva a tela até os campos dele", async () => {
+    const scroll = vi.fn();
+    Element.prototype.scrollIntoView = scroll;
+    const user = userEvent.setup();
+    renderWithApp(<Models />);
+    await user.click(screen.getByRole("button", { name: "Cozinha" }));
+    await user.click(families().getByRole("button", { name: familiesIn("kitchen")[1].label }));
+    await waitFor(() => expect(scroll).toHaveBeenCalled());
+    expect((scroll.mock.contexts.at(-1) as HTMLElement).className).toContain("tool-layout");
+    // trocar a variação (já na altura dos campos) não rola de novo
+    scroll.mockClear();
+    const other = familiesIn("kitchen").find((f) => f.variants.length > 1);
+    if (other) {
+      await user.click(families().getByRole("button", { name: other.label }));
+      scroll.mockClear();
+      await user.click(variations().getByRole("button", { name: other.variants[1].label }));
+      expect(scroll).not.toHaveBeenCalled();
+    }
+  });
+
   test("busca ignora acento e procura em todas as categorias", async () => {
     const user = userEvent.setup();
     renderWithApp(<Models />);

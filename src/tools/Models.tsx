@@ -1,6 +1,6 @@
 import { bedMm } from "../geometry/bed";
 import { Star } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { getDb } from "../db";
 import { loadCompany } from "../db/customersRepo";
 import { isCursive, loadEmojiFont, loadFont, type FontId } from "../geometry/fonts";
@@ -240,16 +240,29 @@ export default function Models() {
   }
   const elements = copies ? [] : lay.view.elements;
 
+  // escolhendo na galeria, os campos do modelo ficam na metade de baixo da tela: leva a tela até eles (UX B3)
+  const layoutRef = useRef<HTMLDivElement>(null);
+  const pickFromGallery = (next: string) => {
+    setId(next);
+    const calm = window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
+    requestAnimationFrame(() => layoutRef.current?.scrollIntoView?.({ behavior: calm ? "auto" : "smooth", block: "start" }));
+  };
+  const family = familyOf(id);
+
   return (
     <div className="page">
       <h1>Modelos prontos</h1>
       <p className="lead">Escolha, ajuste o texto e salve o 3MF em cores.</p>
       <ToolSessionBar tool={tool} />
-      <ModelGallery id={id} onPick={setId} category={category} onCategory={setCategory} query={query} onQuery={setQuery} occasion={occasion} onOccasion={setOccasion} favorites={favorites} />
-      <div className="tool-layout">
+      <ModelGallery id={id} onPick={pickFromGallery} category={category} onCategory={setCategory} query={query} onQuery={setQuery} occasion={occasion} onOccasion={setOccasion} favorites={favorites} />
+      <div className="tool-layout" ref={layoutRef}>
         <div className="controls">
           <div className="row model-head">
-            <h2>{def.label}</h2>
+            {/* o card da galeria é a família; o painel mostra de qual veio (Brinquedos › Quebra-cabeça), UX B2 */}
+            <div className="model-title">
+              {family.label !== def.label && <span className="model-family">{family.label}</span>}
+              <h2>{def.label}</h2>
+            </div>
             <button type="button" className="icon-button" aria-pressed={favorites.includes(id)} aria-label={favorites.includes(id) ? `Tirar ${def.label} dos favoritos` : `Favoritar ${def.label}`} onClick={toggleFavorite}>
               <Star aria-hidden fill={favorites.includes(id) ? "currentColor" : "none"} />
             </button>
