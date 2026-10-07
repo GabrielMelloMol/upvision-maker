@@ -1,10 +1,4 @@
 [
-  "dashboard · contraste: .stat.bad:nth-child(2) > .stat-delta.bad",
-  "dashboard · contraste: .stat.bad:nth-child(2) > .stat-value",
-  "dashboard · contraste: .stat:nth-child(1) > .stat-delta.bad",
-  "finance · contraste: .bad.stat > .stat-value",
-  "finance · contraste: .good",
-  "finance · contraste: .stat-delta.bad",
   "medal · cortado: legend.sr-only \"Colocação\"",
   "medal · cortado: legend.sr-only \"Data ou ano\"",
   "medal · cortado: legend.sr-only \"Em arco, em cima\"",

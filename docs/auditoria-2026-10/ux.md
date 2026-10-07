@@ -71,7 +71,7 @@ A pergunta foi: uma vendedora de impressão 3D que acabou de instalar o app cons
 - **O que acontece:** em 1000 px com a barra lateral aberta, as 4 colunas não cabem. "Entregue" aparece pela metade, com o nome cortado ("Doces da E") e o valor escondido ("R$"), sem nenhum sinal de que há mais à direita.
 - **Sugestão:** colunas com largura mínima e rolagem horizontal visível, com sombra na borda. Ou, abaixo de ~1100 px, empilhar as colunas ou abrir a vista "Lista". A barra recolhida (⌘⌥S) já resolve, mas ela não sabe disso.
 
-**A4 · Painel e Financeiro (escuro) · contraste baixo nos números de lucro e prejuízo**
+**✅ A4 · Painel e Financeiro (escuro) · contraste baixo nos números de lucro e prejuízo**
 - Print: [Painel](ux/06-painel-escuro.jpg) · [Financeiro](ux/07-financeiro-escuro.jpg)
 - **O que acontece:** o vermelho `#d03b3b` sobre `#2a2a2e` dá 2,97:1, tanto no valor grande ("-R$ 520,00", 30 px, precisa de 3:1) quanto na variação pequena (12 px, precisa de 4,5:1). O verde `#0ca30c` sobre branco, no claro, dá 3,35:1. Isso já está na lista de "conhecidos" do teste visual, ou seja, foi aceito como dívida.
 - **Sugestão:** tokens de "bom" e "ruim" próprios para texto, mais claros no escuro (um vermelho em torno de `#ff6b6b`) e mais escuros no claro (um verde em torno de `#0a7d0a`). Manter também o ▲▼ (já existe) para não depender só da cor.
