@@ -267,7 +267,7 @@ Só análise: nenhum código foi alterado e nenhuma issue foi criada. Base: `ori
 - **Como reproduzir:** um kit circular, ou um produto cujo cálculo lança erro e que não tem preço manual. O pedido é gravado com custo 0 (lucro = receita) e o PDF do catálogo sai com R$ 0,00 para o cliente.
 - **Correção sugerida:** bloquear a gravação ou a exportação, ou pedir confirmação, listando os produtos sem custo ou preço calculável.
 
-### M18. Produto novo duplica quando uma foto falha
+### M18. Produto novo duplica quando uma foto falha — ✅ CORRIGIDO (Forja)
 - **Onde:** `src/pages/products/ProductEditor.tsx:141-150` (insert do produto, depois as fotos, sem transação e sem guardar o id).
 - **Como reproduzir:** crie um produto com fotos pendentes e faça `photos.add` falhar (foto enorme, banco travado). O formulário mostra o erro e continua como "novo"; Salvar de novo cria um 2º produto igual.
 - **Correção sugerida:** depois do insert, passar o editor para modo edição com o id novo, ou fechar e avisar quantas fotos não entraram.

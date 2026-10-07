@@ -148,12 +148,23 @@ export default function ProductEditor({ initial, data, onClose, onSaved }: Props
     setSaving(true);
     try {
       const db = await getDb();
+      let lost = 0;
+      let lostWhy = "";
       if (initial.id) await productsRepo.update(db, initial.id, input);
       else {
         const id = await productsRepo.insert(db, input);
-        for (const u of pending) await photosRepo.add(db, id, u);
+        // M18: o produto já existe; uma foto que falha não pode deixar o formulário como "novo" (Salvar de novo duplicaria)
+        for (const u of pending) {
+          try {
+            await photosRepo.add(db, id, u);
+          } catch (err) {
+            lost++;
+            lostWhy = errorText(err);
+          }
+        }
       }
-      toast(initial.id ? "Produto atualizado." : "Produto salvo.");
+      if (lost) toast(`Produto salvo, mas ${lost} ${lost === 1 ? "foto não entrou" : "fotos não entraram"}: ${lostWhy}. Abra o produto para adicionar de novo.`, "error");
+      else toast(initial.id ? "Produto atualizado." : "Produto salvo.");
       onSaved();
     } catch (err) {
       setErrors(fieldErrors(err));

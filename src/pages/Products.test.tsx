@@ -358,6 +358,25 @@ describe("Produtos: editor", () => {
     expect(within(gallery).getAllByRole("img")).toHaveLength(2); // a da ficha (print:1) não entra
   });
 
+  test("M18: foto que falha ao gravar depois do produto não deixa o formulário aberto como novo (Salvar de novo duplicaria)", async () => {
+    const user = userEvent.setup();
+    renderWithApp(<Products />);
+    await user.click(await screen.findByRole("button", { name: "Novo produto" }));
+    const sheet = await dialog("Novo produto");
+    await user.type(within(sheet).getByLabelText("Nome"), "Vaso");
+    await user.upload(sheet.querySelector<HTMLInputElement>('input[type="file"]')!, [new File(["a"], "a.png", { type: "image/png" }), new File(["b"], "b.png", { type: "image/png" })]);
+    expect(await within(sheet).findByAltText("Foto 2 de Vaso")).toBeInTheDocument();
+    t.handlers["plugin:sql|execute"] = (args) => {
+      if (String(args.query).startsWith("INSERT INTO photos")) throw new Error("foto enorme");
+      const r = t.raw.prepare(String(args.query)).run(...((args.values as never[]) ?? []));
+      return [Number(r.changes), Number(r.lastInsertRowid)];
+    };
+    await user.click(within(sheet).getByRole("button", { name: "Salvar produto" }));
+    expect(await screen.findByText(/Produto salvo, mas 2 fotos não entraram: foto enorme/)).toBeInTheDocument();
+    await waitFor(() => expect(screen.queryByRole("dialog")).not.toBeInTheDocument()); // não fica "novo" para salvar de novo
+    expect(await t.db.select("SELECT name FROM products")).toEqual([{ name: "Vaso" }]);
+  });
+
   test("foto que não abre vira aviso", async () => {
     photo.fail = true;
     const user = userEvent.setup();

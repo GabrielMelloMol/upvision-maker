@@ -15,6 +15,7 @@ Formato: `## <versão> — <data>` e itens `- …` em linguagem simples.
 - **Contrato de consignação**: os valores em R$ aceitam "1.234,56" ou "15,90" e o PDF não sai mais com R$ 0,00 quando um valor não dá para ler; o campo avisa.
 - **Repor um filamento que estava negativo**: o que já foi consumido por um pedido é descontado da reposição (repor 1.000 g com −200 g dá 800 g), e cancelar o pedido depois não infla mais o estoque.
 - **Baixa pelo celular**: "1.250" gramas é mil duzentos e cinquenta (antes virava 1,25 g), com um aviso quando o número pode ser lido de dois jeitos.
+- **Produto novo não duplica quando uma foto falha**: se o produto foi salvo e alguma foto não entrou, o app fecha o formulário e avisa quantas fotos faltaram (antes ele ficava aberto como "novo" e salvar de novo criava um segundo produto igual).
 - **Quando o app não consegue ler os dados**: as telas de Pedidos, Orçamentos, Clientes, Produtos, Filamentos, Materiais, Painel e Financeiro dizem "Não foi possível ler os dados" com o botão Tentar de novo, em vez de parecer que não há nada cadastrado. Um único pedido com defeito não derruba mais a lista inteira.
 - **Orçamento que não dá mais para abrir não some da lista**: ele continua lá, com o número, marcado como "não pôde ser lido" (só dá para excluir), e a numeração não parece pular.
 - **Backup antigo com projetos salvos volta a restaurar**: backups feitos antes da biblioteca "Meus projetos" falhavam no fim da restauração; agora os projetos voltam sem favorito e sem etiquetas.
