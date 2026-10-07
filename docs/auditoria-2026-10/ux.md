@@ -82,7 +82,7 @@ A pergunta foi: uma vendedora de impressão 3D que acabou de instalar o app cons
 
 ### Média
 
-**M1 · Várias telas · jargão sem explicação no lugar**
+**✅ M1 · Várias telas · jargão sem explicação no lugar**
 - Print: [Criar](ux/18-criar-ams.jpg) · [Calculadora](ux/19-calc-vazia.jpg) · [Chaveiro](ux/09-chaveiro-como-imprimir.jpg)
 - **Onde aparece:**
   - "Funciona sem AMS" (Criar); "pronto para o AMS" (Chaveiros); "Multicor (AMS)" (Como vai imprimir).
