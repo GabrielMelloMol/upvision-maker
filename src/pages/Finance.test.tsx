@@ -46,7 +46,7 @@ afterEach(() => vi.useRealTimers());
 describe("Financeiro", () => {
   test("3 meses: totais, variação com seta e prejuízo; cancelados e pendentes não contam", async () => {
     await seed();
-    renderWithApp(<Finance />);
+    renderWithApp(<Finance go={() => {}} />);
     await waitFor(() => expect(text(tile("Receita"))).toContain("R$ 305,00"));
     expect(screen.getByRole("button", { name: "3 meses" })).toHaveAttribute("aria-pressed", "true");
     expect(text(tile("Receita"))).toContain("▲ 205% vs. período anterior");
@@ -68,7 +68,7 @@ describe("Financeiro", () => {
 
   test("breakdown por canal, produto e impressora (sem impressora aparece separado)", async () => {
     await seed();
-    renderWithApp(<Finance />);
+    renderWithApp(<Finance go={() => {}} />);
     await waitFor(() => expect(text(tile("Receita"))).toContain("R$ 305,00"));
     const card = (title: string) => screen.getByRole("heading", { name: title }).closest("section") as HTMLElement;
     const items = (title: string) => within(card(title)).getAllByRole("listitem").map((li) => brl(li.getAttribute("title") ?? ""));
@@ -83,7 +83,7 @@ describe("Financeiro", () => {
   test("troca de período: Este mês e 12 meses", async () => {
     await seed();
     const user = userEvent.setup();
-    renderWithApp(<Finance />);
+    renderWithApp(<Finance go={() => {}} />);
     await waitFor(() => expect(text(tile("Receita"))).toContain("R$ 305,00"));
 
     await user.click(screen.getByRole("button", { name: "Este mês" }));
@@ -105,7 +105,7 @@ describe("Financeiro", () => {
   test("período personalizado usa as datas digitadas", async () => {
     await seed();
     const user = userEvent.setup();
-    renderWithApp(<Finance />);
+    renderWithApp(<Finance go={() => {}} />);
     await waitFor(() => expect(text(tile("Receita"))).toContain("R$ 305,00"));
     await user.click(screen.getByRole("button", { name: "Personalizado" }));
     expect(screen.getByLabelText("De")).toHaveValue("2026-06-01");
@@ -121,7 +121,7 @@ describe("Financeiro", () => {
   test("filtros de canal, produto e impressora", async () => {
     await seed();
     const user = userEvent.setup();
-    renderWithApp(<Finance />);
+    renderWithApp(<Finance go={() => {}} />);
     await waitFor(() => expect(text(tile("Receita"))).toContain("R$ 305,00"));
     expect([...select("Canal").options].map((o) => o.text)).toEqual(["Todos", "Feira", "Shopee", "Instagram"]);
 
@@ -144,7 +144,7 @@ describe("Financeiro", () => {
   test("gráfico mensal: legenda, tabela e tooltip ao passar o mouse", async () => {
     await seed();
     const user = userEvent.setup();
-    const { container } = renderWithApp(<Finance />);
+    const { container } = renderWithApp(<Finance go={() => {}} />);
     await waitFor(() => expect(text(tile("Receita"))).toContain("R$ 305,00"));
     const fig = screen.getByRole("img", { name: "Receita e custos por mês, 3 meses" }).closest("figure") as HTMLElement;
     expect(within(fig).getByText("Receita")).toBeInTheDocument();
@@ -171,7 +171,7 @@ describe("Financeiro", () => {
   test("gráfico de lucro: positivo e negativo com cores diferentes e tooltip", async () => {
     await seed();
     const user = userEvent.setup();
-    renderWithApp(<Finance />);
+    renderWithApp(<Finance go={() => {}} />);
     await waitFor(() => expect(text(tile("Receita"))).toContain("R$ 305,00"));
     const fig = screen.getByRole("figure", { name: "Lucro por mês" });
     expect(fig.querySelectorAll("path.viz-bad")).toHaveLength(2); // abr e mai
@@ -185,7 +185,7 @@ describe("Financeiro", () => {
   test("exporta planilha CSV com itens e resumo", async () => {
     await seed();
     const user = userEvent.setup();
-    renderWithApp(<Finance />);
+    renderWithApp(<Finance go={() => {}} />);
     await waitFor(() => expect(text(tile("Receita"))).toContain("R$ 305,00"));
     await user.click(screen.getByRole("button", { name: /Exportar planilha/ }));
     const path = "/saida/financeiro-2026-04-01-a-2026-06-30.csv";
@@ -204,7 +204,7 @@ describe("Financeiro", () => {
   test("exportar: cancelar não avisa; erro ao gravar vira toast de erro", async () => {
     await seed();
     const user = userEvent.setup();
-    renderWithApp(<Finance />);
+    renderWithApp(<Finance go={() => {}} />);
     await waitFor(() => expect(text(tile("Receita"))).toContain("R$ 305,00"));
     t.savePath = () => null;
     await user.click(screen.getByRole("button", { name: /Exportar planilha/ }));
@@ -220,12 +220,33 @@ describe("Financeiro", () => {
     expect(await screen.findByRole("alert")).toHaveTextContent("disco cheio");
   });
 
-  test("sem dados: zeros, sem base para comparar e breakdowns vazios", async () => {
-    renderWithApp(<Finance />);
-    await waitFor(() => expect(t.calls).toContain("plugin:sql|select"));
+  test("sem vendas no período (só um pedido entregue bem antigo): zeros, sem base para comparar e breakdowns vazios", async () => {
+    await order({ channel: "Loja", status: "delivered", deliveredAt: "2020-01-10", items: [{ productId: null, description: "Velho", qty: 1, unitPrice: 10, unitCost: 5 }] });
+    renderWithApp(<Finance go={() => {}} />);
+    await screen.findByText("Receita e custos por mês");
     expect(text(tile("Receita"))).toContain("R$ 0,00");
     expect(text(tile("Receita"))).toContain("sem base para comparar");
     expect(text(tile("Ticket médio"))).toContain("—");
     expect(screen.getAllByText("Sem vendas entregues no período.")).toHaveLength(3);
+  });
+});
+
+describe("UX M11: Financeiro sem nenhum pedido entregue", () => {
+  test("explica quando os números aparecem, leva aos Pedidos e não oferece exportar planilha vazia", async () => {
+    const go = vi.fn();
+    const user = userEvent.setup();
+    renderWithApp(<Finance go={go} />);
+    expect(await screen.findByText(/Os números aparecem quando o primeiro pedido for marcado como entregue/)).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: /Exportar planilha/ })).not.toBeInTheDocument();
+    expect(screen.queryByText("Receita e custos por mês")).not.toBeInTheDocument(); // sem gráfico vazio com eixo de 0 a 1
+    await user.click(screen.getByRole("button", { name: "Ir para Pedidos" }));
+    expect(go).toHaveBeenCalledWith("orders");
+  });
+
+  test("com um pedido entregue, mostra os números e o botão de exportar", async () => {
+    await t.db.execute("INSERT INTO orders (customerName, channel, status, deliveredAt, createdAt) VALUES ('Ana', 'Loja', 'delivered', '2026-06-10', '2026-06-01 10:00:00')");
+    renderWithApp(<Finance go={() => {}} />);
+    expect(await screen.findByRole("button", { name: /Exportar planilha/ })).toBeInTheDocument();
+    expect(screen.queryByText(/Os números aparecem quando/)).not.toBeInTheDocument();
   });
 });

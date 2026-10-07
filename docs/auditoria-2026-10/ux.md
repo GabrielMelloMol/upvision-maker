@@ -142,7 +142,7 @@ A pergunta foi: uma vendedora de impressão 3D que acabou de instalar o app cons
 - **O que acontece:** todos os pedidos entregues de sempre ficam na 4ª coluna. Só nela os nomes aparecem em azul (link), enquanto nas outras ficam em preto. O selo "atrasado · 20/09" quebra em 2 linhas no cartão. Um pedido já "Concluído" (pronto, esperando entrega) também aparece como atrasado.
 - **Sugestão:** "Entregue" mostrar só os últimos 7 ou 30 dias, com "ver todos" indo para a Lista. Nome com a mesma cor em todas as colunas. Selo numa linha só ("atrasado 20/09"). Em Concluído, o selo ser "entregar até…" em vez de atrasado.
 
-**M11 · Financeiro vazio · gráfico sem dados**
+**✅ M11 · Financeiro vazio · gráfico sem dados**
 - Print: [Financeiro vazio](ux/13-financeiro-vazio.jpg)
 - **O que acontece:** sem pedidos, aparece um gráfico com eixos de 0 a 1 e nenhuma barra, e "Exportar planilha" fica como botão principal.
 - **Sugestão:** um vazio explicado ("Os números aparecem quando o primeiro pedido for marcado como entregue") com o botão "Ir para Pedidos"; exportar só com dados.

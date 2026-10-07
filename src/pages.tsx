@@ -87,7 +87,7 @@ const ALL: PageDef[] = [
   { id: "dashboard", section: "results", label: "Painel", group: "Gestão", icon: LayoutDashboard, blurb: "Prazos, estoque acabando e resultado do mês.", render: (go) => <Dashboard go={go} /> },
   { id: "orders", section: "sell", label: "Pedidos", group: "Gestão", icon: ClipboardList, blurb: "Quadro por status, prazos e baixa de estoque.", render: () => <Orders /> },
   { id: "quotes", section: "sell", label: "Orçamentos", group: "Gestão", icon: FileText, blurb: "PDF com QR Pix, consignação e catálogo.", render: (go) => <Quotes go={go} /> },
-  { id: "finance", section: "results", label: "Financeiro", group: "Gestão", icon: LineChart, blurb: "Receita, lucro, R$/hora e gráficos.", render: () => <Finance /> },
+  { id: "finance", section: "results", label: "Financeiro", group: "Gestão", icon: LineChart, blurb: "Receita, lucro, R$/hora e gráficos.", render: (go) => <Finance go={go} /> },
   { id: "costs", section: "results", label: "Custos operacionais", group: "Gestão", icon: Receipt, blurb: "Aluguel, impostos, parcelas…", render: () => <Costs /> },
   { id: "calculator", section: "sell", label: "Calculadora", group: "Gestão", icon: CalcIcon, blurb: "Custo e preço por canal de venda.", render: (go) => <Calculator go={go} /> },
   { id: "customers", section: "sell", label: "Clientes", group: "Gestão", icon: Users, blurb: "Contatos, endereço e desconto padrão.", render: () => <Customers /> },

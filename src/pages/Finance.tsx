@@ -1,4 +1,4 @@
-import { FileSpreadsheet } from "lucide-react";
+import { FileSpreadsheet, LineChart } from "lucide-react";
 import { useMemo, useState } from "react";
 import { costsRepo } from "../db/costsRepo";
 import { ordersRepo } from "../db/ordersRepo";
@@ -16,14 +16,16 @@ import { HBars, MonthlyBars, ProfitBars, StatTile } from "../ui/charts";
 import Segmented from "../ui/Segmented";
 import { saveFile } from "../ui/saveFile";
 import { errorText, useToast } from "../ui/Toast";
+import EmptyState from "../ui/EmptyState";
 import LoadError from "../ui/LoadError";
+import type { Go } from "../pages";
 import { useData } from "../ui/useData";
 
 const load = async (db: Db) => ({ orders: await ordersRepo.list(db), costs: await costsRepo.list(db), products: await productsRepo.list(db), printers: await printers.list(db) });
 const EMPTY = { orders: [] as Order[], costs: [] as OperationalCost[], products: [] as Product[], printers: [] as Printer[] };
 const NO_PRINTER = "Sem impressora";
 
-export default function Finance() {
+export default function Finance({ go }: { go: Go }) {
   const [data, reload, , error] = useData(load, EMPTY);
   const [period, setPeriod] = useState<"month" | "3m" | "12m" | "custom">("3m");
   const [custom, setCustom] = useState(() => periodRange("month", todayIso()));
@@ -75,6 +77,9 @@ export default function Finance() {
     }
   }
 
+  // sem nenhum pedido entregue não há o que mostrar nem exportar (UX M11)
+  const hasDelivered = data.orders.some((o) => o.status === "delivered");
+
   return (
     <div className="page stack">
       <div className="page-head">
@@ -82,11 +87,19 @@ export default function Finance() {
           <h1>Financeiro</h1>
           <p className="lead">Receita pela data de entrega dos pedidos.</p>
         </div>
-        <Button variant="action" icon={FileSpreadsheet} onClick={exportCsv}>
-          Exportar planilha
-        </Button>
+        {hasDelivered && (
+          <Button variant="action" icon={FileSpreadsheet} onClick={exportCsv}>
+            Exportar planilha
+          </Button>
+        )}
       </div>
       {error && <LoadError error={error} onRetry={reload} />}
+      {!error && !hasDelivered ? (
+        <EmptyState icon={LineChart} title="Ainda não há números" action={<Button variant="primary" onClick={() => go("orders")}>Ir para Pedidos</Button>}>
+          Os números aparecem quando o primeiro pedido for marcado como entregue.
+        </EmptyState>
+      ) : (
+        <>
 
       <div className="row filters">
         <Segmented
@@ -161,6 +174,8 @@ export default function Finance() {
           <HBars rows={byPrinter.map((b) => ({ label: b.key, value: b.revenue, sub: `lucro bruto ${money(b.grossProfit)}` }))} />
         </section>
       </div>
+        </>
+      )}
     </div>
   );
 }

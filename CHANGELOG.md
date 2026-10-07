@@ -5,6 +5,7 @@ Formato: `## <versão> — <data>` e itens `- …` em linguagem simples.
 
 ## Próxima versão (ainda não lançada)
 - **Sair de "Imagem → SVG" e de "Pedir à IA" não deixa trabalho para trás**: a imagem carregada é liberada da memória ao sair, e um pedido à IA em andamento é cancelado em vez de continuar rodando (e cobrando) sem ninguém para receber a resposta.
+- **Financeiro sem pedidos entregues explica o que fazer**: em vez de um gráfico vazio com eixos de 0 a 1, aparece "Os números aparecem quando o primeiro pedido for marcado como entregue" com o botão Ir para Pedidos, e o Exportar planilha só aparece quando há o que exportar.
 - **A prévia 3D não some mais depois de trocar muitas vezes de ferramenta**: cada visita deixava um pedaço da placa de vídeo ocupado; agora ele é liberado ao sair da tela.
 - **Quadro de Pedidos mais limpo**: a coluna Entregue mostra só os dos últimos 30 dias, com "Ver todos os entregues" que abre a Lista; o nome do cliente fica na mesma cor em todas as colunas; o selo de prazo cabe numa linha ("atrasado 20/09") e pedido Concluído com prazo vencido diz "entregar até 20/09".
 - **O nome do catálogo em PDF vira um nome de arquivo seguro**: um título como "Natal 24/25" sugeria "25.pdf", e com ":" ou "?" o Windows recusava salvar.
