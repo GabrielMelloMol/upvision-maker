@@ -1,4 +1,5 @@
-import { strFromU8, unzipSync } from "fflate";
+import { strFromU8 } from "fflate";
+import { safeUnzip, ZipTooBig } from "../domain/safeUnzip";
 import type { Mesh } from "./types";
 
 /**
@@ -101,9 +102,10 @@ function filamentColors(settings: string | undefined): string[] {
 export function read3mf(bytes: Uint8Array): Read3mf {
   let files: Record<string, Uint8Array>;
   try {
-    files = unzipSync(bytes, { filter: (f) => f.originalSize < MAX_UNZIPPED });
-  } catch {
-    throw new Error("Não é um arquivo 3MF válido (precisa ser o .3mf do Bambu Studio, OrcaSlicer ou PrusaSlicer).");
+    files = safeUnzip(bytes, (f) => f.originalSize < MAX_UNZIPPED);
+  } catch (e) {
+    if (e instanceof ZipTooBig) throw e;
+    throw new Error("Não é um arquivo 3MF válido (precisa ser o .3mf do Bambu Studio, OrcaSlicer ou PrusaSlicer).", { cause: e });
   }
   const text = (name: string) => {
     const key = Object.keys(files).find((k) => k.replace(/^\//, "").toLowerCase() === name.replace(/^\//, "").toLowerCase());

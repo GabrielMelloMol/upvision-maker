@@ -436,7 +436,7 @@ Só análise: nenhum código foi alterado e nenhuma issue foi criada. Base: `ori
 - **Como reproduzir:** abra `upvision.db` com um leitor de SQLite. A chave **não** vai para o backup nem para a sync e é mascarada no log, mas qualquer programa rodando como o mesmo usuário a lê.
 - **Correção sugerida:** Keychain/Credential Manager (crate `keyring` num comando Rust).
 
-### B27. Zip bomb ao importar 3MF ou planilha
+### B27. Zip bomb ao importar 3MF ou planilha — ✅ CORRIGIDO (Lupa)
 - **Onde:** `src/domain/slicer/threemf.ts:12`, `src/domain/marketplace/xlsx.ts:51`, `src/geometry/threemfRead.ts:104` (400 MB por arquivo, sem teto total).
 - **Como reproduzir:** um .3mf ou .xlsx que descompacta para vários GB derruba a janela por falta de memória. Não há path traversal: nada é extraído para o disco.
 - **Correção sugerida:** somar `originalSize` no `filter` e recusar acima de ~200 MB.

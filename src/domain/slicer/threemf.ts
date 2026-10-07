@@ -1,4 +1,5 @@
-import { strFromU8, unzipSync } from "fflate";
+import { strFromU8 } from "fflate";
+import { safeUnzip, ZipTooBig } from "../safeUnzip";
 import { featureGrams } from "./features";
 import { pieceName, round2, type SlicerFilament, type SlicerReport } from "./types";
 import { flushMatrix, purgeWaste, sequenceFromLayers, toolSequence, type SlicerWaste } from "./waste";
@@ -9,9 +10,9 @@ const attrs = (tag: string) => Object.fromEntries([...tag.matchAll(/([\w-]+)="([
 export function parse3mf(bytes: Uint8Array): SlicerReport {
   let files: Record<string, Uint8Array>;
   try {
-    files = unzipSync(bytes, { filter: (f) => f.name.startsWith("Metadata/") && /\.(config|json|gcode)$/.test(f.name) });
-  } catch {
-    throw new Error("Não consegui abrir este 3MF (arquivo corrompido?).");
+    files = safeUnzip(bytes, (f) => f.name.startsWith("Metadata/") && /\.(config|json|gcode)$/.test(f.name));
+  } catch (e) {
+    throw e instanceof ZipTooBig ? e : new Error("Não consegui abrir este 3MF (arquivo corrompido?).");
   }
   const info = files["Metadata/slice_info.config"];
   const xml = info ? strFromU8(info) : "";

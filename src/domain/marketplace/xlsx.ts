@@ -1,4 +1,5 @@
-import { strFromU8, strToU8, unzipSync, zipSync } from "fflate";
+import { strFromU8, strToU8, zipSync } from "fflate";
+import { safeUnzip, ZipTooBig } from "../safeUnzip";
 
 /**
  * XLSX mínimo, sem dependência nova (#78): escrever uma planilha simples e preencher um modelo baixado do marketplace
@@ -48,9 +49,9 @@ type Book = { files: Record<string, Uint8Array>; sheets: { name: string; path: s
 function openBook(bytes: Uint8Array): Book {
   let files: Record<string, Uint8Array>;
   try {
-    files = unzipSync(bytes);
-  } catch {
-    throw new Error("Este arquivo não é uma planilha .xlsx.");
+    files = safeUnzip(bytes);
+  } catch (e) {
+    throw e instanceof ZipTooBig ? e : new Error("Este arquivo não é uma planilha .xlsx.");
   }
   const wb = files["xl/workbook.xml"];
   if (!wb) throw new Error("Este arquivo não é uma planilha .xlsx.");
