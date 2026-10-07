@@ -3,7 +3,7 @@
 Cada versão aparece para a usuária na tela "O que há de novo" depois da atualização.
 Formato: `## <versão> — <data>` e itens `- …` em linguagem simples.
 
-## Próxima versão (ainda não lançada)
+## 0.10.6 — 2026-10-07
 - **Modelos prontos mais fáceis de acompanhar**: ao escolher um modelo na galeria a tela rola até os campos dele, o painel mostra o nome do card de onde veio (por exemplo "Brinquedos" acima de "Quebra-cabeça"), e o atalho que leva a outra ferramenta (como "Redonda e formatos") avisa "Abre a ferramenta Medalhas, em outra tela".
 - **"Comece por aqui" acompanha o que você já fez**: cada passo feito (chaveiro, cálculo de preço, orçamento) ganha o selo "feito", e quando os três estão feitos o quadro some sozinho, sem precisar clicar no X.
 - **Menos jargão na Calculadora e em Produtos**: "markup 400 % · margem 80 %" virou "lucro de 400 % sobre o custo (80 % do preço), antes das taxas"; o seletor "Cadastrado" agora se chama "Filamento" ou "Material"; e "insumo" virou "filamento ou material" nos avisos.
