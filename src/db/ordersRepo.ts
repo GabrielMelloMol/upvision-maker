@@ -22,6 +22,17 @@ const itemStatements = (orderId: number, items: OrderItem[]): Stmt[] =>
     params: [orderId, i, ...ITEM_COLS.map((c) => it[c])],
   }));
 
+/** Plano de baixa gravado no pedido; ilegível vira null só nesse pedido (M15: um pedido ruim não derruba a lista toda). */
+function readPlan(o: OrderRow): ConsumptionPlan | null {
+  if (!o.appliedPlan) return null;
+  try {
+    return JSON.parse(o.appliedPlan) as ConsumptionPlan;
+  } catch (e) {
+    console.error(`Plano de baixa ilegível no pedido ${o.id}:`, e);
+    return null;
+  }
+}
+
 const sameItems = (a: OrderItem[], b: OrderItem[]) => JSON.stringify(a.map((i) => [i.productId, i.qty])) === JSON.stringify(b.map((i) => [i.productId, i.qty]));
 
 export const ordersRepo = {
@@ -33,7 +44,7 @@ export const ordersRepo = {
     return orders.map((o) => ({
       ...o,
       stockApplied: o.stockApplied !== 0,
-      appliedPlan: o.appliedPlan ? (JSON.parse(o.appliedPlan) as ConsumptionPlan) : null,
+      appliedPlan: readPlan(o),
       items: (byOrder.get(o.id) ?? []).map((it) => ({ id: it.id, ...Object.fromEntries(ITEM_COLS.map((c) => [c, it[c]])) }) as OrderItem & { id: number }),
     }));
   },
@@ -72,6 +83,7 @@ export const ordersRepo = {
   async changeStatus(order: Order, to: OrderStatus, ctx: ProductCtx, apply: ApplyStock): Promise<void> {
     if (order.status === to) return;
     const { stock } = transition(order.status, to, order.stockApplied);
+    if (stock === "revert" && !order.appliedPlan) throw new Error(`O plano de baixa do pedido #${order.id} está ilegível: não dá para devolver o estoque sozinho. Ajuste o estoque à mão antes de mudar a situação.`);
     const plan = stock === "apply" ? planForOrder(order.items, ctx) : null;
     const movements = plan ? planToMovements(plan, -1) : stock === "revert" && order.appliedPlan ? planToMovements(order.appliedPlan, 1) : [];
     const applied = stock === "apply" ? true : stock === "revert" ? false : order.stockApplied;

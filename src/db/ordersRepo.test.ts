@@ -151,3 +151,16 @@ describe("M7: pedido e itens numa transação só", () => {
     expect((await ordersRepo.history(db, id2))[0].note).toBe("Criado a partir do orçamento #7");
   });
 });
+
+describe("M15: um pedido ilegível não derruba a lista", () => {
+  test("appliedPlan corrompido: o pedido aparece e os outros também; devolver o estoque dele avisa em vez de ignorar", async () => {
+    await ordersRepo.create(db, input(1));
+    await ordersRepo.create(db, input(2));
+    await db.execute("UPDATE orders SET stockApplied = 1, appliedPlan = '{quebrado' WHERE id = 1");
+    const list = await ordersRepo.list(db);
+    expect(list.map((o) => o.id)).toEqual([2, 1]);
+    const bad = list.find((o) => o.id === 1)!;
+    expect(bad.appliedPlan).toBeNull();
+    await expect(ordersRepo.changeStatus(bad, "canceled", await ctx(), fakeApply)).rejects.toThrow(/plano de baixa.*ilegível/);
+  });
+});

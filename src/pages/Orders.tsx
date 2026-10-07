@@ -4,6 +4,7 @@ import { money } from "../domain/format";
 import { isLate, orderTotals, STATUS_LABEL, STATUSES, todayIso, type Order, type OrderStatus } from "../domain/orders";
 import Button from "../ui/Button";
 import EmptyState from "../ui/EmptyState";
+import LoadError from "../ui/LoadError";
 import Segmented from "../ui/Segmented";
 import { errorText, useToast } from "../ui/Toast";
 import { takePendingOpen } from "../ui/search";
@@ -21,7 +22,7 @@ const NEXT: Partial<Record<OrderStatus, [OrderStatus, string]>> = {
 const dateBr = (iso: string | null) => (iso ? iso.split("-").reverse().slice(0, 2).join("/") : "sem prazo");
 
 export default function Orders() {
-  const [data, reload] = useData(loadOrdersData, EMPTY_ORDERS);
+  const [data, reload, , error] = useData(loadOrdersData, EMPTY_ORDERS);
   const [view, setView] = useState<"board" | "list">("board");
   const [editing, setEditing] = useState<Order | "new" | null>(null);
   const [openId, setOpenId] = useState<number | null>(() => takePendingOpen("orders")); // vindo da busca global
@@ -100,7 +101,9 @@ export default function Orders() {
         </div>
       </div>
 
-      {data.orders.length === 0 ? (
+      {error ? (
+        <LoadError error={error} onRetry={reload} />
+      ) : data.orders.length === 0 ? (
         <EmptyState icon={ClipboardList} title="Nenhum pedido ainda" action={<Button variant="primary" icon={Plus} onClick={() => setEditing("new")}>Criar o primeiro pedido</Button>}>
           Cadastre produtos antes para o preço e a baixa de estoque saírem sozinhos.
         </EmptyState>

@@ -5,6 +5,7 @@ import { getDb } from "../db";
 import type { Db } from "../db/types";
 import { money, parseDecimal } from "../domain/format";
 import Button from "./Button";
+import LoadError from "./LoadError";
 import CatalogSheet, { type CatalogItem } from "./CatalogSheet";
 import ColorDots, { colorSwatch } from "./ColorDots";
 import EmptyState from "./EmptyState";
@@ -92,7 +93,7 @@ function show(f: Field, r: Row) {
 const toText = (f: Field, v: unknown) => (v == null ? "" : f.kind === "money" ? formatMoneyInput(String(v)) : String(v));
 
 export default function CrudPage({ pageId, title, singular, lead, repo, fields, defaults, sticky = [], empty, isLow, restock, catalog, duplicate }: Props) {
-  const [rows, reload, loading] = useData((db) => repo.list(db), [] as Row[]);
+  const [rows, reload, loading, loadError] = useData((db) => repo.list(db), [] as Row[]);
   const [form, setForm] = useState(defaults);
   const [editing, setEditing] = useState<number | null>(null);
   const [errors, setErrors] = useState<Record<string, string>>({});
@@ -351,6 +352,8 @@ export default function CrudPage({ pageId, title, singular, lead, repo, fields, 
             <span key={i} className="skeleton row" style={{ animationDelay: `${i * 120}ms` }} />
           ))}
         </div>
+      ) : loadError ? (
+        <LoadError error={loadError} onRetry={reload} />
       ) : visible.length === 0 ? (
         <EmptyState icon={empty.icon} title="Nada cadastrado ainda." action={<button onClick={() => focusForm()}>Cadastrar {singular.toLowerCase()}</button>}>
           {empty.text}

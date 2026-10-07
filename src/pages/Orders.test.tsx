@@ -189,6 +189,24 @@ describe("Pedidos: novo pedido", () => {
   });
 });
 
+describe("M15: erro do banco não aparece como 'nada cadastrado'", () => {
+  test("banco que falha ao ler mostra 'Não foi possível ler' com Tentar de novo, e não o estado vazio", async () => {
+    seed();
+    insertOrder({ qty: 2 });
+    t.handlers["plugin:sql|select"] = () => {
+      throw new Error("banco travado");
+    };
+    const user = userEvent.setup();
+    renderWithApp(<Orders />);
+    expect(await screen.findByText(/Não foi possível ler os dados: banco travado/)).toBeInTheDocument();
+    expect(screen.queryByText("Nenhum pedido ainda")).not.toBeInTheDocument();
+    delete t.handlers["plugin:sql|select"];
+    await user.click(screen.getByRole("button", { name: "Tentar de novo" }));
+    expect(await screen.findByRole("button", { name: /Abrir pedido #1/ })).toBeInTheDocument();
+    expect(screen.queryByText(/Não foi possível ler os dados/)).not.toBeInTheDocument();
+  });
+});
+
 describe("Pedidos: status e estoque", () => {
   test("quadro: iniciar produção baixa estoque; concluir e entregar não baixam de novo; cancelar devolve; reabrir", async () => {
     seed();

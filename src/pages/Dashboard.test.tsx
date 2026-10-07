@@ -91,3 +91,13 @@ describe("Painel", () => {
     expect(text(tile("Lucro do mês"))).toContain("prejuízo até agora");
   });
 });
+
+describe("M15: erro do banco no Painel", () => {
+  test("avisa que não deu para ler em vez de mostrar tudo zerado como se estivesse certo", async () => {
+    t.handlers["plugin:sql|select"] = () => {
+      throw new Error("banco travado");
+    };
+    renderWithApp(<Dashboard go={() => {}} />);
+    expect(await screen.findByText(/Não foi possível ler os dados: banco travado/)).toBeInTheDocument();
+  });
+});

@@ -252,7 +252,7 @@ Só análise: nenhum código foi alterado e nenhuma issue foi criada. Base: `ori
 - **Como reproduzir:** no Chaveiro, digite e troque de tela, ou feche a janela, em menos de 0,8 s. O toast diz que o trabalho ficou guardado, mas a última edição não está lá.
 - **Correção sugerida:** no cleanup, executar o `save()` pendente em vez de descartar; mostrar o toast só depois do sucesso; chamar `flushPendingSaves()` ao fechar.
 
-### M15. Erro do banco aparece como "Nada cadastrado"
+### M15. Erro do banco aparece como "Nada cadastrado" — ✅ CORRIGIDO (Forja)
 - **Onde:** `src/ui/useData.ts:20-21` (o erro vira toast passageiro e os dados ficam vazios). Agravante: `src/db/ordersRepo.ts:35`, onde um único `appliedPlan` ilegível derruba a lista inteira. Telas afetadas: `Orders.tsx:104`, `Quotes.tsx:115`, `Customers.tsx:57`, `CrudPage.tsx:355`, Dashboard e Financeiro (R$ 0).
 - **Como reproduzir:** com o banco travado ou um pedido com `appliedPlan` corrompido, abra Pedidos. Aparece "Nenhum pedido ainda" com o botão "Criar o primeiro pedido", e o Financeiro mostra lucro 0.
 - **Correção sugerida:** devolver `error` no `useData` e mostrar "Não foi possível ler — Tentar de novo"; fazer o parse por linha em `ordersRepo.list`.

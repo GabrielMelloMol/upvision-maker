@@ -7,6 +7,7 @@ import { parseDecimal } from "../domain/format";
 import { EMPTY_CUSTOMER, formatDocument, type Customer, type CustomerInput } from "../domain/customers";
 import Button from "../ui/Button";
 import EmptyState from "../ui/EmptyState";
+import LoadError from "../ui/LoadError";
 import { fieldErrors } from "../ui/fieldErrors";
 import Segmented from "../ui/Segmented";
 import Sheet from "../ui/Sheet";
@@ -18,7 +19,7 @@ import AddressFields from "./customers/AddressFields";
 const norm = (s: string) => s.normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase();
 
 export default function Customers() {
-  const [list, reload] = useData(customersRepo.list, [] as Customer[]);
+  const [list, reload, , error] = useData(customersRepo.list, [] as Customer[]);
   const data = list;
   const [editingState, setEditingState] = useState<Partial<Customer> | null>(null);
   const [searchId, setSearchId] = useState(() => takePendingOpen("customers")); // vindo da busca global
@@ -53,7 +54,9 @@ export default function Customers() {
           Novo cliente
         </Button>
       </div>
-      {list.length === 0 ? (
+      {error ? (
+        <LoadError error={error} onRetry={reload} />
+      ) : list.length === 0 ? (
         <EmptyState icon={Users} title="Nenhum cliente ainda" action={<Button variant="primary" icon={Plus} onClick={() => setEditing({})}>Cadastrar cliente</Button>} />
       ) : (
         <>

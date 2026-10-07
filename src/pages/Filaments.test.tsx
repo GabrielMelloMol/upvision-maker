@@ -39,3 +39,15 @@ describe("Filamentos: catálogo e duplicar (#3)", () => {
     );
   });
 });
+
+describe("M15: erro do banco nas telas de cadastro", () => {
+  test("lista que não lê mostra 'Não foi possível ler os dados' e não 'Nada cadastrado ainda'", async () => {
+    t.handlers["plugin:sql|select"] = () => {
+      throw new Error("banco travado");
+    };
+    renderWithApp(<Filaments />);
+    expect(await screen.findByText(/Não foi possível ler os dados: banco travado/)).toBeInTheDocument();
+    expect(screen.queryByText("Nada cadastrado ainda.")).not.toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Tentar de novo" })).toBeInTheDocument();
+  });
+});

@@ -11,6 +11,7 @@ import { quotePdf } from "../pdf/quote";
 import Alert from "../ui/Alert";
 import Button from "../ui/Button";
 import EmptyState from "../ui/EmptyState";
+import LoadError from "../ui/LoadError";
 import { saveFile, slug } from "../ui/saveFile";
 import { errorText, useToast } from "../ui/Toast";
 import { useData } from "../ui/useData";
@@ -24,7 +25,7 @@ import { clearOpenQuoteDraft, clearQuoteDraft, peekOpenQuoteDraft, peekQuoteDraf
 const dateBr = (iso: string) => iso.slice(0, 10).split("-").reverse().join("/");
 
 export default function Quotes({ go }: { go: Go }) {
-  const [data, reload, loading] = useData(loadQuotesData, EMPTY_QUOTES);
+  const [data, reload, loading, error] = useData(loadQuotesData, EMPTY_QUOTES);
   const [draft, setDraft] = useState(peekQuoteDraft);
   const [editing, setEditing] = useState<Quote | "new" | "draft" | null>(() => (peekOpenQuoteDraft() && draft ? "draft" : null));
   useEffect(clearOpenQuoteDraft, []);
@@ -111,7 +112,9 @@ export default function Quotes({ go }: { go: Go }) {
           </div>
         </Alert>
       )}
-      {data.quotes.length === 0 ? (
+      {error ? (
+        <LoadError error={error} onRetry={reload} />
+      ) : data.quotes.length === 0 ? (
         <EmptyState icon={FileText} title="Nenhum orçamento ainda" action={<Button variant="primary" icon={Plus} onClick={() => setEditing("new")}>Fazer um orçamento</Button>} />
       ) : (
         <table>

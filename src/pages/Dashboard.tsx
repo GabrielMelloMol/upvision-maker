@@ -13,6 +13,7 @@ import type { Product } from "../domain/products";
 import type { Go } from "../pages";
 import Button from "../ui/Button";
 import { StatTile } from "../ui/charts";
+import LoadError from "../ui/LoadError";
 import { setPendingOpen } from "../ui/search";
 import { useData } from "../ui/useData";
 
@@ -29,7 +30,7 @@ const HEALTH = {
 } as const;
 
 export default function Dashboard({ go }: { go: Go }) {
-  const [data] = useData(load, EMPTY);
+  const [data, reload, , error] = useData(load, EMPTY);
   const today = todayIso();
   const [mFrom, mTo] = periodRange("month", today);
   const month = financeSummary(data.orders, data.costs, mFrom, mTo);
@@ -64,6 +65,7 @@ export default function Dashboard({ go }: { go: Go }) {
           <p className="lead">O que precisa de atenção hoje.</p>
         </div>
       </div>
+      {error && <LoadError error={error} onRetry={reload} />}
       <div className="stats">
         <StatTile label="Receita do mês" value={money(month.revenue)} delta={change(month.revenue, last.revenue)} hint={`${month.orders} entregues`} />
         <StatTile label="Lucro do mês" value={money(month.profit)} delta={change(month.profit, last.profit)} deltaMoney={month.profit < 0 || last.profit < 0 ? month.profit - last.profit : undefined} tone={month.profit < 0 ? "bad" : undefined} hint={month.profit < 0 ? "prejuízo até agora" : undefined} />

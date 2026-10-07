@@ -16,6 +16,7 @@ import { HBars, MonthlyBars, ProfitBars, StatTile } from "../ui/charts";
 import Segmented from "../ui/Segmented";
 import { saveFile } from "../ui/saveFile";
 import { errorText, useToast } from "../ui/Toast";
+import LoadError from "../ui/LoadError";
 import { useData } from "../ui/useData";
 
 const load = async (db: Db) => ({ orders: await ordersRepo.list(db), costs: await costsRepo.list(db), products: await productsRepo.list(db), printers: await printers.list(db) });
@@ -23,7 +24,7 @@ const EMPTY = { orders: [] as Order[], costs: [] as OperationalCost[], products:
 const NO_PRINTER = "Sem impressora";
 
 export default function Finance() {
-  const [data] = useData(load, EMPTY);
+  const [data, reload, , error] = useData(load, EMPTY);
   const [period, setPeriod] = useState<"month" | "3m" | "12m" | "custom">("3m");
   const [custom, setCustom] = useState(() => periodRange("month", todayIso()));
   const [channel, setChannel] = useState("");
@@ -85,6 +86,7 @@ export default function Finance() {
           Exportar planilha
         </Button>
       </div>
+      {error && <LoadError error={error} onRetry={reload} />}
 
       <div className="row filters">
         <Segmented

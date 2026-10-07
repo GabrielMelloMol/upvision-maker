@@ -7,6 +7,7 @@ import { money } from "../domain/format";
 import { productPricing, salePrice, type Product } from "../domain/products";
 import Button from "../ui/Button";
 import EmptyState from "../ui/EmptyState";
+import LoadError from "../ui/LoadError";
 import { errorText, useToast } from "../ui/Toast";
 import { takePendingOpen } from "../ui/search";
 import { useData } from "../ui/useData";
@@ -17,7 +18,7 @@ import ProduceSheet from "./products/ProduceSheet";
 import ProductEditor from "./products/ProductEditor";
 
 export default function Products() {
-  const [data, reload] = useData(loadProductsData, EMPTY_DATA);
+  const [data, reload, , error] = useData(loadProductsData, EMPTY_DATA);
   const [editingState, setEditingState] = useState<Partial<Product> | null>(() => peekProductDraft());
   const [searchId, setSearchId] = useState(() => takePendingOpen("products")); // vindo da busca global
   const editing = editingState ?? (searchId !== null ? (data.products.find((p) => p.id === searchId) ?? null) : null);
@@ -88,7 +89,9 @@ export default function Products() {
           </Button>
         </div>
       )}
-      {rows.length === 0 ? (
+      {error ? (
+        <LoadError error={error} onRetry={reload} />
+      ) : rows.length === 0 ? (
         <EmptyState icon={Package} title="Nenhum produto ainda" action={<Button variant="primary" icon={Plus} onClick={() => setEditing({})}>Cadastrar o primeiro</Button>}>
           Dica: na Calculadora, use “Salvar como produto” para não digitar tudo de novo.
         </EmptyState>
