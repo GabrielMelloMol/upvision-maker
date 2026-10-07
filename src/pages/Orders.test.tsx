@@ -444,6 +444,12 @@ describe("Pedidos: editar, detalhe e lista", () => {
     await waitFor(() => expect(screen.queryByRole("dialog", { name: "Pedido #1" })).not.toBeInTheDocument());
   });
 
+  test("UX B4: o subtítulo diz o que se faz na tela, não como o sistema funciona", async () => {
+    renderWithApp(<Orders />);
+    expect(await screen.findByText("Acompanhe cada pedido, do pedido até a entrega.")).toBeInTheDocument();
+    expect(screen.queryByText(/O estoque baixa ao produzir/)).not.toBeInTheDocument();
+  });
+
   test("UX M10: coluna Entregue mostra só os últimos 30 dias, com 'Ver todos' para a Lista", async () => {
     seed();
     const old = insertOrder({ name: "Antiga", status: "delivered" });

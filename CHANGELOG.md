@@ -4,6 +4,7 @@ Cada versão aparece para a usuária na tela "O que há de novo" depois da atual
 Formato: `## <versão> — <data>` e itens `- …` em linguagem simples.
 
 ## Próxima versão (ainda não lançada)
+- **Subtítulos que dizem o que fazer na tela**: Pedidos ("Acompanhe cada pedido, do pedido até a entrega."), Produtos (sem a palavra "insumos") e o modo Rápido da Calculadora ("Digite o filamento e o tempo para ver quanto custa e quanto cobrar.") deixam de descrever como o sistema funciona por dentro.
 - **Painel compara o mês com o mesmo trecho do mês passado**: no começo do mês, "Receita do mês R$ 0,00" não mostra mais "▼ 100%" contra o mês passado inteiro; a comparação vai do dia 1 até o mesmo dia do mês anterior.
 - **Financeiro explica o cartão "R$ por hora de impressão"**: sem tempo de impressão cadastrado nos produtos, em vez de "0 h de máquina" aparece "Cadastre o tempo de impressão dos produtos para ver este número."
 - **Sair de "Imagem → SVG" e de "Pedir à IA" não deixa trabalho para trás**: a imagem carregada é liberada da memória ao sair, e um pedido à IA em andamento é cancelado em vez de continuar rodando (e cobrando) sem ninguém para receber a resposta.

@@ -22,6 +22,13 @@ beforeEach(async () => {
 });
 
 describe("Calculator", () => {
+  test("UX B4: o subtítulo do modo Rápido diz o que se faz, sem mandar para as Preferências", async () => {
+    localStorage.setItem("upvision:calculadora", JSON.stringify({ mode: "quick", fil: [{ ref: "", price: "", qty: "" }], ext: [], printerId: "", f: {} }));
+    renderWithApp(<Calculator go={() => {}} />);
+    expect(await screen.findByText("Digite o filamento e o tempo para ver quanto custa e quanto cobrar.")).toBeInTheDocument();
+    expect(screen.queryByText(/vem das Preferências/)).not.toBeInTheDocument();
+  });
+
   test("gramas com ponto de milhar (A5): 1.200 g é mil e duzentos, com aviso; 1.200,5 também; lixo mostra erro", async () => {
     const user = userEvent.setup();
     renderWithApp(<Calculator go={() => {}} />);

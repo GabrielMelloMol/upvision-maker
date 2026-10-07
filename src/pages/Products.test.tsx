@@ -50,6 +50,12 @@ async function seedSupplies() {
 const dialog = (name: string | RegExp) => screen.findByRole("dialog", { name });
 
 describe("Produtos: lista", () => {
+  test("UX B4: o subtítulo diz o que se faz na tela, sem 'insumos'", async () => {
+    renderWithApp(<Products />);
+    expect(await screen.findByText("Seus produtos, com o custo e o preço sempre atualizados.")).toBeInTheDocument();
+    expect(screen.queryByText(/insumos/)).not.toBeInTheDocument();
+  });
+
   test("vazio mostra o estado vazio com atalho para cadastrar", async () => {
     const user = userEvent.setup();
     renderWithApp(<Products />);

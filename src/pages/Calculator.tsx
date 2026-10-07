@@ -299,7 +299,7 @@ export default function Calculator({ go }: { go: Go }) {
           Limpar
         </button>
       </div>
-      <p className="lead">{mode === "quick" ? "O resto (energia, desgaste, margem) vem das Preferências." : "Valores da mesa inteira, divididos pelas peças."}</p>
+      <p className="lead">{mode === "quick" ? "Digite o filamento e o tempo para ver quanto custa e quanto cobrar." : "Valores da mesa inteira, divididos pelas peças."}</p>
       <div className="calc-layout">
         <div>
           <label className="piece-name">

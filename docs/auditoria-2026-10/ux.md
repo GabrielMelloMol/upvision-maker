@@ -173,7 +173,7 @@ A pergunta foi: uma vendedora de impressão 3D que acabou de instalar o app cons
 
 **B3 · Modelos prontos · ao escolher um modelo, os campos ficam abaixo da galeria** (metade de baixo da tela) e o título continua "Modelos prontos". Rolar até o modelo escolhido, ou recolher a galeria depois da escolha.
 
-**B4 · Subtítulos que descrevem o sistema, não a tarefa**: Pedidos ("O estoque baixa ao produzir e volta ao cancelar."), Calculadora ("O resto … vem das Preferências"), Produtos ("custo de hoje dos insumos"). Trocar pelo que ela faz ali ("Acompanhe cada pedido do pedido à entrega").
+**✅ B4 · Subtítulos que descrevem o sistema, não a tarefa**: Pedidos ("O estoque baixa ao produzir e volta ao cancelar."), Calculadora ("O resto … vem das Preferências"), Produtos ("custo de hoje dos insumos"). Trocar pelo que ela faz ali ("Acompanhe cada pedido do pedido à entrega").
 
 **B5 · Início · "Comece por aqui" continua aparecendo com dados** até clicar no X. Esconder sozinho depois que os 3 passos forem feitos (ou marcar cada um como feito).
 
