@@ -1,5 +1,7 @@
 import { Camera, ClipboardList, PackageMinus, Warehouse } from "lucide-react";
 import { useCallback, useEffect, useState, type FormEvent } from "react";
+import { parseDecimal } from "../domain/format";
+import { numberNote } from "../ui/parse";
 import { codeFromHash, consumeFilament, filamentFromPhoto, finishOrder, loadSummary, NotPaired, pair } from "./client";
 import type { PhoneSummary } from "./types";
 
@@ -168,7 +170,9 @@ function Consume({ data, onConsume, onError }: { data: PhoneSummary; onConsume: 
   const [id, setId] = useState<number | "">("");
   const [amount, setAmount] = useState("");
   const chosen = data.filaments.find((f) => f.id === id);
-  const g = Number(amount.replace(",", "."));
+  // M12: "1.250" é mil duzentos e cinquenta (não 1,25); com aviso quando dá para ler de dois jeitos
+  const g = parseDecimal(amount);
+  const note = Number.isFinite(g) ? numberNote(amount) : undefined;
 
   async function photo(file: File | undefined) {
     if (!file) return;
@@ -209,6 +213,7 @@ function Consume({ data, onConsume, onError }: { data: PhoneSummary; onConsume: 
         Quanto usou (g)
         <input value={amount} onChange={(e) => setAmount(e.target.value)} inputMode="decimal" placeholder="Ex.: 35" />
       </label>
+      {note && <p className="ph-muted">{note}</p>}
       <button className="ph-primary" disabled={!chosen || !(g > 0)}>
         Dar baixa
       </button>

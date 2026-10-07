@@ -237,7 +237,7 @@ Só análise: nenhum código foi alterado e nenhuma issue foi criada. Base: `ori
   3. Cancelar o pedido estorna +200 e o estoque fica em 1200 g. O esperado é 1000.
 - **Correção sugerida:** somar `row.s + addQty`; o limite em zero só cabe dentro da média ponderada do custo.
 
-### M12. No celular, uma baixa de "1.250 g" vira 1,25 g
+### M12. No celular, uma baixa de "1.250 g" vira 1,25 g — ✅ CORRIGIDO (Forja)
 - **Onde:** `src/phone/PhoneApp.tsx:171` (`Number(amount.replace(",", "."))`).
 - **Como reproduzir:** digite "1.250" em "Quanto usou (g)": o app envia 1.25.
 - **Correção sugerida:** `parseMass(amount, spoolG)`.

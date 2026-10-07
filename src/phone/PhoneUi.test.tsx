@@ -78,6 +78,24 @@ describe("página do celular (#16)", () => {
   });
 });
 
+describe("Celular: quantidade da baixa (M12)", () => {
+  test("1.250 é mil duzentos e cinquenta gramas (com aviso), 35,5 é decimal e texto solto não dá baixa", async () => {
+    isPaired = true;
+    const user = userEvent.setup();
+    render(<PhoneApp />);
+    await user.click(await screen.findByRole("button", { name: /Baixa/ }));
+    await user.selectOptions(screen.getByLabelText("Filamento"), "1");
+    const amount = screen.getByLabelText("Quanto usou (g)");
+    await user.type(amount, "1.250");
+    expect(screen.getByText(/Entendi "1\.250" como 1\.250\. Se era 1,25/)).toBeInTheDocument();
+    await user.click(screen.getByRole("button", { name: "Dar baixa" }));
+    await waitFor(() => expect(sent.some((x) => x.path === "/api/filaments/1/consume")).toBe(true));
+    expect(JSON.parse(String(sent.filter((x) => x.path === "/api/filaments/1/consume").at(-1)!.init!.body))).toEqual({ grams: 1250 });
+    await user.type(amount, "abc");
+    expect(screen.getByRole("button", { name: "Dar baixa" })).toBeDisabled();
+  });
+});
+
 describe("Celular na rede de casa, no computador (#16)", () => {
   const RUNNING = { running: true, url: "http://192.168.0.10:51234/", code: "123456", phones: 1, locked: false };
 
