@@ -73,6 +73,18 @@ describe("Painel", () => {
     expect(rows).toEqual(["Medalha3020 / 14  saudável", "Vaso300 / 14  crítico", "Chaveiro101 / 5  atenção"]);
   });
 
+  test("A receber soma o que falta dos pedidos não cancelados, descontando sinal e pagos (#177)", async () => {
+    const a = await order({ name: "Ana", status: "done", items: [{ productId: null, qty: 2, unitPrice: 50 }] }); // 100, sinal de 30
+    const b = await order({ name: "Bia", status: "delivered", deliveredAt: "2026-06-10", items: [{ productId: null, qty: 1, unitPrice: 40 }] }); // pago
+    await order({ name: "Caio", status: "pending", items: [{ productId: null, qty: 1, unitPrice: 20 }] }); // 20 em aberto
+    await order({ name: "Duda", status: "canceled", items: [{ productId: null, qty: 1, unitPrice: 999 }] }); // cancelado: não conta
+    await t.db.execute("UPDATE orders SET paidAmount = 30 WHERE id = ?", [a]);
+    await t.db.execute("UPDATE orders SET paidAmount = 40 WHERE id = ?", [b]);
+    renderWithApp(<Dashboard go={() => {}} />);
+    await waitFor(() => expect(text(tile("A receber"))).toContain("R$ 90,00"));
+    expect(text(tile("A receber"))).toContain("2 pedidos com valor em aberto");
+  });
+
   test("sem dados: estados vazios, tudo em dia e sem base para comparar", async () => {
     renderWithApp(<Dashboard go={vi.fn()} />);
     expect(await screen.findByText("Nenhum pedido com prazo nos próximos 7 dias.")).toBeInTheDocument();

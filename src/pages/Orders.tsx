@@ -2,7 +2,7 @@ import { CalendarClock, ClipboardList, Plus } from "lucide-react";
 import { useState } from "react";
 import { money } from "../domain/format";
 import { addDays } from "../domain/quotes";
-import { isLate, orderTotals, STATUS_LABEL, STATUSES, todayIso, type Order, type OrderStatus } from "../domain/orders";
+import { isLate, orderTotals, PAYMENT_LABEL, paymentOf, STATUS_LABEL, STATUSES, todayIso, type Order, type OrderStatus } from "../domain/orders";
 import Button from "../ui/Button";
 import EmptyState from "../ui/EmptyState";
 import LoadError from "../ui/LoadError";
@@ -73,6 +73,7 @@ export default function Orders() {
             </span>
             <b>{money(orderTotals(o.items, o.freight).total)}</b>
           </span>
+          {o.status !== "canceled" && paymentOf(o).state !== "paid" && <span className="badge nowrap">{PAYMENT_LABEL[paymentOf(o).state]}{paymentOf(o).state === "partial" ? ` · falta ${money(paymentOf(o).due)}` : ""}</span>}
         </button>
         {next && (
           <Button size="sm" variant="ghost" className="order-next" onClick={() => move(o, next[0])}>
@@ -168,7 +169,7 @@ export default function Orders() {
           </div>
           <table>
             <thead>
-              <tr><th>#</th><th>Cliente</th><th>Status</th><th>Prazo</th><th>Canal</th><th className="num">Total</th></tr>
+              <tr><th>#</th><th>Cliente</th><th>Status</th><th>Prazo</th><th>Canal</th><th>Pagamento</th><th className="num">Total</th></tr>
             </thead>
             <tbody>
               {filtered.map((o) => (
@@ -180,6 +181,7 @@ export default function Orders() {
                   <td>{STATUS_LABEL[o.status]}</td>
                   <td>{isLate(o, today) ? <span className="badge">atrasado · {dateBr(o.dueDate)}</span> : dateBr(o.dueDate)}</td>
                   <td>{o.channel}</td>
+                  <td>{o.status === "canceled" ? "—" : PAYMENT_LABEL[paymentOf(o).state]}</td>
                   <td className="num">{money(orderTotals(o.items, o.freight).total)}</td>
                 </tr>
               ))}

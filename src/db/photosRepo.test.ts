@@ -47,7 +47,8 @@ test("migração leva as fotos de produto que já existiam", async () => {
   const old = memoryDb();
   // banco antes da #162: roda as migrações até a anterior e grava uma foto na tabela antiga
   const { MIGRATIONS } = await import("./migrations");
-  for (const [v, sqls] of MIGRATIONS.slice(0, -1).entries()) {
+  const photosAt = MIGRATIONS.findIndex((m) => m.some((sql) => sql.includes("CREATE TABLE photos")));
+  for (const [v, sqls] of MIGRATIONS.slice(0, photosAt).entries()) {
     for (const sql of sqls) await old.execute(sql);
     await old.execute(`PRAGMA user_version = ${v + 1}`);
   }

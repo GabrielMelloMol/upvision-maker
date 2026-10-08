@@ -13,7 +13,7 @@ test("migrate cria o schema e é idempotente", async () => {
 test("migração interrompida no meio de uma versão não deixa o banco pela metade (A1)", async () => {
   // Arrange: banco na penúltima versão e um obstáculo que faz o 2º comando da última versão falhar
   const db = memoryDb();
-  const last = SCHEMA_VERSION - 1;
+  const last = MIGRATIONS.findIndex((m) => m.some((sql) => sql.includes("CREATE TABLE photos"))); // a versão das fotos: o índice do fim falha no 2º comando
   for (let v = 0; v < last; v++) for (const sql of MIGRATIONS[v]) await db.execute(sql);
   await db.execute(`PRAGMA user_version = ${last}`);
   await db.execute("CREATE TABLE obstaculo (x)");

@@ -15,6 +15,7 @@ import { logLine } from "../products/PrintSheet";
 import Button from "../../ui/Button";
 import Sheet from "../../ui/Sheet";
 import { errorText, useToast } from "../../ui/Toast";
+import PaymentBox from "./PaymentBox";
 import type { OrdersData } from "./data";
 
 const dateBr = (iso: string | null) => (iso ? iso.slice(0, 10).split("-").reverse().join("/") : "—");
@@ -117,6 +118,7 @@ export default function OrderDetail({ order, data, onClose, onChanged, onEdit }:
         {order.deliveredAt && <span>Entregue em <b>{dateBr(order.deliveredAt)}</b></span>}
         <span>Estoque <b>{order.stockApplied ? "baixado" : "não baixado"}</b></span>
       </div>
+      <PaymentBox order={order} data={data} onChanged={onChanged} />
       <div className="row" role="group" aria-label="Mudar status">
         {targets.map((s) => (
           <Button key={s} size="sm" variant={s === "canceled" ? "ghost" : "secondary"} className={s === "canceled" ? "danger" : ""} disabled={busy} onClick={() => move(s)}>

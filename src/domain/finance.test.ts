@@ -35,6 +35,7 @@ const order = (o: Partial<Order>): Order => ({
   createdAt: "2026-03-01 10:00:00",
   deliveredAt: "2026-03-05",
   quoteId: null,
+  paidAmount: 0,
   items: [{ id: 1, productId: 1, description: "Chaveiro", qty: 10, unitPrice: 15, discountPct: 0, unitCost: 4, printMinutes: 12, custom: "" }],
   ...o,
 });

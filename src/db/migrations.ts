@@ -115,6 +115,11 @@ export const MIGRATIONS: string[][] = [
     "INSERT INTO photos (id, owner, position, dataUrl, createdAt) SELECT id, 'product:' || productId, position, dataUrl, strftime('%Y-%m-%dT%H:%M:%SZ', 'now') FROM product_photos",
     "DROP TABLE product_photos",
   ],
+  // Pedido pago, com sinal ou a receber (#177): valor já recebido. Pedido entregue antes disto conta como pago.
+  [
+    "ALTER TABLE orders ADD COLUMN paidAmount REAL NOT NULL DEFAULT 0",
+    `UPDATE orders SET paidAmount = ROUND(freight + COALESCE((SELECT SUM(ROUND(qty * unitPrice * (1 - discountPct / 100.0), 2)) FROM order_items WHERE orderId = orders.id), 0), 2) WHERE status = 'delivered'`,
+  ],
 ];
 
 export const SCHEMA_VERSION = MIGRATIONS.length;

@@ -1,4 +1,5 @@
-import { OrderInput, STATUS_LABEL, todayIso, transition, planForOrder, type Order, type OrderItem, type OrderStatus } from "../domain/orders";
+import { round2 } from "../domain/format";
+import { OrderInput, orderTotals, STATUS_LABEL, todayIso, transition, planForOrder, type Order, type OrderItem, type OrderStatus } from "../domain/orders";
 import type { ConsumptionPlan, ProductCtx } from "../domain/products";
 import { planToMovements, type ApplyStock } from "./stock";
 import type { Db, Stmt } from "./types";
@@ -47,6 +48,18 @@ export const ordersRepo = {
       appliedPlan: readPlan(o),
       items: (byOrder.get(o.id) ?? []).map((it) => ({ id: it.id, ...Object.fromEntries(ITEM_COLS.map((c) => [c, it[c]])) }) as OrderItem & { id: number }),
     }));
+  },
+
+  /** Registra quanto o cliente já pagou (#177); `amount` é o total recebido, não o que entrou agora. Fica no histórico. */
+  async setPaid(db: Db, order: Order, amount: number): Promise<void> {
+    if (!Number.isFinite(amount) || amount < 0) throw new Error("Informe um valor igual ou maior que zero.");
+    const total = orderTotals(order.items, order.freight).total;
+    const paid = Math.min(round2(amount), total);
+    const note = paid >= total && total > 0 ? "Pagamento: pago por inteiro" : paid > 0 ? `Pagamento: recebido ${paid.toFixed(2).replace(".", ",")} de ${total.toFixed(2).replace(".", ",")}` : "Pagamento: a receber";
+    await db.batch([
+      { sql: "UPDATE orders SET paidAmount = ? WHERE id = ?", params: [paid, order.id] },
+      { sql: "INSERT INTO order_history (orderId, status, note, at) VALUES (?, ?, ?, ?)", params: [order.id, order.status, note, nowLocal()] },
+    ]);
   },
 
   history: (db: Db, orderId: number) => db.select<HistoryEntry>("SELECT * FROM order_history WHERE orderId = ? ORDER BY id", [orderId]),

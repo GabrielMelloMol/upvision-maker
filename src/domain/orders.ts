@@ -51,6 +51,8 @@ export type Order = Omit<OrderInput, "items"> & {
   createdAt: string;
   deliveredAt: string | null;
   quoteId: number | null;
+  /** Quanto o cliente já pagou (#177): 0 = a receber, entre 0 e o total = sinal, o total ou mais = pago. */
+  paidAmount: number;
   items: (OrderItem & { id: number })[];
 };
 
@@ -99,3 +101,32 @@ export const customCopies = (custom: string) =>
     .map((l) => l.trim())
     .filter(Boolean)
     .map((l) => l.split(";").map((x) => x.trim()).filter(Boolean).join(" · "));
+
+export type PaymentState = "paid" | "partial" | "unpaid";
+export const PAYMENT_LABEL: Record<PaymentState, string> = { paid: "Pago", partial: "Sinal recebido", unpaid: "A receber" };
+
+/** Situação do pagamento (#177): quanto entrou, quanto falta e o rótulo; pedido cancelado não tem nada a receber. */
+export function paymentOf(o: Pick<Order, "items" | "freight" | "paidAmount" | "status">) {
+  const total = orderTotals(o.items, o.freight).total;
+  const paid = round2(Math.min(Math.max(o.paidAmount, 0), total));
+  const due = o.status === "canceled" ? 0 : round2(total - paid);
+  const state: PaymentState = total > 0 && paid >= total ? "paid" : paid > 0 ? "partial" : "unpaid";
+  return { total, paid, due, state };
+}
+
+/** Texto pronto para avisar o cliente (#177), ainda editável no WhatsApp: pedido pronto e, se faltar, quanto e como pagar. */
+export function readyMessage(o: Pick<Order, "id" | "customerName" | "items" | "freight" | "paidAmount" | "status" | "paymentMethod">, shop: string): string {
+  const { due } = paymentOf({ ...o, status: "pending" });
+  const first = o.customerName.trim().split(/\s+/)[0];
+  const pay = due > 0 ? ` Falta pagar ${brl(due)}${o.paymentMethod ? ` (${o.paymentMethod})` : ""}.` : " O pagamento já está em dia.";
+  return `Olá, ${first}! Seu pedido #${o.id} está pronto.${pay}${shop ? ` — ${shop}` : ""}`;
+}
+
+const brl = (n: number) => `R$ ${n.toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+
+/** Link do WhatsApp para o telefone do cliente (DDD + número; sem o 55, entra como Brasil); null se o número não serve. */
+export function whatsappLink(phone: string, text: string): string | null {
+  const digits = phone.replace(/\D/g, "");
+  const full = digits.length === 10 || digits.length === 11 ? `55${digits}` : digits;
+  return full.length >= 12 && full.length <= 13 ? `https://wa.me/${full}?text=${encodeURIComponent(text)}` : null;
+}

@@ -1,6 +1,6 @@
 import { describe, expect, test } from "vitest";
 import type { Filament } from "./entities";
-import { lineTotal, orderTotals, planForOrder, priceForChannel, transition, type OrderItem } from "./orders";
+import { lineTotal, orderTotals, paymentOf, planForOrder, priceForChannel, readyMessage, transition, whatsappLink, type Order, type OrderItem } from "./orders";
 import { productPricing, type Product, type ProductCtx } from "./products";
 import { DEFAULT_SETTINGS } from "./settings";
 
@@ -104,4 +104,31 @@ test("preço sugerido por canal", () => {
   expect(priceForChannel(p, r, "Revenda")).toBe(r.resale);
   expect(priceForChannel(p, r, "Shopee")).toBe(r.channels[0].price);
   expect(priceForChannel({ ...p, manualPrice: 30 }, r, "Consumidor final")).toBe(30);
+});
+
+describe("pagamento do pedido (#177)", () => {
+  const o = (paidAmount: number, extra: Partial<Order> = {}) => ({ id: 7, customerName: "Ana Souza", paymentMethod: "Pix", status: "done" as const, freight: 10, paidAmount, items: [{ qty: 2, unitPrice: 45, discountPct: 0 }], ...extra }) as Order;
+
+  test("sem nada pago é a receber, com sinal fica parcial e o total ou mais é pago", () => {
+    expect(paymentOf(o(0))).toMatchObject({ state: "unpaid", paid: 0, due: 100, total: 100 });
+    expect(paymentOf(o(30))).toMatchObject({ state: "partial", paid: 30, due: 70 });
+    expect(paymentOf(o(100))).toMatchObject({ state: "paid", due: 0 });
+    expect(paymentOf(o(250))).toMatchObject({ state: "paid", paid: 100, due: 0 });
+  });
+
+  test("pedido cancelado não tem nada a receber", () => {
+    expect(paymentOf(o(0, { status: "canceled" })).due).toBe(0);
+  });
+
+  test("a mensagem de pronto traz o primeiro nome e o que falta pagar, ou diz que está em dia", () => {
+    expect(readyMessage(o(30), "Loja 3D")).toBe("Olá, Ana! Seu pedido #7 está pronto. Falta pagar R$ 70,00 (Pix). — Loja 3D");
+    expect(readyMessage(o(100), "")).toBe("Olá, Ana! Seu pedido #7 está pronto. O pagamento já está em dia.");
+  });
+
+  test("link do WhatsApp: aceita DDD + número, põe o 55 e recusa número curto", () => {
+    expect(whatsappLink("(21) 99999-0000", "oi")).toBe("https://wa.me/5521999990000?text=oi");
+    expect(whatsappLink("+55 21 99999-0000", "a b")).toBe("https://wa.me/5521999990000?text=a%20b");
+    expect(whatsappLink("9999-0000", "oi")).toBeNull();
+    expect(whatsappLink("", "oi")).toBeNull();
+  });
 });

@@ -8,7 +8,7 @@ import type { Db } from "../db/types";
 import { toCsv } from "../domain/csv";
 import { breakdown, change, financeSummary, monthlySeries, periodRange, previousRange, type OperationalCost } from "../domain/finance";
 import { money } from "../domain/format";
-import { lineTotal, orderTotals, todayIso, type Order } from "../domain/orders";
+import { lineTotal, orderTotals, paymentOf, todayIso, type Order } from "../domain/orders";
 import type { Product } from "../domain/products";
 import type { Printer } from "../domain/entities";
 import Button from "../ui/Button";
@@ -148,6 +148,7 @@ export default function Finance({ go }: { go: Go }) {
         <StatTile label="Custos operacionais" value={money(s.expenses)} delta={change(s.expenses, prev.expenses)} upIsGood={false} hint={productId ? "não se aplicam a um produto" : undefined} />
         <StatTile label="Lucro" value={money(s.profit)} delta={change(s.profit, prev.profit)} deltaMoney={s.profit < 0 || prev.profit < 0 ? s.profit - prev.profit : undefined} tone={s.profit < 0 ? "bad" : undefined} hint={s.profit < 0 ? "prejuízo no período" : undefined} />
         <StatTile label="R$ por hora de impressão" value={s.revenuePerHour === null ? "—" : money(s.revenuePerHour)} hint={s.machineHours > 0 ? `${s.machineHours.toLocaleString("pt-BR")} h de máquina (faturamento, não lucro)` : "Cadastre o tempo de impressão dos produtos para ver este número."} />
+        <StatTile label="A receber (todos os pedidos)" value={money(data.orders.reduce((t, o) => t + paymentOf(o).due, 0))} hint="Pedidos não cancelados, mesmo os ainda não entregues." />
         <StatTile label="Ticket médio" value={s.averageTicket === null ? "—" : money(s.averageTicket)} />
       </div>
 

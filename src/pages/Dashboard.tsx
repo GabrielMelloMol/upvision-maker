@@ -7,7 +7,7 @@ import type { Db } from "../db/types";
 import type { Filament, Material } from "../domain/entities";
 import { breakdown, change, financeSummary, periodRange, recommendedStock, stockHealth, type OperationalCost } from "../domain/finance";
 import { money } from "../domain/format";
-import { isLate, orderTotals, STATUS_LABEL, todayIso, type Order } from "../domain/orders";
+import { isLate, orderTotals, paymentOf, STATUS_LABEL, todayIso, type Order } from "../domain/orders";
 import { addDays } from "../domain/quotes";
 import type { Product } from "../domain/products";
 import type { Go } from "../pages";
@@ -42,6 +42,8 @@ export default function Dashboard({ go }: { go: Go }) {
   const open = data.orders.filter((o) => OPEN.has(o.status));
   const late = open.filter((o) => isLate(o, today));
   const week = open.filter((o) => o.dueDate && o.dueDate <= addDays(today, 7)).sort((a, b) => (a.dueDate ?? "").localeCompare(b.dueDate ?? ""));
+  const owing = data.orders.filter((o) => paymentOf(o).due > 0);
+  const owed = owing.reduce((s, o) => s + paymentOf(o).due, 0);
   const lowFil = data.filaments.filter((f) => f.stockG <= f.minG);
   const lowMat = data.materials.filter((m) => m.stock <= m.min);
   const sold = breakdown(data.orders, addDays(today, -WINDOW_DAYS), today, (_o, i) => String(i.productId ?? "")).filter((b) => b.key);
@@ -73,6 +75,7 @@ export default function Dashboard({ go }: { go: Go }) {
         <StatTile label="Receita do mês" value={money(month.revenue)} delta={change(month.revenue, last.revenue)} hint={`${month.orders} entregues`} />
         <StatTile label="Lucro do mês" value={money(month.profit)} delta={change(month.profit, last.profit)} deltaMoney={month.profit < 0 || last.profit < 0 ? month.profit - last.profit : undefined} tone={month.profit < 0 ? "bad" : undefined} hint={month.profit < 0 ? "prejuízo até agora" : undefined} />
         <StatTile label="Pedidos em aberto" value={String(open.length)} hint={`${open.filter((o) => o.status === "production").length} em produção`} />
+        <StatTile label="A receber" value={money(owed)} hint={owing.length ? `${owing.length} ${owing.length === 1 ? "pedido" : "pedidos"} com valor em aberto` : "tudo recebido"} />
         <StatTile label="Atrasados" value={String(late.length)} tone={late.length ? "bad" : undefined} hint={late.length ? "prazo já passou" : "tudo em dia"} />
       </div>
 

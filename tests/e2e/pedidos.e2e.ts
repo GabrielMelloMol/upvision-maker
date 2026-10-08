@@ -55,3 +55,23 @@ test("pedidos: lista mostra atrasados e filtra por status", async ({ page, tauri
   await expect(page.getByRole("row", { name: /Bia/ })).toHaveCount(0);
   await expect(page.getByRole("row", { name: /Caio/ })).toContainText("R$ 20,00");
 });
+
+test("pedidos: sinal, marcar como pago e o 'A receber' no Painel (#177)", async ({ page, tauri }) => {
+  await openApp(page);
+  await seed(tauri);
+  tauri.db.exec(`INSERT INTO orders (customerName, channel, status, createdAt) VALUES ('Bia', 'Consumidor final', 'done', '2026-10-01 10:00:00');
+    INSERT INTO order_items (orderId, position, description, qty, unitPrice) VALUES (1, 0, 'Peça', 2, 50);`);
+  await go(page, "Pedidos");
+  await page.getByRole("button", { name: /Abrir pedido #1 de Bia/ }).click();
+  const box = page.getByRole("dialog", { name: /Pedido #1/ }).getByRole("region", { name: "Pagamento" });
+  await expect(box).toContainText("A receber");
+  await box.getByLabel(/Valor recebido até agora/).fill("30");
+  await box.getByRole("button", { name: "Salvar valor recebido" }).click();
+  await expect(page.getByRole("button", { name: /Abrir pedido #1 de Bia/ })).toContainText("Sinal recebido · falta R$ 70,00");
+  await go(page, "Painel");
+  await expect(page.locator(".stat", { hasText: "A receber" })).toContainText("R$ 70,00");
+  await go(page, "Pedidos");
+  await page.getByRole("button", { name: /Abrir pedido #1 de Bia/ }).click();
+  await page.getByRole("dialog", { name: /Pedido #1/ }).getByRole("button", { name: "Marcar como pago" }).click();
+  await expect(toastWith(page, "Pedido #1: pago.")).toBeVisible();
+});

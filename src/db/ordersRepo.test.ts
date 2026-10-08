@@ -54,6 +54,46 @@ const stockG = async () => (await filaments.list(db))[0].stockG;
 const productStock = async () => (await productsRepo.list(db))[0].stock;
 const order = async () => (await ordersRepo.list(db))[0];
 
+describe("pagamento (#177)", () => {
+  test("começa a receber; registra sinal e pago, limita ao total e deixa no histórico", async () => {
+    await ordersRepo.create(db, input(4)); // 4 × 15 = 60
+    expect((await order()).paidAmount).toBe(0);
+    await ordersRepo.setPaid(db, await order(), 20);
+    expect((await order()).paidAmount).toBe(20);
+    await ordersRepo.setPaid(db, await order(), 999);
+    expect((await order()).paidAmount).toBe(60);
+    await expect(ordersRepo.setPaid(db, await order(), -1)).rejects.toThrow(/zero/);
+    const notes = (await ordersRepo.history(db, (await order()).id)).map((h) => h.note);
+    expect(notes.slice(1)).toEqual(["Pagamento: recebido 20,00 de 60,00", "Pagamento: pago por inteiro"]);
+  });
+
+  test("o valor pago entra no backup e na restauração; backup antigo sem o campo volta como a receber", async () => {
+    await ordersRepo.create(db, input(4));
+    await ordersRepo.setPaid(db, await order(), 25);
+    const raw = JSON.parse(JSON.stringify(await exportBackup(db)));
+    expect(raw.tables.orders[0].paidAmount).toBe(25);
+    delete raw.tables.orders[0].paidAmount;
+    await ordersRepo.setPaid(db, await order(), 0);
+    const { restoreBackup } = await import("./backup");
+    await restoreBackup(db, parseBackup(JSON.stringify(raw)));
+    expect((await order()).paidAmount).toBe(0);
+  });
+
+  test("a migração marca como pagos os pedidos já entregues e deixa os outros a receber", async () => {
+    const old = memoryDb();
+    const { MIGRATIONS } = await import("./migrations");
+    for (const [i, stmts] of MIGRATIONS.slice(0, MIGRATIONS.length - 1).entries()) {
+      for (const sql of stmts) await old.execute(sql);
+      await old.execute(`PRAGMA user_version = ${i + 1}`);
+    }
+    await old.execute("INSERT INTO orders (id, customerName, channel, status, freight, createdAt) VALUES (1, 'A', 'x', 'delivered', 10, 'h'), (2, 'B', 'x', 'pending', 0, 'h')");
+    await old.execute("INSERT INTO order_items (orderId, position, description, qty, unitPrice, discountPct) VALUES (1, 0, 'a', 3, 10.5, 10), (2, 0, 'b', 1, 5, 0)");
+    await migrate(old);
+    const rows = await old.select<{ id: number; paidAmount: number }>("SELECT id, paidAmount FROM orders ORDER BY id");
+    expect(rows).toEqual([{ id: 1, paidAmount: 38.35 }, { id: 2, paidAmount: 0 }]);
+  });
+});
+
 describe("pedidos", () => {
   test("cria com itens e histórico", async () => {
     await ordersRepo.create(db, input(3));

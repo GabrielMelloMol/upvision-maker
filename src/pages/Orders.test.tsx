@@ -64,6 +64,47 @@ const insertOrder = (o: { name?: string; status?: string; due?: string | null; q
 
 beforeEach(() => installApplyStock(t));
 
+describe("Pedidos: pagamento (#177)", () => {
+  test("marca como pago, registra sinal e mostra a situação no cartão e na lista", async () => {
+    seed();
+    const id = insertOrder({ name: "Bia", status: "done", qty: 2 }); // 2 × 15 = 30
+    const user = userEvent.setup();
+    renderWithApp(<Orders />);
+    const card = await screen.findByRole("button", { name: `Abrir pedido #${id} de Bia` });
+    expect(card).toHaveTextContent("A receber");
+    await user.click(card);
+    const sheet = await screen.findByRole("dialog", { name: /Pedido #1/ });
+    const box = within(sheet).getByRole("region", { name: "Pagamento" });
+    expect(box).toHaveTextContent("A receber");
+    await user.type(within(box).getByLabelText(/Valor recebido até agora/), "10");
+    await user.click(within(box).getByRole("button", { name: "Salvar valor recebido" }));
+    await waitFor(() => expect(t.raw.prepare("SELECT paidAmount FROM orders").get()).toEqual({ paidAmount: 10 }));
+    expect(await screen.findByRole("button", { name: `Abrir pedido #${id} de Bia` })).toHaveTextContent("Sinal recebido · falta R$ 20,00");
+
+    await user.click(await screen.findByRole("button", { name: `Abrir pedido #${id} de Bia` }));
+    const again = within(await screen.findByRole("dialog", { name: /Pedido #1/ })).getByRole("region", { name: "Pagamento" });
+    await user.click(within(again).getByRole("button", { name: "Marcar como pago" }));
+    await waitFor(() => expect(t.raw.prepare("SELECT paidAmount FROM orders").get()).toEqual({ paidAmount: 30 }));
+    expect(t.raw.prepare("SELECT note FROM order_history ORDER BY id").all().map((r) => (r as { note: string }).note)).toEqual(["Pedido criado", "Pagamento: recebido 10,00 de 30,00", "Pagamento: pago por inteiro"]);
+    expect(await screen.findByRole("button", { name: `Abrir pedido #${id} de Bia` })).not.toHaveTextContent("A receber");
+  });
+
+  test("o aviso de pronto no WhatsApp só liga com cliente cadastrado que tem telefone com DDD", async () => {
+    t.raw.exec("INSERT INTO customers (kind, name, phone, discountPct, active) VALUES ('pf', 'Ana', '(21) 99999-0000', 0, 1), ('pf', 'Sem fone', '', 0, 1)");
+    const withPhone = insertOrder({ name: "Ana", status: "done" });
+    t.raw.prepare("UPDATE orders SET customerId = 1 WHERE id = ?").run(withPhone);
+    const noPhone = insertOrder({ name: "Sem fone", status: "done" });
+    t.raw.prepare("UPDATE orders SET customerId = 2 WHERE id = ?").run(noPhone);
+    const user = userEvent.setup();
+    renderWithApp(<Orders />);
+    await user.click(await screen.findByRole("button", { name: `Abrir pedido #${withPhone} de Ana` }));
+    expect(await screen.findByRole("button", { name: "Avisar que está pronto no WhatsApp" })).toBeEnabled();
+    await user.keyboard("{Escape}");
+    await user.click(await screen.findByRole("button", { name: `Abrir pedido #${noPhone} de Sem fone` }));
+    expect(await screen.findByRole("button", { name: "Avisar que está pronto no WhatsApp" })).toBeDisabled();
+  });
+});
+
 describe("Pedidos: novo pedido", () => {
   test("preço do produto e desconto do cliente; total com frete; grava custo e minutos da foto do produto", async () => {
     seed();
