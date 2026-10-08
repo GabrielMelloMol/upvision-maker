@@ -4,6 +4,7 @@ Cada versão aparece para a usuária na tela "O que há de novo" depois da atual
 Formato: `## <versão> — <data>` e itens `- …` em linguagem simples.
 
 ## Próxima versão (ainda não lançada)
+- **Chaveiro suporte de celular**: em Modelos prontos (Chaveiros), um chaveiro 3 em 1: abridor de lata (rampa e fenda para o anel), suporte de celular em pé (fenda inclinada na medida do aparelho com a capinha, de 55° a 75°) e a sua arte na face.
 - **Decal no seu modelo**: nova ferramenta que abre um STL ou 3MF seu, deixa clicar numa face plana (na prévia ou na lista) e pôr texto ou desenho nela com a mesma vista de arrastar, girar e mudar o tamanho. A cor entra na peça rente à face (aplicação "Embutido", de 0,4 a 1 mm), sem mudar o tamanho, e sai no 3MF multicor; também dá para usar relevo, gravado ou vazado. Só em faces planas na parte de fora da peça; o app avisa que é preciso ter licença para alterar o modelo. O "Embutido" também aparece nas camadas dos Modelos prontos.
 - **Pedido pago, com sinal ou a receber**: no pedido há uma caixa de **Pagamento** com o valor já recebido, o que falta e os botões "Salvar valor recebido" (para o sinal) e "Marcar como pago"; cada mudança fica no histórico. A situação aparece no cartão e na lista de Pedidos, e o **Painel** e o **Financeiro** ganharam o total **A receber**. Quando o pedido está concluído, "Avisar que está pronto no WhatsApp" abre a conversa com o texto pronto (nome, o que falta pagar e a forma de pagamento), usando o telefone do cliente cadastrado. Pedidos já entregues antes desta versão contam como pagos.
 

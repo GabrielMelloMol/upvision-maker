@@ -1,4 +1,4 @@
-import { BottleWine, CircleDashed, Disc3, Dumbbell, KeyRound, Link2, Nfc, PawPrint, Pencil, ToggleLeft } from "lucide-react";
+import { BottleWine, Smartphone, CircleDashed, Disc3, Dumbbell, KeyRound, Link2, Nfc, PawPrint, Pencil, ToggleLeft } from "lucide-react";
 import { buildArticulatedName, DEFAULT_ARTICULATED } from "../../../geometry/models/articulatedName";
 import { buildClicker, DEFAULT_CLICKER } from "../../../geometry/models/clicker";
 import { buildGymKeychain, DEFAULT_GYM_KEYCHAIN } from "../../../geometry/models/gymKeychain";
@@ -8,6 +8,7 @@ import { buildNamePendants, DEFAULT_NAME_PENDANTS } from "../../../geometry/mode
 import { buildNfcKeychain, DEFAULT_NFC } from "../../../geometry/models/nfcKeychain";
 import { buildOpener, DEFAULT_OPENER } from "../../../geometry/models/opener";
 import { buildPencilTopper, DEFAULT_PENCIL_TOPPER } from "../../../geometry/models/pencilTopper";
+import { buildPhoneKeychain, DEFAULT_PHONE_KEYCHAIN } from "../../../geometry/models/phoneKeychain";
 import { buildPetTag, DEFAULT_PET_TAG } from "../../../geometry/models/petTag";
 import { buildSpinner, DEFAULT_SPINNER } from "../../../geometry/models/spinner";
 import { as, bool, choice, color, logoFields, num, resinFields, text, type ModelDef } from "../fields";
@@ -105,6 +106,30 @@ export const KEYCHAIN_MODELS: ModelDef[] = [
       { title: "Dobradiça e cores", fields: [num("body", "Espessura", 5, 12), num("radial", "Folga radial", 0.15, 0.6, { step: 0.05, hint: "0,3 solta bem na maioria das impressoras." }), num("axial", "Folga axial", 0.2, 0.8, { step: 0.05 }), num("relief", "Relevo", 0.4, 2), color("baseColor", "Peças"), color("textColor", "Letras")] },
     ],
     build: (ctx, p) => buildArticulatedName(ctx, as(p)),
+  },
+  {
+    id: "phoneKeychain",
+    category: "keychains",
+    label: "Chaveiro suporte de celular",
+    blurb: "Chaveiro 3 em 1: abridor de lata, suporte de celular em pé (fenda inclinada na medida do aparelho) e sua arte na face.",
+    icon: Smartphone,
+    font: true,
+    art: "Arte (opcional)",
+    defaults: DEFAULT_PHONE_KEYCHAIN,
+    sections: [
+      { title: "Arte", fields: [text("text", "Texto (sem desenho)", 10)] },
+      {
+        title: "Celular e placa",
+        fields: [
+          num("deviceThickness", "Espessura do aparelho (mm)", 5, 16, { step: 0.5, hint: "Com a capinha: celular fica perto de 10 a 12 mm. A folga de 1 mm já vem somada." }),
+          num("angle", "Inclinação do aparelho (°)", 55, 75, { step: 1, hint: "Ângulo com a mesa; o aparelho se apoia inclinado para o lado da argola." }),
+          num("thickness", "Espessura da placa", 9, 16, { step: 0.5, hint: "Precisa de fundo para a fenda: 12 mm serve para celular." }),
+          num("relief", "Relevo da arte", 0.4, 2),
+        ],
+      },
+      { title: "Cores", fields: [color("bodyColor", "Corpo"), color("artColor", "Arte (1 cor)")] },
+    ],
+    build: (ctx, p) => buildPhoneKeychain(ctx, as(p)),
   },
   {
     id: "opener",
