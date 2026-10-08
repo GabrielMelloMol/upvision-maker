@@ -3,7 +3,7 @@
 Cada versão aparece para a usuária na tela "O que há de novo" depois da atualização.
 Formato: `## <versão> — <data>` e itens `- …` em linguagem simples.
 
-## Próxima versão (ainda não lançada)
+## 0.11.1 — 2026-10-08
 - **Cartão de música**: em Modelos prontos (Placas), uma placa com foto (opcional), título, artista, até 4 linhas da letra, barra de progresso com o trecho tocado e botões de anterior, tocar e próxima, todos de desenho próprio. Fica em pé num suporte de mesa ou leva um ímã atrás, em 3 a 4 cores.
 - **Moldura grande dividida**: em Modelos prontos (Casa), moldura de pôster ou quadro de até cerca de 1 m (você informa a medida da arte), com perfil reto, chanfrado ou arredondado. Quando passa da mesa, o app divide sozinho em cantos e trechos de lado que se **encaixam por cauda de andorinha, sem cola** (os cantos saem em outra cor). Tem janela com rebaixo para a arte, **garras** de parafuso que a seguram por trás e, atrás, **gancho** (2 chaveiros para parafuso de parede) ou **apoio de mesa** (perna). Vem com as peças arrumadas na mesa e um aviso de quantas são.
 - **Abajur de mesa**: em Modelos prontos (Casa), cúpula por perfil (esfera, cilindro, cone, pera ou perfil livre) com ondas, facetas ou furos, e base com encaixe para soquete E27 ou E14, canal e furo para o cabo. A prévia mostra a peça montada (ou "pronta para imprimir", com a cúpula virada ao lado da base) e o app avisa que é só para lâmpada LED.
