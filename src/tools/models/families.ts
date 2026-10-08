@@ -49,6 +49,7 @@ export const FAMILIES: Family[] = [
     tools: [{ page: "drawer", label: "Organizador de gaveta" }],
   },
   { id: "lamp", label: "Luminária", category: "home", variants: [{ id: "lamp", label: "Luminária" }] },
+  { id: "tableLamp", label: "Abajur de mesa", category: "home", variants: [{ id: "tableLamp", label: "Abajur de mesa" }] },
   { id: "vase", label: "Vaso", category: "home", variants: [{ id: "vase", label: "Vaso" }] },
   { id: "toys", label: "Brinquedos", category: "home", variants: [{ id: "puzzle", label: "Quebra-cabeça" }, { id: "alphabetCube", label: "Cubo alfabeto" }, { id: "rpgDice", label: "Dados de RPG" }] },
   { id: "coaster", label: "Porta-copos", category: "home", variants: [{ id: "coaster", label: "Porta-copos" }] },

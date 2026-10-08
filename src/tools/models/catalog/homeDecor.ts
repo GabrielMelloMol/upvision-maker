@@ -1,4 +1,4 @@
-import { Bookmark, CaseUpper, CircleDot, Gem, KeySquare, Lamp, PencilRuler, PenTool, Puzzle, WholeWord } from "lucide-react";
+import { Bookmark, CaseUpper, CircleDot, Gem, KeySquare, Lamp, LampDesk, PencilRuler, PenTool, Puzzle, WholeWord } from "lucide-react";
 import { buildBigLetter, DEFAULT_BIG_LETTER } from "../../../geometry/models/bigLetter";
 import { buildBookmark, DEFAULT_BOOKMARK } from "../../../geometry/models/bookmark";
 import { buildCoaster, DEFAULT_COASTER } from "../../../geometry/models/coaster";
@@ -8,8 +8,9 @@ import { buildLineArtStand, DEFAULT_LINE_ART } from "../../../geometry/models/li
 import { buildNfcJewelry, DEFAULT_NFC_JEWELRY } from "../../../geometry/models/nfcJewelry";
 import { buildPenHolder, DEFAULT_PEN_HOLDER } from "../../../geometry/models/penHolder";
 import { buildPuzzle, DEFAULT_PUZZLE } from "../../../geometry/models/puzzle";
+import { buildTableLamp, DEFAULT_TABLE_LAMP } from "../../../geometry/models/tableLamp";
 import { buildWordDecor, DEFAULT_WORD_DECOR } from "../../../geometry/models/wordDecor";
-import { as, bool, choice, color, font, nfcFields, num, text, textureFields, type ModelDef } from "../fields";
+import { as, bool, choice, color, font, nfcFields, num, profile, text, textureFields, type ModelDef } from "../fields";
 
 /** Casa, 1ª parte da galeria: marca-página, porta-caneta, decoração, luminária, letra grande, quebra-cabeça, porta-copos. */
 export const HOME_DECOR_MODELS: ModelDef[] = [
@@ -116,6 +117,44 @@ export const HOME_DECOR_MODELS: ModelDef[] = [
       { title: "Tamanho e cores", fields: [num("width", "Largura", 80, 240, { step: 1 }), num("depth", "Profundidade", 15, 40, { step: 1 }), num("margin", "Margem", 4, 20), num("clearance", "Folga da tampa", 0.1, 0.5, { step: 0.05 }), color("frameColor", "Caixa"), color("diffuserColor", "Difusor (branco)")] },
     ],
     build: (ctx, p) => buildLamp(ctx, as(p)),
+  },
+  {
+    id: "tableLamp",
+    category: "home",
+    label: "Abajur de mesa",
+    blurb: "Cúpula por perfil (esfera, cilindro, cone, pera ou livre) com ondas, facetas ou furos, e base com encaixe para soquete E27 ou E14. Só para lâmpada LED.",
+    icon: LampDesk,
+    defaults: DEFAULT_TABLE_LAMP,
+    sections: [
+      {
+        title: "Cúpula",
+        fields: [
+          choice("shape", "Forma", [["pear", "Pera"], ["sphere", "Esfera"], ["cylinder", "Cilindro"], ["cone", "Cone"], ["free", "Livre (perfil)"]]),
+          profile("profile", "Perfil livre (raios de baixo para cima)", 15, 120),
+          num("diameter", "Diâmetro (formas prontas)", 70, 230, { step: 1 }),
+          num("height", "Altura da cúpula", 80, 170, { step: 1, hint: "A cúpula mais a base (até 80 mm) cabem nos 256 mm de altura da A1, P1 e X1." }),
+          num("wall", "Parede", 0.8, 3, { step: 0.1, hint: "Parede fina deixa passar mais luz; com filamento claro 1,2 mm difunde bem." }),
+          choice("texture", "Textura", [["none", "Lisa"], ["waves", "Ondas"], ["facets", "Facetas"], ["holes", "Furos"]]),
+          num("textureCount", "Quantidade (ondas, lados ou furos por fileira)", 3, 40, { step: 1, unit: "" }),
+          num("textureSize", "Tamanho (altura da onda ou diâmetro do furo)", 2, 12, { step: 0.5 }),
+        ],
+      },
+      {
+        title: "Base e soquete",
+        fields: [
+          choice("socket", "Soquete", [["E27", "E27 (rosca grossa)"], ["E14", "E14 (rosca fina)"]]),
+          num("socketClearance", "Folga do soquete", -0.5, 1.5, { step: 0.1, hint: "Os soquetes variam entre fabricantes: meça o seu e ajuste. A peça segura o soquete por encaixe." }),
+          num("socketDepth", "Profundidade do bolso", 20, 50, { step: 1 }),
+          num("baseDiameter", "Diâmetro da base", 70, 200, { step: 1 }),
+          num("baseHeight", "Altura da base", 30, 80, { step: 1 }),
+        ],
+      },
+      {
+        title: "Montagem e cores",
+        fields: [choice("layout", "Disposição", [["assembled", "Montada (prévia)"], ["print", "Pronta para imprimir"]]), color("shadeColor", "Cúpula (claro deixa a luz passar)"), color("baseColor", "Base")],
+      },
+    ],
+    build: (ctx, p) => buildTableLamp(ctx, as(p)),
   },
   {
     id: "lineArt",

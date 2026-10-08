@@ -4,6 +4,7 @@ Cada versão aparece para a usuária na tela "O que há de novo" depois da atual
 Formato: `## <versão> — <data>` e itens `- …` em linguagem simples.
 
 ## Próxima versão (ainda não lançada)
+- **Abajur de mesa**: em Modelos prontos (Casa), cúpula por perfil (esfera, cilindro, cone, pera ou perfil livre) com ondas, facetas ou furos, e base com encaixe para soquete E27 ou E14, canal e furo para o cabo. A prévia mostra a peça montada (ou "pronta para imprimir", com a cúpula virada ao lado da base) e o app avisa que é só para lâmpada LED.
 - **Litofania em abajur, coração e círculo, com base de LED**: além da plana, curva e caixa de luz, a foto agora dá a volta num **cilindro** (você informa o diâmetro e a altura; a emenda é disfarçada e o relevo fica por dentro), ou sai em **coração** e **círculo** com a moldura acompanhando o contorno. A **base de LED** leva encaixe para a peça, lugar para um disco ou uma fita de LED (o diâmetro é livre), saída de cabo ou compartimento para 2 pilhas AAA, e uma tampa de baixo; no abajur ainda dá para fazer a tampa de cima. Tudo vai no mesmo arquivo 3MF, já arrumado na mesa.
 
 ## 0.11.0 — 2026-10-08
