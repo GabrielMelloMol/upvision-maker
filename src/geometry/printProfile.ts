@@ -21,6 +21,8 @@ export const DEFAULT_PROFILE: PrintProfile = { layerHeight: 0.2, walls: 3, infil
 
 /** Ferramentas (#86). Litofania em pé, maciça (a luz passa pela espessura) e com brim para não tombar. */
 export const LITHO_PROFILE: PrintProfile = { layerHeight: 0.12, walls: 4, infill: 100, support: false, brim: true, notes: ["Imprima em pé, como sai no arquivo, e devagar nas camadas finas."] };
+/** Litofania colorida (#102): camada fina para as espessuras das tintas saírem certas; as cores já vêm em volumes separados. */
+export const COLOR_LITHO_PROFILE: PrintProfile = { layerHeight: 0.08, walls: 2, infill: 100, support: false, brim: true, notes: ["Imprima em pé, como sai no arquivo, com os 5 filamentos nos espaços do AMS na ordem do fatiador.", "Camada de 0,08 mm: as espessuras de cada cor são múltiplas dela."] };
 /** Quadro por camadas: a altura de camada vem do campo da tela. */
 export const LAYERED_PROFILE: PrintProfile = { walls: 3, infill: 100, support: false, brim: false, notes: ["A 1ª camada também com essa altura: as trocas de cor contam camadas."] };
 /** Cortador: a lâmina tem 2 filetes de bico 0,4; sem suporte, deitado com a borda de apoio na mesa. */

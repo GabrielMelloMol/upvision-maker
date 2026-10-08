@@ -152,4 +152,28 @@ describe("formatos novos e base de LED (#101)", () => {
     await user.type(screen.getByLabelText(/^Diâmetro \(mm\)/), "500");
     expect(await screen.findByText(/Use entre 30 e 150/)).toBeInTheDocument();
   });
+  test("litofania colorida: pede 5 filamentos, avisa do TD e salva um volume por cor", async () => {
+    const { user } = await withPhoto();
+    await user.click(screen.getByRole("button", { name: "Litofania colorida" }));
+    expect(await screen.findByText(/5 filamentos ao mesmo tempo/, undefined, BUILD)).toBeInTheDocument();
+    expect(screen.getByText(/Sem TD cadastrado para ciano/)).toBeInTheDocument();
+    expect(screen.getByLabelText("Filamento ciano")).toBeInTheDocument();
+    await user.click(screen.getByRole("button", { name: "3D" }));
+    await waitFor(() => expect(screen.getByRole("button", { name: /Salvar 3MF/ })).toBeEnabled(), BUILD);
+    await user.click(screen.getByRole("button", { name: /Salvar 3MF/ }));
+    await waitFor(() => expect(t.files.has("/saida/litofania-colorida.3mf")).toBe(true));
+    const cfg = strFromU8(unzipSync(t.files.get("/saida/litofania-colorida.3mf")!)["Metadata/model_settings.config"]);
+    expect(cfg.match(/<part /g)!.length).toBeGreaterThanOrEqual(4);
+  }, 90_000);
+
+  test("TD preenchido some com o aviso daquela tinta", async () => {
+    const { user } = await withPhoto();
+    await user.click(screen.getByRole("button", { name: "Litofania colorida" }));
+    await screen.findByText(/Sem TD cadastrado para ciano/, undefined, BUILD);
+    for (const nome of ["ciano", "magenta", "amarelo", "preto"]) {
+      await user.clear(screen.getByLabelText(new RegExp(`^TD ${nome}`)));
+      await user.type(screen.getByLabelText(new RegExp(`^TD ${nome}`)), "2");
+    }
+    await waitFor(() => expect(screen.queryByText(/Sem TD cadastrado/)).not.toBeInTheDocument(), BUILD);
+  }, 90_000);
 });

@@ -105,3 +105,25 @@ test("litofania: abajur cilíndrico, coração e círculo com a base de LED; um 
   const circle = [...tauri.files].find(([p]) => p.endsWith("litofania.3mf"))!;
   expect(items3mf(circle[1])).toBe(3); // círculo, base de LED e tampa da base
 });
+
+test("litofania colorida: 5 filamentos, aviso do AMS e do TD, prévia contra a luz e um volume por cor no 3MF (#102)", async ({ page, tauri }) => {
+  await openApp(page);
+  await go(page, "Litofania e quadro");
+  await page.locator('input[type="file"]').setInputFiles("tests/fixtures/foto-pessoa.jpg");
+  await expect(page.getByRole("img", { name: "Simulação da litofania contra a luz" })).toBeVisible({ timeout: 150_000 });
+  await page.getByRole("button", { name: "Litofania colorida" }).click();
+  await expect(page.getByText(/5 filamentos ao mesmo tempo/)).toBeVisible({ timeout: 150_000 });
+  await expect(page.getByText(/Sem TD cadastrado para ciano, magenta, amarelo, preto/)).toBeVisible();
+  await expect(page.getByRole("img", { name: "Simulação da litofania contra a luz" })).toBeVisible();
+  if (SHOTS) await page.screenshot({ path: `${SHOTS}/litofania-colorida-contra-a-luz.png` });
+  for (const cor of ["ciano", "magenta", "amarelo", "preto"]) await page.getByLabel(new RegExp(`^TD ${cor}`)).fill("2.5");
+  await expect(page.getByText(/Sem TD cadastrado/)).toHaveCount(0);
+  await page.getByRole("group", { name: "Prévia" }).getByRole("button", { name: "3D" }).click();
+  await settled(page);
+  await page.getByRole("button", { name: /Salvar 3MF/ }).click();
+  await expect(toastWith(page, "Arquivo salvo em")).toBeVisible();
+  const file = [...tauri.files].find(([p]) => p.endsWith("litofania-colorida.3mf"))!;
+  expect(items3mf(file[1])).toBe(1);
+  const cfg = strFromU8(unzipSync(new Uint8Array(file[1]))["Metadata/model_settings.config"]);
+  expect((cfg.match(/<part /g) ?? []).length).toBeGreaterThanOrEqual(4); // branco, tintas usadas
+});

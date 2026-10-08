@@ -13,12 +13,13 @@ import { composeKeychainArt } from "../geometry/keychainArt";
 import { buildKeychain, DEFAULT_KEYCHAIN, layoutOnPlate, type KeychainParams } from "../geometry/keychain";
 import { buildLayeredPicture, DEFAULT_LAYERED, type LayeredParams } from "../geometry/layeredPicture";
 import { DEFAULT_LITHO, type LithoParams } from "../geometry/lithophane";
+import { buildColorLithophane, DEFAULT_COLOR_LITHO, type ColorLithoParams } from "../geometry/lithophaneColor";
 import { buildLithophaneSet, lithoGrid } from "../geometry/lithophaneSet";
 import { fitAspect } from "../geometry/lithophaneShapes";
 import type { CS, ManifoldToplevel } from "../geometry/manifold";
 import { buildMedalDesign, DEFAULT_MEDAL_DESIGN, type MedalDesign } from "../geometry/medalDesign";
 import { cutModels, DEFAULT_CUT } from "../geometry/planeCut";
-import { CUTTER_PROFILE, DEFAULT_PROFILE, LAYERED_PROFILE, LITHO_PROFILE, type PrintProfile } from "../geometry/printProfile";
+import { COLOR_LITHO_PROFILE, CUTTER_PROFILE, DEFAULT_PROFILE, LAYERED_PROFILE, LITHO_PROFILE, type PrintProfile } from "../geometry/printProfile";
 import { qrModel } from "../geometry/qr3d";
 import { buildSpoolTag, spoolTagsThatFit } from "../geometry/spoolTag";
 import { arcTextToCrossSection, textToCrossSection } from "../geometry/text";
@@ -88,6 +89,19 @@ function photoGrid(cols: number) {
   return { luma, w: cols, h: rows };
 }
 
+/** Foto colorida sintética (4:3): céu azul, sol amarelo, chão verde e uma faixa vermelha. */
+function colorPhoto(cols: number) {
+  const rows = Math.round(cols * 0.75);
+  const rgba = new Uint8ClampedArray(cols * rows * 4);
+  for (let r = 0; r < rows; r++)
+    for (let c = 0; c < cols; c++) {
+      const sun = Math.hypot(c - cols * 0.7, r - rows * 0.3) < rows * 0.15;
+      const px = sun ? [255, 214, 40] : r > rows * 0.7 ? [70, 150, 70] : c < cols * 0.15 ? [210, 50, 50] : [90 + (r / rows) * 100, 150 + (r / rows) * 80, 235];
+      rgba.set([...px, 255], (r * cols + c) * 4);
+    }
+  return { rgba, w: cols, h: rows };
+}
+
 export function toolCases(M: ManifoldToplevel): QaCase[] {
   const keychain = async (textH: number, patch: Partial<KeychainParams>, names = ["Ana"]): Promise<Out> => {
     const f = await loadFont("pacifico");
@@ -132,6 +146,12 @@ export function toolCases(M: ManifoldToplevel): QaCase[] {
     const fit = grid.aspect ? fitAspect(ph.luma, ph.w, ph.h, grid.aspect) : ph;
     const set = buildLithophaneSet(M, fit.luma, fit.w, fit.h, grid.step, p);
     return { models: set.models, warnings: [...set.warnings, ...bedWarnings(set.models, set.warnings)] };
+  };
+  const colorLitho = (width: number, cell: number, patch: Partial<ColorLithoParams>): Out => {
+    const grid = lithoGrid({ ...DEFAULT_LITHO, shape: "flat" }, width, cell);
+    const ph = colorPhoto(grid.cols);
+    const out = buildColorLithophane(M, ph.rgba, ph.w, ph.h, grid.step, { ...DEFAULT_COLOR_LITHO, ...patch });
+    return { models: [out.model], warnings: [...out.warnings, ...bedWarnings([out.model], [])] };
   };
   const layered = (width: number, cell: number, patch: Partial<LayeredParams>): Out => {
     const ph = photo(width, cell);
@@ -205,6 +225,9 @@ export function toolCases(M: ManifoldToplevel): QaCase[] {
       ["círculo", () => litho(100, 0.3, { shape: "circle" }), LITHO_PROFILE],
       ["círculo máximo", () => litho(250, 1, { shape: "circle", border: 15, minT: 3, maxT: 8 }), LITHO_PROFILE],
       ["círculo com fita e pilhas", () => litho(100, 0.3, { shape: "circle", led: { kind: "strip", size: 10, power: "battery" } }), LITHO_PROFILE],
+      ["colorida", () => colorLitho(100, 0.4, {}), COLOR_LITHO_PROFILE],
+      ["colorida mínima", () => colorLitho(20, 0.15, { maxInk: 0.4, whiteT: 0.4, border: 3 }), COLOR_LITHO_PROFILE],
+      ["colorida máxima", () => colorLitho(250, 1, { maxInk: 4, whiteT: 3, border: 15 }), COLOR_LITHO_PROFILE],
       ["plana com base", () => litho(100, 0.3, { shape: "flat", led: { kind: "disc", size: 50, power: "cable" } }), LITHO_PROFILE],
     ]),
     ...cases("layered", "Quadro por camadas", [
