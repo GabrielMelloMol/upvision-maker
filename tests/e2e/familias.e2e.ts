@@ -1,9 +1,9 @@
 import { expect, go, openApp, test } from "./tauri";
 
-/** Galeria em famílias (#141): 24 cards, variação com miniatura, atalhos para as ferramentas e busca pelo nome antigo. */
+/** Galeria em famílias (#141): um card por família, variação com miniatura, atalhos para as ferramentas e busca pelo nome antigo. */
 const CATEGORIES = ["Placas", "Chaveiros", "Festa e esporte", "Casa", "Cozinha"];
 
-test("galeria: as 24 famílias aparecem uma vez cada, divididas pelas abas de categoria", async ({ page }) => {
+test("galeria: as famílias aparecem uma vez cada, divididas pelas abas de categoria", async ({ page }) => {
   await openApp(page);
   await go(page, "Modelos prontos");
   const seen: string[] = [];
@@ -13,8 +13,8 @@ test("galeria: as 24 famílias aparecem uma vez cada, divididas pelas abas de ca
     await expect(cards.first()).toBeVisible();
     seen.push(...(await cards.allTextContents()));
   }
-  expect(seen).toHaveLength(24);
-  expect(new Set(seen).size).toBe(24);
+  expect(seen.length).toBeGreaterThanOrEqual(24); // modelo novo vira família nova: o que importa é nenhuma repetida nem fora de aba
+  expect(new Set(seen).size).toBe(seen.length);
   expect(seen).toEqual(expect.arrayContaining(["Placa de balcão", "Chaveiro", "Troféu", "Letras e palavras", "Gridfinity", "Cortadores e formas"]));
 });
 
