@@ -156,7 +156,7 @@ export default function Lithophane() {
               )}
             </div>
           </details>
-          <ExportButtons printModes={false} models={models.length ? exportModels : []} name={mode === "litho" ? "litofania" : "quadro-camadas"} busy={busy} pauses={pauses} profile={mode === "litho" ? LITHO_PROFILE : { ...LAYERED_PROFILE, layerHeight: layered.layerHeight }} onSaved={tool.exported} />
+          <ExportButtons printModes={mode === "layered"} modes={["ams", "plates"]} models={models.length ? exportModels : []} name={mode === "litho" ? "litofania" : "quadro-camadas"} busy={busy} pauses={pauses} profile={mode === "litho" ? LITHO_PROFILE : { ...LAYERED_PROFILE, layerHeight: layered.layerHeight }} onSaved={tool.exported} />
         </div>
         <div className="preview-col">
           {mode === "litho" && <Segmented label="Prévia" value={view} options={VIEWS} onChange={setView} />}

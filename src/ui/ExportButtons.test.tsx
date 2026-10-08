@@ -121,6 +121,14 @@ describe("como vai imprimir", () => {
     expect(extruders(t.files.get("/pasta/pixel-cor-2.3mf")!)).toEqual(new Set(["1"]));
   });
 
+  test("modes restringe os jeitos de imprimir oferecidos (quadro por camadas só tem Multicor e Mesa por cor) (#118)", () => {
+    renderWithApp(<ExportButtons models={[side]} name="quadro" modes={["ams", "plates"]} />);
+    expect(screen.getByRole("button", { name: "Multicor" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Mesa por cor" })).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "Com pausas" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "1 cor" })).not.toBeInTheDocument();
+  });
+
   test("troca manual com cores lado a lado: aviso e salvar bloqueado; 1 cor salva num filamento", async () => {
     const user = userEvent.setup();
     renderWithApp(<ExportButtons models={[side]} name="lado" />);

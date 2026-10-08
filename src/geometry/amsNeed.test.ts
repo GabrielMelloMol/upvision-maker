@@ -39,4 +39,39 @@ describe("precisa de AMS? (#118)", () => {
     const [a, b] = black.map((m) => meshBounds(m.parts.map((p) => p.mesh))!);
     expect(a.max[0] <= b.min[0] || b.max[0] <= a.min[0] || a.max[1] <= b.min[1] || b.max[1] <= a.min[1]).toBe(true);
   });
+
+  test("peça com pedaços soltos em alturas diferentes (letras nas faces de um cubo) vira um pedaço por mesa, cada um na mesa", () => {
+    const flutuante = (): Part => {
+      const a = M.Manifold.cube([20, 20, 2]).translate([0, 0, 0]);
+      const b = M.Manifold.cube([20, 20, 2]).translate([5, 5, 30]); // separado: o fatiador recusa um objeto com camadas vazias no meio
+      const u = M.Manifold.compose([a, b]);
+      const mesh = toMesh(u);
+      [a, b, u].forEach((x) => x.delete());
+      return { name: "letras", color: "#00f", mesh };
+    };
+    const plates = platesByColor(model(block("#fff", 0, 0, 80, 40), flutuante()));
+    const blue = plates.find((p) => p.color === "#00f")!.models;
+    expect(blue).toHaveLength(2);
+    for (const m of blue) {
+      const b = meshBounds(m.parts.map((p) => p.mesh))!;
+      expect(b.min[2]).toBeCloseTo(0, 5);
+      expect(b.max[2]).toBeCloseTo(2, 5); // cada pedaço tem a altura dele, sem camadas vazias embaixo
+    }
+    const [a, b] = blue.map((m) => meshBounds(m.parts.map((p) => p.mesh))!);
+    expect(a.max[0] <= b.min[0] || b.max[0] <= a.min[0] || a.max[1] <= b.min[1] || b.max[1] <= a.min[1]).toBe(true);
+  });
+
+  test("peça com vários pedaços todos já na mesma altura (pixel art) fica inteira e no lugar", () => {
+    const grade = (): Part => {
+      const cs = [0, 30, 60].map((x) => M.Manifold.cube([20, 20, 2]).translate([x, 0, 0]));
+      const u = M.Manifold.compose(cs);
+      const mesh = toMesh(u);
+      [...cs, u].forEach((x) => x.delete());
+      return { name: "pixels", color: "#000", mesh };
+    };
+    const plates = platesByColor(model(grade(), block("#fff", 0, 5, 80)));
+    const black = plates.find((p) => p.color === "#000")!.models;
+    expect(black).toHaveLength(1); // não vira 3 pedaços soltos: a grade mantém as posições do desenho
+    expect(meshBounds(black[0].parts.map((p) => p.mesh))!.max[0]).toBeCloseTo(80, 5);
+  });
 });

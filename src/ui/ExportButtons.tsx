@@ -29,7 +29,7 @@ import { listSlicers, openInSlicer, pickSlicer, SLICER_DOWNLOADS, type Installed
 const loadSlicer = async (db: Db): Promise<InstalledSlicer | null> => pickSlicer(await listSlicers(), (await loadSettings(db)).slicer);
 
 /** "plates" (#118): cada cor numa mesa própria, para montar ou colar depois (sem AMS e sem pausas). */
-type Mode = PrintMode | "plates";
+export type Mode = PrintMode | "plates";
 const MODES: [Mode, string][] = [
   ["ams", "Multicor"],
   ["manual", "Com pausas"],
@@ -44,6 +44,8 @@ type Props = {
   pauses?: number[];
   /** Mostra "Como vai imprimir" (1 cor / troca manual / AMS). Desligue onde a ferramenta já cuida disso. */
   printModes?: boolean;
+  /** Quais jeitos de imprimir oferecer (padrão: todos). O quadro por camadas só tem Multicor e Mesa por cor: as pausas dele já vêm prontas. */
+  modes?: readonly Mode[];
   /** Configuração de impressão recomendada: vai no 3MF (Bambu/Orca) e aparece na tela. */
   profile?: PrintProfile;
   /** Depois de salvar um arquivo (com o `name` legível): a ferramenta guarda o projeto nos "Últimos projetos" (#85). */
@@ -56,7 +58,7 @@ type Props = {
 const recolor = (models: Model[], map: Record<string, string>): Model[] => models.map((m) => ({ ...m, parts: m.parts.map((p) => ({ ...p, color: map[p.color.toLowerCase()] ?? p.color })) }));
 
 /** Botões padrão de exportação: 3MF com cores (principal) e STL por objeto, ajustados ao jeito de imprimir. */
-export default function ExportButtons({ models: input, name, busy, pauses: inputPauses, printModes = true, profile, onSaved, secondary = false }: Props) {
+export default function ExportButtons({ models: input, name, busy, pauses: inputPauses, printModes = true, modes, profile, onSaved, secondary = false }: Props) {
   const toast = useToast();
   const [mode, setMode] = useState<Mode>("ams");
   const [layer, setLayer] = useState(profile?.layerHeight ?? 0.2);
@@ -66,7 +68,8 @@ export default function ExportButtons({ models: input, name, busy, pauses: input
   const [opening, setOpening] = useState(false);
   const colors = modelColors(input);
   const colorCount = colors.length;
-  const showModes = printModes && colorCount > 1;
+  const available = MODES.filter(([m]) => !modes || modes.includes(m));
+  const showModes = printModes && colorCount > 1 && available.length > 1;
   const multi = colorCount > 1 && (!showModes || mode === "ams");
   // Meu AMS (#98): com filamentos carregados, cada cor vai no slot dela (ou no mais parecido); sem, avisa se passar dos slots
   const slots = multi && ams.some((s) => s.hex) ? ams.map((s) => s.hex) : undefined;
@@ -135,7 +138,7 @@ export default function ExportButtons({ models: input, name, busy, pauses: input
       {showModes && (
         <>
           <span className="field-label">Como vai imprimir</span>
-          <Segmented label="Como vai imprimir" value={mode} options={MODES} onChange={setMode} full />
+          <Segmented label="Como vai imprimir" value={mode} options={available} onChange={setMode} full />
           {mode === "manual" && (
             <>
               <NumField label="Altura de camada" value={layer} onChange={setLayer} min={0.04} max={0.4} step={0.02} hint="A mesma do fatiador (e na 1ª camada)." />

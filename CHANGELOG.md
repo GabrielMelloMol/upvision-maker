@@ -3,6 +3,9 @@
 Cada versão aparece para a usuária na tela "O que há de novo" depois da atualização.
 Formato: `## <versão> — <data>` e itens `- …` em linguagem simples.
 
+## Próxima versão (ainda não lançada)
+- Quadro por camadas ganha "Mesa por cor"; peças soltas de uma cor (letras, pixels afastados) viram mesas próprias já no chão; teste de frescor da tabela de AMS e fatiamento das mesas no Bambu Studio e no OrcaSlicer (`validate-models --plates`) (#118)
+
 ## 0.10.6 — 2026-10-07
 - **Modelos prontos mais fáceis de acompanhar**: ao escolher um modelo na galeria a tela rola até os campos dele, o painel mostra o nome do card de onde veio (por exemplo "Brinquedos" acima de "Quebra-cabeça"), e o atalho que leva a outra ferramenta (como "Redonda e formatos") avisa "Abre a ferramenta Medalhas, em outra tela".
 - **"Comece por aqui" acompanha o que você já fez**: cada passo feito (chaveiro, cálculo de preço, orçamento) ganha o selo "feito", e quando os três estão feitos o quadro some sozinho, sem precisar clicar no X.

@@ -64,4 +64,11 @@ test("quadro por camadas: filamentos cadastrados viram trocas por camada; AMS se
   await page.getByRole("button", { name: /Salvar 3MF/ }).click();
   await expect(toastWith(page, "Arquivo salvo em")).toBeVisible();
   expect(objects3mf([...tauri.files].find(([p]) => p.endsWith(".3mf"))![1])).toBeGreaterThanOrEqual(3);
+
+  // shadowbox (#118): "Mesa por cor" também no quadro por camadas, um 3MF por cor para montar ou colar depois
+  await page.getByRole("button", { name: "Mesa por cor" }).click();
+  tauri.nextOpen = "/pasta";
+  await page.getByRole("button", { name: /Salvar uma mesa por cor \(3 arquivos\)/ }).click();
+  await expect(toastWith(page, "3 mesas salvas em /pasta")).toBeVisible();
+  expect([...tauri.files.keys()].filter((k) => k.startsWith("/pasta/quadro-camadas-cor-")).sort()).toEqual(["/pasta/quadro-camadas-cor-1.3mf", "/pasta/quadro-camadas-cor-2.3mf", "/pasta/quadro-camadas-cor-3.3mf"]);
 });

@@ -7,6 +7,7 @@
 #   scripts/validate-models --groups keychains,plates,party,tools
 #   scripts/validate-models --ids nfc,opener --no-slice
 #   scripts/validate-models --owners Torno --jobs 4
+#   scripts/validate-models --plates [--ids a,b]    só o modo "uma mesa por cor" (#118): cada mesa fatiada nos dois fatiadores
 #
 # Grupos: keychains, plates, party, home, kitchen, tools. BAMBU_APP=/caminho/BambuStudio.app e ORCA_APP=/caminho/OrcaSlicer.app
 # se não estiverem em /Applications (fatiador ausente = pula; brew install --cask orcaslicer).
@@ -19,7 +20,9 @@ while [ $# -gt 0 ]; do
     --owners) export QA_OWNERS="$2"; shift 2 ;;
     --jobs) export QA_JOBS="$2"; shift 2 ;;
     --no-slice) export QA_SLICE=0; shift ;;
+    --plates) export QA_PLATES=1; shift ;;
     *) echo "opção desconhecida: $1" >&2; exit 2 ;;
   esac
 done
+if [ -n "$QA_PLATES" ]; then exec npx vitest run src/qa/plates.qa.test.ts --reporter=dot --silent=false; fi
 QA=1 exec npx vitest run src/qa/validate.qa.test.ts --reporter=dot --silent=false
