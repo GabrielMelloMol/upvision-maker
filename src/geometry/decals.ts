@@ -5,10 +5,10 @@ import type { Mesh, Model, Part } from "./types";
 
 /**
  * Camada livre (#26) aplicada na face de cima da peça principal de um modelo pronto: desenho ou texto, posicionado
- * em mm (Y para cima, relativo ao centro da face), em relevo, gravado ou vazado. A interface (lista de camadas,
+ * em mm (Y para cima, relativo ao centro da face), em relevo, gravado, vazado ou embutido (a cor entra na peça, rente). A interface (lista de camadas,
  * gizmo) fica no Models.tsx; aqui só a geometria.
  */
-export type DecalMode = "raised" | "engraved" | "cut";
+export type DecalMode = "raised" | "engraved" | "cut" | "inlay";
 export type Decal = {
   id: string;
   x: number;
@@ -87,8 +87,8 @@ export function placeDecal(cs: CS, d: Pick<Decal, "x" | "y" | "width" | "rotatio
 }
 
 /**
- * Aplica os decais na peça principal: relevo vira parte nova (uma por cor), gravado afunda a peça e vazado
- * atravessa. Avisos por decal: sai da peça, traço mais fino que 0,4 mm, encostando em furo/argola.
+ * Aplica os decais na peça principal: relevo vira parte nova (uma por cor), gravado afunda a peça, vazado
+ * atravessa e embutido troca a camada de cima da peça pela cor do desenho (o mesmo volume, rente à face). Avisos por decal: sai da peça, traço mais fino que 0,4 mm, encostando em furo/argola.
  */
 export function applyDecals(M: ManifoldToplevel, models: Model[], decals: { decal: Decal; regions: DecalRegions }[]): { models: Model[]; warnings: DecalWarning[] } {
   const active = decals.filter((d) => d.decal.visible !== false && d.regions.length);
@@ -114,6 +114,15 @@ export function applyDecals(M: ManifoldToplevel, models: Model[], decals: { deca
       const inside = placed.map((p) => ({ color: p.color, cs: k(p.cs.intersect(face)) })).filter((p) => !p.cs.isEmpty());
       if (decal.mode === "raised") {
         for (const p of inside) added.push({ name: `Desenho ${++n}`, color: p.color, mesh: toMesh(k(k(p.cs.extrude(decal.depth)).translate([0, 0, main.z]))) });
+      } else if (decal.mode === "inlay") {
+        // a cor ocupa o mesmo lugar do material tirado: interseção do desenho extrudado com a peça (como o Separador)
+        for (const p of inside) {
+          const prism = k(k(p.cs.extrude(decal.depth + EPS)).translate([0, 0, main.z - decal.depth]));
+          const fill = k(body.intersect(prism));
+          if (fill.isEmpty()) continue;
+          added.push({ name: `Desenho ${++n}`, color: p.color, mesh: toMesh(fill) });
+          body = k(body.subtract(prism));
+        }
       } else {
         const cut = k(M.CrossSection.union(inside.map((p) => p.cs)));
         const h = decal.mode === "cut" ? main.z + 2 : decal.depth + EPS;

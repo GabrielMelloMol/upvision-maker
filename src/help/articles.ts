@@ -106,6 +106,13 @@ export const ARTICLES: HelpArticle[] = [
     steps: ["Arraste o 3MF pintado (Bambu Studio, OrcaSlicer ou PrusaSlicer).", "Confira as cores encontradas.", "Se quiser, corte pelo plano com pino de encaixe.", "Salve as peças e cole ou encaixe depois de imprimir."],
   },
   {
+    id: "owndecal",
+    title: "Decal no seu modelo",
+    intro: "Ponha seu nome ou logo numa face plana de um STL ou 3MF que você já tem, em outra cor, para imprimir em duas cores.",
+    steps: ["Arraste o STL ou 3MF (um sólido fechado).", "Clique numa face plana na prévia, ou escolha na lista; a face fica pintada de azul.", "Adicione um texto ou desenho e arraste na vista da face.", "Salve o 3MF: a cor entra na peça rente à face, sem mudar o tamanho."],
+    tips: ["Só vale para faces planas e na parte de fora da peça; faces curvas ficam para depois.", "Use só modelos que são seus ou cuja licença permite alterar. O app não confere a licença."],
+  },
+  {
     id: "pixel",
     title: "Pixel art",
     intro: "Transforme uma imagem numa grade de pixels com as cores dos seus filamentos e imprima como mosaico, quebra-cabeça ou ímã.",

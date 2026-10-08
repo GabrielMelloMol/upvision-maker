@@ -18,7 +18,7 @@ const ROTATE_STEP = 15;
 let seq = 0;
 const newId = () => `l${Date.now().toString(36)}${(seq++).toString(36)}`;
 
-function base(face: Bounds | null, color: string): Omit<Decal, "id"> {
+function base(face: Bounds | null, color: string, mode: Decal["mode"] = "raised"): Omit<Decal, "id"> {
   const faceW = face ? face.max[0] - face.min[0] : 60;
   return {
     x: face ? (face.min[0] + face.max[0]) / 2 : 0,
@@ -26,15 +26,15 @@ function base(face: Bounds | null, color: string): Omit<Decal, "id"> {
     width: Math.round(Math.min(MAX_DEFAULT_WIDTH, faceW * DEFAULT_WIDTH_FRAC)),
     rotation: 0,
     mirror: false,
-    mode: "raised",
+    mode,
     depth: DEFAULT_DEPTH,
     color,
     visible: true,
   };
 }
 
-export const newArtLayer = (svg: string, name: string, face: Bounds | null, color = "#f97316"): Layer => ({ ...base(face, color), id: newId(), kind: "art", name, svg });
-export const newTextLayer = (face: Bounds | null, font = "hanken", color = "#f97316"): Layer => ({ ...base(face, color), id: newId(), kind: "text", name: "Texto", text: "Texto", font });
+export const newArtLayer = (svg: string, name: string, face: Bounds | null, color = "#f97316", mode: Decal["mode"] = "raised"): Layer => ({ ...base(face, color, mode), id: newId(), kind: "art", name, svg });
+export const newTextLayer = (face: Bounds | null, font = "hanken", color = "#f97316", mode: Decal["mode"] = "raised"): Layer => ({ ...base(face, color, mode), id: newId(), kind: "text", name: "Texto", text: "Texto", font });
 
 export const updateLayer = (list: Layer[], id: string, patch: Partial<Layer>) => list.map((l) => (l.id === id ? { ...l, ...patch } : l));
 export const removeLayer = (list: Layer[], id: string) => list.filter((l) => l.id !== id);

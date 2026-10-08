@@ -103,3 +103,28 @@ describe("aplicar", () => {
     expect(hole.warnings.map((w) => w.text).join()).toMatch(/furo/);
   });
 });
+
+describe("embutido: a cor ocupa o material tirado (#113)", () => {
+  const slab = (): Model => ({ name: "Peça", parts: [{ name: "Corpo", color: "#2563eb", mesh: toMesh(M.CrossSection.square([40, 30], true).extrude(5)) }] });
+  const inlay: Decal = { ...base, mode: "inlay", depth: 0.8, x: 0, y: 0 };
+
+  test("o volume total não muda: corpo perde o desenho e a parte colorida o ganha, rente à face", () => {
+    const before = volume(slab().parts[0].mesh);
+    const out = applyDecals(M, [slab()], [{ decal: inlay, regions: [{ color: null, cs: square() }] }]);
+    expect(out.warnings).toEqual([]);
+    const [body, fill] = out.models[0].parts;
+    expect(fill.color).toBe("#d6262e");
+    expect(volume(fill.mesh)).toBeCloseTo(10 * 10 * 0.8, 1);
+    expect(volume(body.mesh) + volume(fill.mesh)).toBeCloseTo(before, 1);
+    const b = meshBounds([fill.mesh])!;
+    expect(b.max[2]).toBeCloseTo(5, 3); // rente à face, sem relevo
+    expect(b.min[2]).toBeCloseTo(4.2, 3);
+  });
+
+  test("duas cores no mesmo desenho viram duas partes", () => {
+    const left = new M.CrossSection([[[-5, -5], [0, -5], [0, 5], [-5, 5]]], "NonZero");
+    const right = new M.CrossSection([[[0, -5], [5, -5], [5, 5], [0, 5]]], "NonZero");
+    const out = applyDecals(M, [slab()], [{ decal: { ...inlay, width: 10 }, regions: [{ color: "#ff0000", cs: left }, { color: "#00ff00", cs: right }] }]);
+    expect(out.models[0].parts.map((p) => p.color)).toEqual(["#2563eb", "#ff0000", "#00ff00"]);
+  });
+});

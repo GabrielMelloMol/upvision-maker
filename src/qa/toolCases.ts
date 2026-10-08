@@ -5,6 +5,10 @@ import { splitByColor } from "../geometry/colorSplit";
 import { buildCutter, DEFAULT_CUTTER, type CutterParams } from "../geometry/cutter";
 import { extrudeDesign } from "../geometry/extrude";
 import { loadFont } from "../geometry/fonts";
+import { toMesh } from "../geometry/mesh";
+import { planarFaces } from "../geometry/ownModel";
+import { applyOwnDecals } from "../tools/models/applyOwn";
+import { newTextLayer } from "../tools/models/layers";
 import { composeKeychainArt } from "../geometry/keychainArt";
 import { buildKeychain, DEFAULT_KEYCHAIN, layoutOnPlate, type KeychainParams } from "../geometry/keychain";
 import { buildLayeredPicture, DEFAULT_LAYERED, type LayeredParams } from "../geometry/layeredPicture";
@@ -103,6 +107,15 @@ export function toolCases(M: ManifoldToplevel): QaCase[] {
     return { models: [buildKeychain(M, c.art, DEFAULT_KEYCHAIN, "Ana")] };
   };
 
+  // decal embutido na lateral de um bloco próprio (#113): a cor ocupa o material tirado
+  const ownDecal = async (mode: "inlay" | "raised"): Promise<Out> => {
+    const block: Model = { name: "Bloco", parts: [{ name: "Peça", color: "#d4d4d8", mesh: toMesh(M.Manifold.cube([60, 40, 30], false)) }] };
+    const side = planarFaces(block).find((f) => f.normal[0] === 1)!;
+    const layer = { ...newTextLayer(null, "hanken", "#d6262e", mode), text: "Ana", x: 0, y: 0, width: 30 };
+    const out = await applyOwnDecals(block, side, [layer], M);
+    return { models: out.models, warnings: out.warnings };
+  };
+
   const medal = async (patch: Partial<MedalDesign>): Promise<Out> => {
     const f = await loadFont("hanken");
     const warnings: string[] = [];
@@ -164,6 +177,10 @@ export function toolCases(M: ManifoldToplevel): QaCase[] {
       ["3 camadas", () => keychain(14, { layers: 3 })],
       ["arte girada", () => keychainArt()],
       ["lote 30", () => keychain(14, {}, Array.from({ length: 30 }, (_, i) => `Nome ${i + 1}`))],
+    ]),
+    ...cases("ownDecal", "Decal em modelo próprio", [
+      ["embutido", () => ownDecal("inlay")],
+      ["relevo", () => ownDecal("raised")],
     ]),
     ...cases("medal", "Medalha", [
       ["padrão", () => medal({})],

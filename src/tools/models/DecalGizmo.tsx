@@ -191,7 +191,7 @@ export default function DecalGizmo({ face, layers, shapes, selected, onSelect, o
           const k = v.width / shape.width;
           return (
             <g key={l.id} transform={`translate(${v.x} ${v.y}) rotate(${v.rotation})`} className="gizmo-layer" data-mode={l.mode} data-selected={l.id === selected || undefined} onPointerDown={(e) => begin(e, l, "move")}>
-              <path d={pathOf(shape.polys)} fillRule="nonzero" transform={`scale(${(v.mirror ? -1 : 1) * k} ${k})`} style={l.mode === "raised" ? { fill: l.color } : undefined} />
+              <path d={pathOf(shape.polys)} fillRule="nonzero" transform={`scale(${(v.mirror ? -1 : 1) * k} ${k})`} style={l.mode === "raised" || l.mode === "inlay" ? { fill: l.color } : undefined} />
               {l.id === selected && (
                 <>
                   <rect className="gizmo-box" x={-v.width / 2} y={(-shape.height * k) / 2} width={v.width} height={shape.height * k} />

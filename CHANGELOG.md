@@ -3,6 +3,9 @@
 Cada versão aparece para a usuária na tela "O que há de novo" depois da atualização.
 Formato: `## <versão> — <data>` e itens `- …` em linguagem simples.
 
+## Próxima versão (ainda não lançada)
+- **Decal no seu modelo**: nova ferramenta que abre um STL ou 3MF seu, deixa clicar numa face plana (na prévia ou na lista) e pôr texto ou desenho nela com a mesma vista de arrastar, girar e mudar o tamanho. A cor entra na peça rente à face (aplicação "Embutido", de 0,4 a 1 mm), sem mudar o tamanho, e sai no 3MF multicor; também dá para usar relevo, gravado ou vazado. Só em faces planas na parte de fora da peça; o app avisa que é preciso ter licença para alterar o modelo. O "Embutido" também aparece nas camadas dos Modelos prontos.
+
 ## 0.11.1 — 2026-10-08
 - **Porta-copos**: em Modelos prontos (Casa), escolha redondo, quadrado, hexágono ou o contorno de um desenho, ponha o nome ou uma arte rente em 2 cores, um anel na borda e rebaixos para pés de silicone, e gere junto um suporte com fendas para 2 a 6 porta-copos em pé. Imprime com o desenho para baixo (face lisa), e o app lembra que o PLA amolece com bebida quente.
 - **Cartão de música**: em Modelos prontos (Placas), uma placa com foto (opcional), título, artista, até 4 linhas da letra, barra de progresso com o trecho tocado e botões de anterior, tocar e próxima, todos de desenho próprio. Fica em pé num suporte de mesa ou leva um ímã atrás, em 3 a 4 cores.

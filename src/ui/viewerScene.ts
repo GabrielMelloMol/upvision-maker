@@ -195,6 +195,20 @@ export function createViewer(el: HTMLElement) {
       controls.update();
       render();
     },
+    /**
+     * Acerto do clique na peça (#113): ponto e normal da face atingida, no sistema do modelo (Z para cima), ou null.
+     * `x`/`y` em pixels da tela (clientX/clientY).
+     */
+    pick(x: number, y: number): { point: [number, number, number]; normal: [number, number, number] } | null {
+      const r = renderer.domElement.getBoundingClientRect();
+      if (!r.width || !r.height) return null;
+      const ray = new THREE.Raycaster();
+      ray.setFromCamera(new THREE.Vector2(((x - r.left) / r.width) * 2 - 1, -((y - r.top) / r.height) * 2 + 1), camera);
+      const hit = ray.intersectObjects(group.children, false)[0];
+      if (!hit?.face) return null;
+      const n = hit.face.normal;
+      return { point: [hit.point.x, hit.point.y, hit.point.z], normal: [n.x, n.y, n.z] };
+    },
     /** Volta ao enquadramento de chegada. */
     reset() {
       lastSize = 0;

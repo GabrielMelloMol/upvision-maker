@@ -10,7 +10,11 @@ type Props = {
   busyText?: string;
   error?: string | null;
   emptyText?: string;
+  /** Clique (sem arrastar) numa face da peça: ponto e normal no sistema do modelo (#113). */
+  onPick?: (hit: { point: [number, number, number]; normal: [number, number, number] }) => void;
 };
+
+const CLICK_SLOP_PX = 5;
 
 const TURN = Math.PI / 12; // 15° por toque de seta
 const TILT = Math.PI / 18; // 10°
@@ -54,9 +58,10 @@ export const snapshotPreview = (max?: number) => {
 };
 
 /** Prévia 3D padrão de todas as ferramentas: Z para cima, mesa da impressora escolhida, girar/zoom com o mouse. */
-export default function Preview3D({ models, busy, busyText = "Gerando modelo…", error, emptyText = "A prévia aparece aqui." }: Props) {
+export default function Preview3D({ models, busy, busyText = "Gerando modelo…", error, emptyText = "A prévia aparece aqui.", onPick }: Props) {
   const host = useRef<HTMLDivElement>(null);
   const viewer = useRef<ReturnType<typeof createViewer> | null>(null);
+  const down = useRef<{ x: number; y: number } | null>(null);
 
   useEffect(() => {
     const v = createViewer(host.current!);
@@ -93,6 +98,19 @@ export default function Preview3D({ models, busy, busyText = "Gerando modelo…"
       aria-describedby={hintId}
       aria-busy={busy || undefined}
       aria-keyshortcuts="ArrowLeft ArrowRight ArrowUp ArrowDown + - 0"
+      style={onPick ? { cursor: "crosshair" } : undefined}
+      onPointerDown={onPick ? (e) => (down.current = { x: e.clientX, y: e.clientY }) : undefined}
+      onPointerUp={
+        onPick
+          ? (e) => {
+              const d = down.current;
+              down.current = null;
+              if (!d || Math.hypot(e.clientX - d.x, e.clientY - d.y) > CLICK_SLOP_PX) return; // arrastar é girar a câmera
+              const hit = viewer.current?.pick(e.clientX, e.clientY);
+              if (hit) onPick(hit);
+            }
+          : undefined
+      }
       onKeyDown={(e) => {
         // teclado (#144): setas giram e inclinam, + e − aproximam, 0 volta ao enquadramento
         const v = viewer.current;

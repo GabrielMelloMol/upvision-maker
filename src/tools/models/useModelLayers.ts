@@ -18,7 +18,7 @@ type View = { face: FaceInfo | null; shapes: Record<string, LayerShape>; byLayer
  * Camadas livres de cada modelo (#26) e deslocamentos dos elementos internos (#79), e a camada escolhida.
  * O estado (`edits`) mora no useToolState dos Modelos (#85): o mesmo desfazer vale para campos, camadas e posições.
  */
-export function useModelLayers(modelId: string, edits: ModelEdits, setEdits: (fn: (cur: ModelEdits) => ModelEdits) => void) {
+export function useModelLayers(modelId: string, edits: ModelEdits, setEdits: (fn: (cur: ModelEdits) => ModelEdits) => void, defaultMode: Layer["mode"] = "raised") {
   const layers = edits[modelId]?.layers ?? NONE;
   const offsets = edits[modelId]?.offsets ?? NO_OFFSETS;
   const [sel, setSel] = useState<{ model: string; id: string | null }>({ model: modelId, id: null });
@@ -43,12 +43,12 @@ export function useModelLayers(modelId: string, edits: ModelEdits, setEdits: (fn
     view,
     setView,
     addArt(svg: string, name: string) {
-      const l = newArtLayer(svg, name, faceBounds);
+      const l = newArtLayer(svg, name, faceBounds, undefined, defaultMode);
       edit((list) => [...list, l]);
       select(l.id);
     },
     addText(font?: string) {
-      const l = newTextLayer(faceBounds, font);
+      const l = newTextLayer(faceBounds, font, undefined, defaultMode);
       edit((list) => [...list, l]);
       select(l.id);
     },

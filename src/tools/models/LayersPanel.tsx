@@ -17,6 +17,7 @@ const MODES = [
   ["raised", "Relevo"],
   ["engraved", "Gravado"],
   ["cut", "Vazado"],
+  ["inlay", "Embutido"],
 ] as const;
 
 /** Números da camada dentro da faixa (senão a geração ignora a camada até corrigir). */
@@ -157,8 +158,8 @@ function LayerEditor({ l, warnings, onChange }: { l: Layer; warnings: string[]; 
         <Segmented label="Aplicação" value={l.mode} options={MODES} onChange={(mode) => onChange({ mode })} full />
       </div>
       <div className="grid two">
-        {l.mode !== "cut" && <NumField label={l.mode === "raised" ? "Altura do relevo" : "Profundidade"} value={l.depth} onChange={(depth) => onChange({ depth })} min={LAYER_LIMITS.depth[0]} max={LAYER_LIMITS.depth[1]} />}
-        {l.mode === "raised" && (
+        {l.mode !== "cut" && <NumField label={l.mode === "raised" ? "Altura do relevo" : l.mode === "inlay" ? "Profundidade da cor" : "Profundidade"} value={l.depth} onChange={(depth) => onChange({ depth })} min={LAYER_LIMITS.depth[0]} max={LAYER_LIMITS.depth[1]} />}
+        {(l.mode === "raised" || l.mode === "inlay") && (
           <ColorPick label="Cor" value={l.color} onChange={(color) => onChange({ color })} />
         )}
       </div>
