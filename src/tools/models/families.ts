@@ -37,6 +37,7 @@ export const FAMILIES: Family[] = [
   { id: "names", label: "Nomes", category: "keychains", variants: [{ id: "articulatedName", label: "Articulado" }, { id: "namePendants", label: "Pingentes" }, { id: "pencilTopper", label: "Topo de lápis" }] },
   { id: "trophy", label: "Troféu", category: "party", variants: [{ id: "trophy", label: "Placa na base" }, { id: "trophyElegant", label: "Elegante" }, { id: "adaptiveTrophy", label: "No contorno do desenho" }] },
   { id: "medal", label: "Medalha", category: "party", variants: [{ id: "adaptiveMedal", label: "No contorno do desenho" }], tools: [{ page: "medal", label: "Redonda e formatos", first: true }] },
+  { id: "shirt", label: "Estampa de camisa", category: "party", variants: [{ id: "shirtPrint", label: "Estampa de camisa" }] },
   { id: "cake", label: "Topo de bolo", category: "party", variants: [{ id: "cake", label: "Topo de bolo" }] },
   { id: "christmas", label: "Enfeite de Natal", category: "party", variants: [{ id: "snowflake", label: "Floco de neve" }] },
   { id: "letters", label: "Letras e palavras", category: "party", variants: [{ id: "layeredSign", label: "Letreiro em camadas" }, { id: "wallLetters", label: "Letras para parede" }, { id: "bigLetter", label: "Letra grande" }, { id: "ledLetter", label: "Letra caixa LED" }, { id: "wordDecor", label: "Palavras encaixadas" }] },

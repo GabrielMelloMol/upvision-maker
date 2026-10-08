@@ -1,8 +1,9 @@
-import { Award, Cake, Layers, Medal, Snowflake, Sparkles, Trophy, Type } from "lucide-react";
+import { Award, Cake, Shirt, Layers, Medal, Snowflake, Sparkles, Trophy, Type } from "lucide-react";
 import { buildAdaptiveMedal, DEFAULT_ADAPTIVE_MEDAL } from "../../../geometry/models/adaptiveMedal";
 import { buildAdaptiveTrophy, DEFAULT_ADAPTIVE_TROPHY } from "../../../geometry/models/adaptiveTrophy";
 import { buildCakeTopper, DEFAULT_CAKE_TOPPER } from "../../../geometry/models/cakeTopper";
 import { buildLayeredSign, DEFAULT_LAYERED_SIGN } from "../../../geometry/models/layeredSign";
+import { buildShirtPrint, DEFAULT_SHIRT_PRINT } from "../../../geometry/models/shirtPrint";
 import { buildSnowflake, DEFAULT_SNOWFLAKE } from "../../../geometry/models/snowflake";
 import { buildTrophy, DEFAULT_TROPHY } from "../../../geometry/models/trophy";
 import { buildWallLetters, DEFAULT_WALL_LETTERS } from "../../../geometry/models/wallLetters";
@@ -11,6 +12,33 @@ import { as, bool, choice, color, num, signLine, text, textureFields, type Model
 
 /** Modelos prontos da categoria Festa e esporte. */
 export const PARTY_MODELS: ModelDef[] = [
+  {
+    id: "shirtPrint",
+    category: "party",
+    label: "Estampa de camisa",
+    blurb: "Nome ou desenho em camada fina (0,3 mm) para passar a ferro no tecido. Sai espelhada, com as instruções de impressão e de colagem.",
+    icon: Shirt,
+    font: true,
+    art: "Desenho da estampa (opcional)",
+    defaults: DEFAULT_SHIRT_PRINT,
+    sections: [
+      { title: "Texto", fields: [text("text", "Texto (sem desenho)", 20)] },
+      {
+        title: "Tamanho e espessura",
+        fields: [
+          num("width", "Largura", 20, 200, { step: 1 }),
+          num("layers", "Número de camadas", 2, 4, { step: 1, unit: "", hint: "Espessura = camadas × altura da camada (0,3 mm é um bom começo)." }),
+          num("layerHeight", "Altura de camada", 0.1, 0.3, { step: 0.01, hint: "A mesma do fatiador." }),
+          bool("mirror", "Espelhar (para colar na camisa)"),
+        ],
+      },
+      {
+        title: "Fundo e cores",
+        fields: [bool("patch", "Fundo contínuo em volta (adesivo numa peça só)"), num("margin", "Largura do fundo", 1.5, 10, { step: 0.5 }), color("color", "Estampa (1 cor)"), color("patchColor", "Fundo")],
+      },
+    ],
+    build: (ctx, p) => buildShirtPrint(ctx, as(p)),
+  },
   {
     id: "cake",
     category: "party",

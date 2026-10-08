@@ -7,6 +7,15 @@ export const MODEL_PROFILES: Record<string, PrintProfile> = {
   cutterStamp: { walls: 2, notes: ["Lâmina fina: deixe ligado \"Detectar paredes finas\" no fatiador para ela não sumir."] },
   ejector: { walls: 3, infill: 20 },
   bagClip: { walls: 4, infill: 30, notes: ["Imprima deitado, como sai no arquivo: as hastes flexionam sem quebrar."] },
+  shirtPrint: {
+    walls: 2,
+    infill: 100,
+    topLayers: 1,
+    bottomLayers: 1,
+    notes: [
+      "Imprima deitada, de cara para a mesa, em TPU ou PLA fino; a altura de camada é a do campo (são só 1 a 4 camadas). Mesa limpa e lisa; no TPU, velocidade baixa e sem retração.",
+    ],
+  },
   phoneKeychain: { walls: 4, infill: 40, notes: ["Faz força (abridor e apoio do celular): PETG aguenta mais que PLA. Imprima deitado, como sai no arquivo."] },
   opener: { walls: 4, infill: 40, notes: ["Faz força: PETG aguenta mais que PLA."] },
   clicker: { walls: 3, infill: 30 },
