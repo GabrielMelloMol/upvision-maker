@@ -17,6 +17,7 @@ export const MODEL_PROFILES: Record<string, PrintProfile> = {
   lineArt: { walls: 3, infill: 20 },
   coloring: { layerHeight: 0.16 },
   snowflake: { walls: 2 },
+  phoneStand: { walls: 4, infill: 25, notes: ["Imprima de pé na base, como sai no arquivo: o apoio inclinado não precisa de suporte. 4 paredes deixam o apoio firme com o peso do aparelho."] },
 };
 
 const VASE_SPIRAL: PrintProfile = { spiral: true, walls: 1, infill: 0, topLayers: 0, bottomLayers: 3, notes: ["Modo vaso: bico 0,4 e parede única; para uma parede mais firme, use largura de linha 0,6 no fatiador."] };

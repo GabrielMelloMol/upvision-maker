@@ -1,4 +1,4 @@
-import { Bookmark, CaseUpper, CircleDot, Gem, KeySquare, Lamp, LampDesk, PencilRuler, PenTool, Puzzle, WholeWord } from "lucide-react";
+import { Bookmark, CaseUpper, CircleDot, Gem, KeySquare, Lamp, LampDesk, PencilRuler, PenTool, Puzzle, Smartphone, WholeWord } from "lucide-react";
 import { buildBigLetter, DEFAULT_BIG_LETTER } from "../../../geometry/models/bigLetter";
 import { buildBookmark, DEFAULT_BOOKMARK } from "../../../geometry/models/bookmark";
 import { buildCoaster, DEFAULT_COASTER } from "../../../geometry/models/coaster";
@@ -7,12 +7,13 @@ import { buildLamp, DEFAULT_LAMP } from "../../../geometry/models/lamp";
 import { buildLineArtStand, DEFAULT_LINE_ART } from "../../../geometry/models/lineArtStand";
 import { buildNfcJewelry, DEFAULT_NFC_JEWELRY } from "../../../geometry/models/nfcJewelry";
 import { buildPenHolder, DEFAULT_PEN_HOLDER } from "../../../geometry/models/penHolder";
+import { buildPhoneStand, DEFAULT_PHONE_STAND } from "../../../geometry/models/phoneStand";
 import { buildPuzzle, DEFAULT_PUZZLE } from "../../../geometry/models/puzzle";
 import { buildTableLamp, DEFAULT_TABLE_LAMP } from "../../../geometry/models/tableLamp";
 import { buildWordDecor, DEFAULT_WORD_DECOR } from "../../../geometry/models/wordDecor";
 import { as, bool, choice, color, font, nfcFields, num, profile, text, textureFields, type ModelDef } from "../fields";
 
-/** Casa, 1ª parte da galeria: marca-página, porta-caneta, decoração, luminária, letra grande, quebra-cabeça, porta-copos. */
+/** Casa, 1ª parte da galeria: marca-página, porta-caneta, decoração, luminária, letra grande, quebra-cabeça, porta-copos, suporte de celular. */
 export const HOME_DECOR_MODELS: ModelDef[] = [
   {
     id: "bookmark",
@@ -311,5 +312,35 @@ export const HOME_DECOR_MODELS: ModelDef[] = [
       },
     ],
     build: (ctx, p) => buildCoaster(ctx, as(p)),
+  },
+  {
+    id: "phoneStand",
+    category: "home",
+    label: "Suporte de celular e tablet",
+    blurb: "Apoio inclinado de 45 a 75° na medida do aparelho com a capinha, lábio frontal, passagem de cabo e nome ou logo em relevo na frente.",
+    icon: Smartphone,
+    font: true,
+    fontSection: 1,
+    art: "Logo em relevo na frente (opcional)",
+    defaults: DEFAULT_PHONE_STAND,
+    sections: [
+      {
+        title: "Aparelho e medidas",
+        fields: [
+          num("angle", "Inclinação (°)", 45, 75, { step: 1, hint: "Ângulo do apoio com a mesa. 60° serve para ver a tela e digitar; a partir de 45° não precisa de suporte na impressão." }),
+          num("deviceThickness", "Espessura do aparelho (mm)", 5, 25, { step: 0.5, hint: "Com a capinha. Celular fica perto de 10 a 12 mm, tablet de 8 a 18 mm. A folga de 1 mm já vem somada." }),
+          num("width", "Largura (mm)", 50, 160, { step: 1 }),
+          num("height", "Altura do apoio (mm)", 40, 150, { step: 1, hint: "Na vertical: uns 90 para celular e 130 para tablet." }),
+          num("lip", "Lábio da frente (mm)", 5, 25, { step: 1, hint: "Segura a beirada de baixo do aparelho. O app aumenta se for baixo para a espessura e o ângulo." }),
+          num("cable", "Passagem do cabo (mm)", 0, 30, { step: 1, hint: "Furo sob o aparelho e canal embaixo até atrás, para o cabo de carregar. 0 = sem." }),
+        ],
+      },
+      {
+        title: "Nome ou logo em relevo",
+        fields: [text("text", "Nome (na frente)", 24), num("textHeight", "Altura do nome (mm)", 4, 16, { step: 1 }), num("relief", "Relevo (mm)", 0.4, 1.5, { step: 0.1 })],
+      },
+      { title: "Cores", fields: [color("bodyColor", "Suporte"), color("textColor", "Nome ou logo")] },
+    ],
+    build: (ctx, p) => buildPhoneStand(ctx, as(p)),
   },
 ];

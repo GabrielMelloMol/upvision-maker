@@ -44,6 +44,7 @@ dentro dela, a pessoa escolhe a **variação** por miniatura (como os estilos de
 | 23 | **Cortadores e formas** | Cortador + carimbo (`cutterStamp`) · Cortador em grade (`gridCutter`) · Ejetor de brigadeiro (`ejector`) | Forja, Lupa | Ver pergunta B (a ferramenta Cortador de biscoito). |
 | 24 | **Clipe de saco** | `bagClip` | Forja | |
 | 25 | **Porta-copos** | `coaster` | Lupa | |
+| 26 | **Suporte de celular e tablet** | `phoneStand` | Lupa | |
 
 Conferência: as 24 famílias somam **63 modelos**, cada id de hoje aparece uma vez só (conferido com a lista `MODELS`).
 

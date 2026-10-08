@@ -23,7 +23,7 @@ Peça maior que a mesa de 256 mm do A1 conta como **aviso** quando o app avisa n
 impressoras de mesa maior); sem o aviso do app, é **falha**.
 
 
-**Total:** 250 casos · 192 ok · 57 com aviso · 1 com falha · 0 n/a
+**Total:** 260 casos · 202 ok · 57 com aviso · 1 com falha · 0 n/a
 
 ## Forja
 
@@ -118,8 +118,9 @@ impressoras de mesa maior); sem o aviso do app, é **falha**.
 | Extrusão de SVG (ferramenta) | mínimo | ✅ ok | Bambu ✓ · Orca ✓ · Projeto Bambu ✓ | 3 | 0,8 | 1 | – | – |
 | Extrusão de SVG (ferramenta) | padrão | ✅ ok | Bambu ✓ · Orca ✓ | 9 | 5,7 | 1 | – | – |
 | Chaveiro (ferramenta) | 3 camadas | ✅ ok | Bambu ✓ · Orca ✓ · Projeto Bambu ✓ | 10 | 3,6 | 1 | – | – |
+| Chaveiro (ferramenta) | arte girada | ✅ ok | Bambu ✓ · Orca ✓ · Projeto Bambu ✓ | 9 | 3,8 | 1 | – | – |
 | Chaveiro (ferramenta) | etiqueta | ✅ ok | Bambu ✓ · Orca ✓ · Projeto Bambu ✓ | 8 | 3,2 | 1 | – | – |
-| Chaveiro (ferramenta) | lote 30 | ⚠️ aviso | Bambu ✓ · Orca ✓ · Projeto Bambu ✓ | 188 | 82,3 | 1 | – | Orca: torre de purga em cima de uma peça depois do --arrange do CLI (na tela, arraste a torre ou use Arrumar) |
+| Chaveiro (ferramenta) | lote 30 | ⚠️ aviso | Bambu ✓ · Orca ✓ · Projeto Bambu ✓ | 189 | 82,3 | 1 | – | Orca: torre de purga em cima de uma peça depois do --arrange do CLI (na tela, arraste a torre ou use Arrumar) |
 | Chaveiro (ferramenta) | máximo | ✅ ok | Bambu ✓ · Orca ✓ · Projeto Bambu ✓ | 59 | 41,8 | 1 | – | – |
 | Chaveiro (ferramenta) | mínimo | ✅ ok | Bambu ✓ · Orca ✓ · Projeto Bambu ✓ | 4 | 1,1 | 1 | – | – |
 | Chaveiro (ferramenta) | padrão | ✅ ok | Bambu ✓ · Orca ✓ · Projeto Bambu ✓ | 7 | 2,8 | 1 | – | – |
@@ -214,6 +215,9 @@ impressoras de mesa maior); sem o aviso do app, é **falha**.
 | Porta-caneta (pen) | máximo | ✅ ok | Bambu ✓ · Orca ✓ · Projeto Bambu ✓ | 687 | 430,1 | 1 | – | – |
 | Porta-caneta (pen) | mínimo | ✅ ok | Bambu ✓ · Orca ✓ · Projeto Bambu ✓ | 82 | 26,3 | 1 | – | – |
 | Porta-caneta (pen) | padrão | ✅ ok | Bambu ✓ · Orca ✓ · Projeto Bambu ✓ | 197 | 106,6 | 1 | – | – |
+| Suporte de celular e tablet (phoneStand) | máximo | ✅ ok | Bambu ✓ · Orca ✓ · Projeto Bambu ✓ | 348 | 208,2 | 1 | – | app: Tablet ou aparelho grosso: use largura de 100 mm ou mais e 4 paredes (já vão no perfil) para o suporte aguentar o peso.; app: Imprima de pé na base, como sai no arquivo: o apoio inclinado não precisa de suporte (45° ou mais). |
+| Suporte de celular e tablet (phoneStand) | mínimo | ✅ ok | Bambu ✓ · Orca ✓ · Projeto Bambu ✓ | 75 | 33,5 | 1 | – | app: Lábio aumentado para 6.5 mm: com esse aparelho e esse ângulo ele precisa alcançar o canto da frente.; app: Ângulo baixo: o apoio fica quase deitado, e o aparelho escorrega para trás se o lábio for baixo.; app: Imprima de pé na base, como sai no arquivo: o apoio inclinado não precisa de suporte (45° ou mais). |
+| Suporte de celular e tablet (phoneStand) | padrão | ✅ ok | Bambu ✓ · Orca ✓ · Projeto Bambu ✓ | 162 | 82,1 | 1 | – | app: Imprima de pé na base, como sai no arquivo: o apoio inclinado não precisa de suporte (45° ou mais). |
 | Porta-foto com texto (photoHolder) | máximo | ✅ ok | Bambu ✓ · Orca ✓ · Projeto Bambu ✓ | 208 | 174,8 | 1 | – | app: A base sai de cabeça para baixo para a face de cima ficar lisa; o texto sai à parte para colar na frente.; app: O texto foi reduzido para caber na frente da base. |
 | Porta-foto com texto (photoHolder) | mínimo | ✅ ok | Bambu ✓ · Orca ✓ · Projeto Bambu ✓ | 34 | 18,7 | 1 | – | app: A base sai de cabeça para baixo para a face de cima ficar lisa; o texto sai à parte para colar na frente. |
 | Porta-foto com texto (photoHolder) | padrão | ✅ ok | Bambu ✓ · Orca ✓ · Projeto Bambu ✓ | 70 | 48,1 | 1 | – | app: A base sai de cabeça para baixo para a face de cima ficar lisa; o texto sai à parte para colar na frente. |

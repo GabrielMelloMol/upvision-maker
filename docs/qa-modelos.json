@@ -2808,6 +2808,57 @@
   "plates": 1
  },
  {
+  "key": "phoneStand:máximo",
+  "owner": "Torno",
+  "group": "home",
+  "label": "Suporte de celular e tablet (phoneStand)",
+  "variant": "máximo",
+  "status": "ok",
+  "reasons": [
+   "app: Tablet ou aparelho grosso: use largura de 100 mm ou mais e 4 paredes (já vão no perfil) para o suporte aguentar o peso.",
+   "app: Imprima de pé na base, como sai no arquivo: o apoio inclinado não precisa de suporte (45° ou mais)."
+  ],
+  "date": "2026-10-08",
+  "slicers": "Bambu ✓ · Orca ✓ · Projeto Bambu ✓",
+  "minutes": 348,
+  "grams": 208.2,
+  "plates": 1
+ },
+ {
+  "key": "phoneStand:mínimo",
+  "owner": "Torno",
+  "group": "home",
+  "label": "Suporte de celular e tablet (phoneStand)",
+  "variant": "mínimo",
+  "status": "ok",
+  "reasons": [
+   "app: Lábio aumentado para 6.5 mm: com esse aparelho e esse ângulo ele precisa alcançar o canto da frente.",
+   "app: Ângulo baixo: o apoio fica quase deitado, e o aparelho escorrega para trás se o lábio for baixo.",
+   "app: Imprima de pé na base, como sai no arquivo: o apoio inclinado não precisa de suporte (45° ou mais)."
+  ],
+  "date": "2026-10-08",
+  "slicers": "Bambu ✓ · Orca ✓ · Projeto Bambu ✓",
+  "minutes": 75,
+  "grams": 33.5,
+  "plates": 1
+ },
+ {
+  "key": "phoneStand:padrão",
+  "owner": "Torno",
+  "group": "home",
+  "label": "Suporte de celular e tablet (phoneStand)",
+  "variant": "padrão",
+  "status": "ok",
+  "reasons": [
+   "app: Imprima de pé na base, como sai no arquivo: o apoio inclinado não precisa de suporte (45° ou mais)."
+  ],
+  "date": "2026-10-08",
+  "slicers": "Bambu ✓ · Orca ✓ · Projeto Bambu ✓",
+  "minutes": 162,
+  "grams": 82.1,
+  "plates": 1
+ },
+ {
   "key": "photoHolder:máximo",
   "owner": "Torno",
   "group": "home",
