@@ -1,6 +1,7 @@
-import { Bookmark, CaseUpper, Gem, KeySquare, Lamp, PencilRuler, PenTool, Puzzle, WholeWord } from "lucide-react";
+import { Bookmark, CaseUpper, CircleDot, Gem, KeySquare, Lamp, PencilRuler, PenTool, Puzzle, WholeWord } from "lucide-react";
 import { buildBigLetter, DEFAULT_BIG_LETTER } from "../../../geometry/models/bigLetter";
 import { buildBookmark, DEFAULT_BOOKMARK } from "../../../geometry/models/bookmark";
+import { buildCoaster, DEFAULT_COASTER } from "../../../geometry/models/coaster";
 import { buildKeyHolder, DEFAULT_KEY_HOLDER } from "../../../geometry/models/keyHolder";
 import { buildLamp, DEFAULT_LAMP } from "../../../geometry/models/lamp";
 import { buildLineArtStand, DEFAULT_LINE_ART } from "../../../geometry/models/lineArtStand";
@@ -10,7 +11,7 @@ import { buildPuzzle, DEFAULT_PUZZLE } from "../../../geometry/models/puzzle";
 import { buildWordDecor, DEFAULT_WORD_DECOR } from "../../../geometry/models/wordDecor";
 import { as, bool, choice, color, font, nfcFields, num, text, textureFields, type ModelDef } from "../fields";
 
-/** Casa, 1ª parte da galeria: marca-página, porta-caneta, decoração, luminária, letra grande, quebra-cabeça. */
+/** Casa, 1ª parte da galeria: marca-página, porta-caneta, decoração, luminária, letra grande, quebra-cabeça, porta-copos. */
 export const HOME_DECOR_MODELS: ModelDef[] = [
   {
     id: "bookmark",
@@ -228,5 +229,48 @@ export const HOME_DECOR_MODELS: ModelDef[] = [
       },
     ],
     build: (ctx, p) => buildPuzzle(ctx, as(p)),
+  },
+  {
+    id: "coaster",
+    category: "home",
+    label: "Porta-copos",
+    blurb: "Redondo, quadrado, hexágono ou no contorno de um desenho, com nome ou arte rente em 2 cores, anel na borda, pés de silicone e suporte para 2 a 6.",
+    icon: CircleDot,
+    font: true,
+    fontSection: 1,
+    art: "Desenho (SVG ou imagem): na face, ou o contorno se a forma for \"Desenho\"",
+    defaults: DEFAULT_COASTER,
+    sections: [
+      {
+        title: "Forma",
+        fields: [
+          choice("shape", "Forma", [["round", "Redondo"], ["square", "Quadrado"], ["hex", "Hexágono"], ["svg", "Desenho"]]),
+          num("size", "Tamanho (mm)", 60, 150, { step: 1, hint: "Diâmetro, lado ou largura entre lados; na forma Desenho, o maior lado." }),
+          num("thickness", "Espessura (mm)", 3, 8, { step: 0.5 }),
+          num("corner", "Cantos arredondados (mm)", 0, 20, { step: 1, hint: "Só no quadrado e no hexágono." }),
+        ],
+      },
+      {
+        title: "Nome ou arte",
+        fields: [
+          choice("content", "Na face", [["text", "Nome"], ["art", "Arte enviada"]]),
+          text("text", "Nome", 24),
+          num("textHeight", "Altura do nome (mm)", 6, 40, { step: 1 }),
+          num("depth", "Profundidade do desenho (mm)", 0.4, 2, { step: 0.1 }),
+          num("borderWidth", "Anel na borda (mm)", 0, 6, { step: 0.5, hint: "Anel na cor do desenho, rente à face; 0 = sem." }),
+        ],
+      },
+      {
+        title: "Pés, suporte e cores",
+        fields: [
+          bool("faceDown", "Imprimir com o desenho para baixo (face lisa)"),
+          bool("feet", "Rebaixo para pés de silicone (4 de 8 mm)"),
+          num("stand", "Suporte para quantos (0 = sem)", 0, 6, { step: 1, hint: "Suporte com fendas onde os porta-copos ficam em pé, lado a lado." }),
+          color("bodyColor", "Porta-copos"),
+          color("artColor", "Desenho"),
+        ],
+      },
+    ],
+    build: (ctx, p) => buildCoaster(ctx, as(p)),
   },
 ];

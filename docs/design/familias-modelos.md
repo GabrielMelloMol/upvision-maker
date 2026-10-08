@@ -43,6 +43,7 @@ dentro dela, a pessoa escolhe a **variação** por miniatura (como os estilos de
 | 22 | **Carimbos e texturas** | Carimbo (`stamp`) · Molde para carimbo de EVA (`stampMold`) · Rolo de textura (`textureRoller`) | Forja, Lupa | Marcar massa, sabonete, EVA. |
 | 23 | **Cortadores e formas** | Cortador + carimbo (`cutterStamp`) · Cortador em grade (`gridCutter`) · Ejetor de brigadeiro (`ejector`) | Forja, Lupa | Ver pergunta B (a ferramenta Cortador de biscoito). |
 | 24 | **Clipe de saco** | `bagClip` | Forja | |
+| 25 | **Porta-copos** | `coaster` | Lupa | |
 
 Conferência: as 24 famílias somam **63 modelos**, cada id de hoje aparece uma vez só (conferido com a lista `MODELS`).
 

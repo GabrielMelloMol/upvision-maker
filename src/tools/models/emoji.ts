@@ -12,4 +12,5 @@ export const EMOJI_FIELDS: Record<string, string[]> = {
   lidBox: ["text"],
   alphabetCube: ["face1", "face2", "face3", "face4", "face5", "face6"],
   rpgDice: ["labels"],
+  coaster: ["text"],
 };

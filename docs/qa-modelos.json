@@ -1844,6 +1844,57 @@
   "plates": 1
  },
  {
+  "key": "coaster:máximo",
+  "owner": "Torno",
+  "group": "home",
+  "label": "Porta-copos (coaster)",
+  "variant": "máximo",
+  "status": "ok",
+  "reasons": [
+   "app: Imprima como está: o desenho fica para baixo, na mesa, e sai com a face lisa. Depois é só virar. A prévia mostra o lado de trás.",
+   "app: O PLA amolece com bebida quente (acima de uns 55 °C): para café e chá, imprima em PETG."
+  ],
+  "date": "2026-10-08",
+  "slicers": "Bambu ✓ · Orca ✓ · Projeto Bambu ✓",
+  "minutes": 307,
+  "grams": 299.3,
+  "plates": 1
+ },
+ {
+  "key": "coaster:mínimo",
+  "owner": "Torno",
+  "group": "home",
+  "label": "Porta-copos (coaster)",
+  "variant": "mínimo",
+  "status": "ok",
+  "reasons": [
+   "app: Imprima como está: o desenho fica para baixo, na mesa, e sai com a face lisa. Depois é só virar. A prévia mostra o lado de trás.",
+   "app: O PLA amolece com bebida quente (acima de uns 55 °C): para café e chá, imprima em PETG."
+  ],
+  "date": "2026-10-08",
+  "slicers": "Bambu ✓ · Orca ✓ · Projeto Bambu ✓",
+  "minutes": 16,
+  "grams": 8.2,
+  "plates": 1
+ },
+ {
+  "key": "coaster:padrão",
+  "owner": "Torno",
+  "group": "home",
+  "label": "Porta-copos (coaster)",
+  "variant": "padrão",
+  "status": "ok",
+  "reasons": [
+   "app: Imprima como está: o desenho fica para baixo, na mesa, e sai com a face lisa. Depois é só virar. A prévia mostra o lado de trás.",
+   "app: O PLA amolece com bebida quente (acima de uns 55 °C): para café e chá, imprima em PETG."
+  ],
+  "date": "2026-10-08",
+  "slicers": "Bambu ✓ · Orca ✓ · Projeto Bambu ✓",
+  "minutes": 33,
+  "grams": 20.1,
+  "plates": 1
+ },
+ {
   "key": "cutlery:máximo",
   "owner": "Torno",
   "group": "home",

@@ -23,7 +23,7 @@ Peça maior que a mesa de 256 mm do A1 conta como **aviso** quando o app avisa n
 impressoras de mesa maior); sem o aviso do app, é **falha**.
 
 
-**Total:** 241 casos · 184 ok · 56 com aviso · 1 com falha · 0 n/a
+**Total:** 244 casos · 187 ok · 56 com aviso · 1 com falha · 0 n/a
 
 ## Forja
 
@@ -153,6 +153,9 @@ impressoras de mesa maior); sem o aviso do app, é **falha**.
 | Marca-página (bookmark) | máximo | ✅ ok | Bambu ✓ · Orca ✓ · Projeto Bambu ✓ | 63 | 46,0 | 1 | – | – |
 | Marca-página (bookmark) | mínimo | ✅ ok | Bambu ✓ · Orca ✓ · Projeto Bambu ✓ | 7 | 3,1 | 1 | – | – |
 | Marca-página (bookmark) | padrão | ✅ ok | Bambu ✓ · Orca ✓ · Projeto Bambu ✓ | 23 | 13,8 | 1 | – | – |
+| Porta-copos (coaster) | máximo | ✅ ok | Bambu ✓ · Orca ✓ · Projeto Bambu ✓ | 307 | 299,3 | 1 | – | app: Imprima como está: o desenho fica para baixo, na mesa, e sai com a face lisa. Depois é só virar. A prévia mostra o lado de trás.; app: O PLA amolece com bebida quente (acima de uns 55 °C): para café e chá, imprima em PETG. |
+| Porta-copos (coaster) | mínimo | ✅ ok | Bambu ✓ · Orca ✓ · Projeto Bambu ✓ | 16 | 8,2 | 1 | – | app: Imprima como está: o desenho fica para baixo, na mesa, e sai com a face lisa. Depois é só virar. A prévia mostra o lado de trás.; app: O PLA amolece com bebida quente (acima de uns 55 °C): para café e chá, imprima em PETG. |
+| Porta-copos (coaster) | padrão | ✅ ok | Bambu ✓ · Orca ✓ · Projeto Bambu ✓ | 33 | 20,1 | 1 | – | app: Imprima como está: o desenho fica para baixo, na mesa, e sai com a face lisa. Depois é só virar. A prévia mostra o lado de trás.; app: O PLA amolece com bebida quente (acima de uns 55 °C): para café e chá, imprima em PETG. |
 | Talheres em 2 andares (ferramenta) | máximo | ⚠️ aviso | Bambu ✓ · Orca ✓ · Projeto Bambu ✓ | – | – | – | – | o conjunto arrumado ocupa 1535,0 × 3391,5 mm: passa da mesa de 256 mm; Bambu: torre de purga em cima de uma peça depois do --arrange do CLI (na tela, arraste a torre ou use Arrumar); Orca: torre de purga em cima de uma peça depois do --arrange do CLI (na tela, arraste a torre ou use Arrumar); Projeto Bambu: torre de purga em cima de uma peça depois do --arrange do CLI (na tela, arraste a torre ou use Arrumar); app: A bandeja desliza para o fundo nos trilhos: empurre para chegar nas caixinhas da frente.; app: Gaveta alta: a bandeja fica a 200 mm do fundo (trilhos de até 200 mm cabem na mesa) e sobra 152 mm em cima dela. |
 | Talheres em 2 andares (ferramenta) | mínimo | ⚠️ aviso | Bambu ✓ · Orca ✓ · Projeto Bambu ✓ | 716 | 576,0 | 6 | – | o conjunto arrumado ocupa 285,0 × 389,5 mm: passa da mesa de 256 mm; não coube numa placa: 6 placas; app: Gaveta estreita: as 4 divisões de talheres ficam apertadas (137 mm para 265 mm ideais).; app: A gaveta não tem fundo para a bandeja deslizar (precisaria de 450 mm): ela fica apoiada nos trilhos e levanta pelas alças para chegar embaixo. |
 | Talheres em 2 andares (ferramenta) | padrão | ⚠️ aviso | Bambu ✓ · Orca ✓ · Projeto Bambu ✓ | – | – | – | – | o conjunto arrumado ocupa 495,0 × 563,5 mm: passa da mesa de 256 mm; Bambu: torre de purga em cima de uma peça depois do --arrange do CLI (na tela, arraste a torre ou use Arrumar); Projeto Bambu: torre de purga em cima de uma peça depois do --arrange do CLI (na tela, arraste a torre ou use Arrumar); app: A bandeja desliza para o fundo nos trilhos: empurre para chegar nas caixinhas da frente. |
