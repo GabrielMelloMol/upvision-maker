@@ -24,7 +24,7 @@ const EDGE_OPACITY = 0.2; // traço fino e translúcido: peça branca não some 
 const MIN_LIGHTNESS = 0.06; // preto vira grafite escuro (continua preto); o rim separa do card escuro
 
 /** Entradas que alguns modelos exigem para não abrir vazios. */
-const INPUTS: Record<string, Params> = { pix: { key: "loja@upvision.app", name: "Minha Loja", city: "Sao Paulo" }, coaster: { faceDown: false, text: "Café", borderWidth: 2 } }; // o porta-copos imprime com o desenho na mesa: na miniatura ele aparece em cima
+const INPUTS: Record<string, Params> = { pix: { key: "loja@upvision.app", name: "Minha Loja", city: "Sao Paulo" }, coaster: { faceDown: false, text: "Café", borderWidth: 2 }, bigFrame: { artW: 150, artH: 190, width: 22, claws: false, back: "none", bodyColor: "#8b5a2b" } }; // a miniatura mostra a moldura inteira (uma peça), não as peças soltas // o porta-copos imprime com o desenho na mesa: na miniatura ele aparece em cima
 
 async function buildModels(id: string): Promise<Model[]> {
   const def = MODELS.find((m) => m.id === id);

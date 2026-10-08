@@ -1,5 +1,6 @@
-import { Bookmark, CaseUpper, CircleDot, Gem, KeySquare, Lamp, LampDesk, PencilRuler, PenTool, Puzzle, Smartphone, WholeWord } from "lucide-react";
+import { Bookmark, CaseUpper, CircleDot, Frame, Gem, KeySquare, Lamp, LampDesk, PencilRuler, PenTool, Puzzle, Smartphone, WholeWord } from "lucide-react";
 import { buildBigLetter, DEFAULT_BIG_LETTER } from "../../../geometry/models/bigLetter";
+import { buildBigFrame, DEFAULT_BIG_FRAME } from "../../../geometry/models/bigFrame";
 import { buildBookmark, DEFAULT_BOOKMARK } from "../../../geometry/models/bookmark";
 import { buildCoaster, DEFAULT_COASTER } from "../../../geometry/models/coaster";
 import { buildKeyHolder, DEFAULT_KEY_HOLDER } from "../../../geometry/models/keyHolder";
@@ -312,6 +313,35 @@ export const HOME_DECOR_MODELS: ModelDef[] = [
       },
     ],
     build: (ctx, p) => buildCoaster(ctx, as(p)),
+  },
+  {
+    id: "bigFrame",
+    category: "home",
+    label: "Moldura grande dividida",
+    blurb: "Moldura de pôster ou quadro maior que a mesa, cortada em peças que se encaixam sem cola, com garras para a arte, gancho ou apoio de mesa e cantos em outra cor.",
+    icon: Frame,
+    defaults: DEFAULT_BIG_FRAME,
+    sections: [
+      {
+        title: "Arte e moldura",
+        fields: [
+          num("artW", "Largura da arte (mm)", 100, 1000, { step: 5, hint: "O papel ou a tela. Um pôster de 50 × 70 cm é 500 × 700." }),
+          num("artH", "Altura da arte (mm)", 100, 1000, { step: 5 }),
+          num("width", "Largura da moldura (mm)", 20, 40, { step: 1, hint: "Da janela até a borda de fora. Menos de 20 não deixa espaço para o encaixe e as garras." }),
+          num("depth", "Espessura (mm)", 8, 25, { step: 1, hint: "A frente tem 3 mm e o resto é o rebaixo onde a arte entra, por trás." }),
+          { k: "profile", kind: "choice", label: "Perfil", options: [["flat", "Reto"], ["chamfer", "Chanfrado"], ["round", "Arredondado"]] },
+        ],
+      },
+      {
+        title: "Fixação",
+        fields: [
+          { k: "claws", kind: "bool", label: "Garras (seguram a arte por trás)" },
+          { k: "back", kind: "choice", label: "Atrás", options: [["none", "Nada"], ["hook", "Gancho (2 chaveiros)"], ["easel", "Apoio de mesa (perna)"]] },
+        ],
+      },
+      { title: "Cores", fields: [color("bodyColor", "Moldura"), color("cornerColor", "Cantos")] },
+    ],
+    build: (ctx, p) => buildBigFrame(ctx, as(p)),
   },
   {
     id: "phoneStand",

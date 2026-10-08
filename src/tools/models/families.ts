@@ -55,6 +55,7 @@ export const FAMILIES: Family[] = [
   { id: "toys", label: "Brinquedos", category: "home", variants: [{ id: "puzzle", label: "Quebra-cabeça" }, { id: "alphabetCube", label: "Cubo alfabeto" }, { id: "rpgDice", label: "Dados de RPG" }] },
   { id: "coaster", label: "Porta-copos", category: "home", variants: [{ id: "coaster", label: "Porta-copos" }] },
   { id: "phoneStand", label: "Suporte de celular e tablet", category: "home", variants: [{ id: "phoneStand", label: "Suporte de celular e tablet" }] },
+  { id: "bigFrame", label: "Moldura grande dividida", category: "home", variants: [{ id: "bigFrame", label: "Moldura grande dividida" }] },
   { id: "bookmark", label: "Marca-página", category: "home", variants: [{ id: "bookmark", label: "Marca-página" }] },
   { id: "keyHolder", label: "Porta-chave de parede", category: "home", variants: [{ id: "keyHolder", label: "Porta-chave de parede" }] },
   { id: "sweetsTable", label: "Mesa de doces", category: "kitchen", variants: [{ id: "cakeStand", label: "Boleira" }, { id: "stickStand", label: "Suporte de palitos" }] },

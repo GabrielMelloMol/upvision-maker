@@ -1924,6 +1924,67 @@
   "plates": 1
  },
  {
+  "key": "bigFrame:máximo",
+  "owner": "Torno",
+  "group": "home",
+  "label": "Moldura grande dividida (bigFrame)",
+  "variant": "máximo",
+  "status": "aviso",
+  "reasons": [
+   "o conjunto arrumado ocupa 244,0 × 1414,0 mm: passa da mesa de 256 mm",
+   "mais de 24 h de impressão",
+   "não coube numa placa: 4 placas",
+   "app: A moldura passa da mesa de 256 mm e sai em 24 peças que se encaixam por cauda de andorinha (sem cola): deslize cada peça na seguinte no sentido da espessura, na ordem dos números. Tudo junto pede mais de uma mesa de impressão: o fatiador arruma as placas.",
+   "app: Garras: 20, uma por trecho de lado. Prenda cada uma com um parafuso de madeira de 3 mm × 12 mm no furo do verso; a garra segura a arte (e um papelão atrás) no rebaixo.",
+   "app: Gancho: dois chaveiros no verso de cima. Pendure em parafusos de parede (cabeça de uns 7 mm) e, acima de 600 mm de largura, use também fita de pendurar.",
+   "app: Imprima de frente para cima, como está: o chanfro ou a curva fica na face de cima e não precisa de suporte."
+  ],
+  "date": "2026-10-08",
+  "slicers": "Bambu ✓ · Orca ✓ · Projeto Bambu ✓",
+  "minutes": 1710,
+  "grams": 1369.5,
+  "plates": 4
+ },
+ {
+  "key": "bigFrame:mínimo",
+  "owner": "Torno",
+  "group": "home",
+  "label": "Moldura grande dividida (bigFrame)",
+  "variant": "mínimo",
+  "status": "ok",
+  "reasons": [
+   "app: Garras: 4, uma por trecho de lado. Prenda cada uma com um parafuso de madeira de 3 mm × 12 mm no furo do verso; a garra segura a arte (e um papelão atrás) no rebaixo.",
+   "app: Gancho: dois chaveiros no verso de cima. Pendure em parafusos de parede (cabeça de uns 7 mm) e, acima de 600 mm de largura, use também fita de pendurar.",
+   "app: Imprima de frente para cima, como está: o chanfro ou a curva fica na face de cima e não precisa de suporte."
+  ],
+  "date": "2026-10-08",
+  "slicers": "Bambu ✓ · Orca ✓ · Projeto Bambu ✓",
+  "minutes": 132,
+  "grams": 53.6,
+  "plates": 1
+ },
+ {
+  "key": "bigFrame:padrão",
+  "owner": "Torno",
+  "group": "home",
+  "label": "Moldura grande dividida (bigFrame)",
+  "variant": "padrão",
+  "status": "aviso",
+  "reasons": [
+   "o conjunto arrumado ocupa 238,3 × 1129,0 mm: passa da mesa de 256 mm",
+   "não coube numa placa: 2 placas",
+   "app: A moldura passa da mesa de 256 mm e sai em 16 peças que se encaixam por cauda de andorinha (sem cola): deslize cada peça na seguinte no sentido da espessura, na ordem dos números. Tudo junto pede mais de uma mesa de impressão: o fatiador arruma as placas.",
+   "app: Garras: 12, uma por trecho de lado. Prenda cada uma com um parafuso de madeira de 3 mm × 12 mm no furo do verso; a garra segura a arte (e um papelão atrás) no rebaixo.",
+   "app: Gancho: dois chaveiros no verso de cima. Pendure em parafusos de parede (cabeça de uns 7 mm) e, acima de 600 mm de largura, use também fita de pendurar.",
+   "app: Imprima de frente para cima, como está: o chanfro ou a curva fica na face de cima e não precisa de suporte."
+  ],
+  "date": "2026-10-08",
+  "slicers": "Bambu ✓ · Orca ✓ · Projeto Bambu ✓",
+  "minutes": 543,
+  "grams": 338.5,
+  "plates": 2
+ },
+ {
   "key": "bigLetter:máximo",
   "owner": "Torno",
   "group": "home",
