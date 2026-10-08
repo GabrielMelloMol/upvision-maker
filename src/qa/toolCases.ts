@@ -5,6 +5,7 @@ import { splitByColor } from "../geometry/colorSplit";
 import { buildCutter, DEFAULT_CUTTER, type CutterParams } from "../geometry/cutter";
 import { extrudeDesign } from "../geometry/extrude";
 import { loadFont } from "../geometry/fonts";
+import { composeKeychainArt } from "../geometry/keychainArt";
 import { buildKeychain, DEFAULT_KEYCHAIN, layoutOnPlate, type KeychainParams } from "../geometry/keychain";
 import { buildLayeredPicture, DEFAULT_LAYERED, type LayeredParams } from "../geometry/layeredPicture";
 import { buildLithophane, DEFAULT_LITHO, type LithoParams } from "../geometry/lithophane";
@@ -77,6 +78,17 @@ export function toolCases(M: ManifoldToplevel): QaCase[] {
     return { models: built.length > 1 ? layoutOnPlate(built, PLATE_MM - 2 * GAP_MM, GAP_MM) : built };
   };
 
+  // arte girada e deslocada à mão (#183): o logo (a arte de teste, centrada) gira 30° e sobe 4 mm
+  const keychainArt = async (): Promise<Out> => {
+    const f = await loadFont("pacifico");
+    const art = artAt(M, 16);
+    const b = art.bounds();
+    const centered = art.translate([-(b.min[0] + b.max[0]) / 2, -(b.min[1] + b.max[1]) / 2]);
+    const text = textToCrossSection(M, f, "Ana", 14);
+    const c = composeKeychainArt((cs) => cs, { text, logo: centered, layers: null, move: { rot: 30, dx: 0, dy: 4 }, silhouette: false });
+    return { models: [buildKeychain(M, c.art, DEFAULT_KEYCHAIN, "Ana")] };
+  };
+
   const medal = async (patch: Partial<MedalDesign>): Promise<Out> => {
     const f = await loadFont("hanken");
     const warnings: string[] = [];
@@ -131,6 +143,7 @@ export function toolCases(M: ManifoldToplevel): QaCase[] {
       ["máximo", () => keychain(60, { base: 8, relief: 5, border: 10 })],
       ["etiqueta", () => keychain(14, { shape: "rect", rectWidth: 30 })],
       ["3 camadas", () => keychain(14, { layers: 3 })],
+      ["arte girada", () => keychainArt()],
       ["lote 30", () => keychain(14, {}, Array.from({ length: 30 }, (_, i) => `Nome ${i + 1}`))],
     ]),
     ...cases("medal", "Medalha", [

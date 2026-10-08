@@ -10,9 +10,11 @@ const DEBOUNCE_MS = 200;
  * `busy` já fica true no instante em que uma entrada muda (não só depois do debounce): o modelo na tela
  * é o antigo até a reconstrução terminar, então salvar precisa esperar.
  */
-export function useModelBuilder(build: () => Promise<{ models: Model[]; warnings: string[]; pauses?: number[] } | null>, deps: unknown[]) {
+export function useModelBuilder<V = undefined>(build: () => Promise<{ models: Model[]; warnings: string[]; pauses?: number[]; view?: V } | null>, deps: unknown[]) {
   const [models, setModels] = useState<Model[]>([]);
   const [pauses, setPauses] = useState<number[]>([]);
+  /** Dado extra da reconstrução (ex.: a vista de cima das alças do Chaveiro). */
+  const [view, setView] = useState<V | undefined>(undefined);
   const [warnings, setWarnings] = useState<string[]>([]);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -35,6 +37,7 @@ export function useModelBuilder(build: () => Promise<{ models: Model[]; warnings
         setModels(r?.models ?? []);
         setWarnings(r?.warnings ?? []);
         setPauses(r?.pauses ?? []);
+        setView(r?.view);
         setError(null);
       } catch (e) {
         if (alive) setError(errorText(e));
@@ -52,5 +55,5 @@ export function useModelBuilder(build: () => Promise<{ models: Model[]; warnings
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, deps);
 
-  return { models, warnings, pauses, busy: busy || stale, error };
+  return { models, warnings, pauses, view, busy: busy || stale, error };
 }

@@ -4,6 +4,7 @@ Cada versão aparece para a usuária na tela "O que há de novo" depois da atual
 Formato: `## <versão> — <data>` e itens `- …` em linguagem simples.
 
 ## Próxima versão (ainda não lançada)
+- **Chaveiro: a arte do logo agora gira, move e muda de tamanho à mão, e o SVG não entra mais torto**: ao lado da prévia há uma "Vista de cima · arte" com alça para arrastar, girar e mudar o tamanho (setas movem 1 mm), e campos "Girar a arte", "Mover para a direita" e "Mover para cima", com "Voltar ao automático". O arquivo entrava torto porque o leitor ignorava giro/escala escritos em estilo (CSS), ligações `<use href>`, `<symbol>` e arcos com giro; agora ele é lido como o navegador mostra.
 - Quadro por camadas ganha "Mesa por cor"; peças soltas de uma cor (letras, pixels afastados) viram mesas próprias já no chão; teste de frescor da tabela de AMS e fatiamento das mesas no Bambu Studio e no OrcaSlicer (`validate-models --plates`) (#118)
 - **Dados de RPG (d4, d6, d8, d10, d12 e d20)**: em Modelos prontos (Casa › Brinquedos), escolha o dado e o tamanho, arredonde as arestas e ponha número, bolinhas (no d6), texto, emoji ou um desenho em cada face — rente em 2 cores, gravado fundo ou em relevo, com o 6 e o 9 sublinhados. As faces opostas somam o certo (7 no d6, 21 no d20) e o d10 vai de 0 a 9. O conjunto completo sai numa mesa só, e o app avisa quando o dado precisa de suporte em árvore.
 

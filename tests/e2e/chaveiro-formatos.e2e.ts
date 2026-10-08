@@ -44,3 +44,22 @@ test("chaveiro com emoji: seletor insere no cursor e a peça sai com o desenho (
   await idle(page);
   await expect.poll(async () => parseFloat((await hud(page).textContent()) ?? "0")).toBeGreaterThan(before + 5);
 });
+
+test("chaveiro: arte do logo girada e movida à mão, com a vista de cima (#183)", async ({ page }) => {
+  await openApp(page);
+  await go(page, "Chaveiros");
+  await idle(page);
+  await page.locator('input[type="file"]').first().setInputFiles({ name: "logo.svg", mimeType: "image/svg+xml", buffer: Buffer.from(SILHOUETTE) });
+  await expect(page.locator(".decal-gizmo")).toBeVisible();
+  await idle(page);
+  const height = async () => parseFloat(((await hud(page).textContent()) ?? "").split(" × ")[1]);
+  const before = await height();
+  await page.getByLabel(/^Mover para cima/).fill("30");
+  await expect.poll(height).toBeGreaterThan(before + 15);
+  await page.getByLabel(/^Girar a arte/).fill("45");
+  await page.getByRole("button", { name: "Voltar ao automático" }).click();
+  await expect(page.getByLabel(/^Mover para cima/)).toHaveValue("0");
+  await expect(page.getByLabel(/^Girar a arte/)).toHaveValue("0");
+  await idle(page);
+  await expect.poll(height).toBeCloseTo(before, 0);
+});

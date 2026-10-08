@@ -1,6 +1,7 @@
 import { Color } from "three";
 import { SVGLoader } from "three/addons/loaders/SVGLoader.js";
 import type { CS, ManifoldToplevel } from "./manifold";
+import { normalizeSvg } from "./svgNormalize";
 import type { Contour } from "./svgPath";
 
 const CURVE_DIVISIONS = 24;
@@ -48,7 +49,7 @@ const hexOf = (c: string | number | undefined, fallback: Color) => {
 function svgPieces(M: ManifoldToplevel, svg: string): Piece[] {
   if (svg.length > MAX_BYTES) throw new Error("SVG maior que 5 MB.");
   if (/<!ENTITY/i.test(svg)) throw new Error("SVG com declarações ENTITY não é aceito.");
-  const data = new SVGLoader().parse(svg);
+  const data = new SVGLoader().parse(normalizeSvg(svg)); // o que o leitor deixa de fora vira o que o navegador desenha (#183)
   const pieces: Piece[] = [];
   for (const path of data.paths) {
     const style = (path.userData?.style ?? {}) as Record<string, string | number | undefined>;

@@ -84,6 +84,23 @@ describe("Chaveiros", () => {
     await waitFor(() => expect(width()).toBeGreaterThan(before + 10), BUILD);
   }, 30_000);
 
+  test("arte à mão (#183): mover para cima alarga a peça, girar e voltar ao automático restauram, e a vista de cima aparece", async () => {
+    const user = userEvent.setup();
+    const { container } = renderWithApp(<Keychain />);
+    await waitFor(() => expect(hud(container)).toMatch(/mm$/), BUILD);
+    await user.upload(container.querySelector<HTMLInputElement>('input[type="file"]')!, new File([LOGO_SVG], "logo.svg", { type: "image/svg+xml" }));
+    const height = () => parseFloat(hud(container).split(" × ")[1]);
+    await waitFor(() => expect(container.querySelector(".decal-gizmo")).not.toBeNull(), BUILD);
+    await waitFor(() => expect(hud(container)).toMatch(/mm$/), BUILD);
+    const automatic = hud(container);
+    const up = screen.getByLabelText(/^Mover para cima/);
+    fireEvent.change(up, { target: { value: "30" } });
+    await waitFor(() => expect(height()).toBeGreaterThan(parseFloat(automatic.split(" × ")[1]) + 15), BUILD);
+    await user.click(screen.getByRole("button", { name: "Voltar ao automático" }));
+    await waitFor(() => expect(hud(container)).toBe(automatic), BUILD);
+    expect(screen.queryByRole("button", { name: "Voltar ao automático" })).toBeNull();
+  }, 40_000);
+
   test("altura do texto fora da faixa: não gera; seletor de fonte troca a fonte", async () => {
     const user = userEvent.setup();
     renderWithApp(<Keychain />);

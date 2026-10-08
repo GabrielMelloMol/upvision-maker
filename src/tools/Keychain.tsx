@@ -4,6 +4,7 @@ import { isCursive, loadEmojiFont, loadFont, type FontId } from "../geometry/fon
 import { RESIN_TIP } from "../geometry/models/resin";
 import { buildKeychain, DEFAULT_KEYCHAIN, layoutOnPlate, parseNames, splitLines, stackLines, type KeychainParams, type KeychainShape } from "../geometry/keychain";
 import { modelsBounds } from "../geometry/bounds";
+import { composeKeychainArt, NO_MOVE, offsetFromCenter, topOutline, type LogoMove } from "../geometry/keychainArt";
 import { getManifold, type CS } from "../geometry/manifold";
 import { scoped } from "../geometry/shape2d";
 import { hasEmoji, textToCrossSection } from "../geometry/text";
@@ -11,6 +12,9 @@ import { checkText, textWarnings } from "../geometry/textCheck";
 import FontPicker from "../ui/FontPicker";
 import Alert from "../ui/Alert";
 import Dropzone from "../ui/Dropzone";
+import DecalGizmo from "./models/DecalGizmo";
+import type { FaceInfo, LayerShape } from "./models/applyLayers";
+import type { Layer } from "./models/layers";
 import EmojiPicker from "../ui/EmojiPicker";
 import ColorPick from "./ColorPick";
 import ExportButtons from "../ui/ExportButtons";
@@ -26,7 +30,12 @@ import { useToolState } from "./useToolState";
 import { errorText } from "../ui/Toast";
 
 const GAP_MM = 5;
-const LOGO_GAP_MM = 2;
+const LOGO_ID = "logo";
+const MOVE_LIMIT_MM = 150;
+const round1 = (n: number) => Math.round(n * 10) / 10;
+
+/** O que a vista de cima precisa: a base, o contorno do logo (sem giro) e onde fica a posição automática dele. */
+type ArtView = { face: FaceInfo; shape: LayerShape; center: [number, number]; auto: [number, number] };
 const MAX_BATCH = 60;
 const LINE_GAP = 0.25; // espaço entre as linhas, em fração da altura do texto
 const SHAPES = [["outline", "Contorno"], ["rect", "Retângulo"], ["silhouette", "Silhueta"]] as const;
@@ -45,12 +54,15 @@ export default function Keychain() {
       // SVG vindo do Imagem → SVG (pode ser colorido)
       logo: peekHandoff() as { svg: string; name: string } | null,
       logoH: 16,
+      // ajuste à mão da arte (#183): giro e deslocamento a partir da posição automática
+      move: NO_MOVE as LogoMove,
       p: DEFAULT_KEYCHAIN as KeychainParams,
     }),
     { label: "Chaveiro" },
   );
-  const { batch, text, names, font, textH, logo, logoH, p } = tool.state;
+  const { batch, text, names, font, textH, logo, logoH, move, p } = tool.state;
   const [setBatch, setText, setNames, setFont, setTextH, setLogo, setLogoH] = [tool.field("batch"), tool.field("text"), tool.field("names"), tool.field("font"), tool.field("textH"), tool.field("logo"), tool.field("logoH")];
+  const setMove = tool.field("move");
   const textRef = useRef<HTMLInputElement>(null);
   useEffect(clearHandoff, []);
   const [logoError, setLogoError] = useState<string | null>(null);
@@ -60,7 +72,7 @@ export default function Keychain() {
   const silhouette = p.shape === "silhouette";
   const logoMulti = !silhouette && !!logo && svgFillColors(logo.svg).length > 1;
   const valid =
-    inRange(textH, 5, 60) && inRange(p.base, 0.8, 8) && inRange(p.relief, 0.4, 5) && inRange(p.border, 1, 10) && inRange(logoH, 5, 80) && (p.shape !== "rect" || inRange(p.rectWidth!, 30, 150));
+    inRange(textH, 5, 60) && inRange(p.base, 0.8, 8) && inRange(p.relief, 0.4, 5) && inRange(p.border, 1, 10) && inRange(logoH, 5, 80) && inRange(move.rot, -180, 180) && inRange(move.dx, -MOVE_LIMIT_MM, MOVE_LIMIT_MM) && inRange(move.dy, -MOVE_LIMIT_MM, MOVE_LIMIT_MM) && (p.shape !== "rect" || inRange(p.rectWidth!, 30, 150));
 
   async function onLogo(f: File) {
     setLogoError(null);
@@ -71,7 +83,7 @@ export default function Keychain() {
     }
   }
 
-  const { models, warnings, busy, error } = useModelBuilder(async () => {
+  const { models, warnings, view, busy, error } = useModelBuilder<ArtView>(async () => {
     if (!valid || (!list.length && !logo) || (silhouette && (!logo || !list.length))) return null;
     const M = await getManifold();
     const f = await loadFont(font);
@@ -79,13 +91,16 @@ export default function Keychain() {
     const design = logo ? await designFromSvg(logo.svg, 100, false, true) : null;
     const logoCs: CS | null = design?.cs ?? null;
     let textWarn: string[] = [];
+    let artView: ArtView | undefined;
     try {
       const built = scoped((k) => {
         // logo no tamanho pedido (altura), reaproveitado em todos os chaveiros; logo colorido leva as camadas junto
         const lb = logoCs?.bounds();
         const s = lb ? logoH / (lb.max[1] - lb.min[1]) : 1;
-        const logoFit = logoCs ? k(logoCs.scale(s)) : null;
-        const layersFit = design?.layers?.map((l) => ({ color: l.color, cs: k(l.cs.scale(s)) })) ?? null;
+        // centrado na origem: o giro é em torno do centro dele e o ajuste manual parte do automático
+        const mid = lb ? ([-((lb.min[0] + lb.max[0]) / 2) * s, -((lb.min[1] + lb.max[1]) / 2) * s] as [number, number]) : null;
+        const logoFit = logoCs ? k(k(logoCs.scale(s)).translate(mid!)) : null;
+        const layersFit = design?.layers?.map((l) => ({ color: l.color, cs: k(k(l.cs.scale(s)).translate(mid!)) })) ?? null;
         const names = list.length ? list : [""];
         return names.map((name, i) => {
           // "Ana|Silva": uma linha por parte, empilhadas
@@ -93,15 +108,10 @@ export default function Keychain() {
           const txt = !lines.length ? null : lines.length === 1 ? lines[0] : k(stackLines(M, lines, textH * LINE_GAP));
           // traço fino / letras soltas: o primeiro nome basta (mesma fonte e altura em todos)
           if (txt && i === 0) textWarn = textWarnings(checkText(txt), name, isCursive(font));
-          let art: CS;
-          let dx = 0;
-          if (silhouette) art = txt!;
-          else if (txt && logoFit) {
-            const tb = txt.bounds(), gb = logoFit.bounds();
-            dx = tb.min[0] - LOGO_GAP_MM - gb.max[0];
-            art = k(txt.add(k(logoFit.translate([dx, 0]))));
-          } else art = (txt ?? logoFit)!;
-          let layers = silhouette ? null : (layersFit?.map((l) => ({ color: l.color, cs: k(l.cs.translate([dx, 0])) })) ?? null);
+          const composed = composeKeychainArt(k, { text: txt, logo: logoFit, layers: layersFit, move, silhouette });
+          let art = composed.art;
+          let layers = composed.layers;
+          const placedLogo = composed.logo;
           // etiqueta: o texto encolhe para caber na largura (a altura da etiqueta acompanha)
           const ab = art.bounds();
           const room = (p.rectWidth ?? 0) - 2 * p.border;
@@ -110,7 +120,17 @@ export default function Keychain() {
             art = k(art.scale(fit));
             layers = layers?.map((l) => ({ color: l.color, cs: k(l.cs.scale(fit)) })) ?? null;
           }
-          return buildKeychain(M, art, p, name.replace(/\|/g, " ") || "Chaveiro", layers, silhouette ? logoFit : null);
+          const model = buildKeychain(M, art, p, name.replace(/\|/g, " ") || "Chaveiro", layers, silhouette ? placedLogo : null);
+          if (i === 0 && logoFit) {
+            const b = model.parts.length ? topOutline(M, model) : [];
+            const all = b.flat();
+            const xs = all.map((q) => q[0]), ys = all.map((q) => q[1]);
+            const lbb = logoFit.bounds();
+            const shape: LayerShape = { polys: logoFit.toPolygons() as [number, number][][], width: lbb.max[0] - lbb.min[0], height: lbb.max[1] - lbb.min[1] };
+            const auto: [number, number] = [composed.center[0] - move.dx, composed.center[1] - move.dy];
+            if (all.length) artView = { face: { outline: b, bounds: { min: [Math.min(...xs), Math.min(...ys)], max: [Math.max(...xs), Math.max(...ys)] }, part: "Base", others: [] }, shape, center: composed.center, auto };
+          }
+          return model;
         });
       });
       const placed = built.length > 1 ? layoutOnPlate(built, bedMm() - 2 * GAP_MM, GAP_MM) : built;
@@ -118,12 +138,29 @@ export default function Keychain() {
       const warn: string[] = [...textWarn, ...(p.resin ? [RESIN_TIP] : [])];
       if (b && b.max[1] - b.min[1] > bedMm()) warn.push(`Os chaveiros não cabem numa mesa de ${bedMm()} mm: divida a lista em mais arquivos.`);
       if (batch && parseNames(names).length > MAX_BATCH) warn.push(`Só os primeiros ${MAX_BATCH} nomes foram gerados.`);
-      return { models: placed, warnings: warn };
+      return { models: placed, warnings: warn, view: artView };
     } finally {
       logoCs?.delete();
       design?.layers?.forEach((l) => l.cs.delete());
     }
-  }, [batch, text, names, font, textH, logo, logoH, p, valid]);
+  }, [batch, text, names, font, textH, logo, logoH, move, p, valid]);
+
+  const logoLayer: Layer[] = view
+    ? [{ id: LOGO_ID, kind: "art", name: logo?.name ?? "Logo", x: view.center[0], y: view.center[1], width: round1(view.shape.width * (logoH / view.shape.height)), rotation: move.rot, mirror: false, mode: "raised", depth: 0.6, color: "#f97316", visible: true }]
+    : [];
+  const [selected, setSelected] = useState<string | null>(LOGO_ID);
+  /** Fim de um gesto na vista de cima: vira giro, deslocamento ou altura do logo (um passo no desfazer). */
+  function onGizmo(_id: string, patch: Partial<Layer>) {
+    if (!view) return;
+    if (patch.x !== undefined || patch.y !== undefined) {
+      const { dx, dy } = offsetFromCenter([patch.x ?? view.center[0], patch.y ?? view.center[1]], view.auto);
+      setMove({ ...move, dx, dy });
+    }
+    if (patch.rotation !== undefined) setMove({ ...move, rot: Math.round(patch.rotation) });
+    if (patch.width !== undefined) setLogoH(Math.min(80, Math.max(5, round1((patch.width * view.shape.height) / view.shape.width))));
+  }
+  const moved = move.rot !== 0 || move.dx !== 0 || move.dy !== 0;
+
 
   return (
     <div className="page">
@@ -171,6 +208,19 @@ export default function Keychain() {
                 <button className="link danger" onClick={() => setLogo(null)}>Remover logo</button>
               </div>
             )}
+            {logo && (
+              <>
+                <div className="grid two">
+                  <NumField label="Girar a arte" unit="°" value={move.rot} onChange={(v) => setMove({ ...move, rot: v })} min={-180} max={180} step={1} />
+                  <NumField label="Mover para a direita" value={move.dx} onChange={(v) => setMove({ ...move, dx: v })} min={-MOVE_LIMIT_MM} max={MOVE_LIMIT_MM} step={0.5} />
+                  <NumField label="Mover para cima" value={move.dy} onChange={(v) => setMove({ ...move, dy: v })} min={-MOVE_LIMIT_MM} max={MOVE_LIMIT_MM} step={0.5} />
+                </div>
+                <div className="row">
+                  <span className="hint">Também dá para arrastar a arte na vista de cima, ao lado da prévia.</span>
+                  {moved && <button className="link" onClick={() => setMove(NO_MOVE)}>Voltar ao automático</button>}
+                </div>
+              </>
+            )}
             {logoMulti && <span className="hint">Logo colorido: cada cor dele sai com o próprio filamento; a “Cor do texto” vale só para o nome.</span>}
           </div>
           <div className="card stack">
@@ -210,6 +260,13 @@ export default function Keychain() {
         </div>
         <div className="preview-col">
           <Preview3D models={models} busy={busy} busyText="Gerando chaveiros…" error={error} emptyText={!valid ? "Corrija os campos em vermelho." : silhouette && !logo ? "Envie a silhueta (SVG ou imagem) para ver o chaveiro." : "Digite um nome para ver o chaveiro."} />
+          {view && logo && (
+            <section className="card stack gizmo-card">
+              <h3>Vista de cima · arte</h3>
+              <DecalGizmo face={view.face} layers={logoLayer} shapes={{ [LOGO_ID]: view.shape }} selected={selected} onSelect={setSelected} onCommit={onGizmo} />
+              <p className="hint">Arraste a arte para mover; a alça do canto muda o tamanho e a de cima gira (Shift: 15°). Setas movem 1 mm.</p>
+            </section>
+          )}
           {warnings.map((w) => (
             <Alert key={w} kind="warn">{w}</Alert>
           ))}
