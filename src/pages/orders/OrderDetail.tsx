@@ -1,11 +1,13 @@
 import { ask } from "@tauri-apps/plugin-dialog";
-import { ClipboardList, Pencil, Trash2 } from "lucide-react";
+import { ClipboardList, FileDown, Pencil, Trash2 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { getDb } from "../../db";
 import { ordersRepo, type HistoryEntry } from "../../db/ordersRepo";
 import { applyStock } from "../../db/stock";
 import { money } from "../../domain/format";
 import { customCopies, lineTotal, orderTotals, STATUS_LABEL, STATUSES, type Order, type OrderItem, type OrderStatus } from "../../domain/orders";
+import { loadPdfFonts } from "../../pdf/fonts";
+import { orderConfirmationPdf } from "../../pdf/orderConfirmation";
 import { openWith } from "../../tools/intent";
 import { requestNavigate } from "../../ui/navigate";
 import { printLogsRepo } from "../../db/printLogsRepo";
@@ -14,6 +16,7 @@ import PrintLogForm from "../products/PrintLogForm";
 import { logLine } from "../products/PrintSheet";
 import Button from "../../ui/Button";
 import Sheet from "../../ui/Sheet";
+import { saveFile, slug } from "../../ui/saveFile";
 import { errorText, useToast } from "../../ui/Toast";
 import PaymentBox from "./PaymentBox";
 import type { OrdersData } from "./data";
@@ -81,6 +84,17 @@ export default function OrderDetail({ order, data, onClose, onChanged, onEdit }:
     }
   }
 
+  /** Confirmação do pedido em PDF (#185): o que o cliente recebe ao fechar a venda. */
+  async function confirmationPdf() {
+    try {
+      const r = await orderConfirmationPdf(await loadPdfFonts(), data.company, order, data.customers.find((c) => c.id === order.customerId));
+      const path = await saveFile(`pedido-${order.id}-${slug(order.customerName)}.pdf`, r.bytes, "pdf", "PDF");
+      if (path) toast(r.pixError ? `PDF salvo sem o QR Pix (${r.pixError}) em ${path}` : `Confirmação salva em ${path}`, r.pixError ? "error" : "ok");
+    } catch (e) {
+      toast(`Não foi possível gerar o PDF: ${errorText(e)}`, "error");
+    }
+  }
+
   async function remove() {
     if (!(await ask(`Excluir o pedido #${order.id}?${order.stockApplied ? " O estoque volta automaticamente." : ""} Isso não pode ser desfeito.`, { title: "Excluir pedido", kind: "warning", okLabel: "Excluir pedido", cancelLabel: "Voltar" }))) return;
     try {
@@ -103,6 +117,9 @@ export default function OrderDetail({ order, data, onClose, onChanged, onEdit }:
         <>
           <Button variant="ghost" className="danger" icon={Trash2} onClick={remove}>
             Excluir pedido
+          </Button>
+          <Button variant="secondary" icon={FileDown} onClick={() => void confirmationPdf()}>
+            Confirmação em PDF
           </Button>
           <Button icon={Pencil} onClick={onEdit}>
             Editar

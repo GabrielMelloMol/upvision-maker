@@ -75,3 +75,15 @@ test("pedidos: sinal, marcar como pago e o 'A receber' no Painel (#177)", async 
   await page.getByRole("dialog", { name: /Pedido #1/ }).getByRole("button", { name: "Marcar como pago" }).click();
   await expect(toastWith(page, "Pedido #1: pago.")).toBeVisible();
 });
+
+test("pedidos: confirmação do pedido em PDF (#185)", async ({ page, tauri }) => {
+  await openApp(page);
+  await seed(tauri);
+  tauri.db.exec(`INSERT INTO orders (customerName, channel, status, paymentMethod, dueDate, paidAmount, createdAt) VALUES ('Bia', 'Consumidor final', 'pending', 'Pix', '2026-10-30', 20, '2026-10-01 10:00:00');
+    INSERT INTO order_items (orderId, position, description, qty, unitPrice) VALUES (1, 0, 'Peça', 2, 50);`);
+  await go(page, "Pedidos");
+  await page.getByRole("button", { name: /Abrir pedido #1 de Bia/ }).click();
+  await page.getByRole("dialog", { name: /Pedido #1/ }).getByRole("button", { name: "Confirmação em PDF" }).click();
+  await expect(toastWith(page, "Confirmação salva em")).toBeVisible();
+  expect([...tauri.files.keys()].some((p) => p.endsWith(".pdf"))).toBe(true);
+});

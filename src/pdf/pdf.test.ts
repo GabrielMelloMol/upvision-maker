@@ -3,10 +3,12 @@ import { resolve } from "node:path";
 import { PDFDocument } from "pdf-lib";
 import { expect, test } from "vitest";
 import { DEFAULT_COMPANY, EMPTY_CUSTOMER, type Company } from "../domain/customers";
+import type { Order } from "../domain/orders";
 import type { Quote } from "../domain/quotes";
 import { catalogPdf, PER_PAGE } from "./catalog";
 import { contractPdf, DEFAULT_TERMS } from "./contract";
 import type { PdfFonts } from "./doc";
+import { orderConfirmationPdf } from "./orderConfirmation";
 import { quotePdf } from "./quote";
 
 const font = (n: string) => new Uint8Array(readFileSync(resolve(__dirname, "../assets/pdf-fonts", n)));
@@ -84,4 +86,49 @@ test("catálogo: 12 produtos por página", async () => {
   expect(await pages(r.bytes)).toHaveLength(2);
   expect(r.trace).toContain("Produto 13");
   expect(txt(r.trace)).toContain("R$ 22,00");
+});
+
+const order = (paidAmount: number, extra: Partial<Order> = {}): Order => ({
+  id: 12,
+  customerId: null,
+  customerName: "Ana Souza",
+  channel: "Consumidor final",
+  dueDate: "2026-10-20",
+  paymentMethod: "Pix",
+  notes: "Letras em branco",
+  freight: 12,
+  status: "pending",
+  stockApplied: false,
+  appliedPlan: null,
+  createdAt: "2026-09-28 10:00:00",
+  deliveredAt: null,
+  quoteId: 7,
+  paidAmount,
+  items: [{ id: 1, productId: null, description: "Chaveiro personalizado", qty: 2, unitPrice: 15, discountPct: 10, unitCost: 2, printMinutes: 20, custom: "Ana\nBia;Mãe" }],
+  ...extra,
+});
+
+test("confirmação do pedido: itens com personalização, total, pagamento, prazo e Pix só do que falta (#185)", async () => {
+  const r = await orderConfirmationPdf(fonts, company, order(20)); // total 2 × 15 − 10% + 12 = 39
+  const t = txt(r.trace);
+  expect(t).toContain("Confirmação de pedido");
+  expect(t).toContain("Pedido nº 12");
+  expect(t.join(" ")).toContain("Chaveiro personalizado · Personalização: Ana, Bia · Mãe"); // a célula quebra linha, o texto segue junto
+  expect(t).toContain("R$ 39,00");
+  expect(t).toContain("Forma de pagamento");
+  expect(t).toContain("Sinal recebido");
+  expect(t).toContain("Falta pagar: R$ 19,00");
+  expect(t).toContain("Pague com Pix: R$ 19,00");
+  expect(t.some((l) => l.includes("540519.00"))).toBe(true); // BR Code com o saldo (campo 54), não o total
+  expect(r.pixError).toBeNull();
+  expect(await pages(r.bytes)).toHaveLength(1);
+});
+
+test("confirmação de pedido já pago não leva QR Pix e agradece; sem chave Pix também não", async () => {
+  const paid = await orderConfirmationPdf(fonts, company, order(39));
+  expect(txt(paid.trace)).toContain("Pagamento em dia. Obrigado!");
+  expect(paid.trace.some((l) => l.startsWith("Pague com Pix"))).toBe(false);
+  const noKey = await orderConfirmationPdf(fonts, { ...company, pixKey: "" }, order(0));
+  expect(txt(noKey.trace)).toContain("Falta pagar: R$ 39,00");
+  expect(noKey.trace.some((l) => l.startsWith("Pague com Pix"))).toBe(false);
 });

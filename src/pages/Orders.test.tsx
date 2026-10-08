@@ -1,12 +1,22 @@
 // @vitest-environment happy-dom
 import { fireEvent, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { beforeEach, describe, expect, test } from "vitest";
+import { readFileSync } from "node:fs";
+import { resolve } from "node:path";
+import { beforeEach, describe, expect, test, vi } from "vitest";
 import { todayIso } from "../domain/orders";
 import { renderWithApp, setupTauri, type TauriState } from "../test/harness";
 import { NAVIGATE_EVENT } from "../ui/navigate";
 import { setPendingOpen } from "../ui/search";
 import Orders from "./Orders";
+
+// As fontes vêm por fetch de URL do Vite no app; aqui lê direto do disco (igual a Quotes.test.tsx).
+vi.mock("../pdf/fonts", () => ({
+  loadPdfFonts: async () => {
+    const font = (n: string) => new Uint8Array(readFileSync(resolve(__dirname, "../assets/pdf-fonts", n)));
+    return { regular: font("Inter-Regular.ttf"), semibold: font("Inter-SemiBold.ttf"), bold: font("Inter-Bold.ttf") };
+  },
+}));
 
 const t = setupTauri();
 
@@ -63,6 +73,26 @@ const insertOrder = (o: { name?: string; status?: string; due?: string | null; q
 };
 
 beforeEach(() => installApplyStock(t));
+
+describe("Pedidos: confirmação em PDF (#185)", () => {
+  test("gera o PDF com o nome do cliente; cancelar o 'Salvar como' não grava", async () => {
+    seed();
+    const id = insertOrder({ name: "Bia", status: "pending", qty: 2 });
+    const user = userEvent.setup();
+    renderWithApp(<Orders />);
+    await user.click(await screen.findByRole("button", { name: `Abrir pedido #${id} de Bia` }));
+    const sheet = await screen.findByRole("dialog", { name: /Pedido #1/ });
+    const pdfs = () => [...t.files.entries()].filter(([p]) => p.endsWith(".pdf"));
+    t.savePath = () => null;
+    await user.click(within(sheet).getByRole("button", { name: "Confirmação em PDF" }));
+    await waitFor(() => expect(t.calls).toContain("plugin:dialog|save"));
+    expect(pdfs()).toEqual([]);
+    t.savePath = (n) => `/saida/${n}`;
+    await user.click(within(sheet).getByRole("button", { name: "Confirmação em PDF" }));
+    expect(await screen.findByText("Confirmação salva em /saida/pedido-1-bia.pdf")).toBeInTheDocument();
+    expect(new TextDecoder().decode(pdfs()[0][1].subarray(0, 5))).toBe("%PDF-");
+  }, 20_000); // gerar o PDF leva alguns segundos com a máquina carregada
+});
 
 describe("Pedidos: pagamento (#177)", () => {
   test("marca como pago, registra sinal e mostra a situação no cartão e na lista", async () => {
