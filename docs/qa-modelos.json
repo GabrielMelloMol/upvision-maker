@@ -2672,6 +2672,60 @@
   "plates": 1
  },
  {
+  "key": "rpgDice:máximo",
+  "owner": "Torno",
+  "group": "home",
+  "label": "Dados de RPG (rpgDice)",
+  "variant": "máximo",
+  "status": "ok",
+  "reasons": [
+   "app: Peças pequenas: não é brinquedo para menores de 3 anos (risco de engasgo).",
+   "app: d20: tem partes inclinadas além de 45°; ative o suporte em árvore no fatiador.",
+   "app: Imprima com 100% de preenchimento: o peso fica parelho e o dado rola justo."
+  ],
+  "date": "2026-10-08",
+  "slicers": "Bambu ✓ · Orca ✓ · Projeto Bambu ✓",
+  "minutes": 332,
+  "grams": 94.9,
+  "plates": 1
+ },
+ {
+  "key": "rpgDice:mínimo",
+  "owner": "Torno",
+  "group": "home",
+  "label": "Dados de RPG (rpgDice)",
+  "variant": "mínimo",
+  "status": "ok",
+  "reasons": [
+   "app: Peças pequenas: não é brinquedo para menores de 3 anos (risco de engasgo).",
+   "app: d20: tem partes inclinadas além de 45°; ative o suporte em árvore no fatiador.",
+   "app: Imprima com 100% de preenchimento: o peso fica parelho e o dado rola justo."
+  ],
+  "date": "2026-10-08",
+  "slicers": "Bambu ✓ · Orca ✓ · Projeto Bambu ✓",
+  "minutes": 72,
+  "grams": 19.1,
+  "plates": 1
+ },
+ {
+  "key": "rpgDice:padrão",
+  "owner": "Torno",
+  "group": "home",
+  "label": "Dados de RPG (rpgDice)",
+  "variant": "padrão",
+  "status": "ok",
+  "reasons": [
+   "app: Peças pequenas: não é brinquedo para menores de 3 anos (risco de engasgo).",
+   "app: d20: tem partes inclinadas além de 45°; ative o suporte em árvore no fatiador.",
+   "app: Imprima com 100% de preenchimento: o peso fica parelho e o dado rola justo."
+  ],
+  "date": "2026-10-08",
+  "slicers": "Bambu ✓ · Orca ✓ · Projeto Bambu ✓",
+  "minutes": 159,
+  "grams": 42.5,
+  "plates": 1
+ },
+ {
   "key": "ruler3d:máximo",
   "owner": "Torno",
   "group": "home",

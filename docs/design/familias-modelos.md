@@ -37,7 +37,7 @@ dentro dela, a pessoa escolhe a **variação** por miniatura (como os estilos de
 | 16 | **Gridfinity** | Caixinha (`gridBin`) · Base (`gridBase`) · Base pela gaveta (`gridDrawerBase`) · Teste de encaixe (`gridTest`) | Torno | Já é uma família na prática. |
 | 17 | **Luminária** | `lamp` | Forja | Ver pergunta C (Letra caixa LED). |
 | 18 | **Vaso** | `vase` | Torno | |
-| 19 | **Brinquedos** | Quebra-cabeça (`puzzle`) · Cubo alfabeto (`alphabetCube`) | Torno | |
+| 19 | **Brinquedos** | Quebra-cabeça (`puzzle`) · Cubo alfabeto (`alphabetCube`) · Dados de RPG (`rpgDice`) | Torno | |
 | 20 | **Marca-página** | `bookmark` | Forja | |
 | 21 | **Porta-chave de parede** | `keyHolder` | Forja | |
 | 22 | **Carimbos e texturas** | Carimbo (`stamp`) · Molde para carimbo de EVA (`stampMold`) · Rolo de textura (`textureRoller`) | Forja, Lupa | Marcar massa, sabonete, EVA. |

@@ -5,6 +5,7 @@ Formato: `## <versão> — <data>` e itens `- …` em linguagem simples.
 
 ## Próxima versão (ainda não lançada)
 - Quadro por camadas ganha "Mesa por cor"; peças soltas de uma cor (letras, pixels afastados) viram mesas próprias já no chão; teste de frescor da tabela de AMS e fatiamento das mesas no Bambu Studio e no OrcaSlicer (`validate-models --plates`) (#118)
+- **Dados de RPG (d4, d6, d8, d10, d12 e d20)**: em Modelos prontos (Casa › Brinquedos), escolha o dado e o tamanho, arredonde as arestas e ponha número, bolinhas (no d6), texto, emoji ou um desenho em cada face — rente em 2 cores, gravado fundo ou em relevo, com o 6 e o 9 sublinhados. As faces opostas somam o certo (7 no d6, 21 no d20) e o d10 vai de 0 a 9. O conjunto completo sai numa mesa só, e o app avisa quando o dado precisa de suporte em árvore.
 
 ## 0.10.6 — 2026-10-07
 - **Modelos prontos mais fáceis de acompanhar**: ao escolher um modelo na galeria a tela rola até os campos dele, o painel mostra o nome do card de onde veio (por exemplo "Brinquedos" acima de "Quebra-cabeça"), e o atalho que leva a outra ferramenta (como "Redonda e formatos") avisa "Abre a ferramenta Medalhas, em outra tela".

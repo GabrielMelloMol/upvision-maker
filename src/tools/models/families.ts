@@ -50,7 +50,7 @@ export const FAMILIES: Family[] = [
   },
   { id: "lamp", label: "Luminária", category: "home", variants: [{ id: "lamp", label: "Luminária" }] },
   { id: "vase", label: "Vaso", category: "home", variants: [{ id: "vase", label: "Vaso" }] },
-  { id: "toys", label: "Brinquedos", category: "home", variants: [{ id: "puzzle", label: "Quebra-cabeça" }, { id: "alphabetCube", label: "Cubo alfabeto" }] },
+  { id: "toys", label: "Brinquedos", category: "home", variants: [{ id: "puzzle", label: "Quebra-cabeça" }, { id: "alphabetCube", label: "Cubo alfabeto" }, { id: "rpgDice", label: "Dados de RPG" }] },
   { id: "bookmark", label: "Marca-página", category: "home", variants: [{ id: "bookmark", label: "Marca-página" }] },
   { id: "keyHolder", label: "Porta-chave de parede", category: "home", variants: [{ id: "keyHolder", label: "Porta-chave de parede" }] },
   { id: "sweetsTable", label: "Mesa de doces", category: "kitchen", variants: [{ id: "cakeStand", label: "Boleira" }, { id: "stickStand", label: "Suporte de palitos" }] },

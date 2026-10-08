@@ -37,6 +37,7 @@ export const BATCH_FIELDS: Record<string, string[]> = {
   gridBin: ["label"],
   lidBox: ["text"],
   alphabetCube: ["kit"],
+  rpgDice: ["labels"],
 };
 
 export const MAX_COPIES = 30;

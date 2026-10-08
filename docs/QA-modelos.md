@@ -23,7 +23,7 @@ Peça maior que a mesa de 256 mm do A1 conta como **aviso** quando o app avisa n
 impressoras de mesa maior); sem o aviso do app, é **falha**.
 
 
-**Total:** 238 casos · 181 ok · 56 com aviso · 1 com falha · 0 n/a
+**Total:** 241 casos · 184 ok · 56 com aviso · 1 com falha · 0 n/a
 
 ## Forja
 
@@ -205,6 +205,9 @@ impressoras de mesa maior); sem o aviso do app, é **falha**.
 | Quebra-cabeça (puzzle) | máximo | ⚠️ aviso | Bambu ✓ · Orca ✓ · Projeto Bambu ✓ | – | – | – | – | o conjunto arrumado ocupa 373,0 × 373,0 mm: passa da mesa de 256 mm; Bambu: torre de purga em cima de uma peça depois do --arrange do CLI (na tela, arraste a torre ou use Arrumar); Orca: torre de purga em cima de uma peça depois do --arrange do CLI (na tela, arraste a torre ou use Arrumar); Projeto Bambu: torre de purga em cima de uma peça depois do --arrange do CLI (na tela, arraste a torre ou use Arrumar); app: Peças pequenas: não é brinquedo para menores de 3 anos (risco de engasgo).; app: Pescoço do encaixe fino demais: aumente o tamanho da orelha ou das peças.; app: As 256 peças não cabem juntas na mesa de 256 mm: o fatiador vai usar mais de uma mesa (ou imprima uma de cada vez). |
 | Quebra-cabeça (puzzle) | mínimo | ✅ ok | Bambu ✓ · Orca ✓ · Projeto Bambu ✓ | 14 | 5,0 | 1 | – | app: Peças pequenas: não é brinquedo para menores de 3 anos (risco de engasgo).; app: Pescoço do encaixe fino demais: aumente o tamanho da orelha ou das peças. |
 | Quebra-cabeça (puzzle) | padrão | ✅ ok | Bambu ✓ · Orca ✓ · Projeto Bambu ✓ | 101 | 46,7 | 1 | – | app: Peças pequenas: não é brinquedo para menores de 3 anos (risco de engasgo). |
+| Dados de RPG (rpgDice) | máximo | ✅ ok | Bambu ✓ · Orca ✓ · Projeto Bambu ✓ | 332 | 94,9 | 1 | – | app: Peças pequenas: não é brinquedo para menores de 3 anos (risco de engasgo).; app: d20: tem partes inclinadas além de 45°; ative o suporte em árvore no fatiador.; app: Imprima com 100% de preenchimento: o peso fica parelho e o dado rola justo. |
+| Dados de RPG (rpgDice) | mínimo | ✅ ok | Bambu ✓ · Orca ✓ · Projeto Bambu ✓ | 72 | 19,1 | 1 | – | app: Peças pequenas: não é brinquedo para menores de 3 anos (risco de engasgo).; app: d20: tem partes inclinadas além de 45°; ative o suporte em árvore no fatiador.; app: Imprima com 100% de preenchimento: o peso fica parelho e o dado rola justo. |
+| Dados de RPG (rpgDice) | padrão | ✅ ok | Bambu ✓ · Orca ✓ · Projeto Bambu ✓ | 159 | 42,5 | 1 | – | app: Peças pequenas: não é brinquedo para menores de 3 anos (risco de engasgo).; app: d20: tem partes inclinadas além de 45°; ative o suporte em árvore no fatiador.; app: Imprima com 100% de preenchimento: o peso fica parelho e o dado rola justo. |
 | Régua de 25 cm (ruler3d) | máximo | ✅ ok | Bambu ✓ · Orca ✓ | 26 | 11,5 | 1 | – | app: Imprima deitada, com a face das marcas para cima; confira com uma régua de verdade ou com a régua de papel. |
 | Régua de 25 cm (ruler3d) | mínimo | ✅ ok | Bambu ✓ · Orca ✓ | 7 | 2,0 | 1 | – | app: Imprima deitada, com a face das marcas para cima; confira com uma régua de verdade ou com a régua de papel. |
 | Régua de 25 cm (ruler3d) | padrão | ✅ ok | Bambu ✓ · Orca ✓ | 16 | 4,8 | 1 | – | app: Imprima deitada, com a face das marcas para cima; confira com uma régua de verdade ou com a régua de papel. |

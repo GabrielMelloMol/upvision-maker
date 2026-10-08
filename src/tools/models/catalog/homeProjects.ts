@@ -1,6 +1,7 @@
-import { Box, CircleDot, Egg, Flower2, Goal, Image, LayoutGrid, Lightbulb, Spline, Stamp } from "lucide-react";
+import { Box, CircleDot, Dices, Egg, Flower2, Goal, Image, LayoutGrid, Lightbulb, Spline, Stamp } from "lucide-react";
 import { buildAlphabetCube, DEFAULT_ALPHABET_CUBE } from "../../../geometry/models/alphabetCube";
 import { buildDeskOrganizer, DEFAULT_DESK_ORGANIZER } from "../../../geometry/models/deskOrganizer";
+import { buildDice, DEFAULT_DICE } from "../../../geometry/models/dice";
 import { buildGoalBoard, DEFAULT_GOAL_BOARD } from "../../../geometry/models/goalBoard";
 import { buildLedLetter, DEFAULT_LED_LETTER } from "../../../geometry/models/ledLetter";
 import { buildOutlineBowl, DEFAULT_OUTLINE_BOWL } from "../../../geometry/models/outlineBowl";
@@ -113,6 +114,46 @@ export const HOME_PROJECT_MODELS: ModelDef[] = [
       },
     ],
     build: (ctx, p) => buildAlphabetCube(ctx, as(p)),
+  },
+  {
+    id: "rpgDice",
+    category: "home",
+    label: "Dados de RPG",
+    blurb: "d4, d6, d8, d10, d12 e d20 com arestas arredondadas e número, bolinhas, texto ou desenho em cada face; conjunto completo numa mesa.",
+    icon: Dices,
+    font: true,
+    fontSection: 1,
+    art: "Desenho em cada face (SVG ou imagem; só no conteúdo \"Desenho\")",
+    defaults: DEFAULT_DICE,
+    sections: [
+      {
+        title: "Dado",
+        fields: [
+          choice("die", "Dado", [["d4", "d4"], ["d6", "d6"], ["d8", "d8"], ["d10", "d10"], ["d12", "d12"], ["d20", "d20"], ["set", "Conjunto completo (d4 a d20)"]]),
+          num("size", "Tamanho entre faces (mm)", 10, 40, { step: 1, hint: "Distância entre faces opostas (no d4, a altura). 16 a 22 mm é o tamanho de um dado comum." }),
+          num("rounding", "Arredondar as arestas (%)", 0, 100, { step: 5, hint: "0 deixa as pontas vivas; mais arredondado, menores as faces lisas para o conteúdo." }),
+        ],
+      },
+      {
+        title: "Faces",
+        fields: [
+          choice("content", "O que vai em cada face", [["numbers", "Números"], ["pips", "Bolinhas (só d6)"], ["custom", "Texto ou emoji por face"], ["art", "Desenho enviado"]]),
+          text("labels", "Texto de cada face", 120, "Separe por vírgula. Ex.: Cara, Coroa, ou ⚔️, 🛡️, 🧙. Falta rótulo? Repito os que você escreveu."),
+          bool("d10Zero", "d10 de 0 a 9 (tradicional)"),
+          bool("underline", "Sublinhar o 6 e o 9"),
+        ],
+      },
+      {
+        title: "Gravação e cores",
+        fields: [
+          choice("style", "Como fica o número", [["flush", "Rente, em 2 cores"], ["engraved", "Gravado fundo, 1 cor"], ["raised", "Em relevo, 2 cores"]]),
+          num("depth", "Profundidade ou altura", 0.4, 1.5, { step: 0.1 }),
+          color("bodyColor", "Dado"),
+          color("faceColor", "Número"),
+        ],
+      },
+    ],
+    build: (ctx, p) => buildDice(ctx, as(p)),
   },
   {
     id: "photoHolder",
