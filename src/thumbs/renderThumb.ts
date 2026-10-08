@@ -4,7 +4,7 @@ import { toCreasedNormals } from "three/addons/utils/BufferGeometryUtils.js";
 import { loadFont } from "../geometry/fonts";
 import { getManifold } from "../geometry/manifold";
 import type { ModelCtx } from "../geometry/models/common";
-import { testArt } from "../geometry/models/sampleArt";
+import { testArt, testArtLayers } from "../geometry/models/sampleArt";
 import { arcTextToCrossSection, textToCrossSection } from "../geometry/text";
 import type { Model } from "../geometry/types";
 import { MODELS, type Params } from "../tools/models/defs";
@@ -37,7 +37,7 @@ async function buildModels(id: string): Promise<Model[]> {
   const ctx: ModelCtx = {
     M,
     art: def.art ? testArt(M) : null,
-    artLayers: null,
+    artLayers: def.art && def.artColors ? testArtLayers(M) : null,
     text: (s, h) => (s.trim() ? textToCrossSection(M, font, s, h) : null),
     arc: (s, h, r, side) => (s.trim() ? arcTextToCrossSection(M, font, s, h, r, side) : null),
     fontText: (k) => (s, h) => (s.trim() ? textToCrossSection(M, extra[k] ?? font, s, h) : null),

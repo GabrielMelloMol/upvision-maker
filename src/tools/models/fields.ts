@@ -37,6 +37,8 @@ export type ModelDef = {
   sections: Section[];
   /** Aceita desenho enviado (SVG/imagem). */
   art?: string;
+  /** O modelo usa as cores do desenho (uma camada por cor): QA e miniatura usam um desenho de exemplo colorido. */
+  artColors?: boolean;
   /** Tem texto: mostra o seletor de fonte (na seção `fontSection`, padrão 0). */
   font?: boolean;
   fontSection?: number;

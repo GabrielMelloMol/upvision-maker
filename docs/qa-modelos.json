@@ -3226,6 +3226,63 @@
   "plates": 1
  },
  {
+  "key": "shadowbox:máximo",
+  "owner": "Torno",
+  "group": "home",
+  "label": "Quadro em camadas (shadowbox) (shadowbox)",
+  "variant": "máximo",
+  "status": "aviso",
+  "reasons": [
+   "o conjunto arrumado ocupa 240,0 × 1000,2 mm: passa da mesa de 256 mm",
+   "não coube numa placa: 4 placas",
+   "app: Monte na ordem dos números: a 1 é o fundo e a 4 fica na frente. Cole as bordas; a profundidade total fica em 52 mm.",
+   "app: 4 área(s) soltas ganharam uma ponte fina (1.6 mm) até a moldura para não caírem; corte a ponte com estilete se atrapalhar.",
+   "app: As 4 placas não cabem juntas na mesa de 256 mm: use \"Mesa por cor\" (uma placa por mesa)."
+  ],
+  "date": "2026-10-08",
+  "slicers": "Bambu ✓ · Orca ✓ · Projeto Bambu ✓",
+  "minutes": 650,
+  "grams": 555.6,
+  "plates": 4
+ },
+ {
+  "key": "shadowbox:mínimo",
+  "owner": "Torno",
+  "group": "home",
+  "label": "Quadro em camadas (shadowbox) (shadowbox)",
+  "variant": "mínimo",
+  "status": "aviso",
+  "reasons": [
+   "\"Camada 4 de 4 (frente)\": parede/traço < 0,4 mm em Z 0,2, 0,5, 0,9, 1,3, 1,6 mm",
+   "Orca: torre de purga passa da mesa na posição padrão do CLI (na tela, arraste a torre ou use Arrumar)",
+   "Projeto Bambu: torre de purga passa da mesa na posição padrão do CLI (na tela, arraste a torre ou use Arrumar)",
+   "app: Monte na ordem dos números: a 1 é o fundo e a 4 fica na frente. Cole as bordas; a profundidade total fica em 7 mm.",
+   "app: 4 área(s) soltas ganharam uma ponte fina (1.6 mm) até a moldura para não caírem; corte a ponte com estilete se atrapalhar."
+  ],
+  "date": "2026-10-08",
+  "slicers": "Bambu ✓ · Orca ✓ · Projeto Bambu ✓",
+  "minutes": 71,
+  "grams": 25.8,
+  "plates": 1
+ },
+ {
+  "key": "shadowbox:padrão",
+  "owner": "Torno",
+  "group": "home",
+  "label": "Quadro em camadas (shadowbox) (shadowbox)",
+  "variant": "padrão",
+  "status": "aviso",
+  "reasons": [
+   "Bambu: torre de purga em cima de uma peça depois do --arrange do CLI (na tela, arraste a torre ou use Arrumar)",
+   "Orca: torre de purga em cima de uma peça depois do --arrange do CLI (na tela, arraste a torre ou use Arrumar)",
+   "Projeto Bambu: torre de purga em cima de uma peça depois do --arrange do CLI (na tela, arraste a torre ou use Arrumar)",
+   "app: Monte na ordem dos números: a 1 é o fundo e a 4 fica na frente. Cole as bordas; a profundidade total fica em 17 mm.",
+   "app: 4 área(s) soltas ganharam uma ponte fina (1.6 mm) até a moldura para não caírem; corte a ponte com estilete se atrapalhar."
+  ],
+  "date": "2026-10-08",
+  "slicers": "Bambu ✓ · Orca ✓ · Projeto Bambu ✓"
+ },
+ {
   "key": "stampMold:máximo",
   "owner": "Torno",
   "group": "home",

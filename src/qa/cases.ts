@@ -1,4 +1,4 @@
-import { testArt } from "../geometry/models/sampleArt";
+import { testArt, testArtLayers } from "../geometry/models/sampleArt";
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
 import { loadFont } from "../geometry/fonts";
@@ -39,7 +39,7 @@ export function serveFontsFromDisk(root: string) {
 const QA_INPUTS: Record<string, Params> = { pix: { key: "loja@upvision.app", name: "UpVision Maker", city: "Sao Paulo" } };
 
 // desenho de teste: o mesmo das miniaturas (#149)
-export { testArt };
+export { testArt, testArtLayers };
 
 export async function modelCtx(M: ManifoldToplevel, p: Params, def: ModelDef): Promise<ModelCtx> {
   const f = await loadFont("hanken");
@@ -49,7 +49,7 @@ export async function modelCtx(M: ManifoldToplevel, p: Params, def: ModelDef): P
   return {
     M,
     art: def.art ? testArt(M) : null,
-    artLayers: null,
+    artLayers: def.art && def.artColors ? testArtLayers(M) : null,
     text,
     arc: (s, h, r, side) => (s.trim() ? arcTextToCrossSection(M, f, s, h, r, side) : null),
     fontText: (k) => (s, h) => (s.trim() ? textToCrossSection(M, extra[k] ?? f, s, h) : null),

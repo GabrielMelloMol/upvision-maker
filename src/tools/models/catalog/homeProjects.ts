@@ -1,4 +1,4 @@
-import { Box, CircleDot, Dices, Egg, Flower2, Goal, Image, LayoutGrid, Lightbulb, Spline, Stamp } from "lucide-react";
+import { Box, CircleDot, Dices, Egg, Flower2, Goal, Image, LayoutGrid, Layers, Lightbulb, Spline, Stamp } from "lucide-react";
 import { buildAlphabetCube, DEFAULT_ALPHABET_CUBE } from "../../../geometry/models/alphabetCube";
 import { buildDeskOrganizer, DEFAULT_DESK_ORGANIZER } from "../../../geometry/models/deskOrganizer";
 import { buildDice, DEFAULT_DICE } from "../../../geometry/models/dice";
@@ -7,6 +7,7 @@ import { buildLedLetter, DEFAULT_LED_LETTER } from "../../../geometry/models/led
 import { buildOutlineBowl, DEFAULT_OUTLINE_BOWL } from "../../../geometry/models/outlineBowl";
 import { buildPhotoHolder, DEFAULT_PHOTO_HOLDER } from "../../../geometry/models/photoHolder";
 import { buildScrewCase, DEFAULT_SCREW_CASE } from "../../../geometry/models/screwCase";
+import { buildShadowbox, DEFAULT_SHADOWBOX } from "../../../geometry/models/shadowbox";
 import { buildStampMold, DEFAULT_STAMP_MOLD } from "../../../geometry/models/stampMold";
 import { buildStringArt, DEFAULT_STRING_ART } from "../../../geometry/models/stringArt";
 import { buildVase, DEFAULT_VASE } from "../../../geometry/models/vase";
@@ -414,5 +415,34 @@ export const HOME_PROJECT_MODELS: ModelDef[] = [
       },
     ],
     build: (ctx, p) => buildVase(ctx, as(p)),
+  },
+  {
+    id: "shadowbox",
+    category: "home",
+    label: "Quadro em camadas (shadowbox)",
+    blurb: "A imagem colorida vira de 2 a 8 placas recortadas, uma por cor, que empilham com profundidade. Cada placa é de uma cor só e vem numerada.",
+    icon: Layers,
+    artColors: true,
+    art: "Imagem colorida (cada cor vira uma camada; 3 a 8 cores funcionam melhor)",
+    defaults: DEFAULT_SHADOWBOX,
+    sections: [
+      {
+        title: "Camadas",
+        fields: [
+          num("width", "Largura da imagem", 60, 200, { step: 1 }),
+          choice("order", "Cor no fundo", [["dark-back", "A mais escura"], ["light-back", "A mais clara"], ["image", "Ordem da imagem"]]),
+          num("gap", "Profundidade entre camadas", 1, 10, { hint: "Altura da borda que separa uma placa da seguinte." }),
+        ],
+      },
+      {
+        title: "Placas",
+        fields: [
+          num("plate", "Espessura da placa", 0.8, 3),
+          num("border", "Largura da moldura", 4, 20),
+          bool("led", "Fundo fino para luz de LED"),
+        ],
+      },
+    ],
+    build: (ctx, p) => buildShadowbox(ctx, as(p)),
   },
 ];
