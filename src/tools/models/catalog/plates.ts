@@ -1,8 +1,9 @@
-import { BriefcaseBusiness, Frame, IdCard, LayoutGrid, Palette, QrCode, RadioTower, Shield, Signpost, Users } from "lucide-react";
+import { BriefcaseBusiness, Disc3, Frame, IdCard, LayoutGrid, Palette, QrCode, RadioTower, Shield, Signpost, Users } from "lucide-react";
 import { buildBusinessCard, DEFAULT_BUSINESS_CARD } from "../../../geometry/models/businessCard";
 import { buildColoringTile, DEFAULT_COLORING_TILE } from "../../../geometry/models/coloringTile";
 import { buildLogoPlate, DEFAULT_ADAPTIVE_PLATE } from "../../../geometry/models/logoPlate";
 import { buildMolleTag, DEFAULT_MOLLE_TAG } from "../../../geometry/models/molleTag";
+import { buildMusicCard, DEFAULT_MUSIC_CARD } from "../../../geometry/models/musicCard";
 import { buildNamesPanel, DEFAULT_NAMES_PANEL } from "../../../geometry/models/namesPanel";
 import { buildNfcTotem, DEFAULT_NFC_TOTEM } from "../../../geometry/models/nfcTotem";
 import { buildPixPlate, DEFAULT_PIX_PLATE } from "../../../geometry/models/pixPlate";
@@ -32,6 +33,43 @@ export const PLATE_MODELS: ModelDef[] = [
       const amount = parseMoney(String(p.amountText));
       return buildPixPlate(ctx, as({ ...p, amount: Number.isFinite(amount) ? amount : 0 }));
     },
+  },
+  {
+    id: "musicCard",
+    category: "plates",
+    label: "Cartão de música",
+    blurb: "Placa com foto, título, artista, trecho da letra, barra de progresso e botões de player de desenho nosso. De mesa ou com ímã.",
+    icon: Disc3,
+    font: true,
+    fontSection: 1,
+    art: "Foto ou desenho (opcional)",
+    defaults: DEFAULT_MUSIC_CARD,
+    sections: [
+      { title: "Música", fields: [text("title", "Título", 30), text("artist", "Artista ou dupla", 30), text("line1", "Letra, linha 1", 36), text("line2", "Letra, linha 2", 36), text("line3", "Letra, linha 3", 36), text("line4", "Letra, linha 4", 36)] },
+      {
+        title: "Player",
+        fields: [
+          num("progress", "Trecho tocado", 0, 100, { step: 1, unit: "%" }),
+          text("timeStart", "Tempo de início", 6),
+          text("timeEnd", "Tempo final", 6),
+          bool("showButtons", "Botões de anterior, tocar e próxima"),
+          num("artHeight", "Altura da foto (1 = quadrada)", 0.4, 1.4, { step: 0.05, unit: "" }),
+        ],
+      },
+      {
+        title: "Tamanho e cores",
+        fields: [
+          num("width", "Largura", 80, 110, { step: 1, hint: "Até 110 mm: com foto quadrada o conjunto ainda cabe na mesa de 256 mm." }),
+          num("thickness", "Espessura", 2.4, 6),
+          num("relief", "Relevo", 0.4, 2),
+          choice("mount", "Fixação", [["stand", "Suporte de mesa"], ["magnet", "Ímã atrás"], ["none", "Nenhuma"]]),
+          color("plateColor", "Placa"),
+          color("textColor", "Textos e foto (1 cor)"),
+          color("accentColor", "Destaque (progresso e tocar)"),
+        ],
+      },
+    ],
+    build: (ctx, p) => buildMusicCard(ctx, as(p)),
   },
   {
     id: "adaptivePlate",

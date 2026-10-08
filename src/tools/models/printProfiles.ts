@@ -12,6 +12,7 @@ export const MODEL_PROFILES: Record<string, PrintProfile> = {
   articulatedName: { walls: 2, brim: false, notes: ["Dobradiça já montada: sem brim nem suporte. Depois de esfriar, gire as letras para soltar."] },
   spinner: { walls: 2, notes: ["Gira já montado: sem suporte."] },
   keyHolder: { walls: 4, infill: 25 },
+  musicCard: { walls: 2, infill: 15, notes: ["Textos e botões são relevo fino: imprima com a placa de frente para cima, camada de 0,12 a 0,16 mm."] },
   tableLamp: { walls: 3, notes: ["Cúpula clara e fina deixa a luz passar; a base pede mais preenchimento para ter peso."] },
   lamp: { walls: 2, notes: ["Difusor em filamento branco (1ª camada)."] },
   lineArt: { walls: 3, infill: 20 },
