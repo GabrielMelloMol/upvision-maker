@@ -1,8 +1,13 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import type { Filament } from "../domain/entities";
 import { lumaGrid } from "../geometry/heightfield";
+import { fitAspect, loopSeam } from "../geometry/lithophaneShapes";
+import { applyShapeMask } from "../geometry/lithophaneShaped";
+import { buildLithophaneSet, lithoGrid, seamOf } from "../geometry/lithophaneSet";
+import { bedWarnings } from "./models/bedCheck";
+import Toggle from "../ui/Toggle";
 import { buildLayeredPicture, DEFAULT_LAYERED, type ColorSwap } from "../geometry/layeredPicture";
-import { backlitPreview, buildLithophane, DEFAULT_LITHO, type LithoShape } from "../geometry/lithophane";
+import { backlitPreview, DEFAULT_LITHO, type LedOptions, type LithoShape } from "../geometry/lithophane";
 import type { Model } from "../geometry/types";
 import { getManifold } from "../geometry/manifold";
 import Alert from "../ui/Alert";
@@ -33,13 +38,30 @@ const SHAPES: [LithoShape, string][] = [
   ["flat", "Plana"],
   ["curved", "Curva"],
   ["box", "Caixa de luz"],
+  ["cylinder", "Cilindro (abajur)"],
+  ["heart", "Coração"],
+  ["circle", "Círculo"],
 ];
+const DEFAULT_LED: LedOptions = { kind: "disc", size: 50, power: "cable" };
+const LED_KINDS: ["disc" | "strip", string][] = [
+  ["disc", "Disco"],
+  ["strip", "Fita"],
+];
+const LED_POWER: ["cable" | "battery", string][] = [
+  ["cable", "Cabo"],
+  ["battery", "Pilhas"],
+];
+const SHAPE_HINT: Partial<Record<LithoShape, string>> = {
+  cylinder: "A foto dá a volta inteira (360°), com a emenda disfarçada; o relevo fica por dentro. Informe o diâmetro e a altura.",
+  heart: "A foto é cortada no formato de coração, com a moldura acompanhando o contorno.",
+  circle: "A foto é cortada em círculo, com a moldura acompanhando o contorno.",
+  box: "A caixa leva a mesma foto nos 4 lados.",
+};
 type View = "light" | "3d";
 const VIEWS: [View, string][] = [
   ["light", "Contra a luz"],
   ["3d", "3D"],
 ];
-const MAX_COLS = 400; // ~250 mil triângulos por face: prévia e 3MF continuam leves
 const THUMB_W = 72; // miniaturas das paletas prontas
 const FALLBACK_COLORS = DEFAULT_LAYERED.colors;
 const mmText = (n: number) => n.toFixed(2).replace(".", ",");
@@ -58,7 +80,9 @@ export default function Lithophane() {
       return { ...r, file: await restoreFile(r.file) };
     },
   });
-  const { mode, file, width, cell, litho, layered } = tool.state;
+  const { mode, file, width, cell, layered } = tool.state;
+  const litho = useMemo(() => ({ ...DEFAULT_LITHO, ...tool.state.litho }), [tool.state.litho]); // rascunho de antes dos formatos novos não tem os campos novos; memo: objeto novo a cada render refaria a peça sem parar
+  const led = litho.led;
   const [setMode, setFile, setWidth, setCell, setLitho, setLayered] = [tool.field("mode"), tool.field("file"), tool.field("width"), tool.field("cell"), tool.field("litho"), tool.field("layered")];
   useExample("lithophane", () => void exampleFile("landscape").then(setFile)); // "Usar exemplo" da ajuda (#84)
   const [swaps, setSwaps] = useState<ColorSwap[]>([]);
@@ -80,24 +104,35 @@ export default function Lithophane() {
     inRange(width, 20, 250) &&
     inRange(cell, 0.15, 1) &&
     (mode === "litho"
-      ? inRange(litho.minT, 0.4, 3) && inRange(litho.maxT, 1, 8) && inRange(litho.border, 0, 15) && inRange(litho.arc, 30, 270)
+      ? inRange(litho.minT, 0.4, 3) && inRange(litho.maxT, 1, 8) && inRange(litho.border, 0, 15) && inRange(litho.arc, 30, 270) &&
+        (litho.shape !== "cylinder" || (inRange(litho.diameter, 30, 150) && inRange(litho.height, 30, 200))) &&
+        (!led || (led.kind === "disc" ? inRange(led.size, 15, 120) : inRange(led.size, 4, 20)))
       : inRange(layered.base, 0.2, 3) && inRange(layered.relief, 0.4, 6) && inRange(layered.layerHeight, 0.04, 0.32) && (!layered.magnet || (inRange(layered.magnetD ?? 10, 4, 30) && inRange(layered.magnetH ?? 2, 1, 5))));
 
   const { models, warnings, pauses, busy, error } = useModelBuilder(async () => {
     if (!file || !valid) return null;
-    const step = Math.max(cell, width / MAX_COLS);
-    const cols = Math.round(width / step) + 1;
+    const grid = mode === "litho" ? lithoGrid(litho, width, cell) : { ...lithoGrid({ ...litho, shape: "flat" }, width, cell), aspect: null };
+    const { step, cols } = grid;
     const r = await loadRaster(file, (w) => cols / w);
     URL.revokeObjectURL(r.url);
-    const luma = lumaGrid(r.rgba, r.w, r.h);
+    const full = lumaGrid(r.rgba, r.w, r.h);
+    const crop = grid.aspect ? fitAspect(full, r.w, r.h, grid.aspect) : { luma: full, w: r.w, h: r.h };
+    const luma = crop.luma;
+    r.w = crop.w;
+    r.h = crop.h;
     const M = await getManifold();
     const warn = step > cell ? [`Detalhe limitado a ${mmText(step)} mm por ponto para a peça não ficar pesada.`] : [];
     if (mode === "litho") {
       setSwaps([]);
-      setBacklit(toDataUrl(backlitPreview(luma, r.w, r.h, step, litho), r.w, r.h));
-      const m = [buildLithophane(M, luma, r.w, r.h, step, litho)];
-      setExportModels(m);
-      return { models: m, warnings: warn };
+      const wrap = litho.shape === "cylinder";
+      // a prévia mostra o que a luz vê: no cilindro, a foto aberta já com a emenda; no coração e círculo, só a forma
+      const flat = wrap ? loopSeam(luma, r.w, r.h, seamOf(r.w)) : { luma, cols: r.w };
+      let backlitRgba: Uint8ClampedArray<ArrayBuffer> = backlitPreview(flat.luma, flat.cols, r.h, step, litho, wrap);
+      if (litho.shape === "heart" || litho.shape === "circle") backlitRgba = applyShapeMask(backlitRgba, flat.cols, r.h, step, litho.shape, litho.border);
+      setBacklit(toDataUrl(backlitRgba, flat.cols, r.h));
+      const set = buildLithophaneSet(M, luma, r.w, r.h, step, litho);
+      setExportModels(set.models);
+      return { models: set.models, warnings: [...warn, ...set.warnings, ...bedWarnings(set.models, [])] };
     }
     setThumb(thumbOf(luma, r.w, r.h));
     const subject = layered.subject ?? "none";
@@ -127,17 +162,49 @@ export default function Lithophane() {
             <h3>Foto</h3>
             <Segmented label="Tipo" value={mode} options={MODES} onChange={setMode} full />
             <Dropzone accept={IMAGE_ACCEPT} label={file ? file.name : "Arraste uma foto ou clique"} hint="Rostos e paisagens com bom contraste ficam melhores." onFile={setFile} />
-            <NumField label="Largura" value={width} onChange={setWidth} min={20} max={250} step={1} />
+            {!(mode === "litho" && litho.shape === "cylinder") && <NumField label="Largura" value={width} onChange={setWidth} min={20} max={250} step={1} />}
           </div>
           {mode === "litho" ? (
+            <>
             <div className="card stack">
               <h3>Litofania</h3>
-              <Segmented label="Formato" value={litho.shape} options={SHAPES} onChange={setL("shape")} full />
+              <label>
+                Formato
+                <select value={litho.shape} onChange={(e) => setL("shape")(e.target.value as LithoShape)}>
+                  {SHAPES.map(([id, text]) => (
+                    <option key={id} value={id}>
+                      {text}
+                    </option>
+                  ))}
+                </select>
+              </label>
+              {litho.shape === "cylinder" && (
+                <div className="grid two">
+                  <NumField label="Diâmetro" value={litho.diameter} onChange={setL("diameter")} min={30} max={150} step={1} />
+                  <NumField label="Altura" value={litho.height} onChange={setL("height")} min={30} max={200} step={1} />
+                </div>
+              )}
               <span className="hint">
                 Sai em pé, como se imprime litofania. Use filamento branco, 100% de preenchimento e camada de 0,12 mm.
-                {litho.shape === "box" && " A caixa leva a mesma foto nos 4 lados."}
+                {SHAPE_HINT[litho.shape] && ` ${SHAPE_HINT[litho.shape]}`}
               </span>
+              {litho.shape === "cylinder" && <Toggle label="Tampa de cima" checked={litho.lid} onChange={setL("lid")} hint="Um disco com colar que entra no cilindro, para fechar o abajur por cima." />}
             </div>
+            {(litho.shape === "flat" || litho.shape === "cylinder" || litho.shape === "heart" || litho.shape === "circle") && (
+              <div className="card stack">
+                <h3>Base de LED</h3>
+                <Toggle label="Fazer a base de LED" checked={!!led} onChange={(on) => setL("led")(on ? DEFAULT_LED : null)} hint="Uma base com encaixe para a peça, lugar para o LED e tampa de baixo. Imprima em outra cor ou na mesma." />
+                {led && (
+                  <>
+                    <Segmented label="Tipo de LED" value={led.kind} options={LED_KINDS} onChange={(kind) => setL("led")({ ...led, kind, size: kind === "disc" ? 50 : 10 })} full />
+                    <NumField label={led.kind === "disc" ? "Diâmetro do disco" : "Largura da fita"} value={led.size} onChange={(size) => setL("led")({ ...led, size })} min={led.kind === "disc" ? 15 : 4} max={led.kind === "disc" ? 120 : 20} step={1} />
+                    <Segmented label="Alimentação" value={led.power} options={LED_POWER} onChange={(power) => setL("led")({ ...led, power })} full />
+                    <span className="hint">{led.power === "cable" ? "Sai um furo de 5 mm atrás para o cabo." : "Compartimento para 2 pilhas AAA atrás, fechado pela tampa de baixo."} A tampa de baixo encaixa por atrito; um pingo de cola ou fita segura. A base aguenta preenchimento de 15% a 20% no fatiador.</span>
+                  </>
+                )}
+              </div>
+            )}
+            </>
           ) : (
             <LayeredPanel layered={layered} setLayered={setLayered} filColors={filColors} colors={colors} nameOf={nameOf} thumb={thumb} />
           )}

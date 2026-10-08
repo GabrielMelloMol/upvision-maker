@@ -8,7 +8,9 @@ import { loadFont } from "../geometry/fonts";
 import { composeKeychainArt } from "../geometry/keychainArt";
 import { buildKeychain, DEFAULT_KEYCHAIN, layoutOnPlate, type KeychainParams } from "../geometry/keychain";
 import { buildLayeredPicture, DEFAULT_LAYERED, type LayeredParams } from "../geometry/layeredPicture";
-import { buildLithophane, DEFAULT_LITHO, type LithoParams } from "../geometry/lithophane";
+import { DEFAULT_LITHO, type LithoParams } from "../geometry/lithophane";
+import { buildLithophaneSet, lithoGrid } from "../geometry/lithophaneSet";
+import { fitAspect } from "../geometry/lithophaneShapes";
 import type { CS, ManifoldToplevel } from "../geometry/manifold";
 import { buildMedalDesign, DEFAULT_MEDAL_DESIGN, type MedalDesign } from "../geometry/medalDesign";
 import { cutModels, DEFAULT_CUT } from "../geometry/planeCut";
@@ -70,6 +72,18 @@ function photo(width: number, cell: number) {
   return { luma, cols, rows, step };
 }
 
+/** Foto sintética de `cols` pontos de largura (4:3). */
+function photoGrid(cols: number) {
+  const rows = Math.round(cols * 0.75);
+  const luma = new Float32Array(cols * rows);
+  for (let r = 0; r < rows; r++)
+    for (let c = 0; c < cols; c++) {
+      const d = Math.hypot(c - cols / 2, r - rows / 2) / (rows / 2);
+      luma[r * cols + c] = Math.min(1, Math.max(0, 0.6 * (c / cols) + (d < 0.5 ? 0.4 : 0)));
+    }
+  return { luma, w: cols, h: rows };
+}
+
 export function toolCases(M: ManifoldToplevel): QaCase[] {
   const keychain = async (textH: number, patch: Partial<KeychainParams>, names = ["Ana"]): Promise<Out> => {
     const f = await loadFont("pacifico");
@@ -97,9 +111,14 @@ export function toolCases(M: ManifoldToplevel): QaCase[] {
   };
   const medalSizes = (v: number) => ({ topSize: v, centerSize: v, rankSize: v, dateSize: v, bottomSize: v });
 
+  // como a tela: grade e recorte por formato, peça mais base de LED e tampas, aviso de mesa junto
   const litho = (width: number, cell: number, patch: Partial<LithoParams>): Out => {
-    const ph = photo(width, cell);
-    return { models: [buildLithophane(M, ph.luma, ph.cols, ph.rows, ph.step, { ...DEFAULT_LITHO, ...patch })] };
+    const p = { ...DEFAULT_LITHO, ...patch };
+    const grid = lithoGrid(p, width, cell);
+    const ph = photoGrid(grid.cols);
+    const fit = grid.aspect ? fitAspect(ph.luma, ph.w, ph.h, grid.aspect) : ph;
+    const set = buildLithophaneSet(M, fit.luma, fit.w, fit.h, grid.step, p);
+    return { models: set.models, warnings: [...set.warnings, ...bedWarnings(set.models, set.warnings)] };
   };
   const layered = (width: number, cell: number, patch: Partial<LayeredParams>): Out => {
     const ph = photo(width, cell);
@@ -157,6 +176,19 @@ export function toolCases(M: ManifoldToplevel): QaCase[] {
       ["máximo", () => litho(250, 1, { minT: 3, maxT: 8, border: 15, arc: 270 }), LITHO_PROFILE],
       ["curva", () => litho(100, 0.3, { shape: "curved" }), LITHO_PROFILE],
       ["caixa", () => litho(100, 0.3, { shape: "box" }), LITHO_PROFILE],
+      // #101: cilindro, coração, círculo e a base de LED (disco ou fita, cabo ou pilhas)
+      ["cilindro", () => litho(100, 0.3, { shape: "cylinder" }), LITHO_PROFILE],
+      ["cilindro mínimo", () => litho(100, 0.15, { shape: "cylinder", diameter: 30, height: 30, minT: 0.4, maxT: 1, border: 0 }), LITHO_PROFILE],
+      ["cilindro máximo", () => litho(100, 1, { shape: "cylinder", diameter: 150, height: 200, minT: 3, maxT: 8, border: 15, lid: true, led: { kind: "disc", size: 120, power: "battery" } }), LITHO_PROFILE],
+      ["cilindro com base e tampa", () => litho(100, 0.3, { shape: "cylinder", lid: true, led: { kind: "disc", size: 50, power: "cable" } }), LITHO_PROFILE],
+      ["cilindro com fita e pilhas", () => litho(100, 0.3, { shape: "cylinder", led: { kind: "strip", size: 10, power: "battery" } }), LITHO_PROFILE],
+      ["coração", () => litho(100, 0.3, { shape: "heart" }), LITHO_PROFILE],
+      ["coração mínimo", () => litho(20, 0.15, { shape: "heart", border: 0, minT: 0.4, maxT: 1 }), LITHO_PROFILE],
+      ["coração com base", () => litho(100, 0.3, { shape: "heart", led: { kind: "disc", size: 50, power: "cable" } }), LITHO_PROFILE],
+      ["círculo", () => litho(100, 0.3, { shape: "circle" }), LITHO_PROFILE],
+      ["círculo máximo", () => litho(250, 1, { shape: "circle", border: 15, minT: 3, maxT: 8 }), LITHO_PROFILE],
+      ["círculo com fita e pilhas", () => litho(100, 0.3, { shape: "circle", led: { kind: "strip", size: 10, power: "battery" } }), LITHO_PROFILE],
+      ["plana com base", () => litho(100, 0.3, { shape: "flat", led: { kind: "disc", size: 50, power: "cable" } }), LITHO_PROFILE],
     ]),
     ...cases("layered", "Quadro por camadas", [
       ["padrão", () => layered(100, 0.3, {}), { ...LAYERED_PROFILE, layerHeight: DEFAULT_LAYERED.layerHeight }],

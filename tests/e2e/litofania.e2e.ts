@@ -3,6 +3,8 @@ import { expect, go, openApp, test, toastWith } from "./tauri";
 
 const SHOTS = process.env.SHOTS_DIR;
 const objects3mf = (buf: Buffer) => (strFromU8(unzipSync(new Uint8Array(buf))["3D/3dmodel.model"]).match(/<object /g) ?? []).length;
+/** Objetos na mesa do 3MF (uma peça com várias partes conta uma vez). */
+const items3mf = (buf: Buffer) => (strFromU8(unzipSync(new Uint8Array(buf))["3D/3dmodel.model"]).match(/<item /g) ?? []).length;
 const hud = (page: import("@playwright/test").Page) => page.locator(".viewer .hud");
 /**
  * Espera a prévia terminar de gerar e devolve o texto das medidas. Relevo de foto é pesado: sob carga leva minutos.
@@ -30,10 +32,10 @@ test("litofania: plana, curva e caixa de luz a partir da foto; salva 3MF (#13)",
   const flat = await settled(page);
   if (SHOTS) await page.screenshot({ path: `${SHOTS}/litofania-plana.png` });
 
-  await page.getByRole("button", { name: "Curva", exact: true }).click();
+  await page.getByLabel("Formato").selectOption("curved");
   const curved = await settled(page);
   expect(curved).not.toBe(flat);
-  await page.getByRole("button", { name: "Caixa de luz", exact: true }).click();
+  await page.getByLabel("Formato").selectOption("box");
   expect(await settled(page)).not.toBe(curved);
   if (SHOTS) await page.screenshot({ path: `${SHOTS}/litofania-caixa.png` });
 
@@ -71,4 +73,35 @@ test("quadro por camadas: filamentos cadastrados viram trocas por camada; AMS se
   await page.getByRole("button", { name: /Salvar uma mesa por cor \(3 arquivos\)/ }).click();
   await expect(toastWith(page, "3 mesas salvas em /pasta")).toBeVisible();
   expect([...tauri.files.keys()].filter((k) => k.startsWith("/pasta/quadro-camadas-cor-")).sort()).toEqual(["/pasta/quadro-camadas-cor-1.3mf", "/pasta/quadro-camadas-cor-2.3mf", "/pasta/quadro-camadas-cor-3.3mf"]);
+});
+
+test("litofania: abajur cilíndrico, coração e círculo com a base de LED; um 3MF com a peça, a base e as tampas (#101)", async ({ page, tauri }) => {
+  await openApp(page);
+  await go(page, "Litofania e quadro");
+  await page.locator('input[type="file"]').setInputFiles("tests/fixtures/foto-pessoa.jpg");
+  await expect(page.getByRole("img", { name: "Simulação da litofania contra a luz" })).toBeVisible({ timeout: 150_000 });
+  await page.getByLabel("Formato").selectOption("cylinder");
+  await expect(page.getByLabel(/^Largura/)).toHaveCount(0); // no cilindro vale o diâmetro e a altura
+  await page.getByLabel(/^Diâmetro \(mm\)/).fill("70");
+  await page.getByLabel(/^Altura \(mm\)/).fill("60");
+  await page.getByRole("switch", { name: "Fazer a base de LED" }).check();
+  await page.getByRole("switch", { name: "Tampa de cima" }).check();
+  await page.getByRole("group", { name: "Prévia" }).getByRole("button", { name: "3D" }).click();
+  await settled(page);
+  await page.getByRole("button", { name: /Salvar 3MF/ }).click();
+  await expect(toastWith(page, "Arquivo salvo em")).toBeVisible();
+  const cyl = [...tauri.files].find(([p]) => p.endsWith("litofania.3mf"))!;
+  expect(items3mf(cyl[1])).toBe(4); // tubo, base de LED, tampa da base e tampa do abajur
+
+  for (const shape of ["heart", "circle"]) {
+    await page.getByLabel("Formato").selectOption(shape);
+    await settled(page);
+  }
+  await page.getByRole("button", { name: "Fita" }).click();
+  await page.getByRole("button", { name: "Pilhas" }).click();
+  await settled(page);
+  await page.getByRole("button", { name: /Salvar 3MF/ }).click();
+  await expect.poll(() => [...tauri.files].filter(([p]) => p.endsWith("litofania.3mf")).length).toBeGreaterThan(0);
+  const circle = [...tauri.files].find(([p]) => p.endsWith("litofania.3mf"))!;
+  expect(items3mf(circle[1])).toBe(3); // círculo, base de LED e tampa da base
 });

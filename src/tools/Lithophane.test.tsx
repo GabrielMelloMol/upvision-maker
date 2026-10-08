@@ -93,3 +93,63 @@ describe("Litofania e quadro", () => {
     expect(files["Metadata/custom_gcode_per_layer.xml"]).toBeUndefined(); // com AMS, sem pausas
   }, 40_000);
 });
+
+describe("formatos novos e base de LED (#101)", () => {
+  const objects = (name: string) => strFromU8(unzipSync(t.files.get(name)!)["3D/3dmodel.model"]).match(/<item /g)?.length ?? 0;
+  const items = (name: string) => [...strFromU8(unzipSync(t.files.get(name)!)["Metadata/model_settings.config"]).matchAll(/<object id="\d+"><metadata key="name" value="([^"]*)"/g)].map((m) => m[1]);
+
+  test("cilindro: pede diâmetro e altura (a largura some), salva o tubo e, com a base de LED, a tampa de baixo e a de cima, tudo no mesmo 3MF", async () => {
+    const { user } = await withPhoto();
+    await user.selectOptions(screen.getByLabelText("Formato"), "cylinder");
+    expect(screen.queryByLabelText(/^Largura/)).not.toBeInTheDocument();
+    await user.clear(screen.getByLabelText(/^Diâmetro \(mm\)/));
+    await user.type(screen.getByLabelText(/^Diâmetro \(mm\)/), "60");
+    await user.clear(screen.getByLabelText(/^Altura \(mm\)/));
+    await user.type(screen.getByLabelText(/^Altura \(mm\)/), "70");
+    await user.click(screen.getByRole("switch", { name: "Fazer a base de LED" }));
+    await user.click(screen.getByRole("switch", { name: "Tampa de cima" }));
+    await user.click(screen.getByRole("button", { name: "3D" }));
+    await waitFor(() => expect(screen.getByRole("button", { name: /Salvar 3MF/ })).toBeEnabled(), BUILD);
+    await user.click(screen.getByRole("button", { name: /Salvar 3MF/ }));
+    await waitFor(() => expect(t.files.has("/saida/litofania.3mf")).toBe(true));
+    expect(items("/saida/litofania.3mf")).toEqual(["Litofania", "Base de LED", "Tampa da base", "Tampa do abajur"]);
+    expect(objects("/saida/litofania.3mf")).toBe(4);
+  }, 90_000);
+
+  test("coração com base de fita e pilhas: tipo, largura da fita e alimentação mudam a base; sem a base volta a uma peça", async () => {
+    const { user } = await withPhoto();
+    await user.selectOptions(screen.getByLabelText("Formato"), "heart");
+    expect(screen.queryByLabelText(/^Diâmetro \(mm\)/)).not.toBeInTheDocument();
+    await user.click(screen.getByRole("switch", { name: "Fazer a base de LED" }));
+    await user.click(screen.getByRole("button", { name: "Fita" }));
+    expect(screen.getByLabelText(/^Largura da fita/)).toHaveValue(10);
+    await user.click(screen.getByRole("button", { name: "Pilhas" }));
+    expect(screen.getByText(/2 pilhas AAA/)).toBeInTheDocument();
+    await user.click(screen.getByRole("button", { name: "3D" }));
+    await waitFor(() => expect(screen.getByRole("button", { name: /Salvar 3MF/ })).toBeEnabled(), BUILD);
+    await user.click(screen.getByRole("button", { name: /Salvar 3MF/ }));
+    await waitFor(() => expect(t.files.has("/saida/litofania.3mf")).toBe(true));
+    expect(items("/saida/litofania.3mf")).toEqual(["Litofania", "Base de LED", "Tampa da base"]);
+    t.files.clear();
+    await user.click(screen.getByRole("switch", { name: "Fazer a base de LED" }));
+    await waitFor(() => expect(screen.getByRole("button", { name: /Salvar 3MF/ })).toBeEnabled(), BUILD);
+    await user.click(screen.getByRole("button", { name: /Salvar 3MF/ }));
+    await waitFor(() => expect(t.files.has("/saida/litofania.3mf")).toBe(true));
+    expect(items("/saida/litofania.3mf")).toEqual(["Litofania"]);
+  }, 90_000);
+
+  test("curva e caixa não têm base de LED: a seção some do formulário", async () => {
+    const { user } = await withPhoto();
+    expect(screen.getByRole("switch", { name: "Fazer a base de LED" })).toBeInTheDocument(); // plana
+    await user.selectOptions(screen.getByLabelText("Formato"), "curved");
+    expect(screen.queryByRole("switch", { name: "Fazer a base de LED" })).not.toBeInTheDocument();
+  });
+
+  test("diâmetro ou disco de LED fora dos limites marca o campo e bloqueia a peça", async () => {
+    const { user } = await withPhoto();
+    await user.selectOptions(screen.getByLabelText("Formato"), "cylinder");
+    await user.clear(screen.getByLabelText(/^Diâmetro \(mm\)/));
+    await user.type(screen.getByLabelText(/^Diâmetro \(mm\)/), "500");
+    expect(await screen.findByText(/Use entre 30 e 150/)).toBeInTheDocument();
+  });
+});

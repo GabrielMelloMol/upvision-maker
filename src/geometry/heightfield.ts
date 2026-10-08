@@ -46,7 +46,7 @@ export function heightfieldMesh(t: Float32Array, cols: number, rows: number, cel
   return signedVolume(mesh) < 0 ? flip(mesh) : mesh;
 }
 
-function signedVolume(m: Mesh): number {
+export function signedVolume(m: Mesh): number {
   let v = 0;
   const p = m.positions;
   for (let i = 0; i < m.indices.length; i += 3) {
@@ -57,7 +57,7 @@ function signedVolume(m: Mesh): number {
 }
 
 /** Inverte a orientação dos triângulos (espelhar/curvar pode virar a malha do avesso). */
-function flip(m: Mesh): Mesh {
+export function flip(m: Mesh): Mesh {
   const idx = m.indices.slice();
   for (let i = 0; i < idx.length; i += 3) [idx[i + 1], idx[i + 2]] = [idx[i + 2], idx[i + 1]];
   return { positions: m.positions, indices: idx };

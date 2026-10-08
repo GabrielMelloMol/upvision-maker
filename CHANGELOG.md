@@ -3,6 +3,9 @@
 Cada versão aparece para a usuária na tela "O que há de novo" depois da atualização.
 Formato: `## <versão> — <data>` e itens `- …` em linguagem simples.
 
+## Próxima versão (ainda não lançada)
+- **Litofania em abajur, coração e círculo, com base de LED**: além da plana, curva e caixa de luz, a foto agora dá a volta num **cilindro** (você informa o diâmetro e a altura; a emenda é disfarçada e o relevo fica por dentro), ou sai em **coração** e **círculo** com a moldura acompanhando o contorno. A **base de LED** leva encaixe para a peça, lugar para um disco ou uma fita de LED (o diâmetro é livre), saída de cabo ou compartimento para 2 pilhas AAA, e uma tampa de baixo; no abajur ainda dá para fazer a tampa de cima. Tudo vai no mesmo arquivo 3MF, já arrumado na mesa.
+
 ## 0.11.0 — 2026-10-08
 - **Chaveiro: a arte do logo agora gira, move e muda de tamanho à mão, e o SVG não entra mais torto**: ao lado da prévia há uma "Vista de cima · arte" com alça para arrastar, girar e mudar o tamanho (setas movem 1 mm), e campos "Girar a arte", "Mover para a direita" e "Mover para cima", com "Voltar ao automático". O arquivo entrava torto porque o leitor ignorava giro/escala escritos em estilo (CSS), ligações `<use href>`, `<symbol>` e arcos com giro; agora ele é lido como o navegador mostra.
 - Quadro por camadas ganha "Mesa por cor"; peças soltas de uma cor (letras, pixels afastados) viram mesas próprias já no chão; teste de frescor da tabela de AMS e fatiamento das mesas no Bambu Studio e no OrcaSlicer (`validate-models --plates`) (#118)
