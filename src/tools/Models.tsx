@@ -20,7 +20,7 @@ import { useModelBuilder } from "../ui/useModelBuilder";
 import { DESIGN_ACCEPT, designFromSvg, fileToSvg } from "./designInput";
 import { MissingInput } from "../geometry/models/common";
 import { MODELS, validParams, type Category, type Params } from "./models/defs";
-import { VARIANTS } from "./models/variants";
+import { inCollection, VARIANTS, type Collection } from "./models/variants";
 import { profileFor } from "./models/printProfiles";
 import { EMOJI_FIELDS } from "./models/emoji";
 import { BATCH_FIELDS, layoutCopies, MAX_COPIES, parseBatch } from "./models/batch";
@@ -83,7 +83,11 @@ export default function Models() {
   const [artError, setArtError] = useState<string | null>(null);
   // aberto pela galeria Criar (#139): já vem com o modelo escolhido, sem virar passo de desfazer
   // ou pelo pedido (#164, "Preparar impressão"): com a personalização do item no lote
-  const [intent] = useState(() => takeIntent<{ id: string; batch?: string }>("models"));
+  const [intent] = useState(() => {
+    const i = takeIntent<{ id?: string; batch?: string; occasion?: Collection }>("models");
+    // vindo do destaque da ocasião (#120): abre no primeiro modelo da coleção
+    return i?.occasion && !i.id ? { ...i, id: MODELS.find((m) => inCollection(m.id, i.occasion!))?.id } : i;
+  });
   const [wanted] = useState(() => MODELS.find((m) => m.id === intent?.id));
   // a aba segue a família do modelo aberto (a família pode estar noutra categoria que o modelo, #141)
   const [category, setCategory] = useState<Category>(() => familyOf(wanted?.id ?? tool.state.id).category);
@@ -101,7 +105,7 @@ export default function Models() {
   const [query, setQuery] = useState("");
   const [missing, setMissing] = useState<string | null>(null);
   // ocasião ou favoritos: filtro que atravessa as categorias (como a busca)
-  const [occasion, setOccasion] = useState<Occasion>(null);
+  const [occasion, setOccasion] = useState<Occasion>(intent?.occasion ?? null);
   const [favorites, setFavorites] = useState<string[]>(loadFavorites);
   const def = MODELS.find((m) => m.id === id)!;
   const lay = useModelLayers(id, tool.state.edits, (fn) => tool.set((cur) => ({ ...cur, edits: fn(cur.edits) }))); // camadas livres (#26)

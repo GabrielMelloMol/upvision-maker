@@ -5,6 +5,9 @@ export const COLLECTIONS = [
   ["maes", "Dia das Mães"],
   ["natal", "Natal"],
   ["pascoa", "Páscoa"],
+  ["junina", "Festa Junina"],
+  ["pais", "Dia dos Pais"],
+  ["criancas", "Dia das Crianças"],
   ["aniversario", "Aniversário"],
   ["formatura", "Formatura"],
   ["casamento", "Casamento"],
@@ -49,6 +52,7 @@ export const MODEL_COLLECTIONS: Record<string, Collection[]> = {
   screwCase: ["maes", "aniversario"],
   textureRoller: ["natal", "pascoa"],
   goalBoard: ["negocio", "casamento"],
+  rpgDice: ["criancas", "aniversario"],
 };
 
 const PINK = "#f472b6", GOLD = "#f5c542", WHITE = "#f8f8f6", BLACK = "#1c1c1e", RED = "#d6262e", GREEN = "#22a04b", BLUE = "#2563eb", LILAC = "#7e3fd6", SKY = "#7cc4f5";
@@ -60,9 +64,13 @@ export const VARIANTS: Record<string, Variant[]> = {
     { label: "Chá de bebê", patch: { line1: "Bem-vindo", line2: "Theo", baseColor: SKY, textColor: WHITE }, collections: ["cha"] },
     { label: "Formatura", patch: { line1: "Formada!", line2: "Turma 2026", baseColor: BLACK, textColor: GOLD }, collections: ["formatura"] },
     { label: "Dia das Mães", patch: { line1: "Mãe", line2: "te amo", baseColor: PINK, textColor: WHITE }, collections: ["maes"] },
+    { label: "Dia dos Pais", patch: { line1: "Pai", line2: "meu herói", baseColor: BLUE, textColor: WHITE }, collections: ["pais"] },
+    { label: "Dia das Crianças", patch: { line1: "Feliz", line2: "Dia das Crianças", baseColor: SKY, textColor: WHITE }, collections: ["criancas"] },
+    { label: "Arraiá", patch: { line1: "Arraiá", line2: "do Théo", baseColor: RED, textColor: GOLD }, collections: ["junina"] },
   ],
   bookmark: [
     { label: "Mãe", patch: { text: "Mãe, te amo", baseColor: PINK, textColor: WHITE }, collections: ["maes"] },
+    { label: "Pai", patch: { text: "Pai, te amo", baseColor: BLUE, textColor: WHITE }, collections: ["pais"] },
     { label: "Professora", patch: { text: "Obrigada, prô!", baseColor: GREEN, textColor: WHITE }, collections: ["profissoes"] },
     { label: "Leitura", patch: { text: "Só mais um capítulo", baseColor: BLACK, textColor: GOLD } },
   ],
@@ -70,10 +78,13 @@ export const VARIANTS: Record<string, Variant[]> = {
     { label: "Professora", patch: { text: "Prô Ana", bodyColor: GREEN, textColor: WHITE }, collections: ["profissoes"] },
     { label: "Escritório", patch: { text: "Equipe", bodyColor: BLACK, textColor: WHITE }, collections: ["negocio"] },
     { label: "Mãe", patch: { text: "Mãe", bodyColor: PINK, textColor: WHITE }, collections: ["maes"] },
+    { label: "Pai", patch: { text: "Pai", bodyColor: BLUE, textColor: WHITE }, collections: ["pais"] },
   ],
   spinner: [
     { label: "Mãe", patch: { text: "Mãe", frameColor: PINK, diskColor: WHITE, textColor: PINK }, collections: ["maes"] },
-    { label: "Pai", patch: { text: "Pai", frameColor: BLACK, diskColor: BLUE, textColor: WHITE } },
+    { label: "Pai", patch: { text: "Pai", frameColor: BLACK, diskColor: BLUE, textColor: WHITE }, collections: ["pais"] },
+    { label: "Criança", patch: { text: "Léo", frameColor: SKY, diskColor: GOLD, textColor: BLACK }, collections: ["criancas"] },
+    { label: "São João", patch: { text: "Arraiá", frameColor: RED, diskColor: GOLD, textColor: BLACK }, collections: ["junina"] },
     { label: "Natal", patch: { text: "Noel", frameColor: RED, diskColor: GREEN, textColor: WHITE }, collections: ["natal"] },
   ],
   nfc: [
@@ -83,6 +94,7 @@ export const VARIANTS: Record<string, Variant[]> = {
   trophy: [
     { label: "1º lugar", patch: { text: "1º LUGAR", shape: "star", plateColor: GOLD }, collections: ["formatura"] },
     { label: "Melhor mãe", patch: { text: "MELHOR MÃE", shape: "circle", plateColor: PINK, accentColor: WHITE }, collections: ["maes"] },
+    { label: "Melhor pai", patch: { text: "MELHOR PAI", shape: "circle", plateColor: BLUE, accentColor: WHITE }, collections: ["pais"] },
     { label: "Funcionário do mês", patch: { text: "DESTAQUE", baseText: "Funcionário do mês", shape: "shield", plateColor: GOLD }, collections: ["negocio", "profissoes"] },
   ],
   stamp: [
@@ -126,6 +138,9 @@ export const VARIANTS: Record<string, Variant[]> = {
   lamp: [
     { label: "LOVE", patch: { text: "LOVE" }, collections: ["casamento"] },
     { label: "MÃE", patch: { text: "MÃE" }, collections: ["maes"] },
+    { label: "PAI", patch: { text: "PAI" }, collections: ["pais"] },
+    { label: "ARRAIÁ", patch: { text: "ARRAIÁ" }, collections: ["junina"] },
+    { label: "KIDS", patch: { text: "KIDS" }, collections: ["criancas"] },
     { label: "Nome do bebê", patch: { text: "THEO" }, collections: ["cha"] },
   ],
   businessCard: [

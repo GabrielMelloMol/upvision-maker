@@ -10,6 +10,7 @@ import { addDays } from "../domain/quotes";
 import { PAGES, type Go } from "../pages";
 import { setPendingOpen } from "../ui/search";
 import { useData } from "../ui/useData";
+import OccasionCard from "../ui/OccasionCard";
 import StartHere, { type StartSteps } from "../help/StartHere";
 
 const ACTIONS = [
@@ -80,6 +81,7 @@ export default function Home({ go }: { go: Go }) {
           </li>
         ))}
       </ul>
+      <OccasionCard go={go} />
       {!loading && <StartHere go={go} done={data.steps} />}
 
       {recent.length > 0 && (

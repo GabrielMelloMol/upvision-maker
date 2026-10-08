@@ -81,6 +81,7 @@ for (const size of SIZES) {
         for (const screen of list) {
           const { id } = screen;
           await open(page, screen);
+          await page.mouse.move(0, 0); // o ponteiro fica onde o clique parou: um card sob ele ganharia o zoom do hover e "transbordaria"
           await expect(page.locator("main h1").first()).toBeVisible();
           await page.waitForTimeout(600); // listas e miniaturas carregam do banco
           // listas roladas ao clicar: a foto não depende da ordem das telas

@@ -7,6 +7,7 @@ import { AMS_NEED, worksWithoutAms } from "../tools/models/amsTable";
 import { CATEGORIES } from "../tools/models/defs";
 import { familiesIn, modelOf, type Family } from "../tools/models/families";
 import { THUMBS } from "../tools/models/thumbs";
+import OccasionCard from "../ui/OccasionCard";
 import Segmented from "../ui/Segmented";
 import Toggle from "../ui/Toggle";
 
@@ -59,6 +60,7 @@ export default function Create({ go }: { go: Go }) {
   return (
     <div className="page create">
       <h1>Criar</h1>
+      <OccasionCard go={go} />
       <div className="create-filters">
         <label className="affix has-prefix create-search">
           <Search aria-hidden className="prefix" />
