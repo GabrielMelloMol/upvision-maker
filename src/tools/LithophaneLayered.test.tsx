@@ -35,8 +35,8 @@ beforeEach(async () => {
 async function layered() {
   const user = userEvent.setup();
   const { container } = renderWithApp(<Lithophane />);
+  await user.click(screen.getByRole("button", { name: /^Quadro por camadas/ })); // escolha inicial da Foto em relevo
   await user.upload(container.querySelector<HTMLInputElement>('input[type="file"]')!, new File(["x"], "foto.jpg", { type: "image/jpeg" }));
-  await user.click(screen.getByRole("button", { name: "Quadro por camadas" }));
   await screen.findByLabelText("Trocas de filamento", undefined, BUILD);
   return user;
 }

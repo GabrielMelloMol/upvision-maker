@@ -1,5 +1,5 @@
 import { Fragment } from "react";
-import { openWith } from "../tools/intent";
+import { openModel } from "../tools/modelPlaces";
 import { requestNavigate } from "./navigate";
 
 export type SeeAlsoItem = { label: string; /** tela da ferramenta */ page?: string; /** ou um Modelo pronto */ model?: string };
@@ -7,7 +7,7 @@ export type SeeAlsoItem = { label: string; /** tela da ferramenta */ page?: stri
 /** "Veja também" (onde fica): atalhos entre ferramentas parecidas, para quem chegou na que não era a certa. */
 export default function SeeAlso({ items }: { items: SeeAlsoItem[] }) {
   const go = (it: SeeAlsoItem) => {
-    if (it.model) openWith("models", { id: it.model });
+    if (it.model) return requestNavigate(openModel(it.model)); // o que virou aba de ferramenta abre na aba
     requestNavigate(it.page ?? "models");
   };
   return (

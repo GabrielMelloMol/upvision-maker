@@ -1,3 +1,4 @@
+import { openRelief } from "./relief";
 import { expect, go, openApp, test, toastWith } from "./tauri";
 
 const SHOTS = process.env.SHOTS_DIR;
@@ -54,12 +55,12 @@ test("chaveiro: desfazer/refazer, rascunho guardado (Continuar / Começar do zer
 test("litofania: a foto volta junto no Continuar; medalha tem desfazer (#85)", async ({ page, tauri }) => {
   test.slow(); // prévia 3D ida e volta: com a suíte inteira em paralelo passa de 60 s
   await openApp(page);
-  await go(page, "Litofania e quadro");
+  await openRelief(page);
   await page.locator('input[type="file"]').setInputFiles("tests/fixtures/foto-pessoa.jpg");
   await expect(page.getByRole("img", { name: "Simulação da litofania contra a luz" })).toBeVisible({ timeout: 90_000 });
   await expect.poll(() => (tauri.db.prepare("SELECT data FROM tool_state WHERE id = 'lithophane'").get() as { data?: string } | undefined)?.data ?? "", { timeout: 15_000 }).toContain("data:image/jpeg;base64");
   await page.reload();
-  await go(page, "Litofania e quadro");
+  await go(page, "Foto em relevo");
   await page.getByRole("button", { name: "Continuar de onde parou" }).click();
   await expect(page.getByRole("img", { name: "Simulação da litofania contra a luz" })).toBeVisible({ timeout: 90_000 });
 

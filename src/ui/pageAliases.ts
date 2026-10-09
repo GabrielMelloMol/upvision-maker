@@ -9,7 +9,7 @@ export const PAGE_ALIASES: Record<string, string> = {
   qr: "qr code pix pagamento wifi link",
   models: "modelos prontos catálogo",
   spools: "etiqueta rolo filamento qr estoque",
-  lithophane: "litofania lithophane foto em relevo luz lâmpada quadro de luz abajur foto 3d",
+  lithophane: "foto em relevo litofania e quadro litofania lithophane colorida relevo baixo-relevo quadro por camadas shadowbox shadow box luz lâmpada quadro de luz abajur foto 3d",
   pixel: "pixel art mosaico 8 bits quebra cabeça ímã imã",
   drawer: "gaveta organizador caixinhas divisória medir gridfinity",
   toolfit: "ferramenta foto organizador encaixe contorno gridfinity gaveta",

@@ -77,7 +77,8 @@ test("memória: parado, em cada ferramenta e depois de voltar para o Início", a
   await at("svg");
   await home("svg");
 
-  await go(page, "Litofania e quadro");
+  await go(page, "Foto em relevo");
+  await page.getByRole("region", { name: "O que você quer fazer?" }).getByRole("button", { name: /^Litofania/ }).click();
   await page.locator('input[type="file"]').setInputFiles("tests/fixtures/foto-pessoa.jpg");
   await expect(page.getByRole("img", { name: "Simulação da litofania contra a luz" })).toBeVisible();
   await at("litofania");

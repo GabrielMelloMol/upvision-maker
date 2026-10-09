@@ -67,7 +67,8 @@ const initialState = () => ({
 type ModelsState = ReturnType<typeof initialState>;
 
 /** Modelos paramétricos prontos: escolha na galeria, ajuste os campos, veja em 3D e salve o 3MF em cores. */
-export default function Models() {
+/** `only`: mostra um modelo só, sem galeria nem título (ele vive como aba de outra ferramenta, ex.: Shadowbox em Foto em relevo). */
+export default function Models({ only }: { only?: string } = {}) {
   // estado de trabalho (#85): modelo, campos de cada modelo, fonte, desenho, lote, camadas e posições no mesmo desfazer
   const tool = useToolState("models", initialState, {
     label: "Modelos prontos",
@@ -98,6 +99,9 @@ export default function Models() {
     setShownId(id);
     setCategory(familyOf(id).category);
   }
+  useEffect(() => {
+    if (only) adopt((cur) => (cur.id === only ? cur : { ...cur, id: only })); // aba de outra ferramenta: sempre este modelo
+  }, [adopt, only]);
   useEffect(() => {
     if (!wanted) return;
     const batch = intent?.batch?.trim();
@@ -256,11 +260,11 @@ export default function Models() {
   const family = familyOf(id);
 
   return (
-    <div className="page">
-      <h1>Modelos prontos</h1>
-      <p className="lead">Escolha, ajuste o texto e salve o 3MF em cores.</p>
+    <div className={only ? "embedded" : "page"}>
+      {!only && <h1>Modelos prontos</h1>}
+      {!only && <p className="lead">Escolha, ajuste o texto e salve o 3MF em cores.</p>}
       <ToolSessionBar tool={tool} />
-      <ModelGallery id={id} onPick={pickFromGallery} category={category} onCategory={setCategory} query={query} onQuery={setQuery} occasion={occasion} onOccasion={setOccasion} favorites={favorites} />
+      {!only && <ModelGallery id={id} onPick={pickFromGallery} category={category} onCategory={setCategory} query={query} onQuery={setQuery} occasion={occasion} onOccasion={setOccasion} favorites={favorites} />}
       <div className="tool-layout" ref={layoutRef}>
         <div className="controls">
           <div className="row model-head">
@@ -274,7 +278,7 @@ export default function Models() {
             </button>
           </div>
           <p className="hint">{def.blurb}</p>
-          <VariantPicker id={id} onPick={pickVariant} />
+          {!only && <VariantPicker id={id} onPick={pickVariant} />}
           {variants.length > 0 && (
             <div className="chips" role="group" aria-label="Variações prontas">
               {variants.map((v) => (

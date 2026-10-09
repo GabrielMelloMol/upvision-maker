@@ -6,6 +6,9 @@ import { fitAspect, loopSeam } from "../geometry/lithophaneShapes";
 import { applyShapeMask } from "../geometry/lithophaneShaped";
 import { buildColorLithophane, colorPreview, DEFAULT_COLOR_LITHO, type ColorLithoParams } from "../geometry/lithophaneColor";
 import ColorLithoPanel from "./ColorLithoPanel";
+import Models from "./Models";
+import ReliefChooser, { type ReliefMode } from "./ReliefChooser";
+import { takeIntent } from "./intent";
 import ReliefPanel, { DEFAULT_RELIEF_UI, type ReliefUi } from "./ReliefPanel";
 import { buildRelief } from "../geometry/relief";
 import { buildLithophaneSet, lithoGrid, seamOf } from "../geometry/lithophaneSet";
@@ -34,12 +37,13 @@ import { toDataUrl } from "./rasterUrl";
 import LayeredPanel, { DEFAULT_LAYERED_UI, type LayeredUi, type Thumb } from "./layered/LayeredPanel";
 import { segmentSubject } from "../vectorize/segment";
 
-type Mode = "litho" | "color" | "relief" | "layered";
+type Mode = ReliefMode;
 const MODES: [Mode, string][] = [
   ["litho", "Litofania"],
   ["color", "Colorida"],
   ["relief", "Relevo"],
   ["layered", "Quadro por camadas"],
+  ["shadowbox", "Shadowbox"],
 ];
 const SHAPES: [LithoShape, string][] = [
   ["flat", "Plana"],
@@ -74,14 +78,14 @@ const THUMB_W = 72; // miniaturas das paletas prontas
 const FALLBACK_COLORS = DEFAULT_LAYERED.colors;
 const mmText = (n: number) => n.toFixed(2).replace(".", ",");
 
-const initialState = () => ({ mode: "litho" as Mode, file: null as File | null, width: 100, cell: 0.3, litho: DEFAULT_LITHO, color: DEFAULT_COLOR_LITHO as ColorLithoParams, relief: DEFAULT_RELIEF_UI, layered: DEFAULT_LAYERED_UI as LayeredUi });
+const initialState = () => ({ mode: "litho" as Mode, picked: false, file: null as File | null, width: 100, cell: 0.3, litho: DEFAULT_LITHO, color: DEFAULT_COLOR_LITHO as ColorLithoParams, relief: DEFAULT_RELIEF_UI, layered: DEFAULT_LAYERED_UI as LayeredUi });
 type LithoState = ReturnType<typeof initialState>;
 
-/** Foto → litofania (relevo que aparece contra a luz) ou quadro por camadas de filamento (estilo HueForge). */
+/** Foto em relevo: litofania (relevo que aparece contra a luz), colorida, relevo de uma cor, quadro por camadas e shadowbox. */
 export default function Lithophane() {
   // estado de trabalho: desfazer, rascunho guardado (a foto vai junto até 4 MB) e últimos projetos (#85)
   const tool = useToolState("lithophane", initialState, {
-    label: "Litofania",
+    label: "Foto em relevo",
     save: async (s) => ({ ...s, file: await storeFile(s.file) }),
     load: async (raw) => {
       const r = raw as Omit<LithoState, "file"> & { file?: StoredFile | null };
@@ -89,13 +93,21 @@ export default function Lithophane() {
     },
   });
   const { mode, file, width, cell, layered } = tool.state;
+  // aberto por atalho (Veja também, Criar, busca): já cai na aba pedida, sem passar pela escolha inicial
+  const [wantedMode] = useState(() => takeIntent<{ mode?: Mode }>("lithophane")?.mode);
+  const { adopt } = tool;
+  useEffect(() => {
+    if (wantedMode) adopt((cur) => ({ ...cur, mode: wantedMode, picked: true }));
+  }, [adopt, wantedMode]);
+  // quem já usava a ferramenta (rascunho ou projeto de antes das abas, sem o campo `picked`) não passa pela escolha de novo
+  const chosen = tool.state.picked !== false || !!file || !!wantedMode;
   const color = useMemo(() => ({ ...DEFAULT_COLOR_LITHO, ...tool.state.color, inks: { ...DEFAULT_COLOR_LITHO.inks, ...tool.state.color?.inks } }), [tool.state.color]);
   const litho = useMemo(() => ({ ...DEFAULT_LITHO, ...tool.state.litho }), [tool.state.litho]); // rascunho de antes dos formatos novos não tem os campos novos; memo: objeto novo a cada render refaria a peça sem parar
   const led = litho.led;
   const [setMode, setFile, setWidth, setCell, setLitho, setLayered] = [tool.field("mode"), tool.field("file"), tool.field("width"), tool.field("cell"), tool.field("litho"), tool.field("layered")];
   const setColor = tool.field("color");
   const relief = useMemo((): ReliefUi => ({ ...DEFAULT_RELIEF_UI, ...tool.state.relief }), [tool.state.relief]);
-  const setRelief = tool.field("relief");;
+  const setRelief = tool.field("relief");
   useExample("lithophane", () => void exampleFile("landscape").then(setFile)); // "Usar exemplo" da ajuda (#84)
   const [swaps, setSwaps] = useState<ColorSwap[]>([]);
   const [view, setView] = useState<View>("light");
@@ -113,7 +125,8 @@ export default function Lithophane() {
   const masks = useRef(new Map<string, Uint8Array | null>()); // a Silhueta é lenta: guarda por foto, tamanho e tipo
 
   const valid =
-    inRange(width, 20, 250) &&
+    mode === "shadowbox" ||
+    (inRange(width, 20, 250) &&
     inRange(cell, 0.15, 1) &&
     (mode === "relief"
       ? inRange(relief.depth, 0.5, 10) && inRange(relief.base, 0.6, 5) && inRange(relief.smooth, 0, 3) && inRange(relief.gamma, 0.4, 2.5) && inRange(relief.border, 0, 15)
@@ -123,10 +136,10 @@ export default function Lithophane() {
       ? inRange(litho.minT, 0.4, 3) && inRange(litho.maxT, 1, 8) && inRange(litho.border, 0, 15) && inRange(litho.arc, 30, 270) &&
         (litho.shape !== "cylinder" || (inRange(litho.diameter, 30, 150) && inRange(litho.height, 30, 200))) &&
         (!led || (led.kind === "disc" ? inRange(led.size, 15, 120) : inRange(led.size, 4, 20)))
-      : inRange(layered.base, 0.2, 3) && inRange(layered.relief, 0.4, 6) && inRange(layered.layerHeight, 0.04, 0.32) && (!layered.magnet || (inRange(layered.magnetD ?? 10, 4, 30) && inRange(layered.magnetH ?? 2, 1, 5))));
+      : inRange(layered.base, 0.2, 3) && inRange(layered.relief, 0.4, 6) && inRange(layered.layerHeight, 0.04, 0.32) && (!layered.magnet || (inRange(layered.magnetD ?? 10, 4, 30) && inRange(layered.magnetH ?? 2, 1, 5)))));
 
   const { models, warnings, pauses, busy, error } = useModelBuilder(async () => {
-    if (!file || !valid) return null;
+    if (!file || !valid || mode === "shadowbox") return null;
     const grid = mode === "litho" ? lithoGrid(litho, width, cell) : { ...lithoGrid({ ...litho, shape: "flat" }, width, mode === "color" ? Math.max(cell, COLOR_MIN_CELL) : cell), aspect: null };
     const { step, cols } = grid;
     const r = await loadRaster(file, (w) => cols / w);
@@ -187,11 +200,35 @@ export default function Lithophane() {
     return { models: [named(out.preview)], warnings: [...warn, ...out.warnings], pauses };
   }, [file, width, cell, mode, litho, color, relief, layered, colors.join(), filColors, valid]);
 
+  const head = (
+    <>
+      <h1>Foto em relevo</h1>
+      <p className="lead">Foto ou imagem em relevo: litofania, quadro e mais.</p>
+    </>
+  );
+  const seeAlso = <SeeAlso items={[{ label: "Litofania em abajur", model: "tableLamp" }, { label: "Pixel art", page: "pixel" }]} />;
+  if (!chosen)
+    return (
+      <div className="page">
+        {head}
+        <ToolSessionBar tool={tool} />
+        <ReliefChooser onPick={(m) => tool.set((cur) => ({ ...cur, mode: m, picked: true }), "tipo")} />
+      </div>
+    );
+  if (mode === "shadowbox")
+    return (
+      <div className="page">
+        {head}
+        {seeAlso}
+        <Segmented label="Tipo" value={mode} options={MODES} onChange={setMode} full />
+        <Models only="shadowbox" />
+      </div>
+    );
+
   return (
     <div className="page">
-      <h1>Litofania e quadro</h1>
-      <p className="lead">Foto em relevo: litofania ou quadro por camadas.</p>
-      <SeeAlso items={[{ label: "Shadowbox (placas recortadas empilhadas)", model: "shadowbox" }, { label: "Litofania em abajur", model: "tableLamp" }, { label: "Pixel art", page: "pixel" }]} />
+      {head}
+      {seeAlso}
       <ToolSessionBar tool={tool} />
       <div className="tool-layout">
         <div className="controls">

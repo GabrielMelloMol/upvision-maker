@@ -1,4 +1,5 @@
 import type { Page } from "@playwright/test";
+import { openRelief } from "./relief";
 import { expect, go, openApp, test } from "./tauri";
 
 const SHOTS = process.env.SHOTS_DIR;
@@ -18,7 +19,7 @@ test("quadro por camadas: paleta pronta, formato coração com pingente e ímã 
   tauri.db.exec(
     `INSERT INTO filaments (material, color, brand, pricePerKg, spoolG, stockG, minG, td) VALUES ('PLA','Preto','X',99,1000,800,0,0.6), ('PLA','Cinza','X',99,1000,800,0,NULL), ('PLA','Branco','X',99,1000,800,0,4)`,
   );
-  await go(page, "Litofania e quadro");
+  await openRelief(page, "Quadro por camadas");
   await page.getByRole("button", { name: "Quadro por camadas", exact: true }).click();
   await page.locator('input[type="file"]').setInputFiles("tests/fixtures/foto-pessoa.jpg");
   await page.getByRole("button", { name: "Preto e branco" }).click();

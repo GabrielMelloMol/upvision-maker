@@ -29,7 +29,7 @@ test("onde fica: a busca da galeria entende ocasião e sinônimo; abajur e lumin
   const variants = page.getByRole("group", { name: "Variação" });
   await expect(variants.getByRole("button", { name: "Abajur de mesa" })).toHaveAttribute("aria-pressed", "true");
   await expect(variants.getByRole("button", { name: "Luminária" })).toBeVisible();
-  await expect(variants.getByRole("button", { name: "Litofania" })).toBeVisible(); // atalho: litofania em abajur
+  await expect(variants.getByRole("button", { name: "Foto em relevo" })).toBeVisible(); // atalho: litofania em abajur
 });
 
 test("onde fica: 'Veja também' liga as ferramentas parecidas e os atalhos levam ao shadowbox e à litofania", async ({ page }) => {
@@ -41,11 +41,17 @@ test("onde fica: 'Veja também' liga as ferramentas parecidas e os atalhos levam
   await expect(page.getByRole("heading", { name: "Modelos prontos" })).toBeVisible();
   await expect(page.getByRole("group", { name: "Variação" }).getByRole("button", { name: "Caixinha" })).toHaveAttribute("aria-pressed", "true");
 
-  await go(page, "Litofania e quadro");
-  await page.getByRole("button", { name: /Shadowbox \(placas recortadas/ }).click();
-  await expect(page.getByRole("group", { name: "Variação" }).getByRole("button", { name: "Shadowbox" })).toHaveAttribute("aria-pressed", "true");
-  await page.getByRole("group", { name: "Variação" }).getByRole("button", { name: "Litofania" }).click();
-  await expect(page.getByRole("heading", { name: "Litofania e quadro" })).toBeVisible();
+  // Shadowbox virou aba da Foto em relevo: o atalho antigo (Veja também, Criar, busca) cai direto nela
+  await go(page, "Foto em relevo");
+  await page.getByRole("region", { name: "O que você quer fazer?" }).getByRole("button", { name: /^Shadowbox/ }).click();
+  await expect(page.getByRole("heading", { name: "Shadowbox (placas empilhadas)", level: 2 })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Modelos prontos" })).toHaveCount(0);
+  // e, nos Modelos prontos, o atalho da família leva de volta à ferramenta
+  await go(page, "Modelos prontos");
+  await page.getByRole("searchbox", { name: "Buscar modelo" }).fill("shadowbox");
+  await page.getByRole("group", { name: "Modelo" }).getByRole("button", { name: /Shadowbox/ }).first().click();
+  await page.getByRole("group", { name: "Variação" }).getByRole("button", { name: "Foto em relevo" }).click();
+  await expect(page.getByRole("heading", { name: "Foto em relevo", level: 1 })).toBeVisible();
 });
 
 test("onde fica: Presentes, Casa e decoração e Organização e utilidades separam os Modelos prontos", async ({ page }) => {

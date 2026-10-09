@@ -1,10 +1,11 @@
 // @vitest-environment happy-dom
-import { screen, waitFor } from "@testing-library/react";
+import { screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { strFromU8, unzipSync } from "fflate";
 import { beforeEach, describe, expect, test, vi } from "vitest";
 import { renderWithApp, setupTauri } from "../test/harness";
 import { loadRaster } from "../vectorize/client";
+import { openWith } from "./intent";
 import Lithophane from "./Lithophane";
 
 vi.mock("../ui/viewerScene", () => ({ createViewer: () => ({ setModels() {}, dispose() {} }) }));
@@ -29,15 +30,41 @@ beforeEach(() => {
 async function withPhoto() {
   const user = userEvent.setup();
   const { container } = renderWithApp(<Lithophane />);
+  await user.click(screen.getByRole("button", { name: /^Litofania/ })); // escolha inicial (#foto em relevo)
   await user.upload(container.querySelector<HTMLInputElement>('input[type="file"]')!, new File(["x"], "foto.jpg", { type: "image/jpeg" }));
   return { user, container };
 }
 
-describe("Litofania e quadro", () => {
-  test("sem foto: prévia vazia", () => {
+describe("Foto em relevo", () => {
+  test("começa perguntando o que fazer, com os cinco jeitos; escolher abre a aba e a prévia vazia", async () => {
+    const user = userEvent.setup();
     renderWithApp(<Lithophane />);
+    expect(screen.getByRole("heading", { name: "Foto em relevo", level: 1 })).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: "O que você quer fazer?" })).toBeInTheDocument();
+    const cards = within(screen.getByRole("region", { name: "O que você quer fazer?" })).getAllByRole("button");
+    expect(cards.map((c) => c.querySelector("strong")!.textContent)).toEqual(["Litofania", "Colorida", "Relevo", "Quadro por camadas", "Shadowbox"]);
+    expect(screen.queryByText("Envie uma foto para ver o relevo.")).not.toBeInTheDocument();
+    await user.click(screen.getByRole("button", { name: /^Relevo/ }));
+    expect(screen.queryByRole("heading", { name: "O que você quer fazer?" })).not.toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Relevo", pressed: true })).toBeInTheDocument(); // aba
     expect(screen.getByText("Envie uma foto para ver o relevo.")).toBeInTheDocument();
   });
+
+  test("aberto por atalho com a aba pedida (Veja também, busca) pula a escolha", async () => {
+    openWith("lithophane", { mode: "relief" });
+    renderWithApp(<Lithophane />);
+    expect(await screen.findByRole("button", { name: "Relevo", pressed: true })).toBeInTheDocument();
+    expect(screen.queryByRole("heading", { name: "O que você quer fazer?" })).not.toBeInTheDocument();
+  });
+
+  test("aba Shadowbox embute o modelo de sempre, sem a galeria de Modelos prontos", async () => {
+    openWith("lithophane", { mode: "shadowbox" });
+    renderWithApp(<Lithophane />);
+    expect(await screen.findByRole("heading", { name: "Shadowbox (placas empilhadas)", level: 2 }, { timeout: 30_000 })).toBeInTheDocument();
+    expect(screen.queryByRole("heading", { name: "Modelos prontos" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("searchbox", { name: "Buscar modelo" })).not.toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Shadowbox", pressed: true })).toBeInTheDocument();
+  }, 40_000);
 
   test("litofania plana em pé: largura pedida e salva 3MF; detalhe fino demais é limitado", async () => {
     const { user } = await withPhoto();

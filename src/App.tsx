@@ -22,6 +22,7 @@ import { flushPendingSaves } from "./tools/pendingSaves";
 import { getDb } from "./db";
 import { markStartup } from "./about/perf";
 import { NAVIGATE_EVENT } from "./ui/navigate";
+import { placeOf } from "./tools/modelPlaces";
 import Sidebar from "./ui/Sidebar";
 import Toolbar from "./ui/Toolbar";
 import CommandPalette from "./ui/CommandPalette";
@@ -87,10 +88,11 @@ export default function App() {
   function pick(item: SearchItem) {
     setSearching(false);
     if (item.run) return item.run();
-    if (item.intent !== undefined) openWith(item.pageId, item.intent); // ex.: o modelo escolhido na busca
-    setPendingOpen(item.recordId !== undefined ? { pageId: item.pageId, recordId: item.recordId } : null);
+    const place = placeOf(item.pageId, item.intent); // o modelo que virou aba de ferramenta abre na aba
+    if (item.intent !== undefined) openWith(place.pageId, place.intent); // ex.: o modelo escolhido na busca
+    setPendingOpen(item.recordId !== undefined ? { pageId: place.pageId, recordId: item.recordId } : null);
     if (item.pageId) {
-      navigate(item.pageId);
+      navigate(place.pageId);
       setReloadKey((k) => k + 1); // remonta mesmo se já estiver na página, para abrir o registro
     }
     if (item.help) openHelp(item.help);

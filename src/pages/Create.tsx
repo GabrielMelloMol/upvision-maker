@@ -2,7 +2,7 @@ import { Search, Shapes } from "lucide-react";
 import { useState } from "react";
 import { PAGES, type Go } from "../pages";
 import { AMS_LABEL } from "../geometry/amsNeed";
-import { openWith } from "../tools/intent";
+import { openModel } from "../tools/modelPlaces";
 import { AMS_NEED, worksWithoutAms } from "../tools/models/amsTable";
 import { CATEGORIES } from "../tools/models/defs";
 import { familiesIn, type Family } from "../tools/models/families";
@@ -111,8 +111,7 @@ export default function Create({ go }: { go: Go }) {
                         href={`#models/${v.id}`}
                         aria-describedby={need ? `ams-${f.id}` : undefined}
                         onClick={(e) => {
-                          openWith("models", { id: v.id });
-                          open(e, "models");
+                          open(e, openModel(v.id)); // o que virou aba de ferramenta (Shadowbox) abre na aba
                         }}
                       >
                         <span className="model-thumb">{thumb ? <img src={thumb} alt="" loading="lazy" /> : <Shapes aria-hidden />}</span>

@@ -81,7 +81,7 @@ test("Criar busca como a vendedora fala: camiseta, porta copos, geladeira, Dia d
   expect(screen.getAllByRole("link").length).toBeGreaterThan(3); // as famílias dos modelos da coleção
 
   await typed("foto em relevo");
-  expect(tools().map((a) => a.textContent)).toEqual([expect.stringMatching(/^Litofania e quadro/)]);
+  expect(tools().map((a) => a.textContent)).toEqual([expect.stringMatching(/^Foto em relevo/)]);
 
   await typed("abajur");
   expect(screen.getByRole("link", { name: "Luminárias e abajures" })).toBeInTheDocument();

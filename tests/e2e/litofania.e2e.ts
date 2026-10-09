@@ -1,4 +1,5 @@
 import { strFromU8, unzipSync } from "fflate";
+import { openRelief } from "./relief";
 import { expect, go, openApp, test, toastWith } from "./tauri";
 
 const SHOTS = process.env.SHOTS_DIR;
@@ -22,7 +23,7 @@ test.slow();
 
 test("litofania: plana, curva e caixa de luz a partir da foto; salva 3MF (#13)", async ({ page, tauri }) => {
   await openApp(page);
-  await go(page, "Litofania e quadro");
+  await openRelief(page);
   await page.locator('input[type="file"]').setInputFiles("tests/fixtures/foto-pessoa.jpg");
   // abre na simulação contra a luz (original × litofania acesa); o 3D fica no outro botão
   await expect(page.getByRole("img", { name: "Simulação da litofania contra a luz" })).toBeVisible({ timeout: 150_000 });
@@ -48,7 +49,7 @@ test("quadro por camadas: filamentos cadastrados viram trocas por camada; AMS se
   await openApp(page);
   await go(page, "Impressoras"); // cria o banco
   tauri.db.exec(`INSERT INTO filaments (material, color, brand, pricePerKg, spoolG, stockG, minG) VALUES ('PLA','Preto','X',99,1000,800,0), ('PLA','Cinza','X',99,1000,800,0), ('PLA','Branco','X',99,1000,800,0)`);
-  await go(page, "Litofania e quadro");
+  await openRelief(page);
   await page.getByRole("button", { name: "Quadro por camadas", exact: true }).click();
   await page.locator('input[type="file"]').setInputFiles("tests/fixtures/foto-pessoa.jpg");
   for (const c of ["Preto", "Cinza", "Branco"]) await page.locator("label.check", { hasText: c }).getByRole("checkbox").check();
@@ -77,7 +78,7 @@ test("quadro por camadas: filamentos cadastrados viram trocas por camada; AMS se
 
 test("litofania: abajur cilíndrico, coração e círculo com a base de LED; um 3MF com a peça, a base e as tampas (#101)", async ({ page, tauri }) => {
   await openApp(page);
-  await go(page, "Litofania e quadro");
+  await openRelief(page);
   await page.locator('input[type="file"]').setInputFiles("tests/fixtures/foto-pessoa.jpg");
   await expect(page.getByRole("img", { name: "Simulação da litofania contra a luz" })).toBeVisible({ timeout: 150_000 });
   await page.getByLabel("Formato").selectOption("cylinder");
@@ -108,7 +109,7 @@ test("litofania: abajur cilíndrico, coração e círculo com a base de LED; um 
 
 test("litofania colorida: 5 filamentos, aviso do AMS e do TD, prévia contra a luz e um volume por cor no 3MF (#102)", async ({ page, tauri }) => {
   await openApp(page);
-  await go(page, "Litofania e quadro");
+  await openRelief(page);
   await page.locator('input[type="file"]').setInputFiles("tests/fixtures/foto-pessoa.jpg");
   await expect(page.getByRole("img", { name: "Simulação da litofania contra a luz" })).toBeVisible({ timeout: 150_000 });
   await page.getByRole("button", { name: "Colorida" }).click();
@@ -130,10 +131,10 @@ test("litofania colorida: 5 filamentos, aviso do AMS e do TD, prévia contra a l
 
 test("relevo de foto: placa de uma cor com a profundidade pedida, realce e moldura; salva 3MF (#103)", async ({ page, tauri }) => {
   await openApp(page);
-  await go(page, "Litofania e quadro");
+  await openRelief(page);
   await page.locator('input[type="file"]').setInputFiles("tests/fixtures/foto-pessoa.jpg");
   await expect(page.getByRole("img", { name: "Simulação da litofania contra a luz" })).toBeVisible({ timeout: 150_000 });
-  await page.getByRole("button", { name: "Relevo" }).click();
+  await page.getByRole("group", { name: "Tipo" }).getByRole("button", { name: "Relevo", exact: true }).click();
   await expect(page.getByRole("group", { name: "Prévia" })).toHaveCount(0); // relevo não é contra a luz
   await page.getByLabel(/^Profundidade/).fill("4");
   await page.getByLabel(/^Base/).fill("1");

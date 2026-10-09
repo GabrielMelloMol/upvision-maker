@@ -4,6 +4,7 @@ Cada versão aparece para a usuária na tela "O que há de novo" depois da atual
 Formato: `## <versão> — <data>` e itens `- …` em linguagem simples.
 
 ## Próxima versão (ainda não lançada)
+- **Foto em relevo: Litofania, Quadro por camadas e Shadowbox numa ferramenta só**: "Litofania e quadro" virou "Foto em relevo", que começa perguntando o que você quer fazer (Litofania, Colorida, Relevo, Quadro por camadas ou Shadowbox) e depois mostra as cinco abas para trocar a qualquer momento. O Shadowbox agora abre também como aba, sem sair dos Modelos prontos. Rascunhos, projetos salvos, atalhos e buscas antigas continuam levando ao lugar certo.
 - **Presentes e lembrancinhas**: nova aba em Modelos prontos com o Mapa estelar, o Cartão de música, as Lembrancinhas (ímã de geladeira, estampa de camisa e cumbuca), o Porta-copos e o Marca-página. A aba Casa foi dividida em "Casa e decoração" e "Organização e utilidades" (potes, Gridfinity, suporte de celular, tecla, porta-chave e utilitários). Três ferramentas ganharam nomes diretos: "Imagem em desenho (SVG)", "Separar cores de um 3MF" e "Buscar modelos na internet"
 
 ## 0.11.7 — 2026-10-09
