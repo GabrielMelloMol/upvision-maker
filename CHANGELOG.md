@@ -3,7 +3,7 @@
 Cada versão aparece para a usuária na tela "O que há de novo" depois da atualização.
 Formato: `## <versão> — <data>` e itens `- …` em linguagem simples.
 
-## Próxima versão (ainda não lançada)
+## 0.11.4 — 2026-10-09
 - **Tecla de teclado**: em Modelos prontos (Casa), tecla de 1 a 2,25 u com haste em cruz MX (folga ajustável), topo plano ou esférico baixo e a legenda embutida rente em outra cor: uma letra, um ícone da grade (setas, Enter, Shift, volume…) ou o seu SVG. Sai de ponta-cabeça, sem suporte, e o lote faz o teclado todo a partir de uma lista.
 - **Saúde do negócio no Painel**: um semáforo (verde, amarelo ou vermelho) no topo do Painel junta quatro verificações: **margem do mês** (prejuízo é vermelho, abaixo de 10% é amarelo), **contas do mês** (as vendas deixam o suficiente, depois do custo das peças, para cobrir os custos operacionais até hoje?), **pedidos atrasados** e **estoque** (abaixo do mínimo ou zerado). Cada ponto diz o que está acontecendo e **o que fazer**, com o botão "Ver" que leva à tela certa.
 - **QR escultural**: na ferramenta QR Code, o "Estilo do relevo" agora tem Pirâmide (cresce para o centro), Degraus (anéis) e Ondas (ruído suave), além do Plano. A cor continua marcando o código, então de cima ele lê igual; o botão "Testar a leitura da vista de cima" confere isso com o leitor do app, e o aviso lembra de testar com o celular.
