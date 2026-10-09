@@ -1,5 +1,5 @@
 // @vitest-environment happy-dom
-import { act, screen, waitFor, within } from "@testing-library/react";
+import { act, fireEvent, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, test, vi } from "vitest";
 import Filaments from "../pages/Filaments";
@@ -61,7 +61,9 @@ describe("CrudPage (Impressoras)", () => {
     renderWithApp(<Printers />);
     await user.click(await screen.findByRole("button", { name: "Adicionar impressora" }));
     await user.type(await screen.findByLabelText(/^Nome/), "Rascunho");
-    await user.keyboard("{Escape}");
+    // o happy-dom não transforma Esc dentro de um campo em "cancel" da <dialog> como o navegador faz: dispara o evento direto
+    // (a tecla de verdade, com o cursor no campo, fica no E2E tests/e2e/estoque-cadastro.e2e.ts)
+    fireEvent(screen.getByRole("dialog"), new Event("cancel", { cancelable: true }));
     await waitFor(() => expect(screen.queryByRole("dialog")).not.toBeInTheDocument());
     await user.click(screen.getByRole("button", { name: "Editar Ender" }));
     const sheet = await screen.findByRole("dialog", { name: "Editar impressora" });
