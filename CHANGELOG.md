@@ -3,7 +3,7 @@
 Cada versão aparece para a usuária na tela "O que há de novo" depois da atualização.
 Formato: `## <versão> — <data>` e itens `- …` em linguagem simples.
 
-## Próxima versão (ainda não lançada)
+## 0.11.2 — 2026-10-09
 - **Estampa de camisa**: em Modelos prontos (Festa e esporte), nome ou desenho em camada fina (0,3 mm) para passar a ferro no tecido. Sai espelhada para ler certo depois de colada, pode ter um fundo contínuo em volta (adesivo numa peça só) e traz na tela as instruções de impressão e de colagem.
 - **Relevo a partir de foto**: em Litofania e quadro, escolha "Relevo" e a foto vira uma placa de uma cor só, impressa deitada, em que o claro sobe e o escuro desce, como um baixo-relevo de pedra ou gesso. Ajuste a profundidade, a base, a suavização, o gama, o realce de bordas e a moldura; com Pessoa ou Bicho o fundo fica liso. A profundidade por inteligência artificial fica para uma próxima versão.
 - **Consignados: aviso de prazo, reposição e termo em PDF**: ao salvar o contrato de consignação, deixe marcado "Acompanhar a reposição" e a loja entra na lista **Consignados** (em Orçamentos), com a próxima reposição e o aviso "faltam N dias" (ou "atrasada há N dias"); quando falta uma semana ou menos, o aviso aparece na própria tela de Orçamentos. "Registrar reposição" cria o pedido de Revenda da loja pelo valor de repasse, já em produção (com a baixa de estoque), renova o prazo e salva o **termo de reposição em PDF** para a loja assinar (com as colunas de vendidas e devolvidas para o acerto).
