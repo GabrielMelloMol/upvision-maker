@@ -120,7 +120,7 @@ convite · caneca/copo personalizado · bijuteria e brinco · pelúcia · relóg
 | 3. Encurtar a barra lateral | ➖ Nada a encurtar: a lista de 17 ferramentas na barra era um erro meu (item 6 acima). A barra já mostra só a ferramenta aberta |
 | 4. Renomes diretos | ✅ **Imagem em desenho (SVG)**, **Separar cores de um 3MF**, **Buscar modelos na internet** (o nome antigo continua achando na busca) |
 | Chaveiros (card duplicado) | Não aplicado, como pedido |
-| Juntar Litofania + Quadro por camadas + Shadowbox | Com o Torno ("Foto em relevo", id `lithophane` fica; o modelo shadowbox continua no catálogo) |
+| Juntar Litofania + Quadro por camadas + Shadowbox | ✅ Feito pelo Torno em 7c71e88: ferramenta **Foto em relevo** (id `lithophane`) com Litofania, Colorida, Relevo, Quadro por camadas e Shadowbox; o modelo shadowbox continua no catálogo (família Quadro e desenho) e o "Veja também" da tela já foi ajustado |
 | Juntar Organizador de gaveta + pela foto + Gridfinity | Com o Lupa ("Organizadores", id `organizers`; `drawer` e `toolfit` redirecionam para as abas) |
 
 Nada se perde: os ids das telas (`lithophane`, `drawer`, `toolfit`, `svg`, `colorsplit`, `search3d`…) não mudaram; atalhos de família, "Veja também", rascunhos, Meus projetos e o ⌘K continuam levando ao lugar certo (há um teste que falha se algum id antigo sumir sem redirecionamento).
