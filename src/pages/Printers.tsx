@@ -5,7 +5,9 @@ import { findCatalogPrinter, MEASURE_TIP, PRINTER_CATALOG_ITEMS, printerFromCata
 import PlugSheet from "./calculator/PlugSheet";
 import CrudPage from "../ui/CrudPage";
 
-const DEFAULTS = { name: "", watts: "", price: "0", lifeHours: "5000", upkeepPerHour: "0" };
+const DEFAULTS = { name: "", watts: "", nozzle: "0,4", price: "0", lifeHours: "5000", upkeepPerHour: "0" };
+const NOZZLES = ["0,2", "0,4", "0,6", "0,8"];
+const sameNum = (a: string, b: string) => Number(a.replace(",", ".")) === Number(b.replace(",", "."));
 
 type Plug = { set: (v: string) => void; catalogWatts?: number };
 
@@ -37,6 +39,17 @@ export default function Printers() {
             <button type="button" className="link" style={{ justifySelf: "start" }} onClick={() => setPlug({ set, catalogWatts: findCatalogPrinter(form.name ?? "")?.watts })}>
               Medir com tomada inteligente
             </button>
+          ),
+        },
+        { key: "nozzle", label: "Bico (mm)", kind: "number", placeholder: "0,4", hint: "Diâmetro do bico instalado. O mapa estelar e os avisos de parte fina das ferramentas usam o bico da impressora escolhida em Preferências › Impressora das ferramentas.",
+          extra: (set, form) => (
+            <div className="chips" role="group" aria-label="Bicos comuns">
+              {NOZZLES.map((n) => (
+                <button key={n} type="button" aria-pressed={sameNum(form.nozzle ?? "", n)} onClick={() => set(n)}>
+                  {n} mm
+                </button>
+              ))}
+            </div>
           ),
         },
         { key: "price", label: "Preço pago", kind: "money", hint: "Com o preço, a calculadora cobra o desgaste por hora e ignora a % de manutenção." },

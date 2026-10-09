@@ -130,6 +130,8 @@ export const MIGRATIONS: string[][] = [
   [
     "CREATE TABLE waste_runs (id INTEGER PRIMARY KEY, kind TEXT NOT NULL, at TEXT NOT NULL, productId INTEGER, printerId INTEGER, lines TEXT NOT NULL, cost REAL NOT NULL, notes TEXT NOT NULL DEFAULT '')",
   ],
+  // Bico da impressora (mm): o mapa estelar e os avisos de parte fina usam o da impressora das ferramentas. As que já existem ficam com 0,4.
+  ["ALTER TABLE printers ADD COLUMN nozzle REAL NOT NULL DEFAULT 0.4"],
 ];
 
 export const SCHEMA_VERSION = MIGRATIONS.length;

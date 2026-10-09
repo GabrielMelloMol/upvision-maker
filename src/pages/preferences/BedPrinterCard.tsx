@@ -3,7 +3,7 @@ import { getDb } from "../../db";
 import { loadSettings, printers as printersRepo, saveSettings } from "../../db/repo";
 import { findCatalogPrinter } from "../../domain/catalog/printers";
 import type { Printer } from "../../domain/entities";
-import { bedFor, type Bed } from "../../geometry/bed";
+import { bedFor, FALLBACK_NOZZLE_MM, nozzleText, type Bed } from "../../geometry/bed";
 import { refreshBed } from "../../tools/bedPrinter";
 import { errorText, useToast } from "../../ui/Toast";
 
@@ -69,12 +69,16 @@ export default function BedPrinterCard() {
           <span className="row-label">Mesa usada</span>
           <span className="muted">{used}</span>
         </div>
+        <div className="row-control">
+          <span className="row-label">Bico usado</span>
+          <span className="muted">{nozzleText(bed.nozzle ?? FALLBACK_NOZZLE_MM)} mm</span>
+        </div>
       </div>
       <p className="hint group-note">
         {list.length === 0
           ? "Sem impressora cadastrada: as ferramentas usam a mesa da Bambu A1/P1/X1."
           : known
-            ? "Peça maior que a mesa avisa, ou sai dividida onde a ferramenta divide."
+            ? "Peça maior que a mesa avisa, ou sai dividida onde a ferramenta divide. O bico (cadastrado em Impressoras) vale para o mapa estelar e para os avisos de parte fina."
             : `"${bed.name}" não está no catálogo: as ferramentas usam 256 mm. Cadastre a impressora pelo catálogo para usar o tamanho certo.`}
       </p>
     </section>

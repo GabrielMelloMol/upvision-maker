@@ -1,4 +1,5 @@
 import { onReleaseHeavy } from "../ui/heavy";
+import { nozzleMm } from "../geometry/bed";
 import type { TraceOptions } from "./pipeline";
 import type { TraceDone, TraceMessage, TraceRequest } from "./vectorize.worker";
 
@@ -44,7 +45,8 @@ export type TraceProgress = { stage: "prepare" | "trace"; ticks: number };
 export type TraceJob = { result: Promise<TraceDone>; cancel: () => void };
 
 /** Vetoriza no worker. `cancel()` encerra o worker na hora (um novo é criado no próximo pedido). */
-export function trace(r: Raster, options: TraceOptions, seg: Uint8Array | null, onProgress?: (p: TraceProgress) => void): TraceJob {
+export function trace(r: Raster, wanted: TraceOptions, seg: Uint8Array | null, onProgress?: (p: TraceProgress) => void): TraceJob {
+  const options: TraceOptions = { ...wanted, nozzleMm: wanted.nozzleMm ?? nozzleMm() }; // o trecho fino segue o bico da impressora das ferramentas
   if (!worker) {
     const created = new Worker(new URL("./vectorize.worker.ts", import.meta.url), { type: "module" });
     worker = created;

@@ -94,3 +94,59 @@ test("textos de Impressoras sem jargão solto: desgaste por hora e a placa PEI e
   expect(screen.queryByText(/depreciação/)).not.toBeInTheDocument();
 });
 
+
+describe("Impressoras: bico (mm)", () => {
+  test("campo Bico (mm) com padrão 0,4 e atalhos 0,2 / 0,4 / 0,6 / 0,8; grava o bico escolhido ou digitado", async () => {
+    const user = userEvent.setup();
+    renderWithApp(<Printers />);
+    await user.click(await screen.findByRole("button", { name: "Adicionar impressora" }));
+    const nozzle = screen.getByLabelText(/^Bico \(mm\)/);
+    expect(nozzle).toHaveValue("0,4");
+    const presets = within(screen.getByRole("group", { name: "Bicos comuns" }));
+    expect(presets.getAllByRole("button").map((b) => b.textContent)).toEqual(["0,2 mm", "0,4 mm", "0,6 mm", "0,8 mm"]);
+    expect(presets.getByRole("button", { name: "0,4 mm" })).toHaveAttribute("aria-pressed", "true");
+    await user.type(screen.getByLabelText(/^Nome/), "Minha fina");
+    await user.type(screen.getByLabelText(/^Potência/), "90");
+    await user.click(presets.getByRole("button", { name: "0,2 mm" }));
+    expect(nozzle).toHaveValue("0,2");
+    expect(presets.getByRole("button", { name: "0,2 mm" })).toHaveAttribute("aria-pressed", "true");
+    await user.click(screen.getByRole("button", { name: "Adicionar" }));
+    expect(await screen.findByRole("row", { name: /Minha fina/ })).toBeInTheDocument();
+    expect(await t.db.select("SELECT name, nozzle FROM printers")).toEqual([{ name: "Minha fina", nozzle: 0.2 }]);
+
+    // valor livre: 0,5 mm (um bico fora dos atalhos) e fora de 0,1 a 2 mm é recusado
+    await user.click(await screen.findByRole("button", { name: "Adicionar impressora" }));
+    await user.type(screen.getByLabelText(/^Nome/), "Meio-termo");
+    await user.type(screen.getByLabelText(/^Potência/), "100");
+    await user.clear(screen.getByLabelText(/^Bico \(mm\)/));
+    await user.type(screen.getByLabelText(/^Bico \(mm\)/), "5");
+    await user.click(screen.getByRole("button", { name: "Adicionar" }));
+    expect(await screen.findByText(/O bico vai de 0,1 a 2 mm/)).toBeInTheDocument();
+    await user.clear(screen.getByLabelText(/^Bico \(mm\)/));
+    await user.type(screen.getByLabelText(/^Bico \(mm\)/), "0,5");
+    await user.click(screen.getByRole("button", { name: "Adicionar" }));
+    await screen.findByRole("row", { name: /Meio-termo/ });
+    expect(await t.db.select("SELECT name, nozzle FROM printers ORDER BY id")).toEqual([{ name: "Minha fina", nozzle: 0.2 }, { name: "Meio-termo", nozzle: 0.5 }]);
+  });
+
+  test("pelo catálogo: Bambu A1 vem com o bico de fábrica 0,4; marca sem o dado fica no padrão 0,4 sem inventar", async () => {
+    const user = userEvent.setup();
+    renderWithApp(<Printers />);
+    await user.click(await screen.findByRole("button", { name: "Adicionar impressora" }));
+    await user.click(await screen.findByRole("button", { name: "Escolher do catálogo" }));
+    const sheet = await screen.findByRole("dialog", { name: "Catálogo de impressoras" });
+    await user.click(within(sheet).getByRole("option", { name: /^A1 95 W · dado oficial/ }));
+    expect(screen.getByLabelText(/^Bico \(mm\)/)).toHaveValue("0,4");
+    await user.click(screen.getByRole("button", { name: "Adicionar" }));
+    await screen.findByRole("row", { name: /Bambu Lab A1/ });
+    expect(await t.db.select("SELECT name, nozzle FROM printers")).toEqual([{ name: "Bambu Lab A1", nozzle: 0.4 }]);
+  });
+
+  test("a lista mostra o bico de cada impressora", async () => {
+    await t.db.execute("INSERT INTO printers (name, watts, nozzle) VALUES ('Fina', 80, 0.2)");
+    renderWithApp(<Printers />);
+    const row = await screen.findByRole("row", { name: /Fina/ });
+    expect(within(row).getByText("0,2")).toBeInTheDocument();
+    expect(screen.getByRole("columnheader", { name: "Bico (mm)" })).toBeInTheDocument();
+  });
+});

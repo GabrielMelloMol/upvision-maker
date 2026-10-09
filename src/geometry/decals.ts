@@ -1,4 +1,5 @@
 import type { CS, ManifoldToplevel, Solid } from "./manifold";
+import { nozzleMm, nozzleText } from "./bed";
 import { toMesh } from "./mesh";
 import { outerOnly, scoped } from "./shape2d";
 import type { Mesh, Model, Part } from "./types";
@@ -26,7 +27,6 @@ export type DecalRegions = { color: string | null; cs: CS }[];
 export type DecalWarning = { decalId?: string; text: string };
 
 const EPS = 0.02;
-const MIN_LINE = 0.4; // bico 0,4: traço mais fino que isso some
 const THIN_FRAC = 0.05;
 const OUTSIDE_FRAC = 0.01;
 const HOLE_GAP = 0.8;
@@ -108,8 +108,9 @@ export function applyDecals(M: ManifoldToplevel, models: Model[], decals: { deca
       const all = k(M.CrossSection.union(placed.map((p) => p.cs)));
       const area = all.area();
       if (k(all.subtract(face)).area() > area * OUTSIDE_FRAC) warnings.push({ decalId: decal.id, text: "O desenho sai da peça: a parte de fora não imprime." });
-      const opened = k(k(all.offset(-MIN_LINE / 2, "Round")).offset(MIN_LINE / 2, "Round"));
-      if (area - opened.area() > area * THIN_FRAC) warnings.push({ decalId: decal.id, text: "Tem traço mais fino que 0,4 mm: pode sumir na impressão. Aumente o tamanho." });
+      const line = nozzleMm(); // o bico: traço mais fino que isso some
+      const opened = k(k(all.offset(-line / 2, "Round")).offset(line / 2, "Round"));
+      if (area - opened.area() > area * THIN_FRAC) warnings.push({ decalId: decal.id, text: `Tem traço mais fino que ${nozzleText()} mm (o bico): pode sumir na impressão. Aumente o tamanho.` });
       if (!holes.isEmpty() && !k(all.intersect(k(holes.offset(HOLE_GAP, "Round")))).isEmpty()) warnings.push({ decalId: decal.id, text: "O desenho encosta num furo ou na argola." });
       const inside = placed.map((p) => ({ color: p.color, cs: k(p.cs.intersect(face)) })).filter((p) => !p.cs.isEmpty());
       if (decal.mode === "raised") {

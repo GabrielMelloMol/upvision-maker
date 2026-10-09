@@ -29,9 +29,9 @@ test("variações de nome do material (PLA Basic, PLA+) casam com PLA", () => {
 
 test("impressora casa pelo nome (ex.: 'Bambu Lab A1' com cadastro 'A1')", () => {
   const printers: Printer[] = [
-    { id: 1, name: "A1 mini", watts: 80, price: 0, lifeHours: 5000, upkeepPerHour: 0 },
-    { id: 2, name: "A1", watts: 110, price: 0, lifeHours: 5000, upkeepPerHour: 0 },
-    { id: 3, name: "Ender 3", watts: 150, price: 0, lifeHours: 5000, upkeepPerHour: 0 },
+    { id: 1, name: "A1 mini", watts: 80, price: 0, lifeHours: 5000, upkeepPerHour: 0, nozzle: 0.4 },
+    { id: 2, name: "A1", watts: 110, price: 0, lifeHours: 5000, upkeepPerHour: 0, nozzle: 0.4 },
+    { id: 3, name: "Ender 3", watts: 150, price: 0, lifeHours: 5000, upkeepPerHour: 0, nozzle: 0.4 },
   ];
   expect(matchPrinter("Bambu Lab A1", printers)).toBe(2);
   expect(matchPrinter("Bambu Lab A1 mini", printers)).toBe(1);

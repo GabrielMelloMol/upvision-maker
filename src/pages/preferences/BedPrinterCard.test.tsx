@@ -3,7 +3,7 @@ import { screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { afterEach, describe, expect, test } from "vitest";
 import { loadSettings } from "../../db/repo";
-import { bedHeight, bedMm, setBed } from "../../geometry/bed";
+import { bedHeight, bedMm, nozzleMm, setBed } from "../../geometry/bed";
 import type { Model } from "../../geometry/types";
 import { renderWithApp, setupTauri } from "../../test/harness";
 import { bedWarnings } from "../../tools/models/bedCheck";
@@ -49,5 +49,24 @@ describe("mesa pela impressora escolhida (#119)", () => {
     expect(await screen.findByText(/"Minha caseira" não está no catálogo/)).toBeInTheDocument();
     await refreshBed(t.db);
     expect(bedMm()).toBe(256);
+  });
+});
+
+describe("bico das ferramentas pela impressora escolhida", () => {
+  test("mostra o bico da impressora usada e troca junto com a escolha; sem impressora, 0,4", async () => {
+    renderWithApp(<BedPrinterCard />);
+    expect(await screen.findByText("Bico usado")).toBeInTheDocument();
+    expect(screen.getByText("0,4 mm")).toBeInTheDocument(); // sem impressora cadastrada
+  });
+
+  test("duas impressoras: a escolhida define o bico das ferramentas (refreshBed) e o aviso de parte fina", async () => {
+    await t.db.execute("INSERT INTO printers (name, watts, nozzle) VALUES ('Bambu Lab A1', 95, 0.4)");
+    await t.db.execute("INSERT INTO printers (name, watts, nozzle) VALUES ('Fina', 80, 0.2)");
+    const user = userEvent.setup();
+    renderWithApp(<BedPrinterCard />);
+    expect(await screen.findByText("0,4 mm")).toBeInTheDocument(); // a primeira
+    await user.selectOptions(screen.getByLabelText(/Tamanho da mesa pela impressora/), "Fina");
+    await waitFor(() => expect(screen.getByText("0,2 mm")).toBeInTheDocument());
+    expect(nozzleMm()).toBe(0.2); // o app inteiro passa a usar o bico escolhido
   });
 });

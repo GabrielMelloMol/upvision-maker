@@ -16,6 +16,7 @@ export type TraceOptions = {
   smoothMm: number; // silhueta: suavização do contorno
   colors: number; // 1 = forma única; 2–4 = modo colorido (uma camada por cor)
   palette: string[] | null; // cores dos filamentos para o modo colorido (null = cores da imagem)
+  nozzleMm?: number; // bico da impressora das ferramentas (o worker não vê a impressora: quem chama manda); padrão 0,4
 };
 
 export const DEFAULT_TRACE: TraceOptions = {
@@ -35,7 +36,7 @@ export const DEFAULT_TRACE: TraceOptions = {
 
 export type Prepared = { mask: Uint8Array; threshold: number; fillPct: number; thin: Uint8Array | null; thinCount: number };
 
-const MIN_STROKE_MM = 0.4; // bico padrão
+const DEFAULT_NOZZLE_MM = 0.4;
 const MORPH_MM_PER_LEVEL = 0.1;
 
 /** Máscara da forma (1 = imprimir) antes do vtracer. `seg` = máscara do objeto principal (modo silhueta). */
@@ -70,7 +71,7 @@ export function prepare(rgba: Uint8ClampedArray, w: number, h: number, o: TraceO
   }
 
   mask = removeSmall(mask, w, h, o.minAreaMm2 * pxPerMm * pxPerMm);
-  const thinR = Math.round((MIN_STROKE_MM * pxPerMm - 1) / 2);
+  const thinR = Math.round(((o.nozzleMm ?? DEFAULT_NOZZLE_MM) * pxPerMm - 1) / 2);
   let t = thinR >= 1 ? thinPixels(mask, w, h, thinR) : { count: 0, thin: null as Uint8Array | null };
   if (o.thicken && t.thin && t.count) {
     mask = thicken(mask, t.thin, w, h, thinR);

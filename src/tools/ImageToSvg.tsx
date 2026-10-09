@@ -1,4 +1,5 @@
 import { Award, Cookie, Download, KeyRound, Layers, Play, X } from "lucide-react";
+import { nozzleText } from "../geometry/bed";
 import { useEffect, useMemo, useRef, useState } from "react";
 import type { Go } from "../pages";
 import Alert from "../ui/Alert";
@@ -361,7 +362,7 @@ export default function ImageToSvg({ go }: { go: Go }) {
           )}
           {result && result.thinCount > 0 && (
             <Alert kind="warn">
-              <p>Trechos em vermelho ficam com menos de 0,4 mm nesta largura e podem não imprimir com bico 0,4.</p>
+              <p>Trechos em vermelho ficam com menos de {nozzleText()} mm nesta largura e podem não imprimir com o bico de {nozzleText()} mm.</p>
               {!applied?.thicken && (
                 <button
                   disabled={running}

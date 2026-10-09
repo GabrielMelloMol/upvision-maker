@@ -14,6 +14,8 @@ export type CatalogPrinter = {
   enclosed: boolean;
   /** Volume de impressão em mm ("256×256×256"; delta: "Ø300×410"). */
   volume: string;
+  /** Bico de fábrica em mm, só quando a ficha do fabricante diz (sem o dado, o cadastro fica com 0,4). */
+  nozzle?: number;
 };
 
 const BAMBU = "https://wiki.bambulab.com/en/general/power-consumption";
@@ -28,7 +30,7 @@ const CLOSED = true;
 const official = (id: string, brand: string, model: string, watts: number, enclosed: boolean, volume: string, ref: string): CatalogPrinter => ({ id, brand, model, watts, source: "oficial", ref, enclosed, volume });
 const est = (id: string, brand: string, model: string, watts: number, enclosed: boolean, volume: string): CatalogPrinter => ({ id, brand, model, watts, source: "estimativa", enclosed, volume });
 
-export const PRINTER_CATALOG: CatalogPrinter[] = [
+const CATALOG_ROWS: CatalogPrinter[] = [
   official("bambu-a1", "Bambu Lab", "A1", 95, OPEN, "256×256×256", BAMBU),
   official("bambu-a1-mini", "Bambu Lab", "A1 mini", 80, OPEN, "180×180×180", BAMBU),
   official("bambu-p1p", "Bambu Lab", "P1P", 110, OPEN, "256×256×256", BAMBU),
@@ -197,6 +199,13 @@ export const PRINTER_CATALOG: CatalogPrinter[] = [
   est("sethi3d-farm", "Sethi3D", "Farm", 110, OPEN, "240×240×240"),
   est("voolt3d-gi3", "Voolt3D", "Gi3", 110, OPEN, "≈200×200×200 (não confirmado)"),
 ];
+/**
+ * Bico de fábrica 0,4 mm: só onde o fabricante publica (Bambu Lab, toda a linha FDM, e as Prusa "oficiais" do catálogo).
+ * As demais não têm o dado aqui e ficam sem `nozzle` (o cadastro assume 0,4 e a pessoa confere). Não é palpite.
+ */
+const FACTORY_NOZZLE_04 = (p: CatalogPrinter) => p.brand === "Bambu Lab" || (p.brand === "Prusa" && p.source === "oficial");
+export const PRINTER_CATALOG: CatalogPrinter[] = CATALOG_ROWS.map((p) => (FACTORY_NOZZLE_04(p) ? { ...p, nozzle: 0.4 } : p));
+
 
 export const PRINTER_BRANDS = [...new Set(PRINTER_CATALOG.map((p) => p.brand))];
 
@@ -220,10 +229,10 @@ export const findCatalogPrinter = (name: string) => {
 };
 
 /** Valores do formulário de impressora a partir do catálogo. */
-export function printerFromCatalog(id: string): { name: string; watts: string } {
+export function printerFromCatalog(id: string): { name: string; watts: string; nozzle?: string } {
   const p = PRINTER_CATALOG.find((x) => x.id === id);
   if (!p) throw new Error(`Impressora fora do catálogo: ${id}`);
-  return { name: printerLabel(p), watts: String(p.watts) };
+  return { name: printerLabel(p), watts: String(p.watts), ...(p.nozzle ? { nozzle: String(p.nozzle).replace(".", ",") } : {}) };
 }
 
 export const PRINTER_CATALOG_ITEMS = PRINTER_CATALOG.map((p) => ({ id: p.id, group: p.brand, title: p.model, subtitle: printerSubtitle(p), keywords: `${p.brand} ${compact(p.model)} ${compact(p.brand + p.model)}` }));

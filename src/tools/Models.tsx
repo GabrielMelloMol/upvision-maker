@@ -54,9 +54,12 @@ function loadFavorites(): string[] {
   }
 }
 
+/** Os valores de partida de um modelo: os do catálogo, mais os que dependem do app agora (ex.: o bico da impressora no mapa estelar). */
+const baseParams = (m: { defaults: Params; liveDefaults?: () => Params }): Params => (m.liveDefaults ? { ...m.defaults, ...m.liveDefaults() } : m.defaults);
+
 const initialState = () => ({
   id: MODELS[0].id,
-  all: Object.fromEntries(MODELS.map((m) => [m.id, m.defaults])) as Record<string, Params>,
+  all: Object.fromEntries(MODELS.map((m) => [m.id, baseParams(m)])) as Record<string, Params>,
   font: "hanken" as FontId,
   art: null as { svg: string; name: string } | null,
   // lote (#76): uma linha por cópia, por modelo
@@ -79,7 +82,7 @@ export default function Models({ only, embedded }: { only?: string; embedded?: {
     load: (raw) => {
       const r = raw as ModelsState;
       const base = initialState();
-      return { ...base, ...r, id: MODELS.some((m) => m.id === r.id) ? r.id : base.id, all: Object.fromEntries(MODELS.map((m) => [m.id, { ...m.defaults, ...r.all?.[m.id] }])) };
+      return { ...base, ...r, id: MODELS.some((m) => m.id === r.id) ? r.id : base.id, all: Object.fromEntries(MODELS.map((m) => [m.id, { ...baseParams(m), ...r.all?.[m.id] }])) };
     },
   });
   const { id, all, font, art, batchOn, batchText } = tool.state;
@@ -131,7 +134,7 @@ export default function Models({ only, embedded }: { only?: string; embedded?: {
   }
   // variações do modelo; com uma ocasião escolhida, as dela vêm primeiro
   const variants = [...(VARIANTS[id] ?? [])].sort((a, b) => Number(!!occasion && occasion !== "favorites" && !!b.collections?.includes(occasion)) - Number(!!occasion && occasion !== "favorites" && !!a.collections?.includes(occasion)));
-  const applyVariant = (patch: Params) => setAll((a) => ({ ...a, [id]: { ...def.defaults, ...patch } }));
+  const applyVariant = (patch: Params) => setAll((a) => ({ ...a, [id]: { ...baseParams(def), ...patch } }));
   const p = all[id];
   const patchParams = (next: Params) => tool.set((cur) => ({ ...cur, all: { ...cur.all, [id]: { ...cur.all[id], ...next } } }), `${id}.lugar`);
   const set = (k: string) => (v: string | number | boolean) => tool.set((cur) => ({ ...cur, all: { ...cur.all, [id]: { ...cur.all[id], [k]: v } } }), `${id}.${k}`);
@@ -302,7 +305,7 @@ export default function Models({ only, embedded }: { only?: string; embedded?: {
             layers={lay.layers}
             onApply={(params, layers) =>
               // campos e camadas da variação num passo só do desfazer
-              tool.set((cur) => ({ ...cur, all: { ...cur.all, [id]: { ...def.defaults, ...params } }, edits: { ...cur.edits, [id]: { layers, offsets: cur.edits[id]?.offsets ?? {} } } }))
+              tool.set((cur) => ({ ...cur, all: { ...cur.all, [id]: { ...baseParams(def), ...params } }, edits: { ...cur.edits, [id]: { layers, offsets: cur.edits[id]?.offsets ?? {} } } }))
             }
           />
           {batchKeys && (

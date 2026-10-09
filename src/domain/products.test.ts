@@ -5,7 +5,7 @@ import { DEFAULT_SETTINGS } from "./settings";
 
 const filament = (id: number, pricePerKg: number): Filament => ({ id, material: "PLA", color: "", brand: "", pricePerKg, spoolG: 1000, stockG: 1000, minG: 0 });
 const material = (id: number, unitPrice: number): Material => ({ id, name: "Embalagem", unit: "un", unitPrice, stock: 100, min: 0 });
-const printer: Printer = { id: 1, name: "A1", watts: 0, price: 0, lifeHours: 5000, upkeepPerHour: 0 };
+const printer: Printer = { id: 1, name: "A1", watts: 0, price: 0, lifeHours: 5000, upkeepPerHour: 0, nozzle: 0.4 };
 
 function product(id: number, p: Partial<Product>): Product {
   return {

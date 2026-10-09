@@ -5,7 +5,8 @@ import { beforeAll, expect, test } from "vitest";
 import { getManifold, type ManifoldToplevel } from "./manifold";
 import { scoped } from "./shape2d";
 import { textToCrossSection } from "./text";
-import { checkText, textWarnings, thinLineWarning } from "./textCheck";
+import { setBed } from "./bed";
+import { checkText, minStrokeMm, textWarnings, thinLineWarning } from "./textCheck";
 
 let M: ManifoldToplevel;
 const font = (file: string) => {
@@ -57,4 +58,20 @@ test("linha no tamanho final (#146): 2 mm na Hanken avisa com o texto e a altura
     expect(thinLineWarning(k(textToCrossSection(M, f, "CAMPEÃ", 8)), "CAMPEÃ")).toBeNull();
     // texto longo aparece cortado no aviso
     expect(thinLineWarning(small, "Uma frase bem comprida para o aviso")).toMatch(/^"Uma frase bem compri…"/);
+  }));
+
+test("traço fino segue o bico da impressora das ferramentas: 0,3 mm é fino no bico 0,4 e bom no 0,2 (o aviso fala do bico)", () =>
+  scoped((k) => {
+    const strip = k(M.CrossSection.square([0.3, 10]));
+    setBed({ x: 256, y: 256, z: 256, nozzle: 0.4 });
+    expect(checkText(strip).thin).toBe(true);
+    expect(textWarnings(checkText(strip), "A", false)[0]).toMatch(/menos de 0,4 mm .*\(o bico\)/);
+    setBed({ x: 256, y: 256, z: 256, nozzle: 0.2 });
+    expect(checkText(strip).thin).toBe(false);
+    setBed({ x: 256, y: 256, z: 256, nozzle: 0.6 });
+    expect(checkText(strip).thin).toBe(true);
+    expect(textWarnings(checkText(strip), "A", false)[0]).toMatch(/menos de 0,6 mm/);
+    expect(minStrokeMm()).toBe(0.6);
+    setBed(null);
+    expect(minStrokeMm()).toBe(0.4);
   }));

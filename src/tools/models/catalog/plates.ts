@@ -1,4 +1,5 @@
 import { BriefcaseBusiness, Disc3, Frame, IdCard, LayoutGrid, Palette, QrCode, RadioTower, Shield, Signpost, Sparkles, Users } from "lucide-react";
+import { nozzleMm } from "../../../geometry/bed";
 import { buildBusinessCard, DEFAULT_BUSINESS_CARD } from "../../../geometry/models/businessCard";
 import { buildColoringTile, DEFAULT_COLORING_TILE } from "../../../geometry/models/coloringTile";
 import { buildLogoPlate, DEFAULT_ADAPTIVE_PLATE } from "../../../geometry/models/logoPlate";
@@ -332,6 +333,7 @@ export const PLATE_MODELS: ModelDef[] = [
     icon: Sparkles,
     font: true,
     defaults: DEFAULT_STAR_MAP,
+    liveDefaults: () => ({ nozzle: String(nozzleMm()) }), // o bico da impressora das ferramentas (Preferências); sem impressora, 0,4
     sections: [
       {
         title: "Lugar",

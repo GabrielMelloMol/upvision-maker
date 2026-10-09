@@ -3,7 +3,7 @@
  * fixos da A1. Fica num lugar só: o App atualiza ao abrir e ao trocar de tela (Preferências → Impressora das
  * ferramentas); os geradores leem com `bedMm()` na hora de gerar.
  */
-export type Bed = { x: number; y: number; z: number; name?: string };
+export type Bed = { x: number; y: number; z: number; name?: string; /** bico da impressora escolhida, em mm */ nozzle?: number };
 
 /** A1/P1/X1: o padrão quando não há impressora cadastrada ou ela não está no catálogo. */
 export const DEFAULT_BED: Bed = { x: 256, y: 256, z: 256 };
@@ -20,6 +20,13 @@ export const bed = (): Bed => current;
  */
 export const bedMm = () => Math.min(current.x, current.y);
 export const bedHeight = () => current.z;
+
+/** Bico padrão quando não há impressora cadastrada. */
+export const FALLBACK_NOZZLE_MM = 0.4;
+/** Bico da impressora das ferramentas (Preferências › Impressora das ferramentas), em mm: base dos avisos de parte fina e do padrão do mapa estelar. */
+export const nozzleMm = (): number => (current.nozzle && current.nozzle > 0 ? current.nozzle : FALLBACK_NOZZLE_MM);
+/** "0,4" (vírgula, sem zeros à toa) para os textos. */
+export const nozzleText = (n: number = nozzleMm()): string => String(Math.round(n * 100) / 100).replace(".", ",");
 
 /**
  * Volume do catálogo de impressoras: "256×256×256", "300×300" (sem altura) ou "Ø300×410" (delta, mesa redonda:
@@ -42,9 +49,9 @@ export function parseVolume(v: string | undefined): Bed | null {
  * Qual impressora manda no tamanho: a escolhida nas Preferências; senão a única (ou a primeira) cadastrada.
  * `volumeOf(nome)` acha o volume no catálogo; impressora fora do catálogo fica com o padrão.
  */
-export function bedFor(printers: { id: number; name: string }[], chosenId: number | null | undefined, volumeOf: (name: string) => string | undefined): Bed {
+export function bedFor(printers: { id: number; name: string; nozzle?: number }[], chosenId: number | null | undefined, volumeOf: (name: string) => string | undefined): Bed {
   const p = printers.find((x) => x.id === chosenId) ?? printers[0];
   if (!p) return DEFAULT_BED;
   const b = parseVolume(volumeOf(p.name));
-  return b ? { ...b, name: p.name } : { ...DEFAULT_BED, name: p.name };
+  return { ...(b ?? DEFAULT_BED), name: p.name, ...(p.nozzle ? { nozzle: p.nozzle } : {}) };
 }

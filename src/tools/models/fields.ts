@@ -45,6 +45,8 @@ export type ModelDef = {
   icon: LucideIcon;
   defaults: Params;
   sections: Section[];
+  /** Valores que dependem do app no momento em que o rascunho nasce (ex.: o bico da impressora das ferramentas); valem por cima de `defaults`. */
+  liveDefaults?: () => Params;
   /** Aceita desenho enviado (SVG/imagem). */
   art?: string;
   /** O modelo usa as cores do desenho (uma camada por cor): QA e miniatura usam um desenho de exemplo colorido. */

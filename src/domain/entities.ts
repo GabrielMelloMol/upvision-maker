@@ -8,7 +8,9 @@ export const MATERIAL_TYPES = ["PLA", "PETG", "ABS", "ASA", "TPU", "Nylon", "Res
 
 /** price/lifeHours/upkeepPerHour: depreciação e desgaste (custo de máquina por hora). */
 // Padrões: cadastros e backups anteriores à v0.6 não têm esses campos.
-export const PrinterInput = z.object({ name, watts: nonNeg, price: nonNeg.default(0), lifeHours: nonNeg.default(5000), upkeepPerHour: nonNeg.default(0) });
+/** nozzle: diâmetro do bico em mm (0,2 / 0,4 / 0,6 / 0,8 ou outro); o mapa estelar e os avisos de parte fina usam o da impressora das ferramentas. */
+export const DEFAULT_NOZZLE = 0.4;
+export const PrinterInput = z.object({ name, watts: nonNeg, price: nonNeg.default(0), lifeHours: nonNeg.default(5000), upkeepPerHour: nonNeg.default(0), nozzle: z.number().min(0.1, "O bico vai de 0,1 a 2 mm").max(2, "O bico vai de 0,1 a 2 mm").default(DEFAULT_NOZZLE) });
 export const FilamentInput = z.object({
   material: name,
   color: text,

@@ -2,7 +2,8 @@ import type { ManifoldToplevel, Solid } from "./manifold";
 import { toMesh } from "./mesh";
 import { decodePaint, type Tri, type Vec3 } from "./paint";
 import { scoped } from "./shape2d";
-import { MIN_STROKE_MM } from "./textCheck";
+import { nozzleText } from "./bed";
+import { minStrokeMm } from "./textCheck";
 import type { Read3mf, ReadPart } from "./threemfRead";
 import type { Model, Part } from "./types";
 
@@ -101,7 +102,7 @@ export function splitByColor(M: ManifoldToplevel, file: Read3mf, o: SplitOptions
         for (const f of [...leaves.keys()].sort((a, b) => a - b)) {
           const vol = k(shellOf(M, k, leaves.get(f)!, o.depth).intersect(rest));
           if (vol.isEmpty()) continue;
-          thinSide ||= o.depth < MIN_STROKE_MM && leaves.get(f)!.some((t) => Math.abs(normal(t)?.[2] ?? 1) < SIDE_NZ);
+          thinSide ||= o.depth < minStrokeMm() && leaves.get(f)!.some((t) => Math.abs(normal(t)?.[2] ?? 1) < SIDE_NZ);
           rest = k(rest.subtract(vol)); // cada ponto fica com uma cor só
           pieces.push([f, vol]);
         }
@@ -118,7 +119,7 @@ export function splitByColor(M: ManifoldToplevel, file: Read3mf, o: SplitOptions
     else parts.forEach((p) => models.push({ name: `${obj.name} · ${p.name}`, parts: [p] }));
   }
   if (thinSide)
-    warnings.push(`Com ${String(o.depth).replace(".", ",")} mm de profundidade, a cor pintada nas laterais fica mais fina que a linha do bico (${String(MIN_STROKE_MM).replace(".", ",")} mm) e some no fatiador: use ${String(MIN_STROKE_MM).replace(".", ",")} mm ou mais.`);
+    warnings.push(`Com ${String(o.depth).replace(".", ",")} mm de profundidade, a cor pintada nas laterais fica mais fina que a linha do bico (${nozzleText(minStrokeMm())} mm) e some no fatiador: use ${nozzleText(minStrokeMm())} mm ou mais.`);
   if (volumes.size < 2) warnings.push("Só uma cor encontrada: o arquivo não tem pintura nem partes de cores diferentes.");
   const placed = o.mode === "objects" ? spreadOnPlate(models) : models;
   const colors = [...volumes].sort((a, b) => a[0] - b[0]).map(([filament, volume]) => ({ filament, color: colorOf(file.filamentColors, filament), volume }));

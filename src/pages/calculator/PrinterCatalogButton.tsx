@@ -22,7 +22,7 @@ export default function PrinterCatalogButton({ printers, onPicked }: Props) {
     const same = printers.find((p) => p.name.trim().toLowerCase() === name.toLowerCase());
     if (same) return onPicked(same);
     try {
-      const input = { name, watts: c.watts, price: 0, lifeHours: 5000, upkeepPerHour: 0 };
+      const input = { name, watts: c.watts, price: 0, lifeHours: 5000, upkeepPerHour: 0, nozzle: c.nozzle ?? 0.4 };
       const id = await printersRepo.insert(await getDb(), input);
       onPicked({ id, ...input });
       toast(`${name} cadastrada em Impressoras (${c.watts} W). Lá você informa o preço pago.`);

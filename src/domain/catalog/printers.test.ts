@@ -30,7 +30,7 @@ test("Bambu A1: 95 W, dado oficial; marcas sem dado publicado ficam como estimat
 });
 
 test("catálogo → formulário e texto da linha", () => {
-  expect(printerFromCatalog("bambu-a1")).toEqual({ name: "Bambu Lab A1", watts: "95" });
+  expect(printerFromCatalog("bambu-a1")).toEqual({ name: "Bambu Lab A1", watts: "95", nozzle: "0,4" }); // bico de fábrica 0,4 (Bambu)
   expect(printerFromCatalog("voron-0").name).toBe("Voron 0 (120 mm)");
   expect(printerSubtitle(PRINTER_CATALOG[0])).toBe("95 W · dado oficial · aberta · 256×256×256 mm");
   expect(printerSubtitle(PRINTER_CATALOG.find((p) => p.id === "creality-k1")!)).toBe("≈120 W · estimativa · fechada · 220×220×250 mm");
@@ -58,4 +58,17 @@ test.each([
 ])("busca tolerante: '%s' acha %s", (q, id) => {
   const hits = rank(PRINTER_CATALOG_ITEMS.map((it) => ({ ...it, pageId: "" })), q).map((it) => it.id);
   expect(hits).toContain(id);
+});
+
+test("bico de fábrica: só onde o fabricante publica (Bambu Lab e Prusa oficiais); o resto fica sem o dado, sem palpite", () => {
+  const withNozzle = PRINTER_CATALOG.filter((p) => p.nozzle);
+  expect(withNozzle.length).toBeGreaterThan(10);
+  for (const p of withNozzle) {
+    expect(p.nozzle).toBe(0.4);
+    expect(p.brand === "Bambu Lab" || (p.brand === "Prusa" && p.source === "oficial"), p.id).toBe(true);
+  }
+  for (const id of ["bambu-a1", "bambu-a1-mini", "bambu-p1p", "bambu-p1s", "bambu-x1c", "prusa-mk4s"]) expect(PRINTER_CATALOG.find((p) => p.id === id)!.nozzle, id).toBe(0.4);
+  for (const id of ["creality-ender3", "elegoo-neptune4", "anycubic-kobra3", "prusa-mini", "klipper-235"]) expect(PRINTER_CATALOG.find((p) => p.id === id)!.nozzle, id).toBeUndefined();
+  expect(printerFromCatalog("bambu-a1")).toEqual({ name: "Bambu Lab A1", watts: "95", nozzle: "0,4" });
+  expect(printerFromCatalog("creality-ender3")).not.toHaveProperty("nozzle");
 });

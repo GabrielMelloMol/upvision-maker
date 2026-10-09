@@ -37,7 +37,7 @@ describe("backup", () => {
     const b = await exportBackup(db);
     const old = { ...b, schemaVersion: 9, tables: { ...b.tables, printers: [{ id: 1, name: "A1", watts: 95 }] } };
     await restoreBackup(db, parseBackup(JSON.stringify(old)));
-    expect(await db.select("SELECT * FROM printers")).toEqual([{ id: 1, name: "A1", watts: 95, price: 0, lifeHours: 5000, upkeepPerHour: 0 }]);
+    expect(await db.select("SELECT * FROM printers")).toEqual([{ id: 1, name: "A1", watts: 95, price: 0, lifeHours: 5000, upkeepPerHour: 0, nozzle: 0.4 }]);
   });
 
   test("backup antigo (produto sem taxa de falha) restaura com null (#35)", async () => {
@@ -143,3 +143,19 @@ test("restaurar um backup leve não deixa foto de um produto, projeto ou impress
   expect((await db.select<{ owner: string }>("SELECT owner FROM photos ORDER BY owner")).map((r) => r.owner)).toEqual(["product:1"]);
 });
 
+describe("bico da impressora no backup", () => {
+  test("o bico vai no backup e volta igual; backup antigo (sem o bico) restaura com 0,4", async () => {
+    const db = await seeded();
+    await db.execute("INSERT INTO printers (name, watts) VALUES ('A1', 95)");
+    await db.execute("INSERT INTO printers (name, watts, nozzle) VALUES ('Fina', 80, 0.2)");
+    const b = await exportBackup(db);
+    expect(b.tables.printers.map((p) => [p.name, p.nozzle])).toEqual([["A1", 0.4], ["Fina", 0.2]]);
+    await db.execute("DELETE FROM printers");
+    await restoreBackup(db, parseBackup(JSON.stringify(b)));
+    expect(await db.select("SELECT name, nozzle FROM printers ORDER BY id")).toEqual([{ name: "A1", nozzle: 0.4 }, { name: "Fina", nozzle: 0.2 }]);
+    // backup de antes do bico: a linha não tem o campo
+    const old = { ...b, tables: { ...b.tables, printers: b.tables.printers.map(({ nozzle, ...rest }) => (void nozzle, rest)) } };
+    await restoreBackup(db, parseBackup(JSON.stringify(old)));
+    expect(await db.select("SELECT name, nozzle FROM printers ORDER BY id")).toEqual([{ name: "A1", nozzle: 0.4 }, { name: "Fina", nozzle: 0.4 }]);
+  });
+});

@@ -147,3 +147,18 @@ describe("B7: baixa manual e reposição não perdem uma baixa simultânea", () 
     expect((await filaments.list(db)).find((f) => f.id === id2)!.stockG).toBe(1000); // 400 + 600
   });
 });
+
+describe("bico da impressora", () => {
+  test("sem o campo, 0,4; com ele, grava e devolve; edita; fora de 0,1 a 2 mm é recusado", async () => {
+    await printers.insert(db, { name: "A1", watts: 95 });
+    await printers.insert(db, { name: "Fina", watts: 80, nozzle: 0.2 });
+    const [a, b] = await printers.list(db);
+    expect(a.nozzle).toBe(0.4);
+    expect(b.nozzle).toBe(0.2);
+    await printers.update(db, a.id, { name: "A1", watts: 95, nozzle: 0.6 });
+    expect((await printers.list(db))[0].nozzle).toBe(0.6);
+    await expect(printers.insert(db, { name: "X", watts: 10, nozzle: 0 })).rejects.toThrow(/bico/i);
+    await expect(printers.insert(db, { name: "X", watts: 10, nozzle: 3 })).rejects.toThrow(/bico/i);
+    expect(await printers.list(db)).toHaveLength(2);
+  });
+});

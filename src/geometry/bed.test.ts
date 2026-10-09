@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, test } from "vitest";
-import { bed, bedFor, bedMm, DEFAULT_BED, parseVolume, setBed } from "./bed";
+import { bed, bedFor, bedMm, DEFAULT_BED, nozzleMm, nozzleText, parseVolume, setBed } from "./bed";
 
 afterEach(() => setBed(null));
 
@@ -36,5 +36,30 @@ describe("mesa da impressora escolhida (#119)", () => {
     expect(bed().z).toBe(220);
     setBed(null);
     expect(bedMm()).toBe(256);
+  });
+});
+
+describe("bico da impressora das ferramentas", () => {
+  test("a escolhida manda, senão a primeira; sem impressora ou sem o dado, 0,4", () => {
+    const printers = [{ id: 1, name: "A1", nozzle: 0.4 }, { id: 2, name: "Fina", nozzle: 0.2 }, { id: 3, name: "Sem dado" }];
+    const of = () => "256×256×256";
+    expect(bedFor(printers, 2, of).nozzle).toBe(0.2);
+    expect(bedFor(printers, null, of).nozzle).toBe(0.4);
+    expect(bedFor(printers, 3, of).nozzle).toBeUndefined();
+    setBed(bedFor(printers, 2, of));
+    expect(nozzleMm()).toBe(0.2);
+    setBed(bedFor(printers, 3, of));
+    expect(nozzleMm()).toBe(0.4);
+    setBed(null);
+    expect(nozzleMm()).toBe(0.4);
+  });
+
+  test("texto do bico com vírgula e sem zeros à toa", () => {
+    expect(nozzleText(0.4)).toBe("0,4");
+    expect(nozzleText(0.2)).toBe("0,2");
+    expect(nozzleText(0.25)).toBe("0,25");
+    expect(nozzleText(1)).toBe("1");
+    setBed({ x: 256, y: 256, z: 256, nozzle: 0.6 });
+    expect(nozzleText()).toBe("0,6");
   });
 });
