@@ -4,6 +4,7 @@ import userEvent from "@testing-library/user-event";
 import { afterEach, beforeEach, describe, expect, test, vi } from "vitest";
 import { renderWithApp, setupTauri } from "../test/harness";
 import Costs from "./Costs";
+import { rowAction } from "../test/rowMenu";
 
 const t = setupTauri();
 
@@ -106,7 +107,7 @@ describe("Custos operacionais", () => {
     await insert("('Internet', 'Internet', 99.9, 'monthly', '2026-01-05', '2026-12-05', NULL)");
     const user = userEvent.setup();
     renderWithApp(<Costs />);
-    await user.click(await screen.findByRole("button", { name: "Editar Internet" }));
+    await rowAction(user, "Internet", "Editar");
     const dialog = screen.getByRole("dialog", { name: "Editar custo" });
     expect(within(dialog).getByLabelText(/^Valor/)).toHaveValue("99,90");
     expect(within(dialog).getByLabelText(/Termina em/)).toHaveValue("2026-12-05");
@@ -123,7 +124,7 @@ describe("Custos operacionais", () => {
     const user = userEvent.setup();
     renderWithApp(<Costs />);
     t.askAnswer = false;
-    await user.click(await screen.findByRole("button", { name: "Excluir Internet" }));
+    await rowAction(user, "Internet", "Excluir");
     expect(t.calls).toContain("plugin:dialog|message");
     expect(await t.db.select("SELECT id FROM operational_costs")).toHaveLength(1);
 
@@ -131,11 +132,11 @@ describe("Custos operacionais", () => {
     t.handlers["plugin:sql|execute"] = () => {
       throw new Error("banco travado");
     };
-    await user.click(screen.getByRole("button", { name: "Excluir Internet" }));
+    await rowAction(user, "Internet", "Excluir");
     expect(await screen.findByRole("alert")).toHaveTextContent("banco travado");
     delete t.handlers["plugin:sql|execute"];
 
-    await user.click(screen.getByRole("button", { name: "Excluir Internet" }));
+    await rowAction(user, "Internet", "Excluir");
     expect(await screen.findByText("Nenhum custo cadastrado")).toBeInTheDocument();
     expect(await t.db.select("SELECT id FROM operational_costs")).toEqual([]);
   });

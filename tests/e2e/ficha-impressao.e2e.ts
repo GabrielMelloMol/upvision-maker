@@ -1,4 +1,5 @@
 import type { Locator } from "@playwright/test";
+import { rowAction } from "./rowMenu";
 import { expect, go, openApp, test, toastWith } from "./tauri";
 
 async function register(form: Locator, opts: { failed?: string; layer?: string; notes?: string } = {}) {
@@ -19,7 +20,7 @@ test("ficha de impressão: o que funcionou, histórico e taxa de falha medida no
     INSERT INTO products (name, kind, composition, piecesPerPlate, stock, manualPrice) VALUES ('Vaso', 'simple', '{"filaments":[{"filamentId":1,"grams":50}],"materials":[],"items":[]}', 1, 0, 40);`);
 
   await go(page, "Produtos");
-  await page.getByRole("button", { name: "Editar Vaso" }).click();
+  await rowAction(page, "Vaso", "Editar");
   const sheet = page.getByRole("dialog", { name: /Vaso|Editar produto/ });
   const fichaSheet = sheet.getByRole("region", { name: "Ficha de impressão" });
   await expect(fichaSheet.getByText(/Anote como você imprimiu/)).toBeVisible();

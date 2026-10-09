@@ -7,6 +7,7 @@ import { setPendingOpen } from "../ui/search";
 import Products from "./Products";
 import { setProductDraft } from "./products/draft";
 import { readWorkbook } from "../domain/marketplace/xlsx";
+import { rowAction } from "../test/rowMenu";
 
 const photo = vi.hoisted(() => ({ fail: false }));
 vi.mock("../ui/photo", () => ({
@@ -113,15 +114,15 @@ describe("Produtos: lista", () => {
     const user = userEvent.setup();
     renderWithApp(<Products />);
     t.askAnswer = false;
-    await user.click(await screen.findByRole("button", { name: "Excluir Peça" }));
+    await rowAction(user, "Peça", "Excluir");
     await waitFor(() => expect(messages).toEqual(['"Peça" faz parte de Kit festa. Excluir mesmo assim?']));
     expect(await t.db.select("SELECT name FROM products ORDER BY id")).toHaveLength(2);
 
     t.askAnswer = true;
-    await user.click(screen.getByRole("button", { name: "Excluir Kit festa" }));
+    await rowAction(user, "Kit festa", "Excluir");
     await waitFor(() => expect(screen.queryByRole("row", { name: /Kit festa/ })).not.toBeInTheDocument());
     expect(messages[1]).toBe('Excluir "Kit festa"?');
-    await user.click(screen.getByRole("button", { name: "Excluir Peça" }));
+    await rowAction(user, "Peça", "Excluir");
     await waitFor(async () => expect(await t.db.select("SELECT id FROM products")).toEqual([]));
     expect(await t.db.select("SELECT id FROM photos")).toEqual([]);
   });
@@ -133,7 +134,7 @@ describe("Produtos: lista", () => {
     };
     const user = userEvent.setup();
     renderWithApp(<Products />);
-    await user.click(await screen.findByRole("button", { name: "Excluir Peça" }));
+    await rowAction(user, "Peça", "Excluir");
     expect(await screen.findByText("Não foi possível excluir: disco cheio")).toBeInTheDocument();
   });
 
@@ -290,7 +291,7 @@ describe("Produtos: editor", () => {
     expect(kitRow).toEqual({ kind: "kit", composition: COMP([], [], [[1, 2]]) });
 
     // Chaveiro vira kit contendo o Kit festa (que contém o Chaveiro): circular
-    await user.click(await screen.findByRole("button", { name: "Editar Chaveiro" }));
+    await rowAction(user, "Chaveiro", "Editar");
     const ed = await dialog("Editar Chaveiro");
     await user.click(within(ed).getByRole("button", { name: "Kit (produto de produtos)" }));
     const items = within(ed).getByRole("group", { name: /Produtos do kit/ });
@@ -304,7 +305,7 @@ describe("Produtos: editor", () => {
     t.raw.exec(`INSERT INTO products (name, kind, composition, piecesPerPlate, printMinutes, manualPrice) VALUES ('Peça', 'simple', '${COMP([[7, 10]])}', 2, 75, 12.5)`);
     const user = userEvent.setup();
     renderWithApp(<Products />);
-    await user.click(await screen.findByRole("button", { name: "Editar Peça" }));
+    await rowAction(user, "Peça", "Editar");
     const sheet = await dialog("Editar Peça");
     expect(within(sheet).getByLabelText("Tempo de impressão")).toHaveValue("1h15");
     expect(within(sheet).getByLabelText(/Preço manual/)).toHaveValue("12,50");
@@ -320,7 +321,7 @@ describe("Produtos: editor", () => {
     t.raw.exec(`INSERT INTO products (name, kind, composition, piecesPerPlate) VALUES ('Velho', 'simple', '{"filaments":[{"filamentId":"x"}]}', 1)`);
     const user = userEvent.setup();
     renderWithApp(<Products />);
-    await user.click(await screen.findByRole("button", { name: "Editar Velho" }));
+    await rowAction(user, "Velho", "Editar");
     const sheet = await dialog("Editar Velho");
     expect(within(sheet).getByText(/Não consegui ler a composição do produto "Velho"/)).toBeInTheDocument();
     expect(within(sheet).getByRole("button", { name: "Salvar alterações" })).toBeDisabled();
@@ -332,7 +333,7 @@ describe("Produtos: editor", () => {
     t.raw.exec(`INSERT INTO products (name, kind, composition, piecesPerPlate, stock, variants) VALUES ('Vaso', 'simple', '${COMP([])}', 1, 7, '${variants}')`);
     const user = userEvent.setup();
     renderWithApp(<Products />);
-    await user.click(await screen.findByRole("button", { name: "Editar Vaso" }));
+    await rowAction(user, "Vaso", "Editar");
     const sheet = await dialog("Editar Vaso");
     expect(within(sheet).getByText(/As variações somam 10, mas o estoque pronto é 7/)).toBeInTheDocument();
     await user.type(within(sheet).getByLabelText("Observações"), "nova descrição");
@@ -364,7 +365,7 @@ describe("Produtos: editor", () => {
         ('product:1', 1, 'data:image/png;base64,DOIS', '2026-10-01T10:00:00Z'), ('print:1', 0, 'data:image/png;base64,FICHA', '2026-10-01T10:00:00Z');`);
     const user = userEvent.setup();
     renderWithApp(<Products />);
-    await user.click(await screen.findByRole("button", { name: "Editar Vaso" }));
+    await rowAction(user, "Vaso", "Editar");
     const gallery = within(await dialog("Editar Vaso")).getByRole("list", { name: "Fotos" });
     expect(await within(gallery).findByAltText("Capa")).toHaveAttribute("src", "data:image/png;base64,UM");
     expect(within(gallery).getByAltText("Foto 2")).toHaveAttribute("src", "data:image/png;base64,DOIS");
@@ -499,7 +500,7 @@ describe("Produtos: planilha de upload em massa (#78)", () => {
     await seed();
     const user = userEvent.setup();
     renderWithApp(<Products />);
-    await user.click(await screen.findByRole("button", { name: "Editar Luminária de lua" }));
+    await rowAction(user, "Luminária de lua", "Editar");
     const sheet = await dialog(/Luminária de lua/);
     await user.click(within(sheet).getByText("Anúncio e fiscal (opcional)"));
     expect(within(sheet).getByLabelText(/^Peso embalado/)).toHaveAttribute("placeholder", "120 g de filamento + embalagem");

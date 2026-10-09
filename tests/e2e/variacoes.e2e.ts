@@ -1,4 +1,5 @@
 import { readWorkbook } from "../../src/domain/marketplace/xlsx";
+import { rowAction } from "./rowMenu";
 import { expect, go, openApp, test, toastWith } from "./tauri";
 
 test("variações por cor (#82): custo da cor, estoque somado, nome repetido e uma linha por cor na planilha", async ({ page, tauri }) => {
@@ -6,7 +7,7 @@ test("variações por cor (#82): custo da cor, estoque somado, nome repetido e u
   tauri.db.exec(`INSERT INTO filaments (material, color, brand, pricePerKg, spoolG, stockG, minG) VALUES ('PLA', 'Azul', 'X', 100, 1000, 1000, 0), ('PLA', 'Dourado', 'Silk', 300, 1000, 1000, 0);
     INSERT INTO products (name, kind, composition, piecesPerPlate, sku, stock, description, ncm) VALUES ('Chaveiro de coração', 'simple', '{"filaments":[{"filamentId":1,"grams":20}],"materials":[],"items":[]}', 1, 'CH-1', 0, 'Chaveiro impresso em 3D', '39264000');`);
   await go(page, "Produtos");
-  await page.getByRole("button", { name: "Editar Chaveiro de coração" }).click();
+  await rowAction(page, "Chaveiro de coração", "Editar");
   const sheet = page.getByRole("dialog", { name: /Chaveiro de coração/ });
   const variants = sheet.locator("fieldset.variants");
   await expect(variants.getByLabel("Filamento que muda de cor")).toHaveValue("1");

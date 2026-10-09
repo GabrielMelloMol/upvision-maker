@@ -1,5 +1,5 @@
 import { ask } from "@tauri-apps/plugin-dialog";
-import { ArrowRightLeft, BookImage, FileDown, FileSignature, FileText, Pencil, Plus, Store, Trash2 } from "lucide-react";
+import { ArrowRightLeft, BookImage, FileDown, FileSignature, FileText, Plus, Store } from "lucide-react";
 import { useEffect, useState } from "react";
 import { getDb } from "../db";
 import { quotesRepo } from "../db/quotesRepo";
@@ -11,6 +11,7 @@ import { loadPdfFonts } from "../pdf/fonts";
 import { quotePdf } from "../pdf/quote";
 import Alert from "../ui/Alert";
 import Button from "../ui/Button";
+import RowActions from "../ui/RowActions";
 import EmptyState from "../ui/EmptyState";
 import LoadError from "../ui/LoadError";
 import { saveFile, slug } from "../ui/saveFile";
@@ -170,10 +171,9 @@ export default function Quotes({ go }: { go: Go }) {
                         <Button variant="ghost" size="sm" icon={ArrowRightLeft} onClick={() => convert(q)}>
                           Virar pedido
                         </Button>
-                        <Button variant="ghost" size="sm" icon={Pencil} aria-label={`Editar orçamento ${num(q)}`} onClick={() => setEditing(q)} />
                       </>
                     )}
-                    <Button variant="ghost" size="sm" icon={Trash2} className="danger" aria-label={`Excluir orçamento ${num(q)}`} onClick={() => remove(q)} />
+                    <RowActions subject={`orçamento ${num(q)}`} onEdit={!q.convertedOrderId && !q.unreadable ? () => setEditing(q) : undefined} onDelete={() => void remove(q)} />
                   </div>
                 </td>
               </tr>

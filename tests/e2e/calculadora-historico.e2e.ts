@@ -1,7 +1,7 @@
 import { resolve } from "node:path";
 import { expect, go, openApp, test } from "./tauri";
 
-test("histórico: guarda sozinho, Limpar começa outro, Reabrir volta os valores, Apagar tira, e entra no banco (#43)", async ({ page, tauri }) => {
+test("histórico: guarda sozinho, Limpar começa outro, Reabrir volta os valores, Excluir (menu ⋯) tira, e entra no banco (#43)", async ({ page, tauri }) => {
   await openApp(page);
   tauri.db.exec(`INSERT INTO printers (name, watts) VALUES ('A1', 95);
     INSERT INTO filaments (material, color, brand, pricePerKg, spoolG, stockG, minG) VALUES ('PLA', 'Azul', 'Bambu', 120, 1000, 800, 200), ('PLA', 'Branco', 'Bambu', 110, 1000, 900, 200);`);
@@ -33,7 +33,8 @@ test("histórico: guarda sozinho, Limpar começa outro, Reabrir volta os valores
   await expect(page.getByLabel("Gramas").nth(1)).toHaveValue("1,33");
   expect((tauri.db.prepare("SELECT COUNT(*) AS n FROM calc_history").get() as { n: number }).n).toBe(2);
 
-  await card.getByRole("button", { name: "Apagar Vaso" }).click();
+  await card.getByRole("button", { name: "Ações de Vaso" }).click();
+  await page.getByRole("menuitem", { name: "Excluir" }).click();
   await expect(rows).toHaveCount(1);
   await page.reload();
   await go(page, "Calculadora");

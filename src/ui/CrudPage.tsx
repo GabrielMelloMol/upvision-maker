@@ -1,10 +1,11 @@
 import HintText from "./HintText";
-import { Pencil, Plus, Trash2, type LucideIcon } from "lucide-react";
+import { Plus, type LucideIcon } from "lucide-react";
 import { Fragment, useEffect, useRef, useState, type ReactNode } from "react";
 import { getDb } from "../db";
 import type { Db } from "../db/types";
 import { money, parseDecimal } from "../domain/format";
 import Button from "./Button";
+import RowActions from "./RowActions";
 import LoadError from "./LoadError";
 import CatalogSheet, { type CatalogItem } from "./CatalogSheet";
 import ColorDots, { colorSwatch } from "./ColorDots";
@@ -414,14 +415,8 @@ export default function CrudPage({ pageId, title, singular, lead, repo, fields, 
                         Repor
                       </button>
                     )}
-                    {duplicate && (
-                      <button className="link" onClick={() => duplicateRow(r)} aria-label={`Duplicar ${String(r[fields[0].key])}`}>
-                        Duplicar
-                      </button>
-                    )}
-                    {/* editar e excluir como ícones, igual a Clientes, Custos e Produtos (UX M7); o nome inclui a linha */}
-                    <Button variant="ghost" size="sm" icon={Pencil} aria-label={`Editar ${String(r[fields[0].key])}`} onClick={() => edit(r)} />
-                    <Button variant="ghost" size="sm" icon={Trash2} className="danger" aria-label={`Excluir ${String(r[fields[0].key])}`} onClick={() => remove(r)} />
+                    {/* Editar, Duplicar e Excluir no menu ⋯, igual a Clientes, Custos e Produtos (#180); a ação principal (Repor) fica em texto */}
+                    <RowActions subject={String(r[fields[0].key])} onEdit={() => edit(r)} onDuplicate={duplicate ? () => duplicateRow(r) : undefined} onDelete={() => void remove(r)} />
                     </div>
                   </td>
                 </tr>

@@ -1,5 +1,6 @@
 import { resolve } from "node:path";
 import { expect, go, openApp, test, toastWith } from "./tauri";
+import { rowAction } from "./rowMenu";
 
 const fixture = (name: string) => resolve("tests/fixtures/slicer", name);
 const settingsOf = (db: { prepare: (q: string) => { get: () => unknown } }) => JSON.parse((db.prepare("SELECT data FROM settings WHERE id = 1").get() as { data: string }).data);
@@ -143,7 +144,7 @@ test("filamentos: catálogo preenche marca/material/rolo e Duplicar abre novo ca
   await page.getByRole("dialog").getByRole("button", { name: "Adicionar", exact: true }).click();
   await expect(page.getByRole("row", { name: /Verde/ })).toContainText("R$ 95,00");
 
-  await page.getByRole("row", { name: /Verde/ }).getByRole("button", { name: "Duplicar PETG" }).click();
+  await rowAction(page, "PETG", "Duplicar", page.getByRole("row", { name: /Verde/ }));
   await expect(page.getByRole("heading", { name: "Adicionar filamento" })).toBeVisible(); // novo, não edição
   await expect(page.getByLabel("Material")).toHaveValue("PETG");
   await expect(page.getByLabel("Marca")).toHaveValue("Sunlu");

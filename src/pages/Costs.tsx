@@ -1,5 +1,5 @@
 import { ask } from "@tauri-apps/plugin-dialog";
-import { Pencil, Plus, Receipt, Trash2 } from "lucide-react";
+import { Plus, Receipt } from "lucide-react";
 import { useState } from "react";
 import { getDb } from "../db";
 import { costsRepo } from "../db/costsRepo";
@@ -10,6 +10,7 @@ import { money } from "../domain/format";
 import { FREQUENCIES, FREQUENCY_LABEL, monthlyRecurring, type OperationalCost, type OperationalCostInput } from "../domain/finance";
 import { todayIso } from "../domain/orders";
 import Button from "../ui/Button";
+import RowActions from "../ui/RowActions";
 import EmptyState from "../ui/EmptyState";
 import { fieldErrors } from "../ui/fieldErrors";
 import MoneyField from "../ui/MoneyField";
@@ -71,8 +72,7 @@ export default function Costs() {
                   <td className="num">{money(c.amount)}</td>
                   <td>
                     <div className="list-actions">
-                      <Button variant="ghost" size="sm" icon={Pencil} aria-label={`Editar ${c.description}`} onClick={() => setEditing(c)} />
-                      <Button variant="ghost" size="sm" icon={Trash2} className="danger" aria-label={`Excluir ${c.description}`} onClick={() => remove(c)} />
+                      <RowActions subject={c.description} onEdit={() => setEditing(c)} onDelete={() => void remove(c)} />
                     </div>
                   </td>
                 </tr>

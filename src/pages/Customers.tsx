@@ -1,11 +1,12 @@
 import { ask } from "@tauri-apps/plugin-dialog";
-import { Pencil, Plus, Trash2, UserRound, Users } from "lucide-react";
+import { Plus, UserRound, Users } from "lucide-react";
 import { useState } from "react";
 import { getDb } from "../db";
 import { customersRepo } from "../db/customersRepo";
 import { parseDecimal } from "../domain/format";
 import { EMPTY_CUSTOMER, formatDocument, type Customer, type CustomerInput } from "../domain/customers";
 import Button from "../ui/Button";
+import RowActions from "../ui/RowActions";
 import EmptyState from "../ui/EmptyState";
 import LoadError from "../ui/LoadError";
 import { fieldErrors } from "../ui/fieldErrors";
@@ -86,8 +87,7 @@ export default function Customers() {
                   <td className="num">{c.discountPct ? `${c.discountPct.toLocaleString("pt-BR")}%` : "—"}</td>
                   <td>
                     <div className="list-actions">
-                      <Button variant="ghost" size="sm" icon={Pencil} aria-label={`Editar ${c.name}`} onClick={() => setEditing(c)} />
-                      <Button variant="ghost" size="sm" icon={Trash2} className="danger" aria-label={`Excluir ${c.name}`} onClick={() => remove(c)} />
+                      <RowActions subject={c.name} onEdit={() => setEditing(c)} onDelete={() => void remove(c)} />
                     </div>
                   </td>
                 </tr>

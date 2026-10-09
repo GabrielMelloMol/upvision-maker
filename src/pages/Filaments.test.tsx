@@ -4,6 +4,7 @@ import userEvent from "@testing-library/user-event";
 import { describe, expect, test } from "vitest";
 import { renderWithApp, setupTauri } from "../test/harness";
 import Filaments from "./Filaments";
+import { rowAction } from "../test/rowMenu";
 
 const t = setupTauri();
 
@@ -26,7 +27,7 @@ describe("Filamentos: catálogo e duplicar (#3)", () => {
     await t.db.execute("INSERT INTO filaments (material, color, brand, pricePerKg, spoolG, stockG, minG) VALUES ('PLA', 'Azul', 'Voolt3D', 119.9, 1000, 300, 200)");
     const user = userEvent.setup();
     renderWithApp(<Filaments />);
-    await user.click(await screen.findByRole("button", { name: "Duplicar PLA" }));
+    await rowAction(user, "PLA", "Duplicar");
     expect(screen.getByRole("heading", { name: "Adicionar filamento" })).toBeInTheDocument();
     expect(screen.getByLabelText(/^Marca/)).toHaveValue("Voolt3D");
     expect(screen.getByLabelText("Preço por kg")).toHaveValue("119,90");
@@ -60,12 +61,11 @@ describe("Filamentos: TD fica em Opções avançadas (UX M1)", () => {
     await t.db.execute("INSERT INTO filaments (material, color, brand, pricePerKg, spoolG, stockG, minG, td) VALUES ('PLA', 'Branco', 'A', 100, 1000, 500, 200, 0.8), ('PLA', 'Preto', 'B', 100, 1000, 500, 200, NULL)");
     const user = userEvent.setup();
     renderWithApp(<Filaments />);
-    const edit = await screen.findAllByRole("button", { name: /^Editar / }); // na ordem do cadastro: Branco (com TD), Preto (sem)
-    await user.click(edit[0]);
+    await rowAction(user, /./, "Editar", undefined, 0); // na ordem do cadastro: Branco (com TD), Preto (sem)
     await waitFor(() => expect(advanced().open).toBe(true));
     expect(within(advanced()).getByLabelText(/^TD/)).toHaveValue("0.8");
     await user.click(screen.getByRole("button", { name: "Cancelar" }));
-    await user.click(screen.getAllByRole("button", { name: /^Editar / })[1]);
+    await rowAction(user, /./, "Editar", undefined, 1);
     await waitFor(() => expect(advanced().open).toBe(false));
   });
 

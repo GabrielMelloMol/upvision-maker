@@ -5,6 +5,7 @@ import { afterEach, describe, expect, test, vi } from "vitest";
 import { renderWithApp, setupTauri } from "../test/harness";
 import { setPendingOpen } from "../ui/search";
 import Customers from "./Customers";
+import { rowAction } from "../test/rowMenu";
 
 const t = setupTauri();
 
@@ -99,7 +100,7 @@ describe("Clientes", () => {
     t.raw.exec("INSERT INTO customers (kind, name, city, uf, discountPct, active) VALUES ('pf', 'Bia', 'Niterói', 'RJ', 0, 1)");
     const user = userEvent.setup();
     renderWithApp(<Customers />);
-    await user.click(await screen.findByRole("button", { name: "Editar Bia" }));
+    await rowAction(user, "Bia", "Editar");
     const sheet = await screen.findByRole("dialog", { name: "Editar Bia" });
     await user.click(within(sheet).getByLabelText("Cliente ativo"));
     await user.type(within(sheet).getByLabelText("Observações"), "só retira");
@@ -117,18 +118,18 @@ describe("Clientes", () => {
     const user = userEvent.setup();
     renderWithApp(<Customers />);
     t.askAnswer = false;
-    await user.click(await screen.findByRole("button", { name: "Excluir Bia" }));
+    await rowAction(user, "Bia", "Excluir");
     await waitFor(() => expect(t.calls).toContain("plugin:dialog|message"));
     expect(await t.db.select("SELECT name FROM customers ORDER BY id")).toHaveLength(2);
     t.askAnswer = true;
-    await user.click(screen.getByRole("button", { name: "Excluir Bia" }));
+    await rowAction(user, "Bia", "Excluir");
     await waitFor(() => expect(screen.queryByRole("row", { name: /Bia/ })).not.toBeInTheDocument());
     expect(await t.db.select("SELECT name FROM customers")).toEqual([{ name: "Caio" }]);
 
     t.handlers["plugin:sql|execute"] = () => {
       throw new Error("banco travado");
     };
-    await user.click(screen.getByRole("button", { name: "Excluir Caio" }));
+    await rowAction(user, "Caio", "Excluir");
     expect(await screen.findByText("Não foi possível excluir: banco travado")).toBeInTheDocument();
   });
 

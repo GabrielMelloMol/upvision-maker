@@ -1,4 +1,5 @@
 import { expect, go, openApp, test, toastWith } from "./tauri";
+import { rowAction } from "./rowMenu";
 
 test("navegação: todas as páginas da sidebar abrem com título", async ({ page, tauri }) => {
   void tauri;
@@ -51,13 +52,13 @@ test("impressoras: adiciona, edita e exclui", async ({ page, tauri }) => {
   await expect(row).toContainText("95");
   await expect(page.getByText("Nada cadastrado ainda.")).toBeHidden();
 
-  await row.getByRole("button", { name: /^Editar / }).click();
+  await rowAction(page, /./, "Editar", row);
   await page.getByRole("dialog").getByLabel("Potência média (W)").fill("110");
   await page.getByRole("dialog").getByRole("button", { name: "Salvar alterações" }).click();
   await expect(page.getByRole("row", { name: /Bambu A1/ })).toContainText("110");
 
   // excluir some na hora e dá para desfazer; sem diálogo de confirmação
-  await page.getByRole("row", { name: /Bambu A1/ }).getByRole("button", { name: /^Excluir / }).click();
+  await rowAction(page, /./, "Excluir", page.getByRole("row", { name: /Bambu A1/ }));
   await expect(page.getByRole("row", { name: /Bambu A1/ })).toHaveCount(0);
   await toastWith(page, "excluído").getByRole("button", { name: "Desfazer" }).click();
   await expect(page.getByRole("row", { name: /Bambu A1/ })).toBeVisible();
@@ -65,7 +66,7 @@ test("impressoras: adiciona, edita e exclui", async ({ page, tauri }) => {
 
   // sem desfazer: sai do banco depois do prazo
   await page.clock.install();
-  await page.getByRole("row", { name: /Bambu A1/ }).getByRole("button", { name: /^Excluir / }).click();
+  await rowAction(page, /./, "Excluir", page.getByRole("row", { name: /Bambu A1/ }));
   await page.clock.runFor(8500);
   await expect.poll(() => tauri.db.prepare("SELECT COUNT(*) AS n FROM printers").get()).toEqual({ n: 0 });
 });
@@ -292,7 +293,7 @@ test("Ctrl+N na página de cadastro: limpa a edição e foca o 1º campo", async
   tauri.db.exec("INSERT INTO printers (name, watts) VALUES ('Ender', 150)");
   await go(page, "Início");
   await go(page, "Impressoras");
-  await page.getByRole("row", { name: /Ender/ }).getByRole("button", { name: /^Editar / }).click();
+  await rowAction(page, /./, "Editar", page.getByRole("row", { name: /Ender/ }));
   await expect(page.getByLabel("Nome")).toHaveValue("Ender");
   await page.locator("body").press("Control+n");
   await expect(page.getByRole("heading", { name: "Adicionar impressora" })).toBeVisible();

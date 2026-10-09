@@ -1,4 +1,4 @@
-import { Boxes, Factory, FileSpreadsheet, Package, Pencil, Plus, Trash2 } from "lucide-react";
+import { Boxes, Factory, FileSpreadsheet, Package, Plus } from "lucide-react";
 import { ask } from "@tauri-apps/plugin-dialog";
 import { useEffect, useMemo, useState } from "react";
 import { getDb } from "../db";
@@ -6,6 +6,7 @@ import { productsRepo } from "../db/productsRepo";
 import { money } from "../domain/format";
 import { productPricing, salePrice, type Product } from "../domain/products";
 import Button from "../ui/Button";
+import RowActions from "../ui/RowActions";
 import EmptyState from "../ui/EmptyState";
 import LoadError from "../ui/LoadError";
 import { errorText, useToast } from "../ui/Toast";
@@ -148,8 +149,7 @@ export default function Products() {
                     <Button variant="ghost" size="sm" icon={Factory} onClick={() => setProducing(p)}>
                       Produzir
                     </Button>
-                    <Button variant="ghost" size="sm" icon={Pencil} onClick={() => setEditing(p)} aria-label={`Editar ${p.name}`} />
-                    <Button variant="ghost" size="sm" icon={Trash2} className="danger" onClick={() => remove(p)} aria-label={`Excluir ${p.name}`} />
+                    <RowActions subject={p.name} onEdit={() => setEditing(p)} onDelete={() => void remove(p)} />
                   </div>
                 </td>
               </tr>

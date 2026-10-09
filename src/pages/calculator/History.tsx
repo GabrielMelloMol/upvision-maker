@@ -1,7 +1,8 @@
-import { History as HistoryIcon, RotateCcw, Trash2 } from "lucide-react";
+import { History as HistoryIcon, RotateCcw } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { getDb } from "../../db";
 import { calcHistory, type CalcHistoryEntry } from "../../db/calcHistoryRepo";
+import RowActions from "../../ui/RowActions";
 import { money } from "../../domain/format";
 import { errorText, useToast } from "../../ui/Toast";
 import { parseSaved, type Saved } from "./saved";
@@ -94,7 +95,7 @@ type Props = {
   onRemove: (id: number) => void;
 };
 
-/** Lista "Últimos cálculos": nome, data, gramas, horas e preço de venda direta, com Reabrir e Apagar. */
+/** Lista "Últimos cálculos": nome, data, gramas, horas e preço de venda direta, com Reabrir e o menu ⋯ (Excluir). */
 export default function HistoryCard({ list, onReopen, onRemove }: Props) {
   if (!list.length) return null;
   return (
@@ -131,14 +132,7 @@ export default function HistoryCard({ list, onReopen, onRemove }: Props) {
                   >
                     <RotateCcw aria-hidden size={14} /> Reabrir
                   </button>
-                  <button
-                    type="button"
-                    className="ghost icon-only danger"
-                    onClick={() => onRemove(e.id)}
-                    aria-label={`Apagar ${e.name || "cálculo sem nome"}`}
-                  >
-                    <Trash2 aria-hidden size={16} />
-                  </button>
+                  <RowActions subject={e.name || "cálculo sem nome"} onDelete={() => onRemove(e.id)} />
                 </div>
               </td>
             </tr>

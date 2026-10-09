@@ -307,6 +307,14 @@ g:hover > .viz-hit { fill: var(--fill); }
 .menu-pop [role="menuitem"] { justify-content: flex-start; text-align: left; white-space: nowrap; min-height: 30px; padding: 0 10px; background: transparent; box-shadow: none; font-weight: 400; }
 .menu-pop [role="menuitem"]:hover, .menu-pop [role="menuitem"]:focus-visible { background: var(--fill); }
 .menu-pop [role="menuitem"].danger { color: var(--danger); }
+/* na célula da tabela a lixeira cinza (td button.danger) não vale para o item Excluir do menu: ele é vermelho sempre */
+td .menu-pop button[role="menuitem"].danger:not(:hover):not(:focus-visible) { color: var(--danger); }
+/* Tabela com menu ⋯ nas linhas (#180): o menu aberto na última linha não pode ser cortado pelo overflow da tabela; os cantos redondos passam para as células */
+table:has(.menu-wrap) { overflow: visible; }
+table:has(.menu-wrap) > thead > tr:first-child > :first-child { border-top-left-radius: var(--r); }
+table:has(.menu-wrap) > thead > tr:first-child > :last-child { border-top-right-radius: var(--r); }
+table:has(.menu-wrap) > tbody > tr:last-child > :first-child { border-bottom-left-radius: var(--r); }
+table:has(.menu-wrap) > tbody > tr:last-child > :last-child { border-bottom-right-radius: var(--r); }
 .menu-pop .menu-sep { height: 0.5px; margin: 4px 6px; background: var(--border); }
 .create-filters .create-projects { margin-left: auto; font-size: var(--text-sm); font-weight: 500; color: var(--accent-text); text-decoration: none; white-space: nowrap; }
 

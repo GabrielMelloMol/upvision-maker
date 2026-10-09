@@ -9,6 +9,7 @@ import { addDays } from "../domain/quotes";
 import { renderWithApp, setupTauri } from "../test/harness";
 import Quotes from "./Quotes";
 import { addToQuoteDraft, clearQuoteDraft, peekQuoteDraft, requestOpenQuoteDraft } from "./quotes/draft";
+import { rowAction, rowActionNames } from "../test/rowMenu";
 
 // As fontes vêm por fetch de URL do Vite no app; aqui lê direto do disco (igual a src/pdf/pdf.test.ts).
 const pdfFonts = vi.hoisted(() => ({ fail: false }));
@@ -109,7 +110,7 @@ describe("Orçamentos", () => {
     const { user } = setup();
     const row = await screen.findByRole("row", { name: /Ana Souza/ });
     expect(row).toHaveTextContent("vencido");
-    await user.click(within(row).getByRole("button", { name: "Editar orçamento ORC-2026-001" }));
+    await rowAction(user, "orçamento ORC-2026-001", "Editar", row);
     const sheet = await screen.findByRole("dialog", { name: "Orçamento ORC-2026-001" });
     const until = within(sheet).getByLabelText("Válido até");
     await user.clear(until);
@@ -167,7 +168,7 @@ describe("Orçamentos", () => {
     const row = await screen.findByRole("row", { name: /Ana Souza/ });
     await waitFor(() => expect(row).toHaveTextContent("virou o pedido #1"));
     expect(within(row).queryByRole("button", { name: "Virar pedido" })).not.toBeInTheDocument();
-    expect(within(row).queryByRole("button", { name: "Editar orçamento ORC-2026-001" })).not.toBeInTheDocument();
+    expect(await rowActionNames(userEvent.setup(), "orçamento ORC-2026-001", row)).toEqual(["Excluir"]); // já virou pedido: só excluir
     expect(t.raw.prepare("SELECT customerName, quoteId, status FROM orders").all()).toEqual([{ customerName: "Ana Souza", quoteId: 1, status: "pending" }]);
     expect(t.raw.prepare("SELECT qty FROM order_items").all()).toEqual([{ qty: 3 }]);
     expect(t.raw.prepare("SELECT note FROM order_history").all()).toEqual([{ note: "Criado a partir do orçamento #1" }]);
@@ -192,18 +193,18 @@ describe("Orçamentos", () => {
     insertQuote({ name: "Caio" }, 5);
     const { user } = setup();
     t.askAnswer = false;
-    await user.click(await screen.findByRole("button", { name: "Excluir orçamento ORC-2026-001" }));
+    await rowAction(user, "orçamento ORC-2026-001", "Excluir");
     await waitFor(() => expect(t.calls).toContain("plugin:dialog|message"));
     expect(t.raw.prepare("SELECT COUNT(*) AS n FROM quotes").get()).toEqual({ n: 2 });
     t.askAnswer = true;
-    await user.click(screen.getByRole("button", { name: "Excluir orçamento ORC-2026-002" }));
+    await rowAction(user, "orçamento ORC-2026-002", "Excluir");
     await waitFor(() => expect(screen.queryByRole("row", { name: /Caio/ })).not.toBeInTheDocument());
     expect(t.raw.prepare("SELECT id FROM quotes").all()).toEqual([{ id: 1 }]);
 
     t.handlers["plugin:sql|execute"] = () => {
       throw new Error("banco travado");
     };
-    await user.click(screen.getByRole("button", { name: "Excluir orçamento ORC-2026-001" }));
+    await rowAction(user, "orçamento ORC-2026-001", "Excluir");
     expect(await screen.findByText("Não foi possível excluir: banco travado")).toBeInTheDocument();
   });
 });
@@ -290,7 +291,7 @@ describe("M16: orçamento ilegível", () => {
     const row = (await screen.findByText("ORC-2026-007")).closest("tr") as HTMLElement;
     expect(within(row).getByText(/não pôde ser lido/)).toBeInTheDocument();
     expect(within(row).queryByRole("button", { name: /PDF|Virar pedido/ })).not.toBeInTheDocument();
-    await user.click(within(row).getByRole("button", { name: "Excluir orçamento ORC-2026-007" }));
+    await rowAction(user, "orçamento ORC-2026-007", "Excluir", row);
     await waitFor(() => expect(screen.queryByText("ORC-2026-007")).not.toBeInTheDocument());
   });
 });
