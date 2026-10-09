@@ -47,6 +47,10 @@ export type LayeredSignParams = {
   baseThickness: number;
   baseColor: string;
   mount: SignMount;
+  /** Moldura separada (#117): anel que cola em volta da base, impresso à parte (outra mesa). */
+  frame: boolean;
+  frameWidth: number;
+  frameColor: string;
   /** Textura rebaixada no fundo (#50). */
   texture: BgTexture;
   texturePitch: number;
@@ -90,6 +94,9 @@ export const DEFAULT_LAYERED_SIGN: LayeredSignParams = {
   baseThickness: 3,
   baseColor: "#f8f8f6",
   mount: "stand",
+  frame: false,
+  frameWidth: 4,
+  frameColor: "#c9a227",
   texture: "none",
   texturePitch: 6,
   textureDepth: 0.6,
@@ -100,6 +107,7 @@ const GAP = 4; // entre imagem/enfeite e o texto
 const HANG_R = 2;
 const HANG_INSET = 5;
 const TEX_MARGIN = 1.5;
+const FRAME_CLEARANCE = 0.2; // folga entre a base e o vão da moldura
 
 /**
  * Letreiro em camadas: até 4 linhas de texto, cada uma com cor, tamanho e deslocamento próprios, empilhadas com
@@ -178,6 +186,11 @@ export function buildLayeredSign(ctx: ModelCtx, p: LayeredSignParams): ModelOutp
     const baseSolid = k(recessTexture(M, k(base.extrude(p.baseThickness)), texRegion, p.baseThickness, p.texture, p.texturePitch, p.textureDepth));
     const models: Model[] = [{ name: "Letreiro", parts: [{ name: "Base", color: p.baseColor, mesh: solidMesh(baseSolid) }, ...parts] }];
     const [W, H] = size2(base);
+    if (p.frame) {
+      const outer = k(base.offset(p.frameWidth, "Round"));
+      const ring = k(outer.subtract(k(base.offset(FRAME_CLEARANCE, "Round"))));
+      models.push({ name: "Moldura", parts: [{ name: "Moldura", color: p.frameColor, mesh: slab(ring, p.baseThickness + p.relief) }] });
+    }
     if (p.mount === "stand") models.push(plateStand(M, W, p.baseThickness, p.baseColor, base.bounds().min[1] - 25));
     if (Math.max(W, H) > bedMm()) warnings.push(`O letreiro tem ${Math.round(W)} × ${Math.round(H)} mm: passa da mesa de ${bedMm()} mm. Diminua as alturas das linhas.`);
     return { models, warnings };

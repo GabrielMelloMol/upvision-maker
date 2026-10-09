@@ -4,6 +4,7 @@ import { getManifold, type ManifoldToplevel } from "../manifold";
 import { sq, volume } from "../testUtil";
 import type { Model } from "../types";
 import type { ModelCtx } from "./common";
+import { VARIANTS } from "../../tools/models/variants";
 import { buildLayeredSign, DEFAULT_LAYERED_SIGN as D, type LayeredSignParams } from "./layeredSign";
 
 let M: ManifoldToplevel;
@@ -85,5 +86,44 @@ describe("letreiro em camadas (#48)", { timeout: 30_000 }, () => {
     // o texto não fica sobre buraco: a parte embaixo das linhas continua cheia
     const [m] = build({ texture: "checker", border: 10 }).models;
     expect(meshBounds([m.parts[0].mesh])!.max[2]).toBeCloseTo(D.baseThickness);
+  });
+  test("moldura separada: anel em volta da base com folga, peça à parte na própria cor", () => {
+    const without = build();
+    expect(without.models).toHaveLength(1);
+    const out = build({ frame: true, frameWidth: 3, frameColor: "#c9a227" });
+    expect(out.models.map((m) => m.name)).toEqual(["Letreiro", "Moldura"]);
+    const frame = out.models[1];
+    expect(frame.parts[0].color).toBe("#c9a227");
+    const base = meshBounds([part(out.models[0], "Base")!.mesh])!;
+    const f = meshBounds([frame.parts[0].mesh])!;
+    // o anel passa da base por frameWidth de cada lado, menos a folga, e sobe um pouco mais que a base
+    expect(f.max[0] - f.min[0]).toBeCloseTo(base.max[0] - base.min[0] + 2 * 3, 0);
+    expect(f.max[2]).toBeGreaterThan(base.max[2]);
+    // o miolo está vazio: o volume é bem menor que o de uma placa cheia
+    expect(volume(frame.parts[0].mesh)).toBeLessThan(((f.max[0] - f.min[0]) * (f.max[1] - f.min[1]) * (f.max[2] - f.min[2])) * 0.6);
+  });
+
+  test("a moldura não toca a base: a base cabe inteira no vão do anel", () => {
+    const out = build({ frame: true, frameWidth: 3 });
+    const solid = (mm: { positions: Float32Array; indices: Uint32Array }) => M.Manifold.ofMesh(new M.Mesh({ numProp: 3, vertProperties: mm.positions, triVerts: mm.indices }));
+    const a = solid(out.models[0].parts[0].mesh), b = solid(out.models[1].parts[0].mesh);
+    expect(a.intersect(b).volume()).toBeLessThan(1e-3);
+  });
+
+  test("ornamento pata para pet", () => {
+    const out = build({ ornament: "paw", ornamentSize: 16 });
+    expect(out.models[0].parts.some((q) => q.name === "Enfeite")).toBe(true);
+  });
+  test("layouts prontos de data (#117): nascimento, casamento, casa nova e pet geram letreiro e moldura, cabem na mesa", () => {
+    const labels = VARIANTS.layeredSign.map((v) => v.label);
+    expect(labels).toEqual(["Nascimento", "Casamento", "Casa nova", "Pet (in memoriam)"]);
+    for (const v of VARIANTS.layeredSign) {
+      const out = buildLayeredSign(ctx(), { ...D, ...(v.patch as Partial<LayeredSignParams>) });
+      expect(out.warnings ?? [], v.label).toEqual([]);
+      expect(out.models.map((m) => m.name), v.label).toContain("Moldura");
+      const lines = out.models[0].parts.filter((q) => q.name.startsWith("Linha")).length;
+      const wanted = [v.patch.line1, v.patch.line2, v.patch.line3, v.patch.line4].filter((t) => String(t ?? "").trim()).length;
+      expect(lines, v.label).toBe(wanted);
+    }
   });
 });

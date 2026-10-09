@@ -4048,15 +4048,16 @@
   "variant": "máximo",
   "status": "aviso",
   "reasons": [
-   "o conjunto arrumado ocupa 771,2 × 219,9 mm: passa da mesa de 256 mm",
-   "\"Letreiro\" não cabe na mesa de 256 mm (771,2 × 179,9 × 15,0 mm)",
-   "\"Suporte\" não cabe na mesa de 256 mm (539,8 × 30,0 × 12,0 mm)",
+   "o conjunto arrumado ocupa 854,9 × 231,9 mm: passa da mesa de 256 mm",
+   "\"Letreiro\" não cabe na mesa de 256 mm (830,9 × 179,9 × 15,0 mm)",
+   "\"Moldura\" não cabe na mesa de 256 mm (854,9 × 203,9 × 12,0 mm)",
+   "\"Suporte\" não cabe na mesa de 256 mm (581,7 × 30,0 × 12,0 mm)",
    "Bambu recusa na mesa de 256 mm do A1 (o app avisa)",
    "Orca recusa na mesa de 256 mm do A1 (o app avisa)",
    "Projeto Bambu recusa na mesa de 256 mm do A1 (o app avisa)",
-   "app: O letreiro tem 771 × 180 mm: passa da mesa de 256 mm. Diminua as alturas das linhas."
+   "app: O letreiro tem 831 × 180 mm: passa da mesa de 256 mm. Diminua as alturas das linhas."
   ],
-  "date": "2026-10-02",
+  "date": "2026-10-09",
   "slicers": "Bambu ✓ · Orca ✓ · Projeto Bambu ✓"
  },
  {
@@ -4070,10 +4071,10 @@
    "Orca: torre de purga passa da mesa na posição padrão do CLI (na tela, arraste a torre ou use Arrumar)",
    "Projeto Bambu: torre de purga passa da mesa na posição padrão do CLI (na tela, arraste a torre ou use Arrumar)"
   ],
-  "date": "2026-10-02",
+  "date": "2026-10-09",
   "slicers": "Bambu ✓ · Orca ✓ · Projeto Bambu ✓",
-  "minutes": 24,
-  "grams": 11.1,
+  "minutes": 39,
+  "grams": 15.7,
   "plates": 1
  },
  {
@@ -4084,13 +4085,13 @@
   "variant": "padrão",
   "status": "aviso",
   "reasons": [
-   "Orca: torre de purga passa da mesa na posição padrão do CLI (na tela, arraste a torre ou use Arrumar)",
+   "Orca: torre de purga em cima de uma peça depois do --arrange do CLI (na tela, arraste a torre ou use Arrumar)",
    "Projeto Bambu: torre de purga passa da mesa na posição padrão do CLI (na tela, arraste a torre ou use Arrumar)"
   ],
-  "date": "2026-10-02",
+  "date": "2026-10-09",
   "slicers": "Bambu ✓ · Orca ✓ · Projeto Bambu ✓",
-  "minutes": 114,
-  "grams": 57.5,
+  "minutes": 162,
+  "grams": 83.4,
   "plates": 1
  },
  {

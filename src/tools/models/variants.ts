@@ -69,6 +69,27 @@ export const VARIANTS: Record<string, Variant[]> = {
     { label: "Dia das Crianças", patch: { line1: "Feliz", line2: "Dia das Crianças", baseColor: SKY, textColor: WHITE }, collections: ["criancas"] },
     { label: "Arraiá", patch: { line1: "Arraiá", line2: "do Théo", baseColor: RED, textColor: GOLD }, collections: ["junina"] },
   ],
+  layeredSign: [
+    {
+      label: "Nascimento",
+      patch: { line1: "Theo", line2: "12.03.2026", line3: "às 14h32", line4: "3,2 kg - 49 cm", h1: 30, h2: 14, h3: 12, h4: 12, font1: "pacifico", c1: BLUE, c2: BLACK, c3: BLACK, c4: BLACK, ornament: "star", ornamentColor: GOLD, border: 5, baseColor: WHITE, frame: true, frameColor: GOLD },
+      collections: ["cha"],
+    },
+    {
+      label: "Casamento",
+      patch: { line1: "Ana & Leo", line2: "12.12.2026", line3: "Rio de Janeiro", line4: "", h1: 28, h2: 16, h3: 12, font1: "pacifico", c1: GOLD, c2: BLACK, c3: BLACK, ornament: "heart", ornamentColor: RED, border: 5, baseColor: WHITE, frame: true, frameColor: GOLD },
+      collections: ["casamento"],
+    },
+    {
+      label: "Casa nova",
+      patch: { line1: "Casa nova", line2: "Ana e Leo", line3: "2026", line4: "", h1: 28, h2: 18, h3: 12, font1: "pacifico", c1: GREEN, c2: BLACK, c3: BLACK, ornament: "heart", ornamentColor: GREEN, border: 5, baseColor: WHITE, frame: true, frameColor: BLACK },
+    },
+    {
+      label: "Pet (in memoriam)",
+      patch: { line1: "Mel", line2: "2012 - 2026", line3: "Sempre no coração", line4: "", h1: 30, h2: 14, h3: 12, font1: "pacifico", c1: LILAC, c2: BLACK, c3: BLACK, ornament: "paw", ornamentColor: LILAC, border: 5, baseColor: WHITE, frame: true, frameColor: LILAC },
+      collections: ["pets"],
+    },
+  ],
   bookmark: [
     { label: "Mãe", patch: { text: "Mãe, te amo", baseColor: PINK, textColor: WHITE }, collections: ["maes"] },
     { label: "Pai", patch: { text: "Pai, te amo", baseColor: BLUE, textColor: WHITE }, collections: ["pais"] },

@@ -36,7 +36,7 @@ export function serveFontsFromDisk(root: string) {
 }
 
 /** Entradas que a pessoa sempre preenche e o padrão deixa vazias (sem elas o modelo só pede o campo). */
-const QA_INPUTS: Record<string, Params> = { pix: { key: "loja@upvision.app", name: "UpVision Maker", city: "Sao Paulo" }, reliefTile: { output: "both" } }; // azulejo: fatia o azulejo e o molde juntos
+const QA_INPUTS: Record<string, Params> = { pix: { key: "loja@upvision.app", name: "UpVision Maker", city: "Sao Paulo" }, reliefTile: { output: "both" }, layeredSign: { frame: true, ornament: "paw" } }; // fatia o molde junto do azulejo e a moldura do letreiro
 
 // desenho de teste: o mesmo das miniaturas (#149)
 export { testArt, testArtLayers };
