@@ -3,7 +3,7 @@
 Cada versão aparece para a usuária na tela "O que há de novo" depois da atualização.
 Formato: `## <versão> — <data>` e itens `- …` em linguagem simples.
 
-## Próxima versão (ainda não lançada)
+## 0.11.9 — 2026-10-09
 - **Cartão de música com código para ouvir a música**: o cartão ganhou o campo **Código** com três opções lado a lado: **Spotify**, **QR Code** e **Nenhum**. Cole o link da música: se for do Spotify, ele já vem selecionado e o botão "Buscar o código" traz as barras (e o logo, se quiser) do código do Spotify, que entram em relevo em 2 cores; o código fica guardado no projeto, então a internet só faz falta nessa busca (sem internet ou com erro, o app avisa e volta ao QR com o mesmo link). Para links de outros serviços (YouTube, Deezer…) o padrão é o **QR Code**, com o botão "Testar a leitura da vista de cima". Uma linha avisa que o código do Spotify traz o logo e que vender peças com marca de terceiros pode violar direitos de marca.
 - **Tour guiado atualizado**: o passo a passo da primeira visita foi refeito para o app de hoje (categorias de Modelos prontos, Foto em relevo, Organizadores, Preferências em seções, menu ⋯ nas tabelas e cadastro numa folha) e ganhou tours em Modelos prontos, Foto em relevo, Organizadores, Clientes, Produtos e Preferências. Um teste percorre todos os passos de todas as telas e avisa se algum apontar para algo que não existe mais.
 - **Início: o cartão da ocasião ("Para o Dia das Crianças, faltam 3 dias") não cola mais nos botões de atalho**: ganhou o mesmo espaço entre as seções da Início, e na Criar ficou com folga abaixo do título.
