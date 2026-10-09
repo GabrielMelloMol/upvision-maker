@@ -1,4 +1,4 @@
-import { expect, go, openApp, test } from "./tauri";
+import { expect, go, openApp, prefsSection, test } from "./tauri";
 
 test("tour guiado (#158): 1ª visita acende o alvo, Enter/Voltar/Pular, passo interativo, não reaparece, Rever e Reiniciar", async ({ page }) => {
   await openApp(page);
@@ -39,6 +39,7 @@ test("tour guiado (#158): 1ª visita acende o alvo, Enter/Voltar/Pular, passo in
   await expect(page.getByRole("dialog", { name: /Digite o que quer fazer/ })).toBeVisible();
   await page.getByRole("button", { name: "Fechar o tour" }).click();
   await go(page, "Ajustes");
+  await prefsSection(page, "Aparência");
   await page.getByRole("button", { name: "Reiniciar dicas" }).click();
   await go(page, "Início");
   await expect(page.getByRole("dialog", { name: /seções do app/ })).toBeVisible({ timeout: 15_000 });

@@ -1,10 +1,11 @@
-import { expect, go, openApp, test, toastWith } from "./tauri";
+import { expect, go, openApp, prefsSection, test, toastWith } from "./tauri";
 
 const DIR = "C:/Users/ana/OneDrive/UpVision";
 
 test("dois computadores: liga pela pasta da nuvem, envia os dados e avisa quando o outro está usando (#16)", async ({ page, tauri }) => {
   await openApp(page);
   await go(page, "Preferências");
+  await prefsSection(page, "Seus dados");
   const sync = page.getByRole("region", { name: "Dois computadores" });
   await expect(sync.getByRole("switch", { name: /Sincronizar com outro computador/ })).toBeDisabled(); // pasta padrão
 

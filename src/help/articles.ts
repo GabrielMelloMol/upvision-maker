@@ -246,7 +246,7 @@ export const ARTICLES: HelpArticle[] = [
   {
     id: "preferences",
     title: "Preferências",
-    intro: "Os números que entram em todos os cálculos.",
+    intro: "Os números que entram em todos os cálculos, em seções: escolha a que quer na lista à esquerda (em janela estreita, a lista vira uma faixa no alto).",
     steps: ["Preço do kWh: use Calcular pela conta de luz (ou a média do estado).", "Hora de trabalho, taxa de falha e impostos.", "Multiplicadores de lojista e venda direta.", "Taxas dos canais de venda (confira de tempos em tempos)."],
     tips: ["Ligue o Backup automático apontando para uma pasta do OneDrive ou Google Drive."],
     images: [{ file: "conta-luz.webp", caption: "O preço do kWh está na conta de luz, somando energia e bandeira." }],

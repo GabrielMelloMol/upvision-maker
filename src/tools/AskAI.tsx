@@ -8,6 +8,7 @@ import { imageUrl, MAX_IMAGES, prepareImage, userContent, type RefImage } from "
 import { RenderCancelled, renderScad } from "../ai/render";
 import { extractReply, parametrizePrompt } from "../ai/scad";
 import { getDb } from "../db";
+import { openWith } from "./intent";
 import { parseCustomizer } from "../scad/customizer";
 import { OWN_LICENSE, openScadNext, saveScad } from "../scad/library";
 import type { Model } from "../geometry/types";
@@ -176,7 +177,7 @@ export default function AskAI({ go }: { go: Go }) {
             Para usar, cadastre em Preferências a chave de acesso (API) da Anthropic, a empresa do Claude. O uso é <strong>pago por pedido</strong> (normalmente alguns centavos de dólar), e cada
             pedido mostra o custo estimado.
           </p>
-          <button className="primary" onClick={() => go("preferences")}>
+          <button className="primary" onClick={() => { openWith("preferences", { section: "tools" }); go("preferences"); }}>
             Ir para Preferências
           </button>
         </div>

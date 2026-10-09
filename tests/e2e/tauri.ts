@@ -312,6 +312,11 @@ export async function openApp(page: Page, { keepOnboarding = false } = {}) {
 /** Toast (ok = status, erro = alert) com o texto. */
 export const toastWith = (page: Page, text: string) => page.locator(".toast", { hasText: text });
 
+/** Abre uma seção das Preferências (#179) pela lista da esquerda. */
+export async function prefsSection(page: Page, name: string) {
+  await page.getByRole("navigation", { name: "Seções das Preferências" }).getByRole("button", { name }).click();
+}
+
 export async function go(page: Page, label: string | RegExp) {
   // a barra lateral (#139) só mostra as seções e as telas da seção aberta; o resto se abre pela busca (⌘K)
   const direct = page.getByRole("navigation", { name: "Navegação principal" }).getByRole("button", { name: label });

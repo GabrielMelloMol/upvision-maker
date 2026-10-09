@@ -1,4 +1,4 @@
-import { expect, go, openApp, test, toastWith } from "./tauri";
+import { expect, go, openApp, prefsSection, test, toastWith } from "./tauri";
 
 test("backup automático: faz o do dia ao abrir, lista em Preferências e restaura com confirmação", async ({ page, tauri }) => {
   await openApp(page);
@@ -8,6 +8,7 @@ test("backup automático: faz o do dia ao abrir, lista em Preferências e restau
   await go(page, "Impressoras");
   tauri.db.exec("INSERT INTO printers (name, watts) VALUES ('Bambu A1', 95)");
   await go(page, "Preferências");
+  await prefsSection(page, "Seus dados");
   const card = page.getByRole("region", { name: "Backup automático" });
   await card.getByRole("button", { name: "Fazer backup agora" }).click();
   await expect(toastWith(page, "Backup salvo")).toBeVisible();

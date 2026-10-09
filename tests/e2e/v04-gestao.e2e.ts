@@ -1,5 +1,5 @@
 import { resolve } from "node:path";
-import { expect, go, openApp, test, toastWith } from "./tauri";
+import { expect, go, openApp, prefsSection, test, toastWith } from "./tauri";
 import { rowAction } from "./rowMenu";
 
 const fixture = (name: string) => resolve("tests/fixtures/slicer", name);
@@ -278,6 +278,7 @@ test("calculadora: canais abaixo da margem mínima das Preferências ganham aler
   await openApp(page);
   tauri.db.exec(LEGACY);
   await go(page, "Preferências");
+  await prefsSection(page, "Preço de venda");
   await page.getByLabel("Margem mínima (%)").fill("50");
   await page.getByRole("button", { name: "Salvar preferências" }).click();
   await expect(toastWith(page, "Preferências salvas.")).toBeVisible();

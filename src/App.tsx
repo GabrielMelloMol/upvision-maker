@@ -17,6 +17,7 @@ import { PAGES } from "./pages";
 import PageSkeleton from "./ui/PageSkeleton";
 import { releaseHeavy } from "./ui/heavy";
 import { refreshBed } from "./tools/bedPrinter";
+import { openWith } from "./tools/intent";
 import { flushPendingSaves } from "./tools/pendingSaves";
 import { getDb } from "./db";
 import { markStartup } from "./about/perf";
@@ -102,6 +103,12 @@ export default function App() {
     setScrolled(false);
   }
 
+  /** Backup e sincronização moram em Preferências › Seus dados (#179). */
+  function openBackups() {
+    if (pageId !== "preferences") openWith("preferences", { section: "data" });
+    navigate("preferences");
+  }
+
   async function onSave() {
     try {
       const path = await saveBackup();
@@ -155,7 +162,7 @@ export default function App() {
           )}
         </Toolbar>
         <div className="view">
-          <SyncBanner onImported={onImported} onOpenBackups={() => navigate("preferences")} />
+          <SyncBanner onImported={onImported} onOpenBackups={openBackups} />
           {arrived && (
             <div className="banner warn" role="status">
               <span>Chegaram dados novos de {arrived}. Termine o que está preenchendo e atualize a tela para ver (o formulário aberto será fechado).</span>
@@ -176,7 +183,7 @@ export default function App() {
               <button className="primary" onClick={() => backupNow().then(() => toast("Backup feito."), (e) => toast(`Não foi possível fazer o backup: ${errorText(e)}`, "error"))}>
                 Tentar de novo
               </button>
-              <button className="ghost" onClick={() => navigate("preferences")}>
+              <button className="ghost" onClick={openBackups}>
                 Configurar
               </button>
             </div>
@@ -187,7 +194,7 @@ export default function App() {
               <button className="primary" onClick={() => backupNow().then(() => toast("Backup feito."), (e) => toast(`Não foi possível fazer o backup: ${errorText(e)}`, "error"))}>
                 Fazer backup agora
               </button>
-              <button className="ghost" onClick={() => navigate("preferences")}>
+              <button className="ghost" onClick={openBackups}>
                 Configurar
               </button>
             </div>

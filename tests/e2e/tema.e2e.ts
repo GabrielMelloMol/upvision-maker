@@ -1,4 +1,4 @@
-import { expect, go, openApp, test } from "./tauri";
+import { expect, go, openApp, prefsSection, test } from "./tauri";
 
 test("claro/escuro (#152): sol/lua na barra lateral, ⌘⇧L, ⌘K e Ajustes → Aparência; vale de novo ao reabrir", async ({ page, tauri }) => {
   await page.emulateMedia({ colorScheme: "light" });
@@ -19,6 +19,7 @@ test("claro/escuro (#152): sol/lua na barra lateral, ⌘⇧L, ⌘K e Ajustes →
   await expect.poll(() => tauri.theme).toBe("dark");
 
   await go(page, "Ajustes");
+  await prefsSection(page, "Aparência");
   const group = page.getByRole("group", { name: "Tema" });
   await expect(group.getByRole("button", { name: "Escuro" })).toHaveAttribute("aria-pressed", "true");
   await group.getByRole("button", { name: "Claro" }).click();

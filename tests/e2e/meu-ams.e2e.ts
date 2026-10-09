@@ -1,6 +1,6 @@
 import type { Page } from "@playwright/test";
 import { strFromU8, unzipSync } from "fflate";
-import { expect, go, openApp, test, toastWith } from "./tauri";
+import { expect, go, openApp, prefsSection, test, toastWith } from "./tauri";
 
 const idle = (page: Page) => expect(page.locator(".viewer .overlay.busy")).toHaveCount(0, { timeout: 60_000 });
 
@@ -9,6 +9,7 @@ test("Meu AMS: filamentos nos slots, cores do chaveiro escolhidas entre eles e 3
   await go(page, "Impressoras"); // cria o banco
   tauri.db.exec("INSERT INTO filaments (material, color, brand, pricePerKg) VALUES ('PLA', 'Preto', 'Bambu', 110), ('PLA', 'Amarelo', 'Bambu', 110)");
   await go(page, "Preferências");
+  await prefsSection(page, "Ferramentas");
   const card = page.getByRole("region", { name: "Meu AMS" });
   await card.getByLabel("Slot 2").selectOption({ label: "PLA Preto (Bambu)" });
   await card.getByLabel("Slot 3").selectOption({ label: "PLA Amarelo (Bambu)" });

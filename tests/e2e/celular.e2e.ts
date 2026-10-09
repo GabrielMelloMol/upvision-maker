@@ -1,8 +1,9 @@
-import { expect, go, openApp, test } from "./tauri";
+import { expect, go, openApp, prefsSection, test } from "./tauri";
 
 test("computador: celular desligado por padrão; ligar mostra QR, endereço e código de 6 dígitos (#16)", async ({ page, tauri }) => {
   await openApp(page);
   await go(page, "Preferências");
+  await prefsSection(page, "Seus dados");
   const card = page.getByRole("region", { name: "Celular na rede de casa" });
   const toggle = card.getByRole("switch", { name: /Deixar o celular ver/ });
   await expect(toggle).not.toBeChecked();

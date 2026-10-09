@@ -1,5 +1,5 @@
 import { strFromU8, unzipSync } from "fflate";
-import { expect, go, openApp, test, toastWith } from "./tauri";
+import { expect, go, openApp, prefsSection, test, toastWith } from "./tauri";
 
 /** Abrir no fatiador com 1 clique (#160). */
 test("chaveiro: Abrir no OrcaSlicer manda o 3MF com a configuração recomendada; em Ajustes dá para escolher o fatiador", async ({ page, tauri }) => {
@@ -9,6 +9,7 @@ test("chaveiro: Abrir no OrcaSlicer manda o 3MF com a configuração recomendada
   ];
   await openApp(page);
   await go(page, "Ajustes");
+  await prefsSection(page, "Ferramentas");
   const card = page.getByRole("region", { name: "Fatiador" });
   await expect(card.getByLabel("Abrir no")).toHaveValue("");
   await card.getByLabel("Abrir no").selectOption("orca");

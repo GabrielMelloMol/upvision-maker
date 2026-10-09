@@ -7,6 +7,7 @@ import { renderWithApp, setupTauri } from "../test/harness";
 import AiSettingsCard from "./AiSettingsCard";
 import Preferences from "./Preferences";
 import { todayIso } from "../domain/orders";
+import { openWith } from "../tools/intent";
 
 const testKey = vi.hoisted(() => vi.fn());
 vi.mock("../ai/claude", async (orig) => ({ ...(await orig<typeof import("../ai/claude")>()), testKey }));
@@ -16,7 +17,12 @@ const KEY = "sk-ant-api03-abcdefghijklmnopqrstuvwxyz";
 const secret = async (k: string) => (await t.db.select<{ value: string }>("SELECT value FROM secrets WHERE key = ?", [k]))[0]?.value;
 const settings = async () => JSON.parse((await t.db.select<{ data: string }>("SELECT data FROM settings"))[0].data);
 
-beforeEach(() => void testKey.mockClear());
+beforeEach(() => {
+  testKey.mockClear();
+  localStorage.clear(); // a última seção aberta é lembrada (#179)
+});
+/** Abre uma seção das Preferências pela lista da esquerda. */
+const open = (user: ReturnType<typeof userEvent.setup>, name: string | RegExp) => user.click(screen.getByRole("button", { name }));
 
 describe("Preferences", () => {
   test("a manutenção fala em desgaste por hora, sem 'depreciação' (UX M1)", async () => {
@@ -37,6 +43,7 @@ describe("Preferences", () => {
     await user.clear(maint);
     await user.type(maint, "7,5");
 
+    await open(user, "Canais de venda");
     const shopee = screen.getByDisplayValue("Shopee").closest(".row")! as HTMLElement;
     await user.click(within(shopee).getByRole("button", { name: "Remover" }));
     await user.click(screen.getByRole("button", { name: "Adicionar canal" }));
@@ -61,6 +68,7 @@ describe("Preferences", () => {
     const user = userEvent.setup();
     renderWithApp(<Preferences />);
     const fail = await screen.findByLabelText("Taxa de falha (%)");
+    await open(user, "Falhas, impostos e custos fixos");
     expect(fail).toHaveValue("5");
     await user.clear(fail);
     await user.type(fail, "10");
@@ -111,7 +119,9 @@ describe("Preferences", () => {
   test("canais prontos e data de conferência (#34): adicionar, conferir hoje, mexer na taxa também confere", async () => {
     const user = userEvent.setup();
     renderWithApp(<Preferences />);
-    await user.selectOptions(await screen.findByLabelText("Adicionar canal pronto"), "Shein");
+    await screen.findByLabelText("Adicionar canal pronto");
+    await open(user, "Canais de venda");
+    await user.selectOptions(screen.getByLabelText("Adicionar canal pronto"), "Shein");
     expect(screen.getByDisplayValue("Shein")).toBeInTheDocument();
     expect(screen.getAllByText("Taxas ainda não conferidas por você.").length).toBeGreaterThan(1);
     await user.click(screen.getByRole("button", { name: "Conferi hoje (Shopee)" }));
@@ -191,17 +201,26 @@ describe("Preferences", () => {
     const mult = await screen.findByLabelText("Multiplicador para lojista / revenda (×)");
     await user.clear(mult);
     await user.type(mult, "abc");
+    await open(user, "Canais de venda");
     await user.click(screen.getByRole("button", { name: "Adicionar canal" }));
     await user.click(screen.getByRole("button", { name: "Salvar preferências" }));
 
-    expect(await screen.findByText("Digite um número.")).toBeInTheDocument();
+    // erros em "Preço de venda" e em "Canais de venda": fica onde está (já tem erro) e a lista marca as duas seções
+    await screen.findByText(/Confira os canais/);
+    const flags = within(screen.getByRole("navigation", { name: "Seções das Preferências" })).getAllByText("Corrigir");
+    expect(flags).toHaveLength(2);
+    expect(within(flags[0].closest("button")!).getByText("Preço de venda")).toBeInTheDocument();
+    await open(user, /Preço de venda/);
+    expect(await screen.findByText("Digite um número.")).toBeVisible();
     expect(await t.db.select("SELECT * FROM settings")).toEqual([]);
   });
 
   test("canal inválido sozinho mostra a mensagem de canais", async () => {
     const user = userEvent.setup();
     renderWithApp(<Preferences />);
-    await user.click(await screen.findByRole("button", { name: "Adicionar canal" }));
+    await screen.findByLabelText("Preço do kWh");
+    await open(user, "Canais de venda");
+    await user.click(screen.getByRole("button", { name: "Adicionar canal" }));
     await user.click(screen.getByRole("button", { name: "Salvar preferências" }));
     expect(await screen.findByText(/Confira os canais/)).toBeInTheDocument();
   });
@@ -215,6 +234,78 @@ describe("Preferences", () => {
     };
     await user.click(btn);
     expect(await screen.findByText("disco cheio")).toBeInTheDocument();
+  });
+});
+
+describe("Preferências em seções (#179)", () => {
+  const nav = () => screen.getByRole("navigation", { name: "Seções das Preferências" });
+
+  test("a lista tem as 7 seções e abre na primeira; cada clique mostra só o painel dela", async () => {
+    const user = userEvent.setup();
+    renderWithApp(<Preferences />);
+    await screen.findByLabelText("Preço do kWh");
+    expect(within(nav()).getAllByRole("button").map((b) => b.textContent)).toEqual(["Custos da produção", "Preço de venda", "Falhas, impostos e custos fixos", "Canais de venda", "Aparência", "Seus dados", "Ferramentas"]);
+    expect(within(nav()).getByRole("button", { name: "Custos da produção" })).toHaveAttribute("aria-current", "page");
+    expect(screen.getByRole("heading", { name: "Custos da produção" })).toBeVisible();
+    expect(screen.queryByRole("heading", { name: "Preço de venda" })).not.toBeInTheDocument(); // painel escondido
+    await user.click(within(nav()).getByRole("button", { name: "Ferramentas" }));
+    expect(screen.getByRole("region", { name: "Ferramentas" })).toBeVisible();
+    expect(screen.getByRole("heading", { name: /Inteligência artificial/ })).toBeVisible();
+    expect(screen.queryByRole("heading", { name: "Custos da produção" })).not.toBeInTheDocument();
+    expect(within(nav()).getByRole("button", { name: "Ferramentas" })).toHaveAttribute("aria-current", "page");
+    expect(within(nav()).getByRole("button", { name: "Custos da produção" })).not.toHaveAttribute("aria-current");
+  });
+
+  test("o que foi digitado numa seção continua ao passear pelas outras e salva tudo de uma vez", async () => {
+    const user = userEvent.setup();
+    renderWithApp(<Preferences />);
+    const kwh = await screen.findByLabelText("Preço do kWh");
+    await user.clear(kwh);
+    await user.type(kwh, "1,3");
+    await open(user, "Aparência");
+    expect(screen.getByText("Alterações não salvas")).toBeVisible(); // a barra aparece até fora do formulário, enquanto há o que salvar
+    await open(user, "Preço de venda");
+    await user.click(screen.getByRole("button", { name: "Salvar preferências" }));
+    expect(await screen.findByText("Preferências salvas.")).toBeInTheDocument();
+    expect(await settings()).toMatchObject({ kwhPrice: 1.3 });
+  });
+
+  test("salvar com erro em outra seção leva até ela e marca na lista", async () => {
+    const user = userEvent.setup();
+    renderWithApp(<Preferences />);
+    const mult = await screen.findByLabelText("Multiplicador para lojista / revenda (×)");
+    await user.clear(mult);
+    await user.type(mult, "abc");
+    await open(user, "Ferramentas"); // a barra de salvar continua à mão enquanto houver alteração
+    await user.click(screen.getByRole("button", { name: "Salvar preferências" }));
+    expect(await screen.findByText("Digite um número.")).toBeVisible();
+    expect(within(nav()).getByRole("button", { name: /Preço de venda/ })).toHaveAttribute("aria-current", "page");
+    expect(within(nav()).getByText("Corrigir")).toBeInTheDocument();
+    await user.clear(screen.getByLabelText("Multiplicador para lojista / revenda (×)"));
+    await user.type(screen.getByLabelText("Multiplicador para lojista / revenda (×)"), "3");
+    await user.click(screen.getByRole("button", { name: "Salvar preferências" }));
+    expect(await screen.findByText("Preferências salvas.")).toBeInTheDocument();
+    expect(within(nav()).queryByText("Corrigir")).not.toBeInTheDocument(); // salvou: a marca some
+  });
+
+  test("a última seção aberta é lembrada; seções com cartão próprio não mostram o botão de salvar", async () => {
+    const user = userEvent.setup();
+    const first = renderWithApp(<Preferences />);
+    await screen.findByLabelText("Preço do kWh");
+    await open(user, "Seus dados");
+    expect(screen.queryByRole("button", { name: "Salvar preferências" })).not.toBeInTheDocument();
+    first.unmount();
+    renderWithApp(<Preferences />);
+    await screen.findByLabelText("Preço do kWh");
+    expect(within(nav()).getByRole("button", { name: "Seus dados" })).toHaveAttribute("aria-current", "page");
+  });
+
+  test("aberta por um atalho com a seção pedida (ex.: a IA leva às Ferramentas), vence a lembrada", async () => {
+    localStorage.setItem("upvision.prefsSection", "price");
+    openWith("preferences", { section: "tools" });
+    renderWithApp(<Preferences />);
+    await screen.findByLabelText("Preço do kWh");
+    expect(within(nav()).getByRole("button", { name: "Ferramentas" })).toHaveAttribute("aria-current", "page");
   });
 });
 

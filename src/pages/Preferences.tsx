@@ -26,6 +26,9 @@ import { money } from "../domain/format";
 import KwhBillSheet from "./preferences/KwhBillSheet";
 import StateKwhSelect from "../ui/StateKwhSelect";
 import ChannelsCard, { fromChannelForm, toChannelForm } from "./preferences/ChannelsCard";
+import PrefsNav from "./preferences/PrefsNav";
+import { FORM_SECTIONS, loadSection, PREF_SECTIONS, saveSection, sectionFromIntent, sectionsWithErrors, type PrefSection } from "./preferences/sections";
+import { takeIntent } from "../tools/intent";
 
 type NumKey = Exclude<keyof Settings, "channels" | "kwhHistory" | "includeFixedCosts" | "multiplyLabor" | "packagingMaterialId" | "failureByMaterial" | "ams" | "bedPrinterId" | "slicer">;
 type NumField = { key: NumKey; label: string; money?: true; hint?: string };
@@ -51,27 +54,40 @@ const loadPrefs = async (db: Db) => ({ settings: await loadSettings(db), materia
 
 export default function Preferences() {
   const [data] = useData(loadPrefs, null as Awaited<ReturnType<typeof loadPrefs>> | null);
+  // aberta por um atalho (ex.: "Ir para Preferências" da IA leva às Ferramentas), senão na última seção vista
+  const [section, setSection] = useState<PrefSection>(() => sectionFromIntent(takeIntent("preferences")) ?? loadSection());
+  const [flagged, setFlagged] = useState<PrefSection[]>([]);
+  const pick = (s: PrefSection) => {
+    setSection(s);
+    saveSection(s);
+  };
+  const panel = (id: PrefSection, children: React.ReactNode) => (
+    <section hidden={section !== id} aria-label={PREF_SECTIONS.find((s) => s.id === id)!.label}>
+      {children}
+    </section>
+  );
   return (
-    <div className="page">
+    <div className="page prefs">
       <h1>Preferências</h1>
       <p className="lead">Custos da produção e taxas dos canais.</p>
-      {data ? <PreferencesForm initial={data.settings} materials={data.materials} /> : <span className="skeleton" style={{ height: 180, borderRadius: 16, marginBottom: 16 }} />}
-      <AppearanceCard />
-      <h2>Seus dados</h2>
-      <BackupSettingsCard />
-      <PhoneSettingsCard />
-      <h2>Ferramentas</h2>
-      <AiSettingsCard />
-      <BedPrinterCard />
-      <AmsCard />
-      <SlicerCard />
+      <div className="prefs-layout">
+        <PrefsNav current={section} onPick={pick} flagged={flagged} />
+        <div className="prefs-body">
+          {data ? <PreferencesForm initial={data.settings} materials={data.materials} section={section} onSection={pick} onFlagged={setFlagged} /> : <span className="skeleton" style={{ height: 180, borderRadius: 16, marginBottom: 16 }} />}
+          {panel("look", <AppearanceCard />)}
+          {panel("data", <><BackupSettingsCard /><PhoneSettingsCard /></>)}
+          {panel("tools", <><AiSettingsCard /><BedPrinterCard /><AmsCard /><SlicerCard /></>)}
+        </div>
+      </div>
     </div>
   );
 }
 
 const str = (n: number) => String(n).replace(".", ",");
 
-function PreferencesForm({ initial, materials }: { initial: Settings; materials: Material[] }) {
+type FormProps = { initial: Settings; materials: Material[]; section: PrefSection; onSection: (s: PrefSection) => void; onFlagged: (s: PrefSection[]) => void };
+
+function PreferencesForm({ initial, materials, section, onSection, onFlagged }: FormProps) {
   const [byMaterial, setByMaterial] = useState<Record<string, string>>(Object.fromEntries(Object.entries(initial.failureByMaterial).map(([k, v]) => [k, str(v)])));
   const [flags, setFlags] = useState({ includeFixedCosts: initial.includeFixedCosts, multiplyLabor: initial.multiplyLabor });
   const [packaging, setPackaging] = useState(initial.packagingMaterialId ? String(initial.packagingMaterialId) : "");
@@ -110,9 +126,14 @@ function PreferencesForm({ initial, materials }: { initial: Settings; materials:
     try {
       await persist();
       setErrors({});
+      onFlagged([]);
       toast("Preferências salvas.");
     } catch (err) {
-      setErrors(fieldErrors(err));
+      const found = fieldErrors(err);
+      const bad = sectionsWithErrors(Object.keys(found));
+      setErrors(found);
+      onFlagged(bad);
+      if (bad.length && !bad.includes(section)) onSection(bad[0]); // leva a pessoa ao primeiro campo com problema
     }
   }
 
@@ -165,7 +186,7 @@ function PreferencesForm({ initial, materials }: { initial: Settings; materials:
     {/* fora do <form>: o envio do assistente não pode disparar o "Salvar preferências" */}
     {billOpen && <KwhBillSheet history={kwhHistory} onUse={applyBill} onClose={() => setBillOpen(false)} />}
     <form onSubmit={submit} noValidate>
-      <section className="group">
+      <section className="group" hidden={section !== "costs"}>
         <h2 className="group-title">Custos da produção</h2>
         <div className="rows">
           {f("kwhPrice")}
@@ -182,7 +203,7 @@ function PreferencesForm({ initial, materials }: { initial: Settings; materials:
         </div>
       </section>
 
-      <section className="group">
+      <section className="group" hidden={section !== "price"}>
         <h2 className="group-title">Preço de venda</h2>
         <div className="rows">
           {f("multResale")}
@@ -192,7 +213,7 @@ function PreferencesForm({ initial, materials }: { initial: Settings; materials:
         </div>
       </section>
 
-      <section className="group">
+      <section className="group" hidden={section !== "losses"}>
         <h2 className="group-title">Falhas, impostos e custos fixos</h2>
         <div className="rows">
           {f("failurePct")}
@@ -223,9 +244,11 @@ function PreferencesForm({ initial, materials }: { initial: Settings; materials:
         </div>
       </section>
 
-      <ChannelsCard channels={channels} setChannels={setChannels} error={errors.channels} />
+      <div hidden={section !== "channels"}>
+        <ChannelsCard channels={channels} setChannels={setChannels} error={errors.channels} />
+      </div>
       {errors._ && <p className="error">{errors._}</p>}
-      <div className="save-bar group-actions">
+      <div className="save-bar group-actions" hidden={!FORM_SECTIONS.includes(section) && !dirty}>
         <span className={`save-state ${dirty ? "unsaved" : ""}`} role="status">
           {dirty ? "Alterações não salvas" : "Tudo salvo"}
         </span>
