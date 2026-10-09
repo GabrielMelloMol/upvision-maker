@@ -462,3 +462,11 @@ h3.subhead svg { width: 16px; height: 16px; color: var(--muted); }
 
 /* "Veja também" (onde fica): linha discreta sob o título das ferramentas parecidas */
 .see-also { margin: calc(var(--space-2) * -1) 0 var(--space-4); color: var(--muted); font-size: var(--text-sm); }
+
+/* Prévia "como vai sair impresso" do mapa estelar: o céu com o tamanho real de cada estrela e linha */
+.star-print { display: grid; gap: var(--space-2); padding: var(--space-3); border-radius: var(--r-lg); background: var(--surface); box-shadow: 0 0 0 0.5px var(--border); }
+.star-print-title { margin: 0; font-size: var(--text-md); font-weight: 600; }
+.star-print-sky { width: min(100%, 360px); aspect-ratio: 1; justify-self: center; }
+.star-print-facts { list-style: none; margin: 0; padding: 0; display: grid; gap: 2px; color: var(--muted); font-size: var(--text-sm); }
+.star-print-facts strong { color: var(--text); }
+.star-print-facts .warn { color: var(--warn); }

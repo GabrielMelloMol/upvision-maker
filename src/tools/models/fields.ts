@@ -16,7 +16,9 @@ export type FieldDef =
   /** Perfil por pontos de controle (raios de baixo para cima, "40, 55, 48"), com editor de arrastar (#92). */
   | { k: string; kind: "profile"; label: string; min: number; max: number }
   /** Lugar por busca (cidade ou endereço): preenche vários campos de uma vez (nome, latitude, longitude, fuso) — mapa estelar (#196). */
-  | { k: string; kind: "place"; label: string };
+  | { k: string; kind: "place"; label: string }
+  /** Prévia "como vai sair impresso" do mapa estelar: só mostra, não guarda valor. */
+  | { k: string; kind: "starPrint"; label: string };
 
 export type Section = { title: string; fields: FieldDef[] };
 
@@ -62,6 +64,7 @@ export const text = (k: string, label: string, max = 30, hint?: string): FieldDe
 
 /** Busca de lugar (#196): `k` guarda o nome mostrado; o campo também preenche `lat`, `lon`, `tz`, `city`. */
 export const place = (k: string, label: string): FieldDef => ({ k, kind: "place", label });
+export const starPrint = (k: string, label: string): FieldDef => ({ k, kind: "starPrint", label });
 export const bool = (k: string, label: string): FieldDef => ({ k, kind: "bool", label });
 export const choice = (k: string, label: string, options: readonly (readonly [string, string])[]): FieldDef => ({ k, kind: "choice", label, options });
 /** Textura rebaixada no fundo de placas e letreiros (#50). */

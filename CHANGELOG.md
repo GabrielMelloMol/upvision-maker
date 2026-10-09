@@ -5,6 +5,7 @@ Formato: `## <versão> — <data>` e itens `- …` em linguagem simples.
 
 ## Próxima versão (ainda não lançada)
 - **Início: o cartão da ocasião ("Para o Dia das Crianças, faltam 3 dias") não cola mais nos botões de atalho**: ganhou o mesmo espaço entre as seções da Início, e na Criar ficou com folga abaixo do título.
+- **Mapa estelar mais fácil de imprimir**: a estrela nunca fica menor que 1,5 vez o bico (0,6 mm com bico 0,4; há seletor de bico de 0,2 a 0,8 mm) e a linha da constelação nunca menor que 2 bicos. O limite de estrelas é automático pelo tamanho da placa e do bico (placa pequena mostra só as mais brilhantes; bico fino deixa mais), com "Quantidade de estrelas: poucas, normal, muitas". Uma prévia "Como vai sair impresso" mostra o céu com os tamanhos finais e avisa quantas estrelas ficariam pequenas demais. Nova opção "Estrelas vazadas (para LED atrás)": as estrelas viram furos, com rebaixo atrás para fita ou disco de LED e uma tampa com saída de cabo (#106)
 
 ## 0.11.8 — 2026-10-09
 - **O zoom da janela não muda mais por atalho, roda do mouse ou pinça**: Ctrl/⌘ com + − 0, Ctrl/⌘ com a roda do mouse e o gesto de pinça no trackpad ou na tela não aumentam mais o app (desmontavam as telas). Para aumentar a letra, use Preferências > Aparência > Tamanho do texto; ao tentar o atalho, o app avisa isso uma vez, com um botão para abrir. O app sempre abre no tamanho escolhido ali, ou em 100%.

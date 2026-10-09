@@ -12,7 +12,7 @@ import { buildQrList, buildQrPlate, DEFAULT_QR_LIST, DEFAULT_QR_PLATE } from "..
 import { buildStarMap, DEFAULT_STAR_MAP } from "../../../geometry/models/starMap";
 import { buildSignPlate, DEFAULT_SIGN_PLATE } from "../../../geometry/models/signPlate";
 import { parseMoney } from "../../../ui/parse";
-import { as, bool, choice, color, logoFields, nfcFields, num, place, resinFields, text, textureFields, type ModelDef } from "../fields";
+import { as, bool, choice, color, logoFields, nfcFields, num, place, resinFields, starPrint, text, textureFields, type ModelDef } from "../fields";
 
 /** Modelos prontos da categoria Placas. */
 export const PLATE_MODELS: ModelDef[] = [
@@ -349,9 +349,13 @@ export const PLATE_MODELS: ModelDef[] = [
       {
         title: "Céu e placa",
         fields: [
-          num("maxMag", "Estrelas até a magnitude", 3, 5, { step: 0.1, hint: "Maior = mais estrelas, mais fracas e mais miúdas." }),
+          choice("density", "Quantidade de estrelas", [["few", "Poucas"], ["normal", "Normal"], ["many", "Muitas"]]),
+          choice("nozzle", "Bico da impressora", [["0.2", "0,2 mm"], ["0.4", "0,4 mm"], ["0.6", "0,6 mm"], ["0.8", "0,8 mm"]]),
           num("starScale", "Tamanho das estrelas", 0.7, 1.6, { step: 0.05, unit: "" }),
           bool("lines", "Linhas das constelações"),
+          bool("hollow", "Estrelas vazadas (para LED atrás)"),
+          num("ledDepth", "Rebaixo atrás para o LED", 2, 10, { step: 0.5, unit: "mm", hint: "Só com as estrelas vazadas: profundidade para a fita ou o disco de LED. A placa fica com a frente de 1,2 mm, o rebaixo e o degrau da tampa." }),
+          starPrint("printPreview", "Como vai sair impresso"),
           num("width", "Largura da placa", 80, 180, { step: 1 }),
           num("thickness", "Espessura", 2, 8),
           num("relief", "Relevo", 0.4, 2),

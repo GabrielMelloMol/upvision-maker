@@ -26,7 +26,7 @@ export const MODEL_PROFILES: Record<string, PrintProfile> = {
   keyHolder: { walls: 4, infill: 25 },
   shadowbox: { walls: 2, infill: 15, notes: ["Cada placa é de uma cor só: use \"Mesa por cor\" e imprima uma de cada vez; a borda mais alta é o espaçador."] },
   ornamentSpinner: { walls: 2, notes: ["Gira já montado: sem suporte. Teste o giro antes de pendurar."] },
-  starMap: { walls: 2, infill: 15, notes: ["As estrelas são relevo fino: camada de 0,12 a 0,16 mm e placa de frente para cima."] },
+  starMap: { walls: 2, infill: 15, notes: ["As estrelas são relevo fino: camada de 0,12 a 0,16 mm e placa de frente para cima.", "Estrelas vazadas (LED atrás): imprima com a frente para baixo, como sai no arquivo; a tampa vai em outra peça."] },
   musicCard: { walls: 2, infill: 15, notes: ["Textos e botões são relevo fino: imprima com a placa de frente para cima, camada de 0,12 a 0,16 mm."] },
   tableLamp: { walls: 3, notes: ["Cúpula clara e fina deixa a luz passar; a base pede mais preenchimento para ter peso."] },
   lamp: { walls: 2, notes: ["Difusor em filamento branco (1ª camada)."] },

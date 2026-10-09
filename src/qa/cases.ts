@@ -57,16 +57,21 @@ export async function modelCtx(M: ManifoldToplevel, p: Params, def: ModelDef): P
   };
 }
 
-/** Padrão, todos os campos numéricos no mínimo e todos no máximo. */
+/** Variações extras por modelo (além de padrão, mínimo e máximo): opções que mudam a peça e precisam fatiar também. */
+const QA_EXTRA: Record<string, Record<string, Params>> = { starMap: { "estrelas vazadas": { hollow: true, density: "few" } } };
+
+/** Padrão, todos os campos numéricos no mínimo e todos no máximo (mais as variações extras do modelo). */
 export function variants(def: ModelDef): [QaCase["variant"], Params][] {
   const nums = def.sections.flatMap((s) => s.fields).filter((f) => f.kind === "num");
   const base = { ...def.defaults, ...QA_INPUTS[def.id] };
   const at = (pick: (f: Extract<(typeof nums)[number], { kind: "num" }>) => number): Params => ({ ...base, ...Object.fromEntries(nums.map((f) => [f.k, f.kind === "num" ? pick(f) : 0])) });
   if (!nums.length) return [["padrão", base]];
+  const extra = Object.entries(QA_EXTRA[def.id] ?? {}).map(([name, patch]): [QaCase["variant"], Params] => [name, { ...base, ...patch }]);
   return [
     ["padrão", base],
     ["mínimo", at((f) => f.min)],
     ["máximo", at((f) => f.max)],
+    ...extra,
   ];
 }
 

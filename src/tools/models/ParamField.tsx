@@ -9,6 +9,7 @@ import Segmented from "../../ui/Segmented";
 import Toggle from "../../ui/Toggle";
 import type { FieldDef, Params, Section } from "./fields";
 import PlaceField from "./PlaceField";
+import StarPrintPreview from "./StarPrintPreview";
 import ProfileEditor from "./ProfileEditor";
 
 const MAX_CHIPS = 12; // acima disso a escolha vira uma lista (cidades do mapa estelar)
@@ -46,6 +47,8 @@ export default function ParamField({ f, value, onChange, sample = "", emoji, par
   switch (f.kind) {
     case "place":
       return params && patch ? <PlaceField label={f.label} params={params} patch={patch} /> : null;
+    case "starPrint":
+      return params ? <StarPrintPreview label={f.label} params={params} /> : null;
     case "profile":
       return <ProfileEditor label={f.label} value={String(value)} onChange={onChange} min={f.min} max={f.max} />;
     case "font":

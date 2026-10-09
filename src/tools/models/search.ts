@@ -30,7 +30,7 @@ export const MODEL_ALIASES: Record<string, string> = {
   photoHolder: "porta retrato retrato polaroid foto moldura",
   windowFrame: "moldura shaker glitter acetato topo de bolo",
   bigFrame: "moldura pôster poster quadro grande",
-  starMap: "mapa estelar céu estrelas constelação constelações noite data presente",
+  starMap: "mapa estelar céu estrelas constelação constelações noite data presente led luz furos vazado iluminado",
   shadowbox: "quadro camadas profundidade caixa de luz 3d papercut recorte",
   cake: "topo de bolo bolo aniversário festa parabéns",
   stickStand: "pirulito cake pop palitos doces festa",

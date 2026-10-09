@@ -14,7 +14,7 @@ test("mapa estelar de uma data: céu de São Paulo na noite de Natal, outra cida
   // placa de 120 mm de largura (a altura, 156 mm, mais o suporte de mesa dá 196 mm), placa e estrelas em 2 cores
   await expect(hud(page)).toContainText("120.0 × 196.0", { timeout: 60_000 });
   await expect(page.locator(".viewer .legend")).toContainText("Estrelas");
-  await expect(page.getByText(/\d+ estrelas visíveis \(até a magnitude 4.5\) no céu de São Paulo/)).toBeVisible();
+  await expect(page.getByText(/\d+ estrelas \(até a magnitude 4\.5, automático pelo tamanho da placa\) no céu de São Paulo/)).toBeVisible();
 
   // outra cidade, pela busca: o aviso acompanha
   await page.getByLabel("Cidade ou endereço").fill("londres");
@@ -125,3 +125,93 @@ for (const scheme of ["light", "dark"] as const)
       expect(await page.evaluate(() => document.scrollingElement!.scrollWidth > document.scrollingElement!.clientWidth + 1)).toBe(false);
       for (const b of await page.locator(".place-results button").all()) expect((await b.boundingBox())!.height).toBeGreaterThanOrEqual(24);
     });
+
+const facts = (page: Page) => page.locator(".star-print-facts");
+const starCount = async (page: Page) => Number(((await facts(page).locator("li").first().locator("strong").textContent()) ?? "0").replace(/\D/g, ""));
+test("mapa estelar: o tamanho mínimo segue o bico, a quantidade é automática pela placa e a prévia mostra como sai impresso (parte 1 e 2)", async ({ page }) => {
+  test.setTimeout(3 * 60_000);
+  await openStarMap(page);
+  const preview = page.getByRole("region", { name: "Como vai sair impresso" });
+  await expect(preview).toBeVisible();
+  await expect(preview.getByRole("img")).toHaveAttribute("aria-label", /Prévia impressa: \d+ estrelas, a menor com 0,6 mm/);
+  await expect(facts(page)).toContainText("Nenhuma estrela abaixo do mínimo de 0,6 mm do bico");
+  await expect(facts(page)).toContainText("linhas: 0,8 mm");
+  const normal = await starCount(page);
+  expect(normal).toBeGreaterThan(440);
+
+  // placa pequena: só as mais brilhantes (limite automático)
+  await page.getByRole("spinbutton", { name: "Largura da placa" }).fill("80");
+  await idle(page);
+  const small = await starCount(page);
+  expect(small).toBeLessThan(normal * 0.6);
+  await expect(page.getByText(/até a magnitude 3\.\d, automático pelo tamanho da placa/)).toBeVisible();
+  await page.getByRole("spinbutton", { name: "Largura da placa" }).fill("120");
+
+  // Quantidade de estrelas: poucas, normal, muitas
+  const qtd = page.getByRole("group", { name: "Quantidade de estrelas" });
+  await qtd.getByRole("button", { name: "Poucas" }).click();
+  await idle(page);
+  const few = await starCount(page);
+  await qtd.getByRole("button", { name: "Muitas" }).click();
+  await idle(page);
+  const many = await starCount(page);
+  expect(few).toBeLessThan(normal);
+  expect(many).toBeGreaterThan(normal);
+  await qtd.getByRole("button", { name: "Normal" }).click();
+
+  // bico 0,6: estrela mínima de 0,9 mm e linhas de 1,2 mm
+  const bico = page.getByRole("group", { name: "Bico da impressora" });
+  await expect(bico.getByRole("button")).toHaveText(["0,2 mm", "0,4 mm", "0,6 mm", "0,8 mm"]);
+  await expect(bico.getByRole("button", { name: "0,4 mm" })).toHaveAttribute("aria-pressed", "true"); // padrão: o app ainda não sabe o bico da impressora cadastrada
+  await bico.getByRole("button", { name: "0,6 mm" }).click();
+  await idle(page);
+  await expect(facts(page)).toContainText("0,9 mm");
+  await expect(facts(page)).toContainText("linhas: 1,2 mm");
+  // bico 0,2: mais estrelas na mesma placa, estrela mínima de 0,3 mm e linhas de 0,4 mm
+  await bico.getByRole("button", { name: "0,2 mm" }).click();
+  await idle(page);
+  await expect(facts(page)).toContainText("0,3 mm");
+  await expect(facts(page)).toContainText("linhas: 0,4 mm");
+  expect(await starCount(page)).toBeGreaterThan(normal * 1.5); // até o que o catálogo tem (magnitude 5)
+  await bico.getByRole("button", { name: "0,4 mm" }).click();
+
+  // estrelas pequenas demais: contadas no aviso da tela e na prévia (contorno laranja)
+  await page.getByRole("spinbutton", { name: "Tamanho das estrelas" }).fill("0.7");
+  await idle(page);
+  await expect(facts(page).locator("li.warn")).toContainText(/\d+ de \d+ ficariam menores que 0,6 mm e foram engrossadas/);
+  await expect(page.getByText(/estrelas ficariam menores que 0,60 mm \(o mínimo do bico de 0,4 mm\)/)).toBeVisible();
+  expect(await preview.locator("circle[stroke='#f59e0b']").count()).toBeGreaterThan(50);
+});
+
+test("mapa estelar: estrelas vazadas para LED atrás (furos, rebaixo, tampa, frente para baixo)", async ({ page }) => {
+  test.setTimeout(3 * 60_000);
+  await openStarMap(page);
+  await page.getByRole("switch", { name: "Estrelas vazadas (para LED atrás)" }).check();
+  await idle(page);
+  await expect(page.getByText(/Estrelas vazadas: imprima com a frente para baixo/)).toBeVisible();
+  await expect(page.locator(".viewer .legend")).toContainText("Estrelas");
+  // furo mínimo de 2 bicos: a prévia passa a falar de furo, 0,8 mm
+  await expect(facts(page)).toContainText("Menor furo: 0,8 mm");
+  // a tampa do LED vem junto, ao lado da placa (244,5 mm de largura no total: placa + espaço + tampa)
+  await expect(page.locator(".viewer .legend")).toContainText("Tampa");
+  await expect(page.locator(".viewer .hud")).toContainText("244.5");
+  await expect(page.getByText(/LED de até 4 mm no rebaixo de trás/)).toBeVisible();
+  // mais fundo para um disco de LED
+  await page.getByRole("spinbutton", { name: "Rebaixo atrás para o LED" }).fill("8");
+  await idle(page);
+  await expect(page.getByText(/LED de até 8 mm no rebaixo de trás/)).toBeVisible();
+  // ímã não combina com o rebaixo
+  await page.getByRole("group", { name: "Apoio" }).getByRole("button", { name: "Ímã atrás" }).click();
+  await idle(page);
+  await expect(page.getByText(/não há ímã atrás/)).toBeVisible();
+});
+
+for (const scheme of ["light", "dark"] as const)
+  test(`mapa estelar: a prévia impressa e as opções novas sem violação de acessibilidade (${scheme})`, async ({ page }) => {
+    test.setTimeout(3 * 60_000);
+    await page.emulateMedia({ colorScheme: scheme, reducedMotion: "reduce" });
+    await openStarMap(page);
+    await expect(page.getByRole("region", { name: "Como vai sair impresso" })).toBeVisible();
+    const r = await new AxeBuilder({ page }).include("main").exclude("canvas").withTags(["wcag2a", "wcag2aa", "wcag21a", "wcag21aa", "wcag22aa"]).analyze();
+    expect(r.violations.map((v) => `${v.id}: ${v.nodes.slice(0, 2).map((n) => n.target.join(" ")).join(" | ")}`)).toEqual([]);
+  });
