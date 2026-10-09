@@ -28,6 +28,8 @@ export const MODEL_PROFILES: Record<string, PrintProfile> = {
   musicCard: { walls: 2, infill: 15, notes: ["Textos e botões são relevo fino: imprima com a placa de frente para cima, camada de 0,12 a 0,16 mm."] },
   tableLamp: { walls: 3, notes: ["Cúpula clara e fina deixa a luz passar; a base pede mais preenchimento para ter peso."] },
   lamp: { walls: 2, notes: ["Difusor em filamento branco (1ª camada)."] },
+  cutoutFrame: { walls: 3, infill: 20, notes: ["Moldura e desenho saem na mesma espessura, lado a lado: imprima deitado, como no arquivo. Troque o filamento entre as peças se quiser duas cores."] },
+  cutoutStand: { walls: 3, infill: 20, notes: ["Imprima a placa deitada e a base como saem no arquivo; a lingueta encaixa na base sem cola."] },
   lineArt: { walls: 3, infill: 20 },
   coloring: { layerHeight: 0.16 },
   snowflake: { walls: 2 },

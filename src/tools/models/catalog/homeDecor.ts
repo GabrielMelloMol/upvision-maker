@@ -1,4 +1,5 @@
 import { Bookmark, CaseUpper, CircleDot, Frame, Gem, KeySquare, Lamp, LampDesk, PencilRuler, PenTool, Puzzle, Smartphone, WholeWord } from "lucide-react";
+import { buildCutoutFrame, buildCutoutStand, DEFAULT_CUTOUT_FRAME, DEFAULT_CUTOUT_STAND } from "../../../geometry/models/cutoutFrame";
 import { buildBigLetter, DEFAULT_BIG_LETTER } from "../../../geometry/models/bigLetter";
 import { buildBigFrame, DEFAULT_BIG_FRAME } from "../../../geometry/models/bigFrame";
 import { buildBookmark, DEFAULT_BOOKMARK } from "../../../geometry/models/bookmark";
@@ -172,6 +173,47 @@ export const HOME_DECOR_MODELS: ModelDef[] = [
       { title: "Tamanho e cores", fields: [num("height", "Altura do desenho", 50, 220, { step: 1 }), num("stroke", "Engrossar o traço", 0, 1.5, { step: 0.1, hint: "Liga traços quase encostados e deixa o desenho mais firme." }), num("thickness", "Espessura", 2.5, 8), color("artColor", "Desenho"), color("baseColor", "Base"), color("textColor", "Texto da base")] },
     ],
     build: (ctx, p) => buildLineArtStand(ctx, as(p)),
+  },
+  {
+    id: "cutoutFrame",
+    category: "home",
+    label: "Quadro vazado",
+    blurb: "Desenho de linhas dentro de uma moldura (ex.: 18 × 25 cm), preso à moldura nos lados que você escolher para não soltar.",
+    icon: Frame,
+    art: "Desenho de linhas (SVG ou imagem; sem ele, um coração de exemplo)",
+    defaults: DEFAULT_CUTOUT_FRAME,
+    sections: [
+      { title: "Moldura", fields: [num("width", "Largura", 60, 250, { step: 1, hint: "18 × 25 cm cabe na mesa de 256 mm." }), num("height", "Altura", 60, 250, { step: 1 }), num("border", "Largura da moldura", 4, 30, { step: 0.5 }), num("thickness", "Espessura", 1.6, 8)] },
+      {
+        title: "Desenho e pontes",
+        fields: [
+          num("gap", "Folga entre a moldura e o desenho", 0, 20, { step: 0.5 }),
+          num("stroke", "Engrossar o traço", 0, 1.5, { step: 0.1, hint: "Liga traços quase encostados e deixa o desenho mais firme." }),
+          bool("tieTop", "Preso em cima"),
+          bool("tieBottom", "Preso embaixo"),
+          bool("tieLeft", "Preso à esquerda"),
+          bool("tieRight", "Preso à direita"),
+          num("tieWidth", "Largura mínima da ponte", 2, 12, { step: 0.5, hint: "Cada ponte sai de onde o traço encosta na borda do desenho e vai reta até a moldura." }),
+        ],
+      },
+      { title: "Cores", fields: [color("frameColor", "Moldura"), color("artColor", "Desenho")] },
+    ],
+    build: (ctx, p) => buildCutoutFrame(ctx, as(p)),
+  },
+  {
+    id: "cutoutStand",
+    category: "home",
+    label: "Placa vazada em pé",
+    blurb: "Desenho ou texto recortado numa placa, com lingueta e base de encaixe com texto. Avisa quando o miolo de uma letra cairia.",
+    icon: Frame,
+    font: true,
+    art: "Desenho que sai vazado (opcional; sem ele, usa o texto)",
+    defaults: DEFAULT_CUTOUT_STAND,
+    sections: [
+      { title: "Texto", fields: [text("text", "Texto vazado (sem desenho)", 16), text("baseText", "Texto na base", 26)] },
+      { title: "Tamanho e cores", fields: [num("height", "Altura da placa", 50, 190, { step: 1, hint: "Até 190 mm: com a lingueta e a base ainda cabe na mesa de 256 mm." }), num("margin", "Margem em volta", 4, 25, { step: 0.5 }), num("thickness", "Espessura", 2.5, 8), color("plateColor", "Placa"), color("baseColor", "Base"), color("textColor", "Texto da base")] },
+    ],
+    build: (ctx, p) => buildCutoutStand(ctx, as(p)),
   },
   {
     id: "bigLetter",
