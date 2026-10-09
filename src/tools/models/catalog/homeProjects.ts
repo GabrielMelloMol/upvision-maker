@@ -454,8 +454,8 @@ export const HOME_PROJECT_MODELS: ModelDef[] = [
   {
     id: "shadowbox",
     category: "home",
-    label: "Quadro em camadas (shadowbox)",
-    blurb: "A imagem colorida vira de 2 a 8 placas recortadas, uma por cor, que empilham com profundidade. Cada placa é de uma cor só e vem numerada.",
+    label: "Shadowbox (placas empilhadas)",
+    blurb: "A imagem colorida vira de 2 a 8 placas recortadas, uma por cor, que empilham com profundidade. Cada placa é de uma cor só e vem numerada. Para um relevo em cores numa placa só, veja Litofania e quadro.",
     icon: Layers,
     artColors: true,
     art: "Imagem colorida (cada cor vira uma camada; 3 a 8 cores funcionam melhor)",

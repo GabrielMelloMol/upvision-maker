@@ -6,7 +6,7 @@ import { THUMBS } from "./thumbs";
 type Props = { id: string; onPick: (id: string) => void };
 
 /** Nome da ferramenta (no menu) para o aviso "abre a ferramenta X" do atalho; o rótulo do botão é o da variante. */
-const TOOL_NAMES: Record<string, string> = { medal: "Medalhas", keychain: "Chaveiros", drawer: "Organizador de gaveta", qr: "QR Code" };
+const TOOL_NAMES: Record<string, string> = { medal: "Medalhas", keychain: "Chaveiros", drawer: "Organizador de gaveta", qr: "QR Code", toolfit: "Organizador pela foto", pixel: "Pixel art", lithophane: "Litofania e quadro" };
 
 /**
  * Seletor de variação da família (#141): miniatura pequena + rótulo, agrupado quando a família tem grupos

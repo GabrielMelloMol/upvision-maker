@@ -22,7 +22,7 @@ const PAGES = [
   ["cortador", "Cortador de biscoito"],
   ["chaveiros", "Chaveiros"],
   ["medalhas", "Medalhas"],
-  ["extrusao", "Extrusão 3D"],
+  ["extrusao", "Desenho em 3D"],
   ["qr", "QR Code e Pix"],
   ["modelos", "Modelos prontos"],
   ["ia", "Pedir à IA"],

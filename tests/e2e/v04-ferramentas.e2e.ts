@@ -121,7 +121,7 @@ test("Sem filamentos com cor, a opção de paleta fica desativada com dica", asy
 
 test("Extrusão: SVG de 2 cores mostra a dica e sai com uma extrusora por cor", async ({ page, tauri }) => {
   await openApp(page);
-  await go(page, "Extrusão 3D");
+  await go(page, "Desenho em 3D");
   await page.locator('input[type="file"]').setInputFiles(svgFile);
   await expect(page.getByText("Desenho com 2 cores: cada uma sai como uma parte com o próprio filamento no 3MF.")).toBeVisible();
   await expect(page.getByLabel("Cor", { exact: true })).toHaveCount(0); // cores vêm do desenho

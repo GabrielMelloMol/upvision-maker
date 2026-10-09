@@ -5,13 +5,13 @@ import { AMS_LABEL } from "../geometry/amsNeed";
 import { openWith } from "../tools/intent";
 import { AMS_NEED, worksWithoutAms } from "../tools/models/amsTable";
 import { CATEGORIES } from "../tools/models/defs";
-import { familiesIn, modelOf, type Family } from "../tools/models/families";
+import { familiesIn, type Family } from "../tools/models/families";
+import { matchesAll, modelText, toolText } from "../tools/models/search";
 import { THUMBS } from "../tools/models/thumbs";
 import OccasionCard from "../ui/OccasionCard";
 import Segmented from "../ui/Segmented";
 import Toggle from "../ui/Toggle";
 
-const normalize = (s: string) => s.normalize("NFD").replace(/\p{M}/gu, "").toLowerCase();
 
 /** Tipos de ferramenta da galeria: o que a pessoa tem em mãos ou quer fazer, não como a ferramenta funciona. */
 const KINDS = [
@@ -36,13 +36,12 @@ export default function Create({ go }: { go: Go }) {
   const [q, setQ] = useState("");
   const [kind, setKind] = useState<Kind>("all");
   const [noAms, setNoAms] = useState(false);
-  const term = normalize(q.trim());
-  const hit = (text: string) => !term || normalize(text).includes(term);
+  const hit = (text: string) => matchesAll(text, q);
   const tools = PAGES.filter((p) => p.section === "create" && p.id !== "create" && p.id !== "models" && p.id !== "projects") // Meus projetos não é ferramenta (#161)
     .filter((p) => kind === "all" || KIND_OF[p.id] === kind)
-    .filter((p) => hit(`${p.label} ${p.blurb ?? ""}`));
+    .filter((p) => hit(toolText(p.id, p.label, p.blurb)));
   // modelos prontos em famílias (#141): o card abre a variação que a busca achou ("anilha" → Chaveiro › Anilha)
-  const variantText = (id: string, label: string) => `${label} ${modelOf(id).label} ${modelOf(id).blurb}`;
+  const variantText = (id: string, label: string) => `${label} ${modelText(id)}`;
   // "Imprime sem troca automática de cor (AMS)" (#118): o card mostra a primeira variação que dá para imprimir sem AMS
   const pickIn = (f: Family) => {
     const ok = f.variants.filter((v) => !noAms || worksWithoutAms(v.id));

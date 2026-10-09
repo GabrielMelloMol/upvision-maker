@@ -16,6 +16,12 @@ describe("rank", () => {
   test("começo do título vem antes de trecho no meio", () => {
     expect(rank([item("Biscoito decorado"), item("Cortador de biscoito")], "bisc").map((i) => i.title)).toEqual(["Biscoito decorado", "Cortador de biscoito"]);
   });
+  test("a palavra inteira vem antes do começo de outra: 'pix' acha Placa Pix antes de Pixel art", () => {
+    expect(rank([item("Pixel art"), item("Placa Pix")], "pix").map((i) => i.title)).toEqual(["Placa Pix", "Pixel art"]);
+  });
+  test("hífen não atrapalha: 'porta copos' acha Porta-copos", () => {
+    expect(rank([item("Porta-copos"), item("Porta-chave")], "porta copos").map((i) => i.title)).toEqual(["Porta-copos"]);
+  });
   test("busca vazia devolve tudo, na ordem", () => {
     expect(rank(items, "  ")).toHaveLength(items.length);
   });

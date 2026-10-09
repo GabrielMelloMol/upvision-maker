@@ -56,7 +56,7 @@ export const ARTICLES: HelpArticle[] = [
   },
   {
     id: "extrude",
-    title: "Extrusão 3D",
+    title: "Desenho em 3D",
     intro: "Dá altura a qualquer desenho: placas, letreiros, apliques e topos.",
     steps: ["Envie o desenho (SVG ou imagem).", "Defina a largura e a altura do desenho em mm.", "Marque Base por baixo para ter uma placa no formato da silhueta.", "Salve em 3MF ou STL."],
     example: "Usar um desenho de exemplo",
@@ -107,7 +107,7 @@ export const ARTICLES: HelpArticle[] = [
   },
   {
     id: "owndecal",
-    title: "Decal no seu modelo",
+    title: "Nome ou logo no seu modelo",
     intro: "Ponha seu nome ou logo numa face plana de um STL ou 3MF que você já tem, em outra cor, para imprimir em duas cores.",
     steps: ["Arraste o STL ou 3MF (um sólido fechado).", "Clique numa face plana na prévia, ou escolha na lista; a face fica pintada de azul.", "Adicione um texto ou desenho e arraste na vista da face.", "Salve o 3MF: a cor entra na peça rente à face, sem mudar o tamanho."],
     tips: ["Só vale para faces planas e na parte de fora da peça; faces curvas ficam para depois.", "Use só modelos que são seus ou cuja licença permite alterar. O app não confere a licença."],
@@ -143,7 +143,7 @@ export const ARTICLES: HelpArticle[] = [
   },
   {
     id: "scad",
-    title: "OpenSCAD personalizável",
+    title: "Modelo personalizável (OpenSCAD)",
     intro: "Abra um .scad com parâmetros (formato do Customizer) e ajuste as medidas num formulário.",
     steps: ["Arraste o arquivo .scad baixado do Thingiverse, Printables ou MakerWorld.", "Escolha a licença que o autor informou e dê o crédito.", "Ajuste os campos de cada aba e confira a prévia.", "Salve o 3MF ou guarde em Meus modelos para usar de novo."],
     tips: [

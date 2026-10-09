@@ -30,7 +30,7 @@ function boxStl(): Buffer {
 
 test("decal no seu modelo: abre o STL, clica numa face na prévia, põe um desenho embutido e salva o 3MF (#113)", async ({ page, tauri }) => {
   await openApp(page);
-  await go(page, "Decal no seu modelo");
+  await go(page, "Nome ou logo no seu modelo");
   await expect(page.getByText(/Use só modelos que são seus ou cuja licença permite/)).toBeVisible();
   await page.locator('input[type="file"]').first().setInputFiles({ name: "caixa.stl", mimeType: "model/stl", buffer: boxStl() });
   await expect(page.getByRole("group", { name: "Faces planas" }).getByRole("button")).toHaveCount(6);

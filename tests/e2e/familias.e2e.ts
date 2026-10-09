@@ -16,7 +16,7 @@ test("galeria: as famílias aparecem uma vez cada, divididas pelas abas de categ
   }
   expect(seen.length).toBeGreaterThanOrEqual(24); // modelo novo vira família nova: o que importa é nenhuma repetida nem fora de aba
   expect(new Set(seen).size).toBe(seen.length);
-  expect(seen).toEqual(expect.arrayContaining(["Placa de balcão", "Chaveiro", "Troféu", "Letras e palavras", "Gridfinity", "Cortadores e formas"]));
+  expect(seen).toEqual(expect.arrayContaining(["Placa de balcão", "Chaveiro", "Troféu", "Letras e palavras", "Organizador modular (Gridfinity)", "Cortadores e formas"]));
 });
 
 test("busca pelo nome antigo: 'anilha' acha o modelo e abre Chaveiro › Anilha na aba Chaveiros", async ({ page }) => {

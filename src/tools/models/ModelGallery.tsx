@@ -5,10 +5,10 @@ import Segmented from "../../ui/Segmented";
 import { CATEGORIES, MODELS, type Category } from "./defs";
 import { familiesIn, familyOf, modelOf, type Family } from "./families";
 import { THUMBS } from "./thumbs";
+import { searchModels } from "./search";
 import { COLLECTIONS, inCollection, type Collection } from "./variants";
 
-/** Minúsculas e sem acento, para a busca. */
-export const normalize = (s: string) => s.normalize("NFD").replace(/\p{M}/gu, "").toLowerCase();
+export { normalize } from "./search";
 
 export type Occasion = Collection | "favorites" | null;
 type Props = {
@@ -36,18 +36,12 @@ function loadUse(): Record<string, number> {
   }
 }
 
-/** Texto que a busca olha: nome e descrição do modelo, mais o nome da família e da variação ("anilha" → Chaveiro). */
-const searchText = (id: string) => {
-  const m = modelOf(id), f = familyOf(id);
-  return normalize(`${m.label} ${m.blurb} ${f.label} ${f.variants.find((v) => v.id === id)?.label ?? ""}`);
-};
-
 /**
  * Galeria dos Modelos prontos (#141): por categoria, um card por família (a variação fica no painel); buscando ou
  * filtrando por ocasião/favoritos, a lista é por modelo, para achar direto pelo nome de antes.
  */
 export default function ModelGallery({ id, onPick, category, onCategory, query, onQuery, occasion, onOccasion, favorites }: Props) {
-  const q = normalize(query.trim());
+  const q = query.trim();
   const [use, setUse] = useState(loadUse);
   const [allOccasions, setAllOccasions] = useState(false);
   // as 5 mais usadas (empate: a ordem de sempre) e a escolhida, se estiver entre as outras
@@ -55,7 +49,7 @@ export default function ModelGallery({ id, onPick, category, onCategory, query, 
   const top = ranked.slice(0, VISIBLE_OCCASIONS);
   const shownOccasions = allOccasions ? ranked : occasion && occasion !== "favorites" && !top.some(([c]) => c === occasion) ? [...top, ranked.find(([c]) => c === occasion)!] : top;
   const models = q
-    ? MODELS.filter((m) => searchText(m.id).includes(q))
+    ? searchModels(q).map((id) => MODELS.find((m) => m.id === id)!) // do que mais combina para o que menos
     : occasion === "favorites"
       ? MODELS.filter((m) => favorites.includes(m.id))
       : occasion

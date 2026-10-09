@@ -20,6 +20,8 @@ export type SearchItem = {
   keywords?: string;
   /** Abre esta ajuda depois de ir para a página (artigo = id da tela; "term:<id>" = glossário) (#84). */
   help?: string;
+  /** Pedido para a tela de destino abrir já num item (ex.: o modelo escolhido nos Modelos prontos); lido por `takeIntent`. */
+  intent?: unknown;
   /** Ação em vez de tela (Modo escuro, Modo claro… #152). */
   run?: () => void;
 };
@@ -78,7 +80,8 @@ const norm = (s: string) =>
   s
     .normalize("NFD")
     .replace(/[̀-ͯ]/g, "")
-    .toLowerCase();
+    .toLowerCase()
+    .replace(/[-–—/]+/g, " "); // "porta-copos" e "porta copos" são a mesma busca
 
 /** Filtra por todas as palavras (sem acento) e ordena: começo do título > palavra no título > resto. */
 export function rank(items: SearchItem[], query: string): SearchItem[] {
@@ -88,7 +91,9 @@ export function rank(items: SearchItem[], query: string): SearchItem[] {
     const title = norm(it.title);
     const hay = `${title} ${norm(it.subtitle ?? "")} ${norm(it.keywords ?? "")} ${norm(it.group)}`;
     if (!words.every((w) => hay.includes(w))) return [];
-    const score = title.startsWith(words[0]) ? 0 : title.split(/\s+/).some((t) => t.startsWith(words[0])) ? 1 : 2;
+    const titleWords = title.split(/\s+/);
+    // a palavra inteira vale mais que o começo dela: "Pix" acha "Placa Pix" antes de "Pixel art"
+    const score = titleWords.includes(words[0]) ? 0 : title.startsWith(words[0]) ? 1 : titleWords.some((t) => t.startsWith(words[0])) ? 2 : 3;
     return [{ it, score }];
   });
   return scored.sort((a, b) => a.score - b.score).map((s) => s.it);

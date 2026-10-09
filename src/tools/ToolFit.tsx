@@ -1,4 +1,5 @@
 import { Plus } from "lucide-react";
+import SeeAlso from "../ui/SeeAlso";
 import { useCallback, useMemo, useState } from "react";
 import { getManifold } from "../geometry/manifold";
 import { binCells, buildToolFit, CLEARANCES, fullTray, DEFAULT_TOOL_FIT, DEPTH_RANGE, suggestedDepth, type ToolFitMode, type ToolFitParams } from "../geometry/models/toolFit";
@@ -158,6 +159,7 @@ export default function ToolFit() {
     <div className="page">
       <h1>Organizador pela foto</h1>
       <p className="lead">Fotografe na folha A4 e imprima o encaixe exato.</p>
+      <SeeAlso items={[{ label: "Organizador de gaveta (caixinhas sob medida)", page: "drawer" }, { label: "Gridfinity: caixinha", model: "gridBin" }]} />
       <ToolSessionBar tool={tool} />
       <div className="tool-layout">
         <div className="controls">

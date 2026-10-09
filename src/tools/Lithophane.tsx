@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react";
+import SeeAlso from "../ui/SeeAlso";
 import type { Filament } from "../domain/entities";
 import { lumaGrid } from "../geometry/heightfield";
 import { fitAspect, loopSeam } from "../geometry/lithophaneShapes";
@@ -190,6 +191,7 @@ export default function Lithophane() {
     <div className="page">
       <h1>Litofania e quadro</h1>
       <p className="lead">Foto em relevo: litofania ou quadro por camadas.</p>
+      <SeeAlso items={[{ label: "Shadowbox (placas recortadas empilhadas)", model: "shadowbox" }, { label: "Litofania em abajur", model: "tableLamp" }, { label: "Pixel art", page: "pixel" }]} />
       <ToolSessionBar tool={tool} />
       <div className="tool-layout">
         <div className="controls">

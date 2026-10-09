@@ -1,3 +1,4 @@
+import { PAGE_ALIASES } from "./pageAliases";
 import { BookOpen, CircleHelp, CornerDownLeft, Moon, Search, Sun, SunMoon } from "lucide-react";
 import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { getDb } from "../db";
@@ -41,6 +42,7 @@ export default function CommandPalette({ pages, onPick, onClose }: Props) {
   const ref = useRef<HTMLDialogElement>(null);
   const [q, setQ] = useState("");
   const [records, setRecords] = useState<SearchItem[]>([]);
+  const [models, setModels] = useState<SearchItem[]>([]);
   const [active, setActive] = useState(0);
 
   useLayoutEffect(() => {
@@ -53,6 +55,11 @@ export default function CommandPalette({ pages, onPick, onClose }: Props) {
     };
   }, []);
 
+  // os Modelos prontos entram na busca, mas o catálogo só é carregado agora, com a busca aberta
+  useEffect(() => {
+    import("./modelSearchItems").then((m) => setModels(m.MODEL_ITEMS), (e) => console.warn("Busca sem Modelos prontos:", e));
+  }, []);
+
   useEffect(() => {
     getDb()
       .then(loadSearchItems)
@@ -61,11 +68,11 @@ export default function CommandPalette({ pages, onPick, onClose }: Props) {
   }, []);
 
   const results = useMemo(() => {
-    const screens: SearchItem[] = pages.map((p) => ({ id: `page-${p.id}`, title: p.label, subtitle: p.blurb, group: "Telas", icon: p.icon, pageId: p.id }));
+    const screens: SearchItem[] = pages.map((p) => ({ id: `page-${p.id}`, title: p.label, subtitle: p.blurb, group: "Telas", icon: p.icon, pageId: p.id, keywords: PAGE_ALIASES[p.id] }));
     // ajuda (#84): só aparece buscando, para não encher a lista inicial
     const help: SearchItem[] = q.trim() ? helpItems(pages) : [];
-    return rank([...screens, ...records, ...help, ...(q.trim() ? THEME_ITEMS : [])], q).slice(0, MAX_RESULTS);
-  }, [pages, records, q]);
+    return rank([...screens, ...(q.trim() ? models : []), ...records, ...help, ...(q.trim() ? THEME_ITEMS : [])], q).slice(0, MAX_RESULTS);
+  }, [pages, records, models, q]);
   const current = Math.min(active, results.length - 1);
 
   function onKey(e: React.KeyboardEvent) {
@@ -102,7 +109,7 @@ export default function CommandPalette({ pages, onPick, onClose }: Props) {
           aria-expanded="true"
           aria-controls="palette-list"
           aria-activedescendant={results[current] ? `pal-${results[current].id}` : undefined}
-          placeholder="Buscar telas, filamentos, produtos…"
+          placeholder="Buscar telas, modelos, filamentos, produtos…"
           value={q}
           onChange={(e) => {
             setQ(e.target.value);

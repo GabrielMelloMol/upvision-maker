@@ -9,7 +9,7 @@ test("shadowbox em camadas: uma placa numerada por cor, profundidade ajustável 
   await openApp(page);
   await go(page, "Modelos prontos");
   await page.getByRole("searchbox", { name: "Buscar modelo" }).fill("shadowbox");
-  await page.getByRole("group", { name: "Modelo" }).getByRole("button", { name: /Quadro em camadas/ }).click();
+  await page.getByRole("group", { name: "Modelo" }).getByRole("button", { name: /Shadowbox/ }).click();
 
   await page.locator('input[type="file"]').first().setInputFiles({ name: "quadro.svg", mimeType: "image/svg+xml", buffer: Buffer.from(ART) });
   await idle(page);

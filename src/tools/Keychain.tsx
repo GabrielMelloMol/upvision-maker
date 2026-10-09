@@ -1,4 +1,5 @@
 import { bedMm } from "../geometry/bed";
+import SeeAlso from "../ui/SeeAlso";
 import { useEffect, useRef, useState } from "react";
 import { isCursive, loadEmojiFont, loadFont, type FontId } from "../geometry/fonts";
 import { RESIN_TIP } from "../geometry/models/resin";
@@ -166,6 +167,7 @@ export default function Keychain() {
     <div className="page">
       <h1>Chaveiros</h1>
       <p className="lead">Nome e logo em 2 cores para troca automática de cor (AMS).</p>
+      <SeeAlso items={[{ label: "Chaveiros prontos (NFC, giratório, abridor…)", model: "nfc" }, { label: "Medalhas", page: "medal" }]} />
       <ToolSessionBar tool={tool} />
       <div className="tool-layout">
         <div className="controls">

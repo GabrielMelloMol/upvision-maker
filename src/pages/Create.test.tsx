@@ -56,3 +56,33 @@ test("Criar (#118): selo de AMS no card e filtro 'Imprime sem troca automática 
   expect(cards().length).toBeLessThan(all);
   for (const a of cards()) expect(worksWithoutAms(a.getAttribute("href")!.slice("#models/".length))).toBe(true);
 });
+
+test("Criar busca como a vendedora fala: camiseta, porta copos, geladeira, Dia das Mães, foto em relevo (onde fica)", async () => {
+  const go = vi.fn();
+  const user = userEvent.setup();
+  renderWithApp(<Create go={go} />);
+  const box = screen.getByRole("searchbox", { name: "Buscar ferramenta ou modelo" });
+  const typed = async (q: string) => {
+    await user.clear(box);
+    await user.type(box, q);
+  };
+  await typed("camiseta");
+  await user.click(screen.getByRole("link", { name: "Lembrancinhas" }));
+  expect(takeIntent("models")).toEqual({ id: "shirtPrint" }); // abre na variação que achou
+
+  await typed("porta copos"); // sem hífen
+  expect(screen.getByRole("link", { name: "Porta-copos" })).toBeInTheDocument();
+
+  await typed("geladeira");
+  await user.click(screen.getByRole("link", { name: "Lembrancinhas" }));
+  expect(takeIntent("models")).toEqual({ id: "fridgeMagnet" });
+
+  await typed("Dia das Mães");
+  expect(screen.getAllByRole("link").length).toBeGreaterThan(3); // as famílias dos modelos da coleção
+
+  await typed("foto em relevo");
+  expect(tools().map((a) => a.textContent)).toEqual([expect.stringMatching(/^Litofania e quadro/)]);
+
+  await typed("abajur");
+  expect(screen.getByRole("link", { name: "Luminárias e abajures" })).toBeInTheDocument();
+});

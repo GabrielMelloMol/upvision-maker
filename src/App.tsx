@@ -87,6 +87,7 @@ export default function App() {
   function pick(item: SearchItem) {
     setSearching(false);
     if (item.run) return item.run();
+    if (item.intent !== undefined) openWith(item.pageId, item.intent); // ex.: o modelo escolhido na busca
     setPendingOpen(item.recordId !== undefined ? { pageId: item.pageId, recordId: item.recordId } : null);
     if (item.pageId) {
       navigate(item.pageId);

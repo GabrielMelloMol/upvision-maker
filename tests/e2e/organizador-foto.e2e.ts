@@ -7,7 +7,7 @@ test("organizador pela foto: ferramentas de exemplo com medida, Gridfinity em 3D
   await openApp(page);
   await go(page, "Organizador pela foto");
   await expect(page.getByRole("img", { name: /Chave de fenda: 190 × 26 mm/ })).toBeVisible();
-  await page.getByRole("button", { name: "Gridfinity" }).click();
+  await page.getByRole("button", { name: "Gridfinity", exact: true }).click();
   await expect(page.getByText(/Caixa Gridfinity de \d+×\d+ casas/)).toBeVisible({ timeout: 60_000 });
   await expect(page.locator(".viewer .hud")).toContainText("mm", { timeout: 60_000 });
   await page.getByRole("button", { name: /Salvar 3MF/ }).click();
@@ -95,8 +95,8 @@ test("organizador pela foto: gaveta modular com uma caixinha Gridfinity por ferr
   test.setTimeout(180_000);
   await openApp(page);
   await go(page, "Organizador pela foto");
-  await page.getByRole("button", { name: "Gaveta" }).click();
-  await page.getByRole("button", { name: "Caixinhas" }).click();
+  await page.getByRole("button", { name: "Gaveta", exact: true }).click();
+  await page.getByRole("button", { name: "Caixinhas", exact: true }).click();
   const map = page.getByRole("img", { name: /Gaveta com 9 × 7 casas de 42 mm, frente embaixo; 3 caixinhas/ });
   await expect(map).toBeVisible();
   // espera a peça terminar de gerar: os avisos que chegam com ela empurram o mapa para baixo (o arraste erraria o alvo)

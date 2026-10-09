@@ -30,7 +30,7 @@ type OwnState = ReturnType<typeof initialState>;
  */
 export default function OwnDecal() {
   const tool = useToolState("owndecal", initialState, {
-    label: "Decal no seu modelo",
+    label: "Nome ou logo no seu modelo",
     save: (s) => ({ ...s, file: s.file && { name: s.file.name, bytes: storeBytes(s.file.bytes) } }),
     load: (raw) => {
       const r = raw as Omit<OwnState, "file"> & { file: { name: string; bytes: string | null } | null };
@@ -101,7 +101,7 @@ export default function OwnDecal() {
 
   return (
     <div className="page">
-      <h1>Decal no seu modelo</h1>
+      <h1>Nome ou logo no seu modelo</h1>
       <p className="lead">Nome ou logo numa face plana do seu STL ou 3MF.</p>
       <ToolSessionBar tool={tool} />
       <div className="tool-layout">
