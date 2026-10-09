@@ -2239,6 +2239,48 @@
   "plates": 1
  },
  {
+  "key": "cableComb:máximo",
+  "owner": "Torno",
+  "group": "home",
+  "label": "Clipe e pente de cabos (cableComb)",
+  "variant": "máximo",
+  "status": "ok",
+  "reasons": [],
+  "date": "2026-10-09",
+  "slicers": "Bambu ✓ · Orca ✓",
+  "minutes": 74,
+  "grams": 49.8,
+  "plates": 1
+ },
+ {
+  "key": "cableComb:mínimo",
+  "owner": "Torno",
+  "group": "home",
+  "label": "Clipe e pente de cabos (cableComb)",
+  "variant": "mínimo",
+  "status": "ok",
+  "reasons": [],
+  "date": "2026-10-09",
+  "slicers": "Bambu ✓ · Orca ✓",
+  "minutes": 2,
+  "grams": 0.2,
+  "plates": 1
+ },
+ {
+  "key": "cableComb:padrão",
+  "owner": "Torno",
+  "group": "home",
+  "label": "Clipe e pente de cabos (cableComb)",
+  "variant": "padrão",
+  "status": "ok",
+  "reasons": [],
+  "date": "2026-10-09",
+  "slicers": "Bambu ✓ · Orca ✓",
+  "minutes": 6,
+  "grams": 1.7,
+  "plates": 1
+ },
+ {
   "key": "coaster:máximo",
   "owner": "Torno",
   "group": "home",
@@ -2641,6 +2683,51 @@
   "plates": 1
  },
  {
+  "key": "hoseAdapter:máximo",
+  "owner": "Torno",
+  "group": "home",
+  "label": "Adaptador de mangueira ou aspirador (hoseAdapter)",
+  "variant": "máximo",
+  "status": "ok",
+  "reasons": [],
+  "date": "2026-10-09",
+  "slicers": "Bambu ✓ · Orca ✓",
+  "minutes": 480,
+  "grams": 347.1,
+  "plates": 1
+ },
+ {
+  "key": "hoseAdapter:mínimo",
+  "owner": "Torno",
+  "group": "home",
+  "label": "Adaptador de mangueira ou aspirador (hoseAdapter)",
+  "variant": "mínimo",
+  "status": "ok",
+  "reasons": [
+   "app: A parede do lado A ficou fina demais: o diâmetro externo subiu para 8.4 mm (parede mínima de 1.2 mm).",
+   "app: A parede do lado B ficou fina demais: o diâmetro externo subiu para 8.4 mm (parede mínima de 1.2 mm)."
+  ],
+  "date": "2026-10-09",
+  "slicers": "Bambu ✓ · Orca ✓",
+  "minutes": 7,
+  "grams": 0.8,
+  "plates": 1
+ },
+ {
+  "key": "hoseAdapter:padrão",
+  "owner": "Torno",
+  "group": "home",
+  "label": "Adaptador de mangueira ou aspirador (hoseAdapter)",
+  "variant": "padrão",
+  "status": "ok",
+  "reasons": [],
+  "date": "2026-10-09",
+  "slicers": "Bambu ✓ · Orca ✓",
+  "minutes": 47,
+  "grams": 19.7,
+  "plates": 1
+ },
+ {
   "key": "keyHolder:máximo",
   "owner": "Torno",
   "group": "home",
@@ -2688,6 +2775,48 @@
   "slicers": "Bambu ✓ · Orca ✓ · Projeto Bambu ✓",
   "minutes": 141,
   "grams": 114,
+  "plates": 1
+ },
+ {
+  "key": "knob:máximo",
+  "owner": "Torno",
+  "group": "home",
+  "label": "Botão ou manopla (knob)",
+  "variant": "máximo",
+  "status": "ok",
+  "reasons": [],
+  "date": "2026-10-09",
+  "slicers": "Bambu ✓ · Orca ✓",
+  "minutes": 143,
+  "grams": 71,
+  "plates": 1
+ },
+ {
+  "key": "knob:mínimo",
+  "owner": "Torno",
+  "group": "home",
+  "label": "Botão ou manopla (knob)",
+  "variant": "mínimo",
+  "status": "ok",
+  "reasons": [],
+  "date": "2026-10-09",
+  "slicers": "Bambu ✓ · Orca ✓",
+  "minutes": 4,
+  "grams": 0.7,
+  "plates": 1
+ },
+ {
+  "key": "knob:padrão",
+  "owner": "Torno",
+  "group": "home",
+  "label": "Botão ou manopla (knob)",
+  "variant": "padrão",
+  "status": "ok",
+  "reasons": [],
+  "date": "2026-10-09",
+  "slicers": "Bambu ✓ · Orca ✓",
+  "minutes": 19,
+  "grams": 6.4,
   "plates": 1
  },
  {
@@ -3131,6 +3260,51 @@
   "plates": 1
  },
  {
+  "key": "plantMarker:máximo",
+  "owner": "Torno",
+  "group": "home",
+  "label": "Marcador de horta ou planta (plantMarker)",
+  "variant": "máximo",
+  "status": "aviso",
+  "reasons": [
+   "\"Marcador\" não cabe na mesa de 256 mm (120,0 × 280,0 × 8,0 mm)",
+   "app: O marcador tem 280 mm de comprimento: passa da mesa de 256 mm. Diminua a haste."
+  ],
+  "date": "2026-10-09",
+  "slicers": "Bambu ✓ · Orca ✓ · Projeto Bambu ✓",
+  "minutes": 49,
+  "grams": 35.6,
+  "plates": 1
+ },
+ {
+  "key": "plantMarker:mínimo",
+  "owner": "Torno",
+  "group": "home",
+  "label": "Marcador de horta ou planta (plantMarker)",
+  "variant": "mínimo",
+  "status": "ok",
+  "reasons": [],
+  "date": "2026-10-09",
+  "slicers": "Bambu ✓ · Orca ✓ · Projeto Bambu ✓",
+  "minutes": 5,
+  "grams": 1.7,
+  "plates": 1
+ },
+ {
+  "key": "plantMarker:padrão",
+  "owner": "Torno",
+  "group": "home",
+  "label": "Marcador de horta ou planta (plantMarker)",
+  "variant": "padrão",
+  "status": "ok",
+  "reasons": [],
+  "date": "2026-10-09",
+  "slicers": "Bambu ✓ · Orca ✓ · Projeto Bambu ✓",
+  "minutes": 11,
+  "grams": 5.4,
+  "plates": 1
+ },
+ {
   "key": "puzzle:máximo",
   "owner": "Torno",
   "group": "home",
@@ -3435,6 +3609,50 @@
   ],
   "date": "2026-10-08",
   "slicers": "Bambu ✓ · Orca ✓ · Projeto Bambu ✓"
+ },
+ {
+  "key": "spacer:máximo",
+  "owner": "Torno",
+  "group": "home",
+  "label": "Espaçador, calço ou arruela (spacer)",
+  "variant": "máximo",
+  "status": "aviso",
+  "reasons": [
+   "\"Arruelas\" não cabe na mesa de 256 mm (1227,0 × 1227,0 × 30,0 mm)",
+   "Bambu recusa na mesa de 256 mm do A1 (o app avisa)",
+   "Orca recusa na mesa de 256 mm do A1 (o app avisa)",
+   "app: As 100 peças ocupam 1227 mm: passam da mesa de 256 mm. Diminua a quantidade ou imprima em mais de uma vez."
+  ],
+  "date": "2026-10-09",
+  "slicers": "Bambu ✓ · Orca ✓"
+ },
+ {
+  "key": "spacer:mínimo",
+  "owner": "Torno",
+  "group": "home",
+  "label": "Espaçador, calço ou arruela (spacer)",
+  "variant": "mínimo",
+  "status": "ok",
+  "reasons": [],
+  "date": "2026-10-09",
+  "slicers": "Bambu ✓ · Orca ✓",
+  "minutes": 1,
+  "grams": 0.1,
+  "plates": 1
+ },
+ {
+  "key": "spacer:padrão",
+  "owner": "Torno",
+  "group": "home",
+  "label": "Espaçador, calço ou arruela (spacer)",
+  "variant": "padrão",
+  "status": "ok",
+  "reasons": [],
+  "date": "2026-10-09",
+  "slicers": "Bambu ✓ · Orca ✓",
+  "minutes": 7,
+  "grams": 3.2,
+  "plates": 1
  },
  {
   "key": "stampMold:máximo",

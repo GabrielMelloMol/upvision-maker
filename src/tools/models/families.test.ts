@@ -8,7 +8,7 @@ test("cada modelo aparece em exatamente uma família; nenhuma variação aponta 
   expect(new Set(ids).size).toBe(ids.length);
   expect([...ids].sort()).toEqual(MODELS.map((m) => m.id).sort());
   expect(FAMILIES.length).toBeGreaterThanOrEqual(24);
-  expect(FAMILIES.length).toBeLessThanOrEqual(30);
+  expect(FAMILIES.length).toBeLessThanOrEqual(32);
 });
 
 test("famílias por categoria cobrem todas as categorias; atalhos apontam para telas que existem", () => {

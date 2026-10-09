@@ -115,3 +115,47 @@ test("azulejo em relevo e molde de gesso (#116): padrão que emenda, molde junto
   await save3mf(page, tauri.files);
   expect([...tauri.files.keys()].some((k) => k.endsWith(".3mf"))).toBe(true);
 });
+
+test("utilitários paramétricos (#121): arruela, marcador, pente de cabos, botão e adaptador abrem, medem e salvam 3MF", async ({ page, tauri }) => {
+  await openModel(page, "Espaçador, calço ou arruela");
+  await page.getByLabel(/^Quantidade/).fill("9");
+  await idle(page);
+  await expect(page.locator(".viewer .hud")).toContainText("mm");
+  await save3mf(page, tauri.files);
+
+  await page.getByRole("searchbox", { name: "Buscar modelo" }).fill("Marcador de horta");
+  await page.getByRole("group", { name: "Modelo" }).getByRole("button", { name: "Marcador de horta ou planta", exact: true }).click();
+  await idle(page);
+  await expect(page.locator(".legend")).toContainText("Texto");
+  await page.getByLabel("Nome da planta").fill("Manjericão");
+  await idle(page);
+  await expect(page.locator(".viewer .hud")).toContainText("50.0 × 125.0");
+
+  await page.getByRole("searchbox", { name: "Buscar modelo" }).fill("Clipe e pente");
+  await page.getByRole("group", { name: "Modelo" }).getByRole("button", { name: "Clipe e pente de cabos", exact: true }).click();
+  await idle(page);
+  await page.getByLabel(/^Número de cabos/).fill("5");
+  await idle(page);
+  await expect(page.locator(".viewer .hud")).toContainText("mm");
+
+  await page.getByRole("searchbox", { name: "Buscar modelo" }).fill("Botão ou manopla");
+  await page.getByRole("group", { name: "Modelo" }).getByRole("button", { name: "Botão ou manopla", exact: true }).click();
+  await idle(page);
+  await page.getByRole("group", { name: "Furo do eixo" }).getByRole("button", { name: "Redondo" }).click();
+  await idle(page);
+  await expect(page.locator(".viewer .hud")).toContainText("× 18.0 mm");
+
+  await page.getByRole("searchbox", { name: "Buscar modelo" }).fill("Adaptador de mangueira");
+  await page.getByRole("group", { name: "Modelo" }).getByRole("button", { name: "Adaptador de mangueira ou aspirador", exact: true }).click();
+  await idle(page);
+  await page.getByLabel(/^Diâmetro interno B/).fill("12");
+  await page.getByLabel(/^Comprimento do cone/).fill("5");
+  await idle(page);
+  await expect(page.getByText(/passa de 45°/)).toBeVisible();
+  await page.getByLabel(/^Diâmetro interno B/).fill("25");
+  await page.getByLabel(/^Comprimento do cone/).fill("25");
+  await idle(page);
+  await expect(page.locator(".viewer .hud")).toContainText("36.0 × 36.0 × 85.0 mm");
+  tauri.files.clear();
+  await save3mf(page, tauri.files);
+});
