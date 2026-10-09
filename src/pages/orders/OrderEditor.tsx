@@ -50,6 +50,7 @@ export default function OrderEditor({ data, order, draft, onClose, onSaved, save
   const [channel, setChannel] = useState(base.channel ?? CONSUMER);
   const [dueDate, setDueDate] = useState(base.dueDate ?? "");
   const [payment, setPayment] = useState(base.paymentMethod ?? "Pix");
+  const [printerId, setPrinterId] = useState(base.printerId ? String(base.printerId) : "");
   const [notes, setNotes] = useState(base.notes ?? "");
   const [freight, setFreight] = useState(base.freight ? brl(base.freight) : "");
   const [lines, setLines] = useState<Line[]>(
@@ -134,6 +135,7 @@ export default function OrderEditor({ data, order, draft, onClose, onSaved, save
     paymentMethod: payment,
     notes,
     freight: freight.trim() === "" ? 0 : parseMoney(freight),
+    printerId: printerId ? Number(printerId) : null,
     items,
   };
   const valid = items.every((i) => Number.isFinite(i.qty) && Number.isFinite(i.unitPrice));
@@ -214,6 +216,19 @@ export default function OrderEditor({ data, order, draft, onClose, onSaved, save
           Prazo de entrega
           <input type="date" value={dueDate} onChange={(e) => setDueDate(e.target.value)} />
         </label>
+        {!saveAs && data.printers.length > 0 && (
+          <label>
+            Impressora
+            <select value={printerId} onChange={(e) => setPrinterId(e.target.value)}>
+              <option value="">Ainda sem definir</option>
+              {data.printers.map((p) => (
+                <option key={p.id} value={p.id}>
+                  {p.name}
+                </option>
+              ))}
+            </select>
+          </label>
+        )}
         <label>
           Pagamento
           <select value={payment} onChange={(e) => setPayment(e.target.value)}>

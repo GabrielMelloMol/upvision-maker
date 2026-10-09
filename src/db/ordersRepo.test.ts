@@ -54,6 +54,28 @@ const stockG = async () => (await filaments.list(db))[0].stockG;
 const productStock = async () => (await productsRepo.list(db))[0].stock;
 const order = async () => (await ordersRepo.list(db))[0];
 
+describe("impressora do pedido (#188)", () => {
+  test("grava a impressora no pedido, troca na edição e aceita pedido sem impressora; entra no backup", async () => {
+    await db.execute("INSERT INTO printers (name, watts) VALUES ('A1', 95), ('P1S', 120)");
+    await ordersRepo.create(db, { ...input(1), printerId: 2 });
+    await ordersRepo.create(db, input(1));
+    const [semImpressora, comP1S] = await ordersRepo.list(db);
+    expect(comP1S.printerId).toBe(2);
+    expect(semImpressora.printerId).toBeNull();
+    await ordersRepo.update(db, comP1S, { ...input(1), printerId: 1 });
+    expect((await ordersRepo.list(db)).find((o) => o.id === comP1S.id)?.printerId).toBe(1);
+    await ordersRepo.update(db, comP1S, { ...input(1), printerId: null });
+    expect((await ordersRepo.list(db)).find((o) => o.id === comP1S.id)?.printerId).toBeNull();
+    await ordersRepo.update(db, comP1S, { ...input(1), printerId: 2 });
+    const backup = JSON.parse(JSON.stringify(await exportBackup(db)));
+    expect(backup.tables.orders.find((o: { id: number }) => o.id === comP1S.id).printerId).toBe(2);
+    delete backup.tables.orders.find((o: { id: number }) => o.id === semImpressora.id).printerId; // backup antigo: pedido sem o campo
+    const { restoreBackup } = await import("./backup");
+    await restoreBackup(db, parseBackup(JSON.stringify(backup)));
+    expect((await ordersRepo.list(db)).map((o) => o.printerId ?? null).sort()).toEqual([2, null].sort());
+  });
+});
+
 describe("pagamento (#177)", () => {
   test("começa a receber; registra sinal e pago, limita ao total e deixa no histórico", async () => {
     await ordersRepo.create(db, input(4)); // 4 × 15 = 60

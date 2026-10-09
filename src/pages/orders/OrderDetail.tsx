@@ -132,6 +132,7 @@ export default function OrderDetail({ order, data, onClose, onChanged, onEdit }:
         <span>Canal <b>{order.channel}</b></span>
         <span>Prazo <b>{dateBr(order.dueDate)}</b></span>
         <span>Pagamento <b>{order.paymentMethod || "—"}</b></span>
+        {order.printerId && <span>Impressora <b>{data.printers.find((p) => p.id === order.printerId)?.name ?? "removida"}</b></span>}
         {order.deliveredAt && <span>Entregue em <b>{dateBr(order.deliveredAt)}</b></span>}
         <span>Estoque <b>{order.stockApplied ? "baixado" : "não baixado"}</b></span>
       </div>

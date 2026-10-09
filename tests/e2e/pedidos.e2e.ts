@@ -87,3 +87,19 @@ test("pedidos: confirmação do pedido em PDF (#185)", async ({ page, tauri }) =
   await expect(toastWith(page, "Confirmação salva em")).toBeVisible();
   expect([...tauri.files.keys()].some((p) => p.endsWith(".pdf"))).toBe(true);
 });
+
+test("pedidos: impressora por pedido e filtro no quadro (#188)", async ({ page, tauri }) => {
+  await openApp(page);
+  await seed(tauri);
+  tauri.db.exec(`INSERT INTO printers (name, watts) VALUES ('A1', 95), ('P1S', 120);
+    INSERT INTO orders (customerName, channel, status, dueDate, printerId, createdAt) VALUES ('Bia', 'Consumidor final', 'pending', '2026-11-20', 2, '2026-10-01 10:00:00'), ('Caio', 'Consumidor final', 'pending', '2026-11-05', 1, '2026-10-01 10:00:00');
+    INSERT INTO order_items (orderId, position, description, qty, unitPrice) VALUES (1, 0, 'Peça', 1, 10), (2, 0, 'Peça', 1, 10);`);
+  await go(page, "Pedidos");
+  const pending = page.getByRole("region", { name: "Pendente" });
+  const cards = pending.getByRole("button", { name: /^Abrir pedido/ });
+  await expect(cards.first()).toContainText("Caio"); // prazo mais próximo primeiro
+  await page.getByLabel("Impressora").selectOption({ label: "P1S" });
+  await expect(cards).toHaveCount(1);
+  await expect(cards.first()).toContainText("Bia");
+  await expect(cards.first()).toContainText("P1S");
+});

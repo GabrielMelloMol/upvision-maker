@@ -39,6 +39,8 @@ export const OrderInput = z.object({
   paymentMethod: z.string().trim().max(60),
   notes: z.string().trim().max(2000),
   freight: nonNeg,
+  /** Impressora em que o pedido vai (#188); null = ainda sem definir. */
+  printerId: z.number().int().positive().nullable().optional(), // ausente em dados antigos
   items: z.array(OrderItem).min(1, "Adicione pelo menos um item"),
 });
 export type OrderInput = z.infer<typeof OrderInput>;

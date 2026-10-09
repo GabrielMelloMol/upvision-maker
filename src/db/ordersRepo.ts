@@ -8,7 +8,7 @@ type OrderRow = Omit<Order, "items" | "stockApplied" | "appliedPlan"> & { stockA
 type ItemRow = OrderItem & { id: number; orderId: number; position: number };
 export type HistoryEntry = { id: number; orderId: number; status: string; note: string; at: string };
 
-const ORDER_COLS = ["customerId", "customerName", "channel", "dueDate", "paymentMethod", "notes", "freight"] as const;
+const ORDER_COLS = ["customerId", "customerName", "channel", "dueDate", "paymentMethod", "notes", "freight", "printerId"] as const;
 const ITEM_COLS = ["productId", "description", "qty", "unitPrice", "discountPct", "unitCost", "printMinutes", "custom"] as const;
 
 const nowLocal = () => {
@@ -74,7 +74,7 @@ export const ordersRepo = {
     await db.batch([
       {
         sql: `INSERT INTO orders (id, ${ORDER_COLS.join(", ")}, status, createdAt, quoteId) VALUES (?, ${ORDER_COLS.map(() => "?").join(", ")}, 'pending', ?, ?)`,
-        params: [id, ...ORDER_COLS.map((c) => v[c]), nowLocal(), quoteId],
+        params: [id, ...ORDER_COLS.map((c) => v[c] ?? null), nowLocal(), quoteId],
       },
       ...itemStatements(id, v.items),
       { sql: "INSERT INTO order_history (orderId, status, note, at) VALUES (?, 'pending', ?, ?)", params: [id, quoteId ? `Criado a partir do orçamento #${quoteId}` : "Pedido criado", nowLocal()] },
@@ -86,7 +86,7 @@ export const ordersRepo = {
     const v = OrderInput.parse(input);
     if (order.stockApplied && !sameItems(order.items, v.items)) throw new Error("O estoque deste pedido já foi baixado. Volte para Pendente para mudar produtos ou quantidades.");
     await db.batch([
-      { sql: `UPDATE orders SET ${ORDER_COLS.map((c) => `${c} = ?`).join(", ")} WHERE id = ?`, params: [...ORDER_COLS.map((c) => v[c]), order.id] },
+      { sql: `UPDATE orders SET ${ORDER_COLS.map((c) => `${c} = ?`).join(", ")} WHERE id = ?`, params: [...ORDER_COLS.map((c) => v[c] ?? null), order.id] },
       { sql: "DELETE FROM order_items WHERE orderId = ?", params: [order.id] },
       ...itemStatements(order.id, v.items),
     ]);

@@ -124,6 +124,8 @@ export const MIGRATIONS: string[][] = [
   [
     "CREATE TABLE consignments (id INTEGER PRIMARY KEY, customerId INTEGER NOT NULL, customerName TEXT NOT NULL, startDate TEXT NOT NULL, periodDays INTEGER NOT NULL, items TEXT NOT NULL, notes TEXT NOT NULL DEFAULT '', active INTEGER NOT NULL DEFAULT 1, lastRestockAt TEXT, createdAt TEXT NOT NULL)",
   ],
+  // Impressora por pedido (#188).
+  ["ALTER TABLE orders ADD COLUMN printerId INTEGER"],
 ];
 
 export const SCHEMA_VERSION = MIGRATIONS.length;

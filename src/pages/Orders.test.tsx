@@ -74,6 +74,48 @@ const insertOrder = (o: { name?: string; status?: string; due?: string | null; q
 
 beforeEach(() => installApplyStock(t));
 
+describe("Pedidos: impressora e ordem pelo prazo (#188)", () => {
+  const withPrinter = (id: number, printerId: number | null) => t.raw.prepare("UPDATE orders SET printerId = ? WHERE id = ?").run(printerId, id);
+
+  test("o quadro mostra os pedidos de cada coluna ordenados pelo prazo, sem prazo por último", async () => {
+    seed();
+    insertOrder({ name: "Dora", due: null });
+    insertOrder({ name: "Caio", due: "2026-10-20" });
+    insertOrder({ name: "Bia", due: "2026-10-05" });
+    renderWithApp(<Orders />);
+    const column = await screen.findByRole("region", { name: "Pendente" });
+    await within(column).findByRole("button", { name: /Abrir pedido #\d de Bia/ });
+    const names = within(column).getAllByRole("button", { name: /^Abrir pedido/ }).map((b) => b.getAttribute("aria-label")?.replace(/^Abrir pedido #\d+ de /, ""));
+    expect(names).toEqual(["Bia", "Caio", "Dora"]);
+  });
+
+  test("escolhe a impressora no pedido, filtra o quadro por ela e mostra no cartão e no detalhe", async () => {
+    seed();
+    t.raw.exec("INSERT INTO printers (name, watts) VALUES ('A1', 95), ('P1S', 120)");
+    const a = insertOrder({ name: "Ana" });
+    const b = insertOrder({ name: "Bia" });
+    insertOrder({ name: "Caio" });
+    withPrinter(a, 1);
+    withPrinter(b, 2);
+    const user = userEvent.setup();
+    renderWithApp(<Orders />);
+    expect(await screen.findByRole("button", { name: `Abrir pedido #${a} de Ana` })).toHaveTextContent("A1");
+    await user.selectOptions(screen.getByLabelText("Impressora"), "P1S");
+    expect(screen.queryByRole("button", { name: `Abrir pedido #${a} de Ana` })).not.toBeInTheDocument();
+    expect(screen.getByRole("button", { name: `Abrir pedido #${b} de Bia` })).toBeInTheDocument();
+    await user.selectOptions(screen.getByLabelText("Impressora"), "Sem impressora definida");
+    expect(screen.getByRole("button", { name: /Abrir pedido #3 de Caio/ })).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: `Abrir pedido #${b} de Bia` })).not.toBeInTheDocument();
+    await user.click(screen.getByRole("button", { name: /Abrir pedido #3 de Caio/ }));
+    // editar: define a impressora do pedido sem impressora
+    await user.click(await screen.findByRole("button", { name: "Editar" }));
+    const sheet = await screen.findByRole("dialog", { name: /Pedido #3|Editar pedido/ });
+    await user.selectOptions(within(sheet).getByLabelText("Impressora"), "A1");
+    await user.click(within(sheet).getByRole("button", { name: /Salvar/ }));
+    await waitFor(() => expect(t.raw.prepare("SELECT printerId FROM orders WHERE id = 3").get()).toEqual({ printerId: 1 }));
+  });
+});
+
 describe("Pedidos: confirmação em PDF (#185)", () => {
   test("gera o PDF com o nome do cliente; cancelar o 'Salvar como' não grava", async () => {
     seed();

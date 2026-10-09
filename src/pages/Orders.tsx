@@ -32,6 +32,7 @@ export default function Orders() {
   const [openId, setOpenId] = useState<number | null>(() => takePendingOpen("orders")); // vindo da busca global
   const [status, setStatus] = useState<"" | OrderStatus>("");
   const [query, setQuery] = useState("");
+  const [printer, setPrinter] = useState(""); // "" = todas, "none" = sem impressora (#188)
   const [dragging, setDragging] = useState<number | null>(null);
   const toast = useToast();
   const today = todayIso();
@@ -50,7 +51,10 @@ export default function Orders() {
   const recentCut = addDays(today, -RECENT_DELIVERED_DAYS);
   const byDue = (a: Order, b: Order) => (a.dueDate ?? "9999").localeCompare(b.dueDate ?? "9999") || a.id - b.id;
   const q = query.trim().toLowerCase();
-  const filtered = data.orders.filter((o) => (!status || o.status === status) && (!q || `#${o.id} ${o.customerName} ${o.items.map((i) => i.description).join(" ")}`.toLowerCase().includes(q)));
+  const byPrinter = (o: Order) => !printer || (printer === "none" ? (o.printerId ?? null) === null : String(o.printerId) === printer);
+  const printerName = (o: Order) => data.printers.find((p) => p.id === o.printerId)?.name;
+  const visible = data.orders.filter(byPrinter);
+  const filtered = visible.filter((o) => (!status || o.status === status) && (!q || `#${o.id} ${o.customerName} ${o.items.map((i) => i.description).join(" ")}`.toLowerCase().includes(q)));
 
   const card = (o: Order) => {
     const next = NEXT[o.status];
@@ -73,6 +77,7 @@ export default function Orders() {
             </span>
             <b>{money(orderTotals(o.items, o.freight).total)}</b>
           </span>
+          {printerName(o) && <span className="muted small">{printerName(o)}</span>}
           {o.status !== "canceled" && paymentOf(o).state !== "paid" && <span className="badge nowrap">{PAYMENT_LABEL[paymentOf(o).state]}{paymentOf(o).state === "partial" ? ` · falta ${money(paymentOf(o).due)}` : ""}</span>}
         </button>
         {next && (
@@ -92,6 +97,20 @@ export default function Orders() {
           <p className="lead">Acompanhe cada pedido, do pedido até a entrega.</p>
         </div>
         <div className="row">
+          {data.printers.length > 0 && (
+            <label>
+              Impressora
+              <select value={printer} onChange={(e) => setPrinter(e.target.value)}>
+                <option value="">Todas</option>
+                {data.printers.map((p) => (
+                  <option key={p.id} value={p.id}>
+                    {p.name}
+                  </option>
+                ))}
+                <option value="none">Sem impressora definida</option>
+              </select>
+            </label>
+          )}
           <Segmented
             label="Visualização"
             value={view}
@@ -116,7 +135,7 @@ export default function Orders() {
       ) : view === "board" ? (
         <div className="board" aria-label="Quadro de pedidos">
           {BOARD.map((s) => {
-            const all = data.orders.filter((o) => o.status === s);
+            const all = visible.filter((o) => o.status === s);
             const col = (s === "delivered" ? all.filter((o) => !o.deliveredAt || o.deliveredAt >= recentCut) : all).sort(byDue);
             return (
               <section
@@ -169,7 +188,7 @@ export default function Orders() {
           </div>
           <table>
             <thead>
-              <tr><th>#</th><th>Cliente</th><th>Status</th><th>Prazo</th><th>Canal</th><th>Pagamento</th><th className="num">Total</th></tr>
+              <tr><th>#</th><th>Cliente</th><th>Status</th><th>Prazo</th><th>Canal</th>{data.printers.length > 0 && <th>Impressora</th>}<th>Pagamento</th><th className="num">Total</th></tr>
             </thead>
             <tbody>
               {filtered.map((o) => (
@@ -181,6 +200,7 @@ export default function Orders() {
                   <td>{STATUS_LABEL[o.status]}</td>
                   <td>{isLate(o, today) ? <span className="badge">atrasado · {dateBr(o.dueDate)}</span> : dateBr(o.dueDate)}</td>
                   <td>{o.channel}</td>
+                  {data.printers.length > 0 && <td>{printerName(o) ?? "—"}</td>}
                   <td>{o.status === "canceled" ? "—" : PAYMENT_LABEL[paymentOf(o).state]}</td>
                   <td className="num">{money(orderTotals(o.items, o.freight).total)}</td>
                 </tr>
