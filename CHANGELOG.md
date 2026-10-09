@@ -3,7 +3,7 @@
 Cada versão aparece para a usuária na tela "O que há de novo" depois da atualização.
 Formato: `## <versão> — <data>` e itens `- …` em linguagem simples.
 
-## Próxima versão (ainda não lançada)
+## 0.11.3 — 2026-10-09
 - **Impressora por pedido**: o pedido ganhou o campo "Impressora" (aparece quando há impressoras cadastradas). Em Pedidos, o filtro "Impressora" mostra no quadro, ou na lista, só o que vai em cada máquina (ou os pedidos sem impressora definida), e o cartão mostra o nome dela. Cada coluna do quadro já segue o prazo de entrega, do mais próximo ao mais distante, com os pedidos sem prazo por último.
 - **Quadro vazado e placa vazada em pé**: em Modelos prontos (Casa › Quadro e desenho), o quadro põe um desenho de linhas numa moldura (por exemplo 18 × 25 cm) preso à moldura nos lados que você escolher, com pontes que saem de onde o traço encosta; a placa vazada recorta um desenho ou um texto numa placa com lingueta e base de encaixe, e avisa quando o miolo de uma letra cairia.
 - **Letreiro com layouts de data prontos**: em Modelos prontos (Letreiro em camadas), as variações Nascimento (nome, data, hora, peso e altura), Casamento, Casa nova e Pet (in memoriam) já vêm com texto, cores e enfeite. Nova opção de moldura separada: um anel que se cola em volta da base, impresso à parte, e o enfeite ganhou a patinha.
