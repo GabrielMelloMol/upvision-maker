@@ -13,9 +13,9 @@ on:
         description: "Gerar novas referências e lista de problemas conhecidos (em vez de comparar)"
         type: boolean
         default: false
-  push:
-    branches: [main]
-    paths: ["src/**", "tests/visual/**", "playwright.visual.config.ts", ".github/workflows/visual.yml"]
+  # Uma vez por dia (e quando pedido), não a cada push: com vários commits por hora, cada falha virava um e-mail.
+  schedule:
+    - cron: "0 9 * * *" # 06:00 em Brasília
 
 permissions:
   contents: read
