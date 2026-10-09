@@ -1,4 +1,4 @@
-import { BriefcaseBusiness, Disc3, Frame, IdCard, LayoutGrid, Palette, QrCode, RadioTower, Shield, Signpost, Users } from "lucide-react";
+import { BriefcaseBusiness, Disc3, Frame, IdCard, LayoutGrid, Palette, QrCode, RadioTower, Shield, Signpost, Sparkles, Users } from "lucide-react";
 import { buildBusinessCard, DEFAULT_BUSINESS_CARD } from "../../../geometry/models/businessCard";
 import { buildColoringTile, DEFAULT_COLORING_TILE } from "../../../geometry/models/coloringTile";
 import { buildLogoPlate, DEFAULT_ADAPTIVE_PLATE } from "../../../geometry/models/logoPlate";
@@ -9,6 +9,8 @@ import { buildNfcTotem, DEFAULT_NFC_TOTEM } from "../../../geometry/models/nfcTo
 import { buildPixPlate, DEFAULT_PIX_PLATE } from "../../../geometry/models/pixPlate";
 import { buildProfessionPlaque, DEFAULT_PROFESSION } from "../../../geometry/models/professionPlaque";
 import { buildQrList, buildQrPlate, DEFAULT_QR_LIST, DEFAULT_QR_PLATE } from "../../../geometry/models/qrPlate";
+import { buildStarMap, DEFAULT_STAR_MAP } from "../../../geometry/models/starMap";
+import { CITIES } from "../../../geometry/models/starSky";
 import { buildSignPlate, DEFAULT_SIGN_PLATE } from "../../../geometry/models/signPlate";
 import { parseMoney } from "../../../ui/parse";
 import { as, bool, choice, color, logoFields, nfcFields, num, resinFields, text, textureFields, type ModelDef } from "../fields";
@@ -314,5 +316,50 @@ export const PLATE_MODELS: ModelDef[] = [
       },
     ],
     build: (ctx, p) => buildNamesPanel(ctx, as(p)),
+  },
+  {
+    id: "starMap",
+    category: "plates",
+    label: "Mapa estelar de uma data",
+    blurb: "O céu de um lugar e de um momento em relevo, com título e data. Cálculo offline com o catálogo de estrelas brilhantes. De mesa ou com ímã.",
+    icon: Sparkles,
+    font: true,
+    defaults: DEFAULT_STAR_MAP,
+    sections: [
+      {
+        title: "Lugar",
+        fields: [
+          choice("city", "Cidade", [...CITIES.map(([id, name]) => [id, name] as const), ["custom", "Outra (latitude e longitude)"]]),
+          num("lat", "Latitude (só em \"Outra\")", -90, 90, { step: 0.01, unit: "°", hint: "Sul é negativo." }),
+          num("lon", "Longitude (só em \"Outra\")", -180, 180, { step: 0.01, unit: "°", hint: "Oeste é negativo." }),
+        ],
+      },
+      {
+        title: "Data e hora",
+        fields: [
+          num("day", "Dia", 1, 31, { step: 1 }),
+          num("month", "Mês", 1, 12, { step: 1 }),
+          num("year", "Ano", 1900, 2100, { step: 1 }),
+          num("hour", "Hora", 0, 23, { step: 1 }),
+          num("minute", "Minuto", 0, 59, { step: 1 }),
+          num("utcOffset", "Fuso (horas)", -12, 14, { step: 0.5, hint: "Brasília: -3. Em datas com horário de verão, some 1." }),
+        ],
+      },
+      { title: "Texto", fields: [text("title", "Título", 28), text("caption", "Legenda (vazio = data e cidade)", 40)] },
+      {
+        title: "Céu e placa",
+        fields: [
+          num("maxMag", "Estrelas até a magnitude", 3, 5, { step: 0.1, hint: "Maior = mais estrelas, mais fracas e mais miúdas." }),
+          num("starScale", "Tamanho das estrelas", 0.7, 1.6, { step: 0.05, unit: "" }),
+          num("width", "Largura da placa", 80, 180, { step: 1 }),
+          num("thickness", "Espessura", 2, 8),
+          num("relief", "Relevo", 0.4, 2),
+          choice("mount", "Apoio", [["stand", "Suporte de mesa"], ["magnet", "Ímã atrás"], ["none", "Nenhum"]]),
+          color("plateColor", "Placa"),
+          color("starColor", "Estrelas e texto"),
+        ],
+      },
+    ],
+    build: (ctx, p) => buildStarMap(ctx, as(p)),
   },
 ];

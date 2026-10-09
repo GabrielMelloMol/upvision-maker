@@ -36,6 +36,7 @@ export const MODEL_COLLECTIONS: Record<string, Collection[]> = {
   logoKeychain: ["aniversario", "negocio"],
   pencilTopper: ["aniversario"],
   snowflake: ["natal"],
+  starMap: ["aniversario", "casamento", "maes", "pais"],
   ornamentSpinner: ["natal"],
   stamp: ["pascoa", "natal"],
   cutterStamp: ["pascoa", "natal"],
@@ -114,6 +115,12 @@ export const VARIANTS: Record<string, Variant[]> = {
     { label: "Sinos", patch: { text: "Boas Festas", trim: "bell", frameColor: GREEN, diskColor: WHITE, artColor: RED }, collections: ["natal"] },
     { label: "Bolinhas", patch: { text: "Noel", trim: "dot", trimCount: 10, frameColor: BLUE, diskColor: WHITE, artColor: BLUE }, collections: ["natal"] },
     { label: "Com nome", patch: { text: "Ana", trim: "star", frameColor: GOLD, diskColor: RED, artColor: WHITE }, collections: ["natal"] },
+  ],
+  starMap: [
+    { label: "Casamento", patch: { title: "O dia em que dissemos sim", plateColor: BLACK, starColor: GOLD }, collections: ["casamento"] },
+    { label: "Nascimento", patch: { title: "O dia em que você chegou", plateColor: "#1b3a6b", starColor: WHITE }, collections: ["cha", "maes"] },
+    { label: "Aniversário", patch: { title: "A noite em que você nasceu", plateColor: LILAC, starColor: WHITE }, collections: ["aniversario"] },
+    { label: "Dia dos Pais", patch: { title: "Pai, nosso céu", plateColor: BLUE, starColor: WHITE }, collections: ["pais"] },
   ],
   nfc: [
     { label: "Instagram da loja", patch: { text: "Siga!", baseColor: BLACK, textColor: WHITE }, collections: ["negocio"] },

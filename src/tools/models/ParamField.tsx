@@ -10,6 +10,7 @@ import Toggle from "../../ui/Toggle";
 import type { FieldDef, Params, Section } from "./fields";
 import ProfileEditor from "./ProfileEditor";
 
+const MAX_CHIPS = 12; // acima disso a escolha vira uma lista (cidades do mapa estelar)
 const MAX_SEGMENTS = 4; // acima disso a escolha vira pílulas (Segmented é para 2–4 opções)
 
 /** Primeiro texto preenchido do modelo: é a prévia no seletor de fonte. */
@@ -60,7 +61,15 @@ export default function ParamField({ f, value, onChange, sample = "", emoji }: P
       return (
         <div className="span-2">
           <span className="field-label">{f.label}</span>
-          {f.options.length > MAX_SEGMENTS ? (
+          {f.options.length > MAX_CHIPS ? (
+            <select aria-label={f.label} value={String(value)} onChange={(e) => onChange(e.target.value)}>
+              {f.options.map(([v, text]) => (
+                <option key={v} value={v}>
+                  {text}
+                </option>
+              ))}
+            </select>
+          ) : f.options.length > MAX_SEGMENTS ? (
             // muitas opções: pílulas que quebram linha (o Segmented é para 2–4)
             <div className="chips" role="group" aria-label={f.label}>
               {f.options.map(([v, text]) => (

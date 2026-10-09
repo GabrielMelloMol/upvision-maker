@@ -15,7 +15,7 @@ const ART = "Com arte", FN = "Com função";
 export const FAMILIES: Family[] = [
   { id: "musicCard", label: "Cartão de música", category: "plates", variants: [{ id: "musicCard", label: "Cartão de música" }] },
   { id: "counterPlate", label: "Placa de balcão", category: "plates", variants: [{ id: "pix", label: "Pix" }, { id: "qrPlate", label: "QR" }, { id: "qrList", label: "Vários QRs" }, { id: "nfcTotem", label: "NFC" }], tools: [{ page: "qr", label: "QR Code e Pix avulso" }] },
-  { id: "plate", label: "Placa", category: "plates", variants: [{ id: "sign", label: "Sinalização" }, { id: "adaptivePlate", label: "No contorno do desenho" }, { id: "profession", label: "Profissão" }, { id: "namesPanel", label: "Painel de nomes" }] },
+  { id: "plate", label: "Placa", category: "plates", variants: [{ id: "sign", label: "Sinalização" }, { id: "adaptivePlate", label: "No contorno do desenho" }, { id: "profession", label: "Profissão" }, { id: "namesPanel", label: "Painel de nomes" }, { id: "starMap", label: "Mapa estelar de uma data" }] },
   { id: "businessCard", label: "Cartão de visita", category: "plates", variants: [{ id: "businessCard", label: "Cartão de visita" }] },
   { id: "idTag", label: "Tag de identificação", category: "keychains", variants: [{ id: "petTag", label: "Pet" }, { id: "molle", label: "MOLLE" }] },
   {

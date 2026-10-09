@@ -1258,6 +1258,57 @@
   "plates": 1
  },
  {
+  "key": "starMap:máximo",
+  "owner": "Forja",
+  "group": "plates",
+  "label": "Mapa estelar de uma data (starMap)",
+  "variant": "máximo",
+  "status": "aviso",
+  "reasons": [
+   "o conjunto arrumado ocupa 180,0 × 274,0 mm: passa da mesa de 256 mm",
+   "Orca: torre de purga em cima de uma peça depois do --arrange do CLI (na tela, arraste a torre ou use Arrumar)",
+   "app: 838 estrelas visíveis (até a magnitude 5) no céu de São Paulo. O horário de verão conta no fuso: com ele, use um fuso a mais.",
+   "app: As 2 peças não cabem juntas na mesa de 256 mm: o fatiador vai usar mais de uma mesa (ou imprima uma de cada vez)."
+  ],
+  "date": "2026-10-09",
+  "slicers": "Bambu ✓ · Orca ✓ · Projeto Bambu ✓",
+  "minutes": 272,
+  "grams": 178.6,
+  "plates": 1
+ },
+ {
+  "key": "starMap:mínimo",
+  "owner": "Forja",
+  "group": "plates",
+  "label": "Mapa estelar de uma data (starMap)",
+  "variant": "mínimo",
+  "status": "ok",
+  "reasons": [
+   "app: 97 estrelas visíveis (até a magnitude 3) no céu de São Paulo. O horário de verão conta no fuso: com ele, use um fuso a mais."
+  ],
+  "date": "2026-10-09",
+  "slicers": "Bambu ✓ · Orca ✓ · Projeto Bambu ✓",
+  "minutes": 43,
+  "grams": 28.7,
+  "plates": 1
+ },
+ {
+  "key": "starMap:padrão",
+  "owner": "Forja",
+  "group": "plates",
+  "label": "Mapa estelar de uma data (starMap)",
+  "variant": "padrão",
+  "status": "ok",
+  "reasons": [
+   "app: 481 estrelas visíveis (até a magnitude 4.5) no céu de São Paulo. O horário de verão conta no fuso: com ele, use um fuso a mais."
+  ],
+  "date": "2026-10-09",
+  "slicers": "Bambu ✓ · Orca ✓ · Projeto Bambu ✓",
+  "minutes": 92,
+  "grams": 61.7,
+  "plates": 1
+ },
+ {
   "key": "colorsplit:corte com pino",
   "owner": "Forja",
   "group": "tools",
