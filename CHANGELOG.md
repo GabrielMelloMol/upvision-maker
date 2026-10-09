@@ -3,7 +3,7 @@
 Cada versão aparece para a usuária na tela "O que há de novo" depois da atualização.
 Formato: `## <versão> — <data>` e itens `- …` em linguagem simples.
 
-## Próxima versão (ainda não lançada)
+## 0.11.6 — 2026-10-09
 - **Medidas da gaveta aceitam centímetros sem susto**: nos campos de largura, profundidade e altura da gaveta (Organizador de gaveta, Organizador pela foto e Gridfinity base pela gaveta), o campo mostra "= 35 cm" ao lado do valor em milímetros, a mensagem de erro traz a faixa em mm e em cm, e se você digitar 35 achando que era cm, o app pergunta "Você quis dizer 35 cm (350 mm)?" com o botão "Usar 350 mm". Veio da sugestão de uma usuária.
 
 ## 0.11.5 — 2026-10-09
