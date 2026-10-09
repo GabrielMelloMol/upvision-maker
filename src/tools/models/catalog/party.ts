@@ -1,7 +1,8 @@
-import { Award, Cake, Shirt, Layers, Medal, Snowflake, Sparkles, Trophy, Type } from "lucide-react";
+import { Award, Cake, Magnet, Shirt, Layers, Medal, Snowflake, Sparkles, Trophy, Type } from "lucide-react";
 import { buildAdaptiveMedal, DEFAULT_ADAPTIVE_MEDAL } from "../../../geometry/models/adaptiveMedal";
 import { buildAdaptiveTrophy, DEFAULT_ADAPTIVE_TROPHY } from "../../../geometry/models/adaptiveTrophy";
 import { buildCakeTopper, DEFAULT_CAKE_TOPPER } from "../../../geometry/models/cakeTopper";
+import { buildFridgeMagnet, DEFAULT_FRIDGE_MAGNET } from "../../../geometry/models/fridgeMagnet";
 import { buildLayeredSign, DEFAULT_LAYERED_SIGN } from "../../../geometry/models/layeredSign";
 import { buildShirtPrint, DEFAULT_SHIRT_PRINT } from "../../../geometry/models/shirtPrint";
 import { buildSnowflake, DEFAULT_SNOWFLAKE } from "../../../geometry/models/snowflake";
@@ -12,6 +13,30 @@ import { as, bool, choice, color, num, signLine, text, textureFields, type Model
 
 /** Modelos prontos da categoria Festa e esporte. */
 export const PARTY_MODELS: ModelDef[] = [
+  {
+    id: "fridgeMagnet",
+    category: "party",
+    label: "Ímã de geladeira",
+    blurb: "Nome ou desenho em relevo no contorno da arte, com 1 a 5 bolsos para ímãs de neodímio e pausa para inserir.",
+    icon: Magnet,
+    font: true,
+    art: "Desenho do ímã (opcional)",
+    defaults: DEFAULT_FRIDGE_MAGNET,
+    sections: [
+      { title: "Texto", fields: [text("text", "Texto (sem desenho)", 16)] },
+      {
+        title: "Ímãs e impressão",
+        fields: [
+          num("count", "Quantidade de ímãs", 1, 5, { step: 1, unit: "", hint: "Se não couberem todos neste tamanho, o app coloca os que cabem e avisa." }),
+          num("magnetDiameter", "Diâmetro do ímã", 6, 25, { step: 0.5, hint: "Disco de neodímio comum: 10 mm. A folga de 0,4 mm já vem somada." }),
+          num("magnetHeight", "Altura do ímã", 1, 6, { step: 0.5, hint: "Disco comum: 2 a 3 mm." }),
+          num("layerHeight", "Altura de camada", 0.08, 0.32, { step: 0.02, hint: "A mesma do fatiador: define a camada da pausa." }),
+        ],
+      },
+      { title: "Tamanho e cores", fields: [num("width", "Largura da arte", 30, 150, { step: 1 }), num("margin", "Contorno do corpo", 2, 10, { step: 0.5 }), num("relief", "Relevo", 0.4, 2), color("bodyColor", "Corpo"), color("artColor", "Arte (1 cor)")] },
+    ],
+    build: (ctx, p) => buildFridgeMagnet(ctx, as({ ...p, count: Math.round(Number(p.count)) })),
+  },
   {
     id: "shirtPrint",
     category: "party",

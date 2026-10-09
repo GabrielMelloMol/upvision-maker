@@ -7,6 +7,7 @@ export const MODEL_PROFILES: Record<string, PrintProfile> = {
   cutterStamp: { walls: 2, notes: ["Lâmina fina: deixe ligado \"Detectar paredes finas\" no fatiador para ela não sumir."] },
   ejector: { walls: 3, infill: 20 },
   bagClip: { walls: 4, infill: 30, notes: ["Imprima deitado, como sai no arquivo: as hastes flexionam sem quebrar."] },
+  fridgeMagnet: { walls: 3, infill: 20, notes: ["Há uma pausa para colocar os ímãs: coloque todos com a mesma face para cima e retome; as camadas seguintes cobrem. Confira a altura de camada igual à do fatiador."] },
   shirtPrint: {
     walls: 2,
     infill: 100,

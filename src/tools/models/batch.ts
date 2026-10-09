@@ -20,6 +20,7 @@ export const BATCH_FIELDS: Record<string, string[]> = {
   gymKeychain: ["text"],
   articulatedName: ["text"],
   opener: ["text"],
+  fridgeMagnet: ["text"],
   molle: ["text"],
   nfcJewelry: ["text", "text2"],
   petTag: ["name", "phone", "note"],

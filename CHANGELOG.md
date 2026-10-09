@@ -3,6 +3,9 @@
 Cada versão aparece para a usuária na tela "O que há de novo" depois da atualização.
 Formato: `## <versão> — <data>` e itens `- …` em linguagem simples.
 
+## Próxima versão (ainda não lançada)
+- **Ímã de geladeira**: em Modelos prontos (Festa e esporte), nome ou desenho em relevo no contorno da arte, com 1 a 5 bolsos fechados para ímãs de neodímio (diâmetro e altura à sua escolha) e pausa no 3MF para inserir os ímãs; se não couberem todos, o app coloca os que cabem e avisa. Dá para fazer em lote para lembrancinhas.
+
 ## 0.11.2 — 2026-10-09
 - **Quadro em camadas (shadowbox)**: em Modelos prontos (Casa), envie uma imagem colorida e cada cor vira uma placa recortada, de 2 a 8, numerada do fundo à frente; a moldura de cada placa sobe e faz de espaçador (profundidade ajustável), áreas soltas ganham uma ponte fina, e há opção de fundo fino para luz de LED. Use "Mesa por cor" para imprimir uma placa de cada vez (#104)
 - **Estampa de camisa**: em Modelos prontos (Festa e esporte), nome ou desenho em camada fina (0,3 mm) para passar a ferro no tecido. Sai espelhada para ler certo depois de colada, pode ter um fundo contínuo em volta (adesivo numa peça só) e traz na tela as instruções de impressão e de colagem.
