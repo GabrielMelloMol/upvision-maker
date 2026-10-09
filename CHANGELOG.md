@@ -3,6 +3,9 @@
 Cada versão aparece para a usuária na tela "O que há de novo" depois da atualização.
 Formato: `## <versão> — <data>` e itens `- …` em linguagem simples.
 
+## Próxima versão (ainda não lançada)
+- **Suporte de celular dobrável (impresso já montado)**: em Modelos prontos (Casa › Suporte de celular e tablet › Dobrável), um suporte pequeno que dobra e abre, com as **dobradiças impressas já montadas** (você não monta nada): é só imprimir deitado, sem suporte, e dobrar para soltar. A folga das dobradiças é ajustável de 0,3 a 0,5 mm, e o app testa que as peças não se encostam com a folga escolhida. Tem **3 travas de ângulo** (o ângulo do meio que você escolher, 10° a menos e 10° a mais: a escora cai na fenda de cada trava), largura, apoio e base da frente no tamanho do aparelho, e nome ou logo em relevo na base. A prévia mostra também o suporte montado e dobrado. Os campos dos modelos novos de Casa pararam de mostrar "(mm) (mm)" nos rótulos.
+
 ## 0.11.6 — 2026-10-09
 - **Medidas da gaveta aceitam centímetros sem susto**: nos campos de largura, profundidade e altura da gaveta (Organizador de gaveta, Organizador pela foto e Gridfinity base pela gaveta), o campo mostra "= 35 cm" ao lado do valor em milímetros, a mensagem de erro traz a faixa em mm e em cm, e se você digitar 35 achando que era cm, o app pergunta "Você quis dizer 35 cm (350 mm)?" com o botão "Usar 350 mm". Veio da sugestão de uma usuária.
 

@@ -14,4 +14,5 @@ export const EMOJI_FIELDS: Record<string, string[]> = {
   rpgDice: ["labels"],
   coaster: ["text"],
   phoneStand: ["text"],
+  phoneStandFold: ["text"],
 };

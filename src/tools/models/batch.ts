@@ -42,6 +42,7 @@ export const BATCH_FIELDS: Record<string, string[]> = {
   rpgDice: ["labels"],
   coaster: ["text"],
   phoneStand: ["text"],
+  phoneStandFold: ["text"],
 };
 
 export const MAX_COPIES = 30;

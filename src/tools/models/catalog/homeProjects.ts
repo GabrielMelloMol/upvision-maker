@@ -132,7 +132,7 @@ export const HOME_PROJECT_MODELS: ModelDef[] = [
         title: "Dado",
         fields: [
           choice("die", "Dado", [["d4", "d4"], ["d6", "d6"], ["d8", "d8"], ["d10", "d10"], ["d12", "d12"], ["d20", "d20"], ["set", "Conjunto completo (d4 a d20)"]]),
-          num("size", "Tamanho entre faces (mm)", 10, 40, { step: 1, hint: "Distância entre faces opostas (no d4, a altura). 16 a 22 mm é o tamanho de um dado comum." }),
+          num("size", "Tamanho entre faces", 10, 40, { step: 1, hint: "Distância entre faces opostas (no d4, a altura). 16 a 22 mm é o tamanho de um dado comum." }),
           num("rounding", "Arredondar as arestas (%)", 0, 100, { step: 5, hint: "0 deixa as pontas vivas; mais arredondado, menores as faces lisas para o conteúdo." }),
         ],
       },

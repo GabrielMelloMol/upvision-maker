@@ -111,7 +111,7 @@ export function buildPhoneStand(ctx: ModelCtx, p: PhoneStandParams): ModelOutput
     const faceH = STAND_BASE + g.lipHeight;
     const art = ctx.art ?? (p.text.trim() ? ctx.text(p.text, p.textHeight) : null);
     if (art) {
-      const fit = k(fitInto(k(art), p.width * 0.8, Math.min(p.textHeight, faceH - 2 * FACE_MARGIN), 0));
+      const fit = k(fitInto(ctx.art ? art : k(art), p.width * 0.8, Math.min(p.textHeight, faceH - 2 * FACE_MARGIN), 0)); // o desenho enviado é de quem chamou: só o texto gerado aqui é apagado
       // visto de frente (olhando para −Y) a direita é −X: o texto lê certo com x → −X, y → Z, e sai para +Y
       const mark = k(k(fit.extrude(p.relief)).transform([-1, 0, 0, 0, 0, 0, 1, 0, 0, 1, 0, 0, 0, g.lipFront, faceH / 2, 1]));
       parts.push({ name: "Texto", color: p.textColor, mesh: front(mark) });

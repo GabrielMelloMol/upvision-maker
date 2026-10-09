@@ -11,6 +11,7 @@ import { buildLineArtStand, DEFAULT_LINE_ART } from "../../../geometry/models/li
 import { buildNfcJewelry, DEFAULT_NFC_JEWELRY } from "../../../geometry/models/nfcJewelry";
 import { buildPenHolder, DEFAULT_PEN_HOLDER } from "../../../geometry/models/penHolder";
 import { buildPhoneStand, DEFAULT_PHONE_STAND } from "../../../geometry/models/phoneStand";
+import { buildPhoneStandFold, DEFAULT_PHONE_STAND_FOLD } from "../../../geometry/models/phoneStandFold";
 import { buildPuzzle, DEFAULT_PUZZLE } from "../../../geometry/models/puzzle";
 import { buildTableLamp, DEFAULT_TABLE_LAMP } from "../../../geometry/models/tableLamp";
 import { buildWordDecor, DEFAULT_WORD_DECOR } from "../../../geometry/models/wordDecor";
@@ -357,9 +358,9 @@ export const HOME_DECOR_MODELS: ModelDef[] = [
         title: "Forma",
         fields: [
           choice("shape", "Forma", [["round", "Redondo"], ["square", "Quadrado"], ["hex", "Hexágono"], ["svg", "Desenho"]]),
-          num("size", "Tamanho (mm)", 60, 150, { step: 1, hint: "Diâmetro, lado ou largura entre lados; na forma Desenho, o maior lado." }),
-          num("thickness", "Espessura (mm)", 3, 8, { step: 0.5 }),
-          num("corner", "Cantos arredondados (mm)", 0, 20, { step: 1, hint: "Só no quadrado e no hexágono." }),
+          num("size", "Tamanho", 60, 150, { step: 1, hint: "Diâmetro, lado ou largura entre lados; na forma Desenho, o maior lado." }),
+          num("thickness", "Espessura", 3, 8, { step: 0.5 }),
+          num("corner", "Cantos arredondados", 0, 20, { step: 1, hint: "Só no quadrado e no hexágono." }),
         ],
       },
       {
@@ -367,9 +368,9 @@ export const HOME_DECOR_MODELS: ModelDef[] = [
         fields: [
           choice("content", "Na face", [["text", "Nome"], ["art", "Arte enviada"]]),
           text("text", "Nome", 24),
-          num("textHeight", "Altura do nome (mm)", 6, 40, { step: 1 }),
-          num("depth", "Profundidade do desenho (mm)", 0.4, 2, { step: 0.1 }),
-          num("borderWidth", "Anel na borda (mm)", 0, 6, { step: 0.5, hint: "Anel na cor do desenho, rente à face; 0 = sem." }),
+          num("textHeight", "Altura do nome", 6, 40, { step: 1 }),
+          num("depth", "Profundidade do desenho", 0.4, 2, { step: 0.1 }),
+          num("borderWidth", "Anel na borda", 0, 6, { step: 0.5, hint: "Anel na cor do desenho, rente à face; 0 = sem." }),
         ],
       },
       {
@@ -396,10 +397,10 @@ export const HOME_DECOR_MODELS: ModelDef[] = [
       {
         title: "Arte e moldura",
         fields: [
-          num("artW", "Largura da arte (mm)", 100, 1000, { step: 5, hint: "O papel ou a tela. Um pôster de 50 × 70 cm é 500 × 700." }),
-          num("artH", "Altura da arte (mm)", 100, 1000, { step: 5 }),
-          num("width", "Largura da moldura (mm)", 20, 40, { step: 1, hint: "Da janela até a borda de fora. Menos de 20 não deixa espaço para o encaixe e as garras." }),
-          num("depth", "Espessura (mm)", 8, 25, { step: 1, hint: "A frente tem 3 mm e o resto é o rebaixo onde a arte entra, por trás." }),
+          num("artW", "Largura da arte", 100, 1000, { step: 5, hint: "O papel ou a tela. Um pôster de 50 × 70 cm é 500 × 700." }),
+          num("artH", "Altura da arte", 100, 1000, { step: 5 }),
+          num("width", "Largura da moldura", 20, 40, { step: 1, hint: "Da janela até a borda de fora. Menos de 20 não deixa espaço para o encaixe e as garras." }),
+          num("depth", "Espessura", 8, 25, { step: 1, hint: "A frente tem 3 mm e o resto é o rebaixo onde a arte entra, por trás." }),
           { k: "profile", kind: "choice", label: "Perfil", options: [["flat", "Reto"], ["chamfer", "Chanfrado"], ["round", "Arredondado"]] },
         ],
       },
@@ -428,20 +429,56 @@ export const HOME_DECOR_MODELS: ModelDef[] = [
       {
         title: "Aparelho e medidas",
         fields: [
-          num("angle", "Inclinação (°)", 45, 75, { step: 1, hint: "Ângulo do apoio com a mesa. 60° serve para ver a tela e digitar; a partir de 45° não precisa de suporte na impressão." }),
-          num("deviceThickness", "Espessura do aparelho (mm)", 5, 25, { step: 0.5, hint: "Com a capinha. Celular fica perto de 10 a 12 mm, tablet de 8 a 18 mm. A folga de 1 mm já vem somada." }),
-          num("width", "Largura (mm)", 50, 160, { step: 1 }),
-          num("height", "Altura do apoio (mm)", 40, 150, { step: 1, hint: "Na vertical: uns 90 para celular e 130 para tablet." }),
-          num("lip", "Lábio da frente (mm)", 5, 25, { step: 1, hint: "Segura a beirada de baixo do aparelho. O app aumenta se for baixo para a espessura e o ângulo." }),
-          num("cable", "Passagem do cabo (mm)", 0, 30, { step: 1, hint: "Furo sob o aparelho e canal embaixo até atrás, para o cabo de carregar. 0 = sem." }),
+          num("angle", "Inclinação", 45, 75, { unit: "°", step: 1, hint: "Ângulo do apoio com a mesa. 60° serve para ver a tela e digitar; a partir de 45° não precisa de suporte na impressão." }),
+          num("deviceThickness", "Espessura do aparelho", 5, 25, { step: 0.5, hint: "Com a capinha. Celular fica perto de 10 a 12 mm, tablet de 8 a 18 mm. A folga de 1 mm já vem somada." }),
+          num("width", "Largura", 50, 160, { step: 1 }),
+          num("height", "Altura do apoio", 40, 150, { step: 1, hint: "Na vertical: uns 90 para celular e 130 para tablet." }),
+          num("lip", "Lábio da frente", 5, 25, { step: 1, hint: "Segura a beirada de baixo do aparelho. O app aumenta se for baixo para a espessura e o ângulo." }),
+          num("cable", "Passagem do cabo", 0, 30, { step: 1, hint: "Furo sob o aparelho e canal embaixo até atrás, para o cabo de carregar. 0 = sem." }),
         ],
       },
       {
         title: "Nome ou logo em relevo",
-        fields: [text("text", "Nome (na frente)", 24), num("textHeight", "Altura do nome (mm)", 4, 16, { step: 1 }), num("relief", "Relevo (mm)", 0.4, 1.5, { step: 0.1 })],
+        fields: [text("text", "Nome (na frente)", 24), num("textHeight", "Altura do nome", 4, 16, { step: 1 }), num("relief", "Relevo", 0.4, 1.5, { step: 0.1 })],
       },
       { title: "Cores", fields: [color("bodyColor", "Suporte"), color("textColor", "Nome ou logo")] },
     ],
     build: (ctx, p) => buildPhoneStand(ctx, as(p)),
+  },
+  {
+    id: "phoneStandFold",
+    category: "home",
+    label: "Suporte de celular dobrável",
+    blurb: "Suporte pequeno que dobra: dobradiças impressas já montadas (sem montar nada), 3 travas de ângulo e nome em relevo na base.",
+    icon: Smartphone,
+    font: true,
+    fontSection: 1,
+    art: "Logo em relevo na base (opcional)",
+    defaults: DEFAULT_PHONE_STAND_FOLD,
+    sections: [
+      {
+        title: "Tamanho e ângulo",
+        fields: [
+          num("angle", "Ângulo do meio", 45, 65, { unit: "°", step: 1, hint: "O suporte tem 3 travas: este ângulo e 10° a menos e a mais. Em pé o celular fica a uns 55°, deitado para digitar a uns 45°." }),
+          num("width", "Largura", 60, 110, { step: 1, hint: "Celular: 70 mm. Tablet: 100 mm ou mais." }),
+          num("height", "Apoio", 40, 85, { step: 1, hint: "O comprimento da parte onde o aparelho se apoia. A escora tem quase o mesmo comprimento." }),
+          num("frontLength", "Base da frente", 30, 60, { step: 1, hint: "A parte que fica à frente, com o nome. Mais comprida deixa o suporte mais firme." }),
+        ],
+      },
+      {
+        title: "Dobradiça e nome",
+        fields: [
+          num("clearance", "Folga das dobradiças", 0.3, 0.5, { step: 0.05, hint: "Impressora bem calibrada: 0,3. Se as peças grudarem ao imprimir ou a dobradiça ficar dura, use 0,5. Maior que isso deixa frouxo." }),
+          text("text", "Nome (na base)", 24),
+          num("textHeight", "Altura do nome", 4, 14, { step: 1 }),
+          num("relief", "Relevo", 0.4, 1.5, { step: 0.1 }),
+        ],
+      },
+      {
+        title: "Como sai no arquivo",
+        fields: [choice("layout", "Disposição", [["print", "Para imprimir"], ["assembled", "Montado"], ["folded", "Dobrado"]]), color("bodyColor", "Suporte"), color("textColor", "Nome ou logo")],
+      },
+    ],
+    build: (ctx, p) => buildPhoneStandFold(ctx, as(p)),
   },
 ];

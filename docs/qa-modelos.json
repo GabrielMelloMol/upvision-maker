@@ -3262,6 +3262,57 @@
   "plates": 1
  },
  {
+  "key": "phoneStandFold:máximo",
+  "owner": "Torno",
+  "group": "home",
+  "label": "Suporte de celular dobrável (phoneStandFold)",
+  "variant": "máximo",
+  "status": "ok",
+  "reasons": [
+   "app: Imprima como está, sem suporte e sem brim nas dobradiças. Depois de esfriar, dobre e abra cada dobradiça algumas vezes para soltar; se ficar presa, use uma folga maior.",
+   "app: Travas: apoio a 55°, 65°, 75°. Apoie a escora na fenda do ângulo que quiser."
+  ],
+  "date": "2026-10-09",
+  "slicers": "Bambu ✓ · Orca ✓ · Projeto Bambu ✓",
+  "minutes": 114,
+  "grams": 78.8,
+  "plates": 1
+ },
+ {
+  "key": "phoneStandFold:mínimo",
+  "owner": "Torno",
+  "group": "home",
+  "label": "Suporte de celular dobrável (phoneStandFold)",
+  "variant": "mínimo",
+  "status": "ok",
+  "reasons": [
+   "app: Imprima como está, sem suporte e sem brim nas dobradiças. Depois de esfriar, dobre e abra cada dobradiça algumas vezes para soltar; se ficar presa, use uma folga maior.",
+   "app: Travas: apoio a 35°, 45°, 55°. Apoie a escora na fenda do ângulo que quiser."
+  ],
+  "date": "2026-10-09",
+  "slicers": "Bambu ✓ · Orca ✓ · Projeto Bambu ✓",
+  "minutes": 44,
+  "grams": 23.5,
+  "plates": 1
+ },
+ {
+  "key": "phoneStandFold:padrão",
+  "owner": "Torno",
+  "group": "home",
+  "label": "Suporte de celular dobrável (phoneStandFold)",
+  "variant": "padrão",
+  "status": "ok",
+  "reasons": [
+   "app: Imprima como está, sem suporte e sem brim nas dobradiças. Depois de esfriar, dobre e abra cada dobradiça algumas vezes para soltar; se ficar presa, use uma folga maior.",
+   "app: Travas: apoio a 45°, 55°, 65°. Apoie a escora na fenda do ângulo que quiser."
+  ],
+  "date": "2026-10-09",
+  "slicers": "Bambu ✓ · Orca ✓ · Projeto Bambu ✓",
+  "minutes": 65,
+  "grams": 38.9,
+  "plates": 1
+ },
+ {
   "key": "photoHolder:máximo",
   "owner": "Torno",
   "group": "home",

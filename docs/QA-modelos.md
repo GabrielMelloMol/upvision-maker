@@ -23,7 +23,7 @@ Peça maior que a mesa de 256 mm do A1 conta como **aviso** quando o app avisa n
 impressoras de mesa maior); sem o aviso do app, é **falha**.
 
 
-**Total:** 294 casos · 224 ok · 69 com aviso · 1 com falha · 0 n/a
+**Total:** 300 casos · 229 ok · 70 com aviso · 1 com falha · 0 n/a
 
 ## Forja
 
@@ -110,6 +110,9 @@ impressoras de mesa maior); sem o aviso do app, é **falha**.
 | Placa de sinalização (sign) | máximo | ⚠️ aviso | Bambu ✓ · Orca ✓ · Projeto Bambu ✓ | – | – | – | – | "Placa" não cabe na mesa de 256 mm (300,0 × 120,0 × 10,0 mm); Bambu recusa na mesa de 256 mm do A1 (o app avisa); Orca recusa na mesa de 256 mm do A1 (o app avisa); Projeto Bambu recusa na mesa de 256 mm do A1 (o app avisa); app: "Placa" tem 300 × 120 × 10 mm e passa da mesa de 256 mm: diminua o tamanho. |
 | Placa de sinalização (sign) | mínimo | ✅ ok | Bambu ✓ · Orca ✓ · Projeto Bambu ✓ | 8 | 3,7 | 1 | – | – |
 | Placa de sinalização (sign) | padrão | ✅ ok | Bambu ✓ · Orca ✓ · Projeto Bambu ✓ | 32 | 21,1 | 1 | – | – |
+| Mapa estelar de uma data (starMap) | máximo | ⚠️ aviso | Bambu ✓ · Orca ✓ · Projeto Bambu ✓ | 272 | 178,6 | 1 | – | o conjunto arrumado ocupa 180,0 × 274,0 mm: passa da mesa de 256 mm; Orca: torre de purga em cima de uma peça depois do --arrange do CLI (na tela, arraste a torre ou use Arrumar); app: 838 estrelas visíveis (até a magnitude 5) no céu de São Paulo. O horário de verão conta no fuso: com ele, use um fuso a mais.; app: As 2 peças não cabem juntas na mesa de 256 mm: o fatiador vai usar mais de uma mesa (ou imprima uma de cada vez). |
+| Mapa estelar de uma data (starMap) | mínimo | ✅ ok | Bambu ✓ · Orca ✓ · Projeto Bambu ✓ | 43 | 28,7 | 1 | – | app: 97 estrelas visíveis (até a magnitude 3) no céu de São Paulo. O horário de verão conta no fuso: com ele, use um fuso a mais. |
+| Mapa estelar de uma data (starMap) | padrão | ✅ ok | Bambu ✓ · Orca ✓ · Projeto Bambu ✓ | 92 | 61,7 | 1 | – | app: 481 estrelas visíveis (até a magnitude 4.5) no céu de São Paulo. O horário de verão conta no fuso: com ele, use um fuso a mais. |
 | Separar 3MF por cor (ferramenta) | corte com pino | ✅ ok | Bambu ✓ · Orca ✓ · Projeto Bambu ✓ | 96 | 24,6 | 1 | – | – |
 | Separar 3MF por cor (ferramenta) | máximo | ✅ ok | Bambu ✓ · Orca ✓ · Projeto Bambu ✓ | 15 | 5,7 | 1 | – | – |
 | Separar 3MF por cor (ferramenta) | mínimo | ⚠️ aviso | Bambu ✓ · Orca ✓ · Projeto Bambu ✓ | 16 | 6,8 | 1 | – | Bambu: a cor 3 (#2563eb) não saiu no G-code (o app avisa); Orca: a cor 3 (#2563eb) não saiu no G-code (o app avisa); Projeto Bambu: a cor 3 (#2563eb) não saiu no G-code (o app avisa); app: Com 0,2 mm de profundidade, a cor pintada nas laterais fica mais fina que a linha do bico (0,4 mm) e some no fatiador: use 0,4 mm ou mais. |
@@ -240,6 +243,9 @@ impressoras de mesa maior); sem o aviso do app, é **falha**.
 | Suporte de celular e tablet (phoneStand) | máximo | ✅ ok | Bambu ✓ · Orca ✓ · Projeto Bambu ✓ | 348 | 208,2 | 1 | – | app: Tablet ou aparelho grosso: use largura de 100 mm ou mais e 4 paredes (já vão no perfil) para o suporte aguentar o peso.; app: Imprima de pé na base, como sai no arquivo: o apoio inclinado não precisa de suporte (45° ou mais). |
 | Suporte de celular e tablet (phoneStand) | mínimo | ✅ ok | Bambu ✓ · Orca ✓ · Projeto Bambu ✓ | 75 | 33,5 | 1 | – | app: Lábio aumentado para 6.5 mm: com esse aparelho e esse ângulo ele precisa alcançar o canto da frente.; app: Ângulo baixo: o apoio fica quase deitado, e o aparelho escorrega para trás se o lábio for baixo.; app: Imprima de pé na base, como sai no arquivo: o apoio inclinado não precisa de suporte (45° ou mais). |
 | Suporte de celular e tablet (phoneStand) | padrão | ✅ ok | Bambu ✓ · Orca ✓ · Projeto Bambu ✓ | 162 | 82,1 | 1 | – | app: Imprima de pé na base, como sai no arquivo: o apoio inclinado não precisa de suporte (45° ou mais). |
+| Suporte de celular dobrável (phoneStandFold) | máximo | ✅ ok | Bambu ✓ · Orca ✓ · Projeto Bambu ✓ | 114 | 78,8 | 1 | – | app: Imprima como está, sem suporte e sem brim nas dobradiças. Depois de esfriar, dobre e abra cada dobradiça algumas vezes para soltar; se ficar presa, use uma folga maior.; app: Travas: apoio a 55°, 65°, 75°. Apoie a escora na fenda do ângulo que quiser. |
+| Suporte de celular dobrável (phoneStandFold) | mínimo | ✅ ok | Bambu ✓ · Orca ✓ · Projeto Bambu ✓ | 44 | 23,5 | 1 | – | app: Imprima como está, sem suporte e sem brim nas dobradiças. Depois de esfriar, dobre e abra cada dobradiça algumas vezes para soltar; se ficar presa, use uma folga maior.; app: Travas: apoio a 35°, 45°, 55°. Apoie a escora na fenda do ângulo que quiser. |
+| Suporte de celular dobrável (phoneStandFold) | padrão | ✅ ok | Bambu ✓ · Orca ✓ · Projeto Bambu ✓ | 65 | 38,9 | 1 | – | app: Imprima como está, sem suporte e sem brim nas dobradiças. Depois de esfriar, dobre e abra cada dobradiça algumas vezes para soltar; se ficar presa, use uma folga maior.; app: Travas: apoio a 45°, 55°, 65°. Apoie a escora na fenda do ângulo que quiser. |
 | Porta-foto com texto (photoHolder) | máximo | ✅ ok | Bambu ✓ · Orca ✓ · Projeto Bambu ✓ | 208 | 174,8 | 1 | – | app: A base sai de cabeça para baixo para a face de cima ficar lisa; o texto sai à parte para colar na frente.; app: O texto foi reduzido para caber na frente da base. |
 | Porta-foto com texto (photoHolder) | mínimo | ✅ ok | Bambu ✓ · Orca ✓ · Projeto Bambu ✓ | 34 | 18,7 | 1 | – | app: A base sai de cabeça para baixo para a face de cima ficar lisa; o texto sai à parte para colar na frente. |
 | Porta-foto com texto (photoHolder) | padrão | ✅ ok | Bambu ✓ · Orca ✓ · Projeto Bambu ✓ | 70 | 48,1 | 1 | – | app: A base sai de cabeça para baixo para a face de cima ficar lisa; o texto sai à parte para colar na frente. |

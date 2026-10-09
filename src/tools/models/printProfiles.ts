@@ -36,6 +36,7 @@ export const MODEL_PROFILES: Record<string, PrintProfile> = {
   coloring: { layerHeight: 0.16 },
   snowflake: { walls: 2 },
   bigFrame: { walls: 3, infill: 15, notes: ["Imprima as peças de frente para cima, como estão no arquivo. As caudas de andorinha deslizam no sentido da espessura: encaixe na ordem dos números, sem cola. Se ficar justo, passe uma lixa fina na cauda."] },
+  phoneStandFold: { walls: 3, infill: 20, layerHeight: 0.2, notes: ["Imprima aberto e deitado, como sai no arquivo, sem suporte e sem brim nas dobradiças (o brim fecharia a folga). Depois de esfriar, dobre e abra cada dobradiça algumas vezes para soltar. Se ficar presa, imprima de novo com folga 0,5."] },
   phoneStand: { walls: 4, infill: 25, notes: ["Imprima de pé na base, como sai no arquivo: o apoio inclinado não precisa de suporte. 4 paredes deixam o apoio firme com o peso do aparelho."] },
 };
 
