@@ -1,4 +1,4 @@
-import { Box, CircleDot, Dices, Egg, Flower2, Goal, Image, LayoutGrid, Layers, Lightbulb, Spline, Stamp } from "lucide-react";
+import { Box, CircleDot, Dices, Egg, Flower2, Goal, Image, LayoutGrid, Layers, Lightbulb, Spline, Stamp, Grid3x3 } from "lucide-react";
 import { buildAlphabetCube, DEFAULT_ALPHABET_CUBE } from "../../../geometry/models/alphabetCube";
 import { buildDeskOrganizer, DEFAULT_DESK_ORGANIZER } from "../../../geometry/models/deskOrganizer";
 import { buildDice, DEFAULT_DICE } from "../../../geometry/models/dice";
@@ -6,6 +6,7 @@ import { buildGoalBoard, DEFAULT_GOAL_BOARD } from "../../../geometry/models/goa
 import { buildLedLetter, DEFAULT_LED_LETTER } from "../../../geometry/models/ledLetter";
 import { buildOutlineBowl, DEFAULT_OUTLINE_BOWL } from "../../../geometry/models/outlineBowl";
 import { buildPhotoHolder, DEFAULT_PHOTO_HOLDER } from "../../../geometry/models/photoHolder";
+import { buildReliefTile, DEFAULT_RELIEF_TILE } from "../../../geometry/models/reliefTile";
 import { buildScrewCase, DEFAULT_SCREW_CASE } from "../../../geometry/models/screwCase";
 import { buildShadowbox, DEFAULT_SHADOWBOX } from "../../../geometry/models/shadowbox";
 import { buildStampMold, DEFAULT_STAMP_MOLD } from "../../../geometry/models/stampMold";
@@ -296,6 +297,40 @@ export const HOME_PROJECT_MODELS: ModelDef[] = [
       },
     ],
     build: (ctx, p) => buildStampMold(ctx, as(p)),
+  },
+  {
+    id: "reliefTile",
+    category: "home",
+    label: "Azulejo em relevo e molde de gesso",
+    blurb: "Padrão ou desenho que se repete sem emenda numa placa; gere também o molde para fazer azulejos de gesso.",
+    icon: Grid3x3,
+    art: "Desenho para repetir (opcional)",
+    defaults: DEFAULT_RELIEF_TILE,
+    sections: [
+      {
+        title: "Azulejo",
+        fields: [
+          choice("kind", "Padrão", [["hexagons", "Hexágonos"], ["waves", "Ondas"], ["stripes", "Listras"], ["dots", "Pontos"], ["checker", "Xadrez"], ["art", "Desenho"]]),
+          num("width", "Largura", 30, 250, { step: 1 }),
+          num("height", "Altura", 30, 250, { step: 1 }),
+          num("pitch", "Tamanho do padrão", 4, 40, { step: 1, hint: "Ajusta de leve para o padrão caber inteiro e emendar com o vizinho." }),
+          num("base", "Espessura da placa", 2, 10, { step: 0.5 }),
+          num("depth", "Altura do relevo", 0.6, 6, { step: 0.2 }),
+          choice("output", "Gerar", [["tile", "Azulejo"], ["mold", "Molde"], ["both", "Os dois"], ["grid", "3×3"]]),
+        ],
+      },
+      {
+        title: "Molde",
+        fields: [
+          num("wall", "Parede", 4, 20, { step: 1 }),
+          num("floor", "Fundo", 2, 10, { step: 0.5 }),
+          num("draft", "Chanfro de saída", 0, 4, { step: 0.5, hint: "Alarga a boca da cavidade para o gesso sair." }),
+          color("color", "Cor do azulejo"),
+          color("moldColor", "Cor do molde"),
+        ],
+      },
+    ],
+    build: (ctx, p) => buildReliefTile(ctx, as(p)),
   },
   {
     id: "screwCase",

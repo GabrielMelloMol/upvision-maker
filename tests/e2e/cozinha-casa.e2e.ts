@@ -99,3 +99,19 @@ test("quadro de metas (#75): grade de números com título e suporte; muitos nú
   await idle(page);
   await save3mf(page, tauri.files);
 });
+
+test("azulejo em relevo e molde de gesso (#116): padrão que emenda, molde junto, conjunto 3×3 e 3MF", async ({ page, tauri }) => {
+  await openModel(page, "Azulejo em relevo e molde de gesso");
+  await expect(page.locator(".viewer .hud")).toContainText("100.0 × 100.0 × 6.0 mm");
+  await page.getByRole("group", { name: "Gerar" }).getByRole("button", { name: "Os dois" }).click();
+  await idle(page);
+  await expect(page.locator(".legend")).toContainText("Molde");
+  await page.getByRole("group", { name: "Gerar" }).getByRole("button", { name: "3×3" }).click();
+  await idle(page);
+  await expect(page.locator(".viewer .hud")).toContainText("300.0 × 300.0 × 6.0 mm");
+  await page.getByRole("group", { name: "Gerar" }).getByRole("button", { name: "Os dois" }).click();
+  await page.getByRole("group", { name: "Padrão" }).getByRole("button", { name: "Ondas" }).click();
+  await idle(page);
+  await save3mf(page, tauri.files);
+  expect([...tauri.files.keys()].some((k) => k.endsWith(".3mf"))).toBe(true);
+});

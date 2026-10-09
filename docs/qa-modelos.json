@@ -3183,6 +3183,57 @@
   "plates": 1
  },
  {
+  "key": "reliefTile:máximo",
+  "owner": "Torno",
+  "group": "home",
+  "label": "Azulejo em relevo e molde de gesso (reliefTile)",
+  "variant": "máximo",
+  "status": "aviso",
+  "reasons": [
+   "o conjunto arrumado ocupa 550,0 × 290,0 mm: passa da mesa de 256 mm",
+   "\"Molde\" não cabe na mesa de 256 mm (290,0 × 290,0 × 29,0 mm)",
+   "Bambu: a cor 2 (#0ea5e9) não saiu no G-code (o app avisa)",
+   "Orca: a cor 2 (#0ea5e9) não saiu no G-code (o app avisa)",
+   "Projeto Bambu: a cor 2 (#0ea5e9) não saiu no G-code (o app avisa)",
+   "app: A peça tem 290 mm de lado: passa da mesa de 256 mm. Diminua o azulejo."
+  ],
+  "date": "2026-10-09",
+  "slicers": "Bambu ✓ · Orca ✓ · Projeto Bambu ✓",
+  "minutes": 414,
+  "grams": 340.2,
+  "plates": 1
+ },
+ {
+  "key": "reliefTile:mínimo",
+  "owner": "Torno",
+  "group": "home",
+  "label": "Azulejo em relevo e molde de gesso (reliefTile)",
+  "variant": "mínimo",
+  "status": "aviso",
+  "reasons": [
+   "\"Azulejo\": parede/traço < 0,4 mm em Z 2,3 mm"
+  ],
+  "date": "2026-10-09",
+  "slicers": "Bambu ✓ · Orca ✓ · Projeto Bambu ✓",
+  "minutes": 45,
+  "grams": 16.1,
+  "plates": 1
+ },
+ {
+  "key": "reliefTile:padrão",
+  "owner": "Torno",
+  "group": "home",
+  "label": "Azulejo em relevo e molde de gesso (reliefTile)",
+  "variant": "padrão",
+  "status": "ok",
+  "reasons": [],
+  "date": "2026-10-09",
+  "slicers": "Bambu ✓ · Orca ✓ · Projeto Bambu ✓",
+  "minutes": 233,
+  "grams": 116.4,
+  "plates": 1
+ },
+ {
   "key": "rpgDice:máximo",
   "owner": "Torno",
   "group": "home",
