@@ -251,6 +251,9 @@ g:hover > .viz-hit { fill: var(--fill); }
 .home-head { display: flex; align-items: baseline; justify-content: space-between; }
 .occasion-card { all: unset; box-sizing: border-box; cursor: pointer; width: 100%; display: flex; align-items: center; gap: var(--space-3); padding: var(--space-4); border-radius: var(--r-lg); background: var(--surface); box-shadow: 0 0 0 0.5px var(--border); transition: background var(--dur-fast) ease; }
 .occasion-card:hover { background: var(--surface-2); }
+/* espaço entre o cartão e o que vem antes: o mesmo ritmo das seções da Início (--space-8); na Criar, logo abaixo do título */
+.home > .occasion-card { margin-top: var(--space-8); }
+.create > .occasion-card { margin-top: var(--space-4); }
 .occasion-card:focus-visible { outline: 3px solid var(--focus-ring); outline-offset: 1px; }
 .occasion-card > svg:first-child { width: 24px; height: 24px; flex: none; color: var(--accent-text); stroke-width: 1.75; }
 .occasion-card .chev { margin-left: auto; flex: none; color: var(--muted); }
