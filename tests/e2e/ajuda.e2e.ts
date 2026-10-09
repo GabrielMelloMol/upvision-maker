@@ -26,6 +26,7 @@ test("ajuda: botão ?, passos da tela, Usar exemplo carrega o desenho e tecla ? 
 });
 
 test("busca ⌘K acha artigos e termos; ⓘ nos campos técnicos (#84)", async ({ page }) => {
+  test.slow(); // abre telas carregadas sob demanda (chunk frio no servidor de desenvolvimento): com a máquina em carga passa dos 5 s do expect
   await openApp(page);
   await page.keyboard.press("Control+k");
   await page.getByRole("combobox").fill("folga");
@@ -36,8 +37,8 @@ test("busca ⌘K acha artigos e termos; ⓘ nos campos técnicos (#84)", async (
   await page.keyboard.press("Control+k");
   await page.getByRole("combobox").fill("foto em relevo");
   await page.getByRole("option", { name: /Como usar: Foto em relevo/ }).click();
-  await expect(page.getByRole("heading", { name: "Foto em relevo", level: 1 })).toBeVisible();
-  await expect(page.getByRole("dialog", { name: "Foto em relevo" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Foto em relevo", level: 1 })).toBeVisible({ timeout: 30_000 });
+  await expect(page.getByRole("dialog", { name: "Foto em relevo" })).toBeVisible({ timeout: 30_000 });
   await page.getByRole("button", { name: "Usar uma foto de exemplo" }).click();
   await expect(page.getByRole("img", { name: "Simulação da litofania contra a luz" })).toBeVisible({ timeout: 60_000 });
 
@@ -51,12 +52,13 @@ test("busca ⌘K acha artigos e termos; ⓘ nos campos técnicos (#84)", async (
 });
 
 test("Comece por aqui: calcular um preço abre a calculadora com o exemplo; fechar some de vez (#84)", async ({ page }) => {
+  test.slow(); // a calculadora é um chunk carregado sob demanda: com a máquina em carga passa dos 5 s do expect
   await openApp(page);
   const start = page.getByRole("region", { name: "Comece por aqui" });
   await expect(start.getByRole("listitem")).toHaveCount(3);
   if (SHOTS) await page.screenshot({ path: `${SHOTS}/comece-por-aqui.png` });
   await start.getByRole("button", { name: /Calcule um preço/ }).click();
-  await expect(page.getByLabel("Nome da peça")).toHaveValue("Chaveiro de exemplo");
+  await expect(page.getByLabel("Nome da peça")).toHaveValue("Chaveiro de exemplo", { timeout: 30_000 });
   await expect(page.getByLabel("Gramas").first()).toHaveValue("48");
   await go(page, "Início");
   await page.getByRole("button", { name: "Fechar Comece por aqui" }).click();
