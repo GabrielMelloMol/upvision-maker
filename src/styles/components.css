@@ -115,6 +115,7 @@ dialog.sheet.wide { width: min(720px, calc(100vw - 32px)); }
 .sheet-head { display: flex; align-items: center; gap: var(--space-3); padding: var(--space-5) var(--space-6) 0; }
 .sheet-head h2 { flex: 1; display: flex; align-items: center; gap: 8px; margin: 0; }
 .sheet-body { padding: var(--space-4) var(--space-6); overflow: auto; display: grid; gap: var(--space-3); }
+.sheet-body > .stack > button.link { justify-self: start; } /* "Escolher do catálogo" no cadastro do Estoque (#178): à esquerda, sem centralizar */
 .sheet-foot { display: flex; gap: var(--space-2); justify-content: flex-end; padding: var(--space-4) var(--space-6) var(--space-5); border-top: 1px solid var(--separator); }
 @keyframes sheet-in { from { opacity: 0; transform: translateY(12px) scale(0.97); } }
 @keyframes fade { from { opacity: 0; } }

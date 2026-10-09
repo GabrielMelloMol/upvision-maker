@@ -43,16 +43,17 @@ test("preferências: salva e persiste valores; recusa valor inválido", async ({
 test("impressoras: adiciona, edita e exclui", async ({ page, tauri }) => {
   await openApp(page);
   await go(page, "Impressoras");
-  await page.getByLabel("Nome").fill("Bambu A1");
-  await page.getByLabel("Potência média (W)").fill("95");
-  await page.getByRole("button", { name: "Adicionar" }).click();
+  await page.getByRole("button", { name: "Adicionar impressora" }).click();
+  await page.getByRole("dialog").getByLabel("Nome").fill("Bambu A1");
+  await page.getByRole("dialog").getByLabel("Potência média (W)").fill("95");
+  await page.getByRole("dialog").getByRole("button", { name: "Adicionar", exact: true }).click();
   const row = page.getByRole("row", { name: /Bambu A1/ });
   await expect(row).toContainText("95");
   await expect(page.getByText("Nada cadastrado ainda.")).toBeHidden();
 
   await row.getByRole("button", { name: /^Editar / }).click();
-  await page.getByLabel("Potência média (W)").fill("110");
-  await page.getByRole("button", { name: "Salvar alterações" }).click();
+  await page.getByRole("dialog").getByLabel("Potência média (W)").fill("110");
+  await page.getByRole("dialog").getByRole("button", { name: "Salvar alterações" }).click();
   await expect(page.getByRole("row", { name: /Bambu A1/ })).toContainText("110");
 
   // excluir some na hora e dá para desfazer; sem diálogo de confirmação
@@ -73,7 +74,8 @@ test("impressoras: nome vazio mostra erro no campo", async ({ page, tauri }) => 
   void tauri;
   await openApp(page);
   await go(page, "Impressoras");
-  await page.getByRole("button", { name: "Adicionar" }).click();
+  await page.getByRole("button", { name: "Adicionar impressora" }).click();
+  await page.getByRole("dialog").getByRole("button", { name: "Adicionar", exact: true }).click();
   await expect(page.locator("label", { hasText: "Nome" }).locator(".error")).toHaveText("Obrigatório.");
   await expect(page.locator("label", { hasText: "Potência" }).locator(".error")).toHaveText("Digite um número.");
 });
@@ -81,11 +83,12 @@ test("impressoras: nome vazio mostra erro no campo", async ({ page, tauri }) => 
 test("filamentos: estoque baixo e reposição com custo médio ponderado", async ({ page, tauri }) => {
   await openApp(page);
   await go(page, "Filamentos");
+  await page.getByRole("button", { name: "Adicionar filamento" }).click();
   await page.getByRole("radio", { name: "Preto" }).click();
   await page.getByLabel("Marca").fill("Voolt");
   await page.getByLabel("Preço por kg").fill("100");
   await page.getByLabel("Estoque", { exact: true }).fill("100 g");
-  await page.getByRole("button", { name: "Adicionar" }).click();
+  await page.getByRole("dialog").getByRole("button", { name: "Adicionar", exact: true }).click();
   const row = page.getByRole("row", { name: /Preto/ });
   await expect(row).toContainText("estoque baixo");
 
@@ -104,10 +107,11 @@ test("materiais extras: cadastro com unidade e preço", async ({ page, tauri }) 
   void tauri;
   await openApp(page);
   await go(page, "Materiais extras");
+  await page.getByRole("button", { name: "Adicionar material" }).click();
   await page.getByLabel("Nome").fill("Argola");
   await page.getByLabel("Preço por unidade").fill("0,35");
   await page.getByLabel("Estoque", { exact: true }).fill("50");
-  await page.getByRole("button", { name: "Adicionar" }).click();
+  await page.getByRole("dialog").getByRole("button", { name: "Adicionar", exact: true }).click();
   await expect(page.getByRole("row", { name: /Argola/ })).toContainText("R$ 0,35");
 });
 
@@ -131,9 +135,10 @@ test("calculadora: exemplo da home com os padrões (falha 5%) dá R$ 15,74 / 47,
 test("backup: salva JSON e restaura substituindo os dados (com cópia de segurança)", async ({ page, tauri }) => {
   await openApp(page);
   await go(page, "Impressoras");
+  await page.getByRole("button", { name: "Adicionar impressora" }).click();
   await page.getByLabel("Nome").fill("Ender 3");
   await page.getByLabel("Potência média (W)").fill("150");
-  await page.getByRole("button", { name: "Adicionar" }).click();
+  await page.getByRole("dialog").getByRole("button", { name: "Adicionar", exact: true }).click();
   await expect(page.getByRole("row", { name: /Ender 3/ })).toBeVisible();
 
   await go(page, "Ajustes"); // backup e restauração ficam em Ajustes (#139)
@@ -209,7 +214,9 @@ test("modal: Esc fecha e o foco volta ao botão que abriu", async ({ page, tauri
 test("filamentos: cor em bolinhas, '2 rolos' vira 2000 g e campos lembrados no próximo cadastro", async ({ page, tauri }) => {
   await openApp(page);
   await go(page, "Filamentos");
-  await expect(page.getByLabel("Material")).toBeFocused(); // lista vazia: cursor já no 1º campo
+  await expect(page.getByRole("dialog")).toHaveCount(0); // lista vazia: nada abre sozinho (#178)
+  await page.getByRole("button", { name: "Cadastrar filamento" }).click();
+  await expect(page.getByLabel("Material")).toBeFocused(); // a folha abre com o cursor no 1º campo
   await page.getByLabel("Material").selectOption("PETG");
   await page.getByRole("radio", { name: "Azul", exact: true }).click();
   await page.getByLabel("Marca").fill("3D Fila");
@@ -218,7 +225,7 @@ test("filamentos: cor em bolinhas, '2 rolos' vira 2000 g e campos lembrados no p
   await stock.fill("2 rolos");
   await stock.blur();
   await expect(page.locator(".field", { hasText: "Estoque" }).locator(".hint.ok")).toContainText("2.000 g (2 rolos)");
-  await page.getByLabel("Marca").press("Enter"); // Enter salva
+  await page.getByRole("dialog").getByRole("button", { name: "Adicionar e cadastrar outro" }).click();
   await expect(page.getByRole("row", { name: /PETG/ })).toContainText("2.000 g");
   expect(tauri.db.prepare("SELECT material, color, brand, pricePerKg, stockG FROM filaments").get()).toEqual({ material: "PETG", color: "Azul", brand: "3D Fila", pricePerKg: 119.9, stockG: 2000 });
   // material, marca e preço continuam para o próximo rolo; a cor não
@@ -231,6 +238,7 @@ test("campo inteligente: erro só ao sair do campo e some ao corrigir", async ({
   void tauri;
   await openApp(page);
   await go(page, "Filamentos");
+  await page.getByRole("button", { name: "Adicionar filamento" }).click();
   const stock = page.getByLabel("Estoque", { exact: true });
   const err = page.locator(".field", { hasText: "Estoque" }).locator(".error");
   await stock.fill("dois");

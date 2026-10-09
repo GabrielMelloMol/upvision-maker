@@ -119,10 +119,11 @@ A pergunta foi: uma vendedora de impressão 3D que acabou de instalar o app cons
 - **O que acontece:** a miniatura mostra a peça pronta, mas Medalha adaptável, Chaveiro de logo e Cortador + carimbo abrem com o 3D em "Envie um desenho (SVG ou imagem) para ver o modelo", e o campo de enviar fica abaixo da dobra. Parece que não funcionou.
 - **Sugestão:** abrir com uma arte de exemplo (a mesma da miniatura) e o aviso "Troque pela sua arte"; o envio fica logo abaixo do nome do modelo.
 
-**M6 · Estoque · dois padrões de cadastro**
+**✅ M6 · Estoque · dois padrões de cadastro**
 - Print: [Materiais extras](ux/14-materiais-vazio.jpg)
 - **O que acontece:** Filamentos, Materiais extras e Impressoras mostram o formulário "Adicionar" aberto no alto e, embaixo, o vazio com um segundo botão ("Cadastrar material"). Clientes, Produtos, Pedidos e Custos usam um botão no título que abre uma folha.
 - **Sugestão:** um padrão só. O do botão no título com folha é o mais comum no app e deixa a lista à vista; o vazio leva o mesmo botão.
+- **Feito (#178):** Filamentos, Materiais extras e Impressoras (a tela `CrudPage`) abrem o cadastro numa folha pelo botão "Adicionar …" do título, igual a Clientes e Produtos; a lista vazia mostra só o vazio, com o botão "Cadastrar …" que abre a mesma folha (nada abre sozinho). Editar, o catálogo e o Cmd/Ctrl+N usam a mesma folha. Na folha, "Adicionar e cadastrar outro" grava e deixa tudo aberto com os campos fixos (material, marca, preço, rolo) para cadastrar vários rolos seguidos; "Adicionar" grava e fecha. Conferido em claro e escuro, em janela larga e na mais estreita (900 px): `tests/e2e/estoque-cadastro.e2e.ts` (axe com contraste, alvos, foco, Tab preso na folha) e o teste visual (#142) com a folha aberta.
 
 **✅ M7 · Tabelas · cada lista com ações por linha diferentes**
 - Print: [Filamentos](ux/15-filamentos-acoes.jpg)
@@ -220,7 +221,7 @@ O app em /Applications é o build `c7d055f` (v0.10.3 + o C1), instalado em 05/10
 
 ## Fechamento da rodada de correções (07/10)
 
-Três itens ficaram sem ✅ de propósito: A5, M6 e M9 (recurso novo ou redesenho; lista abaixo).
+Três itens ficaram sem ✅ de propósito: A5, M6 e M9 (A5 e M6 foram feitos depois: #177 e #178) (recurso novo ou redesenho; lista abaixo).
 
 **Corrigidos com teste (27 de 30):** C1, A1, A2, A3, A4, M2, M3, M4, M5, M7, M8, M12, M13, M14, M15, B1, B8 (Quartzo); M1 (Forja na Calculadora e em Produtos, Lupa no resto), M10, M11, B2, B3, B4, B5, B6, B7, B9 (Forja). Cada correção está num commit pequeno, com teste de unidade, E2E ou visual, e a lista de "conhecidos" do teste visual perdeu os itens de contraste e de alvo pequeno. Proteções novas: `tests/e2e/acessibilidade-axe.e2e.ts` (axe em todas as telas), `src/styles/statusColors.test.ts`, `src/styles/targets.test.ts` e `tests/e2e/seletores-uma-linha.e2e.ts`.
 
@@ -230,7 +231,7 @@ Três itens ficaram sem ✅ de propósito: A5, M6 e M9 (recurso novo ou redesenh
 
 **Para virar issue (recurso novo ou redesenho; não entraram nesta rodada):**
 1. **A5 · Pedido pago / a receber e aviso de pronto ao cliente:** campo de pagamento no pedido, selo no cartão, filtro "A receber" no Painel e mensagem pronta para o WhatsApp.
-2. **M6 · Um padrão de cadastro no Estoque:** hoje Filamentos, Materiais e Impressoras abrem o formulário aberto quando a lista está vazia, enquanto Clientes, Produtos, Pedidos e Custos usam botão no título com folha. Unificar mexe no `CrudPage` e em vários fluxos e testes.
+2. ~~**M6 · Um padrão de cadastro no Estoque**~~ (feito na #178).
 3. **M9 · Preferências em seções ou telas** ("Essencial" aberto e o resto recolhido; hoje são 61 campos numa página de ~4.100 px).
 4. **M7 (resto) · Menu "⋯" nas linhas das tabelas** para as ações secundárias.
 5. ✅ **M4 (resto) · Legendas das variantes de modelo** mais curtas (feito na #181).

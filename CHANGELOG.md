@@ -4,6 +4,7 @@ Cada versão aparece para a usuária na tela "O que há de novo" depois da atual
 Formato: `## <versão> — <data>` e itens `- …` em linguagem simples.
 
 ## Próxima versão (ainda não lançada)
+- **Cadastro do Estoque num padrão só**: Filamentos, Materiais extras e Impressoras agora abrem o cadastro numa janela pelo botão "Adicionar …" do título, igual a Clientes e Produtos (a lista vazia só mostra o aviso e o botão "Cadastrar …"; nada abre sozinho). Na janela, "Adicionar e cadastrar outro" grava e deixa tudo aberto com material, marca, preço e rolo já preenchidos, para cadastrar vários rolos seguidos; "Adicionar" grava e fecha. Editar, o catálogo e o atalho Cmd/Ctrl+N usam a mesma janela.
 - **Legendas das variações dos Modelos prontos numa linha só**: os nomes sob as miniaturas ("No contorno", "Redonda", "Ímã geladeira"…) ficaram mais curtos e iguais em estilo, sem quebrar em várias linhas, em janela larga ou estreita e no tema claro ou escuro.
 
 ## 0.11.4 — 2026-10-09

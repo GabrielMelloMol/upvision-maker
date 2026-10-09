@@ -11,6 +11,7 @@ describe("Filamentos: catálogo e duplicar (#3)", () => {
   test("escolher do catálogo preenche marca, material e rolo; cor e preço ficam para ela", async () => {
     const user = userEvent.setup();
     renderWithApp(<Filaments />);
+    await user.click(await screen.findByRole("button", { name: "Adicionar filamento" }));
     await user.click(await screen.findByRole("button", { name: "Escolher do catálogo" }));
     const sheet = await screen.findByRole("dialog", { name: "Catálogo de filamentos" });
     await user.type(within(sheet).getByRole("combobox"), "voolt petg");
@@ -30,7 +31,7 @@ describe("Filamentos: catálogo e duplicar (#3)", () => {
     expect(screen.getByLabelText(/^Marca/)).toHaveValue("Voolt3D");
     expect(screen.getByLabelText("Preço por kg")).toHaveValue("119,90");
     await user.click(screen.getByRole("radio", { name: "Vermelho" }));
-    await user.click(screen.getByRole("button", { name: /Adicionar/ }));
+    await user.click(screen.getByRole("button", { name: "Adicionar" }));
     await waitFor(async () =>
       expect(await t.db.select("SELECT color, brand, pricePerKg, stockG FROM filaments ORDER BY id")).toEqual([
         { color: "Azul", brand: "Voolt3D", pricePerKg: 119.9, stockG: 300 },
@@ -44,7 +45,9 @@ describe("Filamentos: TD fica em Opções avançadas (UX M1)", () => {
   const advanced = () => screen.getByText("Opções avançadas").closest("details")!;
 
   test("no cadastro novo o TD fica numa seção fechada, com a explicação em português", async () => {
+    const user = userEvent.setup();
     renderWithApp(<Filaments />);
+    await user.click(await screen.findByRole("button", { name: "Adicionar filamento" }));
     await screen.findByRole("heading", { name: "Adicionar filamento" });
     expect(advanced().open).toBe(false);
     expect(within(advanced()).getByLabelText(/^TD/)).toBeInTheDocument();
@@ -69,12 +72,13 @@ describe("Filamentos: TD fica em Opções avançadas (UX M1)", () => {
   test("TD continua sendo gravado (campo opcional, número) mesmo dentro da seção", async () => {
     const user = userEvent.setup();
     renderWithApp(<Filaments />);
+    await user.click(await screen.findByRole("button", { name: "Adicionar filamento" }));
     await screen.findByRole("heading", { name: "Adicionar filamento" });
     await user.type(screen.getByLabelText(/^Marca/), "Voolt");
     await user.type(screen.getByLabelText("Preço por kg"), "100");
     await user.click(screen.getByRole("radio", { name: "Branco" }));
     await user.type(within(advanced()).getByLabelText(/^TD/), "0,6");
-    await user.click(screen.getByRole("button", { name: /Adicionar/ }));
+    await user.click(screen.getByRole("button", { name: "Adicionar" }));
     await waitFor(async () => expect(await t.db.select("SELECT brand, td FROM filaments")).toEqual([{ brand: "Voolt", td: 0.6 }]));
   });
 });

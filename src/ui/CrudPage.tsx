@@ -14,6 +14,7 @@ import MassField from "./MassField";
 import MoneyField from "./MoneyField";
 import { formatMass, formatMoneyInput, parseMass, parseMoney } from "./parse";
 import { takePendingOpen } from "./search";
+import Sheet from "./Sheet";
 import { modKey, onNewShortcut } from "./shortcuts";
 import { errorText, useToast } from "./Toast";
 import { useData } from "./useData";
@@ -71,6 +72,7 @@ type Props = {
 };
 
 const SKELETON_ROWS = 3;
+const FIRST_FIELD = "input, select, button[role=radio]";
 /** Tempo para desfazer uma exclusão; só então o registro sai do banco. */
 export const UNDO_MS = 8000;
 const isNum = (f: Field) => f.kind === "number" || f.kind === "money" || f.kind === "mass";
@@ -104,12 +106,17 @@ export default function CrudPage({ pageId, title, singular, lead, repo, fields, 
   const [restocking, setRestocking] = useState<{ id: number; qty: string; price: string } | null>(null);
   const [hidden, setHidden] = useState<Set<number>>(new Set());
   const [catalogOpen, setCatalogOpen] = useState(false);
-  // o formulário de adicionar fica fechado atrás do botão do título; aberto ao editar e com a lista vazia
+  // o cadastro abre numa folha (#178), igual a Clientes e Produtos: pelo botão do título, pelo vazio, ao editar ou com Cmd/Ctrl+N
   const [adding, setAdding] = useState(false);
   const [advOpen, setAdvOpen] = useState(false);
   const [focusTick, setFocusTick] = useState(0);
-  const focusScroll = useRef<boolean | null>(null);
-  const formRef = useRef<HTMLFormElement>(null);
+  const focusPending = useRef(false);
+  const bodyRef = useRef<HTMLDivElement | null>(null);
+  /** Marca o 1º campo como o foco inicial da folha: ela mesma foca ao abrir (e de novo no ciclo duplo do StrictMode). */
+  const bodyRefCallback = (el: HTMLDivElement | null) => {
+    bodyRef.current = el;
+    el?.querySelector<HTMLElement>(FIRST_FIELD)?.setAttribute("data-autofocus", "");
+  };
   const toast = useToast();
   const set = (k: string, v: string) => {
     setForm((f) => ({ ...f, [k]: v }));
@@ -119,31 +126,26 @@ export default function CrudPage({ pageId, title, singular, lead, repo, fields, 
   const columns = fields.filter((f) => !f.formOnly);
   const mainFields = fields.filter((f) => !f.advanced);
   const advancedFields = fields.filter((f) => f.advanced);
-  const formOpen = adding || editing !== null || (!loading && visible.length === 0);
+  const formOpen = adding || editing !== null;
 
-  function focusFirst(scroll: boolean) {
-    if (scroll) formRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
-    formRef.current?.querySelector<HTMLElement>("input, select, button[role=radio]")?.focus({ preventScroll: true });
-  }
-  /** Abre o formulário e põe o cursor no primeiro campo depois de ele aparecer. */
-  function focusForm(scroll = true) {
+  /** Abre a folha de cadastro e põe o cursor no primeiro campo depois de ela aparecer. */
+  function focusForm() {
     setAdding(true);
-    focusScroll.current = scroll;
+    focusPending.current = true;
     setFocusTick((t) => t + 1);
   }
   useEffect(() => {
-    if (focusScroll.current === null) return;
-    focusFirst(focusScroll.current);
-    focusScroll.current = null;
+    if (!focusPending.current) return;
+    focusPending.current = false;
+    bodyRef.current?.querySelector<HTMLElement>(FIRST_FIELD)?.focus({ preventScroll: true });
   }, [focusTick]);
 
-  // Lista vazia: já deixa o cursor no primeiro campo. Cmd/Ctrl+N: novo cadastro.
+  // Cmd/Ctrl+N: novo cadastro. Vindo da busca global, abre o registro em edição.
   useEffect(() => {
     if (loading) return;
     const open = takePendingOpen(pageId);
     const row = open !== null ? rows.find((r) => r.id === open) : undefined;
     if (row) edit(row);
-    else if (rows.length === 0) focusFirst(false); // sem rolar: a tela abre no topo (a barra de cima não esconde o título)
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [loading]);
   useEffect(
@@ -169,23 +171,31 @@ export default function CrudPage({ pageId, title, singular, lead, repo, fields, 
     return v;
   }
 
-  async function submit(e: React.FormEvent) {
-    e.preventDefault();
+  /** Grava. `another`: depois de adicionar, deixa a folha aberta e limpa para o próximo (mantém os campos "sticky"). */
+  async function save(another: boolean) {
     try {
       const db = await getDb();
       if (editing === null) await repo.insert(db, toValues());
       else await repo.update(db, editing, toValues());
       toast(editing === null ? `${singular} cadastrado(a).` : "Alterações salvas.");
-      const keep = editing === null ? Object.fromEntries(sticky.map((k) => [k, form[k]])) : {};
+      const keep = editing === null && another ? Object.fromEntries(sticky.map((k) => [k, form[k]])) : {};
       setForm({ ...defaults, ...keep });
-      setEditing(null);
       setErrors({});
       reload();
-      if (editing === null) focusForm();
+      if (editing === null && another) focusForm();
+      else {
+        setAdvOpen(false);
+        setAdding(false);
+        setEditing(null);
+      }
     } catch (err) {
       setErrors(fieldErrors(err));
     }
   }
+  const submit = (e: React.FormEvent) => {
+    e.preventDefault();
+    void save(false);
+  };
 
   function cancel() {
     setAdvOpen(false);
@@ -315,55 +325,51 @@ export default function CrudPage({ pageId, title, singular, lead, repo, fields, 
           <h1>{title}</h1>
           {lead && <p className="lead">{lead}</p>}
         </div>
-        {(actions || !formOpen) && (
-          <div className="row">
-            {actions}
-            {!formOpen && (
-              <Button variant="primary" icon={Plus} onClick={() => focusForm()}>
-                Adicionar {singular.toLowerCase()}
-              </Button>
-            )}
-          </div>
-        )}
+        <div className="row">
+          {actions}
+          <Button variant="primary" icon={Plus} onClick={() => focusForm()}>
+            Adicionar {singular.toLowerCase()}
+          </Button>
+        </div>
       </div>
       {formOpen && (
-        <form ref={formRef} className="group" onSubmit={submit} noValidate>
-          <div className="group-head">
-            <h2 className="group-title">{editing === null ? `Adicionar ${singular.toLowerCase()}` : `Editar ${singular.toLowerCase()}`}</h2>
+        <Sheet
+          wide
+          title={editing === null ? `Adicionar ${singular.toLowerCase()}` : `Editar ${singular.toLowerCase()}`}
+          icon={empty.icon}
+          onClose={cancel}
+          onSubmit={submit}
+          footer={
+            <>
+              <Button onClick={cancel}>Cancelar</Button>
+              {editing === null && (
+                <Button onClick={() => void save(true)}>Adicionar e cadastrar outro</Button>
+              )}
+              <Button variant="primary" type="submit" icon={editing === null ? Plus : undefined}>
+                {editing === null ? "Adicionar" : "Salvar alterações"}
+              </Button>
+            </>
+          }
+        >
+          <div ref={bodyRefCallback} className="stack">
             {catalog && (
               <button type="button" className="link" onClick={() => setCatalogOpen(true)}>
                 Escolher do catálogo
               </button>
             )}
-          </div>
-          <div className="rows">{mainFields.map(input)}</div>
-          {advancedFields.length > 0 && (
-            <details className="advanced-fields" open={advOpen || advancedFields.some((f) => errors[f.key])} onToggle={(e) => setAdvOpen(e.currentTarget.open)}>
-              <summary>Opções avançadas</summary>
-              <div className="rows">{advancedFields.map(input)}</div>
-            </details>
-          )}
-          {errors._ && <p className="error">{errors._}</p>}
-          <div className="row">
-            <button className="primary" type="submit">
-              {editing === null ? (
-                <>
-                  <Plus aria-hidden /> Adicionar
-                </>
-              ) : (
-                "Salvar alterações"
-              )}
-            </button>
-            {(editing !== null || visible.length > 0) && (
-              <button type="button" onClick={cancel}>
-                Cancelar
-              </button>
+            <div className="rows">{mainFields.map(input)}</div>
+            {advancedFields.length > 0 && (
+              <details className="advanced-fields" open={advOpen || advancedFields.some((f) => errors[f.key])} onToggle={(e) => setAdvOpen(e.currentTarget.open)}>
+                <summary>Opções avançadas</summary>
+                <div className="rows">{advancedFields.map(input)}</div>
+              </details>
             )}
+            {errors._ && <p className="error">{errors._}</p>}
             <span className="hint kbd-hint">
               <kbd>Enter</kbd> salva · <kbd>{modKey()}</kbd>+<kbd>N</kbd> novo
             </span>
           </div>
-        </form>
+        </Sheet>
       )}
 
       {loading ? (
@@ -375,7 +381,7 @@ export default function CrudPage({ pageId, title, singular, lead, repo, fields, 
       ) : loadError ? (
         <LoadError error={loadError} onRetry={reload} />
       ) : visible.length === 0 ? (
-        <EmptyState icon={empty.icon} title="Nada cadastrado ainda." action={<button onClick={() => focusForm()}>Cadastrar {singular.toLowerCase()}</button>}>
+        <EmptyState icon={empty.icon} title="Nada cadastrado ainda." action={<Button variant="primary" icon={Plus} onClick={() => focusForm()}>Cadastrar {singular.toLowerCase()}</Button>}>
           {empty.text}
         </EmptyState>
       ) : (

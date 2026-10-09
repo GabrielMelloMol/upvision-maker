@@ -25,6 +25,9 @@ const TODAY = new Date("2026-09-30T10:00:00-03:00");
 /** Por plataforma, como as referências: as fontes do sistema mudam o que transborda. */
 const KNOWN_DIR = `tests/visual/conhecidos/${process.platform}`;
 
+/** Telas do Estoque que abrem o cadastro numa folha pelo botão do título (#178): a folha aberta também entra nas fotos e nas checagens. */
+const SHEETS: Record<string, string> = { filaments: "Adicionar filamento", materials: "Adicionar material", printers: "Adicionar impressora" };
+
 type Screen = { id: string; section: string; via: "section" | "sub" | "link" | "model" };
 const ids = (els: Element[]) => els.map((e) => e.getAttribute("data-page") ?? "");
 
@@ -98,6 +101,20 @@ for (const size of SIZES) {
           found.push(...(await focusVisible(page)));
           if (process.env.VISUAL_TEMPO) console.log(`${id}: tela ${t1 - t0} ms · caixas ${t2 - t1} · contraste ${t3 - t2} · foco ${Date.now() - t3}`);
           problems.push(...found.map((f) => `${id} · ${f}`));
+
+          const add = SHEETS[id];
+          if (add) {
+            await page.getByRole("button", { name: add }).click();
+            const sheet = page.getByRole("dialog", { name: add });
+            await expect(sheet).toBeVisible();
+            await page.waitForTimeout(400);
+            const name = `${id}-cadastro`;
+            if (compare) await expect.soft(page, `tela ${name}`).toHaveScreenshot(`${name}-${tag}.png`, { mask: [page.locator("[data-visual-mask]")] });
+            const open = [...(await overflow(page)), ...(await smallTargets(page, MIN_TARGET_PX)), ...(await contrast(page))];
+            problems.push(...open.map((f) => `${name} · ${f}`));
+            await page.keyboard.press("Escape");
+            await expect(sheet).toBeHidden();
+          }
         }
 
         if (goal.length) test.info().annotations.push({ type: `alvos entre ${MIN_TARGET_PX} e ${GOAL_TARGET_PX} px (aviso)`, description: goal.join("\n") });

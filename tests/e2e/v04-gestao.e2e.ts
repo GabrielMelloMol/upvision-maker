@@ -7,6 +7,7 @@ const settingsOf = (db: { prepare: (q: string) => { get: () => unknown } }) => J
 test("impressoras: catálogo busca, navega com setas, Enter preenche nome e potência", async ({ page, tauri }) => {
   await openApp(page);
   await go(page, "Impressoras");
+  await page.getByRole("button", { name: "Adicionar impressora" }).click();
   await page.getByRole("button", { name: "Escolher do catálogo" }).click();
   const sheet = page.getByRole("dialog", { name: "Catálogo de impressoras" });
   const search = sheet.getByRole("combobox", { name: "Buscar no catálogo" });
@@ -26,7 +27,7 @@ test("impressoras: catálogo busca, navega com setas, Enter preenche nome e pot�
   await expect(toastWith(page, "Preenchido com o catálogo")).toBeVisible();
   await expect(page.getByLabel("Nome")).toHaveValue("Bambu Lab A1 mini");
   await expect(page.getByLabel("Potência média (W)")).toHaveValue("80");
-  await page.getByRole("button", { name: "Adicionar" }).click();
+  await page.getByRole("dialog").getByRole("button", { name: "Adicionar", exact: true }).click();
   await expect(page.getByRole("row", { name: /Bambu Lab A1 mini/ })).toContainText("80");
   expect(tauri.db.prepare("SELECT name, watts FROM printers").all()).toEqual([{ name: "Bambu Lab A1 mini", watts: 80 }]);
 });
@@ -34,6 +35,7 @@ test("impressoras: catálogo busca, navega com setas, Enter preenche nome e pot�
 test("impressoras: catálogo sem resultado oferece cadastrar à mão", async ({ page, tauri }) => {
   await openApp(page);
   await go(page, "Impressoras");
+  await page.getByRole("button", { name: "Adicionar impressora" }).click();
   await page.getByRole("button", { name: "Escolher do catálogo" }).click();
   const sheet = page.getByRole("dialog", { name: "Catálogo de impressoras" });
   await sheet.getByRole("combobox", { name: "Buscar no catálogo" }).fill("minha caseira");
@@ -125,6 +127,7 @@ test("preferências: conta de luz com valores trocados avisa que está fora do c
 test("filamentos: catálogo preenche marca/material/rolo e Duplicar abre novo cadastro sem a cor", async ({ page, tauri }) => {
   await openApp(page);
   await go(page, "Filamentos");
+  await page.getByRole("button", { name: "Adicionar filamento" }).click();
   await page.getByRole("button", { name: "Escolher do catálogo" }).click();
   const sheet = page.getByRole("dialog", { name: "Catálogo de filamentos" });
   await sheet.getByRole("combobox", { name: "Buscar no catálogo" }).fill("sunlu petg");
@@ -137,7 +140,7 @@ test("filamentos: catálogo preenche marca/material/rolo e Duplicar abre novo ca
 
   await page.getByRole("radio", { name: "Verde" }).click();
   await page.getByLabel("Preço por kg").fill("95");
-  await page.getByRole("button", { name: "Adicionar" }).click();
+  await page.getByRole("dialog").getByRole("button", { name: "Adicionar", exact: true }).click();
   await expect(page.getByRole("row", { name: /Verde/ })).toContainText("R$ 95,00");
 
   await page.getByRole("row", { name: /Verde/ }).getByRole("button", { name: "Duplicar PETG" }).click();
@@ -148,7 +151,7 @@ test("filamentos: catálogo preenche marca/material/rolo e Duplicar abre novo ca
   await expect(page.getByRole("radio", { name: "Verde" })).toHaveAttribute("aria-checked", "false");
   await expect(page.getByLabel("Estoque", { exact: true })).toHaveValue("1 rolo");
   await page.getByRole("radio", { name: "Preto" }).click();
-  await page.getByRole("button", { name: "Adicionar" }).click();
+  await page.getByRole("dialog").getByRole("button", { name: "Adicionar", exact: true }).click();
   await expect(page.getByRole("row", { name: /Preto/ })).toContainText("R$ 95,00");
 
   const rows = tauri.db.prepare("SELECT material, color, brand, pricePerKg, spoolG, stockG FROM filaments ORDER BY id").all();
