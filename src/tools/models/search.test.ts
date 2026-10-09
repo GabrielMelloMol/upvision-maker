@@ -58,7 +58,10 @@ describe("busca das ferramentas e das telas", () => {
   test("termos do dia a dia levam à ferramenta certa", () => {
     expect(find("foto em relevo")).toContain("lithophane");
     expect(find("litofania")).toContain("lithophane");
-    expect(find("gaveta")).toEqual(expect.arrayContaining(["drawer", "toolfit"]));
+    expect(find("gaveta")).toContain("organizers");
+    expect(find("organizador de gaveta")).toContain("organizers");
+    expect(find("organizador pela foto")).toContain("organizers");
+    expect(find("gridfinity")).toContain("organizers");
     expect(find("adesivo")).toContain("owndecal");
     expect(find("vetorizar")).toContain("svg");
     expect(find("thingiverse")).toContain("search3d");

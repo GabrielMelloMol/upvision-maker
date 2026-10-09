@@ -1,4 +1,4 @@
-import { PAGE_ALIASES } from "./pageAliases";
+import { PAGE_ALIASES, PAGE_TABS } from "./pageAliases";
 import { BookOpen, CircleHelp, CornerDownLeft, Moon, Search, Sun, SunMoon } from "lucide-react";
 import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { getDb } from "../db";
@@ -69,9 +69,16 @@ export default function CommandPalette({ pages, onPick, onClose }: Props) {
 
   const results = useMemo(() => {
     const screens: SearchItem[] = pages.map((p) => ({ id: `page-${p.id}`, title: p.label, subtitle: p.blurb, group: "Telas", icon: p.icon, pageId: p.id, keywords: PAGE_ALIASES[p.id] }));
+    // abas de telas que juntaram ferramentas (Organizadores): achadas pelo nome antigo, abrem já na aba; só buscando
+    const tabs: SearchItem[] = q.trim()
+      ? PAGE_TABS.flatMap((t) => {
+          const page = pages.find((p) => p.id === t.pageId);
+          return page ? [{ id: `tab-${t.pageId}-${t.tab}`, title: t.label, subtitle: t.blurb, group: "Telas", icon: page.icon, pageId: t.pageId, intent: { tab: t.tab }, keywords: t.keywords }] : [];
+        })
+      : [];
     // ajuda (#84): só aparece buscando, para não encher a lista inicial
     const help: SearchItem[] = q.trim() ? helpItems(pages) : [];
-    return rank([...screens, ...(q.trim() ? models : []), ...records, ...help, ...(q.trim() ? THEME_ITEMS : [])], q).slice(0, MAX_RESULTS);
+    return rank([...screens, ...tabs, ...(q.trim() ? models : []), ...records, ...help, ...(q.trim() ? THEME_ITEMS : [])], q).slice(0, MAX_RESULTS);
   }, [pages, records, models, q]);
   const current = Math.min(active, results.length - 1);
 

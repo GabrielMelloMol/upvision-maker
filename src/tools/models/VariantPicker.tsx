@@ -3,18 +3,19 @@ import { requestNavigate } from "../../ui/navigate";
 import { familyOf, modelOf, type FamilyVariant } from "./families";
 import { THUMBS } from "./thumbs";
 
-type Props = { id: string; onPick: (id: string) => void };
+type Props = { id: string; onPick: (id: string) => void; /** Só estas variações (a ferramenta Organizadores mostra um pedaço da família); sem atalhos para outras ferramentas. */ only?: readonly string[] };
 
 /** Nome da ferramenta (no menu) para o aviso "abre a ferramenta X" do atalho; o rótulo do botão é o da variante. */
-const TOOL_NAMES: Record<string, string> = { medal: "Medalhas", keychain: "Chaveiros", drawer: "Organizador de gaveta", qr: "QR Code", toolfit: "Organizador pela foto", pixel: "Pixel art", lithophane: "Foto em relevo" };
+const TOOL_NAMES: Record<string, string> = { medal: "Medalhas", keychain: "Chaveiros", drawer: "Organizadores", qr: "QR Code", toolfit: "Organizadores", pixel: "Pixel art", lithophane: "Foto em relevo" };
 
 /**
  * Seletor de variação da família (#141): miniatura pequena + rótulo, agrupado quando a família tem grupos
  * ("Com arte" / "Com função"). Ferramentas com tela própria (Chaveiros, Medalhas…) aparecem como atalho.
  */
-export default function VariantPicker({ id, onPick }: Props) {
-  const f = familyOf(id);
-  const tools = f.tools ?? [];
+export default function VariantPicker({ id, onPick, only }: Props) {
+  const family = familyOf(id);
+  const f = only ? { ...family, variants: family.variants.filter((v) => only.includes(v.id)) } : family;
+  const tools = only ? [] : (f.tools ?? []);
   if (f.variants.length < 2 && !tools.length) return null;
   const groups = [...new Set(f.variants.map((v) => v.group ?? ""))];
   const item = (v: FamilyVariant) => {

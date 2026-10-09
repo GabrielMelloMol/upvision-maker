@@ -6,7 +6,7 @@ import { photos } from "../../db/photosRepo";
 import { productsRepo } from "../../db/productsRepo";
 import { toolProjects, toolState, type ProjectPatch, type ToolProject } from "../../db/toolStateRepo";
 import type { Db } from "../../db/types";
-import { PAGES, type Go } from "../../pages";
+import { PAGE_REDIRECTS, pageFor, type Go } from "../../pages";
 import { UNDO_MS } from "../../ui/CrudPage";
 import EmptyState from "../../ui/EmptyState";
 import Menu from "../../ui/Menu";
@@ -36,8 +36,9 @@ const load = async (db: Db): Promise<Data> => {
   };
 };
 
-const pageOf = (toolId: string) => PAGES.find((p) => p.id === toolId);
-const toolLabel = (toolId: string) => pageOf(toolId)?.label ?? toolId;
+// toolId de ferramenta que virou aba de outra (Organizador de gaveta, pela foto): continua listada, com o nome de antes
+const pageOf = (toolId: string) => pageFor(toolId);
+const toolLabel = (toolId: string) => PAGE_REDIRECTS[toolId]?.label ?? pageOf(toolId)?.label ?? toolId;
 /** "30 de set." no ano atual; com o ano quando é de outro ano. */
 const when = (iso: string) => {
   const d = new Date(iso);
@@ -162,16 +163,16 @@ export default function MyProjects({ go }: { go: Go }) {
           const page = pageOf(it.toolId)!;
           // foto real da peça (#162) no lugar do render
           const thumb = it.kind === "project" ? (data.covers[it.project.id] ?? it.project.thumb) : null;
-          const title = it.kind === "draft" ? `Rascunho de ${page.label}` : it.name;
+          const title = it.kind === "draft" ? `Rascunho de ${toolLabel(it.toolId)}` : it.name;
           return (
             <li key={it.key}>
               <button type="button" className="project-open" onClick={() => open(it)} aria-label={`Abrir ${title}`}>
                 <span className="model-thumb">{thumb ? <img src={thumb} alt="" loading="lazy" /> : <page.icon aria-hidden />}</span>
                 <strong>
-                  {it.kind === "draft" ? <span className="pill">Rascunho</span> : null} {it.kind === "draft" ? page.label : it.name}
+                  {it.kind === "draft" ? <span className="pill">Rascunho</span> : null} {it.kind === "draft" ? toolLabel(it.toolId) : it.name}
                 </strong>
                 <small>
-                  {it.kind === "draft" ? "em andamento" : page.label} · {when(it.at)}
+                  {it.kind === "draft" ? "em andamento" : toolLabel(it.toolId)} · {when(it.at)}
                 </small>
               </button>
               <div className="project-actions">

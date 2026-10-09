@@ -84,7 +84,7 @@ function migrate(s: OldState): State {
 const nextNumber = (photos: PhotoSlot[]) => Math.max(1, ...photos.map((ph) => ph.first + ph.outlines.length));
 
 /** Organizador pela foto (#169): as fotos (PhotoStep, da Forja) dão os contornos em mm; aqui eles viram encaixe exato. */
-export default function ToolFit() {
+export default function ToolFit({ embedded = false }: { embedded?: boolean } = {}) {
   const tool = useToolState<State>("toolfit", initial, { label: "Organizador pela foto" });
   // migrar uma vez por estado: um `p` novo a cada render refazia a peça sem parar
   const { photos, names, removed, places, p } = useMemo(() => migrate(tool.state), [tool.state]);
@@ -156,9 +156,9 @@ export default function ToolFit() {
   const mapNames = useMemo(() => Object.fromEntries(tools.map((t) => [t.id, { num: t.num, label: t.label }])), [tools]);
 
   return (
-    <div className="page">
-      <h1>Organizador pela foto</h1>
-      <p className="lead">Fotografe na folha A4 e imprima o encaixe exato.</p>
+    <div className={embedded ? "stack" : "page"}>
+      {!embedded && <h1>Organizador pela foto</h1>}
+      {!embedded && <p className="lead">Fotografe na folha A4 e imprima o encaixe exato.</p>}
       <SeeAlso items={[{ label: "Organizador de gaveta (caixinhas sob medida)", page: "drawer" }, { label: "Gridfinity: caixinha", model: "gridBin" }]} />
       <ToolSessionBar tool={tool} />
       <div className="tool-layout">

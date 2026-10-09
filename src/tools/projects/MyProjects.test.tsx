@@ -37,6 +37,23 @@ describe("Meus projetos (#161)", () => {
     expect(takeIntent(projectIntentKey("qr"))).toEqual({ resume: true });
   });
 
+  test("projetos e rascunhos salvos no Organizador de gaveta e no pela foto continuam na lista, com o nome de antes, e abrem a tela nova", async () => {
+    const proj = await toolProjects.add(t.db, { toolId: "drawer", name: "Gaveta da cozinha", data: env({ width: 500 }), thumb: null, at: "2026-10-02T10:00:00Z" });
+    await toolState.save(t.db, { id: "toolfit", data: env({}), updatedAt: "2026-10-03T09:00:00Z" });
+    const go = vi.fn();
+    const user = userEvent.setup();
+    renderWithApp(<MyProjects go={go} />);
+    const draft = await grid().findByRole("button", { name: "Abrir Rascunho de Organizador pela foto" });
+    const project = grid().getByRole("button", { name: "Abrir Gaveta da cozinha" });
+    expect(within(project).getByText(/Organizador de gaveta · 2 de out/)).toBeInTheDocument();
+    await user.click(project);
+    expect(go).toHaveBeenLastCalledWith("drawer"); // o App leva à aba da gaveta (PAGE_REDIRECTS)
+    expect(takeIntent(projectIntentKey("drawer"))).toEqual({ projectId: proj });
+    await user.click(draft);
+    expect(go).toHaveBeenLastCalledWith("toolfit");
+    expect(takeIntent(projectIntentKey("toolfit"))).toEqual({ resume: true });
+  });
+
   test("busca, filtro de tag e só favoritos; a estrela grava", async () => {
     const { ana } = await seed();
     const user = userEvent.setup();

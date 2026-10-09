@@ -66,9 +66,12 @@ const initialState = () => ({
 });
 type ModelsState = ReturnType<typeof initialState>;
 
-/** Modelos paramétricos prontos: escolha na galeria, ajuste os campos, veja em 3D e salve o 3MF em cores. */
-/** `only`: mostra um modelo só, sem galeria nem título (ele vive como aba de outra ferramenta, ex.: Shadowbox em Foto em relevo). */
-export default function Models({ only }: { only?: string } = {}) {
+/**
+ * Modelos paramétricos prontos: escolha na galeria, ajuste os campos, veja em 3D e salve o 3MF em cores.
+ * `only`: mostra um modelo só, sem galeria nem título (ele vive como aba de outra ferramenta, ex.: Shadowbox em Foto em relevo).
+ * `embedded`: dentro de outra ferramenta (Organizadores), só com estes modelos e as variações deles, sem título nem galeria.
+ */
+export default function Models({ only, embedded }: { only?: string; embedded?: { ids: readonly string[] } } = {}) {
   // estado de trabalho (#85): modelo, campos de cada modelo, fonte, desenho, lote, camadas e posições no mesmo desfazer
   const tool = useToolState("models", initialState, {
     label: "Modelos prontos",
@@ -258,13 +261,18 @@ export default function Models({ only }: { only?: string } = {}) {
     requestAnimationFrame(() => layoutRef.current?.scrollIntoView?.({ behavior: calm ? "auto" : "smooth", block: "start" }));
   };
   const family = familyOf(id);
+  // embutido: o modelo aberto tem de ser um dos da lista (o estado de trabalho é o mesmo dos Modelos prontos)
+  const embeddedIds = embedded?.ids;
+  useEffect(() => {
+    if (embeddedIds && !embeddedIds.includes(id)) adopt((cur) => ({ ...cur, id: embeddedIds[0] }));
+  }, [embeddedIds, id, adopt]);
 
   return (
-    <div className={only ? "embedded" : "page"}>
-      {!only && <h1>Modelos prontos</h1>}
-      {!only && <p className="lead">Escolha, ajuste o texto e salve o 3MF em cores.</p>}
+    <div className={only || embedded ? "embedded" : "page"}>
+      {!only && !embedded && <h1>Modelos prontos</h1>}
+      {!only && !embedded && <p className="lead">Escolha, ajuste o texto e salve o 3MF em cores.</p>}
       <ToolSessionBar tool={tool} />
-      {!only && <ModelGallery id={id} onPick={pickFromGallery} category={category} onCategory={setCategory} query={query} onQuery={setQuery} occasion={occasion} onOccasion={setOccasion} favorites={favorites} />}
+      {!only && !embedded && <ModelGallery id={id} onPick={pickFromGallery} category={category} onCategory={setCategory} query={query} onQuery={setQuery} occasion={occasion} onOccasion={setOccasion} favorites={favorites} />}
       <div className="tool-layout" ref={layoutRef}>
         <div className="controls">
           <div className="row model-head">
@@ -278,7 +286,7 @@ export default function Models({ only }: { only?: string } = {}) {
             </button>
           </div>
           <p className="hint">{def.blurb}</p>
-          {!only && <VariantPicker id={id} onPick={pickVariant} />}
+          {!only && <VariantPicker id={id} onPick={pickVariant} only={embeddedIds} />}
           {variants.length > 0 && (
             <div className="chips" role="group" aria-label="Variações prontas">
               {variants.map((v) => (

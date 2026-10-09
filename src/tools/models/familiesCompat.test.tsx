@@ -6,7 +6,7 @@ import { resolve } from "node:path";
 import { beforeAll, describe, expect, test, vi } from "vitest";
 import { modelVariants } from "../../db/modelVariantsRepo";
 import { toolProjects, toolState } from "../../db/toolStateRepo";
-import { PAGES } from "../../pages";
+import { PAGE_REDIRECTS, PAGES } from "../../pages";
 import { renderWithApp, setupTauri } from "../../test/harness";
 import Models from "../Models";
 import { MODELS } from "./defs";
@@ -43,7 +43,7 @@ describe("famílias: nenhum modelo perdido (#141)", () => {
     expect(MODELS.filter((m) => count.get(m.id) !== 1).map((m) => m.id)).toEqual([]);
     const ids = new Set(MODELS.map((m) => m.id));
     expect([...count.keys()].filter((id) => !ids.has(id))).toEqual([]);
-    const pages = new Set(PAGES.map((p) => p.id));
+    const pages = new Set([...PAGES.map((p) => p.id), ...Object.keys(PAGE_REDIRECTS)]); // id antigo (drawer, toolfit) segue valendo: o App redireciona
     expect(FAMILIES.flatMap((f) => f.tools ?? []).filter((x) => !pages.has(x.page)).map((x) => x.page)).toEqual([]);
     expect(familyOf(OLD).label).toBe("Chaveiro");
   });

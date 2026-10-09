@@ -47,7 +47,7 @@ function initialState(): DrawerProject {
 }
 
 /** Organizador de gaveta (#140): medir a gaveta, desenhar as caixinhas na grade e sair com a base e os módulos. */
-export default function DrawerOrganizer() {
+export default function DrawerOrganizer({ embedded = false }: { embedded?: boolean } = {}) {
   const tool = useToolState("drawer", initialState, { label: "Organizador de gaveta" });
   const p = tool.state;
   const [selected, setSelected] = useState<string[]>([]);
@@ -98,9 +98,9 @@ export default function DrawerOrganizer() {
   const organizer = useMemo(() => models.filter((m) => !trays.includes(m)), [models, trays]);
 
   return (
-    <div className="page">
-      <h1>Organizador de gaveta</h1>
-      <p className="lead">Meça a gaveta, desenhe as caixinhas e imprima.</p>
+    <div className={embedded ? "stack" : "page"}>
+      {!embedded && <h1>Organizador de gaveta</h1>}
+      {!embedded && <p className="lead">Meça a gaveta, desenhe as caixinhas e imprima.</p>}
       <SeeAlso items={[{ label: "Organizador pela foto (encaixe de uma ferramenta)", page: "toolfit" }, { label: "Gridfinity pela gaveta", model: "gridDrawerBase" }]} />
       <ToolSessionBar tool={tool} />
       <div className="tool-layout">

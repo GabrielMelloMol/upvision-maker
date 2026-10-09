@@ -1,5 +1,5 @@
 import { expect, test } from "vitest";
-import { PAGES } from "../../pages";
+import { PAGE_REDIRECTS, PAGES } from "../../pages";
 import { CATEGORIES, MODELS } from "./defs";
 import { carryFields, FAMILIES, familiesIn, familyOf, modelOf, variantLabel } from "./families";
 
@@ -13,7 +13,7 @@ test("cada modelo aparece em exatamente uma família; nenhuma variação aponta 
 
 test("famílias por categoria cobrem todas as categorias; atalhos apontam para telas que existem", () => {
   for (const [c] of CATEGORIES) expect(familiesIn(c).length).toBeGreaterThan(0);
-  const pages = new Set(PAGES.map((p) => p.id));
+  const pages = new Set([...PAGES.map((p) => p.id), ...Object.keys(PAGE_REDIRECTS)]); // id antigo (drawer, toolfit) segue valendo: o App redireciona
   for (const f of FAMILIES) for (const t of f.tools ?? []) expect(pages.has(t.page), `${f.id} → ${t.page}`).toBe(true);
 });
 
@@ -72,7 +72,7 @@ test("categorias dos Modelos prontos (onde fica): Presentes, Casa e decoração 
 
 test("os nomes de cada ferramenta de Criar continuam levando a ela: os ids das telas antigas não somem", async () => {
   const pages = await import("../../pages");
-  const redirects = (pages as { PAGE_REDIRECTS?: Record<string, string> }).PAGE_REDIRECTS ?? {};
+  const redirects = (pages as unknown as { PAGE_REDIRECTS?: Record<string, unknown> }).PAGE_REDIRECTS ?? {};
   const OLD = ["svg", "cutter", "keychain", "medal", "extrude", "qr", "models", "spools", "lithophane", "pixel", "drawer", "toolfit", "colorsplit", "owndecal", "scad", "search3d", "ai", "projects"];
   const known = new Set(pages.PAGES.map((p) => p.id));
   expect(OLD.filter((id) => !known.has(id) && !(id in redirects))).toEqual([]);

@@ -135,6 +135,18 @@ export const ARTICLES: HelpArticle[] = [
     ],
   },
   {
+    id: "organizers",
+    title: "Organizadores",
+    intro: "Três jeitos de organizar uma gaveta, numa ferramenta só: pela medida dela, pela foto das ferramentas ou com caixinhas avulsas.",
+    steps: [
+      "Escolha o ponto de partida: tenho a medida da gaveta, tenho as ferramentas para fotografar ou quero caixinhas avulsas.",
+      "Pela medida: digite largura, profundidade e altura de dentro da gaveta e desenhe as caixinhas na grade.",
+      "Pela foto: fotografe as ferramentas numa folha A4 branca, de cima e com boa luz; cada uma ganha um encaixe exato.",
+      "Avulsas: escolha caixinha, base, base pela gaveta ou teste de encaixe do Gridfinity e ajuste as medidas.",
+    ],
+    tips: ["Troque de aba quando quiser: o que você fez em cada jeito fica guardado.", "Imprima antes o teste de encaixe (aba Caixinhas avulsas) para conferir a folga da sua impressora."],
+  },
+  {
     id: "projects",
     title: "Meus projetos",
     intro: "Tudo o que você salvou nas ferramentas e nos modelos prontos, e os rascunhos em andamento.",

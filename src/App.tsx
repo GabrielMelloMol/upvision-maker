@@ -13,7 +13,7 @@ import { CHANGELOG, useWhatsNewAfterUpdate, WhatsNewModal } from "./whatsnew/Wha
 import { useFirstRun } from "./onboarding/firstRun";
 // só na primeira abertura: fora do carregamento inicial (#88)
 const Onboarding = lazy(() => import("./onboarding/Onboarding"));
-import { PAGES } from "./pages";
+import { PAGE_REDIRECTS, PAGES } from "./pages";
 import PageSkeleton from "./ui/PageSkeleton";
 import { releaseHeavy } from "./ui/heavy";
 import { refreshBed } from "./tools/bedPrinter";
@@ -34,7 +34,7 @@ import { CircleHelp, Search } from "lucide-react";
 import { articleFor } from "./help/articles";
 import HelpSheet from "./help/HelpSheet";
 import TourHost from "./ui/Tour";
-import { openHelp } from "./help/helpStore";
+import { helpTopicFor, openHelp, useHelpTopic } from "./help/helpStore";
 
 /** Rolagem a partir da qual o large title some e a toolbar mostra o título pequeno. */
 const TITLE_SCROLL_PX = 48;
@@ -53,6 +53,8 @@ export default function App() {
   const toast = useToast();
   const { reminderDays, neverBackedUp, backupError, backupNow } = useAutoBackup();
   const page = PAGES.find((p) => p.id === pageId) ?? PAGES[0];
+  const helpId = useHelpTopic(page.id); // telas com abas (Organizadores) mostram a ajuda da aba aberta
+  const helpArticle = articleFor(helpId);
   // gravações adiadas das ferramentas vão para o banco antes de a tela ser refeita (B1)
   const remount = useCallback(() => void flushPendingSaves().then(() => setReloadKey((k) => k + 1)), []);
   // dados que chegaram do outro computador com um formulário preenchido na tela: a tela só é refeita quando a pessoa quiser (B1)
@@ -83,7 +85,7 @@ export default function App() {
   useEffect(() => (window as unknown as { upvisionSplashDone?: () => void }).upvisionSplashDone?.(), []);
   const sidebar = useSidebarRail();
   const toggleSidebar = sidebar.toggle;
-  useEffect(() => installShortcuts({ openPalette: () => setSearching(true), openHelp: () => void (articleFor(pageRef.current) && openHelp(pageRef.current)), toggleSidebar, toggleTheme: () => void toggleTheme() }), [toggleSidebar]);
+  useEffect(() => installShortcuts({ openPalette: () => setSearching(true), openHelp: () => void (articleFor(helpTopicFor(pageRef.current)) && openHelp(helpTopicFor(pageRef.current))), toggleSidebar, toggleTheme: () => void toggleTheme() }), [toggleSidebar]);
 
   function pick(item: SearchItem) {
     setSearching(false);
@@ -98,7 +100,14 @@ export default function App() {
     if (item.help) openHelp(item.help);
   }
 
-  function navigate(id: string) {
+  function navigate(requested: string) {
+    // tela que virou parte de outra (ex.: Organizador de gaveta → Organizadores): vai para a nova, já na aba certa
+    const redirect = PAGE_REDIRECTS[requested];
+    const id = redirect?.to ?? requested;
+    if (redirect?.intent !== undefined) {
+      openWith(redirect.to, redirect.intent);
+      if (id === pageId) void flushPendingSaves().then(() => setReloadKey((k) => k + 1)); // já está nela: refaz para ler a aba
+    }
     if (id !== pageId) releaseHeavy(); // solta motores WASM e workers da tela que saiu (#88)
     // mesa da impressora escolhida (#119): relê ao trocar de tela (impressora cadastrada ou trocada nas Preferências)
     getDb().then(refreshBed).catch((e) => console.warn("Mesa da impressora:", e));
@@ -158,8 +167,8 @@ export default function App() {
             <Search aria-hidden /> Buscar <kbd>{modKey()}</kbd>
             <kbd>K</kbd>
           </button>
-          {articleFor(page.id) && (
-            <button className="ghost sm icon-only help-btn" onClick={() => openHelp(page.id)} aria-label={`Ajuda: ${page.label}`} title="Ajuda desta tela (?)" aria-keyshortcuts="?">
+          {helpArticle && (
+            <button className="ghost sm icon-only help-btn" onClick={() => openHelp(helpId)} aria-label={`Ajuda: ${helpId === page.id ? page.label : helpArticle.title}`} title="Ajuda desta tela (?)" aria-keyshortcuts="?">
               <CircleHelp aria-hidden />
             </button>
           )}

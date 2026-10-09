@@ -25,7 +25,7 @@ type Kind = (typeof KINDS)[number][0];
 /** Selo curto do card (#118); o rótulo inteiro (AMS_LABEL) fica na dica. */
 const AMS_SHORT = { "uma-cor": "1 cor", "troca-manual": "Sem AMS, com pausas", ams: "Com AMS" } as const;
 const KIND_OF: Record<string, Exclude<Kind, "all">> = {
-  keychain: "make", medal: "make", qr: "make", spools: "make", drawer: "make",
+  keychain: "make", medal: "make", qr: "make", spools: "make", organizers: "make",
   svg: "image", cutter: "image", extrude: "image", lithophane: "image", pixel: "image",
   colorsplit: "files", scad: "files",
   search3d: "ideas", ai: "ideas",

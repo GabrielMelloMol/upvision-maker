@@ -22,6 +22,17 @@ const subscribe = (l: () => void) => {
 };
 export const useOpenHelp = () => useSyncExternalStore(subscribe, () => open);
 
+// ---------- artigo de ajuda da tela: normalmente o id da própria tela; telas com abas apontam para o artigo da aba aberta ----------
+const topics = new Map<string, string>();
+/** A tela `pageId` mostra a ajuda do artigo `topic` (null volta ao padrão: o artigo da própria tela). */
+export function setHelpTopic(pageId: string, topic: string | null) {
+  if (topic && topic !== pageId) topics.set(pageId, topic);
+  else topics.delete(pageId);
+  emit();
+}
+export const helpTopicFor = (pageId: string) => topics.get(pageId) ?? pageId;
+export const useHelpTopic = (pageId: string) => useSyncExternalStore(subscribe, () => helpTopicFor(pageId));
+
 // ---------- "Usar exemplo": a ferramenta registra como carregar o exemplo dela ----------
 const handlers = new Map<string, () => void>();
 let pending: string | null = null;

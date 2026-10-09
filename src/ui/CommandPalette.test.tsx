@@ -36,6 +36,21 @@ describe("busca do ⌘K acha os Modelos prontos", { timeout: 30_000 }, () => { /
     expect(onPick).toHaveBeenCalledWith(expect.objectContaining({ pageId: "models", intent: { id: "fridgeMagnet" } }));
   });
 
+  test.each([
+    ["organizador de gaveta", "Organizador de gaveta", "drawer"],
+    ["organizador pela foto", "Organizador pela foto", "photo"],
+    ["gridfinity", "Caixinhas avulsas", "bins"],
+  ])("%s → abre os Organizadores já na aba %s", async (query, title, tab) => {
+    const { user, onPick } = await open(query);
+    await user.click(await screen.findByRole("option", { name: new RegExp(title) }));
+    expect(onPick).toHaveBeenCalledWith(expect.objectContaining({ pageId: "organizers", intent: { tab } }));
+  });
+
+  test("a tela Organizadores também aparece, pelo nome novo e por 'gaveta'", async () => {
+    await open("gaveta");
+    expect(await screen.findByRole("option", { name: /^Organizadores/ })).toBeInTheDocument();
+  });
+
   test("as telas continuam aparecendo (litofania acha a ferramenta)", async () => {
     await open("litofania");
     const hits = await screen.findAllByRole("option", { name: /Foto em relevo/ });

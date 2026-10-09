@@ -1,6 +1,6 @@
 import { Award, Bot, Calculator as CalcIcon, Cookie, Cylinder, KeyRound, Layers, House, ImageUp, Package, Palette, Printer, Settings, ShoppingBag, Users, Building2, ClipboardList, FileText, LayoutDashboard, LineChart, Receipt, QrCode as QrIcon, Split } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
-import { Boxes, Braces, FolderOpen, ChartNoAxesColumn, Globe, Grid3x3, LayoutGrid, Shapes, Sparkle, Sun, Tag, Sticker, Wallet, Wrench } from "lucide-react";
+import { Boxes, Braces, FolderOpen, ChartNoAxesColumn, Globe, Grid3x3, LayoutGrid, Shapes, Sparkle, Sun, Tag, Sticker, Wallet } from "lucide-react";
 import { lazy, type ReactNode } from "react";
 import Home from "./pages/Home";
 
@@ -36,8 +36,7 @@ const ModelSearch = lazy(() => import("./tools/ModelSearch"));
 const ScadCustomizer = lazy(() => import("./tools/ScadCustomizer"));
 const MyProjects = lazy(() => import("./tools/projects/MyProjects"));
 const PixelArt = lazy(() => import("./tools/PixelArt"));
-const DrawerOrganizer = lazy(() => import("./tools/DrawerOrganizer"));
-const ToolFit = lazy(() => import("./tools/ToolFit"));
+const Organizers = lazy(() => import("./tools/Organizers"));
 
 export type Go = (pageId: string) => void;
 
@@ -79,8 +78,7 @@ const ALL: PageDef[] = [
   { id: "spools", section: "stock", label: "Etiquetas de rolo", group: "Ferramentas", icon: Tag, blurb: "QR por rolo: baixa de gramas lendo a etiqueta.", render: () => <SpoolLabels /> },
   { id: "lithophane", section: "create", label: "Foto em relevo", group: "Ferramentas", icon: Sun, blurb: "Litofania, relevo de uma cor, quadro por camadas e shadowbox a partir da foto.", render: () => <Lithophane /> },
   { id: "pixel", section: "create", label: "Pixel art", group: "Ferramentas", icon: Grid3x3, blurb: "Imagem em pixels nas cores dos filamentos: mosaico, quebra-cabeça ou ímã.", render: () => <PixelArt /> },
-  { id: "drawer", section: "create", label: "Organizador de gaveta", group: "Ferramentas", icon: LayoutGrid, blurb: "Meça a gaveta, desenhe as caixinhas e imprima base e módulos.", render: () => <DrawerOrganizer /> },
-  { id: "toolfit", section: "create", label: "Organizador pela foto", group: "Ferramentas", icon: Wrench, blurb: "Encaixe exato da ferramenta: bloco, Gridfinity ou gaveta.", render: () => <ToolFit /> },
+  { id: "organizers", section: "create", label: "Organizadores", group: "Ferramentas", icon: LayoutGrid, blurb: "Organize uma gaveta: pela medida dela, pela foto das ferramentas ou com caixinhas avulsas.", render: () => <Organizers /> },
   { id: "colorsplit", section: "create", label: "Separar cores de um 3MF", group: "Ferramentas", icon: Split, blurb: "3MF pintado vira uma peça por cor.", render: () => <ColorSplit /> },
   { id: "owndecal", section: "create", label: "Nome ou logo no seu modelo", group: "Ferramentas", icon: Sticker, blurb: "Nome ou logo numa face plana do STL ou 3MF, em outra cor.", render: () => <OwnDecal /> },
   { id: "scad", section: "create", label: "Modelo personalizável (OpenSCAD)", group: "Ferramentas", icon: Braces, blurb: "Arquivo .scad do Customizer vira formulário e 3MF.", render: () => <ScadCustomizer /> },
@@ -103,3 +101,15 @@ const ALL: PageDef[] = [
 ];
 
 export const PAGES = ALL.filter((p) => !p.devOnly || import.meta.env.DEV);
+
+/**
+ * Telas que viraram parte de outra: o id antigo continua valendo em atalhos, "Veja também", Meus projetos, rascunhos
+ * salvos por ferramenta e testes, e leva à tela nova já na aba certa (o App lê este mapa ao navegar).
+ */
+export type PageRedirect = { to: string; /** o que a tela nova lê ao abrir */ intent?: unknown; /** o nome que a pessoa conhecia */ label: string };
+export const PAGE_REDIRECTS: Record<string, PageRedirect> = {
+  drawer: { to: "organizers", intent: { tab: "drawer" }, label: "Organizador de gaveta" },
+  toolfit: { to: "organizers", intent: { tab: "photo" }, label: "Organizador pela foto" },
+};
+/** A tela para um id, mesmo antigo (para listas que guardam o id da ferramenta, como Meus projetos). */
+export const pageFor = (id: string) => PAGES.find((p) => p.id === id) ?? (PAGE_REDIRECTS[id] ? PAGES.find((p) => p.id === PAGE_REDIRECTS[id].to) : undefined);

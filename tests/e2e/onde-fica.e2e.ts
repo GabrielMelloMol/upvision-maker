@@ -36,7 +36,8 @@ test("onde fica: 'Veja também' liga as ferramentas parecidas e os atalhos levam
   await openApp(page);
   await go(page, "Organizador de gaveta");
   await page.getByRole("button", { name: /Organizador pela foto \(encaixe/ }).click();
-  await expect(page.getByRole("heading", { name: "Organizador pela foto" })).toBeVisible();
+  // o Organizador pela foto virou uma aba dos Organizadores: o link leva à aba certa
+  await expect(page.getByRole("tab", { name: "Pela foto das ferramentas" })).toHaveAttribute("aria-selected", "true");
   await page.getByRole("button", { name: /Gridfinity: caixinha/ }).click();
   await expect(page.getByRole("heading", { name: "Modelos prontos" })).toBeVisible();
   await expect(page.getByRole("group", { name: "Variação" }).getByRole("button", { name: "Caixinha" })).toHaveAttribute("aria-pressed", "true");
