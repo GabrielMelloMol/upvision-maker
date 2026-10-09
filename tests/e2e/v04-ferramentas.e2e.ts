@@ -48,7 +48,7 @@ async function save3mf(page: Page, tauri: TauriMock) {
 test("Imagem→SVG colorido: paleta dos filamentos, troca de cor e SVG salvo com as cores escolhidas", async ({ page, tauri }) => {
   await openApp(page);
   await seedFilaments(page, tauri);
-  await go(page, "Imagem → SVG");
+  await go(page, "Imagem em desenho (SVG)");
   await page.locator('input[type="file"]').setInputFiles(`${FIX}/logo.jpg`);
   await expect(page.getByRole("img", { name: "Imagem original" })).toBeVisible();
 
@@ -89,7 +89,7 @@ test("Imagem→SVG colorido: paleta dos filamentos, troca de cor e SVG salvo com
 test("Imagem→SVG colorido sem a paleta dos filamentos usa as cores da imagem", async ({ page, tauri }) => {
   await openApp(page);
   await seedFilaments(page, tauri);
-  await go(page, "Imagem → SVG");
+  await go(page, "Imagem em desenho (SVG)");
   await page.locator('input[type="file"]').setInputFiles(`${FIX}/desenho.jpg`);
   await expect(page.getByRole("img", { name: "Imagem original" })).toBeVisible();
   await page.getByRole("group", { name: "Cores" }).getByRole("button", { name: "2", exact: true }).click();
@@ -112,7 +112,7 @@ test("Imagem→SVG colorido sem a paleta dos filamentos usa as cores da imagem",
 test("Sem filamentos com cor, a opção de paleta fica desativada com dica", async ({ page, tauri }) => {
   void tauri;
   await openApp(page);
-  await go(page, "Imagem → SVG");
+  await go(page, "Imagem em desenho (SVG)");
   await page.locator('input[type="file"]').setInputFiles(`${FIX}/logo.jpg`);
   await page.getByRole("group", { name: "Cores" }).getByRole("button", { name: "2", exact: true }).click();
   await expect(page.getByLabel("Usar as cores dos filamentos cadastrados")).toBeDisabled();

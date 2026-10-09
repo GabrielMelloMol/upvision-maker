@@ -58,3 +58,22 @@ test("legendas das variações são curtas e padronizadas: até 14 letras, sem p
     for (const t of f.tools ?? []) if (t.label.length > MAX_VARIANT_LABEL || /[()]/.test(t.label)) bad.push(`${f.id}/atalho ${t.page}: "${t.label}" longo demais ou com parênteses`);
   expect(bad).toEqual([]);
 });
+
+test("categorias dos Modelos prontos (onde fica): Presentes, Casa e decoração e Organização e utilidades", () => {
+  const names = (c: Parameters<typeof familiesIn>[0]) => familiesIn(c).map((f) => f.label);
+  expect(CATEGORIES.map(([, label]) => label)).toEqual(["Chaveiros", "Placas", "Presentes e lembrancinhas", "Festa e esporte", "Casa e decoração", "Organização e utilidades", "Cozinha"]);
+  expect(names("gifts")).toEqual(["Mapa estelar", "Cartão de música", "Lembrancinhas", "Porta-copos", "Marca-página"]);
+  expect(familiesIn("gifts").find((f) => f.id === "souvenirs")!.variants.map((v) => v.id)).toEqual(["fridgeMagnet", "shirtPrint", "outlineBowl"]);
+  expect(names("home")).toEqual(["Moldura", "Luminárias e abajures", "Quadro e desenho", "Vaso", "Brinquedos"]);
+  expect(names("organize")).toEqual(["Potes e organizadores", "Organizador modular (Gridfinity)", "Suporte de celular e tablet", "Tecla de teclado", "Porta-chave de parede", "Utilitários"]);
+  // nenhuma categoria ficou grande demais para achar as coisas
+  for (const [c] of CATEGORIES) expect(familiesIn(c).reduce((n, f) => n + f.variants.length, 0), c).toBeLessThanOrEqual(20);
+});
+
+test("os nomes de cada ferramenta de Criar continuam levando a ela: os ids das telas antigas não somem", async () => {
+  const pages = await import("../../pages");
+  const redirects = (pages as { PAGE_REDIRECTS?: Record<string, string> }).PAGE_REDIRECTS ?? {};
+  const OLD = ["svg", "cutter", "keychain", "medal", "extrude", "qr", "models", "spools", "lithophane", "pixel", "drawer", "toolfit", "colorsplit", "owndecal", "scad", "search3d", "ai", "projects"];
+  const known = new Set(pages.PAGES.map((p) => p.id));
+  expect(OLD.filter((id) => !known.has(id) && !(id in redirects))).toEqual([]);
+});

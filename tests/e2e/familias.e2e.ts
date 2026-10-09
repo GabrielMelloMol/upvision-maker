@@ -2,7 +2,7 @@ import AxeBuilder from "@axe-core/playwright";
 import { expect, go, openApp, test } from "./tauri";
 
 /** Galeria em famílias (#141): um card por família, variação com miniatura, atalhos para as ferramentas e busca pelo nome antigo. */
-const CATEGORIES = ["Placas", "Chaveiros", "Festa e esporte", "Casa", "Cozinha"];
+const CATEGORIES = ["Placas", "Chaveiros", "Presentes", "Festa e esporte", "Casa e decoração", "Organização", "Cozinha"];
 
 test("galeria: as famílias aparecem uma vez cada, divididas pelas abas de categoria", async ({ page }) => {
   await openApp(page);

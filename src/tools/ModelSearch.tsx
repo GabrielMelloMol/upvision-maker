@@ -74,7 +74,7 @@ export default function ModelSearch({ go }: { go: Go }) {
 
   return (
     <div className="page">
-      <h1>Buscar modelos 3D</h1>
+      <h1>Buscar modelos na internet</h1>
       <p className="lead">Busque nos principais sites de modelos.</p>
       <div className="tool-layout">
         <div className="controls">

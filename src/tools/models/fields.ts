@@ -23,10 +23,14 @@ export type Section = { title: string; fields: FieldDef[] };
 export const CATEGORIES = [
   ["keychains", "Chaveiros"],
   ["plates", "Placas"],
+  ["gifts", "Presentes e lembrancinhas"],
   ["party", "Festa e esporte"],
-  ["home", "Casa"],
+  ["home", "Casa e decoração"],
+  ["organize", "Organização e utilidades"],
   ["kitchen", "Cozinha"],
 ] as const;
+/** Nomes curtos para as abas da galeria (os completos aparecem nos títulos da Criar). */
+export const CATEGORY_TAB: Partial<Record<(typeof CATEGORIES)[number][0], string>> = { gifts: "Presentes", organize: "Organização" };
 export type Category = (typeof CATEGORIES)[number][0];
 
 export type ModelDef = {

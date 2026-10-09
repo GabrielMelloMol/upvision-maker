@@ -2,7 +2,7 @@ import { Search, SearchX, Star } from "lucide-react";
 import { useState } from "react";
 import EmptyState from "../../ui/EmptyState";
 import Segmented from "../../ui/Segmented";
-import { CATEGORIES, MODELS, type Category } from "./defs";
+import { CATEGORIES, CATEGORY_TAB, MODELS, type Category } from "./defs";
 import { familiesIn, familyOf, modelOf, type Family } from "./families";
 import { THUMBS } from "./thumbs";
 import { searchModels } from "./search";
@@ -91,7 +91,7 @@ export default function ModelGallery({ id, onPick, category, onCategory, query, 
     <div className="model-picker">
       <div className="row">
         {/* buscando ou filtrando, os resultados são de todas as categorias: nenhuma fica marcada */}
-        <Segmented label="Categoria" value={(models ? "" : category) as Category} options={CATEGORIES} onChange={pickCategory} />
+        <Segmented label="Categoria" value={(models ? "" : category) as Category} options={CATEGORIES.map(([c, label]) => [c, CATEGORY_TAB[c] ?? label] as const)} onChange={pickCategory} />
         <div className="affix has-prefix">
           <Search className="prefix" size={16} aria-hidden />
           <input type="search" placeholder="Buscar modelo" aria-label="Buscar modelo" value={query} onChange={(e) => onQuery(e.target.value)} onKeyDown={(e) => e.key === "Escape" && onQuery("")} />

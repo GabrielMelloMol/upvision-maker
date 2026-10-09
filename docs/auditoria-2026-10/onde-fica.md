@@ -11,7 +11,7 @@ Legenda: ✅ aplicado nesta rodada · ❓ precisa de decisão do Gabriel (mudan�
 | Seção | Telas |
 |---|---|
 | Início | Início |
-| Criar | Criar (galeria), Meus projetos, e 17 ferramentas: Imagem → SVG, Cortador de biscoito, Chaveiros, Medalhas, ~~Extrusão 3D~~ Desenho em 3D, QR Code e Pix, Modelos prontos, Litofania e quadro, Pixel art, Organizador de gaveta, Organizador pela foto, Separar 3MF por cor, ~~Decal no seu modelo~~ Nome ou logo no seu modelo, ~~OpenSCAD personalizável~~ Modelo personalizável (OpenSCAD), Buscar modelos, Pedir à IA, ~~Etiquetas de rolo~~ (✅ foi para Estoque) |
+| Criar | Só a galeria Criar e a ferramenta que estiver aberta (a barra nunca listou as 17 telas; elas ficam na galeria). Telas de Criar: Criar (galeria), Meus projetos, e 17 ferramentas: Imagem → SVG, Cortador de biscoito, Chaveiros, Medalhas, ~~Extrusão 3D~~ Desenho em 3D, QR Code e Pix, Modelos prontos, Litofania e quadro, Pixel art, Organizador de gaveta, Organizador pela foto, Separar 3MF por cor, ~~Decal no seu modelo~~ Nome ou logo no seu modelo, ~~OpenSCAD personalizável~~ Modelo personalizável (OpenSCAD), Buscar modelos, Pedir à IA, ~~Etiquetas de rolo~~ (✅ foi para Estoque) |
 | Vender | Pedidos, Orçamentos, Calculadora, Clientes, Produtos |
 | Estoque | Filamentos, Materiais extras, Impressoras, ✅ Etiquetas de rolo |
 | Resultados | Painel, Financeiro, Custos operacionais |
@@ -96,7 +96,7 @@ Outros achados:
 3. **Litofania × Relevo × Quadro por camadas × Shadowbox.** São quatro entradas para "foto/imagem em relevo". Proposta: uma ferramenta **Foto em relevo** com os modos Litofania, Quadro por camadas e Shadowbox (hoje o Shadowbox é um modelo à parte). Custo: mover o gerador do Shadowbox para dentro da ferramenta.
 4. **Organizador de gaveta × Organizador pela foto × Gridfinity.** Três portas para "organizar uma gaveta". Proposta: uma ferramenta **Organizadores** com três abas (medir a gaveta, pela foto da ferramenta, caixinhas Gridfinity). Hoje só estão ligadas por "Veja também".
 5. **Chaveiros ferramenta × Chaveiros modelos.** O card da ferramenta e o da família aparecem lado a lado na Criar. Proposta: deixar só a família Chaveiro e manter a ferramenta como atalho ("Nome em lote"), que já existe dentro dela.
-6. **Barra lateral: Criar abre uma lista de 17 telas.** Proposta: mostrar só as 5 mais usadas (Modelos prontos, Chaveiros, Litofania, Pixel art, QR) e "Todas as ferramentas" (a galeria Criar, que já filtra por tipo).
+6. ~~Barra lateral: Criar abre uma lista de 17 telas.~~ **Erro meu, corrigido:** desde a #139 a barra mostra só a ferramenta aberta embaixo de Criar; as 17 ficam na galeria Criar. Não havia lista para encurtar.
 7. **Mais renomes (nomes ainda técnicos):** Imagem → SVG ("Imagem em desenho (SVG)"), Separar 3MF por cor, Buscar modelos ("Buscar modelos na internet"). Mexem em ~35 arquivos de teste e na ajuda; ficaram de fora por serem decisão de produto.
 8. **Famílias de 1 item que sobram (11):** Cartão de música, Cartão de visita, Medalha, Topo de bolo, Vaso, Porta-copos, Suporte de celular, Marca-página, Tecla, Porta-chave de parede, Clipe de saco. Faz sentido se a decisão 1 ou 2 reagrupar.
 
@@ -110,3 +110,17 @@ convite · caneca/copo personalizado · bijuteria e brinco · pelúcia · relóg
 - `src/ui/SeeAlso.tsx` e `.see-also` em `components.css`.
 - `src/tools/models/families.ts`, `src/pages.tsx`, nomes e blurbs.
 - Testes: `search.test.ts` (30 buscas reais), `CommandPalette.test.tsx`, `SeeAlso.test.tsx`, busca da Criar, `onde-fica.e2e.ts` (⌘K, galeria, "Veja também" e atalhos), `search.test.ts` do `rank`.
+
+## 7. Decisões do Gabriel (aplicadas em 09/10, segunda rodada)
+
+| Decisão | O que foi feito |
+|---|---|
+| 1. Categoria **Presentes e lembrancinhas** | ✅ Nova aba "Presentes" (nome completo nos títulos da Criar): Mapa estelar (saiu de Placas, família própria), Cartão de música (saiu de Placas), Lembrancinhas (Ímã de geladeira, Camisa e a Cumbuca, que veio de Potes e organizadores), Porta-copos e Marca-página (saíram de Casa) |
+| 2. Dividir **Casa** | ✅ **Casa e decoração** (Moldura, Luminárias e abajures, Quadro e desenho, Vaso, Brinquedos) e **Organização e utilidades** (Potes e organizadores, Organizador modular (Gridfinity), Suporte de celular e tablet, Tecla de teclado, Porta-chave de parede, Utilitários). Nenhuma categoria passa de 20 modelos |
+| 3. Encurtar a barra lateral | ➖ Nada a encurtar: a lista de 17 ferramentas na barra era um erro meu (item 6 acima). A barra já mostra só a ferramenta aberta |
+| 4. Renomes diretos | ✅ **Imagem em desenho (SVG)**, **Separar cores de um 3MF**, **Buscar modelos na internet** (o nome antigo continua achando na busca) |
+| Chaveiros (card duplicado) | Não aplicado, como pedido |
+| Juntar Litofania + Quadro por camadas + Shadowbox | Com o Torno ("Foto em relevo", id `lithophane` fica; o modelo shadowbox continua no catálogo) |
+| Juntar Organizador de gaveta + pela foto + Gridfinity | Com o Lupa ("Organizadores", id `organizers`; `drawer` e `toolfit` redirecionam para as abas) |
+
+Nada se perde: os ids das telas (`lithophane`, `drawer`, `toolfit`, `svg`, `colorsplit`, `search3d`…) não mudaram; atalhos de família, "Veja também", rascunhos, Meus projetos e o ⌘K continuam levando ao lugar certo (há um teste que falha se algum id antigo sumir sem redirecionamento).

@@ -45,7 +45,7 @@ async function withImage(go = vi.fn()) {
   return { user, go, container };
 }
 
-describe("Imagem → SVG", () => {
+describe("Imagem em desenho (SVG)", () => {
   test("sair da tela revoga o blob da imagem carregada: cada visita deixava um Blob vivo (B18)", async () => {
     const revoke = vi.spyOn(URL, "revokeObjectURL").mockImplementation(() => {});
     const { container, unmount } = renderWithApp(<ImageToSvg go={vi.fn()} />);

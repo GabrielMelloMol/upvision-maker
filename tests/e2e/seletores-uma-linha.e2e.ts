@@ -19,7 +19,7 @@ for (const largura of [1280, 1000])
   test(`ações de Imagem → SVG em ${largura} px: cada botão fica em uma linha (B1)`, async ({ page }) => {
     await page.setViewportSize({ width: largura, height: 800 });
     await openApp(page);
-    await go(page, "Imagem → SVG");
+    await go(page, "Imagem em desenho (SVG)");
     await expect(page.getByRole("button", { name: "Fazer peça 3D" })).toBeVisible();
     const altos = await page.locator("main .card .grid.two > button").evaluateAll((els) => els.filter((e) => e.getBoundingClientRect().height > 40).map((e) => `${e.textContent?.trim()} (${Math.round(e.getBoundingClientRect().height)} px)`));
     expect(altos, "botões de ação com texto quebrado").toEqual([]);

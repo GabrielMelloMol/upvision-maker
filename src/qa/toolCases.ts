@@ -269,7 +269,7 @@ export function toolCases(M: ManifoldToplevel): QaCase[] {
       ["padrão", () => spool(1)],
       ["máximo", () => spool(spoolTagsThatFit(PLATE_MM - 2 * GAP_MM, GAP_MM))],
     ]),
-    ...cases("colorsplit", "Separar 3MF por cor", [
+    ...cases("colorsplit", "Separar cores de um 3MF", [
       ["padrão", () => split(1, false)],
       ["mínimo", () => split(0.2, false)],
       ["máximo", () => split(10, false)],

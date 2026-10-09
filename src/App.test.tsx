@@ -120,7 +120,7 @@ describe("App", () => {
     await seenIntro();
     const user = userEvent.setup();
     renderWithApp(<App />);
-    await user.click(screen.getByRole("button", { name: /^Buscar(?! modelos)/ })); // não o "Buscar modelos" da barra lateral
+    await user.click(screen.getByRole("button", { name: /^Buscar(?! modelos)/ })); // não o "Buscar modelos na internet" da barra lateral
     await user.type(screen.getByRole("combobox"), "calculadora{Enter}");
     expect(await screen.findByRole("heading", { name: "Calculadora de preço", level: 1 })).toBeInTheDocument();
   });

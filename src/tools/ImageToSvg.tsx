@@ -57,7 +57,7 @@ type SvgState = ReturnType<typeof initialState>;
 export default function ImageToSvg({ go }: { go: Go }) {
   // estado de trabalho: desfazer, rascunho guardado (a imagem vai junto até 4 MB) e últimos projetos (#85)
   const tool = useToolState("svg", initialState, {
-    label: "Imagem → SVG",
+    label: "Imagem em desenho (SVG)",
     save: async (s) => ({ ...s, file: await storeFile(s.file) }),
     load: async (raw) => {
       const r = raw as Omit<SvgState, "file"> & { file?: StoredFile | null };
@@ -217,7 +217,7 @@ export default function ImageToSvg({ go }: { go: Go }) {
 
   return (
     <div className="page">
-      <h1>Imagem → SVG</h1>
+      <h1>Imagem em desenho (SVG)</h1>
       <p className="lead">Logo ou desenho vira SVG de 1 a 4 cores, em mm.</p>
       <ToolSessionBar tool={tool} />
       <div className="tool-layout">

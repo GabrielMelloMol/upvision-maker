@@ -7,7 +7,7 @@ import { PLATE_MODELS } from "./catalog/plates";
 import { withBedCheck } from "./bedCheck";
 import type { ModelDef, Params } from "./fields";
 
-export { CATEGORIES, type Category, type FieldDef, type ModelDef, type Params, type Section } from "./fields";
+export { CATEGORIES, CATEGORY_TAB, type Category, type FieldDef, type ModelDef, type Params, type Section } from "./fields";
 
 /**
  * Registro único dos Modelos prontos: um arquivo por categoria em `catalog/` (veja docs/DESENVOLVIMENTO.md, "Como adicionar um

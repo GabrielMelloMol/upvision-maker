@@ -7,7 +7,7 @@ const PHASE = process.env.POLISH;
 const EMPTY = !!process.env.POLISH_EMPTY;
 test.skip(!PHASE, "só roda com POLISH=antes|depois");
 
-const PAGES = ["Início", "Criar", "Imagem → SVG", "Cortador de biscoito", "Chaveiros", "Medalhas", "Desenho em 3D", "QR Code e Pix", "Modelos prontos", "Etiquetas de rolo", "Litofania e quadro", "Pixel art", "Organizador de gaveta", "Separar 3MF por cor", "Modelo personalizável (OpenSCAD)", "Buscar modelos", "Pedir à IA", "Painel", "Pedidos", "Orçamentos", "Financeiro", "Custos operacionais", "Calculadora", "Clientes", "Produtos", "Filamentos", "Materiais extras", "Impressoras", "Dados da empresa", "Preferências"];
+const PAGES = ["Início", "Criar", "Imagem em desenho (SVG)", "Cortador de biscoito", "Chaveiros", "Medalhas", "Desenho em 3D", "QR Code e Pix", "Modelos prontos", "Etiquetas de rolo", "Litofania e quadro", "Pixel art", "Organizador de gaveta", "Separar cores de um 3MF", "Modelo personalizável (OpenSCAD)", "Buscar modelos na internet", "Pedir à IA", "Painel", "Pedidos", "Orçamentos", "Financeiro", "Custos operacionais", "Calculadora", "Clientes", "Produtos", "Filamentos", "Materiais extras", "Impressoras", "Dados da empresa", "Preferências"];
 const slug = (s: string) => s.normalize("NFD").replace(/\p{M}/gu, "").toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "");
 
 for (const width of EMPTY ? [1440] : [1100, 1440])

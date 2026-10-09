@@ -70,7 +70,7 @@ test("memória: parado, em cada ferramenta e depois de voltar para o Início", a
   };
   await at("parado");
 
-  await go(page, "Imagem → SVG");
+  await go(page, "Imagem em desenho (SVG)");
   await page.locator('input[type="file"]').setInputFiles("tests/fixtures/logo.jpg");
   await page.getByRole("button", { name: /^Aplicar/ }).click();
   await expect(page.getByText("Resultado atualizado.")).toBeVisible();

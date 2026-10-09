@@ -24,7 +24,7 @@ test("quadro por camadas: paleta pronta, formato coração com pingente e ímã 
   await page.getByRole("button", { name: "Preto e branco" }).click();
   await expect(page.getByRole("button", { name: "Preto e branco" })).toHaveAttribute("aria-pressed", "true");
   const rect = await settled(page);
-  await page.getByRole("button", { name: "Coração" }).click();
+  await page.getByRole("button", { name: "Coração", exact: true }).click();
   await page.getByRole("group", { name: "Furo para pendurar" }).getByRole("button", { name: "Pingente" }).click();
   await page.getByRole("switch", { name: /Encaixe de ímã/ }).check();
   await settled(page);

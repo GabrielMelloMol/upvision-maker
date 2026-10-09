@@ -24,7 +24,7 @@ export const ARTICLES: HelpArticle[] = [
   },
   {
     id: "svg",
-    title: "Imagem → SVG",
+    title: "Imagem em desenho (SVG)",
     intro: "Transforma um logo, desenho ou foto num contorno limpo, já no tamanho de impressão em mm.",
     steps: ["Arraste a imagem (PNG, JPG, WebP…).", "Escolha Logo / desenho (fundo liso) ou Silhueta (foto de pessoa, pet ou objeto).", "Em Cores, escolha de 1 a 4: cada cor vira uma camada que encaixa na outra.", "Ajuste a Largura final e clique em Aplicar alterações.", "Salve o SVG ou mande direto para o Cortador ou a Extrusão."],
     tips: ["Trechos em vermelho ficam com menos de 0,4 mm: use Engrossar traços finos ou aumente a largura."],
@@ -101,7 +101,7 @@ export const ARTICLES: HelpArticle[] = [
   },
   {
     id: "colorsplit",
-    title: "Separar 3MF por cor",
+    title: "Separar cores de um 3MF",
     intro: "Abra um 3MF pintado no fatiador e separe cada cor numa peça, para imprimir sem AMS.",
     steps: ["Arraste o 3MF pintado (Bambu Studio, OrcaSlicer ou PrusaSlicer).", "Confira as cores encontradas.", "Se quiser, corte pelo plano com pino de encaixe.", "Salve as peças e cole ou encaixe depois de imprimir."],
   },
@@ -154,7 +154,7 @@ export const ARTICLES: HelpArticle[] = [
   },
   {
     id: "search3d",
-    title: "Buscar modelos 3D",
+    title: "Buscar modelos na internet",
     intro: "Busca no Printables, MakerWorld, Thingiverse, Cults3D e Thangs, no navegador.",
     steps: ["Digite o que procura e busque num site ou em todos.", "Na página do modelo, confira a licença.", "Em Posso vender a peça?, escolha a licença para saber se pode vender.", "Arraste o 3MF fatiado ou o G-code para ir direto à Calculadora."],
     tips: ["NC = não comercial: pode imprimir para você, não para vender."],

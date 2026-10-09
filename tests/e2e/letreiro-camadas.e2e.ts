@@ -15,7 +15,7 @@ test("letreiro em camadas: linhas coloridas, enfeite e base contornada; 3MF por 
   await expect(page.locator(".legend")).toContainText("Linha 2");
 
   await page.getByLabel("Texto").nth(2).fill("da Ana");
-  await page.getByRole("button", { name: "Coração" }).click();
+  await page.getByRole("button", { name: "Coração", exact: true }).click();
   await idle(page);
   await expect(page.locator(".legend")).toContainText("Linha 3");
   await expect(page.locator(".legend")).toContainText("Enfeite");

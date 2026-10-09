@@ -1,7 +1,7 @@
 // Fica à parte (sem importar o catálogo de modelos) para a busca do ⌘K abrir leve.
 /** Palavras extras das telas (ferramentas) da Criar, por id da página. */
 export const PAGE_ALIASES: Record<string, string> = {
-  svg: "vetorizar vetor desenho imagem logo png jpg contorno converter",
+  svg: "svg imagem em desenho vetorizar vetor desenho imagem logo png jpg contorno converter",
   cutter: "cortador de biscoito bolacha massa fondant molde",
   keychain: "chaveiro nome argola lote",
   medal: "medalha troféu prêmio fita",
@@ -13,10 +13,10 @@ export const PAGE_ALIASES: Record<string, string> = {
   pixel: "pixel art mosaico 8 bits quebra cabeça ímã imã",
   drawer: "gaveta organizador caixinhas divisória medir gridfinity",
   toolfit: "ferramenta foto organizador encaixe contorno gridfinity gaveta",
-  colorsplit: "3mf cor separar pintado bambu",
+  colorsplit: "separar 3mf por cor dividir cores 3mf cor separar pintado bambu",
   owndecal: "decal adesivo nome logo stl 3mf face plana colar",
   scad: "openscad customizer scad parâmetros personalizar",
-  search3d: "buscar modelos internet thingiverse printables makerworld baixar stl",
+  search3d: "buscar modelos 3d internet thingiverse printables makerworld baixar stl",
   ai: "ia claude inteligência artificial descrever peça",
 };
 

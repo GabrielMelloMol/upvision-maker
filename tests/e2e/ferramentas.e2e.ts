@@ -4,7 +4,7 @@ import { expect, go, openApp, test, toastWith } from "./tauri";
 const FIX = "tests/fixtures";
 
 async function traceImage(page: Page, file: string) {
-  await go(page, "Imagem → SVG");
+  await go(page, "Imagem em desenho (SVG)");
   await page.locator('input[type="file"]').setInputFiles(`${FIX}/${file}`);
   await expect(page.getByRole("img", { name: "Imagem original" })).toBeVisible();
 }

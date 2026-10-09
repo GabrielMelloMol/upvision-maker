@@ -65,7 +65,7 @@ describe("Modelos prontos", () => {
   test("UX B2: o painel mostra o nome da família do card antes do título do modelo; atalho de outra ferramenta avisa", async () => {
     const user = userEvent.setup();
     renderWithApp(<Models />);
-    await user.click(screen.getByRole("button", { name: "Casa" }));
+    await user.click(screen.getByRole("button", { name: "Casa e decoração" }));
     await user.click(families().getByRole("button", { name: "Brinquedos" }));
     // o card se chama Brinquedos e o painel abre Quebra-cabeça: o painel mostra de qual card veio
     expect(screen.getByRole("heading", { name: "Quebra-cabeça" })).toBeInTheDocument();

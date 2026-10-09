@@ -3,7 +3,7 @@ import { expect, go, openApp, test } from "./tauri";
 
 test("buscar modelos: abre a busca de cada site, filtro de grátis, recentes, licença e arquivo fatiado para a calculadora (#77)", async ({ page, tauri }) => {
   await openApp(page);
-  await go(page, "Buscar modelos");
+  await go(page, "Buscar modelos na internet");
   await page.getByLabel("O que você procura").fill("vaso espiral");
   await page.getByRole("switch", { name: /Só modelos grátis/ }).check();
   await page.getByRole("button", { name: "Buscar no Cults3D" }).click();
@@ -27,7 +27,7 @@ test("buscar modelos: abre a busca de cada site, filtro de grátis, recentes, li
 
   // a busca fica nas recentes depois de reabrir
   await page.reload();
-  await go(page, "Buscar modelos");
+  await go(page, "Buscar modelos na internet");
   await page.getByRole("group", { name: "Buscas recentes" }).getByRole("button", { name: "vaso espiral" }).click();
   await expect(page.getByLabel("O que você procura")).toHaveValue("vaso espiral");
 
