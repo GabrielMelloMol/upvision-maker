@@ -3,6 +3,7 @@ import { useMemo, useState } from "react";
 import { costsRepo } from "../db/costsRepo";
 import { ordersRepo } from "../db/ordersRepo";
 import { productsRepo } from "../db/productsRepo";
+import { wasteRunsRepo } from "../db/wasteRunsRepo";
 import { printers } from "../db/repo";
 import type { Db } from "../db/types";
 import { toCsv } from "../domain/csv";
@@ -10,6 +11,7 @@ import { breakdown, change, financeSummary, monthlySeries, periodRange, previous
 import { money } from "../domain/format";
 import { lineTotal, orderTotals, paymentOf, todayIso, type Order } from "../domain/orders";
 import type { Product } from "../domain/products";
+import { failureShare, wasteTotals, type WasteRun } from "../domain/wasteRuns";
 import type { Printer } from "../domain/entities";
 import Button from "../ui/Button";
 import { HBars, MonthlyBars, ProfitBars, StatTile } from "../ui/charts";
@@ -21,8 +23,8 @@ import LoadError from "../ui/LoadError";
 import type { Go } from "../pages";
 import { useData } from "../ui/useData";
 
-const load = async (db: Db) => ({ orders: await ordersRepo.list(db), costs: await costsRepo.list(db), products: await productsRepo.list(db), printers: await printers.list(db) });
-const EMPTY = { orders: [] as Order[], costs: [] as OperationalCost[], products: [] as Product[], printers: [] as Printer[] };
+const load = async (db: Db) => ({ orders: await ordersRepo.list(db), costs: await costsRepo.list(db), products: await productsRepo.list(db), printers: await printers.list(db), waste: await wasteRunsRepo.list(db) });
+const EMPTY = { orders: [] as Order[], costs: [] as OperationalCost[], products: [] as Product[], printers: [] as Printer[], waste: [] as WasteRun[] };
 const NO_PRINTER = "Sem impressora";
 
 export default function Finance({ go }: { go: Go }) {
@@ -52,10 +54,14 @@ export default function Finance({ go }: { go: Go }) {
   }, [data, channel, productId, printerId]);
   const costs = printerId ? data.costs.filter((c) => String(c.printerId) === printerId) : productId ? [] : data.costs;
 
-  const s = financeSummary(orders, costs, from, to);
+  // amostras e erros não têm canal nem item: só entram sem filtro de canal, produto ou impressora
+  const waste = channel || productId || printerId ? [] : data.waste;
+  const s = financeSummary(orders, costs, from, to, waste);
   const [pFrom, pTo] = previousRange(from, to);
-  const prev = financeSummary(orders, costs, pFrom, pTo);
-  const series = monthlySeries(orders, costs, from, to);
+  const prev = financeSummary(orders, costs, pFrom, pTo, waste);
+  const lost = wasteTotals(waste, from, to);
+  const failPct = failureShare(lost.failure, s.cogs);
+  const series = monthlySeries(orders, costs, from, to, waste);
   const byChannel = breakdown(orders, from, to, (o) => o.channel);
   const byProduct = breakdown(orders, from, to, (_o, i) => i.description).slice(0, 8);
   const byPrinter = breakdown(orders, from, to, (_o, i) => printerName(i.productId));
@@ -68,7 +74,7 @@ export default function Finance({ go }: { go: Go }) {
       const total = orderTotals(o.items, o.freight).total;
       o.items.forEach((i, k) => rows.push([o.id, o.deliveredAt, o.customerName, o.channel, i.description, i.qty, i.unitPrice, i.discountPct, lineTotal(i), i.unitCost, Math.round((lineTotal(i) - i.unitCost * i.qty) * 100) / 100, k === 0 ? o.freight : null, k === 0 ? total : null]));
     }
-    rows.push([], ["Resumo", `${from} a ${to}`], ["Receita", s.revenue], ["Custo das peças", s.cogs], ["Despesas operacionais", s.expenses], ["Lucro", s.profit], ["Horas de impressão", s.machineHours], ["R$ por hora de impressão", s.revenuePerHour]);
+    rows.push([], ["Resumo", `${from} a ${to}`], ["Receita", s.revenue], ["Custo das peças", s.cogs], ["Despesas operacionais", s.expenses], ["Amostras e erros de impressão", s.waste], ["Lucro", s.profit], ["Horas de impressão", s.machineHours], ["R$ por hora de impressão", s.revenuePerHour]);
     try {
       const path = await saveFile(`financeiro-${from}-a-${to}.csv`, toCsv(rows), "csv", "Planilha CSV");
       if (path) toast(`Planilha salva em ${path}`);
@@ -146,6 +152,7 @@ export default function Finance({ go }: { go: Go }) {
         <StatTile label="Receita" value={money(s.revenue)} delta={change(s.revenue, prev.revenue)} hint={`${s.orders} pedidos entregues`} />
         <StatTile label="Custo das peças" value={money(s.cogs)} delta={change(s.cogs, prev.cogs)} upIsGood={false} />
         <StatTile label="Custos operacionais" value={money(s.expenses)} delta={change(s.expenses, prev.expenses)} upIsGood={false} hint={productId ? "não se aplicam a um produto" : undefined} />
+        <StatTile label="Amostras e erros" value={money(s.waste)} delta={change(s.waste, prev.waste)} upIsGood={false} hint={s.waste > 0 ? `${money(lost.failure)} em erros · ${money(lost.sample)} em amostras${failPct !== null ? ` · erros são ${failPct.toLocaleString("pt-BR")}% do custo de produção` : ""}` : "Filamento gasto fora das vendas; registre em Filamentos."} />
         <StatTile label="Lucro" value={money(s.profit)} delta={change(s.profit, prev.profit)} deltaMoney={s.profit < 0 || prev.profit < 0 ? s.profit - prev.profit : undefined} tone={s.profit < 0 ? "bad" : undefined} hint={s.profit < 0 ? "prejuízo no período" : undefined} />
         <StatTile label="R$ por hora de impressão" value={s.revenuePerHour === null ? "—" : money(s.revenuePerHour)} hint={s.machineHours > 0 ? `${s.machineHours.toLocaleString("pt-BR")} h de máquina (faturamento, não lucro)` : "Cadastre o tempo de impressão dos produtos para ver este número."} />
         <StatTile label="A receber (todos os pedidos)" value={money(data.orders.reduce((t, o) => t + paymentOf(o).due, 0))} hint="Pedidos não cancelados, mesmo os ainda não entregues." />

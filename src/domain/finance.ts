@@ -1,6 +1,7 @@
 import { z } from "zod";
 import { round2 } from "./format";
 import { lineTotal, orderTotals, todayIso, type Order, type OrderItem } from "./orders";
+import { wasteTotals, type WasteRun } from "./wasteRuns";
 
 export const FREQUENCIES = ["once", "weekly", "monthly", "yearly"] as const;
 export const FREQUENCY_LABEL: Record<(typeof FREQUENCIES)[number], string> = { once: "Único", weekly: "Semanal", monthly: "Mensal", yearly: "Anual" };
@@ -53,19 +54,21 @@ const deliveredIn = (orders: Order[], from: string, to: string) => orders.filter
 
 const cogsOf = (o: Order) => o.items.reduce((s, i) => s + i.unitCost * i.qty, 0);
 
-export type FinanceSummary = { revenue: number; cogs: number; expenses: number; profit: number; orders: number; machineHours: number; revenuePerHour: number | null; averageTicket: number | null };
+export type FinanceSummary = { revenue: number; cogs: number; expenses: number; /** Material de amostras e erros de impressão (#189), fora das vendas. */ waste: number; profit: number; orders: number; machineHours: number; revenuePerHour: number | null; averageTicket: number | null };
 
-export function financeSummary(orders: Order[], costs: OperationalCost[], from: string, to: string): FinanceSummary {
+export function financeSummary(orders: Order[], costs: OperationalCost[], from: string, to: string, wasteRuns: WasteRun[] = []): FinanceSummary {
   const done = deliveredIn(orders, from, to);
   const revenue = round2(done.reduce((s, o) => s + orderTotals(o.items, o.freight).total, 0));
   const cogs = round2(done.reduce((s, o) => s + cogsOf(o), 0));
   const expenses = round2(expensesIn(costs, from, to));
+  const waste = wasteTotals(wasteRuns, from, to).total;
   const machineHours = round2(done.reduce((s, o) => s + o.items.reduce((t, i) => t + i.printMinutes * i.qty, 0), 0) / 60);
   return {
     revenue,
     cogs,
     expenses,
-    profit: round2(revenue - cogs - expenses),
+    waste,
+    profit: round2(revenue - cogs - expenses - waste),
     orders: done.length,
     machineHours,
     // faturamento (não lucro) por hora de máquina, como na referência
@@ -92,13 +95,13 @@ export function monthsBetween(from: string, to: string): string[] {
 export type MonthPoint = { month: string; revenue: number; costs: number; profit: number };
 
 /** Receita × custos (peças + despesas) por mês, limitado ao período. */
-export function monthlySeries(orders: Order[], costs: OperationalCost[], from: string, to: string): MonthPoint[] {
+export function monthlySeries(orders: Order[], costs: OperationalCost[], from: string, to: string, wasteRuns: WasteRun[] = []): MonthPoint[] {
   return monthsBetween(from, to).map((month) => {
     const [y, m] = month.split("-").map(Number);
     const a = `${month}-01` < from ? from : `${month}-01`;
     const b = `${month}-${pad(lastDay(y, m))}` > to ? to : `${month}-${pad(lastDay(y, m))}`;
-    const s = financeSummary(orders, costs, a, b);
-    return { month, revenue: s.revenue, costs: round2(s.cogs + s.expenses), profit: s.profit };
+    const s = financeSummary(orders, costs, a, b, wasteRuns);
+    return { month, revenue: s.revenue, costs: round2(s.cogs + s.expenses + s.waste), profit: s.profit };
   });
 }
 

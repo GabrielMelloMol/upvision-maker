@@ -2,6 +2,7 @@ import { PrintLogInput } from "../domain/printLogs";
 import { z } from "zod";
 import { FilamentInput, MaterialInput, PrinterInput } from "../domain/entities";
 import { ConsignmentInput } from "../domain/consignments";
+import { WasteRunInput } from "../domain/wasteRuns";
 import { CustomerInput } from "../domain/customers";
 import { OperationalCostInput } from "../domain/finance";
 import { OrderInput, OrderItem, STATUSES } from "../domain/orders";
@@ -52,6 +53,7 @@ export const TABLES = {
   calc_history: CalcHistoryInput.extend({ id }),
   model_variants: ModelVariantInput.extend({ id }),
   consignments: ConsignmentInput.omit({ items: true }).extend({ id, items: z.string(), active: z.number().int(), lastRestockAt: z.string().nullable(), createdAt: z.string() }), // #184; items = JSON na linha, active 0/1
+  waste_runs: WasteRunInput.omit({ lines: true }).extend({ id, lines: z.string(), cost: z.number().min(0) }), // #189; lines = JSON na linha
   tool_state: ToolStateRow,
   // favorito e tags são NOT NULL no banco; backup de antes da biblioteca (#161) não traz: ganham o padrão (A2)
   tool_projects: ToolProjectInput.extend({ id, favorite: z.union([z.boolean(), z.number()]).default(0), tags: z.string().default("[]") }),

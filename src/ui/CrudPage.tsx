@@ -66,6 +66,8 @@ type Props = {
   catalog?: { title: string; icon: LucideIcon; items: CatalogItem[]; toForm: (id: string) => Record<string, string> };
   /** "Duplicar" na linha: abre um novo cadastro com os valores da linha, ajustados por esta função. */
   duplicate?: (values: Record<string, string>) => Record<string, string>;
+  /** Botões extras no topo da página, ao lado de "Adicionar". */
+  actions?: ReactNode;
 };
 
 const SKELETON_ROWS = 3;
@@ -94,7 +96,7 @@ function show(f: Field, r: Row) {
 /** Texto do campo ao editar um registro existente. */
 const toText = (f: Field, v: unknown) => (v == null ? "" : f.kind === "money" ? formatMoneyInput(String(v)) : String(v));
 
-export default function CrudPage({ pageId, title, singular, lead, repo, fields, defaults, sticky = [], empty, isLow, restock, catalog, duplicate }: Props) {
+export default function CrudPage({ pageId, title, singular, lead, repo, fields, defaults, sticky = [], empty, isLow, restock, catalog, duplicate, actions }: Props) {
   const [rows, reload, loading, loadError] = useData((db) => repo.list(db), [] as Row[]);
   const [form, setForm] = useState(defaults);
   const [editing, setEditing] = useState<number | null>(null);
@@ -313,10 +315,15 @@ export default function CrudPage({ pageId, title, singular, lead, repo, fields, 
           <h1>{title}</h1>
           {lead && <p className="lead">{lead}</p>}
         </div>
-        {!formOpen && (
-          <Button variant="primary" icon={Plus} onClick={() => focusForm()}>
-            Adicionar {singular.toLowerCase()}
-          </Button>
+        {(actions || !formOpen) && (
+          <div className="row">
+            {actions}
+            {!formOpen && (
+              <Button variant="primary" icon={Plus} onClick={() => focusForm()}>
+                Adicionar {singular.toLowerCase()}
+              </Button>
+            )}
+          </div>
         )}
       </div>
       {formOpen && (

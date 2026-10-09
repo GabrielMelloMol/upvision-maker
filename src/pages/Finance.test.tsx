@@ -66,6 +66,16 @@ describe("Financeiro", () => {
     expect(text(tile("Ticket médio"))).toContain("R$ 152,50");
   });
 
+  test("amostras e erros (#189): aparecem separados, tiram do lucro e dizem a parte do custo que se perdeu", async () => {
+    await seed(); // lucro de -R$ 65,00 sem perdas
+    await t.db.execute("INSERT INTO waste_runs (kind, at, productId, printerId, lines, cost, notes) VALUES ('failure', '2026-06-01', 1, NULL, '[]', 30, ''), ('sample', '2026-05-20', NULL, NULL, '[]', 10, ''), ('failure', '2026-02-01', NULL, NULL, '[]', 500, '')");
+    renderWithApp(<Finance go={() => {}} />);
+    await waitFor(() => expect(text(tile("Amostras e erros"))).toContain("R$ 40,00")); // só 1/abr a 30/jun
+    expect(text(tile("Amostras e erros"))).toContain("R$ 30,00 em erros · R$ 10,00 em amostras · erros são 30% do custo de produção"); // 30 de (70 + 30)
+    expect(text(tile("Lucro"))).toContain("-R$ 105,00");
+    expect(text(tile("Receita"))).toContain("R$ 305,00");
+  });
+
   test("breakdown por canal, produto e impressora (sem impressora aparece separado)", async () => {
     await seed();
     renderWithApp(<Finance go={() => {}} />);

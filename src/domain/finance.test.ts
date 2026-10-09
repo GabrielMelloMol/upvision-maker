@@ -128,3 +128,15 @@ test("custos fixos por hora de impressão: mensal equivalente ÷ horas do mês; 
   expect(fixedCostPerHour(costs, { includeFixedCosts: true, productiveHoursMonth: 120 }, "2026-06-15")).toBe(2.5);
   expect(fixedCostPerHour(costs, { includeFixedCosts: false, productiveHoursMonth: 120 }, "2026-06-15")).toBe(0);
 });
+
+describe("amostras e erros no resumo (#189)", () => {
+  test("a perda do período entra no resumo e tira do lucro, sem mexer na receita; na série mensal também", () => {
+    const delivered = [order({})]; // receita 150, custo 40 (entregue em 5/3)
+    const waste = [{ id: 1, kind: "failure" as const, at: "2026-03-10", productId: null, printerId: null, lines: [], cost: 12, notes: "" }, { id: 2, kind: "sample" as const, at: "2026-04-01", productId: null, printerId: null, lines: [], cost: 99, notes: "" }];
+    const without = financeSummary(delivered, [], "2026-03-01", "2026-03-31");
+    const withWaste = financeSummary(delivered, [], "2026-03-01", "2026-03-31", waste);
+    expect(without.waste).toBe(0);
+    expect(withWaste).toMatchObject({ revenue: without.revenue, cogs: without.cogs, waste: 12, profit: without.profit - 12 });
+    expect(monthlySeries(delivered, [], "2026-03-01", "2026-03-31", waste)[0]).toMatchObject({ profit: withWaste.profit, costs: without.cogs + 12 });
+  });
+});

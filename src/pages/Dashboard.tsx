@@ -2,6 +2,7 @@ import { AlertTriangle, CalendarClock, CheckCircle2, CircleAlert, PackageSearch,
 import { costsRepo } from "../db/costsRepo";
 import { ordersRepo } from "../db/ordersRepo";
 import { productsRepo } from "../db/productsRepo";
+import { wasteRunsRepo } from "../db/wasteRunsRepo";
 import { filaments, materials } from "../db/repo";
 import type { Db } from "../db/types";
 import type { Filament, Material } from "../domain/entities";
@@ -10,6 +11,7 @@ import { money } from "../domain/format";
 import { isLate, orderTotals, paymentOf, STATUS_LABEL, todayIso, type Order } from "../domain/orders";
 import { addDays } from "../domain/quotes";
 import type { Product } from "../domain/products";
+import type { WasteRun } from "../domain/wasteRuns";
 import type { Go } from "../pages";
 import Button from "../ui/Button";
 import { StatTile } from "../ui/charts";
@@ -17,8 +19,8 @@ import LoadError from "../ui/LoadError";
 import { setPendingOpen } from "../ui/search";
 import { useData } from "../ui/useData";
 
-const load = async (db: Db) => ({ orders: await ordersRepo.list(db), costs: await costsRepo.list(db), products: await productsRepo.list(db), filaments: await filaments.list(db), materials: await materials.list(db) });
-const EMPTY = { orders: [] as Order[], costs: [] as OperationalCost[], products: [] as Product[], filaments: [] as Filament[], materials: [] as Material[] };
+const load = async (db: Db) => ({ orders: await ordersRepo.list(db), costs: await costsRepo.list(db), products: await productsRepo.list(db), filaments: await filaments.list(db), materials: await materials.list(db), waste: await wasteRunsRepo.list(db) });
+const EMPTY = { orders: [] as Order[], costs: [] as OperationalCost[], products: [] as Product[], filaments: [] as Filament[], materials: [] as Material[], waste: [] as WasteRun[] };
 const WINDOW_DAYS = 30;
 const OPEN = new Set(["pending", "production", "done"]);
 const dateBr = (iso: string) => iso.split("-").reverse().slice(0, 2).join("/");
@@ -33,12 +35,12 @@ export default function Dashboard({ go }: { go: Go }) {
   const [data, reload, , error] = useData(load, EMPTY);
   const today = todayIso();
   const [mFrom, mTo] = periodRange("month", today);
-  const month = financeSummary(data.orders, data.costs, mFrom, mTo);
+  const month = financeSummary(data.orders, data.costs, mFrom, mTo, data.waste);
   const [lFrom, lEnd] = periodRange("lastMonth", today);
   // compara com o mesmo trecho do mês passado (do dia 1 até o mesmo dia), não com o mês inteiro: no começo do mês,
   // "R$ 0,00 ▼ 100%" assustava (UX B6)
   const lTo = `${lEnd.slice(0, 8)}${String(Math.min(Number(today.slice(8)), Number(lEnd.slice(8)))).padStart(2, "0")}`;
-  const last = financeSummary(data.orders, data.costs, lFrom, lTo);
+  const last = financeSummary(data.orders, data.costs, lFrom, lTo, data.waste);
   const open = data.orders.filter((o) => OPEN.has(o.status));
   const late = open.filter((o) => isLate(o, today));
   const week = open.filter((o) => o.dueDate && o.dueDate <= addDays(today, 7)).sort((a, b) => (a.dueDate ?? "").localeCompare(b.dueDate ?? ""));

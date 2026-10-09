@@ -126,6 +126,10 @@ export const MIGRATIONS: string[][] = [
   ],
   // Impressora por pedido (#188).
   ["ALTER TABLE orders ADD COLUMN printerId INTEGER"],
+  // Amostras e erros de impressão (#189): consumo de filamento fora das vendas, com o custo do material.
+  [
+    "CREATE TABLE waste_runs (id INTEGER PRIMARY KEY, kind TEXT NOT NULL, at TEXT NOT NULL, productId INTEGER, printerId INTEGER, lines TEXT NOT NULL, cost REAL NOT NULL, notes TEXT NOT NULL DEFAULT '')",
+  ],
 ];
 
 export const SCHEMA_VERSION = MIGRATIONS.length;
