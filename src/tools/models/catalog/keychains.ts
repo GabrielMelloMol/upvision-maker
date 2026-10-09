@@ -121,8 +121,8 @@ export const KEYCHAIN_MODELS: ModelDef[] = [
       {
         title: "Celular e placa",
         fields: [
-          num("deviceThickness", "Espessura do aparelho (mm)", 5, 16, { step: 0.5, hint: "Com a capinha: celular fica perto de 10 a 12 mm. A folga de 1 mm já vem somada." }),
-          num("angle", "Inclinação do aparelho (°)", 55, 75, { step: 1, hint: "Ângulo com a mesa; o aparelho se apoia inclinado para o lado da argola." }),
+          num("deviceThickness", "Espessura do aparelho", 5, 16, { step: 0.5, hint: "Com a capinha: celular fica perto de 10 a 12 mm. A folga de 1 mm já vem somada." }),
+          num("angle", "Inclinação do aparelho", 55, 75, { unit: "°", step: 1, hint: "Ângulo com a mesa; o aparelho se apoia inclinado para o lado da argola." }),
           num("thickness", "Espessura da placa", 9, 16, { step: 0.5, hint: "Precisa de fundo para a fenda: 12 mm serve para celular." }),
           num("relief", "Relevo da arte", 0.4, 2),
         ],
