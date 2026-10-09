@@ -4,30 +4,45 @@
  * computador; Ajustes → Aparência → "Reiniciar dicas" mostra tudo de novo.
  *
  * O alvo de cada passo é achado sem mexer nas telas: `sel` (seletor CSS), `button` (nome do botão ou link) ou `field`
- * (rótulo do campo). Passo cujo alvo não está na tela é pulado. `wait` = o tour espera a pessoa clicar ou digitar ali.
+ * (rótulo do campo). O alvo de cada passo tem que existir e estar visível: se não aparecer, o passo é pulado e registrado, e o
+ * teste `tests/e2e/tour-completo.e2e.ts` percorre todos os passos de todas as telas e falha. `wait` = o tour espera a pessoa clicar ou digitar ali.
  */
 import { useSyncExternalStore } from "react";
 import { modKey } from "../ui/shortcuts";
 
-export type TourStep = { sel?: string; button?: string; field?: string; text: string; wait?: "click" | "input" };
+export type TourStep = { sel?: string; button?: string; field?: string; text: string; wait?: "click" | "input"; /** O alvo só existe em certos casos (ex.: uma linha da tabela): sem ele o passo é pulado sem alarme; o teste dos tours dá a ele os dados que precisa. */ optional?: boolean };
 export type Tour = { id: string; steps: TourStep[] };
 
 export const TOURS: Tour[] = [
   {
     id: "home",
     steps: [
-      { sel: ".sidebar .scroll", text: "Aqui ficam as seções do app: Criar, Vender, Estoque e Resultados." },
-      { sel: ".home-actions", text: "Atalhos para o que você mais faz: um chaveiro, um preço, um orçamento." },
-      { button: "Buscar", text: `A busca acha telas, produtos e clientes. Atalho: ${modKey()}K.` },
-      { sel: ".sidebar .theme-toggle", text: "Claro ou escuro, quando quiser." },
+      { sel: ".sidebar .scroll", text: "Aqui ficam as seções do app: Criar, Vender, Estoque, Resultados e Ajustes." },
+      { sel: ".home-actions", text: "Atalhos para o que você mais faz: um chaveiro, um modelo pronto, um preço, um orçamento." },
+      { sel: ".home > .occasion-card", optional: true, text: "A próxima data comemorativa aparece aqui: clique para ver os modelos prontos para ela." },
+      { button: "Buscar", text: `A busca acha telas, modelos prontos, produtos e clientes. Atalho: ${modKey()}K.` },
+      { sel: ".sidebar .theme-toggle", optional: true, text: "Claro ou escuro, quando quiser (com a barra lateral estreita, o botão fica nas Preferências)." },
     ],
   },
   {
     id: "create",
     steps: [
-      { field: "Buscar ferramenta ou modelo", text: "Digite o que quer fazer, por exemplo “chaveiro”.", wait: "input" },
+      { field: "Buscar ferramenta ou modelo", text: "Digite o que quer fazer, por exemplo “chaveiro”, “geladeira” ou “Dia das Mães”.", wait: "input" },
       { sel: ".create-filters [role='group']", text: "Ou filtre pelo que você tem em mãos." },
-      { sel: ".create-tools", text: "Clique numa ferramenta para abrir. Ela aparece embaixo de Criar na barra." },
+      { sel: ".create-tools", text: "Ferramentas: clique numa para abrir. Ela aparece embaixo de Criar na barra." },
+      { sel: ".create-models", text: "Modelos prontos, por categoria: Chaveiros, Placas, Festa e esporte, Presentes e lembrancinhas, Casa e decoração, Organização e utilidades e Cozinha." },
+      { sel: ".create-projects", text: "Meus projetos guarda tudo o que você já fez, para abrir de novo." },
+    ],
+  },
+  {
+    id: "models",
+    steps: [
+      { field: "Buscar modelo", text: "Procure pelo que você vende ou quer dar de presente; a busca entende sinônimos." },
+      { sel: "[role='group'][aria-label='Ocasião']", text: "Ou veja por data: Dia das Mães, Natal, Páscoa, aniversário…" },
+      { sel: "[role='group'][aria-label='Categoria']", text: "As categorias: Chaveiros, Placas, Festa e esporte, Presentes, Casa e decoração, Organização e Cozinha." },
+      { sel: "[role='group'][aria-label='Família']", text: "Cada cartão é uma família de modelos parecidos; dentro dela você escolhe a variação." },
+      { sel: ".viewer", text: "A prévia 3D muda enquanto você digita: arraste para girar." },
+      { button: "Salvar 3MF", text: "Pronto? Salve o 3MF e abra no fatiador." },
     ],
   },
   {
@@ -36,6 +51,23 @@ export const TOURS: Tour[] = [
       { field: "Texto", text: "Digite o nome do chaveiro.", wait: "input" },
       { sel: ".viewer", text: "A prévia 3D: arraste para girar e role para aproximar." },
       { button: "Salvar 3MF", text: "Pronto? Salve o 3MF e abra no fatiador." },
+    ],
+  },
+  {
+    id: "lithophane",
+    steps: [
+      { sel: ".relief-cards", text: "Escolha o que quer fazer com a foto: Litofania, Colorida, Relevo, Quadro por camadas ou Shadowbox.", wait: "click" },
+      { sel: "[role='group'][aria-label='Tipo']", text: "São cinco abas: dá para trocar de jeito a qualquer momento." },
+      { sel: ".dropzone", optional: true, text: "Envie a foto aqui: rostos e paisagens com bom contraste ficam melhores." },
+      { sel: ".preview-col", text: "A prévia mostra o resultado; na litofania, também como ela fica contra a luz." },
+      { button: "Salvar 3MF", text: "Pronto? Salve o 3MF e abra no fatiador." },
+    ],
+  },
+  {
+    id: "organizers",
+    steps: [
+      { sel: ".org-choices", text: "Como você quer organizar? Pela medida da gaveta, pela foto das ferramentas ou com caixinhas Gridfinity soltas.", wait: "click" },
+      { sel: "[role='tablist'][aria-label='Jeito de organizar']", text: "As abas deixam trocar de jeito sem perder o que já fez em cada um." },
     ],
   },
   {
@@ -54,10 +86,31 @@ export const TOURS: Tour[] = [
     ],
   },
   {
+    id: "customers",
+    steps: [
+      { button: "Novo cliente", text: "O cadastro abre numa folha ao lado: preencha e salve sem sair da lista." },
+      { sel: "main .menu-wrap > button", optional: true, text: "Em cada linha, o menu ⋯ tem Editar, Duplicar e Excluir." },
+    ],
+  },
+  {
+    id: "products",
+    steps: [
+      { button: "Novo produto", text: "O cadastro abre numa folha ao lado: preencha e salve sem sair da lista." },
+      { sel: "main .menu-wrap > button", optional: true, text: "Em cada linha, o menu ⋯ tem Editar, Duplicar e Excluir." },
+    ],
+  },
+  {
     id: "filaments",
     steps: [
-      { button: "Escolher do catálogo", text: "Ache seu filamento no catálogo: marca e preço já vêm preenchidos." },
-      { button: "Adicionar", text: "Confira o estoque e adicione." },
+      { button: "Adicionar filamento", text: "O cadastro abre numa folha ao lado, com “Escolher do catálogo”: marca e preço já vêm preenchidos." },
+      { sel: "main .menu-wrap > button", optional: true, text: "Em cada linha, o menu ⋯ tem Editar, Duplicar e Excluir." },
+    ],
+  },
+  {
+    id: "preferences",
+    steps: [
+      { sel: ".prefs-nav", text: "As preferências são divididas em seções: custos, preço, falhas e impostos, canais de venda, aparência, dados e ferramentas. O app lembra a última aberta." },
+      { button: "Salvar preferências", text: "Nas quatro primeiras seções, salve aqui. Uma seção com “Corrigir” tem um campo a acertar." },
     ],
   },
 ];
@@ -106,11 +159,6 @@ export function resetTours(): void {
 export function startTour(id: string): void {
   if (!tourFor(id)) return;
   open = id;
-  emit();
-}
-/** Fecha sem marcar como visto (o tour não chegou a mostrar nada). */
-export function cancelTour(): void {
-  open = null;
   emit();
 }
 export function endTour(): void {

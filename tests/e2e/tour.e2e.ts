@@ -10,10 +10,10 @@ test("tour guiado (#158): 1ª visita acende o alvo, Enter/Voltar/Pular, passo in
   // Início: balão com contador, Enter avança, Voltar volta, Pular fecha
   const tour = page.getByRole("dialog", { name: /seções do app/ });
   await expect(tour).toBeVisible({ timeout: 15_000 });
-  await expect(tour).toContainText("1 de 4");
+  await expect(tour).toContainText("1 de 5");
   await expect(page.locator(".tour-spot")).toBeVisible();
   await page.keyboard.press("Enter");
-  await expect(page.getByRole("dialog", { name: /Atalhos/ })).toContainText("2 de 4");
+  await expect(page.getByRole("dialog", { name: /Atalhos/ })).toContainText("2 de 5");
   await page.getByRole("button", { name: "Voltar" }).click();
   await expect(page.getByRole("dialog", { name: /seções do app/ })).toBeVisible();
   await page.getByRole("button", { name: "Pular", exact: true }).click();
@@ -39,6 +39,9 @@ test("tour guiado (#158): 1ª visita acende o alvo, Enter/Voltar/Pular, passo in
   await expect(page.getByRole("dialog", { name: /Digite o que quer fazer/ })).toBeVisible();
   await page.getByRole("button", { name: "Fechar o tour" }).click();
   await go(page, "Ajustes");
+  // Preferências também tem tour (1ª visita): pula para chegar ao botão
+  await expect(page.getByRole("dialog", { name: /divididas em seções/ })).toBeVisible({ timeout: 15_000 });
+  await page.getByRole("button", { name: "Pular", exact: true }).click();
   await prefsSection(page, "Aparência");
   await page.getByRole("button", { name: "Reiniciar dicas" }).click();
   await go(page, "Início");

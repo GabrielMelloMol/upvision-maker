@@ -1,7 +1,7 @@
 import { X } from "lucide-react";
-import { useEffect, useLayoutEffect, useRef, useState } from "react";
+import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
-import { cancelTour, endTour, startTour, tourFor, tourSeen, useOpenTour, type Tour, type TourStep } from "../help/tours";
+import { endTour, startTour, tourFor, tourSeen, useOpenTour, type Tour, type TourStep } from "../help/tours";
 
 /** Espera a abertura e os modais saírem antes de começar (nunca abre sobre um modal). */
 const POLL_MS = 400;
@@ -39,7 +39,7 @@ export default function TourHost({ pageId }: { pageId: string }) {
     const t = setInterval(() => {
       if (++polls > MAX_POLLS) return clearInterval(t);
       if (document.getElementById("splash") || document.querySelector("dialog[open]")) return;
-      if (!tourFor(pageId)!.steps.some((s) => findTarget(s))) return; // a tela ainda não montou
+      if (!tourFor(pageId)!.steps.some((s) => !s.optional && findTarget(s))) return; // a tela ainda não montou
       clearInterval(t);
       startTour(pageId);
     }, POLL_MS);
@@ -51,19 +51,51 @@ export default function TourHost({ pageId }: { pageId: string }) {
 
 type Spot = { x: number; y: number; w: number; h: number };
 
+/** Um passo cujo alvo ainda não está na tela (abriu depois de um clique, por exemplo) espera até aqui; depois é pulado e registrado. */
+const RESOLVE_POLLS = 30;
+const RESOLVE_MS = 100;
+
+/** Registro dos passos pulados, lido pelo teste que percorre todos os tours (um alvo que sumiu da tela é bug). */
+function reportSkipped(tour: Tour, i: number): void {
+  const root = document.documentElement.dataset;
+  const key = tour.steps[i].optional ? "tourSkippedOptional" : "tourSkipped";
+  root[key] = `${root[key] ?? ""}${tour.id}:${i + 1};`;
+  if (!tour.steps[i].optional) console.warn(`Tour "${tour.id}": o passo ${i + 1} (“${tour.steps[i].text}”) não achou o alvo na tela.`);
+}
+
 function TourRun({ tour }: { tour: Tour }) {
-  // só os passos cujo alvo está na tela agora
-  const [steps] = useState(() => tour.steps.map((s) => ({ s, el: findTarget(s) })).filter((x): x is { s: TourStep; el: HTMLElement } => !!x.el));
+  const steps = tour.steps;
   const [i, setI] = useState(0);
+  const [found, setFound] = useState<{ i: number; el: HTMLElement } | null>(null);
   const [spot, setSpot] = useState<Spot | null>(null);
   const pop = useRef<HTMLDivElement>(null);
-  const cur = steps[i];
+  const cur = useMemo(() => (found && found.i === i ? { s: steps[i], el: found.el } : null), [found, i, steps]); // estável: os efeitos abaixo dependem dele
   const last = i === steps.length - 1;
   const next = () => (last ? endTour() : setI(i + 1));
 
+  // sinal para os testes: enquanto o tour roda (mesmo entre dois balões), <html data-tour-open> traz o id
   useEffect(() => {
-    if (!steps.length) cancelTour(); // nada na tela para mostrar: não conta como visto
-  }, [steps.length]);
+    document.documentElement.dataset.tourOpen = tour.id;
+    return () => void delete document.documentElement.dataset.tourOpen;
+  }, [tour.id]);
+
+  // acha o alvo do passo atual (ele pode aparecer depois do clique no passo anterior); se não vier, pula e registra
+  useEffect(() => {
+    let polls = 0;
+    const t = setInterval(() => {
+      const el = findTarget(steps[i]);
+      if (el) {
+        clearInterval(t);
+        setFound({ i, el });
+      } else if (++polls > RESOLVE_POLLS) {
+        clearInterval(t);
+        reportSkipped(tour, i);
+        if (i === steps.length - 1) endTour();
+        else setI(i + 1);
+      }
+    }, RESOLVE_MS);
+    return () => clearInterval(t);
+  }, [i, steps, tour]);
 
   // acompanha o alvo (rolagem, janela mudando de tamanho)
   useLayoutEffect(() => {
