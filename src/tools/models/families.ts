@@ -39,7 +39,7 @@ export const FAMILIES: Family[] = [
   { id: "medal", label: "Medalha", category: "party", variants: [{ id: "adaptiveMedal", label: "No contorno do desenho" }], tools: [{ page: "medal", label: "Redonda e formatos", first: true }] },
   { id: "souvenirs", label: "Lembrancinhas", category: "party", variants: [{ id: "fridgeMagnet", label: "Ímã de geladeira" }, { id: "shirtPrint", label: "Estampa de camisa" }] },
   { id: "cake", label: "Topo de bolo", category: "party", variants: [{ id: "cake", label: "Topo de bolo" }] },
-  { id: "christmas", label: "Enfeite de Natal", category: "party", variants: [{ id: "snowflake", label: "Floco de neve" }] },
+  { id: "christmas", label: "Enfeite de Natal", category: "party", variants: [{ id: "snowflake", label: "Floco de neve" }, { id: "ornamentSpinner", label: "Enfeite giratório" }] },
   { id: "letters", label: "Letras e palavras", category: "party", variants: [{ id: "layeredSign", label: "Letreiro em camadas" }, { id: "wallLetters", label: "Letras para parede" }, { id: "bigLetter", label: "Letra grande" }, { id: "ledLetter", label: "Letra caixa LED" }, { id: "wordDecor", label: "Palavras encaixadas" }] },
   { id: "frame", label: "Moldura", category: "home", variants: [{ id: "windowFrame", label: "Shaker com janela" }, { id: "photoHolder", label: "Porta-foto" }] },
   { id: "wallArt", label: "Quadro e desenho", category: "home", variants: [{ id: "stringArt", label: "String art" }, { id: "lineArt", label: "Desenho em pé" }, { id: "coloring", label: "Plaquinha de colorir" }, { id: "goalBoard", label: "Quadro de metas" }, { id: "shadowbox", label: "Em camadas (shadowbox)" }] },

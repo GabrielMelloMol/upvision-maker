@@ -5,6 +5,7 @@ Formato: `## <versão> — <data>` e itens `- …` em linguagem simples.
 
 ## Próxima versão (ainda não lançada)
 - **Ímã de geladeira**: em Modelos prontos (Festa e esporte), nome ou desenho em relevo no contorno da arte, com 1 a 5 bolsos fechados para ímãs de neodímio (diâmetro e altura à sua escolha) e pausa no 3MF para inserir os ímãs; se não couberem todos, o app coloca os que cabem e avisa. Dá para fazer em lote para lembrancinhas.
+- **Enfeite giratório**: em Modelos prontos (Festa e esporte › Enfeite de Natal), disco que gira dentro do aro, impresso já montado, com gancho de pendurar, texto curvo ou a sua arte (colorida vira várias cores) e enfeites no aro (estrelas, bolinhas ou sinos); 4 variações na coleção Natal. Imprima com a face da arte para baixo (#107)
 
 ## 0.11.2 — 2026-10-09
 - **Quadro em camadas (shadowbox)**: em Modelos prontos (Casa), envie uma imagem colorida e cada cor vira uma placa recortada, de 2 a 8, numerada do fundo à frente; a moldura de cada placa sobe e faz de espaçador (profundidade ajustável), áreas soltas ganham uma ponte fina, e há opção de fundo fino para luz de LED. Use "Mesa por cor" para imprimir uma placa de cada vez (#104)

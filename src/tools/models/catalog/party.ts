@@ -1,9 +1,10 @@
-import { Award, Cake, Magnet, Shirt, Layers, Medal, Snowflake, Sparkles, Trophy, Type } from "lucide-react";
+import { Award, Cake, Disc3, Magnet, Shirt, Layers, Medal, Snowflake, Sparkles, Trophy, Type } from "lucide-react";
 import { buildAdaptiveMedal, DEFAULT_ADAPTIVE_MEDAL } from "../../../geometry/models/adaptiveMedal";
 import { buildAdaptiveTrophy, DEFAULT_ADAPTIVE_TROPHY } from "../../../geometry/models/adaptiveTrophy";
 import { buildCakeTopper, DEFAULT_CAKE_TOPPER } from "../../../geometry/models/cakeTopper";
 import { buildFridgeMagnet, DEFAULT_FRIDGE_MAGNET } from "../../../geometry/models/fridgeMagnet";
 import { buildLayeredSign, DEFAULT_LAYERED_SIGN } from "../../../geometry/models/layeredSign";
+import { buildOrnamentSpinner, DEFAULT_ORNAMENT_SPINNER } from "../../../geometry/models/ornamentSpinner";
 import { buildShirtPrint, DEFAULT_SHIRT_PRINT } from "../../../geometry/models/shirtPrint";
 import { buildSnowflake, DEFAULT_SNOWFLAKE } from "../../../geometry/models/snowflake";
 import { buildTrophy, DEFAULT_TROPHY } from "../../../geometry/models/trophy";
@@ -259,5 +260,39 @@ export const PARTY_MODELS: ModelDef[] = [
       },
     ],
     build: (ctx, p) => buildWindowFrame(ctx, as(p)),
+  },
+  {
+    id: "ornamentSpinner",
+    category: "party",
+    label: "Enfeite giratório",
+    blurb: "Disco que gira dentro do aro, impresso já montado, com gancho de pendurar, texto curvo ou sua arte e enfeites no aro. Face da arte para baixo.",
+    icon: Disc3,
+    font: true,
+    art: "Arte do disco (opcional; sem ela, vale o texto curvo)",
+    defaults: DEFAULT_ORNAMENT_SPINNER,
+    sections: [
+      { title: "Texto", fields: [text("text", "Texto curvo no disco (sem arte)", 24)] },
+      {
+        title: "Aro e enfeites",
+        fields: [
+          choice("trim", "Enfeite do aro", [["star", "Estrelas"], ["dot", "Bolinhas"], ["bell", "Sinos"], ["none", "Sem enfeites"]]),
+          num("trimCount", "Quantidade", 3, 12, { step: 1 }),
+          num("trimSize", "Tamanho do enfeite", 4, 12, { step: 1 }),
+        ],
+      },
+      {
+        title: "Tamanho e cores",
+        fields: [
+          num("diameter", "Diâmetro do aro", 40, 90, { step: 1 }),
+          num("thickness", "Espessura", 4, 8),
+          num("gap", "Folga", 0.3, 0.8, { step: 0.05, hint: "Folga entre o disco e o aro; menor prende, maior balança." }),
+          num("inlay", "Profundidade da arte", 0.4, 2, { step: 0.1 }),
+          color("frameColor", "Aro"),
+          color("diskColor", "Disco"),
+          color("artColor", "Arte ou texto"),
+        ],
+      },
+    ],
+    build: (ctx, p) => buildOrnamentSpinner(ctx, as(p)),
   },
 ];

@@ -27,10 +27,10 @@ export const DEFAULT_SPINNER: SpinnerParams = {
 const FRAME_WALL = 3.5;
 const TAB_R = 4.5;
 const TAB_HOLE_R = 2.2;
-const EMBED = 0.8; // quanto o pino entra na moldura
+export const EMBED = 0.8; // quanto o pino entra na moldura
 
 /** Cone deitado no eixo X, base em `x0`, apontando para `dir` (+1 ou -1), no meio da espessura. */
-function cone(M: ManifoldToplevel, r: number, h: number, x0: number, dir: 1 | -1, z: number): Solid {
+export function cone(M: ManifoldToplevel, r: number, h: number, x0: number, dir: 1 | -1, z: number): Solid {
   return scoped((k) => k(k(M.Manifold.cylinder(h, r, 0, 48)).rotate([0, 90 * dir, 0])).translate([x0, 0, z]));
 }
 

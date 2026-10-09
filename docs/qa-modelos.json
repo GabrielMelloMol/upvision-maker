@@ -599,6 +599,55 @@
   "plates": 1
  },
  {
+  "key": "ornamentSpinner:máximo",
+  "owner": "Forja",
+  "group": "party",
+  "label": "Enfeite giratório (ornamentSpinner)",
+  "variant": "máximo",
+  "status": "ok",
+  "reasons": [
+   "app: Imprima com a face da arte para baixo: sai lisa e a arte já fica rente, sem pausa.",
+   "app: Enfeites grandes demais para o aro podem quebrar: use até o dobro da largura do aro."
+  ],
+  "date": "2026-10-09",
+  "slicers": "Bambu ✓ · Orca ✓ · Projeto Bambu ✓",
+  "minutes": 140,
+  "grams": 52,
+  "plates": 1
+ },
+ {
+  "key": "ornamentSpinner:mínimo",
+  "owner": "Forja",
+  "group": "party",
+  "label": "Enfeite giratório (ornamentSpinner)",
+  "variant": "mínimo",
+  "status": "ok",
+  "reasons": [
+   "app: Imprima com a face da arte para baixo: sai lisa e a arte já fica rente, sem pausa."
+  ],
+  "date": "2026-10-09",
+  "slicers": "Bambu ✓ · Orca ✓ · Projeto Bambu ✓",
+  "minutes": 48,
+  "grams": 15.1,
+  "plates": 1
+ },
+ {
+  "key": "ornamentSpinner:padrão",
+  "owner": "Forja",
+  "group": "party",
+  "label": "Enfeite giratório (ornamentSpinner)",
+  "variant": "padrão",
+  "status": "ok",
+  "reasons": [
+   "app: Imprima com a face da arte para baixo: sai lisa e a arte já fica rente, sem pausa."
+  ],
+  "date": "2026-10-09",
+  "slicers": "Bambu ✓ · Orca ✓ · Projeto Bambu ✓",
+  "minutes": 71,
+  "grams": 23.8,
+  "plates": 1
+ },
+ {
   "key": "snowflake:máximo",
   "owner": "Forja",
   "group": "party",

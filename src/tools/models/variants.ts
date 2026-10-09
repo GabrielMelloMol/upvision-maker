@@ -36,6 +36,7 @@ export const MODEL_COLLECTIONS: Record<string, Collection[]> = {
   logoKeychain: ["aniversario", "negocio"],
   pencilTopper: ["aniversario"],
   snowflake: ["natal"],
+  ornamentSpinner: ["natal"],
   stamp: ["pascoa", "natal"],
   cutterStamp: ["pascoa", "natal"],
   ejector: ["pascoa"],
@@ -86,6 +87,12 @@ export const VARIANTS: Record<string, Variant[]> = {
     { label: "Criança", patch: { text: "Léo", frameColor: SKY, diskColor: GOLD, textColor: BLACK }, collections: ["criancas"] },
     { label: "São João", patch: { text: "Arraiá", frameColor: RED, diskColor: GOLD, textColor: BLACK }, collections: ["junina"] },
     { label: "Natal", patch: { text: "Noel", frameColor: RED, diskColor: GREEN, textColor: WHITE }, collections: ["natal"] },
+  ],
+  ornamentSpinner: [
+    { label: "Feliz Natal", patch: { text: "Feliz Natal", trim: "star", frameColor: RED, diskColor: WHITE, artColor: GREEN }, collections: ["natal"] },
+    { label: "Sinos", patch: { text: "Boas Festas", trim: "bell", frameColor: GREEN, diskColor: WHITE, artColor: RED }, collections: ["natal"] },
+    { label: "Bolinhas", patch: { text: "Noel", trim: "dot", trimCount: 10, frameColor: BLUE, diskColor: WHITE, artColor: BLUE }, collections: ["natal"] },
+    { label: "Com nome", patch: { text: "Ana", trim: "star", frameColor: GOLD, diskColor: RED, artColor: WHITE }, collections: ["natal"] },
   ],
   nfc: [
     { label: "Instagram da loja", patch: { text: "Siga!", baseColor: BLACK, textColor: WHITE }, collections: ["negocio"] },
