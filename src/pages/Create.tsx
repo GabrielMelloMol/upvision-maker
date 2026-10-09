@@ -6,7 +6,7 @@ import { openModel } from "../tools/modelPlaces";
 import { AMS_NEED, worksWithoutAms } from "../tools/models/amsTable";
 import { CATEGORIES } from "../tools/models/defs";
 import { familiesIn, type Family } from "../tools/models/families";
-import { matchesAll, modelText, toolText } from "../tools/models/search";
+import { matchesAll, modelScore, modelText, toolText } from "../tools/models/search";
 import { THUMBS } from "../tools/models/thumbs";
 import OccasionCard from "../ui/OccasionCard";
 import Segmented from "../ui/Segmented";
@@ -45,6 +45,10 @@ export default function Create({ go }: { go: Go }) {
   // "Imprime sem troca automática de cor (AMS)" (#118): o card mostra a primeira variação que dá para imprimir sem AMS
   const pickIn = (f: Family) => {
     const ok = f.variants.filter((v) => !noAms || worksWithoutAms(v.id));
+    if (!q.trim()) return ok[0];
+    // com busca, o cartão abre a variação que melhor combina ("abajur" → Abajur de mesa, não a Luminária); se só a família combina, a 1ª
+    const scored = ok.map((v, i) => ({ v, i, s: modelScore(v.id, q) })).filter((x): x is { v: (typeof ok)[number]; i: number; s: number } => x.s !== null).sort((a, b) => a.s - b.s || a.i - b.i);
+    if (scored.length) return scored[0].v;
     return hit(f.label) ? ok[0] : ok.find((v) => hit(variantText(v.id, v.label)));
   };
   const models =

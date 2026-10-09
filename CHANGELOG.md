@@ -5,6 +5,7 @@ Formato: `## <versão> — <data>` e itens `- …` em linguagem simples.
 
 ## Próxima versão (ainda não lançada)
 - **O zoom da janela não muda mais por atalho, roda do mouse ou pinça**: Ctrl/⌘ com + − 0, Ctrl/⌘ com a roda do mouse e o gesto de pinça no trackpad ou na tela não aumentam mais o app (desmontavam as telas). Para aumentar a letra, use Preferências > Aparência > Tamanho do texto; ao tentar o atalho, o app avisa isso uma vez, com um botão para abrir. O app sempre abre no tamanho escolhido ali, ou em 100%.
+- **Cartões que abrem o modelo errado**: o cartão de um modelo pronto (na Criar, na galeria, na busca e no ⌘K) podia abrir a Placa Pix em vez do modelo clicado quando a tela tinha que ser desenhada de novo; agora abre sempre o modelo do cartão. Na Criar, buscar "abajur" abre o Abajur de mesa (e não a Luminária)
 
 ## 0.11.7 — 2026-10-09
 - **Mapa estelar: a busca de cidade e o fuso funcionam igual no Windows**: Fernando de Noronha e outros fusos que o Windows não conhecia ganharam um equivalente, e as capitais (como Belém) voltam a aparecer antes de cidades estrangeiras de nome igual.

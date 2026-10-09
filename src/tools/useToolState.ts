@@ -1,7 +1,7 @@
 import { trackSave } from "./pendingSaves";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { getDb } from "../db";
-import { projectIntentKey, takeIntent, type ProjectIntent } from "./intent";
+import { projectIntentKey, useTakenIntent, type ProjectIntent } from "./intent";
 import { toolProjects, toolState, type ToolProject } from "../db/toolStateRepo";
 import { previewThumb, snapshotPreview } from "../ui/Preview3D";
 import { errorText, useToast } from "../ui/Toast";
@@ -56,7 +56,7 @@ export function useToolState<T extends object>(toolId: string, initial: T | (() 
   const exported = useRef(true); // nada novo desde o último arquivo salvo
   const loaded = useRef(false);
   // vindo de Meus projetos (#161): abrir aquele projeto ou já continuar o rascunho
-  const [wanted] = useState(() => takeIntent<ProjectIntent>(projectIntentKey(toolId)));
+  const wanted = useTakenIntent<ProjectIntent>(projectIntentKey(toolId));
 
   const decode = useCallback(async (json: string): Promise<T | null> => {
     try {

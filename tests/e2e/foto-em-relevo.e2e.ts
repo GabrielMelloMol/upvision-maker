@@ -35,7 +35,8 @@ test("atalho antigo leva à aba certa: a busca ⌘K por shadowbox", async ({ pag
   await go(page, "Início");
   await page.keyboard.press("Control+k");
   await page.getByRole("combobox").fill("shadowbox");
-  await page.getByRole("option", { name: /Shadowbox/ }).first().click();
+  // o modelo entra na busca quando o catálogo termina de carregar: espera por ele (a tela "Foto em relevo" também cita o Shadowbox e aparece antes)
+  await page.locator("#pal-model-shadowbox").click();
   await expect(page.getByRole("heading", { name: "Foto em relevo", level: 1 })).toBeVisible();
   await expect(tab(page, "Shadowbox")).toHaveAttribute("aria-pressed", "true");
   // o modelo é o mesmo de sempre: salva 3MF pela aba

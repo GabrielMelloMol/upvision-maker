@@ -2,7 +2,7 @@ import { Boxes, Camera, Ruler } from "lucide-react";
 import { lazy, Suspense, useEffect, useRef, useState, type KeyboardEvent } from "react";
 import { setHelpTopic } from "../help/helpStore";
 import PageSkeleton from "../ui/PageSkeleton";
-import { openWith, takeIntent } from "./intent";
+import { openWith, peekIntent, settleIntent } from "./intent";
 
 const Models = lazy(() => import("./Models"));
 const DrawerOrganizer = lazy(() => import("./DrawerOrganizer"));
@@ -44,7 +44,7 @@ function rememberTab(tab: OrganizerTab | null) {
  */
 export default function Organizers() {
   const [tab, setTab] = useState<OrganizerTab | null>(() => {
-    const intent = takeIntent<{ tab?: OrganizerTab; model?: string }>("organizers");
+    const intent = peekIntent<{ tab?: OrganizerTab; model?: string }>("organizers"); // só apagado depois de montar (efeito abaixo)
     if (intent?.tab && isTab(intent.tab)) {
       if (intent.tab === "bins" && intent.model) openWith("models", { id: intent.model });
       // o pedido vale uma vez só; guarda a aba para a tela refeita logo depois (remontagem, render repetido) abrir na mesma
@@ -53,6 +53,7 @@ export default function Organizers() {
     }
     return lastTab();
   });
+  useEffect(() => settleIntent("organizers"), []);
   const refs = useRef<Record<string, HTMLButtonElement | null>>({});
   // a ajuda (?) é a da aba aberta: o tutorial de medir a gaveta na da gaveta, o do encaixe na da foto
   useEffect(() => {

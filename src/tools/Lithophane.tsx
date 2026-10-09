@@ -8,7 +8,7 @@ import { buildColorLithophane, colorPreview, DEFAULT_COLOR_LITHO, type ColorLith
 import ColorLithoPanel from "./ColorLithoPanel";
 import Models from "./Models";
 import ReliefChooser, { type ReliefMode } from "./ReliefChooser";
-import { takeIntent } from "./intent";
+import { useTakenIntent } from "./intent";
 import ReliefPanel, { DEFAULT_RELIEF_UI, type ReliefUi } from "./ReliefPanel";
 import { buildRelief } from "../geometry/relief";
 import { buildLithophaneSet, lithoGrid, seamOf } from "../geometry/lithophaneSet";
@@ -94,7 +94,7 @@ export default function Lithophane() {
   });
   const { mode, file, width, cell, layered } = tool.state;
   // aberto por atalho (Veja também, Criar, busca): já cai na aba pedida, sem passar pela escolha inicial
-  const [wantedMode] = useState(() => takeIntent<{ mode?: Mode }>("lithophane")?.mode);
+  const wantedMode = useTakenIntent<{ mode?: Mode }>("lithophane")?.mode;
   const { adopt } = tool;
   useEffect(() => {
     if (wantedMode) adopt((cur) => ({ ...cur, mode: wantedMode, picked: true }));

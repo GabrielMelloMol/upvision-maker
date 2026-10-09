@@ -129,3 +129,83 @@ test("⌘K: cada Modelo pronto achado abre o modelo do resultado", async ({ page
   expect(checked).toBeGreaterThan(12);
   expect(wrong, "resultados do ⌘K que abriram o modelo errado").toEqual([]);
 });
+
+/** Atalhos de ocasião (cartão "Para o Dia das Mães…" da Início e da Criar): abrem a coleção e um modelo que está nela. */
+const OCASIOES: [Date, string][] = [
+  [new Date(2026, 3, 20, 10), "Dia das Mães"], [new Date(2026, 2, 10, 10), "Páscoa"], [new Date(2026, 5, 1, 10), "Festa Junina"],
+  [new Date(2026, 6, 20, 10), "Dia dos Pais"], [new Date(2026, 9, 5, 10), "Dia das Crianças"], [new Date(2026, 11, 1, 10), "Natal"],
+];
+for (const [date, nome] of OCASIOES)
+  for (const onde of ["Início", "Criar"] as const)
+    test(`cartão da ocasião ${nome} (${onde}) abre a coleção e um modelo dela`, async ({ page }) => {
+      await page.clock.setFixedTime(date);
+      await openApp(page);
+      if (onde === "Criar") await go(page, "Criar");
+      await page.getByRole("button", { name: new RegExp(`Para .*${nome}`) }).click();
+      await expect(model(page).first()).toBeVisible({ timeout: 15_000 });
+      const chips = page.getByRole("group", { name: "Ocasião" });
+      if (await chips.getByRole("button", { name: /^Mais \(/ }).count()) await chips.getByRole("button", { name: /^Mais \(/ }).click();
+      await expect(chips.getByRole("button", { name: nome, exact: true })).toHaveAttribute("aria-pressed", "true");
+      const ids = await page.getByRole("group", { name: "Modelo" }).locator("button[data-id]").evaluateAll((els) => els.map((e) => e.getAttribute("data-id")));
+      expect(ids, `modelos da coleção ${nome}`).toContain(await opened(page));
+    });
+
+test("Veja também e atalhos das famílias: cada um abre o destino do próprio rótulo", async ({ page }) => {
+  test.setTimeout(10 * 60_000);
+  await openApp(page);
+  // Veja também das ferramentas
+  await go(page, "Foto em relevo");
+  await page.locator(".relief-cards button").first().click(); // escolhe Litofania; o Veja também aparece depois da escolha
+  await page.getByRole("button", { name: "Litofania em abajur" }).first().click();
+  await expect(model(page).first()).toBeVisible({ timeout: 15_000 });
+  expect(await opened(page)).toBe("tableLamp");
+  await go(page, "Foto em relevo");
+  await page.locator(".relief-cards button").first().click();
+  await page.getByRole("button", { name: "Pixel art" }).first().click();
+  await expect(page.getByRole("heading", { name: "Pixel art", level: 1 })).toBeVisible();
+  await go(page, "Chaveiros");
+  await page.getByRole("button", { name: /Chaveiros prontos/ }).click();
+  await expect(model(page).first()).toBeVisible({ timeout: 15_000 });
+  expect(await opened(page)).toBe("nfc");
+  await go(page, "Chaveiros");
+  await page.getByRole("button", { name: "Medalhas" }).first().click();
+  await expect(page.getByRole("heading", { name: "Medalhas", level: 1 })).toBeVisible();
+
+  // atalhos das famílias (os cartões de outra ferramenta dentro de "Variação")
+  const DESTINOS: Record<string, string> = { "Nome em lote": "Chaveiros", Redonda: "Medalhas", "QR e Pix": "QR Code e Pix", Biscoito: "Cortador de biscoito", "Na gaveta": "Organizadores", "Pela foto": "Organizadores", Pixel: "Pixel art", Litofania: "Foto em relevo", "Foto em relevo": "Foto em relevo" };
+  await go(page, "Modelos prontos");
+  const tabs = page.getByRole("group", { name: "Categoria" });
+  await expect(tabs.getByRole("button").first()).toBeVisible();
+  const names = await tabs.getByRole("button").allTextContents();
+  // só as famílias que têm atalho (o cartão diz quantos: data-tools)
+  const withTools: { name: string; family: string; n: number }[] = [];
+  for (const name of names) {
+    await tabs.getByRole("button", { name, exact: true }).click();
+    for (const card of await page.getByRole("group", { name: "Família" }).locator("button[data-tools]").all()) {
+      const n = Number(await card.getAttribute("data-tools"));
+      if (n > 0) withTools.push({ name, family: (await card.getAttribute("data-family"))!, n });
+    }
+  }
+  expect(withTools.length).toBeGreaterThanOrEqual(5);
+  const wrong: string[] = [];
+  let used = 0;
+  for (const { name, family, n } of withTools) {
+    for (let j = 0; j < n; j++) {
+      await go(page, "Modelos prontos");
+      await tabs.getByRole("button", { name, exact: true }).click();
+      await page.locator(`[data-family="${family}"]`).click();
+      const shortcuts = page.locator(".model-variant-tool");
+      await expect(shortcuts).toHaveCount(n);
+      const label = ((await shortcuts.nth(j).locator(".model-variant-label").textContent()) ?? "").trim();
+      const want = Object.entries(DESTINOS).find(([k]) => label.startsWith(k))?.[1];
+      await shortcuts.nth(j).click();
+      await page.waitForSelector("main h1");
+      used++;
+      const got = (await page.locator("main h1").first().textContent())?.trim();
+      if (!want) wrong.push(`${family}: atalho "${label}" sem destino conhecido (abriu ${got})`);
+      else if (got !== want) wrong.push(`${family}: atalho "${label}": esperava ${want}, abriu ${got}`);
+    }
+  }
+  expect(used).toBeGreaterThanOrEqual(7);
+  expect(wrong).toEqual([]);
+});

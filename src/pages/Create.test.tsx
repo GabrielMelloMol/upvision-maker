@@ -86,3 +86,48 @@ test("Criar busca como a vendedora fala: camiseta, porta copos, geladeira, Dia d
   await typed("abajur");
   expect(screen.getByRole("link", { name: "Luminárias e abajures" })).toBeInTheDocument();
 });
+
+test("Criar: TODOS os cartões de modelo pronto levam ao modelo do próprio cartão (id do cartão, da família e da tela)", async () => {
+  const go = vi.fn();
+  const user = userEvent.setup();
+  const { container } = renderWithApp(<Create go={go} />);
+  await screen.findByRole("heading", { name: "Criar", level: 1 });
+  const cards = () => Array.from(container.querySelectorAll<HTMLAnchorElement>(".create-models a"));
+  const total = cards().length;
+  expect(total).toBe(FAMILIES.length); // um cartão por família, nenhuma sumiu
+  const wrong: string[] = [];
+  for (let i = 0; i < total; i++) {
+    const card = cards()[i];
+    const want = card.getAttribute("href")!.replace("#models/", "");
+    const family = FAMILIES.find((f) => f.id === card.dataset.family)!;
+    if (!family.variants.some((v) => v.id === want)) wrong.push(`${family.id}: o cartão aponta para ${want}, que não é da família`);
+    if (family.variants[0].id !== want) wrong.push(`${family.id}: sem busca o cartão devia abrir a 1ª variação (${family.variants[0].id}), abre ${want}`);
+    go.mockClear();
+    takeIntent("models");
+    takeIntent("lithophane");
+    await user.click(card);
+    const tab = want === "shadowbox"; // virou aba da Foto em relevo
+    const page = tab ? "lithophane" : "models";
+    if (go.mock.lastCall?.[0] !== page) wrong.push(`${family.id}: foi para ${String(go.mock.lastCall?.[0])}, devia ir para ${page}`);
+    const intent = takeIntent<{ id?: string; mode?: string }>(page);
+    if (tab ? intent?.mode !== "shadowbox" : intent?.id !== want) wrong.push(`${family.id}: pedido ${JSON.stringify(intent)} em vez de ${want}`);
+  }
+  expect(wrong, "cartões que levam ao lugar errado").toEqual([]);
+});
+
+test("Criar: com busca, o cartão abre a variação que a busca achou (não a 1ª da família)", async () => {
+  const go = vi.fn();
+  const user = userEvent.setup();
+  renderWithApp(<Create go={go} />);
+  const box = screen.getByRole("searchbox", { name: "Buscar ferramenta ou modelo" });
+  const cases: [string, string][] = [["anilha", "gymKeychain"], ["abajur", "tableLamp"], ["camiseta", "shirtPrint"], ["cumbuca", "outlineBowl"], ["dobrável", "phoneStandFold"], ["ejetor", "ejector"]];
+  for (const [q, id] of cases) {
+    await user.clear(box);
+    await user.type(box, q);
+    const link = document.querySelector<HTMLAnchorElement>(`.create-models a[href="#models/${id}"]`);
+    expect(link, q).not.toBeNull();
+    go.mockClear();
+    await user.click(link!);
+    expect(takeIntent("models"), q).toEqual({ id });
+  }
+});

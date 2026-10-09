@@ -28,7 +28,7 @@ import StateKwhSelect from "../ui/StateKwhSelect";
 import ChannelsCard, { fromChannelForm, toChannelForm } from "./preferences/ChannelsCard";
 import PrefsNav from "./preferences/PrefsNav";
 import { FORM_SECTIONS, loadSection, PREF_SECTIONS, saveSection, sectionFromIntent, sectionsWithErrors, type PrefSection } from "./preferences/sections";
-import { takeIntent } from "../tools/intent";
+import { useTakenIntent } from "../tools/intent";
 
 type NumKey = Exclude<keyof Settings, "channels" | "kwhHistory" | "includeFixedCosts" | "multiplyLabor" | "packagingMaterialId" | "failureByMaterial" | "ams" | "bedPrinterId" | "slicer">;
 type NumField = { key: NumKey; label: string; money?: true; hint?: string };
@@ -55,7 +55,8 @@ const loadPrefs = async (db: Db) => ({ settings: await loadSettings(db), materia
 export default function Preferences() {
   const [data] = useData(loadPrefs, null as Awaited<ReturnType<typeof loadPrefs>> | null);
   // aberta por um atalho (ex.: "Ir para Preferências" da IA leva às Ferramentas), senão na última seção vista
-  const [section, setSection] = useState<PrefSection>(() => sectionFromIntent(takeIntent("preferences")) ?? loadSection());
+  const intentSection = useTakenIntent("preferences");
+  const [section, setSection] = useState<PrefSection>(() => sectionFromIntent(intentSection) ?? loadSection());
   const [flagged, setFlagged] = useState<PrefSection[]>([]);
   const pick = (s: PrefSection) => {
     setSection(s);

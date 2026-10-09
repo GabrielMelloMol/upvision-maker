@@ -33,7 +33,7 @@ import { useModelLayers, type ModelEdits } from "./models/useModelLayers";
 import UserVariants from "./models/UserVariants";
 import ToolSessionBar from "./ToolSessionBar";
 import { useToolState } from "./useToolState";
-import { takeIntent } from "./intent";
+import { useTakenIntent } from "./intent";
 import ParamField, { firstText } from "./models/ParamField";
 import ModelGallery, { type Occasion } from "./models/ModelGallery";
 import VariantPicker from "./models/VariantPicker";
@@ -88,10 +88,10 @@ export default function Models({ only, embedded }: { only?: string; embedded?: {
   const [artError, setArtError] = useState<string | null>(null);
   // aberto pela galeria Criar (#139): já vem com o modelo escolhido, sem virar passo de desfazer
   // ou pelo pedido (#164, "Preparar impressão"): com a personalização do item no lote
+  const asked = useTakenIntent<{ id?: string; batch?: string; occasion?: Collection }>("models");
   const [intent] = useState(() => {
-    const i = takeIntent<{ id?: string; batch?: string; occasion?: Collection }>("models");
     // vindo do destaque da ocasião (#120): abre no primeiro modelo da coleção
-    return i?.occasion && !i.id ? { ...i, id: MODELS.find((m) => inCollection(m.id, i.occasion!))?.id } : i;
+    return asked?.occasion && !asked.id ? { ...asked, id: MODELS.find((m) => inCollection(m.id, asked.occasion!))?.id } : asked;
   });
   const [wanted] = useState(() => MODELS.find((m) => m.id === intent?.id));
   // a aba segue a família do modelo aberto (a família pode estar noutra categoria que o modelo, #141)
