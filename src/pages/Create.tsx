@@ -109,6 +109,8 @@ export default function Create({ go }: { go: Go }) {
                     <li key={f.id}>
                       <a
                         href={`#models/${v.id}`}
+                        data-family={f.id}
+                        data-variants={f.variants.map((x) => x.id).join(",")}
                         aria-describedby={need ? `ams-${f.id}` : undefined}
                         onClick={(e) => {
                           open(e, openModel(v.id)); // o que virou aba de ferramenta (Shadowbox) abre na aba

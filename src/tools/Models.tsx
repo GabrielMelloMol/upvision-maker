@@ -273,7 +273,7 @@ export default function Models({ only, embedded }: { only?: string; embedded?: {
       {!only && !embedded && <p className="lead">Escolha, ajuste o texto e salve o 3MF em cores.</p>}
       <ToolSessionBar tool={tool} />
       {!only && !embedded && <ModelGallery id={id} onPick={pickFromGallery} category={category} onCategory={setCategory} query={query} onQuery={setQuery} occasion={occasion} onOccasion={setOccasion} favorites={favorites} />}
-      <div className="tool-layout" ref={layoutRef}>
+      <div className="tool-layout" ref={layoutRef} data-model={id}>
         <div className="controls">
           <div className="row model-head">
             {/* o card da galeria é a família; o painel mostra de qual veio (Brinquedos › Quebra-cabeça), UX B2 */}

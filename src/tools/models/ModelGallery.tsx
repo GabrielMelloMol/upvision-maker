@@ -129,7 +129,7 @@ export default function ModelGallery({ id, onPick, category, onCategory, query, 
           {families.map((f) => {
             const { src, Icon } = thumbOf(f);
             return (
-              <button key={f.id} type="button" data-family={f.id} aria-pressed={f.id === current.id} onClick={() => pickFamily(f)} title={f.variants.length > 1 ? f.variants.map((v) => v.label).join(" · ") : modelOf(f.variants[0].id).blurb}>
+              <button key={f.id} type="button" data-family={f.id} data-variants={f.variants.map((v) => v.id).join(",")} aria-pressed={f.id === current.id} onClick={() => pickFamily(f)} title={f.variants.length > 1 ? f.variants.map((v) => v.label).join(" · ") : modelOf(f.variants[0].id).blurb}>
                 <span className="model-thumb">{src ? <img src={src} alt="" loading="lazy" /> : <Icon aria-hidden />}</span>
                 <span>{f.label}</span>
               </button>
