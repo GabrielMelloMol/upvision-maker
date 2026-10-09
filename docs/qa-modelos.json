@@ -1267,13 +1267,13 @@
   "reasons": [
    "o conjunto arrumado ocupa 180,0 × 274,0 mm: passa da mesa de 256 mm",
    "Orca: torre de purga em cima de uma peça depois do --arrange do CLI (na tela, arraste a torre ou use Arrumar)",
-   "app: 838 estrelas visíveis (até a magnitude 5) no céu de São Paulo. O horário de verão conta no fuso: com ele, use um fuso a mais.",
+   "app: 774 estrelas visíveis (até a magnitude 5) no céu de São Paulo, SP, fuso UTC−3 (automático pela localização e pela data).",
    "app: As 2 peças não cabem juntas na mesa de 256 mm: o fatiador vai usar mais de uma mesa (ou imprima uma de cada vez)."
   ],
   "date": "2026-10-09",
   "slicers": "Bambu ✓ · Orca ✓ · Projeto Bambu ✓",
-  "minutes": 272,
-  "grams": 178.6,
+  "minutes": 276,
+  "grams": 179.5,
   "plates": 1
  },
  {
@@ -1282,14 +1282,15 @@
   "group": "plates",
   "label": "Mapa estelar de uma data (starMap)",
   "variant": "mínimo",
-  "status": "ok",
+  "status": "aviso",
   "reasons": [
-   "app: 97 estrelas visíveis (até a magnitude 3) no céu de São Paulo. O horário de verão conta no fuso: com ele, use um fuso a mais."
+   "\"Mapa estelar\": parede/traço < 0,4 mm em Z 2,2 mm",
+   "app: 97 estrelas visíveis (até a magnitude 3) no céu de São Paulo, SP, fuso UTC−3:06 (automático pela localização e pela data)."
   ],
   "date": "2026-10-09",
   "slicers": "Bambu ✓ · Orca ✓ · Projeto Bambu ✓",
-  "minutes": 43,
-  "grams": 28.7,
+  "minutes": 44,
+  "grams": 29,
   "plates": 1
  },
  {
@@ -1300,12 +1301,12 @@
   "variant": "padrão",
   "status": "ok",
   "reasons": [
-   "app: 481 estrelas visíveis (até a magnitude 4.5) no céu de São Paulo. O horário de verão conta no fuso: com ele, use um fuso a mais."
+   "app: 481 estrelas visíveis (até a magnitude 4.5) no céu de São Paulo, SP, fuso UTC−3 (automático pela localização e pela data)."
   ],
   "date": "2026-10-09",
   "slicers": "Bambu ✓ · Orca ✓ · Projeto Bambu ✓",
-  "minutes": 92,
-  "grams": 61.7,
+  "minutes": 94,
+  "grams": 62.3,
   "plates": 1
  },
  {

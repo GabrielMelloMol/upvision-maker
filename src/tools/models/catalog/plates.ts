@@ -10,10 +10,9 @@ import { buildPixPlate, DEFAULT_PIX_PLATE } from "../../../geometry/models/pixPl
 import { buildProfessionPlaque, DEFAULT_PROFESSION } from "../../../geometry/models/professionPlaque";
 import { buildQrList, buildQrPlate, DEFAULT_QR_LIST, DEFAULT_QR_PLATE } from "../../../geometry/models/qrPlate";
 import { buildStarMap, DEFAULT_STAR_MAP } from "../../../geometry/models/starMap";
-import { CITIES } from "../../../geometry/models/starSky";
 import { buildSignPlate, DEFAULT_SIGN_PLATE } from "../../../geometry/models/signPlate";
 import { parseMoney } from "../../../ui/parse";
-import { as, bool, choice, color, logoFields, nfcFields, num, resinFields, text, textureFields, type ModelDef } from "../fields";
+import { as, bool, choice, color, logoFields, nfcFields, num, place, resinFields, text, textureFields, type ModelDef } from "../fields";
 
 /** Modelos prontos da categoria Placas. */
 export const PLATE_MODELS: ModelDef[] = [
@@ -329,9 +328,9 @@ export const PLATE_MODELS: ModelDef[] = [
       {
         title: "Lugar",
         fields: [
-          choice("city", "Cidade", [...CITIES.map(([id, name]) => [id, name] as const), ["custom", "Outra (latitude e longitude)"]]),
-          num("lat", "Latitude (só em \"Outra\")", -90, 90, { step: 0.01, unit: "°", hint: "Sul é negativo." }),
-          num("lon", "Longitude (só em \"Outra\")", -180, 180, { step: 0.01, unit: "°", hint: "Oeste é negativo." }),
+          place("placeName", "Cidade ou endereço"),
+          num("lat", "Latitude", -90, 90, { step: 0.01, unit: "°", hint: "Preenchida pela busca; sul é negativo." }),
+          num("lon", "Longitude", -180, 180, { step: 0.01, unit: "°", hint: "Preenchida pela busca; oeste é negativo." }),
         ],
       },
       {
@@ -342,7 +341,8 @@ export const PLATE_MODELS: ModelDef[] = [
           num("year", "Ano", 1900, 2100, { step: 1 }),
           num("hour", "Hora", 0, 23, { step: 1 }),
           num("minute", "Minuto", 0, 59, { step: 1 }),
-          num("utcOffset", "Fuso (horas)", -12, 14, { step: 0.5, hint: "Brasília: -3. Em datas com horário de verão, some 1." }),
+          bool("tzAuto", "Fuso e horário de verão automáticos"),
+          num("utcOffset", "Fuso manual (horas)", -12, 14, { step: 0.5, hint: "Só vale com o fuso automático desligado. Brasília: -3." }),
         ],
       },
       { title: "Texto", fields: [text("title", "Título", 28), text("caption", "Legenda (vazio = data e cidade)", 40)] },

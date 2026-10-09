@@ -8,6 +8,7 @@ import NumField from "../../ui/NumField";
 import Segmented from "../../ui/Segmented";
 import Toggle from "../../ui/Toggle";
 import type { FieldDef, Params, Section } from "./fields";
+import PlaceField from "./PlaceField";
 import ProfileEditor from "./ProfileEditor";
 
 const MAX_CHIPS = 12; // acima disso a escolha vira uma lista (cidades do mapa estelar)
@@ -17,7 +18,16 @@ const MAX_SEGMENTS = 4; // acima disso a escolha vira pílulas (Segmented é par
 export const firstText = (sections: Section[], p: Params) =>
   sections.flatMap((s) => s.fields).map((f) => (f.kind === "text" ? String(p[f.k] ?? "").trim() : "")).find(Boolean) ?? "";
 
-type ParamProps = { f: FieldDef; value: Params[string]; onChange: (v: string | number | boolean) => void; sample?: string; emoji?: boolean };
+type ParamProps = {
+  f: FieldDef;
+  value: Params[string];
+  onChange: (v: string | number | boolean) => void;
+  sample?: string;
+  emoji?: boolean;
+  /** Todos os valores do modelo e um jeito de mudar vários de uma vez (campo "place"). */
+  params?: Params;
+  patch?: (next: Params) => void;
+};
 
 /** Texto com seletor de emoji ao lado (fora do <label>, para o rótulo nomear só o campo). */
 function EmojiText({ label, hint, max, value, onChange }: { label: string; hint?: string; max?: number; value: string; onChange: (v: string) => void }) {
@@ -32,8 +42,10 @@ function EmojiText({ label, hint, max, value, onChange }: { label: string; hint?
   );
 }
 
-export default function ParamField({ f, value, onChange, sample = "", emoji }: ParamProps) {
+export default function ParamField({ f, value, onChange, sample = "", emoji, params, patch }: ParamProps) {
   switch (f.kind) {
+    case "place":
+      return params && patch ? <PlaceField label={f.label} params={params} patch={patch} /> : null;
     case "profile":
       return <ProfileEditor label={f.label} value={String(value)} onChange={onChange} min={f.min} max={f.max} />;
     case "font":

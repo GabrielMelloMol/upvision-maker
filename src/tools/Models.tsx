@@ -126,6 +126,7 @@ export default function Models() {
   const variants = [...(VARIANTS[id] ?? [])].sort((a, b) => Number(!!occasion && occasion !== "favorites" && !!b.collections?.includes(occasion)) - Number(!!occasion && occasion !== "favorites" && !!a.collections?.includes(occasion)));
   const applyVariant = (patch: Params) => setAll((a) => ({ ...a, [id]: { ...def.defaults, ...patch } }));
   const p = all[id];
+  const patchParams = (next: Params) => tool.set((cur) => ({ ...cur, all: { ...cur.all, [id]: { ...cur.all[id], ...next } } }), `${id}.lugar`);
   const set = (k: string) => (v: string | number | boolean) => tool.set((cur) => ({ ...cur, all: { ...cur.all, [id]: { ...cur.all[id], [k]: v } } }), `${id}.${k}`);
 
   // Placa Pix já vem com os dados da empresa (Preferências → Dados da empresa).
@@ -308,7 +309,7 @@ export default function Models() {
               <h3>{s.title}</h3>
               <div className="grid two">
                 {s.fields.map((f) => (
-                  <ParamField key={f.k} f={f} value={p[f.k]} onChange={set(f.k)} sample={f.kind === "font" && f.sample ? String(p[f.sample] ?? "") : ""} emoji={!!EMOJI_FIELDS[id]?.includes(f.k)} />
+                  <ParamField key={f.k} f={f} value={p[f.k]} onChange={set(f.k)} params={p} patch={patchParams} sample={f.kind === "font" && f.sample ? String(p[f.sample] ?? "") : ""} emoji={!!EMOJI_FIELDS[id]?.includes(f.k)} />
                 ))}
               </div>
               {s === def.sections[def.fontSection ?? 0] && def.font && (

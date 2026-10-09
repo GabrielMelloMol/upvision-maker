@@ -72,9 +72,9 @@ describe("mapa estelar de uma data (#106)", { timeout: 60_000 }, () => {
     expect(meshBounds([part(build(), "Estrelas")])!.max[2]).toBeCloseTo(D.thickness + D.relief);
   });
 
-  test("coordenadas livres valem só em \"Outra\"", () => {
-    const sp = volume(part(build(), "Estrelas"));
-    expect(volume(part(build({ lat: 60, lon: 10 }), "Estrelas"))).toBeCloseTo(sp, 6); // cidade escolhida vence
+  test("coordenadas livres valem só no lugar buscado (\"custom\"); a cidade da lista de um rascunho antigo vence", () => {
+    const sp = volume(part(build({ city: "saopaulo" }), "Estrelas"));
+    expect(volume(part(build({ city: "saopaulo", lat: 60, lon: 10 }), "Estrelas"))).toBeCloseTo(sp, 6); // cidade escolhida vence
     expect(volume(part(build({ city: "custom", lat: 60, lon: 10 }), "Estrelas"))).not.toBeCloseTo(sp, 0);
   });
 
@@ -95,9 +95,52 @@ describe("mapa estelar de uma data (#106)", { timeout: 60_000 }, () => {
     expect(() => build({ month: 2, day: 29, year: 1900 })).toThrow(MissingInput); // 1900 não foi bissexto
   });
 
-  test("avisa quantas estrelas aparecem e o fuso do horário de verão", () => {
+  test("avisa quantas estrelas aparecem e o fuso usado", () => {
     const w = build().warnings![0];
     expect(w).toMatch(/\d+ estrelas visíveis \(até a magnitude 4.5\) no céu de São Paulo/);
-    expect(w).toMatch(/horário de verão/);
+    expect(w).toMatch(/fuso UTC−3 \(automático/);
+  });
+  describe("lugar por busca e fuso automático (#196)", () => {
+    const stars = (p: Partial<StarMapParams>) => part(build({ title: "", ...p }), "Estrelas");
+    const SP = { city: "custom", lat: -23.55, lon: -46.63, placeName: "São Paulo, SP", tz: "America/Sao_Paulo" };
+    const JAN_2010 = { year: 2010, month: 1, day: 15, hour: 22, minute: 0 };
+
+    test("fuso automático: São Paulo em 15/01/2010 22:00 calcula o céu com UTC−2 e em julho com UTC−3", () => {
+      const auto = stars({ ...SP, ...JAN_2010, tzAuto: true, utcOffset: -3 });
+      expect(Array.from(auto.positions)).toEqual(Array.from(stars({ ...SP, ...JAN_2010, tzAuto: false, utcOffset: -2 }).positions));
+      expect(Array.from(auto.positions)).not.toEqual(Array.from(stars({ ...SP, ...JAN_2010, tzAuto: false, utcOffset: -3 }).positions));
+      const july = stars({ ...SP, ...JAN_2010, month: 7, tzAuto: true, utcOffset: -2 });
+      expect(Array.from(july.positions)).toEqual(Array.from(stars({ ...SP, ...JAN_2010, month: 7, tzAuto: false, utcOffset: -3 }).positions));
+    });
+
+    test("com o fuso automático desligado vale o fuso digitado", () => {
+      const manual = stars({ ...SP, ...JAN_2010, tzAuto: false, utcOffset: 5 });
+      expect(Array.from(manual.positions)).not.toEqual(Array.from(stars({ ...SP, ...JAN_2010, tzAuto: true }).positions));
+    });
+
+    test("lugar escolhido na busca (cidade do interior) dá o mesmo céu que latitude e longitude digitadas", () => {
+      const rita = { lat: -21.7087, lon: -47.4782 };
+      const byName = stars({ city: "custom", ...rita, placeName: "Santa Rita do Passa Quatro, SP", tz: "", tzAuto: true, caption: "x", ...JAN_2010 });
+      const byHand = stars({ city: "custom", ...rita, placeName: "", tz: "America/Sao_Paulo", tzAuto: false, utcOffset: -2, caption: "x", ...JAN_2010 });
+      expect(Array.from(byName.positions)).toEqual(Array.from(byHand.positions));
+    });
+
+    test("o fuso do lugar vem do campo tz quando preenchido (Lisboa no verão = UTC+1)", () => {
+      const a = stars({ city: "custom", lat: 38.72, lon: -9.14, placeName: "Lisboa, Portugal", tz: "Europe/Lisbon", tzAuto: true, caption: "x", year: 2024, month: 7, day: 1, hour: 22, minute: 0 });
+      const b = stars({ city: "custom", lat: 38.72, lon: -9.14, tzAuto: false, utcOffset: 1, caption: "x", year: 2024, month: 7, day: 1, hour: 22, minute: 0 });
+      expect(Array.from(a.positions)).toEqual(Array.from(b.positions));
+    });
+
+    test("o aviso diz o fuso usado, com o horário de verão, e a legenda usa o nome do lugar", () => {
+      const out = build({ ...SP, ...JAN_2010, tzAuto: true });
+      expect(out.warnings?.[0]).toContain("São Paulo, SP");
+      expect(out.warnings?.[0]).toContain("UTC−2 (horário de verão)");
+      expect(build({ ...SP, ...JAN_2010, year: 2024, tzAuto: true }).warnings?.[0]).toContain("UTC−3");
+    });
+
+    test("rascunho antigo (cidade da lista, sem tz nem busca) continua funcionando", () => {
+      expect(() => build({ city: "belem", tzAuto: false })).not.toThrow();
+      expect(build({ city: "belem" }).warnings?.[0]).toContain("Belém");
+    });
   });
 });

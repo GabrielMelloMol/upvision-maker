@@ -23,7 +23,7 @@ Peça maior que a mesa de 256 mm do A1 conta como **aviso** quando o app avisa n
 impressoras de mesa maior); sem o aviso do app, é **falha**.
 
 
-**Total:** 300 casos · 229 ok · 70 com aviso · 1 com falha · 0 n/a
+**Total:** 297 casos · 225 ok · 71 com aviso · 1 com falha · 0 n/a
 
 ## Forja
 
@@ -110,9 +110,9 @@ impressoras de mesa maior); sem o aviso do app, é **falha**.
 | Placa de sinalização (sign) | máximo | ⚠️ aviso | Bambu ✓ · Orca ✓ · Projeto Bambu ✓ | – | – | – | – | "Placa" não cabe na mesa de 256 mm (300,0 × 120,0 × 10,0 mm); Bambu recusa na mesa de 256 mm do A1 (o app avisa); Orca recusa na mesa de 256 mm do A1 (o app avisa); Projeto Bambu recusa na mesa de 256 mm do A1 (o app avisa); app: "Placa" tem 300 × 120 × 10 mm e passa da mesa de 256 mm: diminua o tamanho. |
 | Placa de sinalização (sign) | mínimo | ✅ ok | Bambu ✓ · Orca ✓ · Projeto Bambu ✓ | 8 | 3,7 | 1 | – | – |
 | Placa de sinalização (sign) | padrão | ✅ ok | Bambu ✓ · Orca ✓ · Projeto Bambu ✓ | 32 | 21,1 | 1 | – | – |
-| Mapa estelar de uma data (starMap) | máximo | ⚠️ aviso | Bambu ✓ · Orca ✓ · Projeto Bambu ✓ | 272 | 178,6 | 1 | – | o conjunto arrumado ocupa 180,0 × 274,0 mm: passa da mesa de 256 mm; Orca: torre de purga em cima de uma peça depois do --arrange do CLI (na tela, arraste a torre ou use Arrumar); app: 838 estrelas visíveis (até a magnitude 5) no céu de São Paulo. O horário de verão conta no fuso: com ele, use um fuso a mais.; app: As 2 peças não cabem juntas na mesa de 256 mm: o fatiador vai usar mais de uma mesa (ou imprima uma de cada vez). |
-| Mapa estelar de uma data (starMap) | mínimo | ✅ ok | Bambu ✓ · Orca ✓ · Projeto Bambu ✓ | 43 | 28,7 | 1 | – | app: 97 estrelas visíveis (até a magnitude 3) no céu de São Paulo. O horário de verão conta no fuso: com ele, use um fuso a mais. |
-| Mapa estelar de uma data (starMap) | padrão | ✅ ok | Bambu ✓ · Orca ✓ · Projeto Bambu ✓ | 92 | 61,7 | 1 | – | app: 481 estrelas visíveis (até a magnitude 4.5) no céu de São Paulo. O horário de verão conta no fuso: com ele, use um fuso a mais. |
+| Mapa estelar de uma data (starMap) | máximo | ⚠️ aviso | Bambu ✓ · Orca ✓ · Projeto Bambu ✓ | 276 | 179,5 | 1 | – | o conjunto arrumado ocupa 180,0 × 274,0 mm: passa da mesa de 256 mm; Orca: torre de purga em cima de uma peça depois do --arrange do CLI (na tela, arraste a torre ou use Arrumar); app: 774 estrelas visíveis (até a magnitude 5) no céu de São Paulo, SP, fuso UTC−3 (automático pela localização e pela data).; app: As 2 peças não cabem juntas na mesa de 256 mm: o fatiador vai usar mais de uma mesa (ou imprima uma de cada vez). |
+| Mapa estelar de uma data (starMap) | mínimo | ⚠️ aviso | Bambu ✓ · Orca ✓ · Projeto Bambu ✓ | 44 | 29,0 | 1 | – | "Mapa estelar": parede/traço < 0,4 mm em Z 2,2 mm; app: 97 estrelas visíveis (até a magnitude 3) no céu de São Paulo, SP, fuso UTC−3:06 (automático pela localização e pela data). |
+| Mapa estelar de uma data (starMap) | padrão | ✅ ok | Bambu ✓ · Orca ✓ · Projeto Bambu ✓ | 94 | 62,3 | 1 | – | app: 481 estrelas visíveis (até a magnitude 4.5) no céu de São Paulo, SP, fuso UTC−3 (automático pela localização e pela data). |
 | Separar 3MF por cor (ferramenta) | corte com pino | ✅ ok | Bambu ✓ · Orca ✓ · Projeto Bambu ✓ | 96 | 24,6 | 1 | – | – |
 | Separar 3MF por cor (ferramenta) | máximo | ✅ ok | Bambu ✓ · Orca ✓ · Projeto Bambu ✓ | 15 | 5,7 | 1 | – | – |
 | Separar 3MF por cor (ferramenta) | mínimo | ⚠️ aviso | Bambu ✓ · Orca ✓ · Projeto Bambu ✓ | 16 | 6,8 | 1 | – | Bambu: a cor 3 (#2563eb) não saiu no G-code (o app avisa); Orca: a cor 3 (#2563eb) não saiu no G-code (o app avisa); Projeto Bambu: a cor 3 (#2563eb) não saiu no G-code (o app avisa); app: Com 0,2 mm de profundidade, a cor pintada nas laterais fica mais fina que a linha do bico (0,4 mm) e some no fatiador: use 0,4 mm ou mais. |

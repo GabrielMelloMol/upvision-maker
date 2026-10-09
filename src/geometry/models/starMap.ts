@@ -2,15 +2,19 @@ import type { CS, ManifoldToplevel } from "../manifold";
 import { fitInto, scoped } from "../shape2d";
 import type { Model, Part } from "../types";
 import { MissingInput, plateStand, roundedRect, slab, solidMesh, type ModelCtx, type ModelOutput } from "./common";
+import { isDst, offsetLabel, tzAt, utcOffsetHours } from "./placeTime";
 import { CITIES, skyLines, skyStars, type SkyLine } from "./starSky";
 
 export type StarMapMount = "none" | "stand" | "magnet";
 
 export type StarMapParams = {
-  city: string; // id de CITIES ou "custom" (usa latitude e longitude)
+  city: string; // id de CITIES (rascunhos antigos) ou "custom" (usa latitude e longitude, do lugar buscado)
   lat: number;
   lon: number;
-  utcOffset: number; // fuso da hora informada, em horas (Brasília = -3)
+  placeName: string; // nome do lugar buscado ("Campinas, SP"), para a legenda e o aviso (#196)
+  tz: string; // nome IANA do fuso do lugar buscado; vazio = pela latitude e longitude
+  tzAuto: boolean; // fuso e horário de verão pela localização e pela data (#196)
+  utcOffset: number; // fuso da hora informada, em horas (Brasília = -3), usado com o fuso automático desligado
   year: number;
   month: number;
   day: number;
@@ -30,7 +34,7 @@ export type StarMapParams = {
 };
 
 export const DEFAULT_STAR_MAP: StarMapParams = {
-  city: "saopaulo", lat: -23.55, lon: -46.63, utcOffset: -3, year: 2024, month: 12, day: 24, hour: 22, minute: 0,
+  city: "custom", lat: -23.55, lon: -46.63, placeName: "São Paulo, SP", tz: "America/Sao_Paulo", tzAuto: true, utcOffset: -3, year: 2024, month: 12, day: 24, hour: 22, minute: 0,
   title: "Nossa noite", caption: "", maxMag: 4.5, starScale: 1, lines: true, width: 120, thickness: 3, relief: 0.8, mount: "stand",
   plateColor: "#16213e", starColor: "#f5efe0",
 };
@@ -81,7 +85,13 @@ export function buildStarMap(ctx: ModelCtx, p: StarMapParams): ModelOutput {
   if (day < 1 || day > DAYS_IN_MONTH[month - 1] + (month === 2 && isLeap(year) ? 1 : 0)) throw new MissingInput("Esse dia não existe nesse mês: confira a data.");
   const city = CITIES.find((c) => c[0] === p.city);
   const place = city ? { lat: city[2], lon: city[3] } : { lat: p.lat, lon: p.lon };
-  const when = { year, month, day, hour: p.hour, minute: p.minute, utcOffset: p.utcOffset };
+  const placeName = city ? city[1] : p.placeName.trim();
+  // fuso e horário de verão pela localização e pela data (#196); o campo tz só vale para o lugar buscado
+  const tz = !city && p.tz.trim() ? p.tz.trim() : tzAt(place.lat, place.lon);
+  const local = { year, month, day, hour: p.hour, minute: p.minute };
+  const utcOffset = p.tzAuto ? utcOffsetHours(tz, local) : p.utcOffset;
+  const zone = p.tzAuto ? offsetLabel(utcOffset, isDst(tz, local)) : offsetLabel(utcOffset, false);
+  const when = { ...local, utcOffset };
   const sky = skyStars(place, when, p.maxMag);
 
   return scoped((k) => {
@@ -97,7 +107,7 @@ export function buildStarMap(ctx: ModelCtx, p: StarMapParams): ModelOutput {
       const raw = s.trim() ? text(s, 100) : null;
       return raw ? k(fitInto(k(raw), W - 2 * MARGIN, h, y)) : null;
     };
-    const label = p.caption.trim() || `${pad(day)}.${pad(month)}.${year}${city ? ` · ${city[1]}` : ""}`;
+    const label = p.caption.trim() || `${pad(day)}.${pad(month)}.${year}${placeName ? ` · ${placeName}` : ""}`;
     const bottom = -H / 2;
     for (const t of [line(p.title, textH * 0.36, bottom + textH * 0.68), line(label, textH * 0.17, bottom + textH * 0.2)]) if (t) marks.push(t);
 
@@ -114,7 +124,7 @@ export function buildStarMap(ctx: ModelCtx, p: StarMapParams): ModelOutput {
     const models: Model[] = [{ name: "Mapa estelar", parts }];
     if (p.mount === "stand") models.push(plateStand(M, W, p.thickness, p.plateColor, -H / 2 - 25));
 
-    const warnings = [`${sky.length} estrelas visíveis (até a magnitude ${p.maxMag}) no céu de ${city?.[1] ?? "lat. " + place.lat + ", long. " + place.lon}. O horário de verão conta no fuso: com ele, use um fuso a mais.`];
+    const warnings = [`${sky.length} estrelas visíveis (até a magnitude ${p.maxMag}) no céu de ${placeName || "lat. " + place.lat + ", long. " + place.lon}, fuso ${zone}${p.tzAuto ? " (automático pela localização e pela data)" : ""}.`];
     if (p.mount === "magnet" && p.thickness - MAGNET_DEPTH < MIN_FACE_MM) warnings.push(`Com ímã, use espessura de ${MAGNET_DEPTH + MIN_FACE_MM} mm ou mais: a frente fina demais deixa o ímã marcar.`);
     if (p.mount === "magnet") warnings.push(`Encaixe um ímã de ${MAGNET_D - 0.2} mm por ${MAGNET_DEPTH} mm (disco de neodímio) na parte de trás, com cola.`);
     return { models, warnings };
