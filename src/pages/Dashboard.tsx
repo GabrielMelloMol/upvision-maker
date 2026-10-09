@@ -6,6 +6,7 @@ import { wasteRunsRepo } from "../db/wasteRunsRepo";
 import { filaments, materials } from "../db/repo";
 import type { Db } from "../db/types";
 import type { Filament, Material } from "../domain/entities";
+import { businessHealth, HEALTH_HEADLINE } from "../domain/health";
 import { breakdown, change, financeSummary, periodRange, recommendedStock, stockHealth, type OperationalCost } from "../domain/finance";
 import { money } from "../domain/format";
 import { isLate, orderTotals, paymentOf, STATUS_LABEL, todayIso, type Order } from "../domain/orders";
@@ -48,6 +49,7 @@ export default function Dashboard({ go }: { go: Go }) {
   const owed = owing.reduce((s, o) => s + paymentOf(o).due, 0);
   const lowFil = data.filaments.filter((f) => f.stockG <= f.minG);
   const lowMat = data.materials.filter((m) => m.stock <= m.min);
+  const health = businessHealth({ today, month, lateDueDates: late.map((o) => o.dueDate!), lowStock: lowFil.length + lowMat.length, emptyStock: lowFil.filter((f) => f.stockG <= 0).length + lowMat.filter((m) => m.stock <= 0).length });
   const sold = breakdown(data.orders, addDays(today, -WINDOW_DAYS), today, (_o, i) => String(i.productId ?? "")).filter((b) => b.key);
   const best = sold
     .map((b) => {
@@ -73,6 +75,37 @@ export default function Dashboard({ go }: { go: Go }) {
         </div>
       </div>
       {error && <LoadError error={error} onRetry={reload} />}
+      <section className="card biz-health" aria-label="Saúde do negócio">
+        <div className="row">
+          <span className="biz-lights" role="img" aria-label={`Semáforo: ${HEALTH[health.level].label}`}>
+            {(["critical", "warn", "ok"] as const).map((l) => (
+              <i key={l} className={`${l} ${l === health.level ? "on" : ""}`} />
+            ))}
+          </span>
+          <h2 className="card-title">Saúde do negócio: {HEALTH_HEADLINE[health.level]}</h2>
+        </div>
+        <ul className="biz-checks">
+          {health.checks.map((c) => {
+            const h = HEALTH[c.level];
+            return (
+              <li key={c.id}>
+                <span className={`health ${h.cls}`}><h.icon size={12} aria-hidden /> {h.label}</span>
+                <span>
+                  <b>{c.title}</b> · {c.detail}
+                </span>
+                {c.level !== "ok" ? (
+                  <Button size="sm" onClick={() => go(c.page)} aria-label={`Resolver: ${c.title}`}>
+                    Ver
+                  </Button>
+                ) : (
+                  <span />
+                )}
+                {c.level !== "ok" && <span className="muted small biz-todo">O que fazer: {c.todo}</span>}
+              </li>
+            );
+          })}
+        </ul>
+      </section>
       <div className="stats">
         <StatTile label="Receita do mês" value={money(month.revenue)} delta={change(month.revenue, last.revenue)} hint={`${month.orders} entregues`} />
         <StatTile label="Lucro do mês" value={money(month.profit)} delta={change(month.profit, last.profit)} deltaMoney={month.profit < 0 || last.profit < 0 ? month.profit - last.profit : undefined} tone={month.profit < 0 ? "bad" : undefined} hint={month.profit < 0 ? "prejuízo até agora" : undefined} />

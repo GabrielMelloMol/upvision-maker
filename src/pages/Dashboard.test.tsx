@@ -85,6 +85,34 @@ describe("Painel", () => {
     expect(text(tile("A receber"))).toContain("2 pedidos com valor em aberto");
   });
 
+  test("saúde do negócio (#190): semáforo geral, verificações com o que fazer e atalho para resolver", async () => {
+    // hoje = 15/06/2026: um pedido atrasado há 5 dias (amarelo) e um filamento zerado (vermelho)
+    await t.db.execute("INSERT INTO filaments (material, color, brand, pricePerKg, spoolG, stockG, minG) VALUES ('PLA', 'Azul', 'X', 100, 1000, 0, 200)");
+    await order({ name: "Duda", status: "pending", dueDate: "2026-06-10", items: [{ productId: null, qty: 1, unitPrice: 40 }] });
+    const go = vi.fn();
+    const user = userEvent.setup();
+    renderWithApp(<Dashboard go={go} />);
+    const card = await screen.findByRole("region", { name: "Saúde do negócio" });
+    await waitFor(() => expect(card).toHaveTextContent("Precisa de ação agora"));
+    expect(within(card).getByRole("img", { name: "Semáforo: crítico" })).toBeInTheDocument();
+    expect(card).toHaveTextContent("Estoque · 1 item zerado (de 1 abaixo do mínimo).");
+    expect(card).toHaveTextContent("Pedidos atrasados · 1 pedido atrasado, o mais antigo há 5 dias.");
+    expect(card).toHaveTextContent("O que fazer: Avise os clientes");
+    expect(card).toHaveTextContent("Margem do mês · Nenhuma venda entregue neste mês ainda.");
+    await user.click(within(card).getByRole("button", { name: "Resolver: Estoque" }));
+    expect(go).toHaveBeenCalledWith("filaments");
+    await user.click(within(card).getByRole("button", { name: "Resolver: Pedidos atrasados" }));
+    expect(go).toHaveBeenCalledWith("orders");
+  });
+
+  test("saúde do negócio verde quando está tudo em ordem, sem botões de resolver", async () => {
+    renderWithApp(<Dashboard go={() => {}} />);
+    const card = await screen.findByRole("region", { name: "Saúde do negócio" });
+    await waitFor(() => expect(card).toHaveTextContent("Tudo certo"));
+    expect(within(card).getByRole("img", { name: "Semáforo: saudável" })).toBeInTheDocument();
+    expect(within(card).queryByRole("button")).not.toBeInTheDocument();
+  });
+
   test("sem dados: estados vazios, tudo em dia e sem base para comparar", async () => {
     renderWithApp(<Dashboard go={vi.fn()} />);
     expect(await screen.findByText("Nenhum pedido com prazo nos próximos 7 dias.")).toBeInTheDocument();
