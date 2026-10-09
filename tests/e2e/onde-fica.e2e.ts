@@ -32,25 +32,25 @@ test("onde fica: a busca da galeria entende ocasião e sinônimo; abajur e lumin
   await expect(variants.getByRole("button", { name: "Foto em relevo" })).toBeVisible(); // atalho: litofania em abajur
 });
 
-test("onde fica: 'Veja também' liga as ferramentas parecidas e os atalhos levam ao shadowbox e à litofania", async ({ page }) => {
+test("onde fica: os atalhos das famílias levam à aba certa de Organizadores e ao shadowbox, e a Foto em relevo e os Organizadores têm tudo numa tela", async ({ page }) => {
   await openApp(page);
-  await go(page, "Organizador de gaveta");
-  await page.getByRole("button", { name: /Organizador pela foto \(encaixe/ }).click();
-  // o Organizador pela foto virou uma aba dos Organizadores: o link leva à aba certa
+  // Gridfinity (Modelos prontos) → atalho "Pela foto" abre Organizadores já na aba das ferramentas
+  await go(page, "Modelos prontos");
+  await page.getByRole("searchbox", { name: "Buscar modelo" }).fill("gridfinity");
+  await page.getByRole("group", { name: "Modelo" }).getByRole("button", { name: /Gridfinity: caixinha/ }).click();
+  await page.getByRole("group", { name: "Variação" }).getByRole("button", { name: "Pela foto" }).click();
+  await expect(page.getByRole("heading", { name: "Organizadores", level: 1 })).toBeVisible();
   await expect(page.getByRole("tab", { name: "Pela foto das ferramentas" })).toHaveAttribute("aria-selected", "true");
-  await page.getByRole("button", { name: /Gridfinity: caixinha/ }).click();
-  await expect(page.getByRole("heading", { name: "Modelos prontos" })).toBeVisible();
-  await expect(page.getByRole("group", { name: "Variação" }).getByRole("button", { name: "Caixinha" })).toHaveAttribute("aria-pressed", "true");
 
-  // Shadowbox virou aba da Foto em relevo: o atalho antigo (Veja também, Criar, busca) cai direto nela
-  await go(page, "Foto em relevo");
-  await page.getByRole("region", { name: "O que você quer fazer?" }).getByRole("button", { name: /^Shadowbox/ }).click();
-  await expect(page.getByRole("heading", { name: "Shadowbox (placas empilhadas)", level: 2 })).toBeVisible();
-  await expect(page.getByRole("heading", { name: "Modelos prontos" })).toHaveCount(0);
-  // e, nos Modelos prontos, o atalho da família leva de volta à ferramenta
+  // o nome antigo ainda leva à aba certa (ids antigos redirecionam)
+  await go(page, "Organizador de gaveta");
+  await expect(page.getByRole("tab", { name: "Pela medida da gaveta" })).toHaveAttribute("aria-selected", "true");
+
+  // Foto em relevo: o Shadowbox está dentro da ferramenta e também como modelo pronto
   await go(page, "Modelos prontos");
   await page.getByRole("searchbox", { name: "Buscar modelo" }).fill("shadowbox");
-  await page.getByRole("group", { name: "Modelo" }).getByRole("button", { name: /Shadowbox/ }).first().click();
+  await page.getByRole("group", { name: "Modelo" }).getByRole("button", { name: /Shadowbox/ }).click();
+  await expect(page.getByRole("group", { name: "Variação" }).getByRole("button", { name: "Shadowbox" })).toHaveAttribute("aria-pressed", "true");
   await page.getByRole("group", { name: "Variação" }).getByRole("button", { name: "Foto em relevo" }).click();
   await expect(page.getByRole("heading", { name: "Foto em relevo", level: 1 })).toBeVisible();
 });

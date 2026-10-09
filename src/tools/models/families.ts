@@ -7,7 +7,7 @@ import { MODELS, type Category, type ModelDef, type Params } from "./defs";
  */
 export type FamilyVariant = { id: string; label: string; group?: string };
 /** Atalho para uma ferramenta com tela própria (Chaveiros, Medalhas, Cortador, QR, Organizador de gaveta). */
-export type FamilyTool = { page: string; label: string; first?: boolean };
+export type FamilyTool = { page: string; label: string; first?: boolean; /** o que a tela de destino lê ao abrir (ex.: a aba de Organizadores) */ intent?: unknown };
 export type Family = { id: string; label: string; category: Category; variants: FamilyVariant[]; tools?: FamilyTool[] };
 
 const ART = "Com arte", FN = "Com função";
@@ -51,7 +51,7 @@ export const FAMILIES: Family[] = [
     label: "Organizador modular (Gridfinity)",
     category: "organize",
     variants: [{ id: "gridBin", label: "Caixinha" }, { id: "gridBase", label: "Base" }, { id: "gridDrawerBase", label: "Base gaveta" }, { id: "gridTest", label: "Teste encaixe" }, { id: "ruler3d", label: "Régua de 25 cm" }],
-    tools: [{ page: "drawer", label: "Na gaveta" }, { page: "toolfit", label: "Pela foto" }],
+    tools: [{ page: "organizers", label: "Na gaveta", intent: { tab: "drawer" } }, { page: "organizers", label: "Pela foto", intent: { tab: "photo" } }],
   },
   { id: "vase", label: "Vaso", category: "home", variants: [{ id: "vase", label: "Vaso" }] },
   { id: "toys", label: "Brinquedos", category: "home", variants: [{ id: "puzzle", label: "Quebra-cabeça" }, { id: "alphabetCube", label: "Cubo alfabeto" }, { id: "rpgDice", label: "Dados de RPG" }, { id: "coloring", label: "Colorir" }] },

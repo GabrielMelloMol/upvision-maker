@@ -1,5 +1,4 @@
 import { useMemo, useState } from "react";
-import SeeAlso from "../ui/SeeAlso";
 import { loadFont } from "../geometry/fonts";
 import { getManifold } from "../geometry/manifold";
 import { planSummary } from "../geometry/models/gridDrawer";
@@ -101,7 +100,6 @@ export default function DrawerOrganizer({ embedded = false }: { embedded?: boole
     <div className={embedded ? "stack" : "page"}>
       {!embedded && <h1>Organizador de gaveta</h1>}
       {!embedded && <p className="lead">Meça a gaveta, desenhe as caixinhas e imprima.</p>}
-      <SeeAlso items={[{ label: "Organizador pela foto (encaixe de uma ferramenta)", page: "toolfit" }, { label: "Gridfinity pela gaveta", model: "gridDrawerBase" }]} />
       <ToolSessionBar tool={tool} />
       <div className="tool-layout">
         <div className="controls">

@@ -82,8 +82,7 @@ Outros achados:
 | Em | Aponta para |
 |---|---|
 | Litofania e quadro | Shadowbox · Litofania em abajur (Abajur de mesa) · Pixel art |
-| Organizador de gaveta | Organizador pela foto · Gridfinity pela gaveta |
-| Organizador pela foto | Organizador de gaveta · Gridfinity: caixinha |
+| ~~Organizador de gaveta · Organizador pela foto~~ | Viraram abas de Organizadores (bd6d768); os "Veja também" não são mais necessários |
 | Chaveiros (ferramenta) | Chaveiros prontos (NFC, giratório, abridor…) · Medalhas |
 | Modelos › Quadro e desenho · Luminárias e abajures | atalho Litofania |
 | Modelos › Lembrancinhas | atalho Pixel art (ímã) |
@@ -121,6 +120,6 @@ convite · caneca/copo personalizado · bijuteria e brinco · pelúcia · relóg
 | 4. Renomes diretos | ✅ **Imagem em desenho (SVG)**, **Separar cores de um 3MF**, **Buscar modelos na internet** (o nome antigo continua achando na busca) |
 | Chaveiros (card duplicado) | Não aplicado, como pedido |
 | Juntar Litofania + Quadro por camadas + Shadowbox | ✅ Feito pelo Torno em 7c71e88: ferramenta **Foto em relevo** (id `lithophane`) com Litofania, Colorida, Relevo, Quadro por camadas e Shadowbox; o modelo shadowbox continua no catálogo (família Quadro e desenho) e o "Veja também" da tela já foi ajustado |
-| Juntar Organizador de gaveta + pela foto + Gridfinity | Com o Lupa ("Organizadores", id `organizers`; `drawer` e `toolfit` redirecionam para as abas) |
+| Juntar Organizador de gaveta + pela foto + Gridfinity | ✅ Feito pelo Lupa em bd6d768: ferramenta **Organizadores** (id `organizers`) com as abas "Pela medida da gaveta", "Pela foto das ferramentas" e "Caixinhas avulsas"; `drawer` e `toolfit` redirecionam (PAGE_REDIRECTS). Os atalhos da família Organizador modular agora abrem a aba certa ("Na gaveta", "Pela foto"), e os "Veja também" entre as duas telas saíram (viraram abas) |
 
 Nada se perde: os ids das telas (`lithophane`, `drawer`, `toolfit`, `svg`, `colorsplit`, `search3d`…) não mudaram; atalhos de família, "Veja também", rascunhos, Meus projetos e o ⌘K continuam levando ao lugar certo (há um teste que falha se algum id antigo sumir sem redirecionamento).
