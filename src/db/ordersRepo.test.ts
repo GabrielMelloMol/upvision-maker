@@ -82,7 +82,8 @@ describe("pagamento (#177)", () => {
   test("a migração marca como pagos os pedidos já entregues e deixa os outros a receber", async () => {
     const old = memoryDb();
     const { MIGRATIONS } = await import("./migrations");
-    for (const [i, stmts] of MIGRATIONS.slice(0, MIGRATIONS.length - 1).entries()) {
+    const paidAt = MIGRATIONS.findIndex((m) => m.some((sql) => sql.includes("paidAmount")));
+    for (const [i, stmts] of MIGRATIONS.slice(0, paidAt).entries()) {
       for (const sql of stmts) await old.execute(sql);
       await old.execute(`PRAGMA user_version = ${i + 1}`);
     }

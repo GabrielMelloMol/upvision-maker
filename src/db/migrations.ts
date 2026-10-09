@@ -120,6 +120,10 @@ export const MIGRATIONS: string[][] = [
     "ALTER TABLE orders ADD COLUMN paidAmount REAL NOT NULL DEFAULT 0",
     `UPDATE orders SET paidAmount = ROUND(freight + COALESCE((SELECT SUM(ROUND(qty * unitPrice * (1 - discountPct / 100.0), 2)) FROM order_items WHERE orderId = orders.id), 0), 2) WHERE status = 'delivered'`,
   ],
+  // Consignados (#184): contratos em andamento, para acompanhar a reposição; as peças de cada ciclo ficam em JSON.
+  [
+    "CREATE TABLE consignments (id INTEGER PRIMARY KEY, customerId INTEGER NOT NULL, customerName TEXT NOT NULL, startDate TEXT NOT NULL, periodDays INTEGER NOT NULL, items TEXT NOT NULL, notes TEXT NOT NULL DEFAULT '', active INTEGER NOT NULL DEFAULT 1, lastRestockAt TEXT, createdAt TEXT NOT NULL)",
+  ],
 ];
 
 export const SCHEMA_VERSION = MIGRATIONS.length;

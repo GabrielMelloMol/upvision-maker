@@ -8,7 +8,9 @@ import type { Quote } from "../domain/quotes";
 import { catalogPdf, PER_PAGE } from "./catalog";
 import { contractPdf, DEFAULT_TERMS } from "./contract";
 import type { PdfFonts } from "./doc";
+import type { Consignment } from "../domain/consignments";
 import { orderConfirmationPdf } from "./orderConfirmation";
+import { restockPdf } from "./restock";
 import { quotePdf } from "./quote";
 
 const font = (n: string) => new Uint8Array(readFileSync(resolve(__dirname, "../assets/pdf-fonts", n)));
@@ -131,4 +133,19 @@ test("confirmação de pedido já pago não leva QR Pix e agradece; sem chave Pi
   const noKey = await orderConfirmationPdf(fonts, { ...company, pixKey: "" }, order(0));
   expect(txt(noKey.trace)).toContain("Falta pagar: R$ 39,00");
   expect(noKey.trace.some((l) => l.startsWith("Pague com Pix"))).toBe(false);
+});
+
+test("termo de reposição: partes, peças repostas com repasse, colunas do acerto, próxima data e assinaturas (#184)", async () => {
+  const c: Consignment = { id: 1, customerId: 3, customerName: "Loja da Bia", startDate: "2026-09-01", periodDays: 30, notes: "", active: true, lastRestockAt: null, createdAt: "2026-09-01", items: [] };
+  const items = [{ productId: 1, name: "Chaveiro", qty: 20, transferPrice: 8, salePrice: 15 }];
+  const r = await restockPdf(fonts, company, c, { ...EMPTY_CUSTOMER, id: 3, name: "Loja da Bia" }, items, "2026-10-02", "2026-11-01");
+  const t = r.trace.join("\n");
+  expect(t).toContain("CONSIGNATÁRIO: Loja da Bia");
+  expect(t).toContain("Chaveiro");
+  expect(t).toContain("Vendidas");
+  expect(t).toContain("Devolvidas");
+  expect(txt(r.trace)).toContain("Total em repasse desta reposição, se todas forem vendidas: R$ 160,00");
+  expect(t).toContain("Próxima reposição prevista: 01/11/2026 (a cada 30 dias).");
+  expect(t).toMatch(/Não substitui orientação jurídica/);
+  expect(await pages(r.bytes)).toHaveLength(1);
 });

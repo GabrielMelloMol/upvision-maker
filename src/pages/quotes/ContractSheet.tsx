@@ -1,5 +1,7 @@
 import { FileSignature } from "lucide-react";
 import { useState } from "react";
+import { getDb } from "../../db";
+import { consignmentsRepo } from "../../db/consignmentsRepo";
 import { money, parseDecimal } from "../../domain/format";
 import MoneyField from "../../ui/MoneyField";
 import SmartField from "../../ui/SmartField";
@@ -19,10 +21,11 @@ type Row = { productId: number; qty: string; transfer: string; sale: string };
 const str = (n: number) => n.toFixed(2).replace(".", ",");
 
 /** Contrato de consignação: loja parceira + peças com repasse (do cadastro do produto) + cláusulas editáveis. */
-export default function ContractSheet({ data, onClose }: { data: QuotesData; onClose: () => void }) {
+export default function ContractSheet({ data, onClose, onSaved }: { data: QuotesData; onClose: () => void; onSaved: () => void }) {
   const [customerId, setCustomerId] = useState("");
   const [rows, setRows] = useState<Row[]>([]);
   const [t, setT] = useState<ContractTerms>(DEFAULT_TERMS(todayIso()));
+  const [track, setTrack] = useState(true); // acompanhar a reposição na lista de Consignados (#184)
   const [busy, setBusy] = useState(false);
   const toast = useToast();
   const customer = data.customers.find((c) => String(c.id) === customerId);
@@ -53,6 +56,18 @@ export default function ContractSheet({ data, onClose }: { data: QuotesData; onC
       const path = await saveFile(`consignacao-${slug(customer.name)}-${t.date}.pdf`, bytes, "pdf", "PDF");
       if (path) {
         toast(`Contrato salvo em ${path}`);
+        if (track) {
+          const db = await getDb();
+          await consignmentsRepo.create(db, {
+            customerId: customer.id,
+            customerName: customer.name,
+            startDate: t.date,
+            periodDays: t.periodDays,
+            items: rows.map((r, k) => ({ productId: r.productId, name: items[k].name, qty: items[k].qty, transferPrice: items[k].transferPrice, salePrice: items[k].salePrice })),
+            notes: "",
+          }, todayIso());
+          onSaved();
+        }
         onClose();
       }
     } catch (err) {
@@ -143,6 +158,9 @@ export default function ContractSheet({ data, onClose }: { data: QuotesData; onC
           <label>Devolução<textarea rows={2} value={t.returns} onChange={(e) => setT({ ...t, returns: e.target.value })} /></label>
         </div>
       </fieldset>
+      <label className="check">
+        <input type="checkbox" checked={track} onChange={(e) => setTrack(e.target.checked)} /> Acompanhar a reposição (aviso de prazo na lista de Consignados)
+      </label>
       <Alert kind="info">Modelo simples. Não substitui orientação jurídica.</Alert>
     </Sheet>
   );

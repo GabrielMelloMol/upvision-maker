@@ -1,10 +1,11 @@
 import { ask } from "@tauri-apps/plugin-dialog";
-import { ArrowRightLeft, BookImage, FileDown, FileSignature, FileText, Pencil, Plus, Trash2 } from "lucide-react";
+import { ArrowRightLeft, BookImage, FileDown, FileSignature, FileText, Pencil, Plus, Store, Trash2 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { getDb } from "../db";
 import { quotesRepo } from "../db/quotesRepo";
 import { money } from "../domain/format";
 import { orderTotals, todayIso } from "../domain/orders";
+import { restockStatus } from "../domain/consignments";
 import { isExpired, quoteNumber, type Quote } from "../domain/quotes";
 import { loadPdfFonts } from "../pdf/fonts";
 import { quotePdf } from "../pdf/quote";
@@ -17,6 +18,7 @@ import { errorText, useToast } from "../ui/Toast";
 import { useData } from "../ui/useData";
 import type { Go } from "../pages";
 import CatalogSheet from "./quotes/CatalogSheet";
+import ConsignmentsSheet from "./quotes/ConsignmentsSheet";
 import ContractSheet from "./quotes/ContractSheet";
 import { EMPTY_QUOTES, loadQuotesData } from "./quotes/data";
 import QuoteEditor from "./quotes/QuoteEditor";
@@ -29,9 +31,10 @@ export default function Quotes({ go }: { go: Go }) {
   const [draft, setDraft] = useState(peekQuoteDraft);
   const [editing, setEditing] = useState<Quote | "new" | "draft" | null>(() => (peekOpenQuoteDraft() && draft ? "draft" : null));
   useEffect(clearOpenQuoteDraft, []);
-  const [sheet, setSheet] = useState<"contract" | "catalog" | null>(null);
+  const [sheet, setSheet] = useState<"contract" | "catalog" | "consignments" | null>(null);
   const toast = useToast();
   const today = todayIso();
+  const soon = data.consignments.filter((c) => c.active && restockStatus(c, today).soon);
   const num = (q: Quote) => quoteNumber(q, data.company.quotePrefix);
 
   async function pdf(q: Quote) {
@@ -75,6 +78,9 @@ export default function Quotes({ go }: { go: Go }) {
           <Button icon={FileSignature} onClick={() => setSheet("contract")}>
             Contrato de consignação
           </Button>
+          <Button icon={Store} onClick={() => setSheet("consignments")}>
+            Consignados
+          </Button>
           <Button icon={BookImage} onClick={() => setSheet("catalog")}>
             Catálogo PDF
           </Button>
@@ -87,6 +93,19 @@ export default function Quotes({ go }: { go: Go }) {
         <p className="hint">
           Dica: preencha os <button className="link" onClick={() => go("company")}>Dados da empresa</button> (logo, contatos e chave Pix) para o PDF sair completo.
         </p>
+      )}
+      {soon.length > 0 && sheet !== "consignments" && (
+        <Alert kind="info">
+          <div className="row" style={{ justifyContent: "space-between", flexWrap: "wrap" }}>
+            <span>
+              Consignados: {soon.slice(0, 3).map((c) => `${c.customerName} (${restockStatus(c, today).label})`).join("; ")}
+              {soon.length > 3 ? ` e mais ${soon.length - 3}` : ""}.
+            </span>
+            <Button variant="primary" size="sm" onClick={() => setSheet("consignments")}>
+              Ver consignados
+            </Button>
+          </div>
+        </Alert>
       )}
       {draft && editing !== "draft" && (
         <Alert kind="info">
@@ -179,7 +198,8 @@ export default function Quotes({ go }: { go: Go }) {
           }}
         />
       )}
-      {sheet === "contract" && <ContractSheet data={data} onClose={() => setSheet(null)} />}
+      {sheet === "contract" && <ContractSheet data={data} onClose={() => setSheet(null)} onSaved={reload} />}
+      {sheet === "consignments" && <ConsignmentsSheet data={data} onClose={() => setSheet(null)} onChanged={reload} />}
       {sheet === "catalog" && <CatalogSheet data={data} company={data.company} onClose={() => setSheet(null)} />}
     </div>
   );
