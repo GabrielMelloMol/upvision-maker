@@ -14,12 +14,13 @@ import { buildKeychain, DEFAULT_KEYCHAIN, layoutOnPlate, type KeychainParams } f
 import { buildLayeredPicture, DEFAULT_LAYERED, type LayeredParams } from "../geometry/layeredPicture";
 import { DEFAULT_LITHO, type LithoParams } from "../geometry/lithophane";
 import { buildColorLithophane, DEFAULT_COLOR_LITHO, type ColorLithoParams } from "../geometry/lithophaneColor";
+import { buildRelief, DEFAULT_RELIEF, type ReliefParams } from "../geometry/relief";
 import { buildLithophaneSet, lithoGrid } from "../geometry/lithophaneSet";
 import { fitAspect } from "../geometry/lithophaneShapes";
 import type { CS, ManifoldToplevel } from "../geometry/manifold";
 import { buildMedalDesign, DEFAULT_MEDAL_DESIGN, type MedalDesign } from "../geometry/medalDesign";
 import { cutModels, DEFAULT_CUT } from "../geometry/planeCut";
-import { COLOR_LITHO_PROFILE, CUTTER_PROFILE, DEFAULT_PROFILE, LAYERED_PROFILE, LITHO_PROFILE, type PrintProfile } from "../geometry/printProfile";
+import { COLOR_LITHO_PROFILE, CUTTER_PROFILE, DEFAULT_PROFILE, LAYERED_PROFILE, LITHO_PROFILE, RELIEF_PROFILE, type PrintProfile } from "../geometry/printProfile";
 import { qrModel } from "../geometry/qr3d";
 import { buildSpoolTag, spoolTagsThatFit } from "../geometry/spoolTag";
 import { arcTextToCrossSection, textToCrossSection } from "../geometry/text";
@@ -147,6 +148,13 @@ export function toolCases(M: ManifoldToplevel): QaCase[] {
     const set = buildLithophaneSet(M, fit.luma, fit.w, fit.h, grid.step, p);
     return { models: set.models, warnings: [...set.warnings, ...bedWarnings(set.models, set.warnings)] };
   };
+  const relief = (width: number, cell: number, patch: Partial<ReliefParams>, subject = false): Out => {
+    const grid = lithoGrid({ ...DEFAULT_LITHO, shape: "flat" }, width, cell);
+    const ph = photoGrid(grid.cols);
+    const mask = subject ? Uint8Array.from({ length: ph.w * ph.h }, (_, i) => (Math.hypot((i % ph.w) - ph.w / 2, Math.floor(i / ph.w) - ph.h / 2) < ph.h * 0.35 ? 1 : 0)) : null;
+    const model = buildRelief(ph.luma, ph.w, ph.h, grid.step, { ...DEFAULT_RELIEF, ...patch }, mask);
+    return { models: [model], warnings: bedWarnings([model], []) };
+  };
   const colorLitho = (width: number, cell: number, patch: Partial<ColorLithoParams>): Out => {
     const grid = lithoGrid({ ...DEFAULT_LITHO, shape: "flat" }, width, cell);
     const ph = colorPhoto(grid.cols);
@@ -225,6 +233,10 @@ export function toolCases(M: ManifoldToplevel): QaCase[] {
       ["círculo", () => litho(100, 0.3, { shape: "circle" }), LITHO_PROFILE],
       ["círculo máximo", () => litho(250, 1, { shape: "circle", border: 15, minT: 3, maxT: 8 }), LITHO_PROFILE],
       ["círculo com fita e pilhas", () => litho(100, 0.3, { shape: "circle", led: { kind: "strip", size: 10, power: "battery" } }), LITHO_PROFILE],
+      ["relevo", () => relief(100, 0.4, {}), RELIEF_PROFILE],
+      ["relevo mínimo", () => relief(20, 0.15, { depth: 0.5, base: 0.6, smooth: 0, edge: 0, border: 0 }), RELIEF_PROFILE],
+      ["relevo máximo", () => relief(250, 1, { depth: 10, base: 5, smooth: 3, edge: 1, border: 15, gamma: 2.5, invert: true }), RELIEF_PROFILE],
+      ["relevo com fundo plano", () => relief(100, 0.4, {}, true), RELIEF_PROFILE],
       ["colorida", () => colorLitho(100, 0.4, {}), COLOR_LITHO_PROFILE],
       ["colorida mínima", () => colorLitho(20, 0.15, { maxInk: 0.4, whiteT: 0.4, border: 3 }), COLOR_LITHO_PROFILE],
       ["colorida máxima", () => colorLitho(250, 1, { maxInk: 4, whiteT: 3, border: 15 }), COLOR_LITHO_PROFILE],

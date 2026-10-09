@@ -5,6 +5,8 @@ import { fitAspect, loopSeam } from "../geometry/lithophaneShapes";
 import { applyShapeMask } from "../geometry/lithophaneShaped";
 import { buildColorLithophane, colorPreview, DEFAULT_COLOR_LITHO, type ColorLithoParams } from "../geometry/lithophaneColor";
 import ColorLithoPanel from "./ColorLithoPanel";
+import ReliefPanel, { DEFAULT_RELIEF_UI, type ReliefUi } from "./ReliefPanel";
+import { buildRelief } from "../geometry/relief";
 import { buildLithophaneSet, lithoGrid, seamOf } from "../geometry/lithophaneSet";
 import { bedWarnings } from "./models/bedCheck";
 import Toggle from "../ui/Toggle";
@@ -15,7 +17,7 @@ import { getManifold } from "../geometry/manifold";
 import Alert from "../ui/Alert";
 import Dropzone from "../ui/Dropzone";
 import ExportButtons from "../ui/ExportButtons";
-import { COLOR_LITHO_PROFILE, LAYERED_PROFILE, LITHO_PROFILE } from "../geometry/printProfile";
+import { COLOR_LITHO_PROFILE, LAYERED_PROFILE, LITHO_PROFILE, RELIEF_PROFILE } from "../geometry/printProfile";
 import NumField, { inRange } from "../ui/NumField";
 import Preview3D from "../ui/Preview3D";
 import Segmented from "../ui/Segmented";
@@ -31,10 +33,11 @@ import { toDataUrl } from "./rasterUrl";
 import LayeredPanel, { DEFAULT_LAYERED_UI, type LayeredUi, type Thumb } from "./layered/LayeredPanel";
 import { segmentSubject } from "../vectorize/segment";
 
-type Mode = "litho" | "color" | "layered";
+type Mode = "litho" | "color" | "relief" | "layered";
 const MODES: [Mode, string][] = [
   ["litho", "Litofania"],
-  ["color", "Litofania colorida"],
+  ["color", "Colorida"],
+  ["relief", "Relevo"],
   ["layered", "Quadro por camadas"],
 ];
 const SHAPES: [LithoShape, string][] = [
@@ -70,7 +73,7 @@ const THUMB_W = 72; // miniaturas das paletas prontas
 const FALLBACK_COLORS = DEFAULT_LAYERED.colors;
 const mmText = (n: number) => n.toFixed(2).replace(".", ",");
 
-const initialState = () => ({ mode: "litho" as Mode, file: null as File | null, width: 100, cell: 0.3, litho: DEFAULT_LITHO, color: DEFAULT_COLOR_LITHO as ColorLithoParams, layered: DEFAULT_LAYERED_UI as LayeredUi });
+const initialState = () => ({ mode: "litho" as Mode, file: null as File | null, width: 100, cell: 0.3, litho: DEFAULT_LITHO, color: DEFAULT_COLOR_LITHO as ColorLithoParams, relief: DEFAULT_RELIEF_UI, layered: DEFAULT_LAYERED_UI as LayeredUi });
 type LithoState = ReturnType<typeof initialState>;
 
 /** Foto → litofania (relevo que aparece contra a luz) ou quadro por camadas de filamento (estilo HueForge). */
@@ -90,6 +93,8 @@ export default function Lithophane() {
   const led = litho.led;
   const [setMode, setFile, setWidth, setCell, setLitho, setLayered] = [tool.field("mode"), tool.field("file"), tool.field("width"), tool.field("cell"), tool.field("litho"), tool.field("layered")];
   const setColor = tool.field("color");
+  const relief = useMemo((): ReliefUi => ({ ...DEFAULT_RELIEF_UI, ...tool.state.relief }), [tool.state.relief]);
+  const setRelief = tool.field("relief");;
   useExample("lithophane", () => void exampleFile("landscape").then(setFile)); // "Usar exemplo" da ajuda (#84)
   const [swaps, setSwaps] = useState<ColorSwap[]>([]);
   const [view, setView] = useState<View>("light");
@@ -109,7 +114,9 @@ export default function Lithophane() {
   const valid =
     inRange(width, 20, 250) &&
     inRange(cell, 0.15, 1) &&
-    (mode === "color"
+    (mode === "relief"
+      ? inRange(relief.depth, 0.5, 10) && inRange(relief.base, 0.6, 5) && inRange(relief.smooth, 0, 3) && inRange(relief.gamma, 0.4, 2.5) && inRange(relief.border, 0, 15)
+      : mode === "color"
       ? inRange(color.maxInk, 0.4, 4) && inRange(color.whiteT, 0.4, 3) && inRange(color.border, 3, 15)
       : mode === "litho"
       ? inRange(litho.minT, 0.4, 3) && inRange(litho.maxT, 1, 8) && inRange(litho.border, 0, 15) && inRange(litho.arc, 30, 270) &&
@@ -126,6 +133,17 @@ export default function Lithophane() {
     const full = lumaGrid(r.rgba, r.w, r.h);
     const crop = grid.aspect ? fitAspect(full, r.w, r.h, grid.aspect) : { luma: full, w: r.w, h: r.h };
     const luma = crop.luma;
+    if (mode === "relief") {
+      setSwaps([]);
+      const subject = relief.subject;
+      const key = `${file.name}:${file.size}:${r.w}:${subject}`;
+      if (subject !== "none" && !masks.current.has(key)) masks.current.set(key, await segmentSubject(r.rgba, r.w, r.h, subject));
+      const mask = subject !== "none" ? (masks.current.get(key) ?? null) : null;
+      const model = buildRelief(luma, r.w, r.h, step, relief, mask);
+      setExportModels([model]);
+      const warn = step > cell ? [`Detalhe limitado a ${mmText(step)} mm por ponto para a peça não ficar pesada.`] : [];
+      return { models: [model], warnings: [...warn, ...bedWarnings([model], [])] };
+    }
     if (mode === "color") {
       setSwaps([]);
       const M = await getManifold();
@@ -166,7 +184,7 @@ export default function Lithophane() {
     const colorPauses = layered.split ? [] : out.swaps.map((s) => s.z);
     const pauses = [...(out.magnetZ ? [out.magnetZ] : []), ...colorPauses].sort((a, b) => a - b);
     return { models: [named(out.preview)], warnings: [...warn, ...out.warnings], pauses };
-  }, [file, width, cell, mode, litho, color, layered, colors.join(), filColors, valid]);
+  }, [file, width, cell, mode, litho, color, relief, layered, colors.join(), filColors, valid]);
 
   return (
     <div className="page">
@@ -222,6 +240,8 @@ export default function Lithophane() {
               </div>
             )}
             </>
+          ) : mode === "relief" ? (
+            <ReliefPanel relief={relief} setRelief={setRelief} />
           ) : mode === "color" ? (
             <ColorLithoPanel color={color} setColor={setColor} filColors={filColors} />
           ) : (
@@ -249,11 +269,11 @@ export default function Lithophane() {
               )}
             </div>
           </details>
-          <ExportButtons printModes={mode !== "litho"} modes={["ams", "plates"]} models={models.length ? exportModels : []} name={mode === "litho" ? "litofania" : mode === "color" ? "litofania-colorida" : "quadro-camadas"} busy={busy} pauses={pauses} profile={mode === "litho" ? LITHO_PROFILE : mode === "color" ? COLOR_LITHO_PROFILE : { ...LAYERED_PROFILE, layerHeight: layered.layerHeight }} onSaved={tool.exported} />
+          <ExportButtons printModes={mode === "layered" || mode === "color"} modes={["ams", "plates"]} models={models.length ? exportModels : []} name={mode === "litho" ? "litofania" : mode === "color" ? "litofania-colorida" : mode === "relief" ? "relevo" : "quadro-camadas"} busy={busy} pauses={pauses} profile={mode === "litho" ? LITHO_PROFILE : mode === "color" ? COLOR_LITHO_PROFILE : mode === "relief" ? RELIEF_PROFILE : { ...LAYERED_PROFILE, layerHeight: layered.layerHeight }} onSaved={tool.exported} />
         </div>
         <div className="preview-col">
-          {mode !== "layered" && <Segmented label="Prévia" value={view} options={VIEWS} onChange={setView} />}
-          {mode !== "layered" && view === "light" ? (
+          {(mode === "litho" || mode === "color") && <Segmented label="Prévia" value={view} options={VIEWS} onChange={setView} />}
+          {(mode === "litho" || mode === "color") && view === "light" ? (
             <div className="pair">
               <figure>
                 <figcaption>Original</figcaption>

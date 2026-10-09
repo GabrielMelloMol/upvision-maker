@@ -154,7 +154,7 @@ describe("formatos novos e base de LED (#101)", () => {
   });
   test("litofania colorida: pede 5 filamentos, avisa do TD e salva um volume por cor", async () => {
     const { user } = await withPhoto();
-    await user.click(screen.getByRole("button", { name: "Litofania colorida" }));
+    await user.click(screen.getByRole("button", { name: "Colorida" }));
     expect(await screen.findByText(/5 filamentos ao mesmo tempo/, undefined, BUILD)).toBeInTheDocument();
     expect(screen.getByText(/Sem TD cadastrado para ciano/)).toBeInTheDocument();
     expect(screen.getByLabelText("Filamento ciano")).toBeInTheDocument();
@@ -168,7 +168,7 @@ describe("formatos novos e base de LED (#101)", () => {
 
   test("TD preenchido some com o aviso daquela tinta", async () => {
     const { user } = await withPhoto();
-    await user.click(screen.getByRole("button", { name: "Litofania colorida" }));
+    await user.click(screen.getByRole("button", { name: "Colorida" }));
     await screen.findByText(/Sem TD cadastrado para ciano/, undefined, BUILD);
     for (const nome of ["ciano", "magenta", "amarelo", "preto"]) {
       await user.clear(screen.getByLabelText(new RegExp(`^TD ${nome}`)));
@@ -176,4 +176,24 @@ describe("formatos novos e base de LED (#101)", () => {
     }
     await waitFor(() => expect(screen.queryByText(/Sem TD cadastrado/)).not.toBeInTheDocument(), BUILD);
   }, 90_000);
+  test("relevo: placa deitada numa cor, profundidade pedida e 3MF salvo", async () => {
+    const { user } = await withPhoto();
+    await user.click(screen.getByRole("button", { name: "Relevo" }));
+    expect(screen.queryByRole("button", { name: "Contra a luz" })).not.toBeInTheDocument();
+    await user.clear(screen.getByLabelText(/^Profundidade/));
+    await user.type(screen.getByLabelText(/^Profundidade/), "4");
+    await user.clear(screen.getByLabelText(/^Base/));
+    await user.type(screen.getByLabelText(/^Base/), "1");
+    expect(await screen.findByText(/× 5\.0 mm/, undefined, BUILD)).toBeInTheDocument(); // base + profundidade = 5 mm de altura
+    await user.click(screen.getByRole("button", { name: /Salvar 3MF/ }));
+    await waitFor(() => expect(t.files.has("/saida/relevo.3mf")).toBe(true));
+  }, 90_000);
+
+  test("relevo: profundidade fora do limite marca o campo e bloqueia a peça", async () => {
+    const { user } = await withPhoto();
+    await user.click(screen.getByRole("button", { name: "Relevo" }));
+    await user.clear(screen.getByLabelText(/^Profundidade/));
+    await user.type(screen.getByLabelText(/^Profundidade/), "50");
+    expect(await screen.findByText(/Use entre 0,5 e 10/)).toBeInTheDocument();
+  });
 });

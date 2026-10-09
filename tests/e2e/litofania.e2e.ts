@@ -111,7 +111,7 @@ test("litofania colorida: 5 filamentos, aviso do AMS e do TD, prévia contra a l
   await go(page, "Litofania e quadro");
   await page.locator('input[type="file"]').setInputFiles("tests/fixtures/foto-pessoa.jpg");
   await expect(page.getByRole("img", { name: "Simulação da litofania contra a luz" })).toBeVisible({ timeout: 150_000 });
-  await page.getByRole("button", { name: "Litofania colorida" }).click();
+  await page.getByRole("button", { name: "Colorida" }).click();
   await expect(page.getByText(/5 filamentos ao mesmo tempo/)).toBeVisible({ timeout: 150_000 });
   await expect(page.getByText(/Sem TD cadastrado para ciano, magenta, amarelo, preto/)).toBeVisible();
   await expect(page.getByRole("img", { name: "Simulação da litofania contra a luz" })).toBeVisible();
@@ -126,4 +126,25 @@ test("litofania colorida: 5 filamentos, aviso do AMS e do TD, prévia contra a l
   expect(items3mf(file[1])).toBe(1);
   const cfg = strFromU8(unzipSync(new Uint8Array(file[1]))["Metadata/model_settings.config"]);
   expect((cfg.match(/<part /g) ?? []).length).toBeGreaterThanOrEqual(4); // branco, tintas usadas
+});
+
+test("relevo de foto: placa de uma cor com a profundidade pedida, realce e moldura; salva 3MF (#103)", async ({ page, tauri }) => {
+  await openApp(page);
+  await go(page, "Litofania e quadro");
+  await page.locator('input[type="file"]').setInputFiles("tests/fixtures/foto-pessoa.jpg");
+  await expect(page.getByRole("img", { name: "Simulação da litofania contra a luz" })).toBeVisible({ timeout: 150_000 });
+  await page.getByRole("button", { name: "Relevo" }).click();
+  await expect(page.getByRole("group", { name: "Prévia" })).toHaveCount(0); // relevo não é contra a luz
+  await page.getByLabel(/^Profundidade/).fill("4");
+  await page.getByLabel(/^Base/).fill("1");
+  expect(await settled(page)).toContain("5.0 mm"); // base + profundidade
+  if (SHOTS) await page.screenshot({ path: `${SHOTS}/relevo.png` });
+  const soft = await settled(page);
+  await page.getByLabel(/^Realce de bordas/).fill("100");
+  await page.getByRole("switch", { name: "Claro = baixo" }).check();
+  expect(await settled(page)).toBe(soft); // as medidas não mudam, só o relevo
+  await page.getByRole("button", { name: /Salvar 3MF/ }).click();
+  await expect(toastWith(page, "Arquivo salvo em")).toBeVisible();
+  const file = [...tauri.files].find(([p]) => p.endsWith("relevo.3mf"))!;
+  expect(items3mf(file[1])).toBe(1);
 });

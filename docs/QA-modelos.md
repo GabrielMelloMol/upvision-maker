@@ -23,7 +23,7 @@ Peça maior que a mesa de 256 mm do A1 conta como **aviso** quando o app avisa n
 impressoras de mesa maior); sem o aviso do app, é **falha**.
 
 
-**Total:** 266 casos · 188 ok · 61 com aviso · 17 com falha · 0 n/a
+**Total:** 270 casos · 207 ok · 62 com aviso · 1 com falha · 0 n/a
 
 ## Forja
 
@@ -127,26 +127,30 @@ impressoras de mesa maior); sem o aviso do app, é **falha**.
 | Quadro por camadas (ferramenta) | máximo | ✅ ok | Bambu ✓ · Orca ✓ · Projeto Bambu ✓ | 313 | 406,2 | 1 | 5,00 / 7,24 | – |
 | Quadro por camadas (ferramenta) | mínimo | ✅ ok | Bambu ✓ · Orca ✓ · Projeto Bambu ✓ | 2 | 0,2 | 1 | 0,36 / 0,52 | – |
 | Quadro por camadas (ferramenta) | padrão | ✅ ok | Bambu ✓ · Orca ✓ · Projeto Bambu ✓ | 28 | 13,2 | 1 | 1,52 / 2,24 | – |
-| Litofania (ferramenta) | caixa | ❌ falha | Bambu ✗ · Orca ✗ | – | – | – | – | Bambu: Bambu Studio: The input files to the slicer are not found. (código -3); Orca: OrcaSlicer: código 253 |
-| Litofania (ferramenta) | cilindro | ❌ falha | Bambu ✗ · Orca ✗ | – | – | – | – | Bambu: Bambu Studio: The input files to the slicer are not found. (código -3); Orca: OrcaSlicer: código 253 |
-| Litofania (ferramenta) | cilindro com base e tampa | ❌ falha | Bambu ✗ · Orca ✗ · Projeto Bambu ✗ | – | – | – | – | Bambu: Bambu Studio: The input files to the slicer are not found. (código -3); Orca: OrcaSlicer: código 253; Projeto Bambu: Bambu Studio não exportou o projeto (código 253) |
-| Litofania (ferramenta) | cilindro com fita e pilhas | ❌ falha | Bambu ✗ · Orca ✗ · Projeto Bambu ✗ | – | – | – | – | Bambu: Bambu Studio: The input files to the slicer are not found. (código -3); Orca: OrcaSlicer: código 253; Projeto Bambu: Bambu Studio não exportou o projeto (código 253) |
-| Litofania (ferramenta) | cilindro máximo | ❌ falha | Bambu ✗ · Orca ✗ · Projeto Bambu ✗ | – | – | – | – | Bambu: Bambu Studio: The input files to the slicer are not found. (código -3); Orca: OrcaSlicer: código 253; Projeto Bambu: Bambu Studio não exportou o projeto (código 253); o conjunto arrumado ocupa 162,0 × 705,5 mm: passa da mesa de 256 mm |
-| Litofania (ferramenta) | cilindro mínimo | ❌ falha | Bambu ✗ · Orca ✗ | – | – | – | – | Bambu: Bambu Studio: The input files to the slicer are not found. (código -3); Orca: OrcaSlicer: código 253 |
-| Litofania (ferramenta) | círculo | ❌ falha | Bambu ✗ · Orca ✗ | – | – | – | – | Bambu: Bambu Studio: The input files to the slicer are not found. (código -3); Orca: OrcaSlicer: código 253 |
-| Litofania (ferramenta) | círculo com fita e pilhas | ❌ falha | Bambu ✗ · Orca ✗ · Projeto Bambu ✗ | – | – | – | – | Bambu: Bambu Studio: The input files to the slicer are not found. (código -3); Orca: OrcaSlicer: código 253; Projeto Bambu: Bambu Studio não exportou o projeto (código 253) |
-| Litofania (ferramenta) | círculo máximo | ❌ falha | Bambu ✗ · Orca ✗ | – | – | – | – | Bambu: Bambu Studio: The input files to the slicer are not found. (código -3); Orca: OrcaSlicer: código 253 |
+| Litofania (ferramenta) | caixa | ✅ ok | Bambu ✓ · Orca ✓ | 162 | 81,5 | 1 | – | – |
+| Litofania (ferramenta) | cilindro | ✅ ok | Bambu ✓ · Orca ✓ | 108 | 63,5 | 1 | – | – |
+| Litofania (ferramenta) | cilindro com base e tampa | ✅ ok | Bambu ✓ · Orca ✓ · Projeto Bambu ✓ | 654 | 263,0 | 1 | – | – |
+| Litofania (ferramenta) | cilindro com fita e pilhas | ✅ ok | Bambu ✓ · Orca ✓ · Projeto Bambu ✓ | 614 | 237,7 | 1 | – | – |
+| Litofania (ferramenta) | cilindro máximo | ⚠️ aviso | Bambu ✓ · Orca ✓ · Projeto Bambu ✓ | 2348 | 989,9 | 4 | – | o conjunto arrumado ocupa 162,0 × 705,5 mm: passa da mesa de 256 mm; mais de 24 h de impressão; não coube numa placa: 4 placas |
+| Litofania (ferramenta) | cilindro mínimo | ✅ ok | Bambu ✓ · Orca ✓ | 28 | 3,0 | 1 | – | – |
+| Litofania (ferramenta) | círculo | ✅ ok | Bambu ✓ · Orca ✓ | 79 | 14,1 | 1 | – | – |
+| Litofania (ferramenta) | círculo com fita e pilhas | ✅ ok | Bambu ✓ · Orca ✓ · Projeto Bambu ✓ | 440 | 124,7 | 1 | – | – |
+| Litofania (ferramenta) | círculo máximo | ✅ ok | Bambu ✓ · Orca ✓ | 576 | 221,8 | 1 | – | – |
 | Litofania (ferramenta) | colorida | ⚠️ aviso | Bambu ✓ · Orca ✓ · Projeto Bambu ✓ | – | – | – | – | 5 cores: mais que os 4 do AMS lite; Bambu: torre de purga passa da mesa na posição padrão do CLI (na tela, arraste a torre ou use Arrumar); Orca: torre de purga passa da mesa na posição padrão do CLI (na tela, arraste a torre ou use Arrumar); Projeto Bambu: torre de purga passa da mesa na posição padrão do CLI (na tela, arraste a torre ou use Arrumar); app: Esta litofania usa 5 filamentos ao mesmo tempo (branco, ciano, magenta, amarelo e preto): precisa de um AMS com 5 espaços (por exemplo, dois AMS) ou trocas à mão.; app: Use filamentos translúcidos ou finos o bastante para a luz passar (próprios para litofania): o ciano, o magenta e o amarelo muito opacos deixam tudo escuro.; app: Sem TD cadastrado para ciano, magenta, amarelo, preto: usei valores típicos. Cadastre o TD do seu filamento em Estoque para as cores saírem certas. |
 | Litofania (ferramenta) | colorida máxima | ⚠️ aviso | Bambu ✓ · Orca ✓ · Projeto Bambu ✓ | – | – | – | – | 5 cores: mais que os 4 do AMS lite; Bambu: torre de purga passa da mesa na posição padrão do CLI (na tela, arraste a torre ou use Arrumar); Orca: torre de purga passa da mesa na posição padrão do CLI (na tela, arraste a torre ou use Arrumar); Projeto Bambu: torre de purga passa da mesa na posição padrão do CLI (na tela, arraste a torre ou use Arrumar); app: Esta litofania usa 5 filamentos ao mesmo tempo (branco, ciano, magenta, amarelo e preto): precisa de um AMS com 5 espaços (por exemplo, dois AMS) ou trocas à mão.; app: Use filamentos translúcidos ou finos o bastante para a luz passar (próprios para litofania): o ciano, o magenta e o amarelo muito opacos deixam tudo escuro.; app: Sem TD cadastrado para ciano, magenta, amarelo, preto: usei valores típicos. Cadastre o TD do seu filamento em Estoque para as cores saírem certas. |
 | Litofania (ferramenta) | colorida mínima | ⚠️ aviso | Bambu ✓ · Orca ✓ · Projeto Bambu ✓ | – | – | – | – | 5 cores: mais que os 4 do AMS lite; Bambu: torre de purga passa da mesa na posição padrão do CLI (na tela, arraste a torre ou use Arrumar); Orca: torre de purga passa da mesa na posição padrão do CLI (na tela, arraste a torre ou use Arrumar); Projeto Bambu: torre de purga passa da mesa na posição padrão do CLI (na tela, arraste a torre ou use Arrumar); app: Esta litofania usa 5 filamentos ao mesmo tempo (branco, ciano, magenta, amarelo e preto): precisa de um AMS com 5 espaços (por exemplo, dois AMS) ou trocas à mão.; app: Use filamentos translúcidos ou finos o bastante para a luz passar (próprios para litofania): o ciano, o magenta e o amarelo muito opacos deixam tudo escuro.; app: Sem TD cadastrado para ciano, magenta, amarelo, preto: usei valores típicos. Cadastre o TD do seu filamento em Estoque para as cores saírem certas. |
-| Litofania (ferramenta) | coração | ❌ falha | Bambu ✗ · Orca ✗ | – | – | – | – | Bambu: Bambu Studio: The input files to the slicer are not found. (código -3); Orca: OrcaSlicer: código 253 |
-| Litofania (ferramenta) | coração com base | ❌ falha | Bambu ✗ · Orca ✗ · Projeto Bambu ✗ | – | – | – | – | Bambu: Bambu Studio: The input files to the slicer are not found. (código -3); Orca: OrcaSlicer: código 253; Projeto Bambu: Bambu Studio não exportou o projeto (código 253) |
-| Litofania (ferramenta) | coração mínimo | ❌ falha | Bambu ✗ · Orca ✗ | – | – | – | – | Bambu: Bambu Studio: The input files to the slicer are not found. (código -3); Orca: OrcaSlicer: código 253 |
-| Litofania (ferramenta) | curva | ❌ falha | Bambu ✗ · Orca ✗ | – | – | – | – | Bambu: Bambu Studio: The input files to the slicer are not found. (código -3); Orca: OrcaSlicer: código 253 |
-| Litofania (ferramenta) | máximo | ❌ falha | Bambu ✗ · Orca ✗ | – | – | – | – | Bambu: Bambu Studio: The input files to the slicer are not found. (código -3); Orca: OrcaSlicer: código 253 |
-| Litofania (ferramenta) | mínimo | ❌ falha | Bambu ✗ · Orca ✗ | – | – | – | – | Bambu: Bambu Studio: The input files to the slicer are not found. (código -3); Orca: OrcaSlicer: código 253 |
-| Litofania (ferramenta) | padrão | ❌ falha | Bambu ✗ · Orca ✗ | – | – | – | – | Bambu: Bambu Studio: The input files to the slicer are not found. (código -3); Orca: OrcaSlicer: código 253 |
+| Litofania (ferramenta) | coração | ✅ ok | Bambu ✓ · Orca ✓ | 73 | 12,6 | 1 | – | – |
+| Litofania (ferramenta) | coração com base | ✅ ok | Bambu ✓ · Orca ✓ · Projeto Bambu ✓ | 484 | 145,9 | 1 | – | – |
+| Litofania (ferramenta) | coração mínimo | ✅ ok | Bambu ✓ · Orca ✓ | 7 | 0,7 | 1 | – | – |
+| Litofania (ferramenta) | curva | ✅ ok | Bambu ✓ · Orca ✓ | 77 | 21,9 | 1 | – | – |
+| Litofania (ferramenta) | máximo | ✅ ok | Bambu ✓ · Orca ✓ | 934 | 381,6 | 1 | – | – |
+| Litofania (ferramenta) | mínimo | ✅ ok | Bambu ✓ · Orca ✓ | 9 | 1,3 | 1 | – | – |
+| Litofania (ferramenta) | padrão | ✅ ok | Bambu ✓ · Orca ✓ | 86 | 24,6 | 1 | – | – |
 | Litofania (ferramenta) | plana com base | ✅ ok | Bambu ✓ · Orca ✓ · Projeto Bambu ✓ | 588 | 228,3 | 1 | – | – |
+| Litofania (ferramenta) | relevo | ✅ ok | Bambu ✓ · Orca ✓ | 45 | 20,2 | 1 | – | – |
+| Litofania (ferramenta) | relevo com fundo plano | ✅ ok | Bambu ✓ · Orca ✓ | 37 | 17,0 | 1 | – | – |
+| Litofania (ferramenta) | relevo máximo | ✅ ok | Bambu ✓ · Orca ✓ | 368 | 222,3 | 1 | – | – |
+| Litofania (ferramenta) | relevo mínimo | ✅ ok | Bambu ✓ · Orca ✓ | 2 | 0,4 | 1 | – | – |
 | Medalha (ferramenta) | máximo | ✅ ok | Bambu ✓ · Orca ✓ · Projeto Bambu ✓ | 150 | 99,1 | 1 | – | – |
 | Medalha (ferramenta) | mínimo | ⚠️ aviso | Bambu ✓ · Orca ✓ · Projeto Bambu ✓ | 6 | 2,3 | 1 | – | "CAMPEÃ": parede/traço < 0,4 mm em Z 1,7 mm; app: "CAMPEÃ" ficou com 2,0 mm de altura: os traços ficam com menos de 0,4 mm e somem na impressão. Aumente o texto ou a peça, encurte a linha ou use uma fonte mais grossa. |
 | Medalha (ferramenta) | padrão | ✅ ok | Bambu ✓ · Orca ✓ · Projeto Bambu ✓ | 24 | 11,3 | 1 | – | – |
