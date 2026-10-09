@@ -12,16 +12,59 @@ export function tzAt(lat: number, lon: number): string {
   return tzlookup(lat, lon);
 }
 
+/**
+ * Fusos que alguns sistemas não conhecem (ICU enxuto do Windows/WebView2) caem num equivalente que todo sistema tem: ou um
+ * fuso vizinho com o mesmo deslocamento, ou um fixo (Etc/GMT+2 = UTC−2). O custo é só o histórico de horário de verão
+ * dessas zonas pequenas (Fernando de Noronha, por exemplo, não muda de hora hoje).
+ */
+const FALLBACKS: Record<string, string> = {
+  "America/Noronha": "Etc/GMT+2",
+  "America/Eirunepe": "America/Rio_Branco",
+  "America/Boa_Vista": "America/Manaus",
+  "America/Porto_Velho": "America/Manaus",
+  "America/Santarem": "America/Belem",
+  "America/Araguaina": "America/Belem",
+  "America/Fortaleza": "America/Belem",
+  "America/Maceio": "America/Recife",
+  "America/Bahia": "America/Recife",
+  "America/Campo_Grande": "America/Cuiaba",
+};
+
+const known = (tz: string): boolean => {
+  try {
+    new Intl.DateTimeFormat("en-US", { timeZone: tz });
+    return true;
+  } catch {
+    return false;
+  }
+};
+
+const resolved = new Map<string, string>();
 const formatters = new Map<string, Intl.DateTimeFormat>();
+
+/** Só para teste: esquece o que já foi resolvido. */
+export function resetTzCache(): void {
+  resolved.clear();
+  formatters.clear();
+}
+
+/** Nome de fuso que o Intl deste sistema conhece: o próprio, o equivalente fixo ou, se nada serve, erro claro. */
+export function resolveTz(tz: string): string {
+  const name = tz.trim();
+  const hit = resolved.get(name);
+  if (hit) return hit;
+  const alt = [name, FALLBACKS[name]].find((z) => z && known(z));
+  if (!alt) throw new Error(`Fuso horário desconhecido: ${name}.`);
+  resolved.set(name, alt);
+  return alt;
+}
+
 function formatter(tz: string): Intl.DateTimeFormat {
-  let f = formatters.get(tz);
+  const zone = resolveTz(tz);
+  let f = formatters.get(zone);
   if (!f) {
-    try {
-      f = new Intl.DateTimeFormat("en-US", { timeZone: tz, hourCycle: "h23", year: "numeric", month: "numeric", day: "numeric", hour: "numeric", minute: "numeric", second: "numeric" });
-    } catch (e) {
-      throw new Error(`Fuso horário desconhecido: ${tz}.`, { cause: e });
-    }
-    formatters.set(tz, f);
+    f = new Intl.DateTimeFormat("en-US", { timeZone: zone, hourCycle: "h23", year: "numeric", month: "numeric", day: "numeric", hour: "numeric", minute: "numeric", second: "numeric" });
+    formatters.set(zone, f);
   }
   return f;
 }

@@ -16,10 +16,13 @@ export type FoundPlace = {
   label: string;
 };
 export type PlaceIndex = { brasil: number; mundo: number; timeZones: string[]; entries: Entry[] };
-type Entry = FoundPlace & { key: string; alt: string; rank: number; regionKey: string };
+export type Entry = FoundPlace & { key: string; alt: string; rank: number; regionKey: string };
 
 /** Minúsculas, sem acento nem pontuação. */
 export const fold = (s: string): string => s.normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase().replace(/[^a-z0-9]+/g, " ").trim();
+
+/** Comparação por código de caractere: igual em Mac, Windows e WebView2. */
+const codePoints = (a: string, b: string): number => (a < b ? -1 : a > b ? 1 : 0);
 
 const MIN_QUERY = 2;
 const CAPITAL_RANK = 1e7;
@@ -37,11 +40,12 @@ function countryNames(): Intl.DisplayNames | null {
   }
 }
 
-function parse(raw: string, source: "br" | "world", countries: Intl.DisplayNames | null): { tzs: string[]; entries: Entry[] } {
-  const [head, ...rows] = raw.trim().split("\n");
-  const tzs = head.split("|");
+/** Lê um arquivo de lugares; aceita \n e \r\n (o Git do Windows converte) e ignora espaços sobrando. */
+export function parsePlaces(raw: string, source: "br" | "world", countries: Intl.DisplayNames | null): { tzs: string[]; entries: Entry[] } {
+  const [head, ...rows] = raw.trim().split(/\r?\n/);
+  const tzs = head.split("|").map((t) => t.trim());
   const entries = rows.map((line): Entry => {
-    const c = line.split("|");
+    const c = line.split("|").map((x) => x.trim());
     const [name, region, lat, lon, tz] = c;
     const world = source === "world";
     const country = world ? (countries?.of(region) ?? region) : region;
@@ -67,7 +71,7 @@ function parse(raw: string, source: "br" | "world", countries: Intl.DisplayNames
 export function loadPlaces(): Promise<PlaceIndex> {
   cached ??= (async () => {
     const [br, world] = await Promise.all([import("../../data/places/brasil.txt?raw"), import("../../data/places/mundo.txt?raw")]);
-    const a = parse(br.default, "br", null), b = parse(world.default, "world", countryNames());
+    const a = parsePlaces(br.default, "br", null), b = parsePlaces(world.default, "world", countryNames());
     return { brasil: a.entries.length, mundo: b.entries.length, timeZones: [...new Set([...a.tzs, ...b.tzs])], entries: [...a.entries, ...b.entries] };
   })();
   return cached;
@@ -93,6 +97,7 @@ export function searchPlaces(index: PlaceIndex, query: string, limit = 8): Found
     const score = e.key === q || e.alt === q ? 0 : e.key.startsWith(q) || e.alt.startsWith(q) ? 1 : 2;
     scored.push({ e, score });
   }
-  scored.sort((a, b) => a.score - b.score || b.e.rank - a.e.rank || a.e.name.localeCompare(b.e.name, "pt-BR") || a.e.region.localeCompare(b.e.region));
+  // ordem igual em qualquer sistema: nada de localeCompare (muda com o idioma); o mesmo grau de combinação desempata por capital/população, depois pelo Brasil primeiro e pelo nome sem acento
+  scored.sort((a, b) => a.score - b.score || b.e.rank - a.e.rank || Number(a.e.source !== "br") - Number(b.e.source !== "br") || codePoints(a.e.key, b.e.key) || codePoints(a.e.name, b.e.name) || codePoints(a.e.region, b.e.region));
   return scored.slice(0, limit).map(({ e }) => ({ name: e.name, region: e.region, lat: e.lat, lon: e.lon, tz: e.tz, source: e.source, label: e.label }));
 }

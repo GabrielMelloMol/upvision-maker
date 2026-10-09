@@ -1,5 +1,5 @@
-import { describe, expect, test } from "vitest";
-import { isDst, offsetLabel, tzAt, utcOffsetHours } from "./placeTime";
+import { afterEach, describe, expect, test, vi } from "vitest";
+import { isDst, offsetLabel, resetTzCache, resolveTz, tzAt, utcOffsetHours } from "./placeTime";
 
 const at = (year: number, month: number, day: number, hour = 22, minute = 0) => ({ year, month, day, hour, minute });
 const SP = { lat: -23.55, lon: -46.63 };
@@ -51,6 +51,40 @@ describe("fuso e horário de verão pela localização e pela data (#196)", () =
   });
 
   test("fuso desconhecido ou coordenada fora do mapa devolve erro claro", () => {
+    expect(() => utcOffsetHours("Mars/Olympus", at(2024, 1, 1))).toThrow(/fuso/i);
+  });
+});
+
+/** Intl de um sistema que não conhece alguns fusos (ICU enxuto do Windows/WebView2): lança RangeError como o real. */
+function withoutZones(missing: string[]) {
+  const Real = Intl.DateTimeFormat;
+  const Fake = function (locale?: string | string[], opts?: Intl.DateTimeFormatOptions) {
+    if (opts?.timeZone && missing.includes(opts.timeZone)) throw new RangeError(`Invalid time zone specified: ${opts.timeZone}`);
+    return new Real(locale, opts);
+  } as unknown as typeof Intl.DateTimeFormat;
+  Fake.supportedLocalesOf = Real.supportedLocalesOf;
+  vi.spyOn(Intl, "DateTimeFormat").mockImplementation(Fake as never);
+  resetTzCache();
+}
+
+describe("fuso que o Intl do sistema não conhece (Windows, v0.11.7)", () => {
+  afterEach(() => {
+    vi.restoreAllMocks();
+    resetTzCache();
+  });
+
+  test("America/Noronha ausente cai num fuso fixo equivalente (UTC−2), sem mexer nos outros", () => {
+    withoutZones(["America/Noronha"]);
+    expect(resolveTz("America/Noronha")).toBe("Etc/GMT+2");
+    expect(utcOffsetHours("America/Noronha", at(2024, 6, 1))).toBe(-2);
+    expect(utcOffsetHours("America/Sao_Paulo", at(2010, 1, 15))).toBe(-2); // o horário de verão dos outros segue valendo
+    expect(utcOffsetHours("America/Sao_Paulo", at(2010, 7, 15))).toBe(-3);
+    expect(isDst("America/Sao_Paulo", at(2010, 1, 15))).toBe(true);
+  });
+
+  test("sobra de fim de linha no nome do fuso é ignorada; fuso desconhecido e sem equivalente ainda dá erro claro", () => {
+    expect(resolveTz("America/Noronha\r")).toBe("America/Noronha");
+    withoutZones(["Mars/Olympus"]);
     expect(() => utcOffsetHours("Mars/Olympus", at(2024, 1, 1))).toThrow(/fuso/i);
   });
 });
