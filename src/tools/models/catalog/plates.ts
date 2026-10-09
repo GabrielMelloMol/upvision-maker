@@ -351,6 +351,7 @@ export const PLATE_MODELS: ModelDef[] = [
         fields: [
           num("maxMag", "Estrelas até a magnitude", 3, 5, { step: 0.1, hint: "Maior = mais estrelas, mais fracas e mais miúdas." }),
           num("starScale", "Tamanho das estrelas", 0.7, 1.6, { step: 0.05, unit: "" }),
+          bool("lines", "Linhas das constelações"),
           num("width", "Largura da placa", 80, 180, { step: 1 }),
           num("thickness", "Espessura", 2, 8),
           num("relief", "Relevo", 0.4, 2),

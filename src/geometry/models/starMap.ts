@@ -1,8 +1,8 @@
-import type { CS } from "../manifold";
+import type { CS, ManifoldToplevel } from "../manifold";
 import { fitInto, scoped } from "../shape2d";
 import type { Model, Part } from "../types";
 import { MissingInput, plateStand, roundedRect, slab, solidMesh, type ModelCtx, type ModelOutput } from "./common";
-import { CITIES, skyStars } from "./starSky";
+import { CITIES, skyLines, skyStars, type SkyLine } from "./starSky";
 
 export type StarMapMount = "none" | "stand" | "magnet";
 
@@ -20,6 +20,7 @@ export type StarMapParams = {
   caption: string; // vazio = "dd.mm.aaaa · cidade"
   maxMag: number; // as estrelas mais fracas que isto ficam de fora
   starScale: number;
+  lines: boolean; // linhas das constelações
   width: number;
   thickness: number;
   relief: number;
@@ -30,7 +31,7 @@ export type StarMapParams = {
 
 export const DEFAULT_STAR_MAP: StarMapParams = {
   city: "saopaulo", lat: -23.55, lon: -46.63, utcOffset: -3, year: 2024, month: 12, day: 24, hour: 22, minute: 0,
-  title: "Nossa noite", caption: "", maxMag: 4.5, starScale: 1, width: 120, thickness: 3, relief: 0.8, mount: "stand",
+  title: "Nossa noite", caption: "", maxMag: 4.5, starScale: 1, lines: true, width: 120, thickness: 3, relief: 0.8, mount: "stand",
   plateColor: "#16213e", starColor: "#f5efe0",
 };
 
@@ -40,6 +41,7 @@ const TEXT_BLOCK = 0.3; // altura da faixa de texto, em frações da largura
 const MIN_STAR_MM = 1; // a menor estrela que imprime bem com bico de 0,4
 const STAR_STEP_MM = 0.55; // quanto cada magnitude a mais de brilho engorda a estrela
 const EDGE_FRACTION = 0.97; // as estrelas ficam um pouco para dentro do aro
+const LINE_MM = 0.8; // largura das linhas das constelações
 const MAGNET_D = 10.2;
 const MAGNET_DEPTH = 2;
 const MIN_FACE_MM = 1.2;
@@ -51,6 +53,27 @@ const pad = (n: number) => String(Math.round(n)).padStart(2, "0");
 /** Diâmetro da estrela (mm) pela magnitude: as brilhantes são maiores. */
 export const starDiameter = (mag: number, maxMag: number, scale: number): number => Math.max(MIN_STAR_MM, (MIN_STAR_MM + (maxMag - mag) * STAR_STEP_MM) * scale);
 
+type Keep = <D extends { delete(): void }>(o: D) => D;
+
+/** Cada trecho de linha vira um retângulo fino com uma ponta redonda por vértice (sem frestas nas curvas). */
+function constellationShapes(M: ManifoldToplevel, lines: SkyLine[], radius: number, cy: number, k: Keep): CS[] {
+  const shapes: CS[] = [];
+  for (const { points } of lines) {
+    points.forEach(([x, y], i) => {
+      const [px, py] = [x * radius, cy + y * radius];
+      shapes.push(k(k(M.CrossSection.circle(LINE_MM / 2, 12)).translate([px, py])));
+      const prev = points[i - 1];
+      if (!prev) return;
+      const [qx, qy] = [prev[0] * radius, cy + prev[1] * radius];
+      const len = Math.hypot(px - qx, py - qy);
+      if (len < 1e-6) return;
+      const bar = k(M.CrossSection.square([len, LINE_MM], true));
+      shapes.push(k(k(bar.rotate((Math.atan2(py - qy, px - qx) * 180) / Math.PI)).translate([(px + qx) / 2, (py + qy) / 2])));
+    });
+  }
+  return shapes;
+}
+
 /** Mapa estelar de uma data (#106): o céu de um lugar e momento, em relevo numa placa, com título e legenda. */
 export function buildStarMap(ctx: ModelCtx, p: StarMapParams): ModelOutput {
   const { M, text } = ctx;
@@ -58,7 +81,8 @@ export function buildStarMap(ctx: ModelCtx, p: StarMapParams): ModelOutput {
   if (day < 1 || day > DAYS_IN_MONTH[month - 1] + (month === 2 && isLeap(year) ? 1 : 0)) throw new MissingInput("Esse dia não existe nesse mês: confira a data.");
   const city = CITIES.find((c) => c[0] === p.city);
   const place = city ? { lat: city[2], lon: city[3] } : { lat: p.lat, lon: p.lon };
-  const sky = skyStars(place, { year, month, day, hour: p.hour, minute: p.minute, utcOffset: p.utcOffset }, p.maxMag);
+  const when = { year, month, day, hour: p.hour, minute: p.minute, utcOffset: p.utcOffset };
+  const sky = skyStars(place, when, p.maxMag);
 
   return scoped((k) => {
     const W = p.width, textH = W * TEXT_BLOCK, H = W + textH;
@@ -67,7 +91,7 @@ export function buildStarMap(ctx: ModelCtx, p: StarMapParams): ModelOutput {
     const stars: CS[] = sky.map((s) => k(k(M.CrossSection.circle(starDiameter(s.mag, p.maxMag, p.starScale) / 2, 20)).translate([s.x * R * EDGE_FRACTION, cy + s.y * R * EDGE_FRACTION])));
     const ring = k(k(M.CrossSection.circle(R + RING_MM, 96)).subtract(k(M.CrossSection.circle(R, 96)))).translate([0, cy]);
     k(ring);
-    const marks: CS[] = [...stars, ring];
+    const marks: CS[] = [...stars, ring, ...(p.lines ? constellationShapes(M, skyLines(place, when), R * EDGE_FRACTION, cy, k) : [])];
 
     const line = (s: string, h: number, y: number): CS | null => {
       const raw = s.trim() ? text(s, 100) : null;

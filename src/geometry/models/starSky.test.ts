@@ -1,5 +1,5 @@
 import { describe, expect, test } from "vitest";
-import { altAz, CATALOG_SIZE, CITIES, julianDay, localSiderealDeg, momentJd, precess, skyStars, type Moment } from "./starSky";
+import { altAz, CATALOG_SIZE, CITIES, CONSTELLATION_LINES, julianDay, localSiderealDeg, momentJd, precess, skyLines, skyStars, type Moment } from "./starSky";
 
 /** Noite de Natal de 2024, 22h em São Paulo (UTC-3): conferido à mão com o tempo sideral (LST ≈ 62°). */
 const NATAL: Moment = { year: 2024, month: 12, day: 24, hour: 22, minute: 0, utcOffset: -3 };
@@ -75,6 +75,39 @@ describe("céu de um lugar e momento (#106)", () => {
     expect(n(4)).toBeLessThan(n(5));
     expect(n(5)).toBeLessThan(CATALOG_SIZE);
     expect(CATALOG_SIZE).toBeGreaterThan(1500);
+  });
+});
+
+describe("linhas das constelações (#106)", () => {
+  const near = (id: string, ra: number, dec: number) => CONSTELLATION_LINES[id].flat().some(([r, d]) => Math.hypot((r - ra) * Math.cos((dec * Math.PI) / 180), d - dec) < 0.05);
+
+  test("88 constelações; as linhas passam por estrelas do catálogo: Betelgeuse em Órion, Acrux no Cruzeiro do Sul", () => {
+    expect(Object.keys(CONSTELLATION_LINES)).toHaveLength(88);
+    expect(near("Ori", 88.793, 7.407)).toBe(true); // Betelgeuse
+    expect(near("Ori", 78.634, -8.202)).toBe(true); // Rigel
+    expect(near("Cru", 186.65, -63.1)).toBe(true); // Acrux
+    expect(near("Cru", 187.791, -57.113)).toBe(true); // Gacrux
+  });
+
+  test("Órion e o Cruzeiro do Sul aparecem na noite de Natal em São Paulo, dentro do horizonte", () => {
+    const lines = skyLines(SAO_PAULO, NATAL);
+    const ids = new Set(lines.map((l) => l.id));
+    expect(ids.has("Ori")).toBe(true);
+    expect(ids.has("Cru")).toBe(true);
+    expect(lines.every((l) => l.points.every(([x, y]) => Math.hypot(x, y) <= 1 + 1e-9))).toBe(true);
+  });
+
+  test("a linha e a estrela batem na placa: Betelgeuse é um vértice de Órion no mesmo ponto projetado", () => {
+    const bet = skyStars(SAO_PAULO, NATAL, 1).find((s) => Math.abs(s.mag - 0.5) < 0.001)!;
+    const vertices = skyLines(SAO_PAULO, NATAL).filter((l) => l.id === "Ori").flatMap((l) => l.points);
+    expect(Math.min(...vertices.map(([x, y]) => Math.hypot(x - bet.x, y - bet.y)))).toBeLessThan(0.005);
+  });
+
+  test("o que cruza o horizonte é cortado nele (raio 1); no polo norte só vale o que está acima do equeador celeste", () => {
+    const polo = skyLines({ lat: 90, lon: 0 }, NATAL);
+    expect(polo.some((l) => l.points.some(([x, y]) => Math.abs(Math.hypot(x, y) - 1) < 1e-6))).toBe(true);
+    expect(polo.every((l) => l.points.every(([x, y]) => Math.hypot(x, y) <= 1 + 1e-9))).toBe(true);
+    expect(polo.length).toBeLessThan(skyLines(SAO_PAULO, NATAL).length * 3);
   });
 });
 

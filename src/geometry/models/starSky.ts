@@ -1,3 +1,4 @@
+import lines from "./constellationLines.json";
 import catalog from "./starCatalog.json";
 
 /**
@@ -6,6 +7,8 @@ import catalog from "./starCatalog.json";
  */
 export type Star = readonly [raDeg: number, decDeg: number, mag: number];
 const STARS = catalog as unknown as Star[];
+/** Linhas das constelações (sigla IAU → linhas de [ascensão reta, declinação] em graus, J2000). */
+export const CONSTELLATION_LINES = lines as unknown as Record<string, [number, number][][]>;
 
 const DEG = Math.PI / 180;
 const J2000_JD = 2451545;
@@ -84,6 +87,57 @@ export function skyStars(place: Place, when: Moment, maxMag: number): SkyStar[] 
     out.push({ x: -r * Math.sin(az * DEG), y: r * Math.cos(az * DEG), mag });
   }
   return out;
+}
+
+export type SkyLine = { id: string; points: [number, number][] };
+
+/**
+ * Linhas das constelações que aparecem acima do horizonte, na mesma projeção de `skyStars`. A linha que cruza o horizonte
+ * é cortada nele; os pontos abaixo do horizonte não entram.
+ */
+export function skyLines(place: Place, when: Moment): SkyLine[] {
+  const jd = momentJd(when);
+  const lst = localSiderealDeg(jd, place.lon);
+  const project = ([ra0, dec0]: [number, number]): Dir => {
+    const [ra, dec] = precess(ra0, dec0, jd);
+    const { alt, az } = altAz(ra, dec, lst, place.lat);
+    const r = Math.tan(((90 - alt) * DEG) / 2);
+    const c = Math.cos(alt * DEG);
+    return { alt, x: -r * Math.sin(az * DEG), y: r * Math.cos(az * DEG), e: c * Math.sin(az * DEG), n: c * Math.cos(az * DEG), z: Math.sin(alt * DEG) };
+  };
+  const out: SkyLine[] = [];
+  for (const [id, polylines] of Object.entries(CONSTELLATION_LINES)) {
+    for (const line of polylines) {
+      const pts = line.map(project);
+      let run: [number, number][] = [];
+      const flush = () => {
+        if (run.length > 1) out.push({ id, points: run });
+        run = [];
+      };
+      pts.forEach((p, i) => {
+        const prev = pts[i - 1];
+        if (p.alt > 0) {
+          if (prev && prev.alt <= 0) run.push(horizon(prev, p));
+          run.push([p.x, p.y]);
+        } else {
+          if (prev && prev.alt > 0) run.push(horizon(p, prev));
+          flush();
+        }
+      });
+      flush();
+    }
+  }
+  return out;
+}
+
+type Dir = { alt: number; x: number; y: number; e: number; n: number; z: number };
+
+/** Onde o trecho `below` (abaixo do horizonte) → `above` cruza o horizonte: interpola o vetor no espaço e projeta com raio 1. */
+function horizon(below: Dir, above: Dir): [number, number] {
+  const t = above.z / (above.z - below.z);
+  const e = above.e + (below.e - above.e) * t, n = above.n + (below.n - above.n) * t;
+  const h = Math.hypot(e, n) || 1;
+  return [-e / h, n / h];
 }
 
 /** Quantas estrelas o catálogo embutido tem (até a magnitude 5,0). */

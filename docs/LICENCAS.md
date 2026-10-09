@@ -10,4 +10,21 @@
 | libheif + libde265 (via `libheif-js` 1.23.2, `libheif.wasm`) | Abrir fotos HEIC/HEIF do iPhone no Organizador pela foto | LGPL-3.0 — biblioteca à parte, carregada só para HEIC e substituível (arquivo `.wasm` separado); fonte: https://github.com/strukturag/libheif e https://github.com/catdad-experiments/libheif-js |
 | exifr (versão lite) | Ler a focal do EXIF de fotos HEIC | MIT |
 | Hanken Grotesk, Fredoka, Pacifico, Lobster, Dancing Script, Playfair Display (Fontsource) | Texto dos modelos | SIL OFL 1.1 |
+| Yale Bright Star Catalogue, 5ª ed. (Hoffleit e Warren, ADC/NASA) → `src/geometry/models/starCatalog.json` (gerado por `scripts/star-catalog.py`) | Mapa estelar: posição e brilho das 1630 estrelas até a magnitude 5 | Dados astronômicos de domínio público — http://tdc-www.harvard.edu/catalogs/bsc5.dat.gz |
+| Linhas das constelações do d3-celestial (`data/constellations.lines.json`) → `src/geometry/models/constellationLines.json` (gerado por `scripts/constellation-lines.py`) | Mapa estelar: linhas das 88 constelações. Os dados vêm da página das constelações da IAU, com pequenos ajustes do autor (README do projeto, fonte [3]); o repositório não traz licença separada para os dados, então vale a do projeto | BSD-3-Clause, Copyright (c) 2015, Olaf Frohn — https://github.com/ofrohn/d3-celestial (texto abaixo) |
 | three.js, React, opentype.js, fflate, Anthropic SDK | Interface e utilidades | MIT |
+
+## Texto da licença do d3-celestial (linhas das constelações)
+
+Copyright (c) 2015, Olaf Frohn
+All rights reserved.
+
+Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met:
+
+1. Redistributions of source code must retain the above copyright notice, this list of conditions and the following disclaimer.
+
+2. Redistributions in binary form must reproduce the above copyright notice, this list of conditions and the following disclaimer in the documentation and/or other materials provided with the distribution.
+
+3. Neither the name of the copyright holder nor the names of its contributors may be used to endorse or promote products derived from this software without specific prior written permission.
+
+THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.

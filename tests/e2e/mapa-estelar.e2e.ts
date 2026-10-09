@@ -28,6 +28,16 @@ test("mapa estelar de uma data: céu de São Paulo na noite de Natal, outra cida
   await idle(page);
   await expect(page.getByText(/no céu de Londres/)).toBeVisible();
 
+  // linhas das constelações: ligadas por padrão, dá para desligar e ligar de novo
+  const lines = page.getByRole("switch", { name: "Linhas das constelações" });
+  await expect(lines).toBeChecked();
+  await lines.uncheck();
+  await idle(page);
+  await expect(lines).not.toBeChecked();
+  await lines.check();
+  await idle(page);
+  await expect(hud(page)).toContainText("120.0 ×");
+
   // ímã atrás: aviso do encaixe
   await page.getByRole("group", { name: "Apoio" }).getByRole("button", { name: "Ímã atrás" }).click();
   await idle(page);

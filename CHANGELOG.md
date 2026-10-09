@@ -6,6 +6,7 @@ Formato: `## <versão> — <data>` e itens `- …` em linguagem simples.
 ## Próxima versão (ainda não lançada)
 - **Cadastro do Estoque num padrão só**: Filamentos, Materiais extras e Impressoras agora abrem o cadastro numa janela pelo botão "Adicionar …" do título, igual a Clientes e Produtos (a lista vazia só mostra o aviso e o botão "Cadastrar …"; nada abre sozinho). Na janela, "Adicionar e cadastrar outro" grava e deixa tudo aberto com material, marca, preço e rolo já preenchidos, para cadastrar vários rolos seguidos; "Adicionar" grava e fecha. Editar, o catálogo e o atalho Cmd/Ctrl+N usam a mesma janela.
 - **Legendas das variações dos Modelos prontos numa linha só**: os nomes sob as miniaturas ("No contorno", "Redonda", "Ímã geladeira"…) ficaram mais curtos e iguais em estilo, sem quebrar em várias linhas, em janela larga ou estreita e no tema claro ou escuro.
+- **Mapa estelar com as linhas das constelações**: nova opção "Linhas das constelações" (ligada por padrão) desenha as 88 constelações em relevo fino sobre o céu da placa, por exemplo Órion e o Cruzeiro do Sul; dá para desligar e ficar só com as estrelas (#106)
 
 ## 0.11.4 — 2026-10-09
 - **Tecla de teclado**: em Modelos prontos (Casa), tecla de 1 a 2,25 u com haste em cruz MX (folga ajustável), topo plano ou esférico baixo e a legenda embutida rente em outra cor: uma letra, um ícone da grade (setas, Enter, Shift, volume…) ou o seu SVG. Sai de ponta-cabeça, sem suporte, e o lote faz o teclado todo a partir de uma lista.

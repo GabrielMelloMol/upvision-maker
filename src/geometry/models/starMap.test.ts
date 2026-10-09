@@ -61,6 +61,17 @@ describe("mapa estelar de uma data (#106)", { timeout: 60_000 }, () => {
     expect(volume(part(build({ maxMag: 3.5 }), "Estrelas"))).toBeLessThan(base);
   });
 
+  test("linhas das constelações: ligadas por padrão, em relevo fino; desligar tira só as linhas", () => {
+    const on = volume(part(build(), "Estrelas"));
+    const off = volume(part(build({ lines: false }), "Estrelas"));
+    expect(D.lines).toBe(true);
+    expect(on).toBeGreaterThan(off + 20); // centenas de trechos de 0,8 mm × 0,8 mm de relevo
+    expect(volume(part(build(), "Placa"))).toBeCloseTo(volume(part(build({ lines: false }), "Placa")), 6);
+    const b = meshBounds([part(build({ title: "" }), "Estrelas")])!;
+    expect(b.max[0]).toBeCloseTo(D.width / 2 - 6 + 1, 1); // as linhas não passam do aro
+    expect(meshBounds([part(build(), "Estrelas")])!.max[2]).toBeCloseTo(D.thickness + D.relief);
+  });
+
   test("coordenadas livres valem só em \"Outra\"", () => {
     const sp = volume(part(build(), "Estrelas"));
     expect(volume(part(build({ lat: 60, lon: 10 }), "Estrelas"))).toBeCloseTo(sp, 6); // cidade escolhida vence
