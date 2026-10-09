@@ -273,6 +273,7 @@ Só análise: nenhum código foi alterado e nenhuma issue foi criada. Base: `ori
 - **Correção sugerida:** depois do insert, passar o editor para modo edição com o id novo, ou fechar e avisar quantas fotos não entraram.
 
 ### M19. ✅ A config de plataforma apaga `visible:false` e `zoomHotkeysEnabled` — corrigido na v0.10.4 (visible, zoomHotkeysEnabled e dragDropEnabled repetidos nos arquivos de plataforma)
+> Atualização: a parte do zoom por atalho foi desfeita de propósito a pedido do Gabriel (desmontava o layout): `zoomHotkeysEnabled` agora é `false` nos três arquivos e o zoom por atalho, roda e pinça é bloqueado em `src/ui/zoomGuard.ts`; o jeito de aumentar a letra é Preferências > Aparência > Tamanho do texto.
 - **Onde:** `src-tauri/tauri.conf.json:16` e `:22`, sobrescritos por `tauri.windows.conf.json:4-15` e `tauri.macos.conf.json:5-17`. O `json_patch::merge` (RFC 7396, tauri-utils `config/parse.rs:185`) troca arrays inteiros.
 - **Como reproduzir:** no app instalado, Ctrl/⌘ + e − não mudam o zoom (`src/ui/zoom.ts:1` promete que mudam). No Windows, a janela aparece vazia antes da abertura, que é o que a #150 queria evitar.
 - **Correção sugerida:** repetir `visible`, `zoomHotkeysEnabled` e `dragDropEnabled` (A11) nos dois arquivos de plataforma, ou tirar deles a lista `windows`.

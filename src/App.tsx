@@ -21,8 +21,9 @@ import { openWith } from "./tools/intent";
 import { flushPendingSaves } from "./tools/pendingSaves";
 import { getDb } from "./db";
 import { markStartup } from "./about/perf";
-import { NAVIGATE_EVENT } from "./ui/navigate";
+import { NAVIGATE_EVENT, requestNavigate } from "./ui/navigate";
 import { placeOf } from "./tools/modelPlaces";
+import { installZoomGuard, takeZoomHint } from "./ui/zoomGuard";
 import Sidebar from "./ui/Sidebar";
 import Toolbar from "./ui/Toolbar";
 import CommandPalette from "./ui/CommandPalette";
@@ -73,6 +74,21 @@ export default function App() {
     pageRef.current = pageId;
   }, [pageId]);
   useEffect(markStartup, []);
+  // zoom da janela bloqueado: avisa uma vez onde aumentar a letra (Preferências > Aparência > Tamanho do texto)
+  useEffect(
+    () =>
+      installZoomGuard(() => {
+        if (!takeZoomHint()) return;
+        toast("Para aumentar a letra, use Preferências > Aparência > Tamanho do texto.", "ok", {
+          label: "Abrir",
+          onClick: () => {
+            openWith("preferences", { section: "look" });
+            requestNavigate("preferences");
+          },
+        });
+      }),
+    [toast],
+  );
   useEffect(() => void getDb().then(refreshBed).catch((e) => console.warn("Mesa da impressora:", e)), []); // #119
   // telas pedindo para abrir outra (ex.: "Levar para a Calculadora" das ferramentas 3D, #99)
   useEffect(() => {

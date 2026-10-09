@@ -1,19 +1,33 @@
 // @vitest-environment happy-dom
-import { afterEach, expect, test } from "vitest";
-import { applyZoom, storedZoom } from "./zoom";
+import { beforeEach, describe, expect, test, vi } from "vitest";
 
-afterEach(() => {
+const setZoom = vi.fn(async () => {});
+vi.mock("@tauri-apps/api/webview", () => ({ getCurrentWebview: () => ({ setZoom }) }));
+
+beforeEach(() => {
+  setZoom.mockClear();
   localStorage.clear();
-  document.documentElement.style.removeProperty("zoom");
 });
 
-test("tamanho do texto (#144): fora do app usa o zoom do CSS, lembra a escolha e ignora valor estranho", async () => {
-  expect(storedZoom()).toBe("1");
-  await applyZoom("1.3", true);
-  expect(document.documentElement.style.zoom).toBe("1.3");
-  expect(storedZoom()).toBe("1.3");
-  localStorage.setItem("upvision:zoom", "9");
-  expect(storedZoom()).toBe("1");
-  await applyZoom("1");
-  expect(document.documentElement.style.zoom).toBe("");
+describe("tamanho do texto ao abrir", () => {
+  test("sem zoom salvo, o app abre em 100% (desfaz qualquer zoom que o WebView2 tenha lembrado de um atalho)", async () => {
+    const { openingZoom } = await import("./zoom");
+    await openingZoom();
+    expect(setZoom).toHaveBeenCalledWith(1);
+  });
+
+  test("com Tamanho do texto salvo nas Preferências, abre com ele", async () => {
+    const { applyZoom, openingZoom } = await import("./zoom");
+    await applyZoom("1.3", true);
+    setZoom.mockClear();
+    await openingZoom();
+    expect(setZoom).toHaveBeenCalledWith(1.3);
+  });
+
+  test("valor salvo inválido (adulterado) volta a 100%", async () => {
+    localStorage.setItem("upvision:zoom", "9");
+    const { openingZoom } = await import("./zoom");
+    await openingZoom();
+    expect(setZoom).toHaveBeenCalledWith(1);
+  });
 });

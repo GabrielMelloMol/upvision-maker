@@ -11,7 +11,7 @@
         "minHeight": 600,
         "transparent": true,
         "visible": false,
-        "zoomHotkeysEnabled": true,
+        "zoomHotkeysEnabled": false,
         "dragDropEnabled": false
       }
     ]

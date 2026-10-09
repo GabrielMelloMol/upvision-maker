@@ -31,7 +31,7 @@ describe("janela principal no app instalado (A11, M19)", () => {
     test(`${platform ?? "linux (só a base)"}: arrastar e soltar do HTML5, zoom pelo teclado e janela escondida até a abertura`, () => {
       const w = windowOf(platform);
       expect(w.dragDropEnabled, "sem isso o webview consome o arrastar e soltar das telas (A11)").toBe(false);
-      expect(w.zoomHotkeysEnabled, "Ctrl/⌘ + e − (src/ui/zoom.ts)").toBe(true);
+      expect(w.zoomHotkeysEnabled, "zoom por atalho desligado de propósito (src/ui/zoomGuard.ts); explícito em cada arquivo, porque o padrão do Tauri é ligado").toBe(false);
       expect(w.visible, "a janela só aparece depois da abertura (#150)").toBe(false);
     });
 

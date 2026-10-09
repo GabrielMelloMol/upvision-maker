@@ -3,6 +3,9 @@
 Cada versão aparece para a usuária na tela "O que há de novo" depois da atualização.
 Formato: `## <versão> — <data>` e itens `- …` em linguagem simples.
 
+## Próxima versão (ainda não lançada)
+- **O zoom da janela não muda mais por atalho, roda do mouse ou pinça**: Ctrl/⌘ com + − 0, Ctrl/⌘ com a roda do mouse e o gesto de pinça no trackpad ou na tela não aumentam mais o app (desmontavam as telas). Para aumentar a letra, use Preferências > Aparência > Tamanho do texto; ao tentar o atalho, o app avisa isso uma vez, com um botão para abrir. O app sempre abre no tamanho escolhido ali, ou em 100%.
+
 ## 0.11.7 — 2026-10-09
 - **Mapa estelar: a busca de cidade e o fuso funcionam igual no Windows**: Fernando de Noronha e outros fusos que o Windows não conhecia ganharam um equivalente, e as capitais (como Belém) voltam a aparecer antes de cidades estrangeiras de nome igual.
 - **Foto em relevo: Litofania, Quadro por camadas e Shadowbox numa ferramenta só**: "Litofania e quadro" virou "Foto em relevo", que começa perguntando o que você quer fazer (Litofania, Colorida, Relevo, Quadro por camadas ou Shadowbox) e depois mostra as cinco abas para trocar a qualquer momento. O Shadowbox agora abre também como aba, sem sair dos Modelos prontos. Rascunhos, projetos salvos, atalhos e buscas antigas continuam levando ao lugar certo.

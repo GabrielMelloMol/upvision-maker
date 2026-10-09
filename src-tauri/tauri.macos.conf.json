@@ -14,7 +14,7 @@
         "titleBarStyle": "Overlay",
         "hiddenTitle": true,
         "visible": false,
-        "zoomHotkeysEnabled": true,
+        "zoomHotkeysEnabled": false,
         "dragDropEnabled": false
       }
     ]

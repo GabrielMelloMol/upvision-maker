@@ -25,7 +25,7 @@ export default function AppearanceCard() {
         <div className="row-control">
           <span className="row-label">Tamanho do texto</span>
           <span className="hint">
-            Também com {modKey()} + e {modKey()} −.
+            Aumenta a letra do app inteiro. O zoom por {modKey()} + e {modKey()} −, roda do mouse ou pinça fica desligado para não desmontar as telas.
           </span>
           <Segmented
             label="Tamanho do texto"

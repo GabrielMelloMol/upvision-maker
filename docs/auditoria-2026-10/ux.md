@@ -210,7 +210,7 @@ O app em /Applications é o build `c7d055f` (v0.10.3 + o C1), instalado em 05/10
 
 **Conferido no app instalado, com mouse, em 05/10 (Mac livre e avisado):**
 - arrastar uma imagem do Finder para Imagem → SVG carrega a imagem (A11 da auditoria de código): **funciona**;
-- ⌘+, ⌘− e ⌘0 mudam e restauram o zoom (M19 da auditoria de código): **funcionam**;
+- ⌘+, ⌘− e ⌘0 mudavam e restauravam o zoom (M19 da auditoria de código): **funcionavam**; agora o zoom por atalho é bloqueado de propósito (use Preferências > Aparência > Tamanho do texto);
 - a abertura toca toda vez (~3,5 s) e termina em íris, a barra lateral divide o espaço e abre só pelo botão ou pelo atalho, e a página "Design (interno)" fica fora do build de produção.
 
 **Não conferido** (o Gabriel não liberou mais o Mac para teste com mouse; nada foi criado nem alterado no banco do app instalado, que tem 0 pedidos e 0 produtos):
