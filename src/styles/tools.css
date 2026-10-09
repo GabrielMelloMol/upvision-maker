@@ -201,12 +201,13 @@ details.advanced[open] > .stack, details.advanced[open] > .grid { margin-top: va
 .model-variant-group { display: grid; gap: var(--space-1); }
 .model-variant-title { font-size: 13px; color: var(--muted); }
 .model-variant-row { display: flex; flex-wrap: wrap; gap: var(--space-2); }
-.model-variant-row button { display: grid; justify-items: center; gap: 4px; width: 72px; padding: 0; background: none; box-shadow: none; color: var(--text); font-size: 12px; line-height: 1.2; text-align: center; border-radius: var(--r-sm); }
+.model-variant-row button { display: grid; justify-items: center; gap: 4px; width: 100px; padding: 0; background: none; box-shadow: none; color: var(--text); font-size: 12px; line-height: 1.2; text-align: center; border-radius: var(--r-sm); }
+.model-variant-label { max-width: 100%; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; } /* legenda numa linha só (#181); o texto inteiro fica no title */
 .model-variant-thumb { display: grid; place-items: center; width: 56px; aspect-ratio: 4 / 3; overflow: hidden; border-radius: var(--r-sm); background: var(--fill); box-shadow: inset 0 0 0 0.5px var(--border); color: var(--tertiary); }
 .model-variant-thumb img { width: 100%; height: 100%; object-fit: cover; }
 .model-variant-thumb svg { width: 20px; height: 20px; }
 .model-variant-row button[aria-pressed="true"] .model-variant-thumb { box-shadow: 0 0 0 2px var(--accent); }
-.model-variant-row button[aria-pressed="true"] > span:last-child { font-weight: 600; }
+.model-variant-row button[aria-pressed="true"] > .model-variant-label { font-weight: 600; }
 .model-variant-row button:focus-visible { outline: 2px solid var(--focus-ring); outline-offset: 2px; }
 .model-variant-tool .model-variant-thumb { color: var(--accent-text); }
 

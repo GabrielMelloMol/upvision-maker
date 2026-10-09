@@ -35,3 +35,26 @@ test("trocar de variação leva texto e cores com o mesmo nome; número e escolh
   // campos numéricos do destino não mudam
   for (const f of to.sections.flatMap((s) => s.fields)) if (f.kind === "num") expect(out[f.k]).toBe(to.defaults[f.k]);
 });
+
+/** Legenda sob a miniatura da variação (#181): cabe numa linha só nos 100 px do botão, sem quebrar nem cortar. */
+const MAX_VARIANT_LABEL = 14;
+
+test("legendas das variações são curtas e padronizadas: até 14 letras, sem parênteses, começando em maiúscula e sem repetir na família (#181)", () => {
+  const bad: string[] = [];
+  for (const f of FAMILIES) {
+    if (f.variants.length < 2 && !f.tools?.length) continue; // só mostra o seletor com 2 variações ou um atalho
+    const seen = new Set<string>();
+    for (const v of f.variants) {
+      const l = v.label;
+      if (l.length > MAX_VARIANT_LABEL) bad.push(`${f.id}/${v.id}: "${l}" tem ${l.length} letras (máx. ${MAX_VARIANT_LABEL})`);
+      if (/[()]/.test(l)) bad.push(`${f.id}/${v.id}: "${l}" tem parênteses`);
+      if (!/^\p{Lu}|^\d/u.test(l)) bad.push(`${f.id}/${v.id}: "${l}" não começa em maiúscula`);
+      if (l !== l.trim() || /\.$/.test(l)) bad.push(`${f.id}/${v.id}: "${l}" com espaço ou ponto sobrando`);
+      if (seen.has(l.toLowerCase())) bad.push(`${f.id}/${v.id}: "${l}" repetida na família`);
+      seen.add(l.toLowerCase());
+    }
+  }
+  for (const f of FAMILIES)
+    for (const t of f.tools ?? []) if (t.label.length > MAX_VARIANT_LABEL || /[()]/.test(t.label)) bad.push(`${f.id}/atalho ${t.page}: "${t.label}" longo demais ou com parênteses`);
+  expect(bad).toEqual([]);
+});

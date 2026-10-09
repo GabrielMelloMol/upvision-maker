@@ -3,6 +3,9 @@
 Cada versão aparece para a usuária na tela "O que há de novo" depois da atualização.
 Formato: `## <versão> — <data>` e itens `- …` em linguagem simples.
 
+## Próxima versão (ainda não lançada)
+- **Legendas das variações dos Modelos prontos numa linha só**: os nomes sob as miniaturas ("No contorno", "Redonda", "Ímã geladeira"…) ficaram mais curtos e iguais em estilo, sem quebrar em várias linhas, em janela larga ou estreita e no tema claro ou escuro.
+
 ## 0.11.4 — 2026-10-09
 - **Tecla de teclado**: em Modelos prontos (Casa), tecla de 1 a 2,25 u com haste em cruz MX (folga ajustável), topo plano ou esférico baixo e a legenda embutida rente em outra cor: uma letra, um ícone da grade (setas, Enter, Shift, volume…) ou o seu SVG. Sai de ponta-cabeça, sem suporte, e o lote faz o teclado todo a partir de uma lista.
 - **Saúde do negócio no Painel**: um semáforo (verde, amarelo ou vermelho) no topo do Painel junta quatro verificações: **margem do mês** (prejuízo é vermelho, abaixo de 10% é amarelo), **contas do mês** (as vendas deixam o suficiente, depois do custo das peças, para cobrir os custos operacionais até hoje?), **pedidos atrasados** e **estoque** (abaixo do mínimo ou zerado). Cada ponto diz o que está acontecendo e **o que fazer**, com o botão "Ver" que leva à tela certa.

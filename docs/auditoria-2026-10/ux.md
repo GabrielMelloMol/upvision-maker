@@ -112,7 +112,7 @@ A pergunta foi: uma vendedora de impressão 3D que acabou de instalar o app cons
 - Print: [Chaveiro](ux/09-chaveiro-como-imprimir.jpg) · [modelo](ux/08-modelo-vazio.jpg)
 - **Onde aparece:** "Como vai imprimir" (Multicor (AMS) | Trocando o filamento | Uma mesa por cor | 1 cor) vira uma caixa de 4 linhas; "Quebra-cabeça" no Pixel art; variantes de modelo como "No contorno do desenho" e "Redonda e formatos".
 - **Sugestão:** rótulos de uma ou duas palavras ("AMS", "Pausas", "Por cor", "1 cor") com a explicação na dica embaixo, como já foi feito com "Teste" no Organizador. Ou trocar para um select quando houver mais de 3 opções longas.
-- **Feito:** os seletores (`.seg`) não quebram mais o texto (largura pelo conteúdo, e quebra de botão inteiro se não couber) e "Como vai imprimir" virou Multicor | Com pausas | Mesa por cor | 1 cor. **Ficou:** as legendas das variantes de modelo embaixo das miniaturas ("No contorno do desenho", "Redonda e formatos") continuam em 2 a 3 linhas; são nomes do catálogo, não seletores.
+- **Feito:** os seletores (`.seg`) não quebram mais o texto (largura pelo conteúdo, e quebra de botão inteiro se não couber) e "Como vai imprimir" virou Multicor | Com pausas | Mesa por cor | 1 cor. **Também feito (#181):** as legendas das variantes de modelo embaixo das miniaturas ficaram com até 14 letras ("No contorno", "Redonda", "Nome em lote"), numa linha só; um teste garante o limite.
 
 **✅ M5 · Modelos prontos que dependem de desenho abrem vazios**
 - Print: [Medalha adaptável](ux/08-modelo-vazio.jpg)
@@ -225,7 +225,7 @@ Três itens ficaram sem ✅ de propósito: A5, M6 e M9 (recurso novo ou redesenh
 **Corrigidos com teste (27 de 30):** C1, A1, A2, A3, A4, M2, M3, M4, M5, M7, M8, M12, M13, M14, M15, B1, B8 (Quartzo); M1 (Forja na Calculadora e em Produtos, Lupa no resto), M10, M11, B2, B3, B4, B5, B6, B7, B9 (Forja). Cada correção está num commit pequeno, com teste de unidade, E2E ou visual, e a lista de "conhecidos" do teste visual perdeu os itens de contraste e de alvo pequeno. Proteções novas: `tests/e2e/acessibilidade-axe.e2e.ts` (axe em todas as telas), `src/styles/statusColors.test.ts`, `src/styles/targets.test.ts` e `tests/e2e/seletores-uma-linha.e2e.ts`.
 
 **Parciais:**
-- **M4:** os seletores não quebram mais o texto, mas as legendas das variantes de modelo sob as miniaturas ("No contorno do desenho", "Redonda e formatos") continuam em 2 a 3 linhas (são nomes do catálogo).
+- **M4 ✅:** os seletores não quebram mais o texto e as legendas das variantes de modelo ficaram numa linha só (#181).
 - **M7:** editar e excluir viraram ícones em Filamentos, Materiais e Impressoras; o menu "⋯" para o resto não foi feito.
 
 **Para virar issue (recurso novo ou redesenho; não entraram nesta rodada):**
@@ -233,7 +233,7 @@ Três itens ficaram sem ✅ de propósito: A5, M6 e M9 (recurso novo ou redesenh
 2. **M6 · Um padrão de cadastro no Estoque:** hoje Filamentos, Materiais e Impressoras abrem o formulário aberto quando a lista está vazia, enquanto Clientes, Produtos, Pedidos e Custos usam botão no título com folha. Unificar mexe no `CrudPage` e em vários fluxos e testes.
 3. **M9 · Preferências em seções ou telas** ("Essencial" aberto e o resto recolhido; hoje são 61 campos numa página de ~4.100 px).
 4. **M7 (resto) · Menu "⋯" nas linhas das tabelas** para as ações secundárias.
-5. **M4 (resto) · Legendas das variantes de modelo** mais curtas.
+5. ✅ **M4 (resto) · Legendas das variantes de modelo** mais curtas (feito na #181).
 
 ## Descartados (conferidos e não são problema)
 

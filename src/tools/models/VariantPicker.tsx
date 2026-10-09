@@ -20,9 +20,9 @@ export default function VariantPicker({ id, onPick }: Props) {
   const item = (v: FamilyVariant) => {
     const Icon = modelOf(v.id).icon;
     return (
-      <button key={v.id} type="button" aria-pressed={v.id === id} onClick={() => v.id !== id && onPick(v.id)} title={modelOf(v.id).blurb}>
+      <button key={v.id} type="button" aria-pressed={v.id === id} onClick={() => v.id !== id && onPick(v.id)} title={`${modelOf(v.id).label}: ${modelOf(v.id).blurb}`}>
         <span className="model-variant-thumb">{THUMBS[v.id] ? <img src={THUMBS[v.id]} alt="" loading="lazy" /> : <Icon aria-hidden />}</span>
-        <span>{v.label}</span>
+        <span className="model-variant-label">{v.label}</span>
       </button>
     );
   };
@@ -31,7 +31,7 @@ export default function VariantPicker({ id, onPick }: Props) {
       <span className="model-variant-thumb">
         <ArrowUpRight aria-hidden />
       </span>
-      <span>{t.label}</span>
+      <span className="model-variant-label">{t.label}</span>
     </button>
   );
   return (

@@ -53,7 +53,7 @@ describe("Modelos prontos", () => {
     await user.click(families().getByRole("button", { name: "Chaveiro" }));
     expect(screen.getByText("Com arte")).toBeInTheDocument();
     expect(screen.getByText("Com função")).toBeInTheDocument();
-    expect(variations().getByRole("button", { name: "Nome (em lote)" })).toBeInTheDocument(); // atalho da ferramenta Chaveiros
+    expect(variations().getByRole("button", { name: "Nome em lote" })).toBeInTheDocument(); // atalho da ferramenta Chaveiros
     await user.click(variations().getByRole("button", { name: "Anilha" }));
     expect(variations().getByRole("button", { name: "Anilha" })).toHaveAttribute("aria-pressed", "true");
     expect(screen.getByRole("heading", { name: "Chaveiro anilha" })).toBeInTheDocument();
@@ -73,7 +73,7 @@ describe("Modelos prontos", () => {
     await user.click(screen.getByRole("button", { name: "Festa e esporte" }));
     await user.click(families().getByRole("button", { name: "Medalha" }));
     expect(document.querySelector(".model-family")).toHaveTextContent("Medalha");
-    expect(variations().getByRole("button", { name: "Redonda e formatos" })).toHaveAttribute("title", "Abre a ferramenta Medalhas, em outra tela");
+    expect(variations().getByRole("button", { name: "Redonda" })).toHaveAttribute("title", "Abre a ferramenta Medalhas, em outra tela");
   });
 
   test("UX B3: escolher um modelo na galeria leva a tela até os campos dele", async () => {
@@ -122,7 +122,7 @@ describe("Modelos prontos", () => {
     expect(await screen.findByText("Preencha a chave Pix para ver a placa.", undefined, BUILD)).toBeInTheDocument();
     expect(screen.queryByRole("alert")).not.toBeInTheDocument();
     await user.click(families().getByRole("button", { name: "Placa" }));
-    await user.click(variations().getByRole("button", { name: "No contorno do desenho" }));
+    await user.click(variations().getByRole("button", { name: "No contorno" }));
     expect(await screen.findByText(/Envie um desenho/, undefined, BUILD)).toBeInTheDocument();
     // sem arte, dá para ver o modelo com um desenho de exemplo (UX M5)
     await user.click(screen.getByRole("button", { name: "Usar um desenho de exemplo" }));
