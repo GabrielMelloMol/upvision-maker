@@ -3,6 +3,9 @@
 Cada versão aparece para a usuária na tela "O que há de novo" depois da atualização.
 Formato: `## <versão> — <data>` e itens `- …` em linguagem simples.
 
+## Próxima versão (ainda não lançada)
+- **Medidas da gaveta aceitam centímetros sem susto**: nos campos de largura, profundidade e altura da gaveta (Organizador de gaveta, Organizador pela foto e Gridfinity base pela gaveta), o campo mostra "= 35 cm" ao lado do valor em milímetros, a mensagem de erro traz a faixa em mm e em cm, e se você digitar 35 achando que era cm, o app pergunta "Você quis dizer 35 cm (350 mm)?" com o botão "Usar 350 mm". Veio da sugestão de uma usuária.
+
 ## 0.11.5 — 2026-10-09
 - **Menu ⋯ nas linhas das tabelas**: editar, duplicar e excluir agora ficam num menu ⋯ igual em Clientes, Custos, Produtos, Orçamentos, Estoque (Filamentos, Materiais e Impressoras) e no histórico da Calculadora; a ação principal (Repor, Produzir, PDF, Virar pedido) continua à vista. Excluir vem por último, em vermelho e separado, e o menu funciona com o teclado (setas, Enter, Esc) e não é cortado na última linha.
 - **Cadastro do Estoque num padrão só**: Filamentos, Materiais extras e Impressoras agora abrem o cadastro numa janela pelo botão "Adicionar …" do título, igual a Clientes e Produtos (a lista vazia só mostra o aviso e o botão "Cadastrar …"; nada abre sozinho). Na janela, "Adicionar e cadastrar outro" grava e deixa tudo aberto com material, marca, preço e rolo já preenchidos, para cadastrar vários rolos seguidos; "Adicionar" grava e fecha. Editar, o catálogo e o atalho Cmd/Ctrl+N usam a mesma janela.

@@ -123,9 +123,9 @@ export const HOME_STORAGE_MODELS: ModelDef[] = [
       {
         title: "Gaveta (medidas de dentro)",
         fields: [
-          num("drawerW", "Largura", 50, 1000, { step: 1 }),
-          num("drawerD", "Profundidade", 50, 1000, { step: 1 }),
-          num("drawerH", "Altura livre", 20, 300, { step: 1, hint: "Do fundo da gaveta ao tampo ou à gaveta de cima." }),
+          num("drawerW", "Largura", 50, 1000, { step: 1, cm: true }),
+          num("drawerD", "Profundidade", 50, 1000, { step: 1, cm: true }),
+          num("drawerH", "Altura livre", 20, 300, { step: 1, cm: true, hint: "Do fundo da gaveta ao tampo ou à gaveta de cima." }),
           choice("align", "Sobra", [["center", "Centralizar"], ["corner", "Encostar no canto"]]),
         ],
       },

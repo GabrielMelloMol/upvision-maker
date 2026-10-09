@@ -1,3 +1,4 @@
+import AxeBuilder from "@axe-core/playwright";
 import type { Page } from "@playwright/test";
 import { strFromU8, unzipSync } from "fflate";
 import { expect, go, openApp, test, toastWith } from "./tauri";
@@ -117,3 +118,40 @@ test("talheres em 2 andares: bandeja nos trilhos em cima, base e caixinhas embai
   await page.getByLabel(/^Profundidade/).fill("420");
   await expect(page.getByText(/levanta pelas alças/)).toBeVisible({ timeout: 90_000 });
 });
+
+/** Sugestão real (#194): gaveta de "35 × 25" digitada em centímetros num campo em milímetros. */
+test("gaveta 35 × 25 digitada em cm: avisa a faixa em mm e cm, sugere 350 × 250 mm e gera com um clique", async ({ page }) => {
+  test.slow();
+  await openApp(page);
+  await go(page, "Organizador de gaveta");
+  const largura = page.getByLabel(/^Largura/), profundidade = page.getByLabel(/^Profundidade/);
+  await largura.fill("35");
+  await profundidade.fill("25");
+  await expect(page.getByText("Use entre 50 e 1.500 mm (5 e 150 cm).").first()).toBeVisible();
+  await expect(page.getByText("Você quis dizer 35 cm (350 mm)?")).toBeVisible();
+  await expect(page.getByText("Você quis dizer 25 cm (250 mm)?")).toBeVisible();
+  await page.getByRole("button", { name: "Usar 350 mm" }).click();
+  await page.getByRole("button", { name: "Usar 250 mm" }).click();
+  await expect(largura).toHaveValue("350");
+  await expect(profundidade).toHaveValue("250");
+  await expect(page.getByText("= 35 cm")).toBeVisible();
+  await expect(page.getByText("= 25 cm")).toBeVisible();
+  await expect(page.getByText(/Cabem \d+ × \d+ casas/)).toBeVisible();
+});
+
+for (const scheme of ["light", "dark"] as const)
+  for (const width of [1280, 640] as const)
+    test(`aviso de medida em cm legível e sem estourar a tela (${scheme}, ${width}px)`, async ({ page }) => {
+      await page.emulateMedia({ colorScheme: scheme });
+      await page.setViewportSize({ width, height: 900 });
+      await openApp(page);
+      await go(page, "Organizador de gaveta");
+      await page.getByLabel(/^Largura/).fill("35");
+      await expect(page.getByText("Você quis dizer 35 cm (350 mm)?")).toBeVisible();
+      const axe = await new AxeBuilder({ page }).include("main").exclude("canvas").exclude(".viewer").withTags(["wcag2a", "wcag2aa", "wcag22aa"]).analyze();
+      expect(axe.violations.filter((v) => !/drawer|viewer/.test(JSON.stringify(v.nodes.map((n) => n.target)))).map((v) => `${v.id}: ${v.nodes.map((n) => n.target.join(" ")).join(" | ")}`)).toEqual([]);
+      const wide = await page.evaluate(() => document.scrollingElement!.scrollWidth > document.scrollingElement!.clientWidth + 1);
+      expect(wide).toBe(false);
+      const btn = await page.getByRole("button", { name: "Usar 350 mm" }).boundingBox();
+      expect(btn!.height).toBeGreaterThanOrEqual(24);
+    });

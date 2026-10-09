@@ -5,7 +5,7 @@ import type { ModelCtx, ModelOutput } from "../../geometry/models/common";
 export type Params = Record<string, string | number | boolean>;
 
 export type FieldDef =
-  | { k: string; kind: "num"; label: string; min: number; max: number; step?: number; unit?: string; hint?: string }
+  | { k: string; kind: "num"; label: string; min: number; max: number; step?: number; unit?: string; hint?: string; cm?: boolean }
   | { k: string; kind: "text"; label: string; max?: number; hint?: string }
   | { k: string; kind: "money"; label: string; hint?: string }
   | { k: string; kind: "color"; label: string }

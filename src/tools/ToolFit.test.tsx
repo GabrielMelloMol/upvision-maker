@@ -136,4 +136,20 @@ describe("Organizador pela foto (#169)", () => {
     expect(screen.queryByRole("textbox", { name: "Nome da ferramenta 2" })).not.toBeInTheDocument();
     expect(screen.getByRole("textbox", { name: "Nome da ferramenta 1" })).toHaveValue("Alicate");
   }, 120_000);
+  test("gaveta de 35 × 25 digitada em cm: sugere 350 × 250 mm e aceita com um clique (#194)", async () => {
+    const user = userEvent.setup();
+    renderWithApp(<ToolFit />);
+    await user.click(screen.getByRole("button", { name: "Gaveta" }));
+    const drawer = within(screen.getByRole("group", { name: "Gaveta" }));
+    const w = drawer.getByRole("spinbutton", { name: /^Largura/ }), d = drawer.getByRole("spinbutton", { name: /^Profundidade/ });
+    await user.clear(w);
+    await user.type(w, "35");
+    await user.clear(d);
+    await user.type(d, "25");
+    expect(drawer.getAllByText(/Use entre 60 e 1\.000 mm \(6 e 100 cm\)/, { selector: "span.error" })).toHaveLength(2);
+    await user.click(drawer.getByRole("button", { name: "Usar 350 mm" }));
+    await user.click(drawer.getByRole("button", { name: "Usar 250 mm" }));
+    expect(w).toHaveValue(350);
+    expect(d).toHaveValue(250);
+  });
 });

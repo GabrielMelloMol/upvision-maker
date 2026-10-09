@@ -159,3 +159,14 @@ test("utilitários paramétricos (#121): arruela, marcador, pente de cabos, bot�
   tauri.files.clear();
   await save3mf(page, tauri.files);
 });
+
+test("Gridfinity: base pela gaveta aceita 35 × 25 digitados em cm com a sugestão ×10 (#194)", async ({ page }) => {
+  await openModel(page, "Gridfinity: base pela gaveta");
+  await page.getByLabel(/^Largura/).fill("35");
+  await page.getByLabel(/^Profundidade/).fill("25");
+  await expect(page.getByText("Você quis dizer 35 cm (350 mm)?")).toBeVisible();
+  await page.getByRole("button", { name: "Usar 350 mm" }).click();
+  await page.getByRole("button", { name: "Usar 250 mm" }).click();
+  await idle(page);
+  await expect(page.locator(".viewer .hud")).toContainText("mm");
+});

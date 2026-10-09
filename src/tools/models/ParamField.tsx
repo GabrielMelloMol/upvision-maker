@@ -43,7 +43,7 @@ export default function ParamField({ f, value, onChange, sample = "", emoji }: P
         </div>
       );
     case "num":
-      return <NumField label={f.label} value={value as number} onChange={onChange} min={f.min} max={f.max} step={f.step} unit={f.unit} hint={f.hint} />;
+      return <NumField label={f.label} value={value as number} onChange={onChange} min={f.min} max={f.max} step={f.step} unit={f.unit} hint={f.hint} cm={f.cm} />;
     case "text":
       if (emoji) return <EmojiText label={f.label} hint={f.hint} max={f.max} value={String(value)} onChange={onChange} />;
       return (

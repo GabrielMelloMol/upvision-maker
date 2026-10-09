@@ -107,13 +107,13 @@ export default function DrawerOrganizer() {
             <h3>Gaveta</h3>
             <div className="grid two">
               <div {...measuring("width")}>
-                <NumField label="Largura" value={p.width} onChange={setGrid("width")} min={50} max={1500} step={1} />
+                <NumField label="Largura" value={p.width} onChange={setGrid("width")} min={50} max={1500} step={1} cm />
               </div>
               <div {...measuring("depth")}>
-                <NumField label="Profundidade" value={p.depth} onChange={setGrid("depth")} min={50} max={1500} step={1} />
+                <NumField label="Profundidade" value={p.depth} onChange={setGrid("depth")} min={50} max={1500} step={1} cm />
               </div>
               <div {...measuring("height")}>
-                <NumField label="Altura livre" value={p.height} onChange={setGrid("height")} min={15} max={400} step={1} hint="Com a gaveta fechada, do fundo até o tampo ou a gaveta de cima." />
+                <NumField label="Altura livre" value={p.height} onChange={setGrid("height")} min={15} max={400} step={1} cm hint="Com a gaveta fechada, do fundo até o tampo ou a gaveta de cima." />
               </div>
             </div>
             <Segmented label="Sobra" value={p.align} options={ALIGNS} onChange={setAlign} full />

@@ -328,3 +328,9 @@ td.best-name { max-width: 0; width: 100%; overflow: hidden; text-overflow: ellip
 .photo-gallery .photo-actions .menu-wrap > button { background: var(--surface); box-shadow: 0 0 0 0.5px var(--border); }
 .photo-edit-preview { display: block; max-width: 100%; max-height: 50vh; margin: 0 auto; border-radius: var(--r); object-fit: contain; }
 .photo-camera { display: block; width: 100%; max-height: 60vh; border-radius: var(--r); background: #000; }
+
+/* medida de gaveta digitada em cm por engano (#194): equivalência ao lado do rótulo e sugestão ×10 */
+.num-wrap { display: grid; gap: var(--space-1); align-content: start; }
+.num-eq { color: var(--muted); font-weight: 400; }
+.num-suggest { font-size: 13px; color: var(--text); }
+.num-suggest button { display: inline; min-height: 24px; padding: 0 var(--space-1); font-weight: 600; }

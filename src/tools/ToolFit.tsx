@@ -217,9 +217,9 @@ export default function ToolFit() {
                 <span className="field-label">Gaveta</span>
                 {/* rótulos curtos: "Profundidade da gaveta" quebrava em 2 linhas e desalinhava os campos */}
                 <div className="grid two">
-                  <NumField label="Largura" value={p.drawerW} onChange={set("drawerW")} min={LIMITS.drawerW[0]} max={LIMITS.drawerW[1]} step={1} />
-                  <NumField label="Profundidade" value={p.drawerD} onChange={set("drawerD")} min={LIMITS.drawerD[0]} max={LIMITS.drawerD[1]} step={1} />
-                  {modular && <NumField label="Altura útil" value={p.drawerH} onChange={set("drawerH")} min={LIMITS.drawerH[0]} max={LIMITS.drawerH[1]} step={1} />}
+                  <NumField label="Largura" value={p.drawerW} onChange={set("drawerW")} min={LIMITS.drawerW[0]} max={LIMITS.drawerW[1]} step={1} cm />
+                  <NumField label="Profundidade" value={p.drawerD} onChange={set("drawerD")} min={LIMITS.drawerD[0]} max={LIMITS.drawerD[1]} step={1} cm />
+                  {modular && <NumField label="Altura útil" value={p.drawerH} onChange={set("drawerH")} min={LIMITS.drawerH[0]} max={LIMITS.drawerH[1]} step={1} cm />}
                 </div>
               </div>
             )}

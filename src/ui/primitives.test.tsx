@@ -167,6 +167,31 @@ describe("NumField", () => {
     expect(screen.getByText("Use entre 1 e 5.")).toBeInTheDocument();
   });
 
+  test("medida em cm digitada por engano: mostra o equivalente, a faixa em mm e cm e sugere ×10 (#194)", () => {
+    const onChange = vi.fn();
+    const { rerender } = render(<NumField label="Largura" value={350} onChange={onChange} min={50} max={1000} cm />);
+    expect(screen.getByText(/= 35 cm/)).toBeInTheDocument();
+    expect(screen.queryByText(/Você quis dizer/)).not.toBeInTheDocument();
+    rerender(<NumField label="Largura" value={35} onChange={onChange} min={50} max={1000} cm />);
+    expect(screen.getByText("Use entre 50 e 1.000 mm (5 e 100 cm).")).toBeInTheDocument();
+    expect(screen.getByText(/Você quis dizer 35 cm \(350 mm\)\?/)).toBeInTheDocument();
+    fireEvent.click(screen.getByRole("button", { name: "Usar 350 mm" }));
+    expect(onChange).toHaveBeenCalledWith(350);
+    // o nome do campo não ganha o texto da sugestão nem o "= cm"
+    expect(screen.getByRole("spinbutton", { name: "Largura (mm) Use entre 50 e 1.000 mm (5 e 100 cm)." })).toBeInTheDocument();
+  });
+
+  test("sem cm o campo continua como antes; sugestão só quando ×10 cabe na faixa", () => {
+    const { rerender } = render(<NumField label="Altura" value={3} onChange={() => {}} min={50} max={1000} />);
+    expect(screen.queryByText(/Você quis dizer/)).not.toBeInTheDocument();
+    expect(screen.getByText("Use entre 50 e 1.000.")).toBeInTheDocument();
+    rerender(<NumField label="Altura" value={3} onChange={() => {}} min={50} max={1000} cm />);
+    expect(screen.queryByText(/Você quis dizer/)).not.toBeInTheDocument(); // 30 mm ainda abaixo do mínimo
+    rerender(<NumField label="Altura" value={4000} onChange={() => {}} min={50} max={1000} cm />);
+    expect(screen.queryByText(/Você quis dizer/)).not.toBeInTheDocument();
+    expect(screen.getByText("Use entre 50 e 1.000 mm (5 e 100 cm).")).toBeInTheDocument();
+  });
+
   test("inRange respeita limites e rejeita NaN", () => {
     expect(inRange(1, 1, 2)).toBe(true);
     expect(inRange(2.1, 1, 2)).toBe(false);
