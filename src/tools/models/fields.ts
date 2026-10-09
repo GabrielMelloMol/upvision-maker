@@ -18,7 +18,9 @@ export type FieldDef =
   /** Lugar por busca (cidade ou endereço): preenche vários campos de uma vez (nome, latitude, longitude, fuso) — mapa estelar (#196). */
   | { k: string; kind: "place"; label: string }
   /** Prévia "como vai sair impresso" do mapa estelar: só mostra, não guarda valor. */
-  | { k: string; kind: "starPrint"; label: string };
+  | { k: string; kind: "starPrint"; label: string }
+  /** Código para chegar à música (Cartão de música): QR com o link ou código do Spotify; usa os campos code, codeLink, spotifySvg, spotifyUri e spotifyLogo. */
+  | { k: string; kind: "musicCode"; label: string };
 
 export type Section = { title: string; fields: FieldDef[] };
 

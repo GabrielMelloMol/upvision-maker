@@ -36,7 +36,11 @@ export function serveFontsFromDisk(root: string) {
 }
 
 /** Entradas que a pessoa sempre preenche e o padrão deixa vazias (sem elas o modelo só pede o campo). */
-const QA_INPUTS: Record<string, Params> = { pix: { key: "loja@upvision.app", name: "UpVision Maker", city: "Sao Paulo" }, reliefTile: { output: "both" }, layeredSign: { frame: true, ornament: "paw" } }; // fatia o molde junto do azulejo e a moldura do letreiro
+// Cartão de música: o código do Spotify guardado (SVG de exemplo salvo) vai nos casos padrão, mínimo e máximo; o QR entra num caso à parte
+const SPOTIFY_SAMPLE = readFileSync(new URL("../../tests/fixtures/spotify/scannable-track.svg", import.meta.url), "utf8");
+const MUSIC_LINK = "https://open.spotify.com/track/11dFghVXANMlKmJXsNCbNl";
+const QA_INPUTS: Record<string, Params> = {
+  musicCard: { code: "spotify", codeLink: MUSIC_LINK, spotifySvg: SPOTIFY_SAMPLE, spotifyUri: "spotify:track:11dFghVXANMlKmJXsNCbNl", codeSize: 70 }, pix: { key: "loja@upvision.app", name: "UpVision Maker", city: "Sao Paulo" }, reliefTile: { output: "both" }, layeredSign: { frame: true, ornament: "paw" } }; // fatia o molde junto do azulejo e a moldura do letreiro
 
 // desenho de teste: o mesmo das miniaturas (#149)
 export { testArt, testArtLayers };
@@ -58,7 +62,7 @@ export async function modelCtx(M: ManifoldToplevel, p: Params, def: ModelDef): P
 }
 
 /** Variações extras por modelo (além de padrão, mínimo e máximo): opções que mudam a peça e precisam fatiar também. */
-const QA_EXTRA: Record<string, Record<string, Params>> = { starMap: { "estrelas vazadas": { hollow: true, density: "few" } } };
+const QA_EXTRA: Record<string, Record<string, Params>> = { starMap: { "estrelas vazadas": { hollow: true, density: "few" } }, musicCard: { QR: { code: "qr", codeSize: 44 } } };
 
 /** Padrão, todos os campos numéricos no mínimo e todos no máximo (mais as variações extras do modelo). */
 export function variants(def: ModelDef): [QaCase["variant"], Params][] {

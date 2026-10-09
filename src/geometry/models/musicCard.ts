@@ -1,6 +1,8 @@
+import { bedMm } from "../bed";
 import type { CS, ManifoldToplevel } from "../manifold";
 import { fitInto, scoped } from "../shape2d";
 import type { Model, Part } from "../types";
+import { buildCode, luminance, type CodeKind } from "./musicCode";
 import { artParts, boxOf, MissingInput, offsetOf, plateStand, roundedRect, slab, solidMesh, type ElementBox, type ModelCtx, type ModelOutput } from "./common";
 
 export type MusicMount = "none" | "stand" | "magnet";
@@ -21,6 +23,14 @@ export type MusicCardParams = {
   relief: number;
   artHeight: number; // quanto a foto/desenho enviado ocupa, em fração da largura útil (0 = sem espaço para foto)
   mount: MusicMount;
+  /** Código para chegar à música: QR com o link (qualquer serviço) ou o código do Spotify (SVG buscado e guardado no projeto). */
+  code: CodeKind;
+  codeLink: string;
+  codeSize: number; // largura do código, em mm
+  spotifySvg: string; // SVG do Spotify guardado (a internet só faz falta para buscar)
+  spotifyUri: string; // a música de que ele é
+  spotifyLogo: boolean;
+  codeColor: string;
   plateColor: string;
   textColor: string;
   accentColor: string;
@@ -42,12 +52,21 @@ export const DEFAULT_MUSIC_CARD: MusicCardParams = {
   relief: 0.8,
   artHeight: 1,
   mount: "stand",
+  code: "qr",
+  codeLink: "",
+  codeSize: 44,
+  spotifySvg: "",
+  spotifyUri: "",
+  spotifyLogo: true,
+  codeColor: "#1f2937",
   plateColor: "#f5f1e6",
   textColor: "#1f2937",
   accentColor: "#e11d48",
 };
 
 const MARGIN = 0.07; // frações da largura
+/** Largura do código no cartão: a pedida, até a largura útil. */
+export const codeWidthMm = (p: Pick<MusicCardParams, "width" | "codeSize">) => Math.min(p.width * (1 - 2 * MARGIN), p.codeSize);
 const GAP = 0.04;
 const TITLE_H = 0.095;
 const ARTIST_H = 0.062;
@@ -89,20 +108,24 @@ function playerButtons(M: ManifoldToplevel, cy: number, h: number, k: (c: CS) =>
 export function buildMusicCard(ctx: ModelCtx, p: MusicCardParams): ModelOutput {
   const { M, text } = ctx;
   if (!p.title.trim() && !p.artist.trim() && !ctx.art) throw new MissingInput("Digite o título da música ou envie uma foto.");
-  const W = p.width;
-  const m = W * MARGIN, g = W * GAP, q = W - 2 * m;
-  const lyrics = [p.line1, p.line2, p.line3, p.line4].map((l) => l.trim()).filter(Boolean);
-  const photo = !!ctx.art && p.artHeight > 0;
-  const photoH = photo ? q * p.artHeight : 0;
-  const titleH = p.title.trim() ? W * TITLE_H : 0, artistH = p.artist.trim() ? W * ARTIST_H : 0;
-  const lyricH = lyrics.length ? lyrics.length * W * LYRIC_H + (lyrics.length - 1) * W * LYRIC_H * LYRIC_GAP : 0;
-  const timesH = p.timeStart.trim() || p.timeEnd.trim() ? W * TIME_H : 0;
-  const barBlock = W * KNOB_R * 2 + (timesH && g * 0.4 + timesH);
-  const buttonH = p.showButtons ? W * BUTTON_H : 0;
-  const blocks = [photoH, titleH, artistH, lyricH, barBlock, buttonH].filter((h) => h > 0);
-  const H = 2 * m + blocks.reduce((s, h) => s + h, 0) + (blocks.length - 1) * g;
-
   return scoped((k) => {
+    const W = p.width;
+    const m = W * MARGIN, g = W * GAP, q = W - 2 * m;
+    // código para ouvir a música (QR ou Spotify): entra como um bloco no fim da coluna
+    const code = buildCode(M, { code: p.code, link: p.codeLink, svg: p.spotifySvg, svgUri: p.spotifyUri, logo: p.spotifyLogo }, codeWidthMm(p));
+    if (code.shape) k(code.shape.cs);
+    const codeH = code.shape?.h ?? 0;
+    const lyrics = [p.line1, p.line2, p.line3, p.line4].map((l) => l.trim()).filter(Boolean);
+    const photo = !!ctx.art && p.artHeight > 0;
+    const photoH = photo ? q * p.artHeight : 0;
+    const titleH = p.title.trim() ? W * TITLE_H : 0, artistH = p.artist.trim() ? W * ARTIST_H : 0;
+    const lyricH = lyrics.length ? lyrics.length * W * LYRIC_H + (lyrics.length - 1) * W * LYRIC_H * LYRIC_GAP : 0;
+    const timesH = p.timeStart.trim() || p.timeEnd.trim() ? W * TIME_H : 0;
+    const barBlock = W * KNOB_R * 2 + (timesH && g * 0.4 + timesH);
+    const buttonH = p.showButtons ? W * BUTTON_H : 0;
+    const blocks = [photoH, titleH, artistH, lyricH, barBlock, buttonH, codeH].filter((h) => h > 0);
+    const H = 2 * m + blocks.reduce((s, h) => s + h, 0) + (blocks.length - 1) * g;
+
     let cursor = H / 2 - m; // topo do próximo bloco
     const take = (h: number) => {
       const mid = cursor - h / 2;
@@ -112,6 +135,7 @@ export function buildMusicCard(ctx: ModelCtx, p: MusicCardParams): ModelOutput {
     const elements: ElementBox[] = [];
     const dark: CS[] = [];
     const accent: CS[] = [];
+    const codeCs: CS[] = [];
     const place = (id: string, label: string, cs: CS | null, into: CS[]) => {
       if (!cs) return;
       const moved = k(cs.translate(offsetOf(ctx, id)));
@@ -161,6 +185,7 @@ export function buildMusicCard(ctx: ModelCtx, p: MusicCardParams): ModelOutput {
       place("buttons", "Botões", b.dark, dark);
       accent.push(k(b.accent.translate(offsetOf(ctx, "buttons"))));
     }
+    if (code.shape) place("code", "Código", k(code.shape.cs.translate([0, take(codeH)])), codeCs);
 
     const outline = k(roundedRect(M, W, H, W * 0.06));
     let plateMesh;
@@ -174,8 +199,11 @@ export function buildMusicCard(ctx: ModelCtx, p: MusicCardParams): ModelOutput {
     parts.unshift({ name: "Placa", color: p.plateColor, mesh: plateMesh });
     if (textUnion) parts.push({ name: "Texto", color: p.textColor, mesh: slab(textUnion, p.relief, p.thickness) });
     if (accent.length) parts.push({ name: "Destaque", color: p.accentColor, mesh: slab(k(M.CrossSection.union(accent)), p.relief, p.thickness) });
+    if (codeCs.length) parts.push({ name: "Código", color: p.codeColor, mesh: slab(k(M.CrossSection.union(codeCs)), p.relief, p.thickness) });
 
-    const warnings: string[] = [];
+    const warnings: string[] = [...code.warnings];
+    if (code.kind === "qr" && luminance(p.codeColor) > luminance(p.plateColor)) warnings.push("O QR lê melhor escuro sobre placa clara: troque as cores do código e da placa.");
+    if (H > bedMm() - 6) warnings.push(`O cartão ficou com ${Math.round(H)} mm de altura e não cabe na mesa de ${bedMm()} mm: diminua a largura do código, a foto ou as linhas da letra.`);
     if (p.mount === "magnet" && p.thickness - MAGNET_DEPTH < MIN_FACE_MM) warnings.push(`Com ímã, use espessura de ${MAGNET_DEPTH + MIN_FACE_MM} mm ou mais: a frente fina demais deixa o ímã marcar.`);
     if (p.mount === "magnet") warnings.push(`Encaixe um ímã de ${MAGNET_D - 0.2} mm por ${MAGNET_DEPTH} mm (disco de neodímio) na parte de trás, com cola.`);
     const models: Model[] = [{ name: "Cartão de música", parts }];

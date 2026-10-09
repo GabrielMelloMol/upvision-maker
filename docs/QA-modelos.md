@@ -23,7 +23,7 @@ Peça maior que a mesa de 256 mm do A1 conta como **aviso** quando o app avisa n
 impressoras de mesa maior); sem o aviso do app, é **falha**.
 
 
-**Total:** 297 casos · 225 ok · 71 com aviso · 1 com falha · 0 n/a
+**Total:** 304 casos · 232 ok · 71 com aviso · 1 com falha · 0 n/a
 
 ## Forja
 
@@ -92,6 +92,10 @@ impressoras de mesa maior); sem o aviso do app, é **falha**.
 | MOLLE tag (molle) | máximo | ✅ ok | Bambu ✓ · Orca ✓ · Projeto Bambu ✓ | 41 | 29,5 | 1 | – | – |
 | MOLLE tag (molle) | mínimo | ✅ ok | Bambu ✓ · Orca ✓ · Projeto Bambu ✓ | 32 | 21,4 | 1 | – | – |
 | MOLLE tag (molle) | padrão | ✅ ok | Bambu ✓ · Orca ✓ · Projeto Bambu ✓ | 35 | 23,9 | 1 | – | – |
+| Cartão de música (musicCard) | máximo | ✅ ok | Bambu ✓ · Orca ✓ · Projeto Bambu ✓ | 163 | 109,4 | 1 | – | – |
+| Cartão de música (musicCard) | mínimo | ✅ ok | Bambu ✓ · Orca ✓ · Projeto Bambu ✓ | 50 | 31,1 | 1 | – | app: As barras do código do Spotify ficaram com 0,56 mm: aumente a largura do código (mínimo recomendado 1,00 mm). |
+| Cartão de música (musicCard) | padrão | ✅ ok | Bambu ✓ · Orca ✓ · Projeto Bambu ✓ | 84 | 55,0 | 1 | – | – |
+| Cartão de música (musicCard) | QR | ✅ ok | Bambu ✓ · Orca ✓ · Projeto Bambu ✓ | 97 | 63,0 | 1 | – | – |
 | Totem NFC (nfcTotem) | máximo | ⚠️ aviso | Bambu ✓ · Orca ✓ · Projeto Bambu ✓ | 177 | 154,7 | 1 | 3,40 | Orca: torre de purga em cima de uma peça depois do --arrange do CLI (na tela, arraste a torre ou use Arrumar); app: Pausa em Z = 3,52 mm: coloque a tag NFC (grave o link de avaliação antes) e retome. |
 | Totem NFC (nfcTotem) | mínimo | ⚠️ aviso | Bambu ✓ · Orca ✓ · Projeto Bambu ✓ | – | – | – | – | Bambu: torre de purga passa da mesa na posição padrão do CLI (na tela, arraste a torre ou use Arrumar); Orca: torre de purga passa da mesa na posição padrão do CLI (na tela, arraste a torre ou use Arrumar); Projeto Bambu: torre de purga passa da mesa na posição padrão do CLI (na tela, arraste a torre ou use Arrumar); app: Pausa em Z = 1,44 mm: coloque a tag NFC (grave o link de avaliação antes) e retome. |
 | Totem NFC (nfcTotem) | padrão | ✅ ok | Bambu ✓ · Orca ✓ · Projeto Bambu ✓ | 82 | 49,1 | 1 | 2,00 | app: Pausa em Z = 2,00 mm: coloque a tag NFC (grave o link de avaliação antes) e retome. |

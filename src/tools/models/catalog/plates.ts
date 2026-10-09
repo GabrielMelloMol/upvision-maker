@@ -58,6 +58,14 @@ export const PLATE_MODELS: ModelDef[] = [
         ],
       },
       {
+        title: "Código para ouvir a música",
+        fields: [
+          { k: "code", kind: "musicCode", label: "Código" },
+          num("codeSize", "Largura do código", 30, 80, { step: 1, hint: "Com um link curto, 44 mm leem bem no QR. O código do Spotify pede 64 mm ou mais, para as barras ficarem grossas." }),
+          color("codeColor", "Código (escuro sobre placa clara)"),
+        ],
+      },
+      {
         title: "Tamanho e cores",
         fields: [
           num("width", "Largura", 80, 110, { step: 1, hint: "Até 110 mm: com foto quadrada o conjunto ainda cabe na mesa de 256 mm." }),

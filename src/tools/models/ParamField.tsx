@@ -8,6 +8,7 @@ import NumField from "../../ui/NumField";
 import Segmented from "../../ui/Segmented";
 import Toggle from "../../ui/Toggle";
 import type { FieldDef, Params, Section } from "./fields";
+import MusicCodeField from "./MusicCodeField";
 import PlaceField from "./PlaceField";
 import StarPrintPreview from "./StarPrintPreview";
 import ProfileEditor from "./ProfileEditor";
@@ -45,6 +46,8 @@ function EmojiText({ label, hint, max, value, onChange }: { label: string; hint?
 
 export default function ParamField({ f, value, onChange, sample = "", emoji, params, patch }: ParamProps) {
   switch (f.kind) {
+    case "musicCode":
+      return params && patch ? <MusicCodeField label={f.label} params={params} patch={patch} /> : null;
     case "place":
       return params && patch ? <PlaceField label={f.label} params={params} patch={patch} /> : null;
     case "starPrint":

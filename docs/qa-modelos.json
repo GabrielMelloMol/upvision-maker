@@ -962,6 +962,64 @@
   "plates": 1
  },
  {
+  "key": "musicCard:máximo",
+  "owner": "Forja",
+  "group": "plates",
+  "label": "Cartão de música (musicCard)",
+  "variant": "máximo",
+  "status": "ok",
+  "reasons": [],
+  "date": "2026-10-09",
+  "slicers": "Bambu ✓ · Orca ✓ · Projeto Bambu ✓",
+  "minutes": 163,
+  "grams": 109.4,
+  "plates": 1
+ },
+ {
+  "key": "musicCard:mínimo",
+  "owner": "Forja",
+  "group": "plates",
+  "label": "Cartão de música (musicCard)",
+  "variant": "mínimo",
+  "status": "ok",
+  "reasons": [
+   "app: As barras do código do Spotify ficaram com 0,56 mm: aumente a largura do código (mínimo recomendado 1,00 mm)."
+  ],
+  "date": "2026-10-09",
+  "slicers": "Bambu ✓ · Orca ✓ · Projeto Bambu ✓",
+  "minutes": 50,
+  "grams": 31.1,
+  "plates": 1
+ },
+ {
+  "key": "musicCard:padrão",
+  "owner": "Forja",
+  "group": "plates",
+  "label": "Cartão de música (musicCard)",
+  "variant": "padrão",
+  "status": "ok",
+  "reasons": [],
+  "date": "2026-10-09",
+  "slicers": "Bambu ✓ · Orca ✓ · Projeto Bambu ✓",
+  "minutes": 84,
+  "grams": 55,
+  "plates": 1
+ },
+ {
+  "key": "musicCard:QR",
+  "owner": "Forja",
+  "group": "plates",
+  "label": "Cartão de música (musicCard)",
+  "variant": "QR",
+  "status": "ok",
+  "reasons": [],
+  "date": "2026-10-09",
+  "slicers": "Bambu ✓ · Orca ✓ · Projeto Bambu ✓",
+  "minutes": 97,
+  "grams": 63,
+  "plates": 1
+ },
+ {
   "key": "nfcTotem:máximo",
   "owner": "Forja",
   "group": "plates",
