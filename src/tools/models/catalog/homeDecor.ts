@@ -1,5 +1,6 @@
-import { Bookmark, CaseUpper, CircleDot, Frame, Gem, KeySquare, Lamp, LampDesk, PencilRuler, PenTool, Puzzle, Smartphone, WholeWord } from "lucide-react";
+import { Bookmark, Keyboard, CaseUpper, CircleDot, Frame, Gem, KeySquare, Lamp, LampDesk, PencilRuler, PenTool, Puzzle, Smartphone, WholeWord } from "lucide-react";
 import { buildCutoutFrame, buildCutoutStand, DEFAULT_CUTOUT_FRAME, DEFAULT_CUTOUT_STAND } from "../../../geometry/models/cutoutFrame";
+import { buildKeycap, DEFAULT_KEYCAP } from "../../../geometry/models/keycap";
 import { buildBigLetter, DEFAULT_BIG_LETTER } from "../../../geometry/models/bigLetter";
 import { buildBigFrame, DEFAULT_BIG_FRAME } from "../../../geometry/models/bigFrame";
 import { buildBookmark, DEFAULT_BOOKMARK } from "../../../geometry/models/bookmark";
@@ -214,6 +215,34 @@ export const HOME_DECOR_MODELS: ModelDef[] = [
       { title: "Tamanho e cores", fields: [num("height", "Altura da placa", 50, 190, { step: 1, hint: "Até 190 mm: com a lingueta e a base ainda cabe na mesa de 256 mm." }), num("margin", "Margem em volta", 4, 25, { step: 0.5 }), num("thickness", "Espessura", 2.5, 8), color("plateColor", "Placa"), color("baseColor", "Base"), color("textColor", "Texto da base")] },
     ],
     build: (ctx, p) => buildCutoutStand(ctx, as(p)),
+  },
+  {
+    id: "keycap",
+    category: "home",
+    label: "Tecla de teclado",
+    blurb: "Tecla com haste em cruz MX (folga ajustável), topo plano ou esférico baixo e legenda embutida rente em outra cor. Lote para o teclado todo.",
+    icon: Keyboard,
+    font: true,
+    art: "Ícone ou SVG da legenda (opcional; sem ele, usa o texto)",
+    iconPicker: true,
+    defaults: DEFAULT_KEYCAP,
+    sections: [
+      { title: "Legenda", fields: [text("legend", "Legenda (letra ou texto curto)", 6), num("legendHeight", "Altura da legenda", 3, 14, { step: 0.5 }), num("legendDepth", "Profundidade da legenda", 0.4, 1.2, { step: 0.1, hint: "A cor entra na tecla rente ao topo: 0,6 mm cobre bem." })] },
+      {
+        title: "Tecla e haste",
+        fields: [
+          num("units", "Largura (u)", 1, 2.25, { step: 0.25, unit: "u", hint: "1 u = 19,05 mm de passo. Teclas de 2 u ou mais usam estabilizador." }),
+          num("height", "Altura", 6, 14, { step: 0.5 }),
+          num("taper", "Afunilamento do topo", 0, 3, { step: 0.25, hint: "Quanto o topo é menor que a base, de cada lado." }),
+          choice("profile", "Topo", [["flat", "Plano"], ["sphere", "Esférico baixo"]]),
+          num("wall", "Parede", 0.8, 2.4, { step: 0.1 }),
+          num("topThickness", "Espessura do topo", 1, 3, { step: 0.1 }),
+          num("fit", "Folga da cruz da haste", 0, 0.5, { step: 0.05, hint: "Somada às medidas da cruz do interruptor MX: 0,15 costuma entrar justo; aumente se ficar duro." }),
+        ],
+      },
+      { title: "Impressão e cores", fields: [choice("layout", "Disposição", [["print", "Pronta para imprimir (de ponta-cabeça)"], ["assembled", "Montada (topo para cima)"]]), color("bodyColor", "Tecla"), color("legendColor", "Legenda")] },
+    ],
+    build: (ctx, p) => buildKeycap(ctx, as(p)),
   },
   {
     id: "bigLetter",

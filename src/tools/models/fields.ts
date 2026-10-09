@@ -42,6 +42,8 @@ export type ModelDef = {
   /** Tem texto: mostra o seletor de fonte (na seção `fontSection`, padrão 0). */
   font?: boolean;
   fontSection?: number;
+  /** Mostra a grade de ícones junto do envio de desenho (#115). */
+  iconPicker?: boolean;
   build: (ctx: ModelCtx, p: Params) => ModelOutput;
 };
 

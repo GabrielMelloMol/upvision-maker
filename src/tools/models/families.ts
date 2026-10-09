@@ -59,6 +59,7 @@ export const FAMILIES: Family[] = [
   { id: "phoneStand", label: "Suporte de celular e tablet", category: "home", variants: [{ id: "phoneStand", label: "Suporte de celular e tablet" }] },
   { id: "bigFrame", label: "Moldura grande dividida", category: "home", variants: [{ id: "bigFrame", label: "Moldura grande dividida" }] },
   { id: "bookmark", label: "Marca-página", category: "home", variants: [{ id: "bookmark", label: "Marca-página" }] },
+  { id: "keycap", label: "Tecla de teclado", category: "home", variants: [{ id: "keycap", label: "Tecla de teclado" }] },
   { id: "keyHolder", label: "Porta-chave de parede", category: "home", variants: [{ id: "keyHolder", label: "Porta-chave de parede" }] },
   { id: "utilities", label: "Utilitários", category: "home", variants: [{ id: "spacer", label: "Arruela e calço" }, { id: "plantMarker", label: "Marcador de planta" }, { id: "cableComb", label: "Pente de cabos" }, { id: "knob", label: "Botão" }, { id: "hoseAdapter", label: "Adaptador de mangueira" }] },
   { id: "sweetsTable", label: "Mesa de doces", category: "kitchen", variants: [{ id: "cakeStand", label: "Boleira" }, { id: "stickStand", label: "Suporte de palitos" }] },

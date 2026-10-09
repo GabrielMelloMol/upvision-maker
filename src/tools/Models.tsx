@@ -27,6 +27,7 @@ import { BATCH_FIELDS, layoutCopies, MAX_COPIES, parseBatch } from "./models/bat
 import type { Model } from "../geometry/types";
 import { applyLayers } from "./models/applyLayers";
 import DecalGizmo from "./models/DecalGizmo";
+import IconPicker from "./models/IconPicker";
 import LayersPanel, { layerValid } from "./models/LayersPanel";
 import { useModelLayers, type ModelEdits } from "./models/useModelLayers";
 import UserVariants from "./models/UserVariants";
@@ -317,6 +318,7 @@ export default function Models() {
                 <>
                   <Dropzone accept={DESIGN_ACCEPT} label={art ? art.name : def.art} hint="SVG ou imagem (vira vetor sozinha)." onFile={onArt} />
                   {artError && <Alert kind="error">{artError}</Alert>}
+                  {def.iconPicker && <IconPicker onPick={setArt} />}
                   {!art && (
                     <button type="button" className="link" onClick={() => void exampleFile("heart").then(onArt)}>
                       Usar um desenho de exemplo
