@@ -4,7 +4,9 @@ import { getDb } from "../db";
 import { loadCompany } from "../db/customersRepo";
 import { qrMatrix, qrSvg } from "../domain/qr";
 import { getManifold } from "../geometry/manifold";
-import { QR_BASE_COLOR, QR_DARK_COLOR, qrModel } from "../geometry/qr3d";
+import type { Model } from "../geometry/types";
+import { QR_BASE_COLOR, QR_DARK_COLOR, qrModel, type QrStyle } from "../geometry/qr3d";
+import { readTopView } from "../geometry/qrScan";
 import Alert from "../ui/Alert";
 import ColorPick from "./ColorPick";
 import ExportButtons from "../ui/ExportButtons";
@@ -29,13 +31,22 @@ const MODES = [
   ["text", "Texto"],
 ] as const;
 const ICONS = { pix: Zap, link: Link, wifi: Wifi, text: Type };
-const LIMITS = { size: [15, 200], base: [0.8, 8], relief: [0.4, 4], quiet: [1, 6], corner: [0, 20] } as const;
+const LIMITS = { size: [15, 200], base: [0.8, 8], relief: [0.4, 8], quiet: [1, 6], corner: [0, 20], steps: [2, 8], seed: [1, 99] } as const;
+const STYLES = [
+  ["flat", "Plano"],
+  ["pyramid", "Pirâmide"],
+  ["steps", "Degraus"],
+  ["waves", "Ondas"],
+] as const;
+const DEFAULT_P = { size: 50, base: 2, relief: 1, quiet: 2, corner: 3, style: "flat" as QrStyle, steps: 4, seed: 1 };
 
 /** QR Code de Pix, link, Wi-Fi ou texto: SVG para imprimir no papel e 3MF em 2 cores para imprimir em 3D. */
 export default function QrCode() {
   // estado de trabalho: desfazer, rascunho guardado e últimos projetos (#85)
-  const tool = useToolState("qr", () => ({ mode: "pix" as QrMode, form: EMPTY_QR_FORM as QrForm, p: { size: 50, base: 2, relief: 1, quiet: 2, corner: 3 }, colors: [QR_BASE_COLOR, QR_DARK_COLOR] }), { label: "QR Code" });
-  const { mode, form, p, colors } = tool.state;
+  const tool = useToolState("qr", () => ({ mode: "pix" as QrMode, form: EMPTY_QR_FORM as QrForm, p: DEFAULT_P, colors: [QR_BASE_COLOR, QR_DARK_COLOR] }), { label: "QR Code" });
+  const { mode, form, colors } = tool.state;
+  const stored = tool.state.p;
+  const p = useMemo(() => ({ ...DEFAULT_P, ...stored }), [stored]); // rascunhos antigos não têm estilo (referência estável: é dependência da geração)
   const { adopt } = tool;
   const setMode = tool.field("mode");
   const setColors = tool.field("colors");
@@ -47,6 +58,7 @@ export default function QrCode() {
     setForm((cur) => ({ ...cur, link: "https://github.com/GabrielMelloMol/upvision-maker" }));
   });
   const [view, setView] = useState<"2d" | "3d">("2d");
+  const [scanned, setScanned] = useState<{ models: Model[]; ok: boolean } | null>(null);
   const toast = useToast();
 
   // Pix já vem com os dados da empresa (Preferências → Dados da empresa).
@@ -66,13 +78,23 @@ export default function QrCode() {
   const { models, warnings, busy, error: buildError } = useModelBuilder(async () => {
     if (!text || !valid) return null;
     const M = await getManifold();
-    const r = qrModel(M, qrMatrix(text), { sizeMm: p.size, baseMm: p.base, reliefMm: p.relief, quiet: p.quiet, cornerMm: p.corner, baseColor: colors[0], qrColor: colors[1] }, "QR Code");
+    const r = qrModel(M, qrMatrix(text), { sizeMm: p.size, baseMm: p.base, reliefMm: p.relief, quiet: p.quiet, cornerMm: p.corner, baseColor: colors[0], qrColor: colors[1], style: p.style, steps: p.steps, seed: p.seed }, "QR Code");
     return { models: [r.model], warnings: r.warnings };
   }, [text, valid, p, colors]);
 
   const setPix = (k: keyof QrForm["pix"]) => (v: string) => setForm((f) => ({ ...f, pix: { ...f.pix, [k]: v } }));
   const setWifi = (patch: Partial<QrForm["wifi"]>) => setForm((f) => ({ ...f, wifi: { ...f.wifi, ...patch } }));
   const setNum = (k: keyof typeof p) => (v: number) => setP((o) => ({ ...o, [k]: v }));
+
+  /** Lê a vista de cima da peça com o mesmo leitor do app (jsQR) e confere com o conteúdo. */
+  const scan = scanned && scanned.models === models ? scanned : null; // a conferência é da peça de agora: some quando o QR muda
+  async function testReading() {
+    const code = models[0]?.parts.find((x) => x.name === "QR");
+    if (!code || !text) return;
+    const M = await getManifold();
+    const read = readTopView(M, code.mesh, p.size);
+    setScanned({ models, ok: read === text });
+  }
 
   async function saveSvg() {
     if (!text) return;
@@ -170,6 +192,15 @@ export default function QrCode() {
               <ColorPick label="Cor do código" value={colors[1]} onChange={(c) => setColors([colors[0], c])} />
             </div>
             <span className="hint">Código escuro sobre base clara: é o que a câmera do celular lê melhor.</span>
+            <span className="field-label">Estilo do relevo</span>
+            <Segmented label="Estilo do relevo" value={p.style} onChange={(v: QrStyle) => setP((o) => ({ ...o, style: v }))} options={STYLES} full />
+            {p.style === "steps" && <NumField label="Anéis" unit="" value={p.steps} onChange={setNum("steps")} min={LIMITS.steps[0]} max={LIMITS.steps[1]} step={1} />}
+            {p.style === "waves" && <NumField label="Variação das ondas" unit="" value={p.seed} onChange={setNum("seed")} min={LIMITS.seed[0]} max={LIMITS.seed[1]} step={1} />}
+            {p.style !== "flat" && <span className="hint">Os módulos escuros mudam de altura, mas a cor continua marcando o código: de cima ele lê como o plano. Aumente o relevo (até 8 mm) para a escultura aparecer.</span>}
+            <button type="button" disabled={!models.length || busy} onClick={() => void testReading()}>
+              Testar a leitura da vista de cima
+            </button>
+            {scan && <Alert kind={scan.ok ? "info" : "warn"}>{scan.ok ? "Leitura ok: a vista de cima do código lê o mesmo conteúdo. Teste também com o celular." : "A vista de cima não leu o código: aumente a placa ou o relevo das áreas baixas, ou volte ao plano."}</Alert>}
           </div>
           <details className="advanced">
             <summary>Opções avançadas</summary>

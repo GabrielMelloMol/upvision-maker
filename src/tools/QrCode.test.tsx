@@ -117,4 +117,20 @@ describe("QR Code e Pix", () => {
     await user.click(screen.getByRole("button", { name: "3D" }));
     await waitFor(() => expect([...container.querySelectorAll<HTMLElement>(".legend i")].map((i) => i.style.background)).toEqual(["#ff0000", "#00ff00"]), BUILD);
   });
+  test("estilo esculpido (#114): aviso, campos do estilo e a leitura da vista de cima confere", async () => {
+    const user = userEvent.setup();
+    renderWithApp(<QrCode />);
+    await user.click(screen.getByRole("button", { name: "Texto" }));
+    await user.type(screen.getByRole("textbox"), "oi, tudo bem");
+    expect(screen.queryByText(/Código esculpido/)).toBeNull();
+    await user.click(screen.getByRole("button", { name: "Degraus" }));
+    expect(screen.getByLabelText(/^Anéis/)).toBeInTheDocument();
+    await user.click(screen.getByRole("button", { name: "Ondas" }));
+    expect(screen.getByLabelText(/^Variação das ondas/)).toBeInTheDocument();
+    expect(await screen.findByText(/Código esculpido/, undefined, BUILD)).toBeInTheDocument();
+    await user.click(screen.getByRole("button", { name: "Pirâmide" }));
+    await waitFor(() => expect(screen.getByRole("button", { name: "Testar a leitura da vista de cima" })).toBeEnabled(), BUILD);
+    await user.click(screen.getByRole("button", { name: "Testar a leitura da vista de cima" }));
+    expect(await screen.findByText(/Leitura ok/, undefined, BUILD)).toBeInTheDocument();
+  }, 30_000);
 });

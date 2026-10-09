@@ -43,3 +43,26 @@ test("QR Wi-Fi e erros amigáveis", async ({ page, tauri }) => {
   const svg = [...tauri.files].find(([p]) => p.endsWith(".svg"))![1].toString();
   expect(svg).toBe(qrSvg(wifiPayload({ ssid: "Ateliê", password: "abc;12345", security: "WPA" }), 50));
 });
+
+test("QR escultural: pirâmide, degraus e ondas mantêm a leitura da vista de cima (#114)", async ({ page, tauri }) => {
+  await openApp(page);
+  await go(page, "QR Code e Pix");
+  await page.getByRole("button", { name: "Link", exact: true }).click();
+  await page.getByLabel("Link").fill("https://upvision.app/qr-escultural");
+  await page.getByText("Opções avançadas", { exact: true }).click();
+  await page.getByLabel(/^Relevo do código/).fill("5");
+  await page.getByRole("button", { name: "3D", exact: true }).click();
+  await expect(page.locator(".viewer .hud")).toContainText("× 7.0 mm", { timeout: 60_000 }); // 2 de base + 5 de relevo
+  for (const style of ["Pirâmide", "Degraus", "Ondas"]) {
+    await page.getByRole("button", { name: style, exact: true }).click();
+    await expect(page.getByText(/Código esculpido/)).toBeVisible({ timeout: 60_000 });
+    await page.getByRole("button", { name: "Testar a leitura da vista de cima" }).click();
+    await expect(page.getByText(/Leitura ok/)).toBeVisible({ timeout: 60_000 });
+  }
+  await page.getByRole("button", { name: "Plano", exact: true }).click();
+  await expect(page.getByText(/Código esculpido/)).toHaveCount(0);
+  await page.getByRole("button", { name: "Ondas", exact: true }).click();
+  await page.getByRole("button", { name: /Salvar 3MF/ }).click();
+  await expect(toastWith(page, "Arquivo salvo em")).toBeVisible();
+  expect([...tauri.files.keys()].some((p) => p.endsWith(".3mf"))).toBe(true);
+});

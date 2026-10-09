@@ -21,7 +21,7 @@ import type { CS, ManifoldToplevel } from "../geometry/manifold";
 import { buildMedalDesign, DEFAULT_MEDAL_DESIGN, type MedalDesign } from "../geometry/medalDesign";
 import { cutModels, DEFAULT_CUT } from "../geometry/planeCut";
 import { COLOR_LITHO_PROFILE, CUTTER_PROFILE, DEFAULT_PROFILE, LAYERED_PROFILE, LITHO_PROFILE, RELIEF_PROFILE, type PrintProfile } from "../geometry/printProfile";
-import { qrModel } from "../geometry/qr3d";
+import { qrModel, type QrStyle } from "../geometry/qr3d";
 import { buildSpoolTag, spoolTagsThatFit } from "../geometry/spoolTag";
 import { arcTextToCrossSection, textToCrossSection } from "../geometry/text";
 import { read3mf } from "../geometry/threemfRead";
@@ -177,8 +177,8 @@ export function toolCases(M: ManifoldToplevel): QaCase[] {
     return { models, warnings: bedWarnings(models, []) };
   };
 
-  const qr = (p: { size: number; base: number; relief: number; quiet: number; corner: number }): Out => {
-    const r = qrModel(M, qrMatrix("https://upvision.app/qa"), { sizeMm: p.size, baseMm: p.base, reliefMm: p.relief, quiet: p.quiet, cornerMm: p.corner }, "QR Code");
+  const qr = (p: { size: number; base: number; relief: number; quiet: number; corner: number; style?: QrStyle; steps?: number }): Out => {
+    const r = qrModel(M, qrMatrix("https://upvision.app/qa"), { sizeMm: p.size, baseMm: p.base, reliefMm: p.relief, quiet: p.quiet, cornerMm: p.corner, style: p.style, steps: p.steps, seed: 3 }, "QR Code");
     return { models: [r.model], warnings: r.warnings };
   };
 
@@ -261,6 +261,9 @@ export function toolCases(M: ManifoldToplevel): QaCase[] {
       ["padrão", () => qr({ size: 50, base: 2, relief: 1, quiet: 2, corner: 3 })],
       ["mínimo", () => qr({ size: 15, base: 0.8, relief: 0.4, quiet: 1, corner: 0 })],
       ["máximo", () => qr({ size: 200, base: 8, relief: 4, quiet: 6, corner: 20 })],
+      ["pirâmide", () => qr({ size: 80, base: 2, relief: 6, quiet: 2, corner: 3, style: "pyramid" })],
+      ["degraus", () => qr({ size: 80, base: 2, relief: 8, quiet: 2, corner: 3, style: "steps", steps: 8 })],
+      ["ondas", () => qr({ size: 80, base: 2, relief: 6, quiet: 2, corner: 3, style: "waves" })],
     ]),
     ...cases("spool", "Plaquinhas de rolo", [
       ["padrão", () => spool(1)],
