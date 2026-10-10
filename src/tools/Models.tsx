@@ -17,7 +17,7 @@ import Preview3D from "../ui/Preview3D";
 import Toggle from "../ui/Toggle";
 import { errorText } from "../ui/Toast";
 import { useModelBuilder } from "../ui/useModelBuilder";
-import { DESIGN_ACCEPT, designFromSvg, fileToSvg } from "./designInput";
+import { DESIGN_ACCEPT, designFromSvg, fileToCutSvg, fileToSvg, type CutoutInfo } from "./designInput";
 import { MissingInput } from "../geometry/models/common";
 import { MODELS, validParams, type Category, type Params } from "./models/defs";
 import { inCollection, VARIANTS, type Collection } from "./models/variants";
@@ -63,6 +63,8 @@ const initialState = () => ({
   font: "hanken" as FontId,
   art: null as { svg: string; name: string } | null,
   art2: null as { svg: string; name: string } | null,
+  // foto: recortar o fundo antes de vetorizar (#193)
+  cutout: true,
   // lote (#76): uma linha por cópia, por modelo
   batchOn: false,
   batchText: {} as Record<string, string>,
@@ -86,9 +88,9 @@ export default function Models({ only, embedded }: { only?: string; embedded?: {
       return { ...base, ...r, id: MODELS.some((m) => m.id === r.id) ? r.id : base.id, all: Object.fromEntries(MODELS.map((m) => [m.id, { ...baseParams(m), ...r.all?.[m.id] }])) };
     },
   });
-  const { id, all, font, art, art2, batchOn, batchText } = tool.state;
+  const { id, all, font, art, art2, cutout, batchOn, batchText } = tool.state;
   const { adopt } = tool;
-  const [setId, setAll, setFont, setArt, setArt2, setBatchOn, setBatchText] = [tool.field("id"), tool.field("all"), tool.field("font"), tool.field("art"), tool.field("art2"), tool.field("batchOn"), tool.field("batchText")];
+  const [setId, setAll, setFont, setArt, setArt2, setCutout, setBatchOn, setBatchText] = [tool.field("id"), tool.field("all"), tool.field("font"), tool.field("art"), tool.field("art2"), tool.field("cutout"), tool.field("batchOn"), tool.field("batchText")];
   const [artError, setArtError] = useState<string | null>(null);
   // aberto pela galeria Criar (#139): já vem com o modelo escolhido, sem virar passo de desfazer
   // ou pelo pedido (#164, "Preparar impressão"): com a personalização do item no lote
@@ -149,21 +151,37 @@ export default function Models({ only, embedded }: { only?: string; embedded?: {
       .catch((e) => console.warn("Sem dados da empresa para a placa Pix:", e));
   }, [adopt]);
 
-  async function onArt(f: File) {
+  // os arquivos enviados ficam em memória (fora do estado salvo) para o "Recortar o fundo" valer também depois do envio
+  const files = useRef<{ art: File | null; art2: File | null }>({ art: null, art2: null });
+  const [cutInfo, setCutInfo] = useState<{ art: CutoutInfo | null; art2: CutoutInfo | null }>({ art: null, art2: null });
+  const [cutting, setCutting] = useState(false);
+  async function loadArt(which: "art" | "art2", f: File, cut: boolean) {
     setArtError(null);
+    files.current[which] = f;
+    const set = which === "art" ? setArt : setArt2;
     try {
-      setArt({ svg: await fileToSvg(f), name: f.name });
+      if (def.cutout) {
+        setCutting(true);
+        const r = await fileToCutSvg(f, { cutout: cut });
+        set({ svg: r.svg, name: f.name });
+        setCutInfo((c) => ({ ...c, [which]: r.cutout }));
+      } else set({ svg: await fileToSvg(f), name: f.name });
     } catch (e) {
       setArtError(errorText(e));
+    } finally {
+      setCutting(false);
     }
   }
-  async function onArt2(f: File) {
-    setArtError(null);
-    try {
-      setArt2({ svg: await fileToSvg(f), name: f.name });
-    } catch (e) {
-      setArtError(errorText(e));
-    }
+  const onArt = (f: File) => loadArt("art", f, cutout);
+  const onArt2 = (f: File) => loadArt("art2", f, cutout);
+  function removeArt(which: "art" | "art2") {
+    files.current[which] = null;
+    setCutInfo((c) => ({ ...c, [which]: null }));
+    (which === "art" ? setArt : setArt2)(null);
+  }
+  async function toggleCutout(on: boolean) {
+    setCutout(on);
+    for (const which of ["art", "art2"] as const) if (files.current[which]) await loadArt(which, files.current[which]!, on);
   }
 
   const valid = validParams(def, p);
@@ -332,7 +350,7 @@ export default function Models({ only, embedded }: { only?: string; embedded?: {
               )}
             </div>
           )}
-          {def.sections.map((s) => (
+          {def.sections.filter((s) => !s.when || String(p[s.when.k]) === s.when.is).map((s) => (
             <div className="card stack" key={s.title}>
               <h3>{s.title}</h3>
               <div className="grid two">
@@ -347,6 +365,13 @@ export default function Models({ only, embedded }: { only?: string; embedded?: {
                 <>
                   <Dropzone accept={DESIGN_ACCEPT} label={art ? art.name : def.art} hint="SVG ou imagem (vira vetor sozinha)." onFile={onArt} />
                   {artError && <Alert kind="error">{artError}</Alert>}
+                  {def.cutout && (
+                    <>
+                      <Toggle label="Recortar o fundo da foto" checked={cutout} onChange={(v) => void toggleCutout(v)} />
+                      {cutting && <span className="hint" role="status">Recortando o fundo da foto… (a primeira vez pode demorar um pouco)</span>}
+                      {[cutInfo.art, cutInfo.art2].map((c, i) => c?.uncertain && c.warning && <Alert key={i} kind="warn">{c.warning}</Alert>)}
+                    </>
+                  )}
                   {def.iconPicker && <IconPicker onPick={setArt} />}
                   {!art && (
                     <button type="button" className="link" onClick={() => void exampleFile("heart").then(onArt)}>
@@ -354,7 +379,7 @@ export default function Models({ only, embedded }: { only?: string; embedded?: {
                     </button>
                   )}
                   {art && (
-                    <button className="link danger" onClick={() => setArt(null)}>
+                    <button className="link danger" onClick={() => removeArt("art")}>
                       Remover desenho
                     </button>
                   )}
@@ -362,7 +387,7 @@ export default function Models({ only, embedded }: { only?: string; embedded?: {
                     <>
                       <Dropzone accept={DESIGN_ACCEPT} label={art2 ? art2.name : def.art2} hint="SVG ou imagem (opcional)." onFile={onArt2} />
                       {art2 && (
-                        <button className="link danger" onClick={() => setArt2(null)}>
+                        <button className="link danger" onClick={() => removeArt("art2")}>
                           Remover o segundo desenho
                         </button>
                       )}

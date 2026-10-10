@@ -4,6 +4,7 @@ Cada versão aparece para a usuária na tela "O que há de novo" depois da atual
 Formato: `## <versão> — <data>` e itens `- …` em linguagem simples.
 
 ## Próxima versão (ainda não lançada)
+- **Kit card refeito**: agora é um kit de montar de verdade. Cada peça sai inteira (o app fecha frestas e contornos abertos, preenche buracos pequenos e liga pedaços soltos), num cartão fino com o nome gravado na moldura, com galhos em grade e cada peça presa por pelo menos 2 pontos de corte finos (largura e espessura pelo bico) e com seu número no galho. Dois modos: **figura ou animal** (1 ou 2 silhuetas laterais e costelas transversais com fendas meia a meia, mais a base; a vista de cima opcional dá a largura das costelas) e **veículo** (duas laterais, chassi com janelas e 4 rodas com eixo que entra por pressão no furo da lateral, pneu opcional em outra cor). Multicolor (cartão, peças, rodas, pneus e nome), vários cartões por mesa e recorte automático do fundo da foto (ligado por padrão). A prévia mostra o cartão e, ao lado, o modelo montado, que não vai para o arquivo.
 - **Organizador de gaveta, dois andares**: com "Dois andares: talheres em cima" ligado e a gaveta com menos de 80 mm (8 cm) de altura livre, a opção não fazia nada e ninguém sabia por quê. Agora aparece um aviso ao lado do botão dizendo a altura que você tem, o mínimo (80 mm = 8 cm) e quanto falta. Com 80 mm ou mais, o andar de baixo (base e caixinhas) e o de cima (bandeja e trilhos) saem na prévia, na lista de impressão e no 3MF.
 
 ## 0.12.0 — 2026-10-09

@@ -63,7 +63,7 @@ export async function modelCtx(M: ManifoldToplevel, p: Params, def: ModelDef): P
 }
 
 /** Variações extras por modelo (além de padrão, mínimo e máximo): opções que mudam a peça e precisam fatiar também. */
-const QA_EXTRA: Record<string, Record<string, Params>> = { starMap: { "estrelas vazadas": { hollow: true, density: "few" } }, musicCard: { QR: { code: "qr", codeSize: 44 } } };
+const QA_EXTRA: Record<string, Record<string, Params>> = { starMap: { "estrelas vazadas": { hollow: true, density: "few" } }, musicCard: { QR: { code: "qr", codeSize: 44 } }, kitCard: { veículo: { mode: "vehicle" }, "vários cartões": { cardSize: "medium", ribs: 3, spines: 1, copies: 4 }, "uma placa lateral": { spines: 1 } } };
 
 /** Padrão, todos os campos numéricos no mínimo e todos no máximo (mais as variações extras do modelo). */
 export function variants(def: ModelDef): [QaCase["variant"], Params][] {

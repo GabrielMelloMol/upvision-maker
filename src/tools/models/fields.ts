@@ -22,7 +22,8 @@ export type FieldDef =
   /** Código para chegar à música (Cartão de música): QR com o link ou código do Spotify; usa os campos code, codeLink, spotifySvg, spotifyUri e spotifyLogo. */
   | { k: string; kind: "musicCode"; label: string };
 
-export type Section = { title: string; fields: FieldDef[] };
+/** `when`: a seção só aparece quando o campo `k` vale `is` (ex.: as rodas só no modo veículo). */
+export type Section = { title: string; fields: FieldDef[]; when?: { k: string; is: string } };
 
 export const CATEGORIES = [
   ["keychains", "Chaveiros"],
@@ -51,6 +52,8 @@ export type ModelDef = {
   art?: string;
   /** Aceita um segundo desenho (texto do envio), vindo de `ctx.art2` (#193). */
   art2?: string;
+  /** Foto enviada: oferece "Recortar o fundo da foto" (ligado) antes de vetorizar (#193). */
+  cutout?: boolean;
   /** O modelo usa as cores do desenho (uma camada por cor): QA e miniatura usam um desenho de exemplo colorido. */
   artColors?: boolean;
   /** Tem texto: mostra o seletor de fonte (na seção `fontSection`, padrão 0). */

@@ -27,10 +27,12 @@ export function withBedCheck(def: ModelDef): ModelDef {
     build: (ctx, p) => {
       const out = def.build(ctx, p);
       const warnings = out.warnings ?? [];
-      // peças arrumadas além da mesa: rearruma se der, senão avisa que vai em mais de uma mesa (#125)
-      const models = fitSetOnBed(out.models);
+      // peças arrumadas além da mesa: rearruma se der, senão avisa que vai em mais de uma mesa (#125); o que é só prévia
+      // (ex.: o modelo montado ao lado do kit card) fica onde o modelo o pôs e não entra na conta
+      const preview = out.models.filter((m) => m.previewOnly);
+      const models = [...fitSetOnBed(out.models.filter((m) => !m.previewOnly)), ...preview];
       const bed = bedWarnings(models, warnings);
-      const set = bed.length || warnings.some((w) => /mesa/i.test(w)) ? null : setOnBedWarning(models);
+      const set = bed.length || warnings.some((w) => /mesa/i.test(w)) ? null : setOnBedWarning(models.filter((m) => !m.previewOnly));
       return { ...out, models, warnings: [...warnings, ...bed, ...(set ? [set] : [])] };
     },
   };
