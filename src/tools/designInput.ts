@@ -2,6 +2,7 @@ import { getManifold, type CS, type ManifoldToplevel } from "../geometry/manifol
 import { fitWidth } from "../geometry/shape2d";
 import { svgToColorRegions, svgToCrossSection, type ColorRegion } from "../geometry/svgImport";
 import { loadRaster, trace } from "../vectorize/client";
+import { cutout, type CutoutResult } from "../vectorize/cutout";
 import { DEFAULT_TRACE } from "../vectorize/pipeline";
 import { scaleFactor } from "../vectorize/raster";
 import { buildSvg } from "../vectorize/svgOut";
@@ -10,11 +11,42 @@ export const DESIGN_ACCEPT = ".svg,image/svg+xml,image/png,image/jpeg,image/webp
 
 /** Desenho de entrada das ferramentas 3D: sempre vira SVG (imagens passam pela vetorização automática). */
 export async function fileToSvg(file: File): Promise<string> {
-  if (file.type === "image/svg+xml" || file.name.toLowerCase().endsWith(".svg")) return file.text();
+  if (isSvgFile(file)) return file.text();
   const r = await loadRaster(file, scaleFactor);
   try {
     const t = await trace(r, DEFAULT_TRACE, null).result;
     return buildSvg(t.d, r.w, r.h, 80);
+  } finally {
+    URL.revokeObjectURL(r.url);
+  }
+}
+
+const isSvgFile = (file: File) => file.type === "image/svg+xml" || file.name.toLowerCase().endsWith(".svg");
+
+/** O que o recorte do fundo diz sobre o resultado (sem a máscara): a interface mostra o aviso quando `uncertain`. */
+export type CutoutInfo = Pick<CutoutResult, "method" | "confidence" | "uncertain" | "warning">;
+
+const CUTOUT_FAILED: CutoutInfo = { method: "color", confidence: 0, uncertain: true, warning: "Não consegui recortar o fundo desta foto; usei a imagem inteira. Tente uma foto com fundo liso." };
+
+/**
+ * Como `fileToSvg`, mas com o fundo da foto recortado antes de vetorizar (#193): o objeto principal vira uma silhueta cheia.
+ * SVG enviado passa direto (já é um desenho). `cutout: false` é o mesmo que `fileToSvg`. Se o recorte falhar de vez, vetoriza a
+ * foto como está e avisa.
+ */
+export async function fileToCutSvg(file: File, opts: { cutout: boolean }): Promise<{ svg: string; cutout: CutoutInfo | null }> {
+  if (isSvgFile(file) || !opts.cutout) return { svg: await fileToSvg(file), cutout: null };
+  const r = await loadRaster(file, scaleFactor);
+  try {
+    let cut: CutoutResult;
+    try {
+      cut = await cutout(r.rgba, r.w, r.h);
+    } catch (e) {
+      console.warn("Recorte do fundo falhou:", e);
+      const t = await trace(r, DEFAULT_TRACE, null).result;
+      return { svg: buildSvg(t.d, r.w, r.h, 80), cutout: CUTOUT_FAILED };
+    }
+    const t = await trace(r, { ...DEFAULT_TRACE, mode: "silhouette" }, cut.mask).result;
+    return { svg: buildSvg(t.d, r.w, r.h, 80), cutout: { method: cut.method, confidence: cut.confidence, uncertain: cut.uncertain, warning: cut.warning } };
   } finally {
     URL.revokeObjectURL(r.url);
   }
