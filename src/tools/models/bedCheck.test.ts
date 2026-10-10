@@ -16,6 +16,11 @@ test("avisa a peça que passa da mesa na largura ou na altura; nada quando cabe"
   expect(bedWarnings([model("Vaso", box(100, 100, 300))], [])[0]).toMatch(/altura de 256 mm/);
 });
 
+test("modelo só de prévia (previewOnly) não entra na conta da mesa", () => {
+  const preview: Model = { ...model("Montado", box(400, 400, 3)), previewOnly: true };
+  expect(bedWarnings([model("Cartão", box(100, 100, 2)), preview], [])).toEqual([]);
+});
+
 test("não repete quando o modelo já avisou da mesa", () => {
   expect(bedWarnings([model("Placa", box(300, 100, 3))], ["A peça tem 300 mm e passa da mesa de 256 mm."])).toEqual([]);
 });

@@ -1,5 +1,6 @@
-import { Bookmark, Keyboard, CaseUpper, CircleDot, Frame, Gem, KeySquare, Lamp, LampDesk, PencilRuler, PenTool, Puzzle, Smartphone, WholeWord } from "lucide-react";
+import { Bookmark, Keyboard, Plane, CaseUpper, CircleDot, Frame, Gem, KeySquare, Lamp, LampDesk, PencilRuler, PenTool, Puzzle, Smartphone, WholeWord } from "lucide-react";
 import { buildCutoutFrame, buildCutoutStand, DEFAULT_CUTOUT_FRAME, DEFAULT_CUTOUT_STAND } from "../../../geometry/models/cutoutFrame";
+import { buildKitCard, DEFAULT_KIT_CARD } from "../../../geometry/models/kitCard";
 import { buildKeycap, DEFAULT_KEYCAP } from "../../../geometry/models/keycap";
 import { buildBigLetter, DEFAULT_BIG_LETTER } from "../../../geometry/models/bigLetter";
 import { buildBigFrame, DEFAULT_BIG_FRAME } from "../../../geometry/models/bigFrame";
@@ -244,6 +245,31 @@ export const HOME_DECOR_MODELS: ModelDef[] = [
       { title: "Impressão e cores", fields: [choice("layout", "Disposição", [["print", "Pronta para imprimir (de ponta-cabeça)"], ["assembled", "Montada (topo para cima)"]]), color("bodyColor", "Tecla"), color("legendColor", "Legenda")] },
     ],
     build: (ctx, p) => buildKeycap(ctx, as(p)),
+  },
+  {
+    id: "kitCard",
+    category: "home",
+    label: "Kit card (montar)",
+    blurb: "A silhueta de uma imagem vira um modelo de encaixe: peças presas por pontos de corte num cartão com moldura e título; a prévia mostra o modelo montado.",
+    icon: Plane,
+    font: true,
+    art: "Imagem da vista de lado (silhueta cheia, de fundo liso)",
+    art2: "Imagem da vista de cima (opcional, cruza a primeira)",
+    defaults: DEFAULT_KIT_CARD,
+    sections: [
+      { title: "Cartão", fields: [text("title", "Título na moldura", 24), choice("cardSize", "Tamanho do cartão", [["credit", "Cartão de crédito (85,6 × 54)"], ["medium", "Médio (120 × 85)"], ["large", "Grande (180 × 120)"], ["xlarge", "Maior (240 × 160)"]]), num("frame", "Largura da moldura", 2.5, 6, { step: 0.5 }), num("gap", "Espaço entre as peças", 2, 6, { step: 0.5 }), num("relief", "Relevo do título", 0.4, 1.2, { step: 0.1 })] },
+      {
+        title: "Peças e encaixe",
+        fields: [
+          num("thickness", "Espessura do cartão e das peças", 1.2, 2, { step: 0.1, hint: "1,6 mm costuma ser firme e imprime rápido." }),
+          num("fit", "Folga da fenda", 0.1, 0.4, { step: 0.05, hint: "Somada à espessura: a fenda mede espessura + folga. 0,2 encaixa justo; aumente se ficar duro." }),
+          num("crossPct", "Altura do cruzamento", 35, 65, { step: 1, unit: "%", hint: "Onde a vista de cima atravessa a lateral, em % da altura da silhueta." }),
+          bool("showAssembled", "Mostrar o modelo montado ao lado (só na prévia)"),
+        ],
+      },
+      { title: "Cores", fields: [color("frameColor", "Cartão e pontos de corte"), color("pieceColor", "Peças"), color("titleColor", "Título")] },
+    ],
+    build: (ctx, p) => buildKitCard(ctx, as(p)),
   },
   {
     id: "bigLetter",

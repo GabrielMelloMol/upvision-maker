@@ -9,7 +9,7 @@ const fmt = (n: number) => String(Math.round(n));
 /** Avisos de peça maior que a mesa (largura, profundidade ou altura), se o modelo ainda não avisou da mesa. */
 export function bedWarnings(models: Model[], existing: string[]): string[] {
   if (existing.some((w) => /mesa/i.test(w))) return [];
-  return models.flatMap((m) => {
+  return models.filter((m) => !m.previewOnly).flatMap((m) => {
     const b = meshBounds(m.parts.map((p) => p.mesh));
     if (!b) return [];
     const [w, d, h] = [0, 1, 2].map((i) => b.max[i] - b.min[i]);

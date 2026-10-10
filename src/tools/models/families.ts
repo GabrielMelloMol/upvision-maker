@@ -54,7 +54,7 @@ export const FAMILIES: Family[] = [
     tools: [{ page: "organizers", label: "Na gaveta", intent: { tab: "drawer" } }, { page: "organizers", label: "Pela foto", intent: { tab: "photo" } }],
   },
   { id: "vase", label: "Vaso", category: "home", variants: [{ id: "vase", label: "Vaso" }] },
-  { id: "toys", label: "Brinquedos", category: "home", variants: [{ id: "puzzle", label: "Quebra-cabeça" }, { id: "alphabetCube", label: "Cubo alfabeto" }, { id: "rpgDice", label: "Dados de RPG" }, { id: "coloring", label: "Colorir" }] },
+  { id: "toys", label: "Brinquedos", category: "home", variants: [{ id: "puzzle", label: "Quebra-cabeça" }, { id: "alphabetCube", label: "Cubo alfabeto" }, { id: "rpgDice", label: "Dados de RPG" }, { id: "coloring", label: "Colorir" }, { id: "kitCard", label: "Kit card" }] },
   { id: "coaster", label: "Porta-copos", category: "gifts", variants: [{ id: "coaster", label: "Porta-copos" }] },
   { id: "phoneStand", label: "Suporte de celular e tablet", category: "organize", variants: [{ id: "phoneStand", label: "Fixo" }, { id: "phoneStandFold", label: "Dobrável" }] },
   { id: "bookmark", label: "Marca-página", category: "gifts", variants: [{ id: "bookmark", label: "Marca-página" }] },

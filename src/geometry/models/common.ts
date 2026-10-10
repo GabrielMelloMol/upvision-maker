@@ -12,6 +12,8 @@ export type ModelCtx = {
   text: TextFn;
   /** Desenho enviado pelo usuário (SVG/imagem já vetorizada), em mm, ou null. */
   art: CS | null;
+  /** Segundo desenho enviado (modelos com `art2`, ex.: a vista de cima do kit card), no mesmo sistema de `art`. */
+  art2?: CS | null;
   /** Desenho colorido: uma região por cor, no mesmo sistema de `art` (null = 1 cor). */
   artLayers?: ColorLayer2D[] | null;
   /** Texto em arco (linha de base no raio `r`, em cima ou embaixo); ausente = modelos usam texto reto. */

@@ -62,6 +62,7 @@ const initialState = () => ({
   all: Object.fromEntries(MODELS.map((m) => [m.id, baseParams(m)])) as Record<string, Params>,
   font: "hanken" as FontId,
   art: null as { svg: string; name: string } | null,
+  art2: null as { svg: string; name: string } | null,
   // lote (#76): uma linha por cópia, por modelo
   batchOn: false,
   batchText: {} as Record<string, string>,
@@ -85,9 +86,9 @@ export default function Models({ only, embedded }: { only?: string; embedded?: {
       return { ...base, ...r, id: MODELS.some((m) => m.id === r.id) ? r.id : base.id, all: Object.fromEntries(MODELS.map((m) => [m.id, { ...baseParams(m), ...r.all?.[m.id] }])) };
     },
   });
-  const { id, all, font, art, batchOn, batchText } = tool.state;
+  const { id, all, font, art, art2, batchOn, batchText } = tool.state;
   const { adopt } = tool;
-  const [setId, setAll, setFont, setArt, setBatchOn, setBatchText] = [tool.field("id"), tool.field("all"), tool.field("font"), tool.field("art"), tool.field("batchOn"), tool.field("batchText")];
+  const [setId, setAll, setFont, setArt, setArt2, setBatchOn, setBatchText] = [tool.field("id"), tool.field("all"), tool.field("font"), tool.field("art"), tool.field("art2"), tool.field("batchOn"), tool.field("batchText")];
   const [artError, setArtError] = useState<string | null>(null);
   // aberto pela galeria Criar (#139): já vem com o modelo escolhido, sem virar passo de desfazer
   // ou pelo pedido (#164, "Preparar impressão"): com a personalização do item no lote
@@ -156,6 +157,14 @@ export default function Models({ only, embedded }: { only?: string; embedded?: {
       setArtError(errorText(e));
     }
   }
+  async function onArt2(f: File) {
+    setArtError(null);
+    try {
+      setArt2({ svg: await fileToSvg(f), name: f.name });
+    } catch (e) {
+      setArtError(errorText(e));
+    }
+  }
 
   const valid = validParams(def, p);
   const batchKeys = BATCH_FIELDS[id];
@@ -163,6 +172,7 @@ export default function Models({ only, embedded }: { only?: string; embedded?: {
   const batchValue = batchText[id] ?? (batchKeys ? batchKeys.map((k) => String(p[k] ?? "")).join("; ") : "");
   const copies = batchOn && batchKeys ? parseBatch(batchValue, batchKeys) : null;
   const useArt = def.art ? art : null;
+  const useArt2 = def.art2 ? art2 : null;
   const { models, warnings, pauses, busy, error } = useModelBuilder(async () => {
     if (!valid) return null;
     const M = await getManifold();
@@ -174,6 +184,7 @@ export default function Models({ only, embedded }: { only?: string; embedded?: {
     // fontes próprias de partes do modelo (campos "font")
     const extra = Object.fromEntries(await Promise.all(fields.filter((x) => x.kind === "font").map(async (x) => [x.k, await loadFont(String(p[x.k]))] as const)));
     const design = useArt ? await designFromSvg(useArt.svg, ART_WIDTH_MM, false, true) : null;
+    const design2 = useArt2 ? await designFromSvg(useArt2.svg, ART_WIDTH_MM, false, true) : null;
     // traço fino / letras soltas: checa o primeiro texto do modelo (o principal)
     let textWarn: string[] | null = null;
     const text = (s: string, h: number) => {
@@ -190,7 +201,7 @@ export default function Models({ only, embedded }: { only?: string; embedded?: {
       return cs;
     };
     const offset = (id: string) => lay.offsets[id] ?? [0, 0]; // elementos internos arrastados no gizmo (#79)
-    const run = (params: Params) => def.build({ M, art: design?.cs ?? null, artLayers: design?.layers, text, arc, fontText, offset }, params);
+    const run = (params: Params) => def.build({ M, art: design?.cs ?? null, art2: design2?.cs ?? null, artLayers: design?.layers, text, arc, fontText, offset }, params);
     try {
       if (copies) {
         // lote: uma geração por cópia, cada cópia arrumada como um bloco na mesa
@@ -239,8 +250,10 @@ export default function Models({ only, embedded }: { only?: string; embedded?: {
     } finally {
       design?.cs.delete();
       design?.layers?.forEach((l) => l.cs.delete());
+      design2?.cs.delete();
+      design2?.layers?.forEach((l) => l.cs.delete());
     }
-  }, [def, p, font, useArt, valid, batchOn, batchValue, lay.layers, lay.offsets]);
+  }, [def, p, font, useArt, useArt2, valid, batchOn, batchValue, lay.layers, lay.offsets]);
 
   // posição dos elementos internos (#79): "Centralizar" põe no meio e zera os arrastes; "Restaurar" volta a arrumação padrão
   // zera os arrastes e ajusta os campos de arrumação num passo só do desfazer
@@ -345,6 +358,16 @@ export default function Models({ only, embedded }: { only?: string; embedded?: {
                       Remover desenho
                     </button>
                   )}
+                  {def.art2 && (
+                    <>
+                      <Dropzone accept={DESIGN_ACCEPT} label={art2 ? art2.name : def.art2} hint="SVG ou imagem (opcional)." onFile={onArt2} />
+                      {art2 && (
+                        <button className="link danger" onClick={() => setArt2(null)}>
+                          Remover o segundo desenho
+                        </button>
+                      )}
+                    </>
+                  )}
                 </>
               )}
             </div>
@@ -363,7 +386,7 @@ export default function Models({ only, embedded }: { only?: string; embedded?: {
             history={{ undo: tool.undo, redo: tool.redo, canUndo: tool.canUndo, canRedo: tool.canRedo }}
             disabled={copies ? "No lote, os desenhos e textos livres ficam de fora: desligue o lote para usá-los." : undefined}
           />
-          <ExportButtons models={models} name={copies ? `${def.label}-lote` : `${def.label}-${String(p.text ?? p.line1 ?? p.title ?? p.base ?? "")}`} busy={busy} pauses={pauses} profile={profileFor(id, p)} onSaved={tool.exported} />
+          <ExportButtons models={models.filter((m) => !m.previewOnly)} name={copies ? `${def.label}-lote` : `${def.label}-${String(p.text ?? p.line1 ?? p.title ?? p.base ?? "")}`} busy={busy} pauses={pauses} profile={profileFor(id, p)} onSaved={tool.exported} />
         </div>
         <div className="preview-col">
           <Preview3D models={models} busy={busy} busyText={`Gerando ${def.label.toLowerCase()}…`} error={error} emptyText={!valid ? "Corrija os campos em vermelho." : (missing ?? undefined)} />

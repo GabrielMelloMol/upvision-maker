@@ -53,6 +53,7 @@ export async function modelCtx(M: ManifoldToplevel, p: Params, def: ModelDef): P
   return {
     M,
     art: def.art ? testArt(M) : null,
+    art2: def.art2 ? testArt(M) : null,
     artLayers: def.art && def.artColors ? testArtLayers(M) : null,
     text,
     arc: (s, h, r, side) => (s.trim() ? arcTextToCrossSection(M, f, s, h, r, side) : null),
@@ -90,7 +91,7 @@ export function modelCases(M: ManifoldToplevel, filter: (d: ModelDef) => boolean
       profile: profileFor(def.id, p),
       build: async () => {
         const out = def.build(await modelCtx(M, p, def), p);
-        return { models: out.models, pauses: out.pauses ?? [], warnings: out.warnings ?? [] };
+        return { models: out.models.filter((m) => !m.previewOnly), pauses: out.pauses ?? [], warnings: out.warnings ?? [] };
       },
     })),
   );

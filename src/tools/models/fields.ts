@@ -49,6 +49,8 @@ export type ModelDef = {
   liveDefaults?: () => Params;
   /** Aceita desenho enviado (SVG/imagem). */
   art?: string;
+  /** Aceita um segundo desenho (texto do envio), vindo de `ctx.art2` (#193). */
+  art2?: string;
   /** O modelo usa as cores do desenho (uma camada por cor): QA e miniatura usam um desenho de exemplo colorido. */
   artColors?: boolean;
   /** Tem texto: mostra o seletor de fonte (na seção `fontSection`, padrão 0). */

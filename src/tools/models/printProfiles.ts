@@ -17,6 +17,7 @@ export const MODEL_PROFILES: Record<string, PrintProfile> = {
       "Imprima deitada, de cara para a mesa, em TPU ou PLA fino; a altura de camada é a do campo (são só 1 a 4 camadas). Mesa limpa e lisa; no TPU, velocidade baixa e sem retração.",
     ],
   },
+  kitCard: { walls: 2, infill: 100, brim: false, notes: ["Imprima o cartão como está no arquivo. Os pontos de corte são finos de propósito (2 camadas): destaque as peças dobrando de leve. A fenda (espessura + folga) pode precisar de ajuste: se ficar justa demais, aumente a folga de 0,05 em 0,05 mm e imprima de novo."] },
   keycap: { walls: 3, infill: 20, notes: ["Sai de ponta-cabeça, com o topo na mesa: a legenda fica lisa e a haste cresce sem suporte. A folga da cruz depende da impressora: imprima uma tecla de teste e ajuste de 0,1 em 0,1 mm. Troque o filamento nas primeiras camadas (a legenda) como no AMS."] },
   phoneKeychain: { walls: 4, infill: 40, notes: ["Faz força (abridor e apoio do celular): PETG aguenta mais que PLA. Imprima deitado, como sai no arquivo."] },
   opener: { walls: 4, infill: 40, notes: ["Faz força: PETG aguenta mais que PLA."] },
