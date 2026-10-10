@@ -3,7 +3,7 @@
 Cada versão aparece para a usuária na tela "O que há de novo" depois da atualização.
 Formato: `## <versão> — <data>` e itens `- …` em linguagem simples.
 
-## Próxima versão (ainda não lançada)
+## 0.12.0 — 2026-10-09
 - **Kit card**: em Modelos prontos (Casa › Brinquedos › Kit card), envie uma imagem (a silhueta vista de lado) e o app gera um modelo de encaixe: a lateral de pé numa base com janela, mais uma segunda imagem opcional (vista de cima) que cruza a primeira por fendas. As peças saem num cartão com moldura e título em relevo, presas por pontos de corte finos para destacar com a mão, no tamanho de cartão de crédito ou maior, com espessura de 1,2 a 2 mm e folga da fenda ajustável. A prévia mostra o cartão e, ao lado, o modelo montado (que não vai para o arquivo); o app avisa de partes mais finas que o bico da impressora.
 - **Bico da impressora**: o cadastro de Impressoras ganhou "Bico (mm)" (padrão 0,4, atalhos 0,2 / 0,4 / 0,6 / 0,8 e valor livre; as impressoras que você já tinha ficam com 0,4, e o backup leva o bico). Pelo catálogo, o bico de fábrica vem preenchido só nas Bambu Lab e nas Prusa oficiais. O Mapa estelar passa a abrir com o bico da impressora das ferramentas (Preferências › Impressora das ferramentas, que agora mostra o "Bico usado") e os avisos de traço fino do texto, do decal, das laterais pintadas e do Imagem em desenho (SVG) usam esse bico em vez de 0,4 fixo (#106)
 
