@@ -13,7 +13,7 @@ import Segmented from "../ui/Segmented";
 import Toggle from "../ui/Toggle";
 import { useModelBuilder } from "../ui/useModelBuilder";
 import ColorPick from "./ColorPick";
-import { buildDrawer, planOf, TRAY_COLOR, type DrawerProject } from "./drawer/assemble";
+import { buildDrawer, cutleryBlocked, planOf, TRAY_COLOR, type DrawerProject } from "./drawer/assemble";
 import DrawerEditor from "./drawer/DrawerEditor";
 import DrawerView from "./drawer/DrawerView";
 import type { Dim } from "./drawer/drawerShape";
@@ -118,7 +118,8 @@ export default function DrawerOrganizer({ embedded = false }: { embedded?: boole
             </div>
             <Segmented label="Sobra" value={p.align} options={ALIGNS} onChange={setAlign} full />
             <Toggle label="Dois andares: talheres em cima" checked={!!p.cutlery} onChange={setGrid("cutlery")} />
-            {p.cutlery && <span className="hint">Bandeja dos talheres nos trilhos; embaixo, a base e as caixinhas. Imprima em PETG: aguenta água quente e detergente.</span>}
+            {cutleryBlocked(p) && <Alert kind="warn">{cutleryBlocked(p)}</Alert>}
+            {p.cutlery && !cutleryBlocked(p) && <span className="hint">Bandeja dos talheres nos trilhos; embaixo, a base e as caixinhas. Imprima em PETG: aguenta água quente e detergente.</span>}
             {plan.nx > 0 && plan.ny > 0 && <span className="hint" aria-live="polite">{planSummary(plan, true, p.baseMagnets ? 3.2 : 0)}</span>}
           </div>
           {chosen.length ? (
@@ -167,7 +168,7 @@ export default function DrawerOrganizer({ embedded = false }: { embedded?: boole
           ) : (
             <Preview3D models={models} busy={busy} busyText="Montando a gaveta…" error={error} emptyText={!valid ? "Corrija os campos em vermelho." : "Meça a gaveta para ver a base."} />
           )}
-          {warnings.map((w) => (
+          {warnings.filter((w) => w !== cutleryBlocked(p)).map((w) => (
             <Alert key={w} kind="warn">
               {w}
             </Alert>

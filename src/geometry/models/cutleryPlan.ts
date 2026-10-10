@@ -49,12 +49,18 @@ function lanesFor(width: number, cutlery: boolean) {
   return CUTLERY_LANES.map((l) => ({ label: l.label, width: l.width * k }));
 }
 
+const mmCm = (mm: number) => `${Math.round(mm)} mm (${(mm / 10).toLocaleString("pt-BR", { maximumFractionDigits: 1 })} cm)`;
+
+/** Por que a altura não comporta 2 andares, com mínimo e falta em mm e cm. */
+export const twoLevelsShortfall = (height: number) =>
+  `Dois andares não cabem: a altura livre é ${mmCm(height)} e o mínimo é ${mmCm(MIN_TWO_LEVELS)} (faltam ${mmCm(MIN_TWO_LEVELS - height)}). A bandeja de talheres não foi feita: o organizador sai em 1 andar só, com a base e as caixinhas.`;
+
 export function cutleryPlan({ width, depth, height, sideObstacle = 0 }: CutleryInput): CutleryPlan {
   const notes: string[] = [];
   const innerWidth = width - 2 * sideObstacle;
   const levels: 1 | 2 = height >= MIN_TWO_LEVELS ? 2 : 1;
   if (levels === 1) {
-    notes.push(`Altura útil de ${Math.round(height)} mm: para 2 andares precisa de ${MIN_TWO_LEVELS} mm ou mais. Fica em 1 andar (só a bandeja ou só as caixinhas).`);
+    notes.push(twoLevelsShortfall(height));
     return { levels, innerWidth, railWidth: 0, baseWidth: innerWidth, lowerHeight: 0, trayHeight: Math.min(TRAY_HEIGHT, height - TRAY_GAP), trayDepth: Math.min(TRAY_DEPTH, depth), trays: [{ width: Math.min(TRAY_MAX_WIDTH, innerWidth), lanes: lanesFor(Math.min(TRAY_MAX_WIDTH, innerWidth), true) }], slide: "none", notes };
   }
   const baseWidth = innerWidth - 2 * RAIL_WIDTH;

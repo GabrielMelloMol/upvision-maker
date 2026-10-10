@@ -1,6 +1,6 @@
 import { moveMesh, solidMesh, type ModelCtx } from "../../geometry/models/common";
 import { buildRails, buildRailTest, buildTray, railUpright } from "../../geometry/models/cutlery";
-import { cutleryPlan, type CutleryPlan } from "../../geometry/models/cutleryPlan";
+import { cutleryPlan, twoLevelsShortfall, type CutleryPlan } from "../../geometry/models/cutleryPlan";
 import { drawerPlan, GRID, type DrawerAlign, type DrawerPlan } from "../../geometry/models/gridDrawer";
 import { buildGridBase, buildGridBin, DEFAULT_GRID_BIN } from "../../geometry/models/gridfinity";
 import type { Model } from "../../geometry/types";
@@ -34,6 +34,9 @@ export function cutleryOf(p: DrawerProject): CutleryPlan | null {
   const c = cutleryPlan({ width: p.width, depth: p.depth, height: p.height, sideObstacle: p.sideObstacle ?? 0 });
   return c.levels === 2 ? c : null;
 }
+
+/** Motivo de a opção "Dois andares" não ter efeito (altura abaixo do mínimo); null se está desligada ou cabe. */
+export const cutleryBlocked = (p: DrawerProject): string | null => (p.cutlery && !cutleryOf(p) ? twoLevelsShortfall(p.height) : null);
 
 /** Espaço da base Gridfinity: entre os trilhos e até o apoio da bandeja com talheres; senão a gaveta menos os obstáculos. */
 export function baseSpace(p: DrawerProject): { width: number; height: number } {

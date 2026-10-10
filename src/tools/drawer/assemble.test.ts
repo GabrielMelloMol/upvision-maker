@@ -2,7 +2,8 @@ import { beforeAll, expect, test } from "vitest";
 import { meshBounds, modelsBounds } from "../../geometry/bounds";
 import { getManifold, type ManifoldToplevel } from "../../geometry/manifold";
 import type { ModelCtx } from "../../geometry/models/common";
-import { buildDrawer, type DrawerProject } from "./assemble";
+import { buildDrawer, cutleryBlocked, planOf, type DrawerProject } from "./assemble";
+import { drawerPrint } from "./printPlan";
 import { addModule, updateModules, type DrawerLayout } from "./layout";
 
 let M: ManifoldToplevel;
@@ -60,4 +61,39 @@ test("talheres em 2 andares: base entre os trilhos, caixinhas até o apoio da ba
   expect(names.filter((n) => n.startsWith("Trilho esquerdo")).length).toBeGreaterThanOrEqual(2);
   expect(names).toContain("Teste do trilho");
   expect(out.warnings.join(" ")).toMatch(/desliza/);
+});
+
+const floors = (out: ReturnType<typeof buildDrawer>) => {
+  const pp = drawerPrint([...out.basePieces, ...out.extras], out.groups);
+  const names = pp.plates.flatMap((pl) => pl.models.map((m) => m.name));
+  return {
+    base: names.filter((n) => /^Base/.test(n)).length,
+    bins: names.filter((n) => /^Caixinha/.test(n)).length,
+    upper: names.filter((n) => /^(Bandeja|Trilho|Teste)/.test(n)).length,
+  };
+};
+
+test("dois andares ligado: o andar de baixo (base + caixinhas) está na prévia e na mesa de impressão, junto com o de cima (bug do Gabriel)", () => {
+  const sized = { ...project(), width: 500, depth: 420, height: 110, cutlery: true };
+  const plan = planOf(sized);
+  let layout: DrawerLayout = { cols: plan.nx, rows: plan.ny, modules: [] };
+  layout = addModule(layout, { x: 0, y: 0, w: 2, h: 2 })!;
+  layout = addModule(layout, { x: 2, y: 0, w: 2, h: 2 })!;
+  const out = buildDrawer(ctx(), { ...sized, layout });
+  expect(cutleryBlocked({ ...sized, layout })).toBeNull();
+  expect(out.preview.filter((m) => /^Base/.test(m.name)).length).toBeGreaterThan(0);
+  expect(out.preview.filter((m) => /^Caixinha/.test(m.name))).toHaveLength(2);
+  const f = floors(out);
+  expect(f.base).toBe(out.basePieces.length);
+  expect(f.bins).toBeGreaterThan(0);
+  expect(f.upper).toBeGreaterThan(0);
+});
+
+test.each([79, 60, 45])("dois andares com altura %i mm: avisa por que não cabe, com mínimo em mm e cm, em vez de ignorar", (height) => {
+  const p = { ...project(), height, cutlery: true };
+  const why = cutleryBlocked(p)!;
+  expect(why).toMatch(/80 mm \(8 cm\)/);
+  expect(why).toContain(`${height} mm`);
+  expect(why).toMatch(/faltam/);
+  expect(buildDrawer(ctx(), p).warnings).toContain(why);
 });

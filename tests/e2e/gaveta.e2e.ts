@@ -6,6 +6,8 @@ import { expect, go, openApp, test, toastWith } from "./tauri";
 const SHOTS = process.env.SHOTS_DIR;
 const objects3mf = (buf: Buffer) => (strFromU8(unzipSync(new Uint8Array(buf))["3D/3dmodel.model"]).match(/<object id="\d+" name="[^"]*" type="model"><components>/g) ?? []).length;
 
+const names3mf = (buf: Buffer) => [...strFromU8(unzipSync(new Uint8Array(buf))["3D/3dmodel.model"]).matchAll(/<object id="\d+" name="([^"]*)" type="model"><components>/g)].map((m) => m[1]);
+
 /** Arrasta da casa (c0, r0) até (c1, r1); fileira 0 é a da frente (embaixo no desenho). */
 async function dragCells(page: Page, cols: number, rows: number, from: [number, number], to: [number, number]) {
   const svg = page.locator("svg.drawer-editor");
@@ -155,3 +157,32 @@ for (const scheme of ["light", "dark"] as const)
       const btn = await page.getByRole("button", { name: "Usar 350 mm" }).boundingBox();
       expect(btn!.height).toBeGreaterThanOrEqual(24);
     });
+
+test("dois andares: o 3MF leva o andar de baixo (base + caixinhas) e o de cima (bandeja + trilhos)", async ({ page, tauri }) => {
+  test.slow();
+  await page.setViewportSize({ width: 1024, height: 900 });
+  await openApp(page);
+  await go(page, "Organizador de gaveta");
+  for (const [label, v] of [["Largura", "500"], ["Profundidade", "420"], ["Altura livre", "110"]] as const) await page.getByLabel(new RegExp(`^${label}`)).fill(v);
+  await page.getByRole("switch", { name: "Dois andares: talheres em cima" }).check();
+  await expect(page.getByText(/Cabem 11 × 9 casas/)).toBeVisible();
+  await page.getByRole("group", { name: "Prévia" }).getByRole("button", { name: "Grade", exact: true }).click();
+  await dragCells(page, 11, 9, [0, 0], [1, 1]); // caixinha 2×2 no andar de baixo
+  await expect(page.getByRole("heading", { name: "Caixinha 2×2" })).toBeVisible();
+  await page.getByRole("group", { name: "Prévia" }).getByRole("button", { name: "Peças", exact: true }).click();
+  await expect(page.locator(".viewer")).not.toHaveAttribute("aria-busy", "true", { timeout: 90_000 });
+  await page.getByRole("button", { name: /Salvar 3MF/ }).click();
+  await expect(toastWith(page, "Arquivo salvo em")).toBeVisible();
+  const names = names3mf([...tauri.files].find(([p]) => p.endsWith(".3mf"))![1]);
+  expect(names.filter((n) => /^Base/.test(n)).length).toBeGreaterThanOrEqual(1);
+  expect(names.filter((n) => /^Caixinha 2×2/.test(n))).toHaveLength(1);
+  expect(names.filter((n) => /^(Bandeja|Trilho)/.test(n)).length).toBeGreaterThanOrEqual(4);
+});
+
+test("dois andares com gaveta baixa (60 mm): avisa o mínimo em mm e cm ao lado da opção", async ({ page }) => {
+  await openApp(page);
+  await go(page, "Organizador de gaveta");
+  for (const [label, v] of [["Largura", "400"], ["Profundidade", "400"], ["Altura livre", "60"]] as const) await page.getByLabel(new RegExp(`^${label}`)).fill(v);
+  await page.getByRole("switch", { name: "Dois andares: talheres em cima" }).check();
+  await expect(page.getByText(/Dois andares não cabem.*60 mm \(6 cm\).*80 mm \(8 cm\).*faltam 20 mm \(2 cm\)/)).toBeVisible();
+});
