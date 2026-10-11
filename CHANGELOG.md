@@ -3,7 +3,7 @@
 Cada versão aparece para a usuária na tela "O que há de novo" depois da atualização.
 Formato: `## <versão> — <data>` e itens `- …` em linguagem simples.
 
-## Próxima versão (ainda não lançada)
+## 0.12.1 — 2026-10-11
 - **Kit card por imagem é experimental**: o aviso na tela diz que funciona melhor com silhuetas simples. Os kits desenhados peça por peça (carro, caminhão e outros) chegam em seguida.
 - **Organizador de gaveta, caixinha sem grade e copiar/colar**: cada caixinha pode ser "Sem grade" com largura e profundidade livres em mm (sem pés Gridfinity, para quem não usa base); o mapa reserva o espaço que ela ocupa. Há botões Copiar e Colar (e ⌘C/⌘V no desenho): a cópia entra no primeiro lugar livre, mantendo o arranjo do grupo. O mapa agora avisa quantas casas sobram sem caixinha, caixinhas uma sobre a outra ou fora da gaveta, e quantas saíram do mapa quando você diminui a gaveta.
 - **Kit card: números maiores**: o número de cada peça ficou maior (galhos de 4 mm por padrão) e peças de borda curta ganham um ponto de corte de cada lado.
