@@ -327,7 +327,7 @@ export default function Models({ only, embedded }: { only?: string; embedded?: {
             </button>
           </div>
           <p className="hint">{def.blurb}</p>
-          {!only && (family.id === "kits" ? <KitGallery id={id} onPick={pickVariant} /> : <VariantPicker id={id} onPick={pickVariant} only={embeddedIds} />)}
+          {!only && (family.id === "assembleKits" ? <KitGallery id={id} onPick={pickVariant} /> : <VariantPicker id={id} onPick={pickVariant} only={embeddedIds} />)}
           {variants.length > 0 && (
             <div className="chips" role="group" aria-label="Variações prontas">
               {variants.map((v) => (

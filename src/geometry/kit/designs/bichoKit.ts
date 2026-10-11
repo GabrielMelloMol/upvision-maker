@@ -30,6 +30,7 @@ export const bichoTemplate: KitTemplate = {
     { key: "accent", label: "Cabeça e cauda", default: "#7a5a3a" },
   ],
   artTargets: [["coluna", "Coluna (a lateral do bicho)"]],
+  scaleMax: 1.4,
   defaults: { ...DEFAULT_BICHO },
   sections: [
     {

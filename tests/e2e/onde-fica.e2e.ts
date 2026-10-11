@@ -64,12 +64,12 @@ test("onde fica: Presentes, Casa e decoração e Organização e utilidades sepa
   await expect(tabs.getByRole("button")).toHaveText(["Chaveiros", "Placas", "Presentes", "Festa e esporte", "Casa e decoração", "Organização", "Cozinha"]);
 
   await tabs.getByRole("button", { name: "Presentes" }).click();
-  await expect(families.getByRole("button")).toHaveText(["Mapa estelar", "Cartão de música", "Lembrancinhas", "Porta-copos", "Marca-página"]);
+  await expect(families.getByRole("button")).toHaveText(["Mapa estelar", "Cartão de música", "Lembrancinhas", "Kits de montar", "Porta-copos", "Marca-página"]);
   await families.getByRole("button", { name: "Lembrancinhas" }).click();
   await expect(page.getByRole("group", { name: "Variação" }).getByRole("button", { name: "Cumbuca" })).toBeVisible();
 
   await tabs.getByRole("button", { name: "Casa e decoração" }).click();
-  await expect(families.getByRole("button")).toHaveText(["Moldura", "Luminárias e abajures", "Quadro e desenho", "Vaso", "Brinquedos", "Kits de montar"]);
+  await expect(families.getByRole("button")).toHaveText(["Moldura", "Luminárias e abajures", "Quadro e desenho", "Vaso", "Brinquedos"]);
 
   await tabs.getByRole("button", { name: "Organização" }).click();
   await expect(families.getByRole("button")).toHaveText(["Potes e organizadores", "Organizador modular (Gridfinity)", "Suporte de celular e tablet", "Tecla de teclado", "Porta-chave de parede", "Utilitários"]);

@@ -6,6 +6,6 @@ import { kitTemplateDef } from "../kitTemplateDef";
 
 /** Biblioteca de kits de montar projetados (KitTemplate): o Kit card por imagem fica em `homeDecor.ts`. */
 export const KIT_MODELS: ModelDef[] = [
-  kitTemplateDef(bichoTemplate, { category: "home", icon: PawPrint }),
-  kitTemplateDef(bauTemplate, { category: "home", icon: Package }),
+  kitTemplateDef(bichoTemplate, { category: "gifts", icon: PawPrint }),
+  kitTemplateDef(bauTemplate, { category: "gifts", icon: Package }),
 ];

@@ -27,6 +27,7 @@ export const bauTemplate: KitTemplate = {
     { key: "lid", label: "Tampa", default: "#c58b4e" },
   ],
   artTargets: [["tampaTopo", "Topo da tampa"]],
+  scaleMax: 1.4,
   defaults: { width: DEFAULT_BAU.width, depth: DEFAULT_BAU.depth, height: DEFAULT_BAU.height, pin: String(DEFAULT_BAU.pin) },
   sections: [
     {
