@@ -110,6 +110,43 @@
   "plates": 1
  },
  {
+  "key": "kitBicho:saurópode",
+  "owner": "Forja",
+  "group": "gifts",
+  "label": "Bicho (kitBicho)",
+  "variant": "saurópode",
+  "status": "aviso",
+  "reasons": [
+   "Orca: torre de purga passa da mesa na posição padrão do CLI (na tela, arraste a torre ou use Arrumar)",
+   "Projeto Bambu: torre de purga passa da mesa na posição padrão do CLI (na tela, arraste a torre ou use Arrumar)",
+   "app: As peças não cabem no cartão pedido: usei o cartão maior (226 × 106 mm).",
+   "app: Para montar: destaque as peças dobrando os pontos de corte. Corte os pontos de corte com alicate e lixe os cotos. Vire a coluna 1 de cabeça para baixo e encaixe as fatias 2 a 3 e 4 a 5 pelas fendas, da frente para trás: as de perna são as das pontas. Desvire: o bicho fica em pé nas 4 pernas. Desça a cabeça 6 pelo soquete da frente e a cauda 7 pelo de trás."
+  ],
+  "date": "2026-10-11",
+  "slicers": "Bambu ✓ · Orca ✓ · Projeto Bambu ✓",
+  "minutes": 81,
+  "grams": 29.8,
+  "plates": 1
+ },
+ {
+  "key": "kitBicho:T-rex",
+  "owner": "Forja",
+  "group": "gifts",
+  "label": "Bicho (kitBicho)",
+  "variant": "T-rex",
+  "status": "aviso",
+  "reasons": [
+   "Orca: torre de purga passa da mesa na posição padrão do CLI (na tela, arraste a torre ou use Arrumar)",
+   "Projeto Bambu: torre de purga passa da mesa na posição padrão do CLI (na tela, arraste a torre ou use Arrumar)",
+   "app: Para montar: destaque as peças dobrando os pontos de corte. Corte os pontos de corte com alicate e lixe os cotos. Vire a coluna 1 de cabeça para baixo e encaixe as fatias 2 e 3 a 5 pelas fendas, da frente para trás: as de perna são as das pontas. Desvire: o bicho fica em pé nas 4 pernas. Desça a cabeça 6 pelo soquete da frente e a cauda 7 pelo de trás."
+  ],
+  "date": "2026-10-11",
+  "slicers": "Bambu ✓ · Orca ✓ · Projeto Bambu ✓",
+  "minutes": 70,
+  "grams": 27,
+  "plates": 1
+ },
+ {
   "key": "articulatedName:máximo",
   "owner": "Forja",
   "group": "keychains",

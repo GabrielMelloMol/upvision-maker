@@ -30,9 +30,9 @@ const SPECIES = {
   dog: { P: 0.22, legW: 0.13, chest: 0.5, rump: 0.46, rise: 0.08 },
   cat: { P: 0.22, legW: 0.13, chest: 0.5, rump: 0.46, rise: 0.08 },
   sauro: { P: 0.28, legW: 0.18, chest: 0.5, rump: 0.5, rise: 0.05 },
-  trex: { P: 0.32, legW: 0.2, chest: 0.42, rump: 0.5, rise: 0.14 }, // pescoço alto: a cabeça fica acima do dorso
+  trex: { P: 0.32, legW: 0.22, chest: 0.5, rump: 0.5, rise: 0.14 }, // pescoço alto: a cabeça fica acima do dorso
 } as const;
-const TREX_RIB_AT = 0.36; // a fatia de perna do T-rex, depois da coxa
+const TREX_RIB_AT = 0.32; // a fatia de perna do T-rex, logo antes da coxa (as pernas ficam sob o quadril, no meio do corpo)
 const WALL_MIN = 3; // parede mínima em volta de um soquete
 const SPIGOT_CLEARANCE = 0.75; // folga da espiga por lado = fit * isto
 
@@ -108,9 +108,11 @@ function spineLegs(M: ManifoldToplevel, k: K, d: Dims): CS[] {
   const { L, H, P } = d;
   const lw = SPECIES[d.species].legW * L;
   if (d.species !== "trex") return [SPINE_LEG_AT * L + lw / 2, L - SPINE_LEG_AT * L - lw / 2].map((cx) => k(k(roundedFoot(M, cx, lw, P + 0.5 * H)).translate([0, -P])));
+  // coxa sob o quadril (no meio do corpo, para o bicho se equilibrar) e pé comprido, do calcanhar aos dedos
   const foot = 0.07 * L;
-  const thigh = poly(M, [[0.1 * L, 0.5 * H], [0.3 * L, 0.5 * H], [0.3 * L, -P + foot], [0.55 * L, -P + foot], [0.57 * L, -P + foot / 2], [0.55 * L, -P], [0.1 * L, -P]]);
-  const arm = poly(M, [[0.85 * L, 0.25 * H], [0.91 * L, 0.25 * H], [0.98 * L, -0.1 * L], [0.93 * L, -0.1 * L]]);
+  const thigh = poly(M, [[0.36 * L, 0.5 * H], [0.58 * L, 0.5 * H], [0.58 * L, -P + foot], [0.74 * L, -P + foot], [0.77 * L, -P + foot / 2], [0.74 * L, -P], [0.28 * L, -P], [0.28 * L, -P + foot], [0.36 * L, -P + foot]]);
+  // bracinho: minúsculo (uns 1/4 da perna), na altura do peito, apontando para a frente e um pouco para baixo
+  const arm = M.CrossSection.hull([k(M.CrossSection.circle(0.018 * L, 24).translate([0.93 * L, 0.42 * H])), k(M.CrossSection.circle(Math.max(1, 0.012 * L), 24).translate([1.025 * L, 0.36 * H]))]);
   return [k(thigh), k(arm)];
 }
 
@@ -164,16 +166,23 @@ export function bichoHead(env: Env, p: BichoParams): CS {
     parts.push(k(poly(M, [[f(-0.04), f(0.2)], [f(0.0), f(0.33)], [f(0.065), f(0.21)]])));
     parts.push(k(poly(M, [[f(0.1), f(0.21)], [f(0.15), f(0.33)], [f(0.19), f(0.2)]])));
   } else if (species === "sauro") {
-    // saurópode: pescoço comprido subindo em diagonal, afinando, e uma cabeça pequena e baixa na ponta
-    const chain: [number, number, number][] = [[0, 0.065, 0.065], [0.07, 0.22, 0.052], [0.15, 0.38, 0.042], [0.22, 0.52, 0.036], [0.27, 0.62, 0.032]];
+    // saurópode: base do pescoço grossa (a largura do ombro) subindo em diagonal e afinando até uma cabeça com focinho
+    parts.push(part(0.2, 0.14, 0.04, -0.1, 0));
+    const chain: [number, number, number][] = [[0, 0.12, 0.09], [0.07, 0.26, 0.075], [0.15, 0.42, 0.058], [0.22, 0.55, 0.046], [0.27, 0.64, 0.042]];
     for (let i = 1; i < chain.length; i++) parts.push(k(M.CrossSection.hull([disc(...chain[i - 1]), disc(...chain[i])])));
-    parts.push(oval(0.062, 0.032, 0.31, 0.65, -8));
+    parts.push(k(M.CrossSection.hull([disc(0.295, 0.665, 0.05), disc(0.385, 0.64, 0.03)]))); // cabeça com focinho
   } else {
-    // T-rex: cabeça enorme em cunha (crânio fundo e focinho largo) no alto de um pescoço curto e grosso
-    parts.push(k(M.CrossSection.hull([disc(0.02, 0.12, 0.12), disc(0.19, 0.12, 0.115), disc(0.33, 0.085, 0.078)])));
-    parts.push(k(poly(M, [[f(-0.02), f(0.22)], [f(0.06), f(0.3)], [f(0.14), f(0.21)]]))); // arcada acima do olho
+    // T-rex: crânio grande e retangular sobre uma mandíbula funda; a boca é uma fenda em cunha e tem um olho
+    parts.push(part(0.43, 0.178, 0.03, -0.05, 0.092)); // crânio
+    parts.push(part(0.41, 0.1, 0.025, -0.05, 0)); // mandíbula
   }
-  return union(M, [...parts, k(spigot(env, bichoDims(p, env).headSock))]);
+  let head = union(M, [...parts, k(spigot(env, bichoDims(p, env).headSock))]);
+  if (species === "trex") {
+    const mouth = k(poly(M, [[f(0.1), f(0.092)], [f(0.4), f(0.074)], [f(0.4), f(0.112)]]));
+    const eye = k(M.CrossSection.circle(Math.max(1.2, f(0.018)), 24).translate([f(0.2), f(0.2)]));
+    head = k(head).subtract(k(M.CrossSection.union([mouth, eye])));
+  }
+  return head;
 }
 
 /** Cauda: da espiga (x = 0, y = 0) até a ponta, com a espiga para baixo. As de bicho são barras afiladas; a grossa (dinossauro) é uma sequência de círculos que afina. */
@@ -184,7 +193,7 @@ export function bichoTail(env: Env, p: BichoParams): CS {
   if (p.tail === "thick") {
     const chain: [number, number, number][] =
       speciesOf(p.head) === "trex"
-        ? [[0, 0.07, 0.07], [-0.2, 0.085, 0.055], [-0.4, 0.1, 0.03], [-0.52, 0.11, 0.012]] // contrapeso: reta e para o alto
+        ? [[0, 0.085, 0.085], [-0.25, 0.09, 0.07], [-0.5, 0.1, 0.04], [-0.7, 0.11, 0.012]] // contrapeso: longa, grossa e reta
         : [[0, 0.075, 0.075], [-0.18, 0.06, 0.055], [-0.38, 0.0, 0.033], [-0.56, -0.08, 0.012]]; // saurópode: cai de leve e afina em chicote
     const discs = chain.map(([x, y, r]) => k(k(M.CrossSection.circle(Math.max(1, f(r)), 32)).translate([f(x), f(y)])));
     const links = discs.slice(1).map((c, i) => k(M.CrossSection.hull([discs[i], c])));
