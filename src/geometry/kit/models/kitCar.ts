@@ -1,6 +1,6 @@
 import { poly, rect } from "../joints";
 import type { KitTemplate } from "../types";
-import { buildVehicle, lateralBase, VEHICLE_PALETTE, type Ledge, type Wall } from "./vehicle";
+import { buildVehicle, lateralBase, minWheel, VEHICLE_PALETTE, type Ledge, type Wall } from "./vehicle";
 
 /** Carro de montar: laterais com janelas, chassi, capô, teto e porta-malas; rodas que giram no pino, presas por travas. */
 export const KIT_CAR: KitTemplate = {
@@ -26,14 +26,14 @@ export const KIT_CAR: KitTemplate = {
         { k: "wheelD", kind: "num", label: "Diâmetro das rodas", min: 12, max: 30, step: 1, unit: "mm" },
         { k: "tire", kind: "num", label: "Espessura do pneu", min: 0, max: 2.5, step: 0.5, unit: "mm", hint: "0 = sem pneu. O pneu sai em outra cor, num anel em volta da roda." },
         { k: "spin", kind: "num", label: "Folga do giro da roda", min: 0.2, max: 0.6, step: 0.05, unit: "mm", hint: "Folga do pino no furo da lateral: a roda gira. Aumente se agarrar." },
-        { k: "press", kind: "num", label: "Aperto da trava", min: 0, max: 0.2, step: 0.05, unit: "mm", hint: "Folga do furo da trava sobre o pino: 0,05 aperta; aumente se não entrar." },
+        { k: "press", kind: "num", label: "Aperto da trava", min: 0.04, max: 0.2, step: 0.05, unit: "mm", hint: "Folga do furo da trava sobre o pino: 0,05 aperta; aumente se não entrar." },
       ],
     },
   ],
   build: (env) => {
     const { M, k, scale: s, p } = env;
     const L = Number(p.length) * s, Wi = Number(p.width) * s;
-    const wheel = (Number(p.wheelD) / 2) * s, tire = Math.min(Number(p.tire) * s, wheel - 4);
+    const wheel = Math.max((Number(p.wheelD) / 2) * s, minWheel(env.t)), tire = Math.min(Number(p.tire) * s, wheel - 4);
     // a linha do capô e do porta-malas fica acima do topo das rodas (senão elas aparecem por cima do corpo)
     const Hb = Math.max(Number(p.bodyH) * s, 2 * wheel - lateralBase(env, wheel).zl0 + 1.5 * s), Hr = Hb + Number(p.cabinH) * s;
     const xf = L / 2, xr = -L / 2;

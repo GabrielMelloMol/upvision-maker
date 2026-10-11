@@ -1,6 +1,6 @@
 import { poly, rect } from "../joints";
 import type { KitTemplate } from "../types";
-import { buildVehicle, VEHICLE_PALETTE, type Ledge, type Wall } from "./vehicle";
+import { buildVehicle, lockRadius, minWheel, VEHICLE_PALETTE, type Ledge, type Wall } from "./vehicle";
 
 /** Caminhão de montar: cabine e carroceria nas laterais, chassi, capô, teto da cabine, parede da cabine e traseira; 2 ou 3 eixos. */
 export const KIT_TRUCK: KitTemplate = {
@@ -28,7 +28,7 @@ export const KIT_TRUCK: KitTemplate = {
         { k: "wheelD", kind: "num", label: "Diâmetro das rodas", min: 14, max: 32, step: 1, unit: "mm" },
         { k: "tire", kind: "num", label: "Espessura do pneu", min: 0, max: 2.5, step: 0.5, unit: "mm", hint: "0 = sem pneu. O pneu sai em outra cor, num anel em volta da roda." },
         { k: "spin", kind: "num", label: "Folga do giro da roda", min: 0.2, max: 0.6, step: 0.05, unit: "mm", hint: "Folga do pino no furo da lateral: a roda gira. Aumente se agarrar." },
-        { k: "press", kind: "num", label: "Aperto da trava", min: 0, max: 0.2, step: 0.05, unit: "mm", hint: "Folga do furo da trava sobre o pino: 0,05 aperta; aumente se não entrar." },
+        { k: "press", kind: "num", label: "Aperto da trava", min: 0.04, max: 0.2, step: 0.05, unit: "mm", hint: "Folga do furo da trava sobre o pino: 0,05 aperta; aumente se não entrar." },
       ],
     },
   ],
@@ -36,7 +36,7 @@ export const KIT_TRUCK: KitTemplate = {
     const { M, k, scale: s, t, fit, p } = env;
     const L = Number(p.length) * s, Wi = Number(p.width) * s, Hr = Number(p.cabinH) * s, Hbox = Number(p.boxH) * s;
     const Hb = Math.min(0.55 * Hr, Hr - 12 * s); // altura do capô
-    const wheel = (Number(p.wheelD) / 2) * s, tire = Math.min(Number(p.tire) * s, wheel - 4);
+    const wheel = Math.max((Number(p.wheelD) / 2) * s, minWheel(t)), tire = Math.min(Number(p.tire) * s, wheel - 4);
     const xf = L / 2, xr = -L / 2, Lc = (Number(p.cabLen) / 100) * L;
     const x3 = xf - Lc, xHoodEnd = xf - 0.03 * L, x1 = xf - 0.12 * L, x2 = x1 - 0.06 * L;
     const profile = poly(M, k, [[xr, 0], [xf, 0], [xf, 0.8 * Hb], [xHoodEnd, Hb], [x1, Hb], [x2, Hr], [x3, Hr], [x3, Hbox], [xr, Hbox]]);
@@ -56,7 +56,9 @@ export const KIT_TRUCK: KitTemplate = {
     ];
     const rear = xr + 0.2 * L;
     const gap = 2 * wheel + 3 * s;
-    const axles = Number(p.axlesN) >= 3 ? [xf - 0.18 * L, rear, rear + gap] : [xf - 0.18 * L, rear];
+    // o eixo da frente fica longe da parede da cabine (a trava de 8 mm não pode encostar nela)
+    const front = Math.min(xf - wheel - 2 * s, Math.max(xf - 0.18 * L, wallX + lockRadius() + (t + fit) / 2 + 0.8));
+    const axles = Number(p.axlesN) >= 3 ? [front, rear, rear + gap] : [front, rear];
     return buildVehicle(env, {
       profile, cutouts: [glass], length: L, width: Wi, wheel, tire, axles,
       floor: { x0: xr + 0.02 * L, x1: xf - 0.02 * L, tabs: [-0.3 * L, 0.08 * L], tabW: 8 * s },

@@ -4,6 +4,7 @@ Cada versão aparece para a usuária na tela "O que há de novo" depois da atual
 Formato: `## <versão> — <data>` e itens `- …` em linguagem simples.
 
 ## Próxima versão (ainda não lançada)
+- **Kits de carro e caminhão nos extremos**: em tamanho bem pequeno, com a cabine curta ou o aperto da trava no mínimo, as travas das rodas não batem mais no chassi, no capô nem na parede da cabine (a roda tem um raio mínimo e o eixo da frente se afasta da cabine).
 - **Kits de montar: Bicho e Baú**: em Modelos prontos (Presentes › Kits de montar) há uma galeria com o Bicho de 4 patas (coluna, fatias de corpo e de perna encaixadas, cabeça de cachorro, gato ou dinossauro e cauda), o Baú (caixa com tampa que abre por dobradiça de pino, em 3 tamanhos) e o Kit card por imagem. Cada kit tem variações prontas, cores por peça, cartão com pontos de corte e números, e o passo a passo de montagem
 - **Botões azuis no tema escuro**: o botão de ação azul passava a ficar mais claro ao passar o mouse e o texto branco ficava difícil de ler; agora o contraste é o recomendado
 - **Kit card: avião e helicóptero encaixam em todos os tamanhos**: do menor ao maior tamanho do modelo as abas e janelas continuam certas e nenhuma peça fica com lasca solta no cartão.

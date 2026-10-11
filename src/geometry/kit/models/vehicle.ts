@@ -53,6 +53,12 @@ const AXIAL_PLAY = 0.3; // folga da trava na lateral (a roda gira)
 
 /** Medidas do eixo que dependem do bico e das folgas. */
 export const pinRadius = () => Math.max(1.5, 2 * nozzleMm());
+/** Raio da trava (disco apertado na ponta do pino). */
+export const lockRadius = () => pinRadius() + 2.4;
+/** Menor raio de roda em que a trava ainda cabe acima do chassi (em modelos muito pequenos a roda não encolhe mais que isto). */
+export const minWheel = (t: number) => lockRadius() + t + 0.7;
+/** Folga mínima do furo da trava sobre o pino (0 faria o furo igual ao pino e as facetas se sobreporem). */
+const MIN_PRESS = 0.03;
 
 /** Altura da borda de baixo da lateral (a roda toca o chão e o furo do eixo fica 2,4 mm acima da borda). */
 export function lateralBase(env: Pick<KitEnv, "t" | "p">, wheel: number): { zl0: number } {
@@ -63,7 +69,7 @@ export function lateralBase(env: Pick<KitEnv, "t" | "p">, wheel: number): { zl0:
 /** Monta as peças, a montagem e os pares de um veículo a partir da geometria dele. */
 export function buildVehicle(env: KitEnv, g: VehicleGeom): KitBuild {
   const { M, k, t, fit, pinFit } = env;
-  const spin = Number(env.p.spin ?? 0.3), press = Number(env.p.press ?? 0.05);
+  const spin = Number(env.p.spin ?? 0.3), press = Math.max(Number(env.p.press ?? 0.05), MIN_PRESS);
   const pinR = pinRadius();
   const Wi = g.width, fw = Wi / 2 + (t + fit) / 2 + WALL_MM; // meia largura das placas
   const { zl0 } = lateralBase(env, g.wheel); // altura da borda de baixo da lateral
@@ -104,7 +110,7 @@ export function buildVehicle(env: KitEnv, g: VehicleGeom): KitBuild {
   const rHub = g.wheel - g.tire;
   const wheelLayers = g.tire > 0.1 ? [{ cs: k(disc(M, k, 0, 0, g.wheel, 64).subtract(disc(M, k, 0, 0, rHub, 64))), color: "tire" }, { cs: disc(M, k, 0, 0, rHub, 64), color: "wheel" }] : [{ cs: disc(M, k, 0, 0, g.wheel, 64), color: "wheel" }];
   parts.push({ id: "roda", label: "Roda", count: nW, layers: wheelLayers, pins: [{ x: 0, y: 0, r: pinR, len: pinLen, color: "wheel" }] });
-  const lockR = pinR + 2.4;
+  const lockR = lockRadius();
   parts.push({ id: "trava", label: "Trava", count: nW, layers: [{ cs: k(disc(M, k, 0, 0, lockR).subtract(pinHole(M, k, { x: 0, y: 0, r: pinR, fit: press }))), color: "lock" }] });
 
   // montagem

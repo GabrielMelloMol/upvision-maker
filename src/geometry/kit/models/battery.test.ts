@@ -38,13 +38,7 @@ const variantsOf = (tpl: KitTemplate): [string, KitParams][] => {
 };
 
 /** Achados da bateria no carro e no caminhão (da Forja): ficam como falha esperada até serem corrigidos; ao corrigir, o teste avisa para tirar daqui. */
-const KNOWN = new Set([
-  "carro|press=0|montado", // roda × trava: furo igual ao pino se sobrepõe (facetas)
-  "caminhão|press=0|montado",
-  "carro|tamanho mínimo|montado", // trava entra no chassi e no capô (escala 0,5)
-  "caminhão|tamanho mínimo|montado", // trava entra no chassi (escala 0,5)
-  "caminhão|cabLen=24|montado", // trava entra na parede da cabine
-]);
+const KNOWN = new Set<string>([]);
 const knownTest = (name: string, label: string, kind: string) => (KNOWN.has(`${name}|${label}|${kind}`) ? test.fails : test);
 
 const TEMPLATES: [string, KitTemplate][] = [["carro", KIT_CAR], ["caminhão", KIT_TRUCK], ["avião", AVIAO], ["helicóptero", HELICOPTERO]];
