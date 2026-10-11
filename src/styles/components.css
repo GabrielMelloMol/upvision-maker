@@ -470,3 +470,21 @@ h3.subhead svg { width: 16px; height: 16px; color: var(--muted); }
 .star-print-facts { list-style: none; margin: 0; padding: 0; display: grid; gap: 2px; color: var(--muted); font-size: var(--text-sm); }
 .star-print-facts strong { color: var(--text); }
 .star-print-facts .warn { color: var(--warn); }
+
+/* Kit card: "Que imagem funciona", exemplos prontos e a silhueta que o app entendeu */
+.kit-help { gap: var(--space-3); }
+.kit-guide { padding: var(--space-3); border-radius: var(--r-lg); background: var(--surface); box-shadow: 0 0 0 0.5px var(--border); display: grid; gap: var(--space-2); }
+.kit-guide > summary { cursor: pointer; font-size: var(--text-md); font-weight: 600; }
+.kit-guide-tiles { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: var(--space-2); }
+.kit-guide-tile { display: grid; gap: 2px; align-content: start; }
+.kit-guide-tile img { width: 100%; aspect-ratio: 5 / 3; object-fit: contain; border-radius: var(--r-sm); background: #f6f5f1; box-shadow: 0 0 0 2px var(--ok); }
+.kit-guide-tiles.bad .kit-guide-tile img { box-shadow: 0 0 0 2px var(--danger); }
+.kit-guide-cap { display: inline-flex; align-items: center; gap: 4px; font-size: var(--text-sm); }
+.kit-guide-cap svg { width: 14px; height: 14px; flex: none; color: var(--ok); }
+.kit-guide-tiles.bad .kit-guide-cap svg { color: var(--danger); }
+.kit-guide-text { color: var(--muted); font-size: var(--text-xs); }
+.kit-examples { align-items: center; }
+.kit-examples-label { color: var(--muted); font-size: var(--text-sm); }
+.kit-sil { display: grid; gap: var(--space-2); padding: var(--space-3); border-radius: var(--r-lg); background: var(--surface); box-shadow: 0 0 0 0.5px var(--border); }
+.kit-sil-title { margin: 0; font-size: var(--text-md); font-weight: 600; }
+.kit-sil-view img { display: block; width: min(100%, 320px); border-radius: var(--r-sm); box-shadow: 0 0 0 0.5px var(--border-strong); }

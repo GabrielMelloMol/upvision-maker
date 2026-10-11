@@ -132,3 +132,37 @@ test("kit card: foto com fundo liso é recortada (e o recorte pode ser desligado
   const axe = await new AxeBuilder({ page }).include("main").exclude("canvas").withTags(["wcag2a", "wcag2aa", "wcag21a", "wcag21aa", "wcag22aa"]).disableRules(["color-contrast"]).analyze();
   expect(axe.violations.map((v) => `${v.id}: ${v.nodes.length}`)).toEqual([]);
 });
+
+const FRONT = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 140"><path d="M20 30H80V120H20Z"/></svg>';
+
+test("kit card: quadro \"Que imagem funciona\", exemplos prontos, silhueta entendida e avisos; axe claro e escuro (#193)", async ({ page }) => {
+  await openKit(page);
+  await expect(page.getByText("Que imagem funciona")).toBeVisible();
+  for (const t of ["De lado", "Uma figura só", "Fundo liso", "De frente", "Várias coisas", "Fundo bagunçado"]) await expect(page.getByText(t, { exact: true })).toBeVisible();
+  await expect(page.getByText("O que o app entendeu")).toHaveCount(0);
+
+  // exemplo pronto: o carro troca para veículo e mostra a silhueta, sem avisos
+  await page.getByRole("button", { name: "Carro", exact: true }).click();
+  await expect(page.getByRole("img", { name: /Silhueta entendida: 1 figura/ })).toBeVisible({ timeout: 60_000 });
+  await expect(page.getByText(/Uma figura inteira/)).toBeVisible();
+  await expect(page.getByRole("button", { name: "Veículo" })).toHaveAttribute("aria-pressed", "true");
+  await idle(page);
+  await expect(page.locator(".legend")).toContainText("Peças");
+  await page.getByRole("button", { name: "Elefante", exact: true }).click();
+  await expect(page.getByRole("button", { name: "Figura ou animal" })).toHaveAttribute("aria-pressed", "true");
+  await expect(page.getByText(/Uma figura inteira/)).toBeVisible({ timeout: 60_000 });
+  await idle(page);
+
+  // imagem de frente: aviso específico
+  await page.locator('input[type="file"]').first().setInputFiles({ name: "frente.svg", mimeType: "image/svg+xml", buffer: Buffer.from(FRONT) });
+  await expect(page.getByText(/Parece uma vista de frente/)).toBeVisible({ timeout: 60_000 });
+  await expect(page.getByText(/Uma figura inteira/)).toHaveCount(0);
+  await idle(page);
+
+  for (const scheme of ["light", "dark"] as const) {
+    await page.emulateMedia({ colorScheme: scheme });
+    await page.waitForTimeout(600); // as cores têm transição: mede depois que assentam
+    const axe = await new AxeBuilder({ page }).include("main").exclude("canvas").withTags(["wcag2a", "wcag2aa", "wcag21a", "wcag21aa", "wcag22aa"]).analyze();
+    expect(axe.violations.filter((v) => !v.nodes.every((n) => n.target.join(" ").includes("hud"))).map((v) => `${scheme} ${v.id}: ${v.nodes.map((n) => n.target.join(" ")).join(" | ")}`)).toEqual([]);
+  }
+});

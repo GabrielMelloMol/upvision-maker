@@ -10,6 +10,8 @@ import { checkText, textWarnings } from "../geometry/textCheck";
 import FontPicker from "../ui/FontPicker";
 import Alert from "../ui/Alert";
 import { exampleFile } from "../help/helpStore";
+import KitArtHelp from "./models/KitArtHelp";
+import { kitExampleFile, type KitExample } from "./models/kitExamples";
 import Dropzone from "../ui/Dropzone";
 import ExportButtons from "../ui/ExportButtons";
 import Field from "../ui/Field";
@@ -174,6 +176,10 @@ export default function Models({ only, embedded }: { only?: string; embedded?: {
   }
   const onArt = (f: File) => loadArt("art", f, cutout);
   const onArt2 = (f: File) => loadArt("art2", f, cutout);
+  const onKitExample = (ex: KitExample) => {
+    void loadArt("art", kitExampleFile(ex), cutout);
+    set("mode")(ex.mode);
+  };
   function removeArt(which: "art" | "art2") {
     files.current[which] = null;
     setCutInfo((c) => ({ ...c, [which]: null }));
@@ -365,11 +371,12 @@ export default function Models({ only, embedded }: { only?: string; embedded?: {
                 <>
                   <Dropzone accept={DESIGN_ACCEPT} label={art ? art.name : def.art} hint="SVG ou imagem (vira vetor sozinha)." onFile={onArt} />
                   {artError && <Alert kind="error">{artError}</Alert>}
+                  {def.artGuide && <KitArtHelp art={art} cut={cutInfo.art} onExample={onKitExample} />}
                   {def.cutout && (
                     <>
                       <Toggle label="Recortar o fundo da foto" checked={cutout} onChange={(v) => void toggleCutout(v)} />
                       {cutting && <span className="hint" role="status">Recortando o fundo da foto… (a primeira vez pode demorar um pouco)</span>}
-                      {[cutInfo.art, cutInfo.art2].map((c, i) => c?.uncertain && c.warning && <Alert key={i} kind="warn">{c.warning}</Alert>)}
+                      {[cutInfo.art, cutInfo.art2].map((c, i) => (!def.artGuide || i === 1) && c?.uncertain && c.warning && <Alert key={i} kind="warn">{c.warning}</Alert>)}
                     </>
                   )}
                   {def.iconPicker && <IconPicker onPick={setArt} />}

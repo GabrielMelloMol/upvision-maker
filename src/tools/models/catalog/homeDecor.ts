@@ -253,9 +253,10 @@ export const HOME_DECOR_MODELS: ModelDef[] = [
     blurb: "Uma imagem vira um kit de montar: peças planas num cartão fino com o nome gravado, presas por pontos de corte. Figura/animal (costelas) ou veículo (rodas).",
     icon: Plane,
     font: true,
-    art: "Imagem da vista de lado (foto ou desenho; o fundo da foto é recortado)",
+    art: "Imagem do bicho ou do carro de lado (silhueta cheia, uma figura só)",
     art2: "Vista de cima (opcional, só na figura: dá a largura das costelas)",
     cutout: true,
+    artGuide: true,
     defaults: DEFAULT_KIT_CARD,
     sections: [
       { title: "Tipo de montagem", fields: [choice("mode", "Monta como", [["figure", "Figura ou animal"], ["vehicle", "Veículo"]])] },
