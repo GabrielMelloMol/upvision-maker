@@ -32,7 +32,7 @@ test("kits de montar: galeria dos kits, bicho e baú geram o cartão e salvam o 
   // escolher outro kit pela galeria
   await gallery.getByRole("button", { name: /Baú/ }).click();
   await idle(page);
-  await expect(page.getByRole("heading", { name: "Baú" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Baú", exact: true })).toBeVisible();
   await expect(gallery.getByRole("button", { name: /Baú/ })).toHaveAttribute("aria-pressed", "true");
   await page.getByRole("group", { name: "Variações prontas" }).getByRole("button", { name: "Pequeno", exact: true }).click();
   await idle(page);

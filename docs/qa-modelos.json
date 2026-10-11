@@ -58,7 +58,7 @@
   "key": "kitBicho:máximo",
   "owner": "Forja",
   "group": "gifts",
-  "label": "Bicho de 4 patas (kit) (kitBicho)",
+  "label": "Bicho (kitBicho)",
   "variant": "máximo",
   "status": "aviso",
   "reasons": [
@@ -77,7 +77,7 @@
   "key": "kitBicho:mínimo",
   "owner": "Forja",
   "group": "gifts",
-  "label": "Bicho de 4 patas (kit) (kitBicho)",
+  "label": "Bicho (kitBicho)",
   "variant": "mínimo",
   "status": "aviso",
   "reasons": [
@@ -95,7 +95,7 @@
   "key": "kitBicho:padrão",
   "owner": "Forja",
   "group": "gifts",
-  "label": "Bicho de 4 patas (kit) (kitBicho)",
+  "label": "Bicho (kitBicho)",
   "variant": "padrão",
   "status": "aviso",
   "reasons": [
