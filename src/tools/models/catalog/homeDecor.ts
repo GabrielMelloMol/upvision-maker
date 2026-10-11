@@ -1,6 +1,9 @@
 import { Bookmark, Keyboard, Plane, CaseUpper, CircleDot, Frame, Gem, KeySquare, Lamp, LampDesk, PencilRuler, PenTool, Puzzle, Smartphone, WholeWord } from "lucide-react";
 import { buildCutoutFrame, buildCutoutStand, DEFAULT_CUTOUT_FRAME, DEFAULT_CUTOUT_STAND } from "../../../geometry/models/cutoutFrame";
 import { buildKitCard, DEFAULT_KIT_CARD } from "../../../geometry/models/kitCard";
+import { AVIAO } from "../../../geometry/kit/models/aviao";
+import { HELICOPTERO } from "../../../geometry/kit/models/helicoptero";
+import { kitTemplateDef } from "../kitTemplateDef";
 import { buildKeycap, DEFAULT_KEYCAP } from "../../../geometry/models/keycap";
 import { buildBigLetter, DEFAULT_BIG_LETTER } from "../../../geometry/models/bigLetter";
 import { buildBigFrame, DEFAULT_BIG_FRAME } from "../../../geometry/models/bigFrame";
@@ -20,6 +23,8 @@ import { as, bool, choice, color, font, nfcFields, num, profile, text, textureFi
 
 /** Casa, 1ª parte da galeria: marca-página, porta-caneta, decoração, luminária, letra grande, quebra-cabeça, porta-copos, suporte de celular. */
 export const HOME_DECOR_MODELS: ModelDef[] = [
+  kitTemplateDef(AVIAO, { category: "home", icon: Plane }),
+  kitTemplateDef(HELICOPTERO, { category: "home", icon: Plane }),
   {
     id: "bookmark",
     category: "home",

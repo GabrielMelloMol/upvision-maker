@@ -18,7 +18,7 @@ beforeEach(async () => {
   await t.db.execute("INSERT INTO filaments (material, color, brand, pricePerKg, spoolG, stockG, minG) VALUES ('PLA', 'Preto', 'Voolt', 100, 1000, 800, 200), ('PETG', 'Azul', '', 120, 1000, 150, 200)");
   const order = (name: string, status: string, due: string | null) =>
     t.db.execute("INSERT INTO orders (customerName, channel, dueDate, paymentMethod, notes, freight, status, createdAt) VALUES (?, 'direto', ?, 'pix', '', 0, ?, '2026-09-01 10:00:00')", [name, due, status]);
-  await order("Ana", "pending", "2026-10-10");
+  await order("Ana", "pending", "2099-01-01");
   await order("Bia", "production", "2020-01-01");
   await order("Caio", "delivered", "2026-09-01");
   await t.db.execute("INSERT INTO order_items (orderId, position, productId, description, qty, unitPrice, discountPct, unitCost, printMinutes) VALUES (1, 0, NULL, 'Chaveiro', 2, 10, 0, 3, 30)");
