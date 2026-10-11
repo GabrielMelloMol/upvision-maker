@@ -310,6 +310,14 @@ export async function openApp(page: Page, { keepOnboarding = false } = {}) {
 }
 
 /** Toast (ok = status, erro = alert) com o texto. */
+/** Espera as transições de cor assentarem (depois de trocar o tema): o axe mede a cor do momento, e no meio da transição ela é uma mistura. */
+export async function settleColors(page: Page) {
+  await page.evaluate(async () => {
+    await new Promise((r) => requestAnimationFrame(() => requestAnimationFrame(r)));
+    await Promise.all(document.getAnimations().map((a) => a.finished.catch(() => undefined)));
+  });
+}
+
 export const toastWith = (page: Page, text: string) => page.locator(".toast", { hasText: text });
 
 /** Abre uma seção das Preferências (#179) pela lista da esquerda. */

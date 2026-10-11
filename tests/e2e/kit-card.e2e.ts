@@ -2,7 +2,7 @@ import AxeBuilder from "@axe-core/playwright";
 import { strFromU8, unzipSync } from "fflate";
 import type { Page } from "@playwright/test";
 import { crc32, deflateSync } from "node:zlib";
-import { expect, go, openApp, test, toastWith } from "./tauri";
+import { expect, go, openApp, settleColors, test, toastWith } from "./tauri";
 
 const hud = (page: Page) => page.locator(".viewer .hud");
 const idle = (page: Page) => expect(page.locator(".viewer .overlay.busy")).toHaveCount(0, { timeout: 90_000 });
@@ -161,8 +161,8 @@ test("kit card: quadro \"Que imagem funciona\", exemplos prontos, silhueta enten
 
   for (const scheme of ["light", "dark"] as const) {
     await page.emulateMedia({ colorScheme: scheme });
-    await page.waitForTimeout(600); // as cores têm transição: mede depois que assentam
-    const axe = await new AxeBuilder({ page }).include("main").exclude("canvas").withTags(["wcag2a", "wcag2aa", "wcag21a", "wcag21aa", "wcag22aa"]).analyze();
+    await settleColors(page); // as cores têm transição: mede depois que assentam
+    const axe = await new AxeBuilder({ page }).exclude("canvas").withTags(["wcag2a", "wcag2aa", "wcag21a", "wcag21aa", "wcag22aa"]).analyze(); // a página toda: barra superior e menu lateral também
     expect(axe.violations.filter((v) => !v.nodes.every((n) => n.target.join(" ").includes("hud"))).map((v) => `${scheme} ${v.id}: ${v.nodes.map((n) => n.target.join(" ")).join(" | ")}`)).toEqual([]);
   }
 });
