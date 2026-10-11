@@ -124,6 +124,15 @@ describe("recorte do fundo pela cor (fundo liso ou quase liso)", () => {
     expect(r.warning).toMatch(/fundo/i);
   });
 
+  test("contorno fino (linha de 1,5 px): a linha não some e o miolo é preenchido, virando a silhueta", () => {
+    const ring = (x: number, y: number) => Math.abs(Math.hypot(x - W / 2, y - H / 2) - 90) < 0.75; // aro de 1,5 px
+    const s = scene(W, H, flat([255, 255, 255]), ring, [20, 20, 20], 0);
+    const r = colorCutout(s.rgba, s.w, s.h);
+    const disc = new Uint8Array(W * H).map((_, i) => (Math.hypot((i % W) + 0.5 - W / 2, Math.floor(i / W) + 0.5 - H / 2) <= 90.75 ? 1 : 0));
+    expect(iou(r.mask, disc)).toBeGreaterThan(0.93);
+    expect(r.coverage).toBeGreaterThan(0.2);
+  });
+
   test("foto de fundo liso sem nenhum objeto: não inventa recorte e avisa", () => {
     const s = scene(W, H, flat([230, 230, 230]), () => false, [0, 0, 0], 2);
     const r = colorCutout(s.rgba, s.w, s.h);

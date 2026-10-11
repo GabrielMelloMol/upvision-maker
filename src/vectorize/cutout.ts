@@ -38,6 +38,7 @@ const CONFIDENT = 0.6;
 const FLAT_ENOUGH = 0.75; // a cor basta; abaixo disso vale tentar a Silhueta
 const ML_CONFIDENCE = 0.85;
 const SHADOW_K = 0.78; // até 22% mais escuro que o fundo, na mesma cor, ainda é sombra
+const THIN_KEEP = 0.6; // a abertura só vale se o objeto sobra com pelo menos isto (senão ele é de linha fina)
 const OPEN_R = 1;
 const CLOSE_R = 2;
 
@@ -176,7 +177,9 @@ export function colorCutout(rgba: Uint8ClampedArray, w: number, h: number): Cuto
         insideSum += dist(p, rgba, o);
       }
     }
-  let mask = morph(morph(raw, w, h, OPEN_R, true), w, h, OPEN_R, false); // abertura: tira pontos soltos
+  // abertura: tira pontos soltos; mas se o objeto é feito de linhas finas (contorno, desenho de traço), a abertura o apagaria: aí fica o bruto
+  const opened = morph(morph(raw, w, h, OPEN_R, true), w, h, OPEN_R, false);
+  let mask = count(opened) >= THIN_KEEP * count(raw) ? opened : raw;
   mask = closeSafe(mask, w, h, CLOSE_R);
   mask = fillHoles(largestComponent(mask, w, h), w, h);
 
