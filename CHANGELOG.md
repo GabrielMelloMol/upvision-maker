@@ -4,9 +4,11 @@ Cada versão aparece para a usuária na tela "O que há de novo" depois da atual
 Formato: `## <versão> — <data>` e itens `- …` em linguagem simples.
 
 ## Próxima versão (ainda não lançada)
+- **Kits de montar: carro e caminhão**: kits desenhados peça por peça, com laterais com janelas, chassi, capô, teto (e, no caminhão, parede da cabine e traseira) que se encaixam por abas, e rodas que giram no eixo (pino na lateral, trava apertada na ponta). Você escolhe o tamanho, as proporções, o tamanho da roda, as cores de cada grupo e pode pôr seu logo em relevo. Se não couber na mesa, o app reduz o tamanho sozinho e avisa; o cartão agora gira as peças e usa a mesa inteira quando precisa.
+
+## 0.12.2 — 2026-10-11
 - **Kit card: avião e helicóptero para montar**: dois kits desenhados peça por peça. O avião tem asa no meio (ou baixa/alta, à sua escolha) que atravessa as duas laterais como num aviãozinho de balsa, tampa de cima, deriva única, estabilizador, trem de pouso com rodas e hélice que gira num pino; o helicóptero tem cabine com janelas, cauda, esquis e dois rotores que giram. Cada peça encaixa por abas, fendas e janelas, e as peças que giram prendem por uma trava. Escolha o número de pás, o tamanho, as cores e coloque seu nome ou arte.
 - **Kit card: avião e helicóptero para montar**: dois kits desenhados peça por peça. O avião tem fuselagem de duas laterais, asa, estabilizador, trem de pouso com rodas e hélice que gira num pino; o helicóptero tem cabine com janelas, cauda, esquis e dois rotores que giram. Cada peça encaixa por abas e janelas, e as peças que giram prendem por uma trava. Escolha o número de pás, o tamanho, as cores e coloque seu nome ou arte.
-- **Kits de montar: carro e caminhão**: kits desenhados peça por peça, com laterais com janelas, chassi, capô, teto (e, no caminhão, parede da cabine e traseira) que se encaixam por abas, e rodas que giram no eixo (pino na lateral, trava apertada na ponta). Você escolhe o tamanho, as proporções, o tamanho da roda, as cores de cada grupo e pode pôr seu logo em relevo. Se não couber na mesa, o app reduz o tamanho sozinho e avisa; o cartão agora gira as peças e usa a mesa inteira quando precisa.
 
 ## 0.12.1 — 2026-10-11
 - **Kit card por imagem é experimental**: o aviso na tela diz que funciona melhor com silhuetas simples. Os kits desenhados peça por peça (carro, caminhão e outros) chegam em seguida.
