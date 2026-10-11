@@ -24,7 +24,11 @@ export function useData<T>(load: (db: Db) => Promise<T>, initial: T) {
         setError(null);
       })
       .catch((e) => {
-        if (alive) setError(errorText(e));
+        // o fim do carregamento e o toast saem juntos (mesmo lote): sem um instante com o toast na tela e o skeleton ainda ligado
+        if (alive) {
+          setError(errorText(e));
+          setLoading(false);
+        }
         toast(`Erro ao carregar dados: ${errorText(e)}`, "error");
       })
       .finally(() => alive && setLoading(false));

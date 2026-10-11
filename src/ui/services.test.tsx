@@ -141,7 +141,9 @@ describe("useData", () => {
     };
     const { result } = renderHook(() => useData(load, 0), { wrapper });
     expect(await screen.findByRole("alert")).toHaveTextContent("Erro ao carregar dados: disco cheio");
-    expect(result.current[2]).toBe(false);
+    // o toast e o fim do carregamento são atualizações separadas: espera a condição, não o instante
+    await waitFor(() => expect(result.current[2]).toBe(false));
     expect(result.current[0]).toBe(0);
+    expect(result.current[3]).toBe("disco cheio");
   });
 });
