@@ -4,6 +4,7 @@ Cada versão aparece para a usuária na tela "O que há de novo" depois da atual
 Formato: `## <versão> — <data>` e itens `- …` em linguagem simples.
 
 ## Próxima versão (ainda não lançada)
+- **Kit card: números maiores**: o número de cada peça ficou maior (galhos de 4 mm por padrão) e peças de borda curta ganham um ponto de corte de cada lado.
 - **Kit card, veículo com as rodas do desenho**: o app acha as rodas na silhueta (círculos embaixo, 2 a 4), põe o eixo no centro de cada uma, faz as rodas novas do mesmo tamanho e deixa o vão da roda aberto na lateral. Sem rodas no desenho, continua com as 4 padrão.
 - **Kit card: nenhuma peça fica solta**: nos desenhos de linha fina, ícones, fotos e carros, uma peça às vezes saía do cartão sem estar presa. Agora os pontos de corte entram um pouco na peça e todas ficam presas ao galho; o número de cada peça também fica sempre junto dela.
 - **Kit card mais limpo**: a figura vem com 3 costelas por padrão (ajustável de 2 a 8, porque muitas costelas deixavam a lateral parecendo um pente), o número de cada peça fica sempre no galho dela e o cartão fica compacto, sem espaço vazio entre as peças (dá para desligar em "Cartão compacto").

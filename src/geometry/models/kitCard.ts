@@ -40,7 +40,7 @@ export type KitCardParams = {
 
 export const DEFAULT_KIT_CARD: KitCardParams = {
   mode: "figure", title: "Caça", cardSize: "large", thickness: 1.6, fit: 0.2, ribs: 3, maxWidth: 45, spines: 2, profile: "oval",
-  wheel: 22, track: 35, tire: 2, axleFit: 0.15, copies: 1, compact: true, close: 1, gap: 2.5, frame: 2.5, runner: 3.5, engrave: 0.6, showAssembled: true,
+  wheel: 22, track: 35, tire: 2, axleFit: 0.15, copies: 1, compact: true, close: 1, gap: 2.5, frame: 2.5, runner: 4, engrave: 0.6, showAssembled: true,
   frameColor: "#f4f4f2", pieceColor: "#c9cdd2", wheelColor: "#1c1c1e", tireColor: "#1c1c1e", titleColor: "#1c1c1e",
 };
 
@@ -644,6 +644,7 @@ export function buildKitCard(ctx: ModelCtx, p: KitCardParams): ModelOutput & { m
       if (gates.length < 2) {
         const alt = pieceGates(M, q.cs, q.rightEdge, "right", Math.max(3 * gw, 3), k);
         if (alt.length > gates.length) gates = alt;
+        else if (alt.length && gates.length === 1) gates = [...gates, ...alt]; // um de cada lado: peça de borda curta
       }
       gatesPer.push(gates.length);
       for (const g of gates) bars.push(rect(M, g.x0 - GATE_OVERLAP, g.y - gw / 2, g.x1 + GATE_OVERLAP, g.y + gw / 2, k));
@@ -670,7 +671,7 @@ export function buildKitCard(ctx: ModelCtx, p: KitCardParams): ModelOutput & { m
       const b = q.cs.bounds();
       const [xa, xb] = q.runnerSpan; // o galho (ou a moldura) onde os pontos de corte da peça prendem
       // o número fica colado na peça: no galho dela, encostado na borda do lado da peça, na altura do topo da peça
-      const h = Math.min(3, Math.max(1.6, xb - xa) * 0.9);
+      const h = Math.min(3.8, Math.max(1.6, xb - xa) * 0.9);
       const fitted = k(fitInto(k(raw), Math.max(1, xb - xa - 1), h, b.max[1] - h / 2 - 0.5));
       const fb = fitted.bounds();
       marks.push(k(fitted.translate([xb - 0.5 - fb.max[0], 0])));

@@ -268,7 +268,7 @@ export const HOME_DECOR_MODELS: ModelDef[] = [
           bool("compact", "Cartão compacto (encolhe ao conteúdo)"),
           num("copies", "Cartões na mesa", 1, 12, { step: 1, unit: "", hint: "Os cartões pequenos cabem vários numa mesa só." }),
           num("frame", "Largura da moldura", 2, 5, { step: 0.5 }),
-          num("runner", "Largura dos galhos", 3, 5, { step: 0.5, hint: "Os galhos ligam a moldura às peças, e cada peça leva seu número." }),
+          num("runner", "Largura dos galhos", 3, 6, { step: 0.5, hint: "Os galhos ligam a moldura às peças, e cada peça leva seu número." }),
           num("gap", "Comprimento do ponto de corte", 2, 4, { step: 0.5 }),
           num("engrave", "Profundidade do nome e dos números", 0.3, 1, { step: 0.1 }),
         ],
