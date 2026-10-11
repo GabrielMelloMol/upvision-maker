@@ -62,7 +62,7 @@ test("legendas das variações são curtas e padronizadas: até 14 letras, sem p
 test("categorias dos Modelos prontos (onde fica): Presentes, Casa e decoração e Organização e utilidades", () => {
   const names = (c: Parameters<typeof familiesIn>[0]) => familiesIn(c).map((f) => f.label);
   expect(CATEGORIES.map(([, label]) => label)).toEqual(["Chaveiros", "Placas", "Presentes e lembrancinhas", "Festa e esporte", "Casa e decoração", "Organização e utilidades", "Cozinha"]);
-  expect(names("gifts")).toEqual(["Mapa estelar", "Cartão de música", "Lembrancinhas", "Porta-copos", "Marca-página"]);
+  expect(names("gifts")).toEqual(["Mapa estelar", "Cartão de música", "Lembrancinhas", "Kits de montar", "Porta-copos", "Marca-página"]);
   expect(familiesIn("gifts").find((f) => f.id === "souvenirs")!.variants.map((v) => v.id)).toEqual(["fridgeMagnet", "shirtPrint", "outlineBowl"]);
   expect(names("home")).toEqual(["Moldura", "Luminárias e abajures", "Quadro e desenho", "Vaso", "Brinquedos"]);
   expect(names("organize")).toEqual(["Potes e organizadores", "Organizador modular (Gridfinity)", "Suporte de celular e tablet", "Tecla de teclado", "Porta-chave de parede", "Utilitários"]);
