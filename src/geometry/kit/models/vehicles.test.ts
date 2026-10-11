@@ -63,7 +63,7 @@ describe("kits de veículo: carro e caminhão (#kit)", { timeout: 300_000 }, () 
     scoped((k) => {
       const a = kitInstances(M, k, KIT_CAR, {}).build.parts.find((q) => q.id === "roda")!.layers[0].cs.bounds();
       const b = kitInstances(M, k, KIT_CAR, { wheelD: 26 }).build.parts.find((q) => q.id === "roda")!.layers[0].cs.bounds();
-      expect((b.max[0] - b.min[0]) / (a.max[0] - a.min[0])).toBeCloseTo(26 / 18, 2);
+      expect((b.max[0] - b.min[0]) / (a.max[0] - a.min[0])).toBeCloseTo(26 / 19, 2);
       const la = kitInstances(M, k, KIT_CAR, {}).build.parts.find((q) => q.id === "lateral1")!.layers[0].cs.bounds();
       const lb = kitInstances(M, k, KIT_CAR, { length: 120 }).build.parts.find((q) => q.id === "lateral1")!.layers[0].cs.bounds();
       expect((lb.max[0] - lb.min[0]) / (la.max[0] - la.min[0])).toBeCloseTo(120 / 90, 1);

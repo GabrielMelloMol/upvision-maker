@@ -1,6 +1,6 @@
 import { poly, rect } from "../joints";
 import type { KitTemplate } from "../types";
-import { buildVehicle, VEHICLE_PALETTE, type Ledge } from "./vehicle";
+import { buildVehicle, VEHICLE_PALETTE, type Ledge, type Wall } from "./vehicle";
 
 /** Carro de montar: laterais com janelas, chassi, capô, teto e porta-malas; rodas que giram no pino, presas por travas. */
 export const KIT_CAR: KitTemplate = {
@@ -9,7 +9,7 @@ export const KIT_CAR: KitTemplate = {
   blurb: "Carro de montar projetado peça por peça: laterais com janelas, chassi, capô, teto e porta-malas encaixados, rodas que giram no eixo.",
   palette: VEHICLE_PALETTE,
   artTargets: [["lateral1", "Lateral direita"], ["lateral2", "Lateral esquerda"], ["capo", "Capô"], ["teto", "Teto"], ["chassi", "Chassi"]],
-  defaults: { length: 90, width: 38, bodyH: 12, cabinH: 14, wheelD: 18, tire: 1.5, press: 0.05 },
+  defaults: { length: 90, width: 32, bodyH: 12, cabinH: 14, wheelD: 19, tire: 1.5, press: 0.05 },
   sections: [
     {
       title: "Proporções",
@@ -49,12 +49,17 @@ export const KIT_CAR: KitTemplate = {
       ledge("teto", "Teto", "cab", x3 + 0.6, x2 - 0.6, Hr),
       ledge("malas", "Porta-malas", "body", xTrunk + 0.6, x4 - 0.6, Hb),
     ];
+    const wallH = 0.7 * Hb, tabH = Math.min(8 * s, 0.4 * wallH);
+    const walls: Wall[] = [
+      { id: "frente", label: "Frente", color: "body", x: xf - 3.2 * s, y0: 0, y1: wallH, tabY: wallH / 2, tabH },
+      { id: "fundo", label: "Traseira", color: "body", x: xr + 3.2 * s, y0: 0, y1: wallH, tabY: wallH / 2, tabH },
+    ];
     return buildVehicle(env, {
       profile, cutouts, length: L, width: Wi, wheel, tire, axles: [-0.3 * L, 0.3 * L],
       floor: { x0: xr + 0.02 * L, x1: xf - 0.02 * L, tabs: [-0.2 * L, 0.2 * L], tabW: 8 * s },
-      ledges, walls: [],
+      ledges, walls,
       steps: [
-        "Encaixe as laterais {lateral1} e {lateral2} nas janelas do chassi {chassi}.",
+        "Encaixe as laterais {lateral1} e {lateral2} nas janelas do chassi {chassi}, e feche as pontas com a frente {frente} e a traseira {fundo}, pelas abas nas janelinhas.",
         "Apoie o capô {capo}, o teto {teto} e o porta-malas {malas} nas bordas das laterais, com as abas passando pelas janelinhas.",
         "Prenda cada roda {roda} pelo pino no furo da lateral (de fora para dentro) e aperte a trava {trava} na ponta do pino, por dentro: a roda tem que girar.",
       ],
