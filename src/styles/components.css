@@ -488,3 +488,13 @@ h3.subhead svg { width: 16px; height: 16px; color: var(--muted); }
 .kit-sil { display: grid; gap: var(--space-2); padding: var(--space-3); border-radius: var(--r-lg); background: var(--surface); box-shadow: 0 0 0 0.5px var(--border); }
 .kit-sil-title { margin: 0; font-size: var(--text-md); font-weight: 600; }
 .kit-sil-view img { display: block; width: min(100%, 320px); border-radius: var(--r-sm); box-shadow: 0 0 0 0.5px var(--border-strong); }
+.kit-gallery { display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: var(--space-2); }
+.kit-gallery-card { display: grid; gap: 4px; align-content: start; text-align: left; padding: var(--space-2); border-radius: var(--r-lg); background: var(--surface); box-shadow: 0 0 0 0.5px var(--border-strong); cursor: pointer; transition: box-shadow var(--dur-fast) ease, background var(--dur-fast) ease; }
+.kit-gallery-card:hover { background: var(--fill); }
+.kit-gallery-card[aria-pressed="true"] { box-shadow: 0 0 0 2px var(--accent); background: var(--accent-soft); }
+.kit-gallery-thumb { display: grid; place-items: center; aspect-ratio: 4 / 3; border-radius: var(--r-sm); background: var(--fill); overflow: hidden; }
+.kit-gallery-thumb img { width: 100%; height: 100%; object-fit: contain; }
+.kit-gallery-thumb svg { width: 32px; height: 32px; color: var(--muted); }
+.kit-gallery-name { font-weight: 600; font-size: var(--text-md); }
+.kit-gallery-tag { color: var(--muted); font-size: var(--text-sm); }
+.kit-gallery-facts { display: flex; flex-wrap: wrap; gap: 4px; }

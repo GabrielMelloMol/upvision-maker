@@ -36,6 +36,8 @@ export const MODEL_ALIASES: Record<string, string> = {
   stickStand: "pirulito cake pop palitos doces festa",
   cakeStand: "boleira prato bolo mesa de doces",
   petTag: "pet cachorro gato coleira identificação plaquinha",
+  kitBicho: "bicho animal cachorro gato dinossauro pet brinquedo montar encaixar encaixe fatias kit quebra cabeça",
+  kitBau: "baú bau caixa tampa dobradiça pino pirata tesouro cofre brinquedo montar encaixar encaixe kit",
   pix: "pix qr placa balcão pagamento loja",
   qrPlate: "qr code placa balcão wifi whatsapp instagram avaliação",
   bookmark: "marca página marcador de livro leitura",

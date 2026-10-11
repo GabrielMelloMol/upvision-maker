@@ -1,5 +1,6 @@
 import { HOME_MODELS } from "./catalog/home";
 import { HOME_UTILITY_MODELS } from "./catalog/homeUtilities";
+import { KIT_MODELS } from "./catalog/kits";
 import { KEYCHAIN_MODELS } from "./catalog/keychains";
 import { KITCHEN_MODELS } from "./catalog/kitchen";
 import { PARTY_MODELS } from "./catalog/party";
@@ -14,7 +15,7 @@ export { CATEGORIES, CATEGORY_TAB, type Category, type FieldDef, type ModelDef, 
  * modelo pronto"). A ordem aqui é a da galeria; o 1º modelo (Placa Pix) é o que abre. Todos passam pela checagem
  * de mesa (#129, #130, #131).
  */
-export const MODELS: ModelDef[] = [...PLATE_MODELS, ...KEYCHAIN_MODELS, ...PARTY_MODELS, ...HOME_MODELS, ...HOME_UTILITY_MODELS, ...KITCHEN_MODELS].map(withBedCheck);
+export const MODELS: ModelDef[] = [...PLATE_MODELS, ...KEYCHAIN_MODELS, ...PARTY_MODELS, ...HOME_MODELS, ...KIT_MODELS, ...HOME_UTILITY_MODELS, ...KITCHEN_MODELS].map(withBedCheck);
 
 /** Números dentro dos limites (os campos fora da faixa ficam marcados e não geram o modelo). */
 export function validParams(def: ModelDef, p: Params): boolean {

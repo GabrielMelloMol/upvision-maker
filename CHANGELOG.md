@@ -9,6 +9,8 @@ Formato: `## <versão> — <data>` e itens `- …` em linguagem simples.
 
 ## 0.12.2 — 2026-10-11
 - **Kit card: avião e helicóptero para montar**: dois kits desenhados peça por peça. O avião tem asa no meio (ou baixa/alta, à sua escolha) que atravessa as duas laterais como num aviãozinho de balsa, tampa de cima, deriva única, estabilizador, trem de pouso com rodas e hélice que gira num pino; o helicóptero tem cabine com janelas, cauda, esquis e dois rotores que giram. Cada peça encaixa por abas, fendas e janelas, e as peças que giram prendem por uma trava. Escolha o número de pás, o tamanho, as cores e coloque seu nome ou arte.
+- **Kits de montar: Bicho e Baú**: em Modelos prontos (Casa › Kits de montar) há uma galeria com o Bicho de 4 patas (coluna, fatias de corpo e de perna encaixadas, cabeça de cachorro, gato ou dinossauro e cauda), o Baú (caixa com tampa que abre por dobradiça de pino, em 3 tamanhos) e o Kit card por imagem. Cada kit tem variações prontas, cores por peça, cartão com pontos de corte e números, e o passo a passo de montagem
+- **Botões azuis no tema escuro**: o botão de ação azul passava a ficar mais claro ao passar o mouse e o texto branco ficava difícil de ler; agora o contraste é o recomendado
 
 ## 0.12.1 — 2026-10-11
 - **Kit card por imagem é experimental**: o aviso na tela diz que funciona melhor com silhuetas simples. Os kits desenhados peça por peça (carro, caminhão e outros) chegam em seguida.

@@ -38,6 +38,7 @@ import { useToolState } from "./useToolState";
 import { useTakenIntent } from "./intent";
 import ParamField, { firstText } from "./models/ParamField";
 import ModelGallery, { type Occasion } from "./models/ModelGallery";
+import KitGallery from "./models/KitGallery";
 import VariantPicker from "./models/VariantPicker";
 import { carryFields, familyOf, modelOf } from "./models/families";
 
@@ -326,7 +327,7 @@ export default function Models({ only, embedded }: { only?: string; embedded?: {
             </button>
           </div>
           <p className="hint">{def.blurb}</p>
-          {!only && <VariantPicker id={id} onPick={pickVariant} only={embeddedIds} />}
+          {!only && (family.id === "kits" ? <KitGallery id={id} onPick={pickVariant} /> : <VariantPicker id={id} onPick={pickVariant} only={embeddedIds} />)}
           {variants.length > 0 && (
             <div className="chips" role="group" aria-label="Variações prontas">
               {variants.map((v) => (

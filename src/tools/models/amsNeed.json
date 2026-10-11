@@ -33,6 +33,8 @@
   "keyHolder": "ams",
   "kitAviao": "ams",
   "kitCar": "ams",
+  "kitBau": "ams",
+  "kitBicho": "ams",
   "kitCard": "ams",
   "kitHelicoptero": "ams",
   "kitTruck": "ams",
