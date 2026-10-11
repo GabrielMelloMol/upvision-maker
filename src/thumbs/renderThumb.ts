@@ -26,11 +26,11 @@ const MIN_LIGHTNESS = 0.06; // preto vira grafite escuro (continua preto); o rim
 /** Entradas que alguns modelos exigem para não abrir vazios. */
 const INPUTS: Record<string, Params> = { pix: { key: "loja@upvision.app", name: "Minha Loja", city: "Sao Paulo" }, coaster: { faceDown: false, text: "Café", borderWidth: 2 }, musicCard: { code: "qr", codeLink: "https://open.spotify.com/track/11dFghVXANMlKmJXsNCbNl", codeSize: 40 }, phoneStandFold: { layout: "assembled", text: "Ana", bodyColor: "#7c8ea6" }, bigFrame: { artW: 150, artH: 190, width: 22, claws: false, back: "none", bodyColor: "#8b5a2b" } }; // a miniatura mostra a moldura inteira (uma peça), não as peças soltas // o porta-copos imprime com o desenho na mesa: na miniatura ele aparece em cima
 
-async function buildModels(id: string): Promise<Model[]> {
+export async function buildModels(id: string, patch: Params = {}): Promise<Model[]> {
   const def = MODELS.find((m) => m.id === id);
   if (!def) throw new Error(`Modelo ${id} não existe`);
   const M = await getManifold();
-  const p = { ...def.defaults, ...INPUTS[id] };
+  const p = { ...def.defaults, ...INPUTS[id], ...patch };
   const fields = def.sections.flatMap((s) => s.fields);
   const font = await loadFont("hanken");
   const extra = Object.fromEntries(await Promise.all(fields.filter((f) => f.kind === "font").map(async (f) => [f.k, await loadFont(String(p[f.k]))] as const)));
@@ -55,11 +55,13 @@ function material(color: string): THREE.MeshPhysicalMaterial {
 }
 
 /** Desenha os modelos e devolve a imagem (WebP com transparência, data URL). */
-export function renderModels(models: Model[], w = THUMB_W, h = THUMB_H): string {
+export type ShotOpts = { dir?: THREE.Vector3; fov?: number; margin?: number; /** cor opaca do fundo (padrão: transparente) */ background?: number; png?: boolean };
+
+export function renderModels(models: Model[], w = THUMB_W, h = THUMB_H, opts: ShotOpts = {}): string {
   const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true, preserveDrawingBuffer: true });
   renderer.setPixelRatio(1);
   renderer.setSize(w, h, false);
-  renderer.setClearColor(0x000000, 0);
+  renderer.setClearColor(opts.background ?? 0x000000, opts.background === undefined ? 0 : 1);
   renderer.outputColorSpace = THREE.SRGBColorSpace;
   renderer.toneMapping = THREE.ACESFilmicToneMapping;
   renderer.toneMappingExposure = 1.0;
@@ -115,10 +117,10 @@ export function renderModels(models: Model[], w = THUMB_W, h = THUMB_H): string 
   floor.position.set(center.x, center.y, box.min.z - 0.01);
   floor.receiveShadow = true;
   scene.add(floor);
-  const camera = new THREE.PerspectiveCamera(THUMB_VIEW.fov, w / h, 0.1, span * 50);
-  fitCamera(camera, box, THUMB_VIEW.dir, THUMB_VIEW.margin);
+  const camera = new THREE.PerspectiveCamera(opts.fov ?? THUMB_VIEW.fov, w / h, 0.1, span * 50);
+  fitCamera(camera, box, opts.dir ?? THUMB_VIEW.dir, opts.margin ?? THUMB_VIEW.margin);
   renderer.render(scene, camera);
-  const url = renderer.domElement.toDataURL("image/webp", 0.86);
+  const url = opts.png ? renderer.domElement.toDataURL("image/png") : renderer.domElement.toDataURL("image/webp", 0.86);
   // limpa a GPU: são dezenas de miniaturas na mesma página
   group.traverse((o) => {
     const mesh = o as THREE.Mesh;

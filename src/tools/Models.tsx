@@ -314,6 +314,7 @@ export default function Models({ only, embedded }: { only?: string; embedded?: {
       {!only && !embedded && <p className="lead">Escolha, ajuste o texto e salve o 3MF em cores.</p>}
       <ToolSessionBar tool={tool} />
       {!only && !embedded && <ModelGallery id={id} onPick={pickFromGallery} category={category} onCategory={setCategory} query={query} onQuery={setQuery} occasion={occasion} onOccasion={setOccasion} favorites={favorites} />}
+      {!only && !embedded && family.id === "assembleKits" && <KitGallery id={id} onPick={pickVariant} />}
       <div className="tool-layout" ref={layoutRef} data-model={id}>
         <div className="controls">
           <div className="row model-head">
@@ -327,7 +328,7 @@ export default function Models({ only, embedded }: { only?: string; embedded?: {
             </button>
           </div>
           <p className="hint">{def.blurb}</p>
-          {!only && (family.id === "assembleKits" ? <KitGallery id={id} onPick={pickVariant} /> : <VariantPicker id={id} onPick={pickVariant} only={embeddedIds} />)}
+          {!only && family.id !== "assembleKits" && <VariantPicker id={id} onPick={pickVariant} only={embeddedIds} />}
           {variants.length > 0 && (
             <div className="chips" role="group" aria-label="Variações prontas">
               {variants.map((v) => (

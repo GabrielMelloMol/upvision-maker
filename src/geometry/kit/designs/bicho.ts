@@ -18,10 +18,14 @@ export const BICHO_LIMITS = { length: [50, 120], slices: [2, 6] } as const;
 
 const BODY_H = 0.4; // altura do corpo / comprimento
 const BODY_W = 0.36; // largura do corpo / comprimento
-const LEG_H = 0.28; // altura das pernas / comprimento
+const LEG_H = 0.22; // altura das pernas / comprimento
 const LEG_W_MIN = 6;
 const LEG_W = 0.1;
-const FRONT_LEG_AT = 0.18; // posição da fatia de perna da frente, em fração do comprimento (a de trás é o espelho)
+const FRONT_LEG_AT = 0.2; // posição da fatia de perna de trás, em fração do comprimento (a da frente é o espelho)
+const SPINE_LEG_W = 0.13; // largura da perna da coluna (as pernas de perfil, vistas de lado)
+const SPINE_LEG_AT = 0.04; // ... e a que distância da ponta ela começa
+const CHEST_R = 0.5; // raio do peito / altura do corpo
+const RUMP_R = 0.46; // raio da garupa / altura do corpo
 const WALL_MIN = 3; // parede mínima em volta de um soquete
 const SPIGOT_CLEARANCE = 0.75; // folga da espiga por lado = fit * isto
 const NECK_RISE = 0.08;
@@ -72,7 +76,12 @@ export function bichoSpine(env: Env, p: BichoParams): CS {
   const d = bichoDims(p, env);
   const a = bichoAnchors(p, env);
   const { L, H, s } = d;
-  const capsule = k(k(roundedRect(M, L, H, 0.4 * H)).translate([L / 2, H / 2]));
+  // corpo: do peito (fundo, redondo) à garupa (mais alta), com a linha do dorso reta; as duas pernas de perfil descem da barriga
+  const chest = k(M.CrossSection.circle(CHEST_R * H, 48).translate([L - CHEST_R * H, H - CHEST_R * H]));
+  const rump = k(M.CrossSection.circle(RUMP_R * H, 48).translate([RUMP_R * H, H - RUMP_R * H]));
+  const lw = SPINE_LEG_W * L;
+  const legs = [SPINE_LEG_AT * L + lw / 2, L - SPINE_LEG_AT * L - lw / 2].map((cx) => k(k(roundedFoot(M, cx, lw, d.P + 0.5 * H)).translate([0, -d.P])));
+  const capsule = k(M.CrossSection.union([k(M.CrossSection.hull([chest, rump])), ...legs]));
   const neck = k(box(M, L - a.headW, H * 0.5, L, a.headY));
   const rear = k(box(M, 0, H * 0.5, a.tailW, a.tailY));
   let body = k(union(M, [capsule, neck, rear]));
@@ -112,37 +121,40 @@ const spigot = (env: Env, sock: Sock): CS => {
   return dovetail(M, { ...sock, depth: sock.depth - 0.2 }, g, 0.2);
 };
 
-const HEAD_RECT = { x0: -0.06, x1: 0.22, h: 0.26 }; // frações do comprimento: o corpo da cabeça sobre a espiga (x = 0)
-
-/** Cabeça (perfil de lado, virada para +x) com a espiga para baixo (y < 0). */
+/** Cabeça (perfil de lado, virada para +x) com a espiga para baixo (y < 0). A cabeça apoia em y = 0; o fundo do crânio fica sobre a espiga em x = 0. */
 export function bichoHead(env: Env, p: BichoParams): CS {
   const { M, k } = env;
   const L = p.length;
   const f = (v: number) => v * L;
-  const r = f(p.head === "cat" ? 0.1 : 0.06);
-  const w = p.head === "dino" ? f(0.34) - f(HEAD_RECT.x0) : f(HEAD_RECT.x1 - HEAD_RECT.x0);
-  const h = f(p.head === "dino" ? 0.2 : HEAD_RECT.h);
-  const block = k(k(roundedRect(M, w, h, r)).translate([f(HEAD_RECT.x0) + w / 2, h / 2]));
-  const extra: CS[] = [];
+  const at = (c: CS, x: number, y: number) => k(c.translate([f(x), f(y)]));
+  const part = (w: number, h: number, r: number, x0: number, y0: number) => k(k(roundedRect(M, f(w), f(h), f(r))).translate([f(x0) + f(w) / 2, f(y0) + f(h) / 2]));
+  const oval = (rx: number, ry: number, cx: number, cy: number, deg = 0) => k(k(k(M.CrossSection.circle(1, 40).scale([f(rx), f(ry)])).rotate(deg)).translate([f(cx), f(cy)]));
+  const parts: CS[] = [];
   if (p.head === "dog") {
-    extra.push(k(box(M, f(0.18), f(0.02), f(0.3), f(0.14))));
-    extra.push(k(poly(M, [[f(-0.06), f(0.22)], [f(-0.12), f(0.08)], [f(0.0), f(0.1)]])));
+    parts.push(part(0.24, 0.22, 0.07, -0.07, 0)); // crânio
+    parts.push(part(0.16, 0.12, 0.045, 0.1, 0.01)); // focinho, mais baixo que o crânio
+    parts.push(oval(0.034, 0.088, -0.05, 0.102, 10)); // orelha caída, atrás (sem passar de y = 0: ali fica o pescoço da coluna)
+    parts.push(k(M.CrossSection.circle(f(0.022), 24).translate([f(0.255), f(0.1)]))); // nariz
   } else if (p.head === "cat") {
-    extra.push(k(poly(M, [[f(-0.02), f(0.22)], [f(0.02), f(0.34)], [f(0.07), f(0.22)]])));
-    extra.push(k(poly(M, [[f(0.12), f(0.22)], [f(0.17), f(0.34)], [f(0.21), f(0.22)]])));
+    parts.push(part(0.26, 0.23, 0.1, -0.07, 0));
+    parts.push(k(poly(M, [[f(-0.04), f(0.2)], [f(0.0), f(0.33)], [f(0.065), f(0.21)]])));
+    parts.push(k(poly(M, [[f(0.1), f(0.21)], [f(0.15), f(0.33)], [f(0.19), f(0.2)]])));
   } else {
-    extra.push(k(poly(M, [[f(0.02), f(0.19)], [f(0.07), f(0.27)], [f(0.12), f(0.19)]])));
+    // dinossauro: cabeça comprida e baixa (dois círculos unidos), crista e dentes na frente
+    const back = at(k(M.CrossSection.circle(f(0.085), 40)), 0.02, 0.085), tip = at(k(M.CrossSection.circle(f(0.05), 32)), 0.3, 0.07);
+    parts.push(k(M.CrossSection.hull([back, tip])));
+    parts.push(k(poly(M, [[f(0.0), f(0.16)], [f(0.05), f(0.25)], [f(0.1), f(0.15)]])));
   }
-  return union(M, [block, ...extra, k(spigot(env, bichoDims(p, env).headSock))]);
+  return union(M, [...parts, k(spigot(env, bichoDims(p, env).headSock))]);
 }
 
 /** Cauda: barra afilada da espiga (x = 0, y = 0) até a ponta, com a espiga para baixo. */
 export function bichoTail(env: Env, p: BichoParams): CS {
   const { M, k } = env;
   const L = p.length;
-  const end: Record<TailStyle, [number, number]> = { short: [-0.06, 0.1], long: [-0.16, 0.22], up: [-0.02, 0.28] };
+  const end: Record<TailStyle, [number, number]> = { short: [-0.07, 0.09], long: [-0.2, 0.12], up: [-0.08, 0.2] };
   const [ex, ey] = end[p.tail];
-  const w0 = Math.max(3.5, 0.045 * L), w1 = Math.max(2, 0.025 * L);
+  const w0 = Math.max(3.5, 0.05 * L), w1 = Math.max(2, 0.022 * L);
   const bar = k(M.CrossSection.hull([k(M.CrossSection.circle(w0, 24).translate([0, w0])), k(M.CrossSection.circle(w1, 24).translate([ex * L, ey * L]))]));
   return union(M, [bar, k(spigot(env, bichoDims(p, env).tailSock))]);
 }

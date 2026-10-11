@@ -1,5 +1,115 @@
 [
  {
+  "key": "kitBau:máximo",
+  "owner": "Forja",
+  "group": "gifts",
+  "label": "Baú (kit) (kitBau)",
+  "variant": "máximo",
+  "status": "aviso",
+  "reasons": [
+   "Bambu: torre de purga em cima de uma peça depois do --arrange do CLI (na tela, arraste a torre ou use Arrumar)",
+   "Orca: torre de purga em cima de uma peça depois do --arrange do CLI (na tela, arraste a torre ou use Arrumar)",
+   "Projeto Bambu: torre de purga em cima de uma peça depois do --arrange do CLI (na tela, arraste a torre ou use Arrumar)",
+   "app: As peças não cabem no cartão pedido: usei o cartão da mesa inteira (243 × 190 mm).",
+   "app: Para montar: destaque as peças dobrando os pontos de corte. Corte os pontos de corte com alicate e lixe os cotos. Monte a caixa: encaixe a frente e o fundo 1 a 2 nas laterais 3 a 4 pelas abas e ponha o piso 5. Monte a tampa com o topo 6 para baixo: encaixe a frente 7 e as laterais 8 a 9. A tampa não tem parede de trás. Pouse a tampa na caixa, alinhe os furos atrás e empurre um pino 10 a 11 de cada lado.",
+   "app: Só 1 cartão(ões) de 242,6 × 190 mm cabem juntos numa mesa de 256 mm (você pediu 12): escolha um cartão menor para caber mais."
+  ],
+  "date": "2026-10-11",
+  "slicers": "Bambu ✓ · Orca ✓ · Projeto Bambu ✓"
+ },
+ {
+  "key": "kitBau:mínimo",
+  "owner": "Forja",
+  "group": "gifts",
+  "label": "Baú (kit) (kitBau)",
+  "variant": "mínimo",
+  "status": "aviso",
+  "reasons": [
+   "Orca: torre de purga passa da mesa na posição padrão do CLI (na tela, arraste a torre ou use Arrumar)",
+   "Projeto Bambu: torre de purga passa da mesa na posição padrão do CLI (na tela, arraste a torre ou use Arrumar)",
+   "app: Para montar: destaque as peças dobrando os pontos de corte. Corte os pontos de corte com alicate e lixe os cotos. Monte a caixa: encaixe a frente e o fundo 1 a 2 nas laterais 3 a 4 pelas abas e ponha o piso 5. Monte a tampa com o topo 6 para baixo: encaixe a frente 7 e as laterais 8 a 9. A tampa não tem parede de trás. Pouse a tampa na caixa, alinhe os furos atrás e empurre um pino 10 a 11 de cada lado."
+  ],
+  "date": "2026-10-11",
+  "slicers": "Bambu ✓ · Orca ✓ · Projeto Bambu ✓",
+  "minutes": 60,
+  "grams": 21,
+  "plates": 1
+ },
+ {
+  "key": "kitBau:padrão",
+  "owner": "Forja",
+  "group": "gifts",
+  "label": "Baú (kit) (kitBau)",
+  "variant": "padrão",
+  "status": "aviso",
+  "reasons": [
+   "Orca: torre de purga passa da mesa na posição padrão do CLI (na tela, arraste a torre ou use Arrumar)",
+   "Projeto Bambu: torre de purga passa da mesa na posição padrão do CLI (na tela, arraste a torre ou use Arrumar)",
+   "app: As peças não cabem no cartão pedido: usei o cartão maior (223 × 111 mm).",
+   "app: Para montar: destaque as peças dobrando os pontos de corte. Corte os pontos de corte com alicate e lixe os cotos. Monte a caixa: encaixe a frente e o fundo 1 a 2 nas laterais 3 a 4 pelas abas e ponha o piso 5. Monte a tampa com o topo 6 para baixo: encaixe a frente 7 e as laterais 8 a 9. A tampa não tem parede de trás. Pouse a tampa na caixa, alinhe os furos atrás e empurre um pino 10 a 11 de cada lado."
+  ],
+  "date": "2026-10-11",
+  "slicers": "Bambu ✓ · Orca ✓ · Projeto Bambu ✓",
+  "minutes": 102,
+  "grams": 42.6,
+  "plates": 1
+ },
+ {
+  "key": "kitBicho:máximo",
+  "owner": "Forja",
+  "group": "gifts",
+  "label": "Bicho de 4 patas (kit) (kitBicho)",
+  "variant": "máximo",
+  "status": "aviso",
+  "reasons": [
+   "Bambu: torre de purga em cima de uma peça depois do --arrange do CLI (na tela, arraste a torre ou use Arrumar)",
+   "Orca: torre de purga em cima de uma peça depois do --arrange do CLI (na tela, arraste a torre ou use Arrumar)",
+   "Projeto Bambu: torre de purga em cima de uma peça depois do --arrange do CLI (na tela, arraste a torre ou use Arrumar)",
+   "app: Com 120 mm de comprimento só cabem 4 fatias no cartão: usei 4. Diminua o comprimento para usar mais.",
+   "app: As peças não cabem no cartão pedido: usei o cartão da mesa inteira (216 × 200 mm).",
+   "app: Para montar: destaque as peças dobrando os pontos de corte. Corte os pontos de corte com alicate e lixe os cotos. Vire a coluna 1 de cabeça para baixo e encaixe as fatias 2 a 3 e 4 a 5 pelas fendas, da frente para trás: as de perna são as das pontas. Desvire: o bicho fica em pé nas 4 pernas. Desça a cabeça 6 pelo soquete da frente e a cauda 7 pelo de trás.",
+   "app: Só 1 cartão(ões) de 216,4 × 199,9 mm cabem juntos numa mesa de 256 mm (você pediu 12): escolha um cartão menor para caber mais."
+  ],
+  "date": "2026-10-11",
+  "slicers": "Bambu ✓ · Orca ✓ · Projeto Bambu ✓"
+ },
+ {
+  "key": "kitBicho:mínimo",
+  "owner": "Forja",
+  "group": "gifts",
+  "label": "Bicho de 4 patas (kit) (kitBicho)",
+  "variant": "mínimo",
+  "status": "aviso",
+  "reasons": [
+   "Orca: torre de purga passa da mesa na posição padrão do CLI (na tela, arraste a torre ou use Arrumar)",
+   "Projeto Bambu: torre de purga passa da mesa na posição padrão do CLI (na tela, arraste a torre ou use Arrumar)",
+   "app: Para montar: destaque as peças dobrando os pontos de corte. Corte os pontos de corte com alicate e lixe os cotos. Vire a coluna 1 de cabeça para baixo e encaixe as fatias 2 a 3 pelas fendas, da frente para trás: as de perna são as das pontas. Desvire: o bicho fica em pé nas 4 pernas. Desça a cabeça 4 pelo soquete da frente e a cauda 5 pelo de trás."
+  ],
+  "date": "2026-10-11",
+  "slicers": "Bambu ✓ · Orca ✓ · Projeto Bambu ✓",
+  "minutes": 34,
+  "grams": 9.2,
+  "plates": 1
+ },
+ {
+  "key": "kitBicho:padrão",
+  "owner": "Forja",
+  "group": "gifts",
+  "label": "Bicho de 4 patas (kit) (kitBicho)",
+  "variant": "padrão",
+  "status": "aviso",
+  "reasons": [
+   "Orca: torre de purga passa da mesa na posição padrão do CLI (na tela, arraste a torre ou use Arrumar)",
+   "Projeto Bambu: torre de purga passa da mesa na posição padrão do CLI (na tela, arraste a torre ou use Arrumar)",
+   "app: Para montar: destaque as peças dobrando os pontos de corte. Corte os pontos de corte com alicate e lixe os cotos. Vire a coluna 1 de cabeça para baixo e encaixe as fatias 2 a 3 e 4 a 5 pelas fendas, da frente para trás: as de perna são as das pontas. Desvire: o bicho fica em pé nas 4 pernas. Desça a cabeça 6 pelo soquete da frente e a cauda 7 pelo de trás."
+  ],
+  "date": "2026-10-11",
+  "slicers": "Bambu ✓ · Orca ✓ · Projeto Bambu ✓",
+  "minutes": 75,
+  "grams": 26.8,
+  "plates": 1
+ },
+ {
   "key": "articulatedName:máximo",
   "owner": "Forja",
   "group": "keychains",
