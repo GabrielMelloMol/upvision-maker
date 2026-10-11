@@ -1,6 +1,6 @@
 import { poly, rect } from "../joints";
 import type { KitTemplate } from "../types";
-import { buildVehicle, VEHICLE_PALETTE, type Ledge, type Wall } from "./vehicle";
+import { buildVehicle, lateralBase, VEHICLE_PALETTE, type Ledge, type Wall } from "./vehicle";
 
 /** Carro de montar: laterais com janelas, chassi, capô, teto e porta-malas; rodas que giram no pino, presas por travas. */
 export const KIT_CAR: KitTemplate = {
@@ -9,14 +9,14 @@ export const KIT_CAR: KitTemplate = {
   blurb: "Carro de montar projetado peça por peça: laterais com janelas, chassi, capô, teto e porta-malas encaixados, rodas que giram no eixo.",
   palette: VEHICLE_PALETTE,
   artTargets: [["lateral1", "Lateral direita"], ["lateral2", "Lateral esquerda"], ["capo", "Capô"], ["teto", "Teto"], ["chassi", "Chassi"]],
-  defaults: { length: 90, width: 32, bodyH: 12, cabinH: 14, wheelD: 19, tire: 1.5, press: 0.05 },
+  defaults: { length: 90, width: 32, bodyH: 15, cabinH: 13, wheelD: 19, tire: 1.5, press: 0.05 },
   sections: [
     {
       title: "Proporções",
       fields: [
         { k: "length", kind: "num", label: "Comprimento", min: 60, max: 140, step: 1, unit: "mm" },
         { k: "width", kind: "num", label: "Largura", min: 28, max: 56, step: 1, unit: "mm", hint: "Distância entre as laterais." },
-        { k: "bodyH", kind: "num", label: "Altura da carroceria", min: 8, max: 20, step: 1, unit: "mm" },
+        { k: "bodyH", kind: "num", label: "Altura da carroceria", min: 8, max: 22, step: 1, unit: "mm", hint: "Nunca fica abaixo do topo das rodas: se você aumentar a roda, a carroceria sobe junto." },
         { k: "cabinH", kind: "num", label: "Altura da cabine", min: 10, max: 24, step: 1, unit: "mm" },
       ],
     },
@@ -32,8 +32,10 @@ export const KIT_CAR: KitTemplate = {
   ],
   build: (env) => {
     const { M, k, scale: s, p } = env;
-    const L = Number(p.length) * s, Wi = Number(p.width) * s, Hb = Number(p.bodyH) * s, Hr = Hb + Number(p.cabinH) * s;
+    const L = Number(p.length) * s, Wi = Number(p.width) * s;
     const wheel = (Number(p.wheelD) / 2) * s, tire = Math.min(Number(p.tire) * s, wheel - 4);
+    // a linha do capô e do porta-malas fica acima do topo das rodas (senão elas aparecem por cima do corpo)
+    const Hb = Math.max(Number(p.bodyH) * s, 2 * wheel - lateralBase(env, wheel).zl0 + 1.5 * s), Hr = Hb + Number(p.cabinH) * s;
     const xf = L / 2, xr = -L / 2;
     const xHoodEnd = xf - 0.05 * L, x1 = 0.18 * L, x2 = x1 - 0.12 * L, x3 = -0.14 * L, x4 = x3 - 0.1 * L, xTrunk = xr + 0.05 * L;
     const profile = poly(M, k, [[xr, 0], [xf, 0], [xf, 0.75 * Hb], [xHoodEnd, Hb], [x1, Hb], [x2, Hr], [x3, Hr], [x4, Hb], [xTrunk, Hb], [xr, 0.75 * Hb]]);

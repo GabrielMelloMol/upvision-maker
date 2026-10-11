@@ -18,7 +18,7 @@ export const VEHICLE_PALETTE: KitPalette = [
   { key: "cab", label: "Cabine", default: "#2f6fb0" },
   { key: "wheel", label: "Rodas", default: "#f4f4f2" },
   { key: "tire", label: "Pneus", default: "#1c1c1e" },
-  { key: "lock", label: "Travas", default: "#1c1c1e" },
+  { key: "lock", label: "Travas", default: "#c0392b" },
 ];
 
 /** Placa horizontal que apoia na borda de cima da lateral (em `y`), presa por uma aba de cada lado em `tabs`. */
@@ -54,14 +54,19 @@ const AXIAL_PLAY = 0.3; // folga da trava na lateral (a roda gira)
 /** Medidas do eixo que dependem do bico e das folgas. */
 export const pinRadius = () => Math.max(1.5, 2 * nozzleMm());
 
+/** Altura da borda de baixo da lateral (a roda toca o chão e o furo do eixo fica 2,4 mm acima da borda). */
+export function lateralBase(env: Pick<KitEnv, "t" | "p">, wheel: number): { zl0: number } {
+  const spin = Number(env.p.spin ?? 0.3);
+  return { zl0: Math.max(env.t + 0.4, wheel - (pinRadius() + spin / 2) - 2.4) };
+}
+
 /** Monta as peças, a montagem e os pares de um veículo a partir da geometria dele. */
 export function buildVehicle(env: KitEnv, g: VehicleGeom): KitBuild {
   const { M, k, t, fit, pinFit } = env;
   const spin = Number(env.p.spin ?? 0.3), press = Number(env.p.press ?? 0.05);
   const pinR = pinRadius();
   const Wi = g.width, fw = Wi / 2 + (t + fit) / 2 + WALL_MM; // meia largura das placas
-  const holeR = pinR + spin / 2;
-  const zl0 = Math.max(t + 0.4, g.wheel - holeR - 2.4); // altura da borda de baixo da lateral
+  const { zl0 } = lateralBase(env, g.wheel); // altura da borda de baixo da lateral
   const zf = zl0 - t; // chão do chassi
   const axleY = g.wheel - zl0; // altura do eixo na lateral
   const gapW = fit / 2 + WALL_MM + WHEEL_SIDE_GAP;

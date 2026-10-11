@@ -77,4 +77,73 @@ describe("kits de veículo: carro e caminhão (#kit)", { timeout: 300_000 }, () 
       expect(kb.parts.find((q) => q.id === "trava")!.count).toBe(6);
     });
   });
+
+  /** Centro de massa de um sólido (teorema da divergência sobre a malha). */
+  const centroid = (m: { positions: Float32Array; indices: Uint32Array }) => {
+    let v = 0;
+    const c = [0, 0, 0];
+    const p = m.positions;
+    for (let i = 0; i < m.indices.length; i += 3) {
+      const a = m.indices[i] * 3, b = m.indices[i + 1] * 3, d = m.indices[i + 2] * 3;
+      const vol = (p[a] * (p[b + 1] * p[d + 2] - p[b + 2] * p[d + 1]) - p[a + 1] * (p[b] * p[d + 2] - p[b + 2] * p[d]) + p[a + 2] * (p[b] * p[d + 1] - p[b + 1] * p[d])) / 6;
+      v += vol;
+      for (let k = 0; k < 3; k++) c[k] += (vol * (p[a + k] + p[b + k] + p[d + k])) / 4;
+    }
+    return c.map((x) => x / v);
+  };
+  const assembled = (tpl: typeof KIT_CAR, v: Record<string, number>) =>
+    scoped((k) => {
+      const { insts, build, env } = kitInstances(M, k, tpl, v);
+      const sol = assemblySolids(M, k, insts, build.assembly).map((q) => {
+        const whole = q.colors.size > 1 ? k(M.Manifold.union([...q.colors.values()])) : [...q.colors.values()][0];
+        const mesh = whole.getMesh();
+        const box = whole.boundingBox();
+        return { name: q.name, id: q.id, box, c: centroid({ positions: Float32Array.from(mesh.vertProperties), indices: Uint32Array.from(mesh.triVerts) }) };
+      });
+      return { sol, Wi: Number(env.p.width) * env.scale, t: env.t };
+    });
+
+  for (const [name, tpl, variants] of CASES)
+    variants.forEach((v, i) => {
+      test(`${name} #${i + 1}: as rodas ficam POR FORA das laterais (|y| do centro maior que a meia largura do corpo)`, () => {
+        const { sol, Wi, t } = assembled(tpl, v);
+        const wheels = sol.filter((q) => q.id === "roda");
+        expect(wheels.length).toBeGreaterThanOrEqual(4);
+        for (const w of wheels) expect(Math.abs(w.c[1]), `${w.name} (centro y ${w.c[1].toFixed(2)})`).toBeGreaterThan(Wi / 2 + t / 2);
+      });
+
+      test(`${name} #${i + 1}: simétrico esquerda/direita (laterais, rodas e travas espelhadas em y = 0)`, () => {
+        const { sol } = assembled(tpl, v);
+        const by = (n: string) => sol.find((q) => q.name === n)!;
+        const mirrored = (a: ReturnType<typeof by>, b: ReturnType<typeof by>) => {
+          expect(a.box.min[0]).toBeCloseTo(b.box.min[0], 2);
+          expect(a.box.max[0]).toBeCloseTo(b.box.max[0], 2);
+          expect(a.box.min[2]).toBeCloseTo(b.box.min[2], 2);
+          expect(a.box.max[2]).toBeCloseTo(b.box.max[2], 2);
+          expect(a.box.min[1]).toBeCloseTo(-b.box.max[1], 2);
+          expect(a.box.max[1]).toBeCloseTo(-b.box.min[1], 2);
+          expect(a.c[0]).toBeCloseTo(b.c[0], 1);
+          expect(a.c[1]).toBeCloseTo(-b.c[1], 1);
+          expect(a.c[2]).toBeCloseTo(b.c[2], 1);
+        };
+        mirrored(by("lateral1"), by("lateral2"));
+        for (const id of ["roda", "trava"]) {
+          const list = sol.filter((q) => q.id === id);
+          for (let n = 0; n < list.length; n += 2) mirrored(list[n], list[n + 1]); // 1 e 2, 3 e 4, ...: direita e esquerda do mesmo eixo
+        }
+        // as placas e paredes do meio são simétricas em y
+        for (const q of sol.filter((x) => !["lateral1", "lateral2", "roda", "trava"].includes(x.id))) {
+          expect(q.box.min[1], q.name).toBeCloseTo(-q.box.max[1], 2);
+          expect(q.c[1], q.name).toBeCloseTo(0, 1);
+        }
+      });
+    });
+
+  test("carro: as rodas não passam por cima do capô nem do porta-malas (topo da roda abaixo das placas)", () => {
+    for (const v of [{}, { wheelD: 28 }, { wheelD: 14, bodyH: 8 }] as Record<string, number>[]) {
+      const { sol } = assembled(KIT_CAR, v);
+      const wheelTop = Math.max(...sol.filter((q) => q.id === "roda").map((q) => q.box.max[2]));
+      for (const id of ["capo", "malas"]) expect(wheelTop, `${id} com ${JSON.stringify(v)}`).toBeLessThanOrEqual(sol.find((q) => q.id === id)!.box.min[2] + 1e-6);
+    }
+  });
 });
