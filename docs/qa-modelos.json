@@ -2861,6 +2861,122 @@
   "plates": 1
  },
  {
+  "key": "kitRocket:máximo",
+  "owner": "Torno",
+  "group": "home",
+  "label": "Foguete (kit de montar) (kitRocket)",
+  "variant": "máximo",
+  "status": "aviso",
+  "reasons": [
+   "Orca: torre de purga passa da mesa na posição padrão do CLI (na tela, arraste a torre ou use Arrumar)",
+   "Projeto Bambu: torre de purga passa da mesa na posição padrão do CLI (na tela, arraste a torre ou use Arrumar)",
+   "app: O foguete de 290 mm não cabe no maior cartão: limitei a 145 mm. Para um maior, imprima as peças em mais de um cartão.",
+   "app: Para montar: destaque as peças dobrando os pontos de corte. Em cada estágio, encaixe 2 em 3, 4 em 5 e 6 em 7 pelas fendas (uma abre por cima, a outra por baixo). Empilhe: as abas de 2 e 3 entram nos encaixes de 4 e 5; as de 4 e 5, nos do bico 6 e 7. Encaixe o bocal do foguete nos rasgos da base 1.",
+   "app: Só 1 cartão(ões) de 236,1 × 149,9 mm cabem juntos numa mesa de 256 mm (você pediu 12): escolha um cartão menor para caber mais."
+  ],
+  "date": "2026-10-11",
+  "slicers": "Bambu ✓ · Orca ✓ · Projeto Bambu ✓",
+  "minutes": 147,
+  "grams": 63.6,
+  "plates": 1
+ },
+ {
+  "key": "kitRocket:mínimo",
+  "owner": "Torno",
+  "group": "home",
+  "label": "Foguete (kit de montar) (kitRocket)",
+  "variant": "mínimo",
+  "status": "aviso",
+  "reasons": [
+   "Orca: torre de purga passa da mesa na posição padrão do CLI (na tela, arraste a torre ou use Arrumar)",
+   "Projeto Bambu: torre de purga passa da mesa na posição padrão do CLI (na tela, arraste a torre ou use Arrumar)",
+   "app: Foguete pequeno: as janelinhas ficam com menos de 2,4 mm e podem não sair bem.",
+   "app: Espessura abaixo de 1,4 mm: as pernas do bico ficam frágeis.",
+   "app: A peça \"Bico (A)\" tem partes mais finas que o bico (0,4 mm): elas somem na impressão. Aumente o tamanho do modelo.",
+   "app: Para montar: destaque as peças dobrando os pontos de corte. Em cada estágio, encaixe 2 em 3, 4 em 5 e 6 em 7 pelas fendas (uma abre por cima, a outra por baixo). Empilhe: as abas de 2 e 3 entram nos encaixes de 4 e 5; as de 4 e 5, nos do bico 6 e 7. Encaixe o bocal do foguete nos rasgos da base 1."
+  ],
+  "date": "2026-10-11",
+  "slicers": "Bambu ✓ · Orca ✓ · Projeto Bambu ✓",
+  "minutes": 40,
+  "grams": 10,
+  "plates": 1
+ },
+ {
+  "key": "kitRocket:padrão",
+  "owner": "Torno",
+  "group": "home",
+  "label": "Foguete (kit de montar) (kitRocket)",
+  "variant": "padrão",
+  "status": "aviso",
+  "reasons": [
+   "Orca: torre de purga passa da mesa na posição padrão do CLI (na tela, arraste a torre ou use Arrumar)",
+   "Projeto Bambu: torre de purga passa da mesa na posição padrão do CLI (na tela, arraste a torre ou use Arrumar)",
+   "app: Para montar: destaque as peças dobrando os pontos de corte. Em cada estágio, encaixe 2 em 3, 4 em 5 e 6 em 7 pelas fendas (uma abre por cima, a outra por baixo). Empilhe: as abas de 2 e 3 entram nos encaixes de 4 e 5; as de 4 e 5, nos do bico 6 e 7. Encaixe o bocal do foguete nos rasgos da base 1."
+  ],
+  "date": "2026-10-11",
+  "slicers": "Bambu ✓ · Orca ✓ · Projeto Bambu ✓",
+  "minutes": 107,
+  "grams": 47.8,
+  "plates": 1
+ },
+ {
+  "key": "kitTractor:máximo",
+  "owner": "Torno",
+  "group": "home",
+  "label": "Trator (kit de montar) (kitTractor)",
+  "variant": "máximo",
+  "status": "aviso",
+  "reasons": [
+   "Orca: torre de purga em cima de uma peça depois do --arrange do CLI (na tela, arraste a torre ou use Arrumar)",
+   "Projeto Bambu: torre de purga passa da mesa na posição padrão do CLI (na tela, arraste a torre ou use Arrumar)",
+   "app: O trator de 180 mm não cabe no maior cartão: limitei a 90 mm.",
+   "app: Para montar: destaque as peças dobrando os pontos de corte. Prenda as rodas 9 a 10 e 11 a 12 nos furos das laterais 1 a 2, de fora para dentro (pino por dentro da lateral). Com as laterais de pé, passe as abas das travessas pelas janelas: 3, 4, 5, 7 e por último o 6. Encaixe o escapamento 8 no furo do capô.",
+   "app: Só 1 cartão(ões) de 237,8 × 150 mm cabem juntos numa mesa de 256 mm (você pediu 12): escolha um cartão menor para caber mais."
+  ],
+  "date": "2026-10-11",
+  "slicers": "Bambu ✓ · Orca ✓ · Projeto Bambu ✓",
+  "minutes": 145,
+  "grams": 59.6,
+  "plates": 1
+ },
+ {
+  "key": "kitTractor:mínimo",
+  "owner": "Torno",
+  "group": "home",
+  "label": "Trator (kit de montar) (kitTractor)",
+  "variant": "mínimo",
+  "status": "aviso",
+  "reasons": [
+   "Orca: torre de purga passa da mesa na posição padrão do CLI (na tela, arraste a torre ou use Arrumar)",
+   "Projeto Bambu: torre de purga passa da mesa na posição padrão do CLI (na tela, arraste a torre ou use Arrumar)",
+   "app: Trator pequeno: as janelas e as abas ficam apertadas. Aumente o comprimento ou a espessura se as travessas não encaixarem.",
+   "app: Para montar: destaque as peças dobrando os pontos de corte. Prenda as rodas 9 a 10 e 11 a 12 nos furos das laterais 1 a 2, de fora para dentro (pino por dentro da lateral). Com as laterais de pé, passe as abas das travessas pelas janelas: 3, 4, 5, 7 e por último o 6. Encaixe o escapamento 8 no furo do capô."
+  ],
+  "date": "2026-10-11",
+  "slicers": "Bambu ✓ · Orca ✓ · Projeto Bambu ✓",
+  "minutes": 43,
+  "grams": 12.8,
+  "plates": 1
+ },
+ {
+  "key": "kitTractor:padrão",
+  "owner": "Torno",
+  "group": "home",
+  "label": "Trator (kit de montar) (kitTractor)",
+  "variant": "padrão",
+  "status": "aviso",
+  "reasons": [
+   "Orca: torre de purga passa da mesa na posição padrão do CLI (na tela, arraste a torre ou use Arrumar)",
+   "Projeto Bambu: torre de purga passa da mesa na posição padrão do CLI (na tela, arraste a torre ou use Arrumar)",
+   "app: Para montar: destaque as peças dobrando os pontos de corte. Prenda as rodas 9 a 10 e 11 a 12 nos furos das laterais 1 a 2, de fora para dentro (pino por dentro da lateral). Com as laterais de pé, passe as abas das travessas pelas janelas: 3, 4, 5, 7 e por último o 6. Encaixe o escapamento 8 no furo do capô."
+  ],
+  "date": "2026-10-11",
+  "slicers": "Bambu ✓ · Orca ✓ · Projeto Bambu ✓",
+  "minutes": 107,
+  "grams": 45.3,
+  "plates": 1
+ },
+ {
   "key": "knob:máximo",
   "owner": "Torno",
   "group": "home",
