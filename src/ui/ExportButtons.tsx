@@ -119,9 +119,9 @@ export default function ExportButtons({ models: input, name, busy, pauses: input
     }
   }
 
-  async function save(file: string, data: Uint8Array | (() => Promise<Uint8Array>), ext: string, label: string) {
+  async function save(file: string, data: () => Promise<Uint8Array>, ext: string, label: string) {
     try {
-      const p = await saveFile(file, typeof data === "function" ? await data() : data, ext, label);
+      const p = await saveFile(file, await data(), ext, label);
       if (p) {
         toast(`Arquivo salvo em ${p}`);
         onSaved?.(name);
@@ -189,7 +189,7 @@ export default function ExportButtons({ models: input, name, busy, pauses: input
           <Download aria-hidden /> Salvar uma mesa por cor ({colorCount} arquivos)
         </button>
       ) : (
-        <button className={secondary ? undefined : "action"} disabled={disabled} onClick={() => save(`${slug(name)}.3mf`, write3mf(models, { pauses, profile, slots }), "3mf", "3MF")}>
+        <button className={secondary ? undefined : "action"} disabled={disabled} onClick={() => save(`${slug(name)}.3mf`, async () => write3mf(models, { pauses, profile, slots }), "3mf", "3MF")}>
           <Download aria-hidden /> Salvar 3MF{hasPauses ? " (Orca / Prusa)" : ""}
         </button>
       )}
@@ -221,12 +221,12 @@ export default function ExportButtons({ models: input, name, busy, pauses: input
           </button>
         )}
         {models.length <= 1 ? (
-          <button className="link" disabled={disabled} onClick={() => save(`${slug(name)}.stl`, writeStl(models), "stl", "STL")}>
+          <button className="link" disabled={disabled} onClick={() => save(`${slug(name)}.stl`, async () => writeStl(models), "stl", "STL")}>
             Salvar STL
           </button>
         ) : (
           models.map((m) => (
-            <button key={m.name} className="link" disabled={disabled} onClick={() => save(`${slug(`${name}-${m.name}`)}.stl`, writeStl([m]), "stl", "STL")}>
+            <button key={m.name} className="link" disabled={disabled} onClick={() => save(`${slug(`${name}-${m.name}`)}.stl`, async () => writeStl([m]), "stl", "STL")}>
               STL {m.name.toLowerCase()}
             </button>
           ))
