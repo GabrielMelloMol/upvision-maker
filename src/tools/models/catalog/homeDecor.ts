@@ -264,6 +264,7 @@ export const HOME_DECOR_MODELS: ModelDef[] = [
         fields: [
           text("title", "Nome do kit (gravado na moldura)", 24),
           choice("cardSize", "Tamanho do cartão", [["credit", "Cartão de crédito (85,6 × 54)"], ["medium", "Médio (120 × 85)"], ["large", "Grande (180 × 120)"], ["xlarge", "Maior (240 × 160)"]]),
+          bool("compact", "Cartão compacto (encolhe ao conteúdo)"),
           num("copies", "Cartões na mesa", 1, 12, { step: 1, unit: "", hint: "Os cartões pequenos cabem vários numa mesa só." }),
           num("frame", "Largura da moldura", 2, 5, { step: 0.5 }),
           num("runner", "Largura dos galhos", 3, 5, { step: 0.5, hint: "Os galhos ligam a moldura às peças, e cada peça leva seu número." }),
@@ -275,7 +276,7 @@ export const HOME_DECOR_MODELS: ModelDef[] = [
         title: "Figura ou animal (costelas)",
         when: { k: "mode", is: "figure" },
         fields: [
-          num("ribs", "Número de costelas", 2, 10, { step: 1, unit: "", hint: "Seções transversais ao longo do comprimento; as das pontas, baixas demais, são descartadas." }),
+          num("ribs", "Número de costelas", 2, 8, { step: 1, unit: "", hint: "Seções transversais ao longo do comprimento (3 deixa a figura limpa; mais costelas deixam a lateral cheia de fendas). As das pontas, baixas demais, são descartadas." }),
           num("maxWidth", "Largura máxima", 20, 65, { step: 1, unit: "%", hint: "Em % do comprimento da silhueta. Com a vista de cima, a largura de cada costela vem dela." }),
           num("spines", "Placas laterais", 1, 2, { step: 1, unit: "", hint: "2 = como no elefante (duas silhuetas e as costelas entre elas)." }),
           choice("profile", "Seção das costelas", [["oval", "Oval"], ["boxy", "Quase retangular"]]),

@@ -179,7 +179,7 @@ describe("kit card: o cartão com galhos, pontos de corte e números (#193)", { 
 
   test("cartão dentro da mesa e no tamanho pedido (cartão de crédito até o maior), na espessura pedida", () => {
     for (const size of ["credit", "medium", "large", "xlarge"] as const) {
-      const o = build({ cardSize: size, ribs: size === "credit" ? 2 : 6, showAssembled: false });
+      const o = build({ cardSize: size, ribs: size === "credit" ? 2 : 6, showAssembled: false, compact: false });
       const b = meshBounds([part(o, "Cartão")!])!;
       expect([b.max[0] - b.min[0], b.max[1] - b.min[1]]).toEqual([expect.closeTo(CARD_MM[size][0], 1), expect.closeTo(CARD_MM[size][1], 1)]);
       expect(b.max[0] - b.min[0]).toBeLessThanOrEqual(bedMm());
@@ -431,8 +431,8 @@ describe("kit card: modo veículo (laterais + chassi + 4 rodas) (#193)", { timeo
     // demais para a mesa: avisa
     setBed({ x: 100, y: 100, z: 100 });
     try {
-      const many = build({ cardSize: "credit", ribs: 2, copies: 8, showAssembled: false });
-      expect(many.warnings!.join(" ")).toMatch(/Só 1 cartão\(ões\) de 85.6 × 54 mm cabem juntos numa mesa de 100 mm \(você pediu 8\)/);
+      const many = build({ cardSize: "credit", ribs: 2, copies: 8, showAssembled: false, compact: false });
+      expect(many.warnings!.join(" ")).toMatch(/Só 1 cartão\(ões\) de 85,6 × 54 mm cabem juntos numa mesa de 100 mm \(você pediu 8\)/);
       expect(many.models).toHaveLength(1); // nunca passa da mesa
     } finally {
       setBed(null);
@@ -448,3 +448,72 @@ describe("kit card: modo veículo (laterais + chassi + 4 rodas) (#193)", { timeo
     expect(D.spines).toBe(2);
   });
 });
+
+describe("kit card: ajustes depois da aprovação visual (#193)", { timeout: 120_000 }, () => {
+  const comps = (m: Parameters<typeof solid>[0]) => {
+    const s = solid(m), cs = s.decompose().map((c) => ({ b: c.boundingBox(), v: c.volume() }));
+    s.delete();
+    return cs;
+  };
+
+  test("figura: o padrão é 3 costelas (ajustável de 2 a 8) e a lateral não vira um pente", () => {
+    expect(D.ribs).toBe(3);
+    const o = build({ showAssembled: false });
+    expect(o.meta!.ribs).toBe(3);
+    expect(build({ ribs: 2, showAssembled: false }).meta!.ribs).toBe(2);
+    expect(build({ ribs: 8, showAssembled: false }).meta!.ribs).toBeGreaterThan(5);
+  });
+
+  for (const [name, make] of Object.entries(IMAGES)) {
+    test(`imagem "${name}": o número de cada peça fica SEMPRE colado nela, no galho dela (junto à borda dos pontos de corte)`, () => {
+      for (const mode of ["figure", "vehicle"] as const) {
+        const o = build({ mode, showAssembled: false }, make());
+        const pieces = [...comps(part(o, "Peças")!), ...(part(o, "Pneus") ? comps(part(o, "Pneus")!) : []), ...(mode === "vehicle" && !part(o, "Pneus") ? comps(part(o, "Rodas")!) : [])];
+        const marks = comps(part(o, "Título")!).sort((a, b) => b.v - a.v).slice(1); // sem o nome do kit (o maior)
+        expect(marks.length).toBe(o.meta!.pieces);
+        for (const pc of pieces) {
+          const ok = marks.some((m) => {
+            const right = m.b.max[0], yc = (m.b.min[1] + m.b.max[1]) / 2;
+            return pc.b.min[0] - right >= D.gap - 0.01 && pc.b.min[0] - right <= D.gap + 1.5 && yc >= pc.b.min[1] - 1 && yc <= pc.b.max[1] + 1;
+          });
+          expect(ok, `${mode} ${name}: peça em x=${pc.b.min[0].toFixed(1)} sem número colado`).toBe(true);
+        }
+      }
+    });
+  }
+
+  test("cartão compacto: menos espaço vazio (encolhe ao conteúdo, no máximo o tamanho da lista), com as mesmas invariantes", () => {
+    for (const size of ["credit", "medium", "large", "xlarge"] as const) {
+      const ribs = size === "credit" ? 2 : 3;
+      const full = build({ cardSize: size, ribs, compact: false, showAssembled: false, spines: 1 });
+      const tight = build({ cardSize: size, ribs, compact: true, showAssembled: false, spines: 1 });
+      const [W, H] = CARD_MM[size];
+      const tb = meshBounds([part(tight, "Cartão")!])!;
+      const [tw, th] = [tb.max[0] - tb.min[0], tb.max[1] - tb.min[1]];
+      expect(tight.meta!.card.w).toBeCloseTo(tw, 1);
+      expect(tight.meta!.card.h).toBeCloseTo(th, 1);
+      expect(tw).toBeLessThanOrEqual(W + 1e-6);
+      expect(th).toBeLessThanOrEqual(H + 1e-6);
+      expect(tw * th).toBeLessThan(W * H); // menos vazio
+      expect(tw).toBeGreaterThanOrEqual(56 - 1e-6); // o nome ainda precisa de largura
+      expect(tight.meta!.scale).toBeCloseTo(full.meta!.scale, 1); // as peças continuam do mesmo tamanho
+      tight.meta!.gatesPerPiece.forEach((n) => expect(n).toBeGreaterThanOrEqual(2));
+      // peças dentro da moldura e cartão de um componente só
+      const pb = meshBounds([part(tight, "Peças")!])!;
+      expect(pb.min[0]).toBeGreaterThan(tb.min[0] + D.frame);
+      expect(pb.max[0]).toBeLessThan(tb.max[0] - D.frame);
+      const card = solid(part(tight, "Cartão")!);
+      expect(card.decompose().length).toBe(1);
+      card.delete();
+    }
+    // sem compactar o tamanho da lista continua exato
+    const exact = meshBounds([part(build({ cardSize: "medium", compact: false, showAssembled: false }), "Cartão")!])!;
+    expect(exact.max[0] - exact.min[0]).toBeCloseTo(CARD_MM.medium[0], 1);
+  });
+
+  test("compacto deixa caber mais cartões na mesma mesa", () => {
+    const copiesFit = (compact: boolean) => build({ cardSize: "xlarge", ribs: 3, copies: 12, compact, showAssembled: false, spines: 1 }).models.length;
+    expect(copiesFit(true)).toBeGreaterThan(copiesFit(false));
+  });
+});
+

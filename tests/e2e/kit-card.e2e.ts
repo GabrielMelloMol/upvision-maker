@@ -53,10 +53,19 @@ test("kit card, figura/animal: peças inteiras no cartão fino com o nome gravad
   await expect(page.getByText(/desça cada costela/)).toBeVisible();
   await expect(page.getByRole("button", { name: "Figura ou animal" })).toHaveAttribute("aria-pressed", "true");
   const width = async () => parseFloat(((await hud(page).textContent()) ?? "").split(" × ")[0]);
-  await expect.poll(width, { timeout: 60_000 }).toBeGreaterThan(190); // cartão grande (180) + o montado ao lado
+  await expect.poll(width, { timeout: 60_000 }).toBeGreaterThan(150); // cartão compacto + o montado ao lado
+  // cartão compacto (padrão): sem ele o cartão volta ao tamanho da lista (grande = 180 mm), mais largo
+  await expect(page.getByRole("switch", { name: /Cartão compacto/ })).toBeChecked();
+  const compactWidth = await width();
+  await page.getByRole("switch", { name: /Cartão compacto/ }).uncheck();
+  await idle(page);
+  await expect.poll(width, { timeout: 60_000 }).toBeGreaterThan(compactWidth + 10);
+  await page.getByRole("switch", { name: /Cartão compacto/ }).check();
+  await idle(page);
+  await expect(page.getByLabel(/^Número de costelas/)).toHaveValue("3"); // padrão: 3 costelas
 
   // ajustes: costelas, largura máxima, placas laterais, folga da fenda, espessura (1,2 a 2 mm) e tamanho do cartão
-  await page.getByLabel(/^Número de costelas/).fill("8");
+  await page.getByLabel(/^Número de costelas/).fill("6");
   await page.getByLabel(/^Largura máxima/).fill("55");
   await page.getByLabel(/^Placas laterais/).fill("1");
   await page.getByLabel(/^Folga da fenda/).fill("0.3");

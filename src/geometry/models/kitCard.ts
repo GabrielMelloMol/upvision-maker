@@ -24,6 +24,7 @@ export type KitCardParams = {
   tire: number; // veículo: espessura do pneu (outra cor); 0 = sem pneu
   axleFit: number; // veículo: folga do furo da lateral sobre o eixo (encaixe por pressão)
   copies: number; // quantos cartões iguais na mesa
+  compact: boolean; // encolhe o cartão ao conteúdo (o tamanho da lista vira o máximo)
   close: number; // fecha frestas de até 2× isto (mm) na silhueta
   gap: number; // comprimento dos pontos de corte (peça → galho)
   frame: number; // largura da moldura
@@ -38,8 +39,8 @@ export type KitCardParams = {
 };
 
 export const DEFAULT_KIT_CARD: KitCardParams = {
-  mode: "figure", title: "Caça", cardSize: "large", thickness: 1.6, fit: 0.2, ribs: 6, maxWidth: 45, spines: 2, profile: "oval",
-  wheel: 22, track: 35, tire: 2, axleFit: 0.15, copies: 1, close: 1, gap: 2.5, frame: 2.5, runner: 3.5, engrave: 0.6, showAssembled: true,
+  mode: "figure", title: "Caça", cardSize: "large", thickness: 1.6, fit: 0.2, ribs: 3, maxWidth: 45, spines: 2, profile: "oval",
+  wheel: 22, track: 35, tire: 2, axleFit: 0.15, copies: 1, compact: true, close: 1, gap: 2.5, frame: 2.5, runner: 3.5, engrave: 0.6, showAssembled: true,
   frameColor: "#f4f4f2", pieceColor: "#c9cdd2", wheelColor: "#1c1c1e", tireColor: "#1c1c1e", titleColor: "#1c1c1e",
 };
 
@@ -62,6 +63,7 @@ const MIN_RIB_A = 3; // e mais estreita (meia largura)
 const HOLE_FILL_MM2 = 8; // buracos menores que isso são preenchidos
 const ISLAND_DROP_MM2 = 6; // ilhas menores que isso, depois do fechamento, são descartadas
 const SAFETY_SHRINK = 0.96;
+const MIN_CARD_W = 56; // largura mínima do cartão compacto (o nome precisa caber legível)
 const CARD_GAP = 3; // espaço entre cartões na mesa
 
 type Pt = [number, number];
@@ -337,7 +339,7 @@ export type Dim = { id: number; w: number; h: number };
  * Arruma as peças em fileiras (da mais alta à mais baixa) com galhos de largura `rw` entre elas e entre as fileiras, e
  * `gap` (comprimento do ponto de corte) entre cada peça e o galho. Devolve também a sobra de cada fileira, que alarga os galhos.
  */
-export function packRows(dims: Dim[], innerW: number, innerH: number, gap: number, rw: number): { rows: Dim[][]; extraW: number[]; extraH: number } | null {
+export function packRows(dims: Dim[], innerW: number, innerH: number, gap: number, rw: number): { rows: Dim[][]; extraW: number[]; extraH: number; needW: number[]; needH: number } | null {
   const sorted = [...dims].sort((a, b) => b.h - a.h);
   const need = (row: Dim[]) => row.reduce((s, d) => s + d.w, 0) + (row.length - 1) * (rw + 2 * gap) + 2 * gap;
   const rows: Dim[][] = [[]];
@@ -350,7 +352,7 @@ export function packRows(dims: Dim[], innerW: number, innerH: number, gap: numbe
   const heights = rows.map((r) => Math.max(...r.map((d) => d.h)));
   const needH = heights.reduce((a, b) => a + b, 0) + (rows.length - 1) * (rw + 2 * gap) + 2 * gap;
   if (needH > innerH) return null;
-  return { rows, extraW: rows.map((r) => (innerW - need(r)) / (r.length + 1)), extraH: (innerH - needH) / (rows.length + 1) };
+  return { rows, extraW: rows.map((r) => (innerW - need(r)) / (r.length + 1)), extraH: (innerH - needH) / (rows.length + 1), needW: rows.map(need), needH };
 }
 
 /** A maior escala em que tudo cabe no vão do cartão. `unit` = medidas das peças na escala 1; `fixed` = o que não escala. */
@@ -402,7 +404,7 @@ export function pieceGates(M: ManifoldToplevel, piece: CS, edgeX: number, side: 
   return gates;
 }
 
-export type KitMeta = { scale: number; pieces: number; gatesPerPiece: number[]; split: number; report: CleanReport; ribs: number; spines: number };
+export type KitMeta = { card: { w: number; h: number }; scale: number; pieces: number; gatesPerPiece: number[]; split: number; report: CleanReport; ribs: number; spines: number };
 
 /**
  * Kit card (#193): a silhueta de uma imagem vira o esqueleto lateral de um modelo de costelas ("slice-form"): 1 ou 2
@@ -415,10 +417,10 @@ export function buildKitCard(ctx: ModelCtx, p: KitCardParams): ModelOutput & { m
   const { M, art, art2, text } = ctx;
   if (!art || art.isEmpty()) throw new MissingInput("Envie a imagem (uma silhueta) para ver o kit card.");
   const t = p.thickness;
-  const [W, H] = CARD_MM[p.cardSize];
+  let [W, H] = CARD_MM[p.cardSize];
   const title = p.title.trim();
   const band = title ? Math.min(12, Math.max(6, H * 0.12)) : 0;
-  const innerW = W - 2 * p.frame, innerH = H - 2 * p.frame - band;
+  let innerW = W - 2 * p.frame, innerH = H - 2 * p.frame - band;
   if (innerW < 30 || innerH < 20) throw new Error("A moldura é larga demais para este cartão.");
   const nozzle = nozzleMm();
   const rw = p.runner;
@@ -458,6 +460,22 @@ export function buildKitCard(ctx: ModelCtx, p: KitCardParams): ModelOutput & { m
       s *= SAFETY_SHRINK;
     }
     if (!built || !plan) throw new Error("Não consegui arrumar as peças neste cartão: use um cartão maior ou menos costelas.");
+    if (p.compact) {
+      // cartão compacto: encolhe ao conteúdo (a medida da lista é o máximo); o nome precisa de uma largura mínima para ler
+      const dimsNow = built.pieces.map((q, i) => {
+        const b = q.cs.bounds();
+        return { id: i, w: b.max[0] - b.min[0], h: b.max[1] - b.min[1] };
+      });
+      const w2 = Math.max(Math.max(...plan.needW), MIN_CARD_W - 2 * p.frame), h2 = plan.needH;
+      const tight = packRows(dimsNow, w2, h2, p.gap, rw);
+      if (tight) {
+        plan = tight;
+        innerW = w2;
+        innerH = h2;
+        W = innerW + 2 * p.frame;
+        H = innerH + 2 * p.frame + band;
+      }
+    }
     if (UNIT_W * s < MIN_PIECE_MM) throw new Error(`As peças não cabem neste cartão com tamanho útil (ficariam com menos de ${MIN_PIECE_MM} mm): escolha um cartão maior, menos costelas ou uma imagem menos alta.`);
 
     // ---- posições: fileiras de cima para baixo, galhos entre peças e entre fileiras
@@ -528,9 +546,12 @@ export function buildKitCard(ctx: ModelCtx, p: KitCardParams): ModelOutput & { m
       const raw = text(String(q.number), 100);
       if (!raw) continue;
       const b = q.cs.bounds();
-      const [xa, xb] = q.runnerSpan;
+      const [xa, xb] = q.runnerSpan; // o galho (ou a moldura) onde os pontos de corte da peça prendem
+      // o número fica colado na peça: no galho dela, encostado na borda do lado da peça, na altura do topo da peça
       const h = Math.min(3, Math.max(1.6, xb - xa) * 0.9);
-      marks.push(k(fitInto(k(raw), Math.max(1, xb - xa - 0.8), h, b.max[1] - h / 2 - 0.5).translate([(xa + xb) / 2, 0])));
+      const fitted = k(fitInto(k(raw), Math.max(1, xb - xa - 1), h, b.max[1] - h / 2 - 0.5));
+      const fb = fitted.bounds();
+      marks.push(k(fitted.translate([xb - 0.5 - fb.max[0], 0])));
     }
     if (title) {
       const raw = text(title, 100);
@@ -591,7 +612,8 @@ export function buildKitCard(ctx: ModelCtx, p: KitCardParams): ModelOutput & { m
     const fitRows = Math.max(1, Math.floor((bed + CARD_GAP) / (H + CARD_GAP)));
     const asked = Math.max(1, Math.round(p.copies));
     const copies = Math.min(asked, fitCols * fitRows); // só os que cabem na mesa
-    if (copies < asked) warnings.push(`Só ${copies} cartão(ões) de ${W} × ${H} mm cabem juntos numa mesa de ${bed} mm (você pediu ${asked}): escolha um cartão menor para caber mais.`);
+    const fmtMm = (n: number) => String(Math.round(n * 10) / 10).replace(".", ",");
+    if (copies < asked) warnings.push(`Só ${copies} cartão(ões) de ${fmtMm(W)} × ${fmtMm(H)} mm cabem juntos numa mesa de ${bed} mm (você pediu ${asked}): escolha um cartão menor para caber mais.`);
     const cols = Math.min(copies, fitCols);
     const rowsN = Math.ceil(copies / cols);
     const models: Model[] = Array.from({ length: copies }, (_, i) => {
@@ -600,7 +622,7 @@ export function buildKitCard(ctx: ModelCtx, p: KitCardParams): ModelOutput & { m
       return { name: copies > 1 ? `Kit card ${i + 1}` : "Kit card", parts: parts.map((q) => ({ ...q, mesh: moveXY(q.mesh, dx, dy) })) };
     });
     if (p.showAssembled) models.push(assembled(M, built, p, cols * (W + CARD_GAP) - CARD_GAP, k));
-    const meta: KitMeta = { scale: s, pieces: placed.length, gatesPerPiece: gatesPer, split: built.split, report: built.report, ribs: built.ribs.length, spines: built.spines };
+    const meta: KitMeta = { card: { w: W, h: H }, scale: s, pieces: placed.length, gatesPerPiece: gatesPer, split: built.split, report: built.report, ribs: built.ribs.length, spines: built.spines };
     return { models, warnings, meta };
   });
 }
