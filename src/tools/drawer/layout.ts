@@ -14,6 +14,9 @@ export type DrawerModule = Rect & {
   /** Posição livre das divisórias (fração 0–1 do vão interno); sem isso, iguais pela quantidade acima. */
   cutsX?: number[];
   cutsY?: number[];
+  /** Caixinha sem grade: medida livre em mm (sem pés Gridfinity); w × h acima é só o espaço que ela ocupa no mapa. */
+  freeW?: number;
+  freeD?: number;
   scoop: boolean;
   labelTab: boolean;
   label: string;
@@ -63,10 +66,22 @@ export function updateModules(l: DrawerLayout, ids: string[], patch: Partial<Omi
   return { ...l, modules: l.modules.map((m) => (ids.includes(m.id) ? { ...m, ...patch } : m)) };
 }
 
-/** Primeiro lugar livre (da frente para o fundo, da esquerda para a direita) para um w×h. */
+/** Primeiro lugar livre (da frente para o fundo, da esquerda para a direita) para um w×h: nas casas inteiras e, se não houver, em meia casa. */
 export function freeSpot(l: DrawerLayout, w: number, h: number): Rect | null {
-  for (let y = 0; y + h <= l.rows; y++) for (let x = 0; x + w <= l.cols; x++) if (canPlace(l, { x, y, w, h })) return { x, y, w, h };
+  for (const step of [1, 0.5])
+    for (let y = 0; y + h <= l.rows; y += step) for (let x = 0; x + w <= l.cols; x += step) if (canPlace(l, { x, y, w, h })) return { x, y, w, h };
   return null;
+}
+
+/** Espaço (em casas, múltiplo de meia casa) que uma caixinha de `mm` ocupa no mapa, com a folga de 0,5 mm. */
+export const footprint = (mm: number) => Math.max(0.5, Math.ceil(((mm + BIN_GAP) / GRID) * 2) / 2);
+
+/** Caixinha sem grade: medida em mm; o espaço no mapa cresce junto (recusa se bater em outra). Sem medida (`null`), volta ao tamanho em casas. */
+export function setFree(l: DrawerLayout, id: string, size: { w: number; d: number } | null): DrawerLayout {
+  const m = l.modules.find((x) => x.id === id);
+  if (!m) return l;
+  const next: DrawerModule = size ? { ...m, freeW: size.w, freeD: size.d, w: footprint(size.w), h: footprint(size.d) } : { ...m, freeW: undefined, freeD: undefined, cutsX: undefined, cutsY: undefined };
+  return canPlace(l, next, [id]) ? { ...l, modules: l.modules.map((x) => (x.id === id ? next : x)) } : l;
 }
 
 /** Copia os módulos `ids`, cada cópia no primeiro lugar livre; os que não couberem ficam de fora. */
@@ -79,6 +94,48 @@ export function duplicate(l: DrawerLayout, ids: string[]): DrawerLayout {
   return out;
 }
 
+export type Paste = { layout: DrawerLayout; placed: number; skipped: number };
+
+/**
+ * Cola cópias dos módulos: o grupo inteiro, com as posições relativas, no primeiro lugar onde cabe; se não couber
+ * junto, cada um no primeiro lugar livre. O que não coube é contado em `skipped`.
+ */
+export function pasteModules(l: DrawerLayout, copies: DrawerModule[]): Paste {
+  if (!copies.length) return { layout: l, placed: 0, skipped: 0 };
+  const x0 = Math.min(...copies.map((m) => m.x)), y0 = Math.min(...copies.map((m) => m.y));
+  const gw = Math.max(...copies.map((m) => m.x + m.w)) - x0, gh = Math.max(...copies.map((m) => m.y + m.h)) - y0;
+  const fits = (dx: number, dy: number) => copies.every((m, i) => canPlace(l, { ...m, x: m.x - x0 + dx, y: m.y - y0 + dy }) && copies.every((o, j) => j <= i || !overlaps({ ...m, x: m.x - x0 + dx, y: m.y - y0 + dy }, { ...o, x: o.x - x0 + dx, y: o.y - y0 + dy })));
+  for (const step of [1, 0.5])
+    for (let dy = 0; dy + gh <= l.rows; dy += step)
+      for (let dx = 0; dx + gw <= l.cols; dx += step)
+        if (fits(dx, dy)) return { layout: { ...l, modules: [...l.modules, ...copies.map((m) => ({ ...m, x: m.x - x0 + dx, y: m.y - y0 + dy, id: newId() }))] }, placed: copies.length, skipped: 0 };
+  let out = l, placed = 0;
+  for (const m of copies) {
+    const spot = freeSpot(out, m.w, m.h);
+    if (spot) {
+      out = { ...out, modules: [...out.modules, { ...m, ...spot, id: newId() }] };
+      placed++;
+    }
+  }
+  return { layout: out, placed, skipped: copies.length - placed };
+}
+
+export type LayoutReport = { collisions: [string, string][]; outside: string[]; freeCells: number };
+
+/** Confere o mapa: módulos que se sobrepõem ou saem da gaveta, e quantas casas ficam sem caixinha (em casas inteiras, contando meias). */
+export function layoutReport(l: DrawerLayout): LayoutReport {
+  const collisions: [string, string][] = [];
+  l.modules.forEach((a, i) => l.modules.slice(i + 1).forEach((b) => overlaps(a, b) && collisions.push([a.id, b.id])));
+  const outside = l.modules.filter((m) => !inside(l, m)).map((m) => m.id);
+  let covered = 0;
+  for (let hy = 0; hy < l.rows * 2; hy++)
+    for (let hx = 0; hx < l.cols * 2; hx++) {
+      const c = { x: hx / 2, y: hy / 2, w: 0.5, h: 0.5 };
+      if (l.modules.some((m) => overlaps(m, c))) covered++;
+    }
+  return { collisions, outside, freeCells: (l.cols * l.rows * 4 - covered) / 4 };
+}
+
 export function removeModules(l: DrawerLayout, ids: string[]): DrawerLayout {
   return { ...l, modules: l.modules.filter((m) => !ids.includes(m.id)) };
 }
@@ -89,19 +146,21 @@ export function resizeGrid(l: DrawerLayout, cols: number, rows: number): DrawerL
   return { ...g, modules: l.modules.filter((m) => inside(g, m)) };
 }
 
-const shapeKey = ({ w, h, u, dividersX, dividersY, cutsX, cutsY, scoop, labelTab, label, lip, magnets, color, x, y }: DrawerModule) =>
-  JSON.stringify([w, h, u, dividersX, dividersY, cutsX ?? null, cutsY ?? null, scoop, labelTab, label.trim(), lip, magnets, color.toLowerCase(), onGrid({ x, y })]);
+const shapeKey = ({ w, h, u, dividersX, dividersY, cutsX, cutsY, freeW, freeD, scoop, labelTab, label, lip, magnets, color, x, y }: DrawerModule) =>
+  JSON.stringify([w, h, u, dividersX, dividersY, cutsX ?? null, cutsY ?? null, freeW ?? null, freeD ?? null, scoop, labelTab, label.trim(), lip, magnets, color.toLowerCase(), onGrid({ x, y })]);
 
 /** A caixinha cai nas casas da base (posição inteira): só então leva os pés Gridfinity. */
-export const onGrid = ({ x, y }: { x: number; y: number }) => Number.isInteger(x) && Number.isInteger(y);
+export const onGrid = ({ x, y, freeW }: { x: number; y: number; freeW?: number }) => freeW === undefined && Number.isInteger(x) && Number.isInteger(y);
 
 /** Menor compartimento (mm de vão livre) que o editor deixa criar. */
 export const MIN_COMPARTMENT = 8;
 const WALL = 1.2; // parede padrão da caixinha (DEFAULT_GRID_BIN)
 
 export type Axis = "x" | "y";
+/** Tamanho externo (mm) da caixinha: o livre, se tiver, ou as casas menos a folga. */
+export const sizeOf = (m: Rect & { freeW?: number; freeD?: number }, axis: Axis) => (axis === "x" ? (m.freeW ?? m.w * GRID - BIN_GAP) : (m.freeD ?? m.h * GRID - BIN_GAP));
 /** Vão interno (mm) da caixinha em cada direção. */
-export const innerSize = (m: Rect, axis: Axis) => (axis === "x" ? m.w : m.h) * GRID - BIN_GAP - 2 * WALL;
+export const innerSize = (m: Rect & { freeW?: number; freeD?: number }, axis: Axis) => sizeOf(m, axis) - 2 * WALL;
 const cutsKey = (axis: Axis) => (axis === "x" ? "cutsX" : "cutsY") as "cutsX" | "cutsY";
 const countKey = (axis: Axis) => (axis === "x" ? "dividersX" : "dividersY") as "dividersX" | "dividersY";
 

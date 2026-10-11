@@ -54,7 +54,7 @@ export type GridBinParams = {
 };
 
 /** Divisórias em posição livre (fração 0–1 do vão interno); sem isso, iguais pela quantidade. Fora de GridBinParams: o catálogo só aceita valores simples. */
-export type BinCuts = { cutsX?: number[]; cutsY?: number[] };
+export type BinCuts = { cutsX?: number[]; cutsY?: number[]; /** Caixinha sem grade: tamanho externo em mm (sem pés). */ sizeMm?: { w: number; d: number } };
 
 export const DEFAULT_GRID_BIN: GridBinParams = {
   unitsX: 2,
@@ -174,8 +174,8 @@ export function buildGridBin({ M, text }: ModelCtx, p: GridBinParams & BinCuts):
   return scoped((k) => {
     const ux = snapHalf(p.unitsX), uy = snapHalf(p.unitsY);
     const nx = Math.floor(ux), ny = Math.floor(uy); // casas inteiras: só nelas há pé
-    const W = ux * GRID - BIN_GAP, D = uy * GRID - BIN_GAP;
-    const withFeet = p.feet !== false && nx >= 1 && ny >= 1;
+    const W = p.sizeMm?.w ?? ux * GRID - BIN_GAP, D = p.sizeMm?.d ?? uy * GRID - BIN_GAP;
+    const withFeet = p.feet !== false && !p.sizeMm && nx >= 1 && ny >= 1;
     const [fdx, fdy] = [((nx - ux) * GRID) / 2, ((ny - uy) * GRID) / 2]; // pés encostados na esquerda/frente
     const H = Math.round(p.unitsZ) * HEIGHT_UNIT; // altura do topo da parede (a borda empilhável sobe além)
     const warnings: string[] = [];

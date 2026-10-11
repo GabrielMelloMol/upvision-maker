@@ -18,7 +18,7 @@ import DrawerEditor from "./drawer/DrawerEditor";
 import DrawerView from "./drawer/DrawerView";
 import type { Dim } from "./drawer/drawerShape";
 import RulerCard from "./drawer/RulerCard";
-import { duplicate, removeModules, resizeGrid, resizeModule, updateModules } from "./drawer/layout";
+import { duplicate, pasteModules, removeModules, resizeGrid, resizeModule, setFree, updateModules, type DrawerModule } from "./drawer/layout";
 import ModulePanel from "./drawer/ModulePanel";
 import PrintPlanCard from "./drawer/PrintPlanCard";
 import { drawerPrint, type DrawerPrint } from "./drawer/printPlan";
@@ -63,12 +63,28 @@ export default function DrawerOrganizer({ embedded = false }: { embedded?: boole
   const plan = useMemo(() => planOf(p), [p]);
   const setLayout = tool.field("layout");
   // o que muda a grade (medidas, 2 andares, obstáculo) refaz a grade junto, no mesmo passo de desfazer
-  const setGrid = <K extends "width" | "depth" | "height" | "cutlery" | "sideObstacle">(k: K) => (v: DrawerProject[K]) =>
+  const setGrid = <K extends "width" | "depth" | "height" | "cutlery" | "sideObstacle">(k: K) => (v: DrawerProject[K]) => {
+    const after = planOf({ ...p, [k]: v });
+    const lost = p.layout.modules.length - resizeGrid(p.layout, after.nx, after.ny).modules.length;
+    setNotice(lost > 0 ? `${lost} caixinha(s) saíram do mapa porque não cabem mais na gaveta nova. Desfaça (⌘Z) para trazê-las de volta.` : "");
     tool.set((s) => {
       const next = { ...s, [k]: v };
       const pl = planOf(next);
       return { ...next, layout: resizeGrid(s.layout, pl.nx, pl.ny) };
     }, k);
+  };
+  const [clipboard, setClipboard] = useState<DrawerModule[]>([]);
+  const [notice, setNotice] = useState("");
+  const copy = (ids: string[]) => {
+    const copies = p.layout.modules.filter((m) => ids.includes(m.id));
+    setClipboard(copies);
+    setNotice(copies.length ? `${copies.length} caixinha(s) copiada(s): use Colar (⌘V).` : "");
+  };
+  const paste = () => {
+    const r = pasteModules(p.layout, clipboard);
+    if (r.placed) setLayout(r.layout);
+    setNotice(r.skipped ? `Só ${r.placed} de ${clipboard.length} couberam: faltou lugar no mapa.` : `${r.placed} caixinha(s) colada(s).`);
+  };
   const [trays, setTrays] = useState<Model[]>([]);
   const [slide, setSlide] = useState(false);
   const setAlign = (align: DrawerProject["align"]) => tool.set((s) => ({ ...s, align }), "align");
@@ -122,12 +138,17 @@ export default function DrawerOrganizer({ embedded = false }: { embedded?: boole
             {p.cutlery && !cutleryBlocked(p) && <span className="hint">Bandeja dos talheres nos trilhos; embaixo, a base e as caixinhas. Imprima em PETG: aguenta água quente e detergente.</span>}
             {plan.nx > 0 && plan.ny > 0 && <span className="hint" aria-live="polite">{planSummary(plan, true, p.baseMagnets ? 3.2 : 0)}</span>}
           </div>
+          {notice && <Alert kind="info">{notice}</Alert>}
           {chosen.length ? (
             <ModulePanel
               modules={chosen}
               uMax={plan.uMax}
               onChange={(patch) => setLayout(updateModules(p.layout, selected, patch))}
               onResize={(w, h) => setLayout(resizeModule(p.layout, chosen[0].id, w, h))}
+              onFree={(size) => setLayout(setFree(p.layout, chosen[0].id, size))}
+              onCopy={() => copy(selected)}
+              onPaste={paste}
+              canPaste={clipboard.length > 0}
               onDuplicate={() => setLayout(duplicate(p.layout, selected))}
               onRemove={() => {
                 setLayout(removeModules(p.layout, selected));
@@ -161,7 +182,7 @@ export default function DrawerOrganizer({ embedded = false }: { embedded?: boole
           ) : view === "grid" ? (
             <div className="card">
               {plan.nx > 0 && plan.ny > 0 ? (
-                <DrawerEditor layout={p.layout} plan={plan} selected={selected} onChange={setLayout} onSelect={setSelected} />
+                <DrawerEditor layout={p.layout} plan={plan} selected={selected} onChange={setLayout} onSelect={setSelected} onCopy={copy} onPaste={paste} />
               ) : (
                 <span className="muted">A gaveta precisa ter pelo menos 43 × 43 mm.</span>
               )}

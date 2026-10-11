@@ -4,7 +4,7 @@ import { getManifold, type ManifoldToplevel } from "../../geometry/manifold";
 import type { ModelCtx } from "../../geometry/models/common";
 import { buildDrawer, cutleryBlocked, planOf, type DrawerProject } from "./assemble";
 import { drawerPrint } from "./printPlan";
-import { addModule, updateModules, type DrawerLayout } from "./layout";
+import { addModule, setFree, updateModules, type DrawerLayout } from "./layout";
 
 let M: ManifoldToplevel;
 beforeAll(async () => {
@@ -113,4 +113,18 @@ test("meia casa e divisórias livres: nada passa da gaveta; fora da grade sai se
   expect(caixas.min[0]).toBeGreaterThanOrEqual(gaveta.min[0] - 0.01);
   expect(caixas.max[0]).toBeLessThanOrEqual(gaveta.max[0] + 0.01);
   expect(caixas.max[0] - caixas.min[0]).toBeCloseTo(2 * 42 - 0.5, 0); // 1,5 + 0,5 casa = 2 casas menos a folga
+});
+
+test("caixinha sem grade: medida exata em mm, sem pés, e o mapa avisa a sobra", () => {
+  let layout: DrawerLayout = { cols: 4, rows: 3, modules: [] };
+  layout = addModule(layout, { x: 0, y: 0, w: 1, h: 1 })!;
+  layout = setFree(layout, layout.modules[0].id, { w: 55, d: 30 });
+  const out = buildDrawer(ctx(), { ...project(), layout });
+  const bin = meshBounds(out.preview[1].parts.map((q) => q.mesh))!;
+  expect(bin.max[0] - bin.min[0]).toBeCloseTo(55, 1);
+  expect(bin.max[1] - bin.min[1]).toBeCloseTo(30, 1);
+  const own = meshBounds(out.groups[0].models[0].parts.map((q) => q.mesh))!;
+  expect(own.min[2]).toBeGreaterThan(4); // sem pés: o corpo começa onde os pés acabariam
+  expect(out.warnings.join(" ")).toMatch(/Sobram \d+(,5)? casa\(s\) sem caixinha/);
+  expect(out.warnings.join(" ")).not.toMatch(/sem pés/);
 });

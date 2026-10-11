@@ -1,5 +1,5 @@
 import { describe, expect, test } from "vitest";
-import { addModule, canPlace, compartmentsMm, cutsPatch, dividerMm, duplicate, groupModules, innerSize, MIN_COMPARTMENT, moveModules, newModule, removeModules, resizeModule, updateModules, type DrawerLayout } from "./layout";
+import { addModule, footprint, layoutReport, pasteModules, setFree, canPlace, compartmentsMm, cutsPatch, dividerMm, duplicate, groupModules, innerSize, MIN_COMPARTMENT, moveModules, newModule, removeModules, resizeModule, updateModules, type DrawerLayout } from "./layout";
 
 const empty: DrawerLayout = { cols: 4, rows: 3, modules: [] };
 const withTwo = () => {
@@ -106,5 +106,53 @@ describe("módulos modulares: meia casa e divisórias livres", () => {
     const ids = [l.modules[1].id];
     expect(groupModules(updateModules(l, ids, cutsPatch(l.modules[1], "x", [18])).modules)).toHaveLength(2);
     expect(groupModules(moveModules(l, ids, 0.5, 0).modules)).toHaveLength(2); // fora da grade: sem pés
+  });
+});
+
+describe("sem grade, colar e relatório do mapa", () => {
+  const two = (): DrawerLayout => {
+    let l: DrawerLayout = { cols: 4, rows: 2, modules: [] };
+    l = addModule(l, { x: 0, y: 0, w: 1, h: 1 })!;
+    return addModule(l, { x: 1, y: 0, w: 1, h: 1 })!;
+  };
+
+  test("medida livre em mm ocupa o espaço mínimo (múltiplo de meia casa) e recusa se bater em outra", () => {
+    expect(footprint(30)).toBe(1); // 30,5 mm → 1 casa
+    expect(footprint(60)).toBe(1.5);
+    const l = two();
+    const id = l.modules[0].id;
+    const ok = setFree(l, id, { w: 30, d: 30 });
+    expect(ok.modules[0]).toMatchObject({ freeW: 30, freeD: 30, w: 1, h: 1 });
+    expect(setFree(l, id, { w: 70, d: 30 })).toBe(l); // 1,5+ casas bate na vizinha
+    const back = setFree(ok, id, null);
+    expect(back.modules[0].freeW).toBeUndefined();
+  });
+
+  test("colar mantém as posições relativas do grupo e usa o primeiro lugar que cabe", () => {
+    const l = two();
+    const r = pasteModules(l, l.modules);
+    expect(r).toMatchObject({ placed: 2, skipped: 0 });
+    expect(r.layout.modules.slice(2).map((m) => [m.x, m.y])).toEqual([[2, 0], [3, 0]]); // primeiro lugar livre, lado a lado como no original
+    expect(new Set(r.layout.modules.map((m) => m.id)).size).toBe(4);
+  });
+
+  test("colar sem lugar conta o que sobrou, sem sobrepor", () => {
+    let l: DrawerLayout = { cols: 2, rows: 1, modules: [] };
+    l = addModule(l, { x: 0, y: 0, w: 1, h: 1 })!;
+    const r = pasteModules(l, [...l.modules, ...l.modules]);
+    expect(r.placed).toBe(1);
+    expect(r.skipped).toBe(1);
+    expect(layoutReport(r.layout).collisions).toHaveLength(0);
+  });
+
+  test("relatório: sobra de casas (conta meias), sobreposição e módulo fora da gaveta", () => {
+    const l = two();
+    expect(layoutReport(l)).toMatchObject({ collisions: [], outside: [], freeCells: 6 });
+    const half = addModule(l, { x: 2, y: 0, w: 0.5, h: 1 })!;
+    expect(layoutReport(half).freeCells).toBe(5.5);
+    const bad: DrawerLayout = { ...l, modules: [l.modules[0], { ...l.modules[1], x: 0.5 }, { ...l.modules[1], id: "z", x: 3.5 }] };
+    const rep = layoutReport(bad);
+    expect(rep.collisions).toHaveLength(1);
+    expect(rep.outside).toEqual(["z"]);
   });
 });

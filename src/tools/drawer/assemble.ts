@@ -4,7 +4,7 @@ import { cutleryPlan, twoLevelsShortfall, type CutleryPlan } from "../../geometr
 import { drawerPlan, GRID, type DrawerAlign, type DrawerPlan } from "../../geometry/models/gridDrawer";
 import { buildGridBase, buildGridBin, DEFAULT_GRID_BIN } from "../../geometry/models/gridfinity";
 import type { Model } from "../../geometry/types";
-import { groupModules, onGrid, type DrawerLayout, type DrawerModule } from "./layout";
+import { groupModules, layoutReport, onGrid, type DrawerLayout, type DrawerModule } from "./layout";
 
 /** Projeto do organizador de gaveta (#140): medidas, base e os módulos desenhados na grade. */
 export type DrawerProject = {
@@ -65,6 +65,7 @@ export function moduleModels(ctx: ModelCtx, m: DrawerModule): Model[] {
     cutsX: m.cutsX,
     cutsY: m.cutsY,
     feet: onGrid(m),
+    sizeMm: m.freeW !== undefined && m.freeD !== undefined ? { w: m.freeW, d: m.freeD } : undefined,
     scoop: m.scoop,
     labelTab: m.labelTab,
     label: m.labelTab ? m.label : "",
@@ -114,9 +115,14 @@ export function buildDrawer(ctx: ModelCtx, p: DrawerProject): DrawerBuild {
     const cx = plan.marginX[0] + (m.x + m.w / 2) * GRID - totalW / 2;
     const cy = plan.marginY[0] + (m.y + m.h / 2) * GRID - totalD / 2;
     preview.push({ ...bin, parts: bin.parts.map((q) => ({ ...q, mesh: moveMesh(q.mesh, cx, cy, floor) })) });
-    if (!onGrid(m)) warnings.push(`${moduleName(m)} está fora das casas da base (meia casa de deslocamento): sai sem pés e fica solta sobre a base.`);
+    if (m.freeW === undefined && !onGrid(m)) warnings.push(`${moduleName(m)} está fora das casas da base (meia casa de deslocamento): sai sem pés e fica solta sobre a base.`);
     if (m.u > plan.uMax) warnings.push(`${moduleName(m)} passa da altura da gaveta: cabe até ${plan.uMax} unidades.`);
   }
+  const report = layoutReport(p.layout);
+  const name = (id: string) => moduleName(p.layout.modules.find((m) => m.id === id)!);
+  for (const [a, b] of report.collisions) warnings.push(`${name(a)} e ${name(b)} estão uma sobre a outra: afaste uma delas.`);
+  for (const id of report.outside) warnings.push(`${name(id)} passa dos limites da gaveta.`);
+  if (p.layout.modules.length && report.freeCells > 0) warnings.push(`Sobram ${String(report.freeCells).replace(".", ",")} casa(s) sem caixinha no mapa.`);
   const { trays, extras } = cutlery ? cutleryPieces(ctx, p, cutlery, preview) : { trays: [], extras: [] };
   return { plan, preview, trays, basePieces, groups, extras, cutlery, warnings: [...new Set(warnings)] };
 }

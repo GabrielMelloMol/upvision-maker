@@ -9,6 +9,8 @@ type Props = {
   selected: string[];
   onChange: (l: DrawerLayout) => void;
   onSelect: (ids: string[]) => void;
+  onCopy?: (ids: string[]) => void;
+  onPaste?: () => void;
 };
 
 const HANDLE_PX = 8;
@@ -24,14 +26,14 @@ const rectOf = (a: [number, number], b: [number, number]): Rect => ({ x: Math.mi
 const hits = (m: Rect, r: Rect) => m.x < r.x + r.w && r.x < m.x + m.w && m.y < r.y + r.h && r.y < m.y + m.h;
 const casas = (n: number) => String(n).replace(".", ",");
 const WALL_MM = 1.2; // parede padrão: o vão interno começa aqui, depois da folga de 0,25 mm
-const label = (m: DrawerModule) => `Caixinha ${casas(m.w)}×${casas(m.h)}, altura ${m.u}, coluna ${m.x + 1}, fileira ${m.y + 1}${m.label.trim() ? `, etiqueta ${m.label.trim()}` : ""}`;
+const label = (m: DrawerModule) => `Caixinha ${m.freeW === undefined ? `${casas(m.w)}×${casas(m.h)}` : `${casas(m.freeW)}×${casas(m.freeD ?? 0)} mm`}, altura ${m.u}, coluna ${m.x + 1}, fileira ${m.y + 1}${m.label.trim() ? `, etiqueta ${m.label.trim()}` : ""}`;
 
 /**
  * Editor 2D da gaveta (#140), em mm e visto de cima (a frente embaixo). Arrastar no vazio cria um módulo; se o
  * retângulo pega módulos, seleciona. Clique seleciona (Shift/⌘ junta), arrastar move, alças redimensionam.
  * Teclado: setas movem, Shift+setas redimensionam, Delete apaga, ⌘D duplica, Esc limpa a seleção.
  */
-export default function DrawerEditor({ layout, plan, selected, onChange, onSelect }: Props) {
+export default function DrawerEditor({ layout, plan, selected, onChange, onSelect, onCopy, onPaste }: Props) {
   const svg = useRef<SVGSVGElement>(null);
   const [drag, setDrag] = useState<Drag | null>(null);
   const [pxPerMm, setPxPerMm] = useState(1);
@@ -146,6 +148,12 @@ export default function DrawerEditor({ layout, plan, selected, onChange, onSelec
     } else if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === "d") {
       e.preventDefault();
       onChange(duplicate(layout, ids));
+    } else if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === "c") {
+      e.preventDefault();
+      onCopy?.(ids);
+    } else if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === "v") {
+      e.preventDefault();
+      onPaste?.();
     } else if (e.key === "Escape") onSelect([]);
     else if (e.key === " " || e.key === "Enter") {
       e.preventDefault();
@@ -190,7 +198,7 @@ export default function DrawerEditor({ layout, plan, selected, onChange, onSelec
         ];
         return (
           <g key={m.id} className="drawer-module" data-selected={on || undefined} role="button" tabIndex={0} aria-pressed={on} aria-label={label(m)} onPointerDown={(e) => down(e, m)} onKeyDown={(e) => key(e, m)}>
-            <rect x={x + INSET} y={y + INSET} width={w - 2 * INSET} height={hh - 2 * INSET} rx={3.5} style={{ fill: m.color }} />
+            <rect x={m.freeW === undefined ? x + INSET : x + (w - m.freeW) / 2} y={m.freeD === undefined ? y + INSET : y + (hh - m.freeD) / 2} width={m.freeW ?? w - 2 * INSET} height={m.freeD ?? hh - 2 * INSET} rx={3.5} style={{ fill: m.color }} strokeDasharray={m.freeW === undefined ? undefined : "3 2"} stroke={m.freeW === undefined ? undefined : "var(--surface)"} />
             {m.label.trim() && (
               <text x={x + w / 2} y={y + hh / 2} className="drawer-module-label" fontSize={Math.min(8, GRID / 4)}>
                 {m.label.trim()}

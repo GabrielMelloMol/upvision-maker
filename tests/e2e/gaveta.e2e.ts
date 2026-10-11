@@ -223,3 +223,26 @@ test("caixinha modular: meia casa, divisórias em posição livre (campo e arras
   const names = names3mf([...tauri.files].find(([p]) => p.endsWith(".3mf"))![1]);
   expect(names.filter((n) => /^Caixinha 1,5×1/.test(n))).toHaveLength(1);
 });
+
+test("caixinha sem grade (mm), copiar e colar, e o mapa avisa sobra e o que saiu da gaveta", async ({ page }) => {
+  test.slow();
+  await page.setViewportSize({ width: 1100, height: 1000 });
+  await openApp(page);
+  await go(page, "Organizador de gaveta");
+  for (const [label, v] of [["Largura", "169"], ["Profundidade", "127"], ["Altura livre", "60"]] as const) await page.getByLabel(new RegExp(`^${label}`)).fill(v);
+  await page.getByRole("group", { name: "Prévia" }).getByRole("button", { name: "Grade", exact: true }).click();
+  await dragCells(page, 4, 3, [0, 0], [0, 0]);
+  await page.getByRole("switch", { name: /Sem grade/ }).check();
+  await page.getByLabel(/^Largura da caixinha/).fill("55");
+  await page.getByLabel(/^Profundidade da caixinha/).fill("30");
+  await expect(page.getByRole("button", { name: /^Caixinha 55×30 mm/ })).toBeVisible();
+  await expect(page.getByText(/Sobram 11(,\d)? casa\(s\) sem caixinha|Sobram \d+(,5)? casa\(s\) sem caixinha/)).toBeVisible({ timeout: 90_000 });
+  // copiar e colar: a cópia entra no primeiro lugar livre, ao lado
+  await page.getByRole("button", { name: "Copiar", exact: true }).click();
+  await page.getByRole("button", { name: "Colar", exact: true }).click();
+  await expect(page.getByRole("button", { name: /^Caixinha 55×30 mm/ })).toHaveCount(2);
+  await expect(page.getByText(/1 caixinha\(s\) colada\(s\)/)).toBeVisible();
+  // gaveta menor: o que não cabe sai do mapa e o app diz quantas
+  await page.getByLabel(/^Largura/).first().fill("60");
+  await expect(page.getByText(/caixinha\(s\) saíram do mapa/)).toBeVisible();
+});
