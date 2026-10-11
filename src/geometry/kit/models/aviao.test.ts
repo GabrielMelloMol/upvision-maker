@@ -15,9 +15,11 @@ beforeAll(async () => {
 });
 
 const CASES: [KitTemplate, KitParams, number][] = [
-  [AVIAO, { blades: 2 }, 12],
-  [AVIAO, { blades: 3 }, 12],
-  [AVIAO, { scale: 0.8, thickness: 1.4 }, 12],
+  [AVIAO, { blades: 2 }, 20],
+  [AVIAO, { blades: 3 }, 20],
+  [AVIAO, { wingPos: "low" }, 20],
+  [AVIAO, { wingPos: "high" }, 20],
+  [AVIAO, { scale: 0.8, thickness: 1.4 }, 20],
   [HELICOPTERO, { rotorBlades: 2 }, 10],
   [HELICOPTERO, { rotorBlades: 3 }, 10],
   [HELICOPTERO, { scale: 0.8, thickness: 1.4 }, 10],

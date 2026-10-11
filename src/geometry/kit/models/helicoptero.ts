@@ -95,10 +95,10 @@ export const HELICOPTERO: KitTemplate = {
   defaults: { rotorBlades: 2 },
   sections: [{ title: "Helicóptero", fields: [{ k: "rotorBlades", kind: "choice", label: "Pás do rotor principal", options: [["2", "2 pás"], ["3", "3 pás"]] }] }],
   build: (e) => {
-    const { t, pinFit, scale: s } = e;
+    const { k, t, pinFit, scale: s } = e;
     const spin = spinOf(e);
     const n = Number(e.p.rotorBlades) === 3 ? 3 : 2;
-    const main: KitPart = { id: "rotor", label: "Rotor principal", layers: [{ cs: rotorShape(e, { n, len: 34 * s, halfW: 2.8 * s, hub: 5 * s }), color: "rotor" }], pins: [{ x: 0, y: 0, r: PIN_R, len: pinLen(t) }] };
+    const main: KitPart = { id: "rotor", label: "Rotor principal", layers: [{ cs: k(rotorShape(e, { n, len: (n === 3 ? 36 : 50) * s, halfW: 3 * s, hub: 5 * s }).rotate(90)), color: "rotor" }], pins: [{ x: 0, y: 0, r: PIN_R, len: pinLen(t) }] };
     const tail: KitPart = { id: "rotor-cauda", label: "Rotor de cauda", layers: [{ cs: rotorShape(e, { n: 4, len: 9, halfW: 1.6, hub: 2.5 }), color: "rotor" }], pins: [{ x: 0, y: 0, r: PIN_R, len: pinLen(t) }] };
     const parts: KitPart[] = [side(e), deck(e, "piso"), deck(e, "teto"), bulk(e, "anteparo-frente"), bulk(e, "anteparo-tras"), boom(e), main, tail, skid(e), lockPart(e, { id: "trava", label: "Trava do rotor", color: "rotor", count: 2 })];
 
