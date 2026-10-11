@@ -14,7 +14,8 @@ import { LOCK_GAP, LOCK_R, PIN_R, bulkhead, lockPart, place, rotorShape, sc, spi
 const SIDE_Y = 5.5; // as laterais ficam em y = ±5,5, sem escala: o eixo da hélice passa livre entre elas e a trava cabe
 const ZF = 8; // altura da base da fuselagem
 const TOP = 24; // altura da fuselagem (a tampa fica aqui)
-const NOSE_X = 52.5;
+const NOSE_GAP = 2.5; // a caverna do nariz fica 2,5 mm atrás da ponta (sem escala, para não sobrar uma lasca fina)
+const noseX = (s: number) => 55 * s - NOSE_GAP;
 const TAIL_RIB_X = -40;
 const WING_RIBS = [27, 8.5]; // cavernas que travam a asa (passam por fendas nela)
 const WING_X0 = 4.3; // corda da asa na raiz
@@ -44,7 +45,7 @@ type Rib = { id: string; label: string; x: number; v0: number; v1: number; tabC:
 const ribs = (e: KitEnv): Rib[] => {
   const wv = wingV(e);
   return [
-    { id: "caverna-nariz", label: "Caverna do nariz", x: NOSE_X, v0: 5.5, v1: 15.5, tabC: 10.5, tabH: 6 },
+    { id: "caverna-nariz", label: "Caverna do nariz", x: noseX(e.scale) / e.scale, v0: 5.5, v1: 15.5, tabC: 10.5, tabH: 6 },
     { id: "caverna-frente", label: "Caverna da frente da asa", x: WING_RIBS[0], v0: 2, v1: 22, tabC: wv, tabH: 7 },
     { id: "caverna-tras", label: "Caverna de trás da asa", x: WING_RIBS[1], v0: 2, v1: 22, tabC: wv, tabH: 7 },
     { id: "caverna-cauda", label: "Caverna da cauda", x: TAIL_RIB_X, v0: 8, v1: 15, tabC: 11.5, tabH: 5 },
@@ -55,7 +56,7 @@ function side(e: KitEnv): KitPart {
   const { M, k, t, fit, scale: s } = e;
   const wv = wingV(e);
   const body = poly(M, k, sc(FUSELAGE, s));
-  const tabs = TOP_TABS.map((x) => rect(M, k, (x - TOP_TAB_W / 2) * s, TOP * s - 0.02, (x + TOP_TAB_W / 2) * s, TOP * s + t + 0.5));
+  const tabs = TOP_TABS.map((x) => rect(M, k, x * s - TOP_TAB_W / 2, TOP * s - 0.02, x * s + TOP_TAB_W / 2, TOP * s + t + 0.5));
   const outline = k(M.CrossSection.union([body, ...tabs]));
   const windows = ribs(e).map((r) => tabWindow(M, k, { cx: r.x * s, cy: r.tabC * s, tabW: r.tabH, t, fit, vertical: true }));
   const wingSlot = rect(M, k, WING_X0 * s - fit / 2, wv * s - (t + fit) / 2, WING_X1 * s + fit / 2, wv * s + (t + fit) / 2);
@@ -96,7 +97,7 @@ function fin(e: KitEnv): KitPart {
   const { M, k, t, scale: s } = e;
   const [vb, vs] = [stabTop(e), coverTop(e)];
   const body = poly(M, k, [[FIN_X0 * s, vb], [FIN_X1 * s, vb], [FIN_X1 * s, vs], [-47 * s, vs + FIN_H * s], [-55 * s, vs + FIN_H * s], [-55 * s, vs], [FIN_X0 * s, vs]]);
-  const tabs = FIN_TABS.map((x) => rect(M, k, (x - 2) * s, vb - (t + 0.5), (x + 2) * s, vb + 0.01));
+  const tabs = FIN_TABS.map((x) => rect(M, k, x * s - 2 * s, vb - (t + 0.5), x * s + 2 * s, vb + 0.01));
   return { id: "deriva", label: "Deriva", layers: [{ cs: k(M.CrossSection.union([body, ...tabs])), color: "wing" }] };
 }
 
@@ -133,7 +134,7 @@ function propeller(e: KitEnv): KitPart {
 }
 
 /** Pino da hélice: do corpo dela até o fundo da trava, atravessando a caverna do nariz. */
-const propPinLen = (t: number, s: number) => 55 * s + PROP_GAP - (NOSE_X * s - 1.5 * t - LOCK_GAP);
+const propPinLen = (t: number, s: number) => 55 * s + PROP_GAP - (noseX(s) - 1.5 * t - LOCK_GAP);
 
 export const AVIAO: KitTemplate = {
   id: "kitAviao",
@@ -167,7 +168,7 @@ export const AVIAO: KitTemplate = {
       place("estabilizador", [0, 0, ZF + SV * s + 0.1], [0, 0, -90]),
     ];
     const axleZ = LEG_Z + AXLE_V;
-    const lockX = NOSE_X * s - t / 2 - LOCK_GAP;
+    const lockX = noseX(s) - t / 2 - LOCK_GAP;
     const noseZ = ZF + rs[0].tabC * s;
     for (const [i, sg] of [[1, 1], [2, -1]] as const) {
       const wheelY = sg * (LEG_Y + t / 2 + WHEEL_GAP) + (sg > 0 ? t : -t);

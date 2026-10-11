@@ -40,8 +40,8 @@ const pinLen = (t: number) => ROTOR_GAP + t + LOCK_GAP + t;
 function side(e: KitEnv): KitPart {
   const { M, k, t, fit, scale: s } = e;
   const body = poly(M, k, sc(CABIN, s));
-  const down = SIDE_TABS.map((x) => rect(M, k, (x - TAB_W / 2) * s, -(t + 0.5), (x + TAB_W / 2) * s, 0.02));
-  const up = SIDE_TABS.map((x) => rect(M, k, (x - TAB_W / 2) * s, CABIN_H * s - 0.02, (x + TAB_W / 2) * s, CABIN_H * s + t + 0.5));
+  const down = SIDE_TABS.map((x) => rect(M, k, x * s - TAB_W / 2, -(t + 0.5), x * s + TAB_W / 2, 0.02));
+  const up = SIDE_TABS.map((x) => rect(M, k, x * s - TAB_W / 2, CABIN_H * s - 0.02, x * s + TAB_W / 2, CABIN_H * s + t + 0.5));
   const outline = k(M.CrossSection.union([body, ...down, ...up]));
   const glass = WINDOWS.map(([u0, v0, u1, v1]) => rect(M, k, u0 * s, v0 * s, u1 * s, v1 * s));
   const slots = [FRONT_X, REAR_X].map((x) => tabWindow(M, k, { cx: x * s, cy: BULK_C * s, tabW: BULK_TAB_H, t, fit, vertical: true }));
@@ -82,7 +82,7 @@ function boom(e: KitEnv): KitPart {
 function skid(e: KitEnv): KitPart {
   const { M, k, t, scale: s } = e;
   const runner = poly(M, k, sc([[-26, 0], [24, 0], [30, 7], [27, 9], [22, 3], [-26, 3]], s));
-  const struts = SKID_STRUTS.flatMap((x) => [rect(M, k, (x - 3) * s, 2.9, (x + 3) * s, FLOOR_Z), rect(M, k, (x - STRUT_TAB / 2) * s, FLOOR_Z - 0.01, (x + STRUT_TAB / 2) * s, FLOOR_Z + t + 0.5)]);
+  const struts = SKID_STRUTS.flatMap((x) => [rect(M, k, x * s - 3, 0, x * s + 3, FLOOR_Z), rect(M, k, x * s - STRUT_TAB / 2, FLOOR_Z - 0.01, x * s + STRUT_TAB / 2, FLOOR_Z + t + 0.5)]);
   return { id: "esqui", label: "Esqui", count: 2, layers: [{ cs: k(M.CrossSection.union([runner, ...struts])), color: "skid" }] };
 }
 
