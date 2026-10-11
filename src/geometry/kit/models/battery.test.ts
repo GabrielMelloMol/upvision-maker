@@ -11,9 +11,11 @@ import { AVIAO } from "./aviao";
 import { HELICOPTERO } from "./helicoptero";
 import { KIT_CAR } from "./kitCar";
 import { KIT_TRUCK } from "./kitTruck";
+import { rocketKit } from "./rocket";
+import { tractorKit } from "./tractor";
 
 /*
- * Bateria dos kits desenhados (carro, caminhão, avião, helicóptero): cada campo do modelo nos dois extremos (ou em cada opção) e os
+ * Bateria dos kits desenhados (carro, caminhão, avião, helicóptero, foguete, trator): cada campo do modelo nos dois extremos (ou em cada opção) e os
  * parâmetros comuns nos extremos. Para cada variante: montado sem colisão com todos os pares na folga, e cartão com peças presas por
  * 2+ pontos de corte, tudo ligado, dentro da mesa e sem aviso de parte fina.
  */
@@ -38,10 +40,12 @@ const variantsOf = (tpl: KitTemplate): [string, KitParams][] => {
 };
 
 /** Achados da bateria no carro e no caminhão (da Forja): ficam como falha esperada até serem corrigidos; ao corrigir, o teste avisa para tirar daqui. */
-const KNOWN = new Set<string>([]);
+const KNOWN = new Set<string>([
+  "trator|tamanho mínimo|montado", // escala 0,5: parabrisa bate no piso e no teto, capô na grade (Quartzo)
+]);
 const knownTest = (name: string, label: string, kind: string) => (KNOWN.has(`${name}|${label}|${kind}`) ? test.fails : test);
 
-const TEMPLATES: [string, KitTemplate][] = [["carro", KIT_CAR], ["caminhão", KIT_TRUCK], ["avião", AVIAO], ["helicóptero", HELICOPTERO]];
+const TEMPLATES: [string, KitTemplate][] = [["carro", KIT_CAR], ["caminhão", KIT_TRUCK], ["avião", AVIAO], ["helicóptero", HELICOPTERO], ["foguete", rocketKit], ["trator", tractorKit]];
 
 describe("bateria dos kits desenhados", { timeout: 900_000 }, () => {
   for (const [name, tpl] of TEMPLATES)
