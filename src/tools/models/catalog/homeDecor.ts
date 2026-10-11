@@ -250,7 +250,7 @@ export const HOME_DECOR_MODELS: ModelDef[] = [
     id: "kitCard",
     category: "home",
     label: "Kit card (montar)",
-    blurb: "Uma imagem vira um kit de montar: peças planas num cartão fino com o nome gravado, presas por pontos de corte. Figura/animal (costelas) ou veículo (rodas).",
+    blurb: "Experimental: funciona melhor com silhuetas simples. Uma imagem vira um kit de montar: peças planas num cartão fino com o nome gravado, presas por pontos de corte. Figura/animal (costelas) ou veículo (rodas).",
     icon: Plane,
     font: true,
     art: "Imagem do bicho ou do carro de lado (silhueta cheia, uma figura só)",

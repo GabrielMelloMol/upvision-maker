@@ -4,6 +4,7 @@ Cada versão aparece para a usuária na tela "O que há de novo" depois da atual
 Formato: `## <versão> — <data>` e itens `- …` em linguagem simples.
 
 ## Próxima versão (ainda não lançada)
+- **Kit card por imagem é experimental**: o aviso na tela diz que funciona melhor com silhuetas simples. Os kits desenhados peça por peça (carro, caminhão e outros) chegam em seguida.
 - **Kit card: números maiores**: o número de cada peça ficou maior (galhos de 4 mm por padrão) e peças de borda curta ganham um ponto de corte de cada lado.
 - **Organizador de gaveta, caixinhas mais modulares**: as caixinhas agora podem ter meia casa (21 mm) de largura ou profundidade (campos "Largura (casas)" e "Profundidade (casas)", ou Alt + setas no desenho), e as divisórias têm quantidade e posição livres em cada direção: digite a medida de cada divisória ou arraste a linha dela no desenho, e a lista mostra o tamanho de cada compartimento. Caixinha deslocada meia casa sai sem pés e avisa que fica solta sobre a base.
 - **Kit card, veículo com as rodas do desenho**: o app acha as rodas na silhueta (círculos embaixo, 2 a 4), põe o eixo no centro de cada uma, faz as rodas novas do mesmo tamanho e deixa o vão da roda aberto na lateral. Sem rodas no desenho, continua com as 4 padrão.
