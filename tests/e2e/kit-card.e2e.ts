@@ -96,7 +96,7 @@ test("kit card, veículo: laterais + chassi + 4 rodas com pneu em outra cor, fol
   await openKit(page);
   await page.locator('input[type="file"]').first().setInputFiles({ name: "lateral.svg", mimeType: "image/svg+xml", buffer: Buffer.from(SIDE) });
   await idle(page);
-  await page.getByRole("button", { name: "Veículo" }).click();
+  await page.getByRole("button", { name: "Veículo", exact: true }).click();
   await idle(page);
   for (const name of ["Cartão", "Peças", "Rodas", "Pneus", "Título", "Montado: chassi"]) await expect(page.locator(".legend")).toContainText(name);
   await expect(page.getByText(/prenda as 4 rodas apertando o eixo/)).toBeVisible();
@@ -145,7 +145,7 @@ test("kit card: quadro \"Que imagem funciona\", exemplos prontos, silhueta enten
   await page.getByRole("button", { name: "Carro", exact: true }).click();
   await expect(page.getByRole("img", { name: /Silhueta entendida: 1 figura/ })).toBeVisible({ timeout: 60_000 });
   await expect(page.getByText(/Uma figura inteira/)).toBeVisible();
-  await expect(page.getByRole("button", { name: "Veículo" })).toHaveAttribute("aria-pressed", "true");
+  await expect(page.getByRole("button", { name: "Veículo", exact: true })).toHaveAttribute("aria-pressed", "true");
   await idle(page);
   await expect(page.locator(".legend")).toContainText("Peças");
   await page.getByRole("button", { name: "Elefante", exact: true }).click();

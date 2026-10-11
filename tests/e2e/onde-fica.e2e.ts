@@ -69,7 +69,7 @@ test("onde fica: Presentes, Casa e decoração e Organização e utilidades sepa
   await expect(page.getByRole("group", { name: "Variação" }).getByRole("button", { name: "Cumbuca" })).toBeVisible();
 
   await tabs.getByRole("button", { name: "Casa e decoração" }).click();
-  await expect(families.getByRole("button")).toHaveText(["Moldura", "Luminárias e abajures", "Quadro e desenho", "Vaso", "Brinquedos"]);
+  await expect(families.getByRole("button")).toHaveText(["Moldura", "Luminárias e abajures", "Quadro e desenho", "Vaso", "Brinquedos", "Kits de montar"]);
 
   await tabs.getByRole("button", { name: "Organização" }).click();
   await expect(families.getByRole("button")).toHaveText(["Potes e organizadores", "Organizador modular (Gridfinity)", "Suporte de celular e tablet", "Tecla de teclado", "Porta-chave de parede", "Utilitários"]);
