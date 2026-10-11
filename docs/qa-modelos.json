@@ -2937,7 +2937,7 @@
   "date": "2026-10-11",
   "slicers": "Bambu ✓ · Orca ✓ · Projeto Bambu ✓",
   "minutes": 146,
-  "grams": 58.2,
+  "grams": 58.3,
   "plates": 1
  },
  {
@@ -2948,15 +2948,15 @@
   "variant": "mínimo",
   "status": "aviso",
   "reasons": [
-   "\"Trator (kit de montar)\": parede/traço < 0,4 mm em Z 0,3, 1,0 mm",
    "Orca: torre de purga passa da mesa na posição padrão do CLI (na tela, arraste a torre ou use Arrumar)",
+   "Projeto Bambu: torre de purga passa da mesa na posição padrão do CLI (na tela, arraste a torre ou use Arrumar)",
    "app: Trator pequeno: as janelas e as abas ficam apertadas. Aumente o comprimento ou a espessura se as travessas não encaixarem.",
    "app: Para montar: destaque as peças dobrando os pontos de corte. Prenda as rodas 10 a 11 e 12 a 13 nos furos das laterais 1 a 2, de fora para dentro (pino por dentro da lateral). Com as laterais de pé, passe as abas das travessas pelas janelas: 3, 4, 5, a grade do radiador 8, o 7 e por último o 6. Encaixe o escapamento 9 no furo do capô."
   ],
   "date": "2026-10-11",
   "slicers": "Bambu ✓ · Orca ✓ · Projeto Bambu ✓",
   "minutes": 43,
-  "grams": 12.8,
+  "grams": 12.6,
   "plates": 1
  },
  {

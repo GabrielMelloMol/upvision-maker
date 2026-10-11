@@ -15,7 +15,7 @@ const text = (s: string, h: number) => (s.trim() ? M.CrossSection.square([h * 0.
 const ctx = (): ModelCtx => ({ M, art: null, text });
 
 describe("Trator de montar", { timeout: 120_000 }, () => {
-  test.each<KitParams>([{}, { scale: 0.75 }, { length: 60 }, { scale: 2 }, { thickness: 2, fit: 0.3 }, { wheelsSpin: true, chimney: false }, { lugs: 18 }])("montado sem colisão e com as folgas dos pares (%j)", (params) => {
+  test.each<KitParams>([{}, { scale: 0.5 }, { scale: 0.6 }, { scale: 0.75 }, { length: 60 }, { scale: 2 }, { thickness: 2, fit: 0.3 }, { wheelsSpin: true, chimney: false }, { lugs: 18 }])("montado sem colisão e com as folgas dos pares (%j)", (params) => {
     scoped((k) => {
       const { insts, build, env } = kitInstances(M, k, tractorKit, params);
       const rep = checkAssembly(M, k, assemblySolids(M, k, insts, build.assembly), build.pairs ?? [], env.fit);

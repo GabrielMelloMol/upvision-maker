@@ -16,6 +16,9 @@ const PIN_PAST = 0.6; // quanto o pino passa da face de dentro da lateral
 const REAR = { x: 22, z: 22, r: 22 } as const;
 const FRONT = { x: 84, z: 12, r: 12 } as const;
 const BOSS_R = 5.5;
+const MIN_TAB = 2.4; // aba mais estreita que isto não aguenta (mm)
+const TAB_SHARE = 0.3; // largura máxima da aba, em fração do comprimento da travessa
+const TAB_MARGIN = 0.4; // sobra entre a aba e a ponta da travessa (mm)
 const GLASS = { x0: 34, z0: 28, x1: 46, z1: 42 } as const; // janela vazada da cabine
 const LUG_COUNTS = { rear: 1, front: 0.66 } as const;
 
@@ -55,7 +58,7 @@ export const tractorKit: KitTemplate = {
 
     // lateral: longarina + cabine + capô + bossas dos eixos, com a janela da cabine vazada
     const side0 = U(rect(M, k, 8 * u, 14 * u, 97 * u, 24 * u), rect(M, k, 18 * u, 14 * u, 52 * u, 52 * u), rect(M, k, 52 * u, 14 * u, 97 * u, 34.5 * u), disc(M, k, REAR.x * u, REAR.z * u, BOSS_R * u), disc(M, k, FRONT.x * u, FRONT.z * u, BOSS_R * u));
-    const bars: Bar[] = [
+    const rawBars: Bar[] = [
       { id: "piso", label: "Piso", plane: "xy", at: 19 * u, x: [31 * u, 50 * u], tabs: [35 * u, 46 * u], color: "body" },
       { id: "encosto", label: "Encosto do banco", plane: "yz", at: 28 * u, z: [22 * u, 44 * u], tabs: [27 * u, 40 * u], color: "cabin" },
       { id: "parabrisa", label: "Para-brisa", plane: "yz", at: 50 * u, z: [19 * u + t / 2 + 0.3, 48 * u - t / 2 - 0.2], tabs: [26 * u, 42 * u], color: "cabin" },
@@ -63,6 +66,14 @@ export const tractorKit: KitTemplate = {
       { id: "capo", label: "Capô", plane: "xy", at: 32 * u, x: [52 * u, 97 * u], tabs: [58 * u, 90 * u], color: "body" },
       { id: "grade", label: "Grade do radiador", plane: "yz", at: 94 * u, z: [15 * u, 32 * u - t / 2 - 0.3], tabs: [19 * u, 27 * u], color: "wheel", tw: Math.max(3, 4.5 * u) },
     ];
+    // as abas ficam dentro da travessa e com largura proporcional a ela: com o modelo pequeno, abas de largura fixa passavam da
+    // travessa e batiam nas abas das vizinhas (para-brisa × piso e teto, capô × grade)
+    const bars = rawBars.map((b): Bar => {
+      const [a0, a1] = b.plane === "xy" ? (b.x as [number, number]) : (b.z as [number, number]);
+      const tw = Math.max(MIN_TAB, Math.min(b.tw ?? tabW, TAB_SHARE * (a1 - a0)));
+      const lo = a0 + tw / 2 + TAB_MARGIN, hi = a1 - tw / 2 - TAB_MARGIN;
+      return { ...b, tw, tabs: b.tabs.map((c) => Math.min(Math.max(c, lo), Math.max(lo, hi))) };
+    });
     const windows = bars.flatMap((b) => b.tabs.map((c) => (b.plane === "xy" ? tabWindow(M, k, { cx: c, cy: b.at, tabW: b.tw ?? tabW, t, fit }) : tabWindow(M, k, { cx: b.at, cy: c, tabW: b.tw ?? tabW, t, fit, vertical: true }))));
     const holes = [pinHole(M, k, { x: REAR.x * u, y: REAR.z * u, r: pinR, fit: holeFit }), pinHole(M, k, { x: FRONT.x * u, y: FRONT.z * u, r: pinR, fit: holeFit })];
     const glass = rect(M, k, GLASS.x0 * u, GLASS.z0 * u, GLASS.x1 * u, GLASS.z1 * u);
