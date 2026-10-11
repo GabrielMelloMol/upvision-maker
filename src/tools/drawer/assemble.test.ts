@@ -97,3 +97,20 @@ test.each([79, 60, 45])("dois andares com altura %i mm: avisa por que não cabe,
   expect(why).toMatch(/faltam/);
   expect(buildDrawer(ctx(), p).warnings).toContain(why);
 });
+
+test("meia casa e divisórias livres: nada passa da gaveta; fora da grade sai sem pés e avisa", () => {
+  const p = project();
+  let layout: DrawerLayout = { cols: 4, rows: 3, modules: [] };
+  layout = addModule(layout, { x: 0, y: 0, w: 1.5, h: 1 })!;
+  layout = addModule(layout, { x: 1.5, y: 0, w: 0.5, h: 1 })!;
+  const first = layout.modules[0];
+  layout = updateModules(layout, [first.id], { dividersX: 3, cutsX: [0.25, 0.8] });
+  const out = buildDrawer(ctx(), { ...p, layout });
+  expect(out.warnings.join(" ")).toMatch(/Caixinha 0,5×1×3 está fora das casas da base/);
+  expect(out.groups.map((g) => g.module.w)).toEqual([1.5, 0.5]);
+  const gaveta = modelsBounds(out.preview.slice(0, 1))!; // a base é a própria gaveta
+  const caixas = modelsBounds(out.preview.slice(1))!;
+  expect(caixas.min[0]).toBeGreaterThanOrEqual(gaveta.min[0] - 0.01);
+  expect(caixas.max[0]).toBeLessThanOrEqual(gaveta.max[0] + 0.01);
+  expect(caixas.max[0] - caixas.min[0]).toBeCloseTo(2 * 42 - 0.5, 0); // 1,5 + 0,5 casa = 2 casas menos a folga
+});

@@ -4,7 +4,7 @@ import { cutleryPlan, twoLevelsShortfall, type CutleryPlan } from "../../geometr
 import { drawerPlan, GRID, type DrawerAlign, type DrawerPlan } from "../../geometry/models/gridDrawer";
 import { buildGridBase, buildGridBin, DEFAULT_GRID_BIN } from "../../geometry/models/gridfinity";
 import type { Model } from "../../geometry/types";
-import { groupModules, type DrawerLayout, type DrawerModule } from "./layout";
+import { groupModules, onGrid, type DrawerLayout, type DrawerModule } from "./layout";
 
 /** Projeto do organizador de gaveta (#140): medidas, base e os módulos desenhados na grade. */
 export type DrawerProject = {
@@ -50,7 +50,8 @@ export const planOf = (p: DrawerProject): DrawerPlan => {
 };
 
 /** Nome curto do módulo: "Caixinha 2×1×3" (+ etiqueta). */
-export const moduleName = (m: DrawerModule) => `Caixinha ${m.w}×${m.h}×${m.u}${m.label.trim() ? ` ${m.label.trim()}` : ""}`;
+const casas = (n: number) => String(n).replace(".", ",");
+export const moduleName = (m: DrawerModule) => `Caixinha ${casas(m.w)}×${casas(m.h)}×${m.u}${m.label.trim() ? ` ${m.label.trim()}` : ""}`;
 
 /** A peça impressa de um módulo (caixinha e, se houver texto, a etiqueta), no centro da origem. */
 export function moduleModels(ctx: ModelCtx, m: DrawerModule): Model[] {
@@ -61,6 +62,9 @@ export function moduleModels(ctx: ModelCtx, m: DrawerModule): Model[] {
     unitsZ: m.u,
     dividersX: m.dividersX,
     dividersY: m.dividersY,
+    cutsX: m.cutsX,
+    cutsY: m.cutsY,
+    feet: onGrid(m),
     scoop: m.scoop,
     labelTab: m.labelTab,
     label: m.labelTab ? m.label : "",
@@ -110,10 +114,11 @@ export function buildDrawer(ctx: ModelCtx, p: DrawerProject): DrawerBuild {
     const cx = plan.marginX[0] + (m.x + m.w / 2) * GRID - totalW / 2;
     const cy = plan.marginY[0] + (m.y + m.h / 2) * GRID - totalD / 2;
     preview.push({ ...bin, parts: bin.parts.map((q) => ({ ...q, mesh: moveMesh(q.mesh, cx, cy, floor) })) });
+    if (!onGrid(m)) warnings.push(`${moduleName(m)} está fora das casas da base (meia casa de deslocamento): sai sem pés e fica solta sobre a base.`);
     if (m.u > plan.uMax) warnings.push(`${moduleName(m)} passa da altura da gaveta: cabe até ${plan.uMax} unidades.`);
   }
   const { trays, extras } = cutlery ? cutleryPieces(ctx, p, cutlery, preview) : { trays: [], extras: [] };
-  return { plan, preview, trays, basePieces, groups, extras, cutlery, warnings };
+  return { plan, preview, trays, basePieces, groups, extras, cutlery, warnings: [...new Set(warnings)] };
 }
 
 /** Trilhos em pé na prévia, bandejas montadas em cima e as peças de imprimir (bandejas, trilhos cortados, teste). */

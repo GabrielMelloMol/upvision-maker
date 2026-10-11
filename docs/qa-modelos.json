@@ -2635,14 +2635,9 @@
   "status": "aviso",
   "reasons": [
    "o conjunto arrumado ocupa 870,0 × 870,0 mm: passa da mesa de 256 mm",
-   "não coube numa placa: 16 placas",
    "app: Base de 20×20 casas não cabe inteira na mesa: saiu em 16 pedaços cortados nas divisas das casas."
   ],
-  "date": "2026-10-02",
-  "slicers": "Bambu ✓ · Orca ✓",
-  "minutes": 916,
-  "grams": 554.9,
-  "plates": 16
+  "date": "2026-10-11"
  },
  {
   "key": "gridBase:mínimo",
@@ -2652,11 +2647,7 @@
   "variant": "mínimo",
   "status": "ok",
   "reasons": [],
-  "date": "2026-10-02",
-  "slicers": "Bambu ✓ · Orca ✓",
-  "minutes": 3,
-  "grams": 1.6,
-  "plates": 1
+  "date": "2026-10-11"
  },
  {
   "key": "gridBase:padrão",
@@ -2666,11 +2657,7 @@
   "variant": "padrão",
   "status": "ok",
   "reasons": [],
-  "date": "2026-10-02",
-  "slicers": "Bambu ✓ · Orca ✓",
-  "minutes": 27,
-  "grams": 16.9,
-  "plates": 1
+  "date": "2026-10-11"
  },
  {
   "key": "gridBin:máximo",
@@ -2681,16 +2668,10 @@
   "status": "aviso",
   "reasons": [
    "o conjunto arrumado ocupa 251,5 × 270,5 mm: passa da mesa de 256 mm",
-   "mais de 24 h de impressão",
-   "não coube numa placa: 2 placas",
    "app: Parede mais grossa que a borda empilhável: a borda fica com degrau por dentro.",
    "app: As 2 peças não cabem juntas na mesa de 256 mm: o fatiador vai usar mais de uma mesa (ou imprima uma de cada vez)."
   ],
-  "date": "2026-10-02",
-  "slicers": "Bambu ✓ · Orca ✓ · Projeto Bambu ✓",
-  "minutes": 2437,
-  "grams": 2309.2,
-  "plates": 2
+  "date": "2026-10-11"
  },
  {
   "key": "gridBin:mínimo",
@@ -2700,11 +2681,7 @@
   "variant": "mínimo",
   "status": "ok",
   "reasons": [],
-  "date": "2026-10-02",
-  "slicers": "Bambu ✓ · Orca ✓ · Projeto Bambu ✓",
-  "minutes": 35,
-  "grams": 14.5,
-  "plates": 1
+  "date": "2026-10-11"
  },
  {
   "key": "gridBin:padrão",
@@ -2714,11 +2691,7 @@
   "variant": "padrão",
   "status": "ok",
   "reasons": [],
-  "date": "2026-10-02",
-  "slicers": "Bambu ✓ · Orca ✓ · Projeto Bambu ✓",
-  "minutes": 52,
-  "grams": 28.1,
-  "plates": 1
+  "date": "2026-10-11"
  },
  {
   "key": "gridDrawerBase:máximo",

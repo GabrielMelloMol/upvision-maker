@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState, type KeyboardEvent, type PointerEvent } from "react";
 import { GRID, type DrawerPlan } from "../../geometry/models/gridDrawer";
-import { addModule, canPlace, duplicate, moveModules, removeModules, resizeModule, type DrawerLayout, type DrawerModule, type Rect } from "./layout";
+import { BIN_GAP } from "../../geometry/models/gridfinity";
+import { addModule, canPlace, cutsPatch, dividerMm, duplicate, moveModules, removeModules, resizeModule, updateModules, type Axis, type DrawerLayout, type DrawerModule, type Rect } from "./layout";
 
 type Props = {
   layout: DrawerLayout;
@@ -16,11 +17,14 @@ const INSET = 1.5; // mm: vão entre caixinhas vizinhas no desenho (a de verdade
 type Drag =
   | { kind: "draw"; from: [number, number]; to: [number, number] }
   | { kind: "move"; from: [number, number]; base: DrawerLayout; dx: number; dy: number }
-  | { kind: "resize"; id: string; anchor: [number, number]; base: DrawerLayout };
+  | { kind: "resize"; id: string; anchor: [number, number]; base: DrawerLayout }
+  | { kind: "cut"; id: string; axis: Axis; index: number; base: DrawerLayout };
 
 const rectOf = (a: [number, number], b: [number, number]): Rect => ({ x: Math.min(a[0], b[0]), y: Math.min(a[1], b[1]), w: Math.abs(a[0] - b[0]) + 1, h: Math.abs(a[1] - b[1]) + 1 });
 const hits = (m: Rect, r: Rect) => m.x < r.x + r.w && r.x < m.x + m.w && m.y < r.y + r.h && r.y < m.y + m.h;
-const label = (m: DrawerModule) => `Caixinha ${m.w}×${m.h}, altura ${m.u}, coluna ${m.x + 1}, fileira ${m.y + 1}${m.label.trim() ? `, etiqueta ${m.label.trim()}` : ""}`;
+const casas = (n: number) => String(n).replace(".", ",");
+const WALL_MM = 1.2; // parede padrão: o vão interno começa aqui, depois da folga de 0,25 mm
+const label = (m: DrawerModule) => `Caixinha ${casas(m.w)}×${casas(m.h)}, altura ${m.u}, coluna ${m.x + 1}, fileira ${m.y + 1}${m.label.trim() ? `, etiqueta ${m.label.trim()}` : ""}`;
 
 /**
  * Editor 2D da gaveta (#140), em mm e visto de cima (a frente embaixo). Arrastar no vazio cria um módulo; se o
@@ -55,6 +59,21 @@ export default function DrawerEditor({ layout, plan, selected, onChange, onSelec
     return [Math.min(layout.cols - 1, Math.max(0, c)), Math.min(layout.rows - 1, Math.max(0, r))];
   }
 
+  /** Ponto do ponteiro em mm no desenho. */
+  function pointAt(e: PointerEvent): { x: number; y: number } {
+    const el = e.currentTarget as SVGElement;
+    const root = el instanceof SVGSVGElement ? el : el.ownerSVGElement;
+    const m = root?.getScreenCTM?.();
+    if (!m) return { x: 0, y: 0 };
+    return new DOMPoint(e.clientX, e.clientY).matrixTransform(m.inverse());
+  }
+
+  function downCut(e: PointerEvent, m: DrawerModule, axis: Axis, index: number) {
+    e.stopPropagation();
+    (e.currentTarget as Element).setPointerCapture?.(e.pointerId);
+    setDrag({ kind: "cut", id: m.id, axis, index, base: layout });
+  }
+
   function down(e: PointerEvent, target?: DrawerModule, handle?: [number, number]) {
     e.stopPropagation();
     (e.currentTarget as Element).setPointerCapture?.(e.pointerId);
@@ -73,7 +92,14 @@ export default function DrawerEditor({ layout, plan, selected, onChange, onSelec
   function move(e: PointerEvent) {
     if (!drag) return;
     const at = cellAt(e);
-    if (drag.kind === "draw") setDrag({ ...drag, to: at });
+    if (drag.kind === "cut") {
+      const m = drag.base.modules.find((x) => x.id === drag.id)!;
+      const p = pointAt(e);
+      const inner0 = BIN_GAP / 2 + WALL_MM;
+      const mm = drag.axis === "x" ? p.x - (sx(m.x) + inner0) : sy(m.y) - inner0 - p.y;
+      const all = dividerMm(m, drag.axis).map((v, i) => (i === drag.index ? mm : v));
+      onChange(updateModules(drag.base, [m.id], cutsPatch(m, drag.axis, all)));
+    } else if (drag.kind === "draw") setDrag({ ...drag, to: at });
     else if (drag.kind === "move") {
       const dx = at[0] - drag.from[0], dy = at[1] - drag.from[1];
       if (dx === drag.dx && dy === drag.dy) return;
@@ -111,7 +137,8 @@ export default function DrawerEditor({ layout, plan, selected, onChange, onSelec
     const a = arrows[e.key];
     if (a) {
       e.preventDefault();
-      onChange(e.shiftKey ? resizeModule(layout, m.id, m.w + a[0], m.h + a[1]) : moveModules(layout, ids, a[0], a[1]));
+      const s = e.altKey ? 0.5 : 1; // Alt: passo de meia casa
+      onChange(e.shiftKey ? resizeModule(layout, m.id, m.w + a[0] * s, m.h + a[1] * s) : moveModules(layout, ids, a[0] * s, a[1] * s));
     } else if (e.key === "Delete" || e.key === "Backspace") {
       e.preventDefault();
       onChange(removeModules(layout, ids));
@@ -168,6 +195,20 @@ export default function DrawerEditor({ layout, plan, selected, onChange, onSelec
               <text x={x + w / 2} y={y + hh / 2} className="drawer-module-label" fontSize={Math.min(8, GRID / 4)}>
                 {m.label.trim()}
               </text>
+            )}
+            {(["x", "y"] as Axis[]).flatMap((axis) =>
+              dividerMm(m, axis).map((mm, i) => {
+                const inner0 = BIN_GAP / 2 + WALL_MM;
+                const pos = axis === "x" ? sx(m.x) + inner0 + mm : sy(m.y) - inner0 - mm;
+                const [x1, y1, x2, y2] = axis === "x" ? [pos, y + INSET + 1, pos, y + hh - INSET - 1] : [x + INSET + 1, pos, x + w - INSET - 1, pos];
+                const grab = on && selected.length === 1;
+                return (
+                  <g key={`${axis}${i}`} onPointerDown={grab ? (e) => downCut(e, m, axis, i) : undefined}>
+                    <line className="drawer-divider" x1={x1} y1={y1} x2={x2} y2={y2} />
+                    {grab && <line className="drawer-divider-grab" data-axis={axis} data-index={i} x1={x1} y1={y1} x2={x2} y2={y2} strokeWidth={t} />}
+                  </g>
+                );
+              }),
             )}
             {on &&
               selected.length === 1 &&

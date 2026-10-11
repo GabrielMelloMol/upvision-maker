@@ -38,6 +38,8 @@ export type GridBinParams = {
   unitsZ: number;
   dividersX: number; // compartimentos no sentido X (1 = sem divisória)
   dividersY: number;
+  /** Pés Gridfinity (padrão); sem pés a caixinha fica solta sobre a base, para posição fora da grade. */
+  feet?: boolean;
   wall: number;
   floor: number;
   lip: boolean; // borda empilhável
@@ -50,6 +52,9 @@ export type GridBinParams = {
   labelColor: string;
   textColor: string;
 };
+
+/** Divisórias em posição livre (fração 0–1 do vão interno); sem isso, iguais pela quantidade. Fora de GridBinParams: o catálogo só aceita valores simples. */
+export type BinCuts = { cutsX?: number[]; cutsY?: number[] };
 
 export const DEFAULT_GRID_BIN: GridBinParams = {
   unitsX: 2,
@@ -69,6 +74,16 @@ export const DEFAULT_GRID_BIN: GridBinParams = {
   labelColor: "#f8f8f6",
   textColor: "#1c1c1e",
 };
+
+/** Tamanho de caixinha em casas: múltiplo de meia casa (21 mm), pelo menos meia. */
+export const snapHalf = (n: number) => Math.max(0.5, Math.round(n * 2) / 2);
+
+/** Frações (0–1) das divisórias: as de `cuts` (ordenadas, dentro de 0–1) ou `count - 1` iguais. */
+export function dividerFractions(count: number, cuts?: number[]): number[] {
+  if (cuts) return [...cuts].filter((c) => c > 0 && c < 1).sort((a, b) => a - b);
+  const n = Math.max(1, Math.round(count));
+  return Array.from({ length: n - 1 }, (_, i) => (i + 1) / n);
+}
 
 export type GridBaseParams = {
   unitsX: number;
@@ -155,21 +170,27 @@ export function cellCenters(nx: number, ny: number): [number, number][] {
  * Caixinha Gridfinity: pés por casa (com furos de ímã/parafuso opcionais), corpo oco com parede e fundo, divisórias,
  * aba de etiqueta, rampa de pegar e borda empilhável. Etiqueta com texto sai como peça à parte (2 cores).
  */
-export function buildGridBin({ M, text }: ModelCtx, p: GridBinParams): ModelOutput {
+export function buildGridBin({ M, text }: ModelCtx, p: GridBinParams & BinCuts): ModelOutput {
   return scoped((k) => {
-    const nx = Math.round(p.unitsX), ny = Math.round(p.unitsY);
-    const W = nx * GRID - BIN_GAP, D = ny * GRID - BIN_GAP;
+    const ux = snapHalf(p.unitsX), uy = snapHalf(p.unitsY);
+    const nx = Math.floor(ux), ny = Math.floor(uy); // casas inteiras: só nelas há pé
+    const W = ux * GRID - BIN_GAP, D = uy * GRID - BIN_GAP;
+    const withFeet = p.feet !== false && nx >= 1 && ny >= 1;
+    const [fdx, fdy] = [((nx - ux) * GRID) / 2, ((ny - uy) * GRID) / 2]; // pés encostados na esquerda/frente
     const H = Math.round(p.unitsZ) * HEIGHT_UNIT; // altura do topo da parede (a borda empilhável sobe além)
     const warnings: string[] = [];
-    let feet = gridFeet(M, k, nx, ny);
-    if (p.magnets || p.screws) {
+    let feet = withFeet ? k(gridFeet(M, k, nx, ny).translate([fdx, fdy, 0])) : null;
+    if (!withFeet && (p.magnets || p.screws)) warnings.push("Caixinha sem pés (fora da grade ou menor que 1 casa): sai sem furos de ímã.");
+    if (feet && (p.magnets || p.screws)) {
       const holes: Solid[] = [];
-      for (const [cx, cy] of cellCenters(nx, ny))
+      for (const [cx0, cy0] of cellCenters(nx, ny)) {
+        const [cx, cy] = [cx0 + fdx, cy0 + fdy];
         for (const [dx, dy] of [[-1, -1], [1, -1], [1, 1], [-1, 1]]) {
           const at: [number, number, number] = [cx + dx * HOLE_OFFSET, cy + dy * HOLE_OFFSET, -EPS];
           if (p.magnets) holes.push(k(k(M.Manifold.cylinder(MAGNET_H + EPS, MAGNET_D / 2, MAGNET_D / 2, 32)).translate(at)));
           if (p.screws) holes.push(k(k(M.Manifold.cylinder(FOOT_H, SCREW_D / 2, SCREW_D / 2, 24)).translate(at)));
         }
+      }
       feet = k(feet.subtract(k(M.Manifold.union(holes))));
     }
     const outer = k(roundedRect(M, W, D, BIN_R));
@@ -180,8 +201,9 @@ export function buildGridBin({ M, text }: ModelCtx, p: GridBinParams): ModelOutp
     const iw = W - 2 * p.wall, id = D - 2 * p.wall;
     // divisórias: paredes finas cheias até o topo da parede
     const cuts: Solid[] = [];
-    for (let i = 1; i < Math.round(p.dividersX); i++) cuts.push(k(k(M.Manifold.cube([p.wall, id, H - floorZ])).translate([-iw / 2 + (iw * i) / p.dividersX - p.wall / 2, -id / 2, floorZ])));
-    for (let j = 1; j < Math.round(p.dividersY); j++) cuts.push(k(k(M.Manifold.cube([iw, p.wall, H - floorZ])).translate([-iw / 2, -id / 2 + (id * j) / p.dividersY - p.wall / 2, floorZ])));
+    const fx = dividerFractions(p.dividersX, p.cutsX), fy = dividerFractions(p.dividersY, p.cutsY);
+    for (const f of fx) cuts.push(k(k(M.Manifold.cube([p.wall, id, H - floorZ])).translate([-iw / 2 + iw * f - p.wall / 2, -id / 2, floorZ])));
+    for (const f of fy) cuts.push(k(k(M.Manifold.cube([iw, p.wall, H - floorZ])).translate([-iw / 2, -id / 2 + id * f - p.wall / 2, floorZ])));
     if (cuts.length) body = k(body.add(k(M.Manifold.union(cuts))));
     if (p.labelTab) {
       // aba na parede de trás, topo reto na altura da parede e 45° por baixo (imprime sem suporte).
@@ -200,12 +222,12 @@ export function buildGridBin({ M, text }: ModelCtx, p: GridBinParams): ModelOutp
       body = k(body.add(stackingLip(M, k, W, D, H, p.wall)));
       if (LIP[0] + LIP[2] < p.wall) warnings.push("Parede mais grossa que a borda empilhável: a borda fica com degrau por dentro.");
     }
-    const bin = k(feet.add(body));
+    const bin = feet ? k(feet.add(body)) : body;
     const models: Model[] = [{ name: "Caixinha", parts: [{ name: "Caixinha", color: p.binColor, mesh: solidMesh(bin) }] }];
     const raw = p.label.trim() ? text(p.label, 6) : null;
     if (raw) {
       // etiqueta: plaquinha na largura de um compartimento, com o texto em relevo noutra cor
-      const lw = Math.min(iw / Math.max(1, Math.round(p.dividersX)) - 2, 80), lh = LABEL_W - 2;
+      const lw = Math.min(iw * Math.min(...[fx[0] ?? 1, ...fx.slice(1).map((c, i) => c - fx[i]), 1 - (fx[fx.length - 1] ?? 0)]) - 2, 80), lh = LABEL_W - 2;
       const plate = k(roundedRect(M, lw, lh, 1.5));
       const t = k(fitInto(k(raw), lw - 3, lh - 3, 0));
       const parts: Part[] = [

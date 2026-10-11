@@ -1,5 +1,5 @@
 import { describe, expect, test } from "vitest";
-import { addModule, canPlace, duplicate, groupModules, moveModules, newModule, removeModules, resizeModule, type DrawerLayout } from "./layout";
+import { addModule, canPlace, compartmentsMm, cutsPatch, dividerMm, duplicate, groupModules, innerSize, MIN_COMPARTMENT, moveModules, newModule, removeModules, resizeModule, updateModules, type DrawerLayout } from "./layout";
 
 const empty: DrawerLayout = { cols: 4, rows: 3, modules: [] };
 const withTwo = () => {
@@ -59,5 +59,52 @@ describe("layout da gaveta (#140)", () => {
   test("módulo novo segue a altura pedida e nunca passa de uMax", () => {
     expect(newModule({ x: 0, y: 0, w: 1, h: 1 }, 10).u).toBe(3);
     expect(newModule({ x: 0, y: 0, w: 1, h: 1 }, 2).u).toBe(2);
+  });
+});
+
+describe("módulos modulares: meia casa e divisórias livres", () => {
+  test("tamanho e posição em meia casa; 1,5 + 0,5 enchem 2 casas e uma terceira não cabe por cima", () => {
+    let l: DrawerLayout = { cols: 2, rows: 1, modules: [] };
+    l = addModule(l, { x: 0, y: 0, w: 1.5, h: 1 })!;
+    l = addModule(l, { x: 1.5, y: 0, w: 0.5, h: 1 })!;
+    expect(l.modules.map((m) => m.w)).toEqual([1.5, 0.5]);
+    expect(addModule(l, { x: 1, y: 0, w: 0.5, h: 1 })).toBeNull();
+    expect(addModule(l, { x: 1.5, y: 0, w: 1, h: 1 })).toBeNull(); // passa de 2 casas
+    expect(resizeModule(l, l.modules[0].id, 1.7, 1).modules[0].w).toBe(1.5); // arredonda para meia casa (1,7 → 1,5)
+    expect(resizeModule(l, l.modules[1].id, 0.2, 1)).toBe(l); // abaixo de meia casa: recusa
+    expect(moveModules(l, [l.modules[1].id], -0.5, 0)).toBe(l); // bateria no vizinho
+  });
+
+  test("divisórias: posições pedidas viram frações; compartimentos desiguais somam o vão", () => {
+    const m = newModule({ x: 0, y: 0, w: 2, h: 1 }, 6);
+    const inner = innerSize(m, "x");
+    const patch = cutsPatch(m, "x", [20, 55]);
+    const next = { ...m, ...patch };
+    expect(next.dividersX).toBe(3);
+    expect(dividerMm(next, "x")).toEqual([20, 55]);
+    const sizes = compartmentsMm(next, "x");
+    expect(sizes).toHaveLength(3);
+    expect(sizes[0]).toBeCloseTo(20 - 0.6, 1);
+    expect(sizes.reduce((a, b) => a + b, 0) + 2 * 1.2).toBeCloseTo(inner, 1);
+  });
+
+  test("divisórias não passam das paredes nem ficam coladas: respeitam o compartimento mínimo", () => {
+    const m = newModule({ x: 0, y: 0, w: 2, h: 1 }, 6);
+    const inner = innerSize(m, "x");
+    const out = { ...m, ...cutsPatch(m, "x", [-5, 3, inner + 10]) };
+    expect(compartmentsMm(out, "x").every((v) => v >= MIN_COMPARTMENT - 0.6)).toBe(true);
+    const mm = dividerMm(out, "x");
+    expect(mm[0]).toBeGreaterThan(0);
+    expect(mm[mm.length - 1]).toBeLessThan(inner);
+  });
+
+  test("módulos só são iguais para imprimir se as divisórias e o encaixe na grade forem iguais", () => {
+    let l: DrawerLayout = { cols: 4, rows: 2, modules: [] };
+    l = addModule(l, { x: 0, y: 0, w: 1, h: 1 })!;
+    l = addModule(l, { x: 1, y: 0, w: 1, h: 1 })!;
+    expect(groupModules(l.modules)).toHaveLength(1);
+    const ids = [l.modules[1].id];
+    expect(groupModules(updateModules(l, ids, cutsPatch(l.modules[1], "x", [18])).modules)).toHaveLength(2);
+    expect(groupModules(moveModules(l, ids, 0.5, 0).modules)).toHaveLength(2); // fora da grade: sem pés
   });
 });

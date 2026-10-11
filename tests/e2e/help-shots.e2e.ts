@@ -63,7 +63,7 @@ test("ajuda do organizador de gaveta: como medir (gaveta 3D com a cota acesa), g
   // tira a seleção (Esc no editor) e o foco, para a foto sair limpa
   await page.locator("svg.drawer-editor [role=button]").first().focus();
   await page.keyboard.press("Escape");
-  await page.getByRole("heading", { name: "Organizador de gaveta", level: 1 }).click();
+  await page.getByRole("heading", { name: "Gaveta", level: 3, exact: true }).click(); // tira o foco do editor (dentro de Organizadores não há h1 da ferramenta)
   await shot(page, page.locator(".preview-col .card", { has: page.locator("svg.drawer-editor") }), "gaveta-grade");
 
   await page.setViewportSize({ width: 1640, height: 640 });

@@ -186,3 +186,40 @@ test("dois andares com gaveta baixa (60 mm): avisa o mínimo em mm e cm ao lado 
   await page.getByRole("switch", { name: "Dois andares: talheres em cima" }).check();
   await expect(page.getByText(/Dois andares não cabem.*60 mm \(6 cm\).*80 mm \(8 cm\).*faltam 20 mm \(2 cm\)/)).toBeVisible();
 });
+
+test("caixinha modular: meia casa, divisórias em posição livre (campo e arrastando) e nada além da gaveta", async ({ page, tauri }) => {
+  test.slow();
+  await page.setViewportSize({ width: 1100, height: 1000 });
+  await openApp(page);
+  await go(page, "Organizador de gaveta");
+  for (const [label, v] of [["Largura", "169"], ["Profundidade", "127"], ["Altura livre", "60"]] as const) await page.getByLabel(new RegExp(`^${label}`)).fill(v);
+  await page.getByRole("group", { name: "Prévia" }).getByRole("button", { name: "Grade", exact: true }).click();
+  await dragCells(page, 4, 3, [0, 0], [1, 0]); // 2×1
+  await expect(page.getByRole("heading", { name: "Caixinha 2×1" })).toBeVisible();
+  await page.getByLabel(/^Largura \(casas\)/).fill("1.5");
+  await expect(page.getByRole("heading", { name: "Caixinha 1,5×1" })).toBeVisible();
+  // 3 compartimentos: uma divisória a mais, depois posição livre pelo campo
+  await page.getByRole("button", { name: "Mais uma divisória na largura" }).click();
+  await page.getByRole("button", { name: "Mais uma divisória na largura" }).click();
+  const first = page.getByLabel(/^Divisória 1 da largura/);
+  await first.fill("14");
+  await expect(first).toHaveValue("14");
+  await expect(page.getByText(/Compartimentos \(largura\): 13,4 mm/)).toBeVisible();
+  // arrastar a divisória 2 no editor muda o campo dela
+  const second = page.getByLabel(/^Divisória 2 da largura/);
+  const before = Number(await second.inputValue());
+  const grab = page.locator('.drawer-divider-grab[data-axis="x"][data-index="1"]');
+  const gb = (await grab.boundingBox())!;
+  await page.mouse.move(gb.x + gb.width / 2, gb.y + gb.height / 2);
+  await page.mouse.down();
+  await page.mouse.move(gb.x + gb.width / 2 + 15, gb.y + gb.height / 2, { steps: 5 });
+  await page.mouse.up();
+  expect(Number(await second.inputValue())).toBeGreaterThan(before);
+  // exporta: a caixinha de 1,5 casa sai com 62,5 mm e a peça cabe na gaveta de 169 mm
+  await page.getByRole("group", { name: "Prévia" }).getByRole("button", { name: "Peças", exact: true }).click();
+  await expect(page.locator(".viewer")).not.toHaveAttribute("aria-busy", "true", { timeout: 90_000 });
+  await page.getByRole("button", { name: /Salvar 3MF/ }).click();
+  await expect(toastWith(page, "Arquivo salvo em")).toBeVisible();
+  const names = names3mf([...tauri.files].find(([p]) => p.endsWith(".3mf"))![1]);
+  expect(names.filter((n) => /^Caixinha 1,5×1/.test(n))).toHaveLength(1);
+});

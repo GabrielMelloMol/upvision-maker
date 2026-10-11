@@ -18,7 +18,7 @@ import DrawerEditor from "./drawer/DrawerEditor";
 import DrawerView from "./drawer/DrawerView";
 import type { Dim } from "./drawer/drawerShape";
 import RulerCard from "./drawer/RulerCard";
-import { duplicate, removeModules, resizeGrid, updateModules } from "./drawer/layout";
+import { duplicate, removeModules, resizeGrid, resizeModule, updateModules } from "./drawer/layout";
 import ModulePanel from "./drawer/ModulePanel";
 import PrintPlanCard from "./drawer/PrintPlanCard";
 import { drawerPrint, type DrawerPrint } from "./drawer/printPlan";
@@ -127,6 +127,7 @@ export default function DrawerOrganizer({ embedded = false }: { embedded?: boole
               modules={chosen}
               uMax={plan.uMax}
               onChange={(patch) => setLayout(updateModules(p.layout, selected, patch))}
+              onResize={(w, h) => setLayout(resizeModule(p.layout, chosen[0].id, w, h))}
               onDuplicate={() => setLayout(duplicate(p.layout, selected))}
               onRemove={() => {
                 setLayout(removeModules(p.layout, selected));
