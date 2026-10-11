@@ -2,10 +2,9 @@ import { bedMm, nozzleMm, nozzleText } from "../bed";
 import { meshBounds } from "../bounds";
 import type { CS, ManifoldToplevel, Solid } from "../manifold";
 import { MissingInput, solidMesh, type ModelCtx, type ModelOutput } from "../models/common";
-import type { CardSize } from "../models/kitCard";
 import { fitInto, scoped } from "../shape2d";
 import type { Model, Part } from "../types";
-import { layoutSheet } from "./sheet";
+import { KitFitError, layoutSheet, type SheetSize } from "./sheet";
 import type { K, KitBuild, KitEnv, KitPair, KitParams, KitPart, KitTemplate, Placement } from "./types";
 
 /** Parâmetros que todo kit tem (nome, cartão, espessura, folga, escala, cores da moldura e arte em relevo). */
@@ -112,7 +111,7 @@ export function checkAssembly(M: ManifoldToplevel, k: K, sol: ReturnType<typeof 
 
 export type KitMeta = {
   card: { w: number; h: number };
-  cardSize: CardSize;
+  cardSize: SheetSize;
   pieces: number;
   gatesPerPiece: number[];
   /** peça (id) → números gravados */
@@ -150,8 +149,40 @@ function embossArt(M: ManifoldToplevel, k: K, part: KitPart, art: CS, p: KitPara
  * (só prévia). `tpl.build` desenha as peças planas; aqui entram arrumação, personalização e verificações.
  */
 export function buildKitTemplate(ctx: ModelCtx, tpl: KitTemplate, params: KitParams): ModelOutput & { meta?: KitMeta } {
-  const { M, text, art } = ctx;
   const p: KitParams = { ...kitDefaults(tpl), ...params };
+  try {
+    return buildOnce(ctx, tpl, p);
+  } catch (e) {
+    if (!(e instanceof KitFitError)) throw e;
+  }
+  // não coube nem na mesa inteira: reduz o tamanho (busca binária) até caber, e avisa; só falha se nem o mínimo couber
+  const asked = num(p, "scale");
+  let lo = MIN_SCALE, hi = asked;
+  let best: (ModelOutput & { meta?: KitMeta }) | null = null;
+  const tryScale = (scale: number) => {
+    try {
+      return buildOnce(ctx, tpl, { ...p, scale });
+    } catch (e) {
+      if (e instanceof KitFitError) return null;
+      throw e;
+    }
+  };
+  if (lo >= hi || !(best = tryScale(lo))) throw new KitFitError("As peças não cabem nem na mesa inteira, mesmo no menor tamanho: escolha medidas menores.");
+  let used = lo;
+  for (let i = 0; i < 7; i++) {
+    const mid = (lo + hi) / 2;
+    const r = tryScale(mid);
+    if (r) [lo, used, best] = [mid, mid, r];
+    else hi = mid;
+  }
+  const fmtX = (n: number) => String(Math.round(n * 100) / 100).replace(".", ",");
+  return { ...best!, warnings: [`Reduzi o tamanho do modelo de ${fmtX(asked)}× para ${fmtX(used)}× para as peças caberem na mesa inteira.`, ...(best!.warnings ?? [])] };
+}
+
+const MIN_SCALE = 0.3;
+
+function buildOnce(ctx: ModelCtx, tpl: KitTemplate, p: KitParams): ModelOutput & { meta?: KitMeta } {
+  const { M, text, art } = ctx;
   const t = num(p, "thickness");
   return scoped((k) => {
     const env: KitEnv = { M, k, t, fit: num(p, "fit"), pinFit: num(p, "pinFit"), scale: num(p, "scale"), p };
@@ -179,11 +210,11 @@ export function buildKitTemplate(ctx: ModelCtx, tpl: KitTemplate, params: KitPar
 
     // o cartão
     const outlines = insts.map((q) => outlineOf(M, k, q, q.flip));
-    const sheet = layoutSheet(M, k, outlines, { cardSize: p.cardSize as CardSize, compact: Boolean(p.compact), gap: num(p, "gap"), frame: num(p, "frame"), runner: num(p, "runner"), engrave: num(p, "engrave"), t, title: String(p.title ?? ""), numbers: insts.map((q) => q.number), text });
-    if (sheet.cardSize !== p.cardSize) warnings.push(`As peças não cabem no cartão pedido: usei o cartão ${sheet.cardSize === "medium" ? "médio" : sheet.cardSize === "large" ? "grande" : "maior"} (${Math.round(sheet.W)} × ${Math.round(sheet.H)} mm).`);
+    const sheet = layoutSheet(M, k, outlines, { cardSize: p.cardSize as SheetSize, compact: Boolean(p.compact), gap: num(p, "gap"), frame: num(p, "frame"), runner: num(p, "runner"), engrave: num(p, "engrave"), t, title: String(p.title ?? ""), numbers: insts.map((q) => q.number), text });
+    if (sheet.cardSize !== p.cardSize) warnings.push(`As peças não cabem no cartão pedido: usei o cartão ${{ credit: "de crédito", medium: "médio", large: "grande", xlarge: "maior", bed: "da mesa inteira" }[sheet.cardSize]} (${Math.round(sheet.W)} × ${Math.round(sheet.H)} mm).`);
     const byColor = new Map<string, Solid[]>();
     insts.forEach((q, i) => {
-      for (const [c, list] of colorSolids(M, k, q, "print")) byColor.set(c, [...(byColor.get(c) ?? []), ...list.map((s) => k(s.translate([sheet.offsets[i].dx, sheet.offsets[i].dy, 0])))]);
+      for (const [c, list] of colorSolids(M, k, q, "print")) byColor.set(c, [...(byColor.get(c) ?? []), ...list.map((s) => k((sheet.offsets[i].rotated ? k(s.rotate([0, 0, 90])) : s).translate([sheet.offsets[i].dx, sheet.offsets[i].dy, 0])))]);
     });
     const parts: Part[] = [{ name: "Cartão", color: String(p.frameColor), mesh: solidMesh(sheet.card) }];
     for (const c of palette) {

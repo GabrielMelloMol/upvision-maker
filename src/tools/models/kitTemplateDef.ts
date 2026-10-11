@@ -15,7 +15,7 @@ export function kitTemplateDef(tpl: KitTemplate, o: { category: Category; icon: 
       title: "Cartão",
       fields: [
         text("title", "Nome do kit (gravado na moldura)", 24),
-        choice("cardSize", "Tamanho do cartão", [["credit", "Cartão de crédito (85,6 × 54)"], ["medium", "Médio (120 × 85)"], ["large", "Grande (180 × 120)"], ["xlarge", "Maior (240 × 160)"]]),
+        choice("cardSize", "Tamanho do cartão", [["credit", "Cartão de crédito (85,6 × 54)"], ["medium", "Médio (120 × 85)"], ["large", "Grande (180 × 120)"], ["xlarge", "Maior (240 × 160)"], ["bed", "Mesa inteira (quadrado)"]]),
         bool("compact", "Cartão compacto (encolhe ao conteúdo)"),
         num("copies", "Cartões na mesa", 1, 12, { step: 1, unit: "", hint: "Os cartões pequenos cabem vários numa mesa só." }),
         num("frame", "Largura da moldura", 2, 5, { step: 0.5 }),

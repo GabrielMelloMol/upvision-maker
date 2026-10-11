@@ -1,4 +1,5 @@
 import type { CS, ManifoldToplevel, Solid } from "../manifold";
+import { bedMm } from "../bed";
 import { roundedRect, type ModelCtx } from "../models/common";
 import { CARD_MM, gateHeight, gateWidth, packRows, pieceGates, type CardSize, type Dim } from "../models/kitCard";
 import { fitInto } from "../shape2d";
@@ -9,8 +10,14 @@ import type { K } from "./types";
  * Cartão genérico: arruma contornos 2D em fileiras com galhos em grade, prende cada um com ≥ 2 pontos de corte finos e grava o
  * número da peça no galho dela e o nome na moldura. É a mesma arrumação do Kit card por imagem, para qualquer lista de peças.
  */
+/** Os tamanhos de cartão da lista e a mesa inteira da impressora. */
+/** As peças não cabem nem na mesa inteira (quem chama pode reduzir o tamanho e tentar de novo). */
+export class KitFitError extends Error {}
+
+export type SheetSize = CardSize | "bed";
+
 export type SheetOpts = {
-  cardSize: CardSize;
+  cardSize: SheetSize;
   compact: boolean;
   /** comprimento do ponto de corte (peça → galho) */
   gap: number;
@@ -28,13 +35,13 @@ export type SheetOpts = {
 export type SheetResult = {
   W: number;
   H: number;
-  cardSize: CardSize;
+  cardSize: SheetSize;
   /** moldura + galhos + pontos de corte, com o nome e os números gravados (rente) */
   card: Solid;
   /** o que foi tirado da moldura para a cor do nome e dos números */
   inlay: Solid | null;
   /** quanto cada contorno andou para chegar ao lugar dele no cartão */
-  offsets: { dx: number; dy: number }[];
+  offsets: { dx: number; dy: number; rotated: boolean }[];
   gatesPerPiece: number[];
 };
 
@@ -42,28 +49,60 @@ const CORNER_MM = 3;
 const GATE_BITE = 0.15;
 const GATE_OVERLAP = 0.3;
 const MIN_CARD_W = 56; // o nome precisa caber legível
-const SIZES: CardSize[] = ["credit", "medium", "large", "xlarge"];
+const SIZES: SheetSize[] = ["credit", "medium", "large", "xlarge", "bed"];
+const BED_MARGIN = 4; // sobra da mesa em volta do cartão
+export const sheetMm = (size: SheetSize): [number, number] => (size === "bed" ? [bedMm() - BED_MARGIN, bedMm() - BED_MARGIN] : CARD_MM[size]);
+
+/** Gira 90° as peças que ajudam: minimiza a altura que as fileiras pedem na largura do cartão (sobe a ladeira, peça a peça). */
+export function chooseRotation(dims: Dim[], innerW: number, gap: number, rw: number): boolean[] {
+  const needH = (r: boolean[]) => {
+    const d = dims.map((x, i) => (r[i] ? { id: x.id, w: x.h, h: x.w } : x));
+    const plan = packRows(d, innerW, 1e9, gap, rw);
+    return plan ? plan.needH : Infinity;
+  };
+  const starts = [dims.map(() => false), dims.map((d) => d.h > d.w), dims.map((d) => d.w > d.h)];
+  let rot = starts[0], best = needH(rot);
+  for (const st of starts.slice(1)) {
+    const v = needH(st);
+    if (v < best - 1e-6) [rot, best] = [st, v];
+  }
+  const order = dims.map((_, i) => i).sort((a, b) => dims[b].w * dims[b].h - dims[a].w * dims[a].h);
+  for (let pass = 0; pass < 3; pass++) {
+    let improved = false;
+    for (const i of order) {
+      const next = rot.map((r, j) => (j === i ? !r : r));
+      const v = needH(next);
+      if (v < best - 1e-6) [rot, best, improved] = [next, v, true];
+    }
+    if (!improved) break;
+  }
+  return rot;
+}
 
 export function layoutSheet(M: ManifoldToplevel, k: K, outlines: CS[], o: SheetOpts): SheetResult {
-  const dims: Dim[] = outlines.map((cs, id) => {
+  const base: Dim[] = outlines.map((cs, id) => {
     const b = cs.bounds();
     return { id, w: b.max[0] - b.min[0], h: b.max[1] - b.min[1] };
   });
   const title = o.title.trim();
-  const geometry = (size: CardSize) => {
-    const [W, H] = CARD_MM[size];
+  const geometry = (size: SheetSize) => {
+    const [W, H] = sheetMm(size);
     const band = title ? Math.min(12, Math.max(6, H * 0.12)) : 0;
     const innerW = W - 2 * o.frame, innerH = H - 2 * o.frame - band;
-    return { W, H, band, innerW, innerH, plan: packRows(dims, innerW, innerH, o.gap, o.runner) };
+    const rot = chooseRotation(base, innerW, o.gap, o.runner);
+    const dims = base.map((d, i) => (rot[i] ? { id: d.id, w: d.h, h: d.w } : d));
+    return { W, H, band, innerW, innerH, rot, dims, plan: packRows(dims, innerW, innerH, o.gap, o.runner) };
   };
-  // o menor cartão (a partir do pedido) em que tudo cabe
+  // o menor cartão (a partir do pedido) em que tudo cabe, girando peças 90° quando ajuda
   let size = o.cardSize;
   let g = geometry(size);
   while (!g.plan && SIZES.indexOf(size) < SIZES.length - 1) {
     size = SIZES[SIZES.indexOf(size) + 1];
     g = geometry(size);
   }
-  if (!g.plan) throw new Error("As peças não cabem nem no maior cartão: diminua o tamanho do modelo.");
+  if (!g.plan) throw new KitFitError("As peças não cabem nem na mesa inteira: diminua o tamanho do modelo.");
+  const { rot, dims } = g;
+  const spun = outlines.map((cs, i) => (rot[i] ? k(cs.rotate(90)) : cs));
   let { W, H, innerW, innerH, plan } = g;
   const band = g.band;
   if (o.compact) {
@@ -93,7 +132,7 @@ export function layoutSheet(M: ManifoldToplevel, k: K, outlines: CS[], o: SheetO
     runners.push(rect(M, k, -innerW / 2 - 0.2, cellBottom - 0.2, -innerW / 2 + ex, cellTop + 0.2));
     let leftRunner: [number, number] = [-innerW / 2 - frame, -innerW / 2 + ex];
     row.forEach((d, i) => {
-      const cs = outlines[d.id];
+      const cs = spun[d.id];
       const b = cs.bounds();
       const x0 = x + gap;
       const dx = x0 - b.min[0], dy = cy - (b.min[1] + b.max[1]) / 2;
@@ -159,5 +198,5 @@ export function layoutSheet(M: ManifoldToplevel, k: K, outlines: CS[], o: SheetO
   const framed: Solid = prism ? k(frameSolid.subtract(prism)) : frameSolid;
   const inlay = prism ? k(frameSolid.intersect(prism)) : null;
   const card: Solid = gateSolid ? k(M.Manifold.union([framed, gateSolid])) : framed;
-  return { W, H, cardSize: size, card, inlay: inlay && !inlay.isEmpty() ? inlay : null, offsets: placed.map((q) => ({ dx: q.dx, dy: q.dy })), gatesPerPiece };
+  return { W, H, cardSize: size, card, inlay: inlay && !inlay.isEmpty() ? inlay : null, offsets: placed.map((q, i) => ({ dx: q.dx, dy: q.dy, rotated: rot[i] })), gatesPerPiece };
 }

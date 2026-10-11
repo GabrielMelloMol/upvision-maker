@@ -1,5 +1,7 @@
-import { Bookmark, Keyboard, Plane, CaseUpper, CircleDot, Frame, Gem, KeySquare, Lamp, LampDesk, PencilRuler, PenTool, Puzzle, Smartphone, WholeWord } from "lucide-react";
+import { Bookmark, Car, Keyboard, Plane, Truck, CaseUpper, CircleDot, Frame, Gem, KeySquare, Lamp, LampDesk, PencilRuler, PenTool, Puzzle, Smartphone, WholeWord } from "lucide-react";
 import { buildCutoutFrame, buildCutoutStand, DEFAULT_CUTOUT_FRAME, DEFAULT_CUTOUT_STAND } from "../../../geometry/models/cutoutFrame";
+import { KIT_CAR } from "../../../geometry/kit/models/kitCar";
+import { KIT_TRUCK } from "../../../geometry/kit/models/kitTruck";
 import { buildKitCard, DEFAULT_KIT_CARD } from "../../../geometry/models/kitCard";
 import { AVIAO } from "../../../geometry/kit/models/aviao";
 import { HELICOPTERO } from "../../../geometry/kit/models/helicoptero";
@@ -313,6 +315,8 @@ export const HOME_DECOR_MODELS: ModelDef[] = [
     ],
     build: (ctx, p) => buildKitCard(ctx, as(p)),
   },
+  kitTemplateDef(KIT_CAR, { category: "home", icon: Car }),
+  kitTemplateDef(KIT_TRUCK, { category: "home", icon: Truck }),
   {
     id: "bigLetter",
     category: "home",

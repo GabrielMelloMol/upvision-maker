@@ -169,7 +169,33 @@ describe("kit: cartão, personalização e montado de um modelo (#kit)", { timeo
     const o = build({ showAssembled: false, cardSize: "credit", scale: 1.6 });
     expect(o.meta!.cardSize).not.toBe("credit");
     expect(o.warnings!.join(" ")).toMatch(/não cabem no cartão pedido/);
-    expect(() => build({ showAssembled: false, scale: 6 })).toThrow(/não cabem nem no maior cartão/);
+    // no extremo, reduz sozinha o tamanho (com aviso) em vez de falhar
+    const big = build({ showAssembled: false, scale: 6 });
+    expect(big.warnings!.join(" ")).toMatch(/Reduzi o tamanho do modelo de 6× para [\d,]+× para as peças caberem/);
+    expect(big.meta!.card.w).toBeLessThanOrEqual(256);
+  });
+
+  test("gira peças 90° quando ajuda: faixas largas e baixas cabem em um cartão em que sem girar não caberiam", () => {
+    const strip: KitTemplate = {
+      ...TEST_KIT,
+      id: "strips",
+      build: ({ M, k }) => ({
+        parts: [{ id: "faixa", label: "Faixa", count: 6, layers: [{ cs: rect(M, k, 0, 0, 7, 70), color: "body" }] }],
+        assembly: [],
+        steps: [],
+      }),
+    };
+    const o = buildKitTemplate(ctx(), { ...strip }, { cardSize: "credit", showAssembled: false, compact: false });
+    expect(o.meta!.cardSize).toBe("medium"); // 6 faixas de 7 × 70 cabem em pé no médio (85 de altura); no crédito (54) só girando e não cabem
+    const b = meshBounds(o.models[0].parts.map((q) => q.mesh))!;
+    expect(b.max[1] - b.min[1]).toBeLessThanOrEqual(85.01);
+  });
+
+  test("a mesa inteira é um tamanho de cartão: cabe peça maior que o cartão maior", () => {
+    const big: KitTemplate = { ...TEST_KIT, id: "big", build: ({ M, k }) => ({ parts: [{ id: "placa", label: "Placa", layers: [{ cs: rect(M, k, 0, 0, 200, 190), color: "body" }] }], assembly: [], steps: [] }) };
+    const o = buildKitTemplate(ctx(), big, { showAssembled: false });
+    expect(o.meta!.cardSize).toBe("bed");
+    expect(o.meta!.card.w).toBeLessThanOrEqual(256);
   });
 
   test("vários cartões na mesa e o montado só na prévia", () => {
