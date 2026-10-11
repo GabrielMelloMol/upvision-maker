@@ -74,6 +74,8 @@ export type KitTemplate = {
   label: string;
   blurb: string;
   palette: KitPalette;
+  /** Maior valor do campo "Tamanho do modelo" na tela (padrão 2): use menos se o modelo grande não cabe nem na mesa inteira. */
+  scaleMax?: number;
   /** Peças que aceitam a arte do usuário em relevo (id, rótulo). Vazio/ausente: o modelo não oferece arte. */
   artTargets?: readonly (readonly [string, string])[];
   /** Valores padrão dos parâmetros do modelo (os do kit vêm de DEFAULT_KIT_COMMON). */

@@ -158,7 +158,6 @@ export function buildKitTemplate(ctx: ModelCtx, tpl: KitTemplate, params: KitPar
   // não coube nem na mesa inteira: reduz o tamanho (busca binária) até caber, e avisa; só falha se nem o mínimo couber
   const asked = num(p, "scale");
   let lo = MIN_SCALE, hi = asked;
-  let best: (ModelOutput & { meta?: KitMeta }) | null = null;
   const tryScale = (scale: number) => {
     try {
       return buildOnce(ctx, tpl, { ...p, scale });
@@ -167,7 +166,8 @@ export function buildKitTemplate(ctx: ModelCtx, tpl: KitTemplate, params: KitPar
       throw e;
     }
   };
-  if (lo >= hi || !(best = tryScale(lo))) throw new KitFitError("As peças não cabem nem na mesa inteira, mesmo no menor tamanho: escolha medidas menores.");
+  let best = lo < hi ? tryScale(lo) : null;
+  if (!best) throw new KitFitError("As peças não cabem nem na mesa inteira, mesmo no menor tamanho: escolha medidas menores.");
   let used = lo;
   for (let i = 0; i < 7; i++) {
     const mid = (lo + hi) / 2;
@@ -176,7 +176,7 @@ export function buildKitTemplate(ctx: ModelCtx, tpl: KitTemplate, params: KitPar
     else hi = mid;
   }
   const fmtX = (n: number) => String(Math.round(n * 100) / 100).replace(".", ",");
-  return { ...best!, warnings: [`Reduzi o tamanho do modelo de ${fmtX(asked)}× para ${fmtX(used)}× para as peças caberem na mesa inteira.`, ...(best!.warnings ?? [])] };
+  return { ...best, warnings: [`Reduzi o tamanho do modelo de ${fmtX(asked)}× para ${fmtX(used)}× para as peças caberem na mesa inteira.`, ...(best.warnings ?? [])] };
 }
 
 const MIN_SCALE = 0.3;

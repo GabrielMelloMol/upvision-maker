@@ -27,7 +27,7 @@ export function kitTemplateDef(tpl: KitTemplate, o: { category: Category; icon: 
     {
       title: "Tamanho e encaixe",
       fields: [
-        num("scale", "Tamanho do modelo", 0.5, 2, { step: 0.05, unit: "×", hint: "1 = o tamanho do projeto. Se não couber no cartão, o app usa um maior." }),
+        num("scale", "Tamanho do modelo", 0.5, tpl.scaleMax ?? 2, { step: 0.05, unit: "×", hint: "1 = o tamanho do projeto. Se não couber no cartão, o app usa um maior." }),
         num("thickness", "Espessura das peças", 1.2, 2, { step: 0.1, hint: "1,6 mm costuma ser firme e imprime rápido." }),
         num("fit", "Folga da fenda", 0.1, 0.4, { step: 0.05, hint: "Somada à espessura: a fenda mede espessura + folga. 0,2 encaixa justo; aumente se ficar duro." }),
         num("pinFit", "Folga do pino no furo", 0.05, 0.4, { step: 0.05, hint: "0,15 prende por pressão; aumente se ficar duro, diminua se soltar." }),
