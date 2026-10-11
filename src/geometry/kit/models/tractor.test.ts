@@ -21,13 +21,13 @@ describe("Trator de montar", { timeout: 120_000 }, () => {
       const rep = checkAssembly(M, k, assemblySolids(M, k, insts, build.assembly), build.pairs ?? [], env.fit);
       expect(rep.collisions).toEqual([]);
       rep.pairs.forEach((q) => expect(q.ok, `${q.a} × ${q.b}: folga ${q.gap}`).toBe(true));
-      expect(rep.pairs.length).toBe(params.chimney === false ? 10 + 4 : 10 + 1 + 4);
+      expect(rep.pairs.length).toBe(params.chimney === false ? 12 + 4 : 12 + 1 + 4);
     });
   });
 
-  test("11 peças inteiras, presas à moldura, rodas de trás maiores que as da frente, e o montado tem o comprimento pedido", () => {
+  test("13 peças inteiras, presas à moldura, rodas de trás maiores que as da frente, e o montado tem o comprimento pedido", () => {
     const o = buildKitTemplate(ctx(), tractorKit, { showAssembled: true, title: "Trator" });
-    expect(o.meta!.pieces).toBe(2 + 5 + 1 + 4);
+    expect(o.meta!.pieces).toBe(2 + 6 + 1 + 4);
     o.meta!.gatesPerPiece.forEach((n) => expect(n).toBeGreaterThanOrEqual(2));
     const card = meshBounds(o.models[0].parts.map((q) => q.mesh))!;
     expect(card.max[0] - card.min[0]).toBeLessThanOrEqual(256);

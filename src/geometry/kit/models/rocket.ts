@@ -7,7 +7,9 @@ import type { KitEnv, KitPair, KitPart, KitTemplate, Placement } from "../types"
  * estágios se empilham por abas que entram em encaixes, e o conjunto fica de pé numa base de lançamento com dois rasgos em cruz.
  */
 
-const NOSE_TIP = 2.5; // meia-largura da ponta cega do bico (mm)
+const NOSE_TIP = 0.4; // meia-largura da ponta do bico (mm): quase um ponto
+const NOSE_CUT = 2.5; // a placa A para onde o bico fica mais estreito que a fenda + pernas (a B segue até a ponta)
+const NOSE_POW = 0.75; // < 1: o bico abaulado, como uma ogiva
 const STAGE_TOPS = [0.4, 0.68] as const; // fim do estágio 1 e do 2, em fração da altura
 const MIN_LIGAMENT = 8; // mm de peça inteira que sobra depois da fenda
 const NOSE_STEPS = 24;
@@ -23,7 +25,7 @@ function bodyPoints(d: Dim): [number, number][] {
   const right: [number, number][] = [[d.wn, 0], [d.wn, d.nh], [d.wb, d.nh], [d.w0, d.nh + d.bell], [d.w0, d.zb[1]]];
   for (let i = 1; i <= NOSE_STEPS; i++) {
     const s = i / NOSE_STEPS;
-    right.push([NOSE_TIP + (d.w0 - NOSE_TIP) * Math.sqrt(1 - s * s), d.zb[1] + s * (d.H - d.zb[1])]);
+    right.push([NOSE_TIP + (d.w0 - NOSE_TIP) * (1 - s) ** NOSE_POW, d.zb[1] + s * (d.H - d.zb[1])]);
   }
   return [...right, ...mirrorPts(right)];
 }
@@ -43,13 +45,18 @@ function dims(H: number, finPct: number, t: number): Dim {
 /** As abas de um estágio entram nos encaixes do de cima; ficam a `±plugX` do eixo. */
 const plugs = (d: Dim, H: number) => ({ x: 0.45 * d.w0, w: Math.max(3, 0.25 * d.w0), h: Math.max(5, 0.05 * H) });
 
+/** Altura (z) em que o bico fica com meia-largura NOSE_CUT: acima disso só a placa B segue até a ponta. */
+const noseCutZ = (d: Dim) => d.zb[1] + (1 - ((NOSE_CUT - NOSE_TIP) / (d.w0 - NOSE_TIP)) ** (1 / NOSE_POW)) * (d.H - d.zb[1]);
+
 type StagePlate = { cs: CS; fin?: CS };
 
 function stagePlate(env: KitEnv, d: Dim, body: CS, fins: CS, stage: 0 | 1 | 2, plane: "a" | "b", windows: boolean): StagePlate {
   const { M, k, t, fit } = env;
   const lo = stage === 0 ? -1 : d.zb[stage - 1], hi = d.zb[stage];
+  const cutA = stage === 2 && plane === "a"; // o bico da placa A termina onde a fenda e as pernas deixam de caber
+  const top = cutA ? noseCutZ(d) : hi;
   const pg = plugs(d, d.H);
-  const band = rect(M, k, -200, lo, 200, hi);
+  const band = rect(M, k, -200, lo, 200, top);
   let cs: CS = k(body.intersect(band));
   // abas no topo (entram no encaixe do estágio de cima)
   if (stage < 2) for (const sx of [-1, 1]) cs = k(cs.add(rect(M, k, sx * pg.x - pg.w / 2, hi - 0.01, sx * pg.x + pg.w / 2, hi + pg.h)));
@@ -61,8 +68,11 @@ function stagePlate(env: KitEnv, d: Dim, body: CS, fins: CS, stage: 0 | 1 | 2, p
     for (const sx of [-1, 1]) cs = k(cs.subtract(disc(M, k, sx * 0.5 * d.w0, z, r)));
   }
   // meia-fenda: A abre por cima, B por baixo; cada uma passa da metade para as duas se sobreporem
-  const height = hi - Math.max(lo, 0), depth = Math.min(height / 2 + 0.5, height - MIN_LIGAMENT);
-  const slot = plane === "a" ? crossLap(M, k, { x: 0, edge: hi, depth, from: "top", t, fit }) : crossLap(M, k, { x: 0, edge: Math.max(lo, 0), depth, from: "bottom", t, fit });
+  // estágio com bico: a B (inteira até a ponta) leva a fenda quase toda; a A, só o que falta para as duas se cobrirem
+  const height = hi - Math.max(lo, 0), nose = stage === 2;
+  const depthB = nose ? height - MIN_LIGAMENT : Math.min(height / 2 + 0.5, height - MIN_LIGAMENT);
+  const depth = plane === "b" ? depthB : nose ? Math.max(3, top - (Math.max(lo, 0) + depthB) + 1) : depthB;
+  const slot = plane === "a" ? crossLap(M, k, { x: 0, edge: top, depth, from: "top", t, fit }) : crossLap(M, k, { x: 0, edge: Math.max(lo, 0), depth, from: "bottom", t, fit });
   cs = k(cs.subtract(slot));
   const fin = stage === 0 ? k(k(fins.intersect(band)).subtract(slot)) : undefined;
   return { cs, fin };

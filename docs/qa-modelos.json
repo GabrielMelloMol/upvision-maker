@@ -2876,8 +2876,8 @@
   ],
   "date": "2026-10-11",
   "slicers": "Bambu ✓ · Orca ✓ · Projeto Bambu ✓",
-  "minutes": 147,
-  "grams": 63.6,
+  "minutes": 145,
+  "grams": 62.3,
   "plates": 1
  },
  {
@@ -2888,6 +2888,7 @@
   "variant": "mínimo",
   "status": "aviso",
   "reasons": [
+   "\"Foguete (kit de montar)\": parede/traço < 0,4 mm em Z 0,1, 0,4, 0,6, 0,8, 1,1 mm",
    "Orca: torre de purga passa da mesa na posição padrão do CLI (na tela, arraste a torre ou use Arrumar)",
    "Projeto Bambu: torre de purga passa da mesa na posição padrão do CLI (na tela, arraste a torre ou use Arrumar)",
    "app: Foguete pequeno: as janelinhas ficam com menos de 2,4 mm e podem não sair bem.",
@@ -2915,8 +2916,8 @@
   ],
   "date": "2026-10-11",
   "slicers": "Bambu ✓ · Orca ✓ · Projeto Bambu ✓",
-  "minutes": 107,
-  "grams": 47.8,
+  "minutes": 88,
+  "grams": 34.3,
   "plates": 1
  },
  {
@@ -2927,16 +2928,16 @@
   "variant": "máximo",
   "status": "aviso",
   "reasons": [
-   "Orca: torre de purga em cima de uma peça depois do --arrange do CLI (na tela, arraste a torre ou use Arrumar)",
+   "Orca: torre de purga passa da mesa na posição padrão do CLI (na tela, arraste a torre ou use Arrumar)",
    "Projeto Bambu: torre de purga passa da mesa na posição padrão do CLI (na tela, arraste a torre ou use Arrumar)",
    "app: O trator de 180 mm não cabe no maior cartão: limitei a 90 mm.",
-   "app: Para montar: destaque as peças dobrando os pontos de corte. Prenda as rodas 9 a 10 e 11 a 12 nos furos das laterais 1 a 2, de fora para dentro (pino por dentro da lateral). Com as laterais de pé, passe as abas das travessas pelas janelas: 3, 4, 5, 7 e por último o 6. Encaixe o escapamento 8 no furo do capô.",
-   "app: Só 1 cartão(ões) de 237,8 × 150 mm cabem juntos numa mesa de 256 mm (você pediu 12): escolha um cartão menor para caber mais."
+   "app: Para montar: destaque as peças dobrando os pontos de corte. Prenda as rodas 10 a 11 e 12 a 13 nos furos das laterais 1 a 2, de fora para dentro (pino por dentro da lateral). Com as laterais de pé, passe as abas das travessas pelas janelas: 3, 4, 5, a grade do radiador 8, o 7 e por último o 6. Encaixe o escapamento 9 no furo do capô.",
+   "app: Só 1 cartão(ões) de 239,1 × 150 mm cabem juntos numa mesa de 256 mm (você pediu 12): escolha um cartão menor para caber mais."
   ],
   "date": "2026-10-11",
   "slicers": "Bambu ✓ · Orca ✓ · Projeto Bambu ✓",
-  "minutes": 145,
-  "grams": 59.6,
+  "minutes": 146,
+  "grams": 58.2,
   "plates": 1
  },
  {
@@ -2947,10 +2948,10 @@
   "variant": "mínimo",
   "status": "aviso",
   "reasons": [
+   "\"Trator (kit de montar)\": parede/traço < 0,4 mm em Z 0,3, 1,0 mm",
    "Orca: torre de purga passa da mesa na posição padrão do CLI (na tela, arraste a torre ou use Arrumar)",
-   "Projeto Bambu: torre de purga passa da mesa na posição padrão do CLI (na tela, arraste a torre ou use Arrumar)",
    "app: Trator pequeno: as janelas e as abas ficam apertadas. Aumente o comprimento ou a espessura se as travessas não encaixarem.",
-   "app: Para montar: destaque as peças dobrando os pontos de corte. Prenda as rodas 9 a 10 e 11 a 12 nos furos das laterais 1 a 2, de fora para dentro (pino por dentro da lateral). Com as laterais de pé, passe as abas das travessas pelas janelas: 3, 4, 5, 7 e por último o 6. Encaixe o escapamento 8 no furo do capô."
+   "app: Para montar: destaque as peças dobrando os pontos de corte. Prenda as rodas 10 a 11 e 12 a 13 nos furos das laterais 1 a 2, de fora para dentro (pino por dentro da lateral). Com as laterais de pé, passe as abas das travessas pelas janelas: 3, 4, 5, a grade do radiador 8, o 7 e por último o 6. Encaixe o escapamento 9 no furo do capô."
   ],
   "date": "2026-10-11",
   "slicers": "Bambu ✓ · Orca ✓ · Projeto Bambu ✓",
@@ -2968,12 +2969,12 @@
   "reasons": [
    "Orca: torre de purga passa da mesa na posição padrão do CLI (na tela, arraste a torre ou use Arrumar)",
    "Projeto Bambu: torre de purga passa da mesa na posição padrão do CLI (na tela, arraste a torre ou use Arrumar)",
-   "app: Para montar: destaque as peças dobrando os pontos de corte. Prenda as rodas 9 a 10 e 11 a 12 nos furos das laterais 1 a 2, de fora para dentro (pino por dentro da lateral). Com as laterais de pé, passe as abas das travessas pelas janelas: 3, 4, 5, 7 e por último o 6. Encaixe o escapamento 8 no furo do capô."
+   "app: Para montar: destaque as peças dobrando os pontos de corte. Prenda as rodas 10 a 11 e 12 a 13 nos furos das laterais 1 a 2, de fora para dentro (pino por dentro da lateral). Com as laterais de pé, passe as abas das travessas pelas janelas: 3, 4, 5, a grade do radiador 8, o 7 e por último o 6. Encaixe o escapamento 9 no furo do capô."
   ],
   "date": "2026-10-11",
   "slicers": "Bambu ✓ · Orca ✓ · Projeto Bambu ✓",
-  "minutes": 107,
-  "grams": 45.3,
+  "minutes": 108,
+  "grams": 44,
   "plates": 1
  },
  {

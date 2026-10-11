@@ -19,7 +19,7 @@ const BOSS_R = 5.5;
 const GLASS = { x0: 34, z0: 28, x1: 46, z1: 42 } as const; // janela vazada da cabine
 const LUG_COUNTS = { rear: 1, front: 0.66 } as const;
 
-type Bar = { id: string; label: string; plane: "xy" | "yz"; at: number; z?: [number, number]; x?: [number, number]; tabs: number[]; color: string };
+type Bar = { id: string; label: string; plane: "xy" | "yz"; at: number; z?: [number, number]; x?: [number, number]; tabs: number[]; color: string; /** largura própria das abas (padrão: a das travessas) */ tw?: number };
 
 export const tractorKit: KitTemplate = {
   id: "kitTractor",
@@ -54,15 +54,16 @@ export const tractorKit: KitTemplate = {
     const U = (...c: CS[]) => k(M.CrossSection.union(c));
 
     // lateral: longarina + cabine + capô + bossas dos eixos, com a janela da cabine vazada
-    const side0 = U(rect(M, k, 8 * u, 14 * u, 97 * u, 24 * u), rect(M, k, 18 * u, 14 * u, 52 * u, 52 * u), rect(M, k, 52 * u, 14 * u, 97 * u, 34 * u), disc(M, k, REAR.x * u, REAR.z * u, BOSS_R * u), disc(M, k, FRONT.x * u, FRONT.z * u, BOSS_R * u));
+    const side0 = U(rect(M, k, 8 * u, 14 * u, 97 * u, 24 * u), rect(M, k, 18 * u, 14 * u, 52 * u, 52 * u), rect(M, k, 52 * u, 14 * u, 97 * u, 34.5 * u), disc(M, k, REAR.x * u, REAR.z * u, BOSS_R * u), disc(M, k, FRONT.x * u, FRONT.z * u, BOSS_R * u));
     const bars: Bar[] = [
       { id: "piso", label: "Piso", plane: "xy", at: 19 * u, x: [31 * u, 50 * u], tabs: [35 * u, 46 * u], color: "body" },
       { id: "encosto", label: "Encosto do banco", plane: "yz", at: 28 * u, z: [22 * u, 44 * u], tabs: [27 * u, 40 * u], color: "cabin" },
       { id: "parabrisa", label: "Para-brisa", plane: "yz", at: 50 * u, z: [19 * u + t / 2 + 0.3, 48 * u - t / 2 - 0.2], tabs: [26 * u, 42 * u], color: "cabin" },
       { id: "teto", label: "Teto", plane: "xy", at: 48 * u, x: [20 * u, 50 * u], tabs: [26 * u, 44 * u], color: "cabin" },
-      { id: "capo", label: "Capô", plane: "xy", at: 28 * u, x: [52 * u, 97 * u], tabs: [58 * u, 90 * u], color: "body" },
+      { id: "capo", label: "Capô", plane: "xy", at: 32 * u, x: [52 * u, 97 * u], tabs: [58 * u, 90 * u], color: "body" },
+      { id: "grade", label: "Grade do radiador", plane: "yz", at: 94 * u, z: [15 * u, 32 * u - t / 2 - 0.3], tabs: [19 * u, 27 * u], color: "wheel", tw: Math.max(3, 4.5 * u) },
     ];
-    const windows = bars.flatMap((b) => b.tabs.map((c) => (b.plane === "xy" ? tabWindow(M, k, { cx: c, cy: b.at, tabW, t, fit }) : tabWindow(M, k, { cx: b.at, cy: c, tabW, t, fit, vertical: true }))));
+    const windows = bars.flatMap((b) => b.tabs.map((c) => (b.plane === "xy" ? tabWindow(M, k, { cx: c, cy: b.at, tabW: b.tw ?? tabW, t, fit }) : tabWindow(M, k, { cx: b.at, cy: c, tabW: b.tw ?? tabW, t, fit, vertical: true }))));
     const holes = [pinHole(M, k, { x: REAR.x * u, y: REAR.z * u, r: pinR, fit: holeFit }), pinHole(M, k, { x: FRONT.x * u, y: FRONT.z * u, r: pinR, fit: holeFit })];
     const glass = rect(M, k, GLASS.x0 * u, GLASS.z0 * u, GLASS.x1 * u, GLASS.z1 * u);
     const lateral = k(side0.subtract(U(glass, ...windows, ...holes)));
@@ -72,7 +73,7 @@ export const tractorKit: KitTemplate = {
       const [a0, a1] = b.plane === "xy" ? (b.x as [number, number]) : (b.z as [number, number]);
       const across = (lo: number, hi: number, c0: number, c1: number) => (b.plane === "xy" ? rect(M, k, c0, lo, c1, hi) : rect(M, k, lo, c0, hi, c1)); // (eixo da travessa, eixo da aba)
       const bodyR = across(-D / 2, D / 2, a0, a1);
-      const tabsR = b.tabs.flatMap((c) => [across(D / 2 - 0.01, D / 2 + t, c - tabW / 2, c + tabW / 2), across(-D / 2 - t, -D / 2 + 0.01, c - tabW / 2, c + tabW / 2)]);
+      const tabsR = b.tabs.flatMap((c) => [across(D / 2 - 0.01, D / 2 + t, c - (b.tw ?? tabW) / 2, c + (b.tw ?? tabW) / 2), across(-D / 2 - t, -D / 2 + 0.01, c - (b.tw ?? tabW) / 2, c + (b.tw ?? tabW) / 2)]);
       let cs = U(bodyR, ...tabsR);
       if (b.id === "capo" && p.chimney) cs = k(cs.subtract(tabWindow(M, k, { cx: 76 * u, cy: 0, tabW: Math.max(3, 3 * u), t, fit })));
       return { id: b.id, label: b.label, layers: [{ cs, color: b.color }] };
@@ -82,7 +83,7 @@ export const tractorKit: KitTemplate = {
     // escapamento: placa em pé sobre o capô, com aba que atravessa a janela do capô
     const chimneyTab = Math.max(3, 3 * u);
     if (p.chimney) {
-      const zt = 28 * u + t / 2;
+      const zt = 32 * u + t / 2;
       parts.push({ id: "escapamento", label: "Escapamento", layers: [{ cs: U(rect(M, k, 76 * u - 2.5 * u, zt, 76 * u + 2.5 * u, zt + 14 * u), rect(M, k, 76 * u - chimneyTab / 2, zt - t, 76 * u + chimneyTab / 2, zt + 0.01)), color: "wheel" }] });
     }
 
@@ -120,7 +121,7 @@ export const tractorKit: KitTemplate = {
       warnings,
       steps: [
         "Prenda as rodas {rodaTras} e {rodaFrente} nos furos das laterais {lateral}, de fora para dentro (pino por dentro da lateral).",
-        "Com as laterais de pé, passe as abas das travessas pelas janelas: {piso}, {encosto}, {parabrisa}, {capo} e por último o {teto}.",
+        "Com as laterais de pé, passe as abas das travessas pelas janelas: {piso}, {encosto}, {parabrisa}, a grade do radiador {grade}, o {capo} e por último o {teto}.",
         ...(p.chimney ? ["Encaixe o escapamento {escapamento} no furo do capô."] : []),
       ],
     };
