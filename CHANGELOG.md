@@ -4,11 +4,11 @@ Cada versão aparece para a usuária na tela "O que há de novo" depois da atual
 Formato: `## <versão> — <data>` e itens `- …` em linguagem simples.
 
 ## Próxima versão (ainda não lançada)
+- **Kits de montar com nomes iguais e dinossauros de verdade**: a galeria agora mostra Carro, Caminhão, Trator, Avião, Helicóptero, Foguete, Bicho e Baú, com descrições no mesmo jeito. O Bicho ganhou o saurópode (pescoço longo, cabeça pequena, patas grossas e cauda comprida) e o T-rex (cabeça grande, bracinho e cauda de contrapeso), e o cachorro agora fica de pé em pernas de verdade, com focinho e orelha
 
 
 ## 0.12.3 — 2026-10-11
 
-- **Kits de montar com nomes iguais e dinossauros de verdade**: a galeria agora mostra Carro, Caminhão, Trator, Avião, Helicóptero, Foguete, Bicho e Baú, com descrições no mesmo jeito. O Bicho ganhou o saurópode (pescoço longo, cabeça pequena, patas grossas e cauda comprida) e o T-rex (cabeça grande, bracinho e cauda de contrapeso), e o cachorro agora fica de pé em pernas de verdade, com focinho e orelha
 - **Trator pequeno encaixa certo**: com o trator em metade do tamanho, as abas do para-brisa batiam nas do piso e do teto, e as do capô nas da grade do radiador. Agora as abas encolhem junto com cada travessa e ficam sempre dentro dela.
 - **Kits de carro e caminhão nos extremos**: em tamanho bem pequeno, com a cabine curta ou o aperto da trava no mínimo, as travas das rodas não batem mais no chassi, no capô nem na parede da cabine (a roda tem um raio mínimo e o eixo da frente se afasta da cabine).
 - **Kits de montar: Bicho e Baú**: em Modelos prontos (Presentes › Kits de montar) há uma galeria com o Bicho de 4 patas (coluna, fatias de corpo e de perna encaixadas, cabeça de cachorro, gato ou dinossauro e cauda), o Baú (caixa com tampa que abre por dobradiça de pino, em 3 tamanhos) e o Kit card por imagem. Cada kit tem variações prontas, cores por peça, cartão com pontos de corte e números, e o passo a passo de montagem
