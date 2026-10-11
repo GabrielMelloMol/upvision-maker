@@ -202,8 +202,10 @@ function ribShape(M: ManifoldToplevel, r: RibPlan, profile: RibProfile, k: K): C
 
 export type PieceKind = "spine" | "base" | "rib" | "wheel";
 /** `cs` é o contorno inteiro (para arrumar e prender); `body` é o que vai no corpo da peça (a roda sem o pneu) e `tire` o anel do pneu. */
-export type KitPiece = { kind: PieceKind; cs: CS; number: number; body?: CS; tire?: CS; pinR?: number; pinLen?: number };
-export type VehiclePlan = { xw: number; yh: number; rw: number; rd: number; pinR: number; pinLen: number; yw: number };
+export type KitPiece = { kind: PieceKind; cs: CS; number: number; body?: CS; tire?: CS; pinR?: number; pinLen?: number; axle?: number };
+/** Um eixo: posição na lateral (x a partir do centro, y a partir da base), raio da roda e do cubo (sem o pneu). */
+export type Axle = { x: number; y: number; rw: number; rd: number };
+export type VehiclePlan = { axles: Axle[]; /** os eixos vieram das rodas do desenho (e não dos 4 padrão) */ detected: boolean; pinR: number; pinLen: number; yw: number };
 export type KitPieces = { pieces: KitPiece[]; ribs: RibPlan[]; slotW: number; len: number; hSide: number; tw: number; d: number; spines: number; report: CleanReport; split: number; vehicle: VehiclePlan | null };
 
 /**
@@ -273,52 +275,166 @@ export function buildPieces(M: ManifoldToplevel, art: CS, art2: CS | null, p: Ki
 
 
 const EDGE_MM = 1.6; // borda do chassi além das janelas
+const WHEEL_APART = 0.5; // vão mínimo entre rodas de eixos vizinhos
+const WELL_CLEAR = 0.4; // folga do vão da roda desenhada na lateral
 const WHEEL_GAP = 0.3; // folga entre a roda e o chassi
 
 /** Quanto o chassi, as janelas e as rodas ocupam, a partir de `len` e dos ajustes (usado para prever e para montar). */
-export function vehiclePlan(p: KitCardParams, len: number): VehiclePlan & { d: number; tw: number } {
+export function vehiclePlan(p: KitCardParams, len: number, wheels: Wheel[] = []): VehiclePlan & { d: number; tw: number } {
   const t = p.thickness, slotW = t + p.fit;
   const d = Math.max(((p.track / 100) * len) / 2, slotW / 2 + 3);
-  const rw = ((p.wheel / 100) * len) / 2;
-  const tt = Math.min(p.tire, Math.max(0, rw - 5));
   const pinR = Math.max(1.5, 2 * nozzleMm());
   const yw = d + slotW / 2 + EDGE_MM + WHEEL_GAP;
-  return { xw: 0.28 * len, yh: Math.max(rw - t, pinR + p.axleFit / 2 + 2.7), rw, rd: rw - tt, pinR, pinLen: yw - (d - t / 2) + 0.4, yw, d, tw: Math.min(TAB_FRAC * len, TAB_MAX_MM) };
+  const tireOf = (rw: number) => Math.min(p.tire, Math.max(0, rw - 5));
+  const rw0 = ((p.wheel / 100) * len) / 2;
+  const yh0 = Math.max(rw0 - t, pinR + p.axleFit / 2 + 2.7);
+  const axles: Axle[] = wheels.length
+    ? wheels.map((w) => {
+        // vizinhas lado a lado: a roda nova encolhe o pouco que for preciso para não encostar na do eixo ao lado
+        const near = Math.min(...wheels.filter((o) => o !== w).map((o) => Math.abs(o.x - w.x)));
+        const rw = Math.min(w.r, near / 2 - WHEEL_APART / 2);
+        return { x: w.x, y: w.y, rw, rd: rw - tireOf(rw) };
+      })
+    : [-0.28 * len, 0.28 * len].map((x) => ({ x, y: yh0, rw: rw0, rd: rw0 - tireOf(rw0) }));
+  return { axles, detected: wheels.length > 0, pinR, pinLen: yw - (d - t / 2) + 0.4, yw, d, tw: Math.min(TAB_FRAC * len, TAB_MAX_MM) };
 }
 
-/** Veículo: duas laterais iguais (lingueta, furos dos eixos com reforço), chassi com duas janelas e 4 rodas com eixo e pneu. */
+export type Wheel = { x: number; y: number; r: number };
+const WHEEL_STEP_FRAC = 0.01; // passo da varredura da borda de baixo, em % do comprimento
+const WHEEL_GROUND_FRAC = 0.02; // a roda "toca o chão" se a silhueta chega a esta altura
+const WHEEL_COVER = 0.97; // fração do círculo que precisa ser silhueta
+const WHEEL_FIT = 0.99; // para afinar o raio
+const WHEEL_FLANK = 0.5; // no máximo isto do canto ao lado da roda pode ser corpo (senão é um bloco, não uma roda)
+const MAX_WHEELS = 4;
+
+/**
+ * Rodas do desenho (círculos que tocam o chão e saem para fora do corpo): acha onde a borda de baixo toca o chão, tenta o maior
+ * círculo apoiado ali que cabe todo na silhueta e cujos cantos ao lado estão vazios. Devolve [] se houver menos de 2.
+ * A silhueta está na largura `len`, centrada em x = 0 e com a base em y = 0.
+ */
+export function detectWheels(M: ManifoldToplevel, side: CS, len: number, k: K): Wheel[] {
+  const b = side.bounds();
+  const rMin = 0.04 * len, rMax = Math.min(0.22 * len, 0.5 * (b.max[1] - b.min[1]));
+  if (rMax < rMin) return [];
+  const step = len * WHEEL_STEP_FRAC, ground = b.min[1] + len * WHEEL_GROUND_FRAC;
+  const runs: [number, number][] = [];
+  let run: [number, number] | null = null;
+  for (let x = b.min[0] + step / 2; x <= b.max[0]; x += step) {
+    const e = columnExtent(M, side, x, k);
+    if (e && e[0] <= ground) run = run ? [run[0], x] : [x, x];
+    else if (run) {
+      runs.push(run);
+      run = null;
+    }
+  }
+  if (run) runs.push(run);
+  // a roda fica no meio das posições em que o círculo ainda cabe na silhueta (a varredura só dá o meio da faixa que toca o chão)
+  const centerOn = (cx: number, y: number, r: number): number => {
+    const area = (x: number) => k(side.intersect(k(k(M.CrossSection.circle(r, 64)).translate([x, y])))).area();
+    const dxs = Array.from({ length: 17 }, (_, i) => ((i - 8) / 8) * step);
+    const areas = dxs.map((dx) => area(cx + dx));
+    const best = Math.max(...areas);
+    const ok = dxs.filter((_, i) => areas[i] >= 0.995 * best);
+    return cx + (Math.min(...ok) + Math.max(...ok)) / 2;
+  };
+  const found: Wheel[] = [];
+  for (const [x0, x1] of runs) {
+    if (x1 - x0 > 0.5 * len) continue; // fundo reto: bloco, não roda
+    const cx = (x0 + x1) / 2;
+    const fits = (r: number, cover = WHEEL_COVER): boolean => {
+      const y = b.min[1] + r;
+      const disc = k(k(M.CrossSection.circle(r, 64)).translate([cx, y]));
+      if (k(side.intersect(disc)).area() < cover * disc.area()) return false;
+      const corners = k(rect(M, cx - 1.5 * r, b.min[1], cx + 1.5 * r, y, k).subtract(disc));
+      return k(side.intersect(corners)).area() <= WHEEL_FLANK * corners.area();
+    };
+    // raio previsto pelo arco de baixo (corda que toca o chão): limita a busca, senão um círculo grande que cobre duas rodas e o
+    // corpo entre elas "cabe" na silhueta
+    const hw = (x1 - x0) / 2;
+    const arc = [1, 0.7].map((f) => {
+      const d = hw * f;
+      const bs = [cx - d, cx + d].map((x) => columnExtent(M, side, x, k)).filter((e): e is [number, number] => !!e).map((e) => e[0] - b.min[1]);
+      const bb = bs.reduce((a, c) => a + c, 0) / (bs.length || 1);
+      return bb > 0.05 ? (d * d + bb * bb) / (2 * bb) : NaN;
+    }).filter((v) => Number.isFinite(v));
+    const guess = arc.length ? arc.reduce((a, c) => a + c, 0) / arc.length : (rMin + rMax) / 2;
+    const hi = Math.min(rMax, guess * 1.3), lo = Math.max(rMin, guess * 0.75);
+    if (hi < lo) continue;
+    const dr = (hi - lo) / 12;
+    for (let i = 0; i <= 12; i++) {
+      let r = hi - dr * i;
+      if (!fits(r)) continue;
+      // afina o raio: o maior que ainda cabe quase exato (a primeira passada aceita 3% de folga e passaria de raio)
+      for (let q = r + dr; q >= r - dr; q -= dr / 8) {
+        if (fits(q, WHEEL_FIT)) {
+          r = q;
+          break;
+        }
+      }
+      const y = b.min[1] + r;
+      found.push({ x: centerOn(cx, y, r), y, r });
+      break;
+    }
+  }
+  found.sort((a, c) => a.x - c.x);
+  const apart: Wheel[] = [];
+  for (const w of found) {
+    const prev = apart[apart.length - 1];
+    if (prev && w.x - prev.x < 1.6 * Math.max(w.r, prev.r)) {
+      if (w.r > prev.r) apart[apart.length - 1] = w;
+    } else apart.push(w);
+  }
+  if (apart.length < 2) return [];
+  return apart.length > MAX_WHEELS ? [...apart].sort((a, c) => c.r - a.r).slice(0, MAX_WHEELS).sort((a, c) => a.x - c.x) : apart;
+}
+
+/**
+ * Veículo: duas laterais iguais (lingueta, furos dos eixos com reforço), chassi com duas janelas e as rodas com eixo e pneu.
+ * Se o desenho tem rodas (2 a 4 círculos no chão), o vão de cada uma fica aberto na lateral, o eixo no centro dela e a roda nova
+ * com o mesmo diâmetro; se não, 4 rodas padrão.
+ */
 function vehiclePieces(M: ManifoldToplevel, side: { cs: CS; h: number }, report: CleanReport, p: KitCardParams, len: number, k: K): KitPieces {
   const t = p.thickness, slotW = t + p.fit;
-  const v = vehiclePlan(p, len);
+  const pinR = Math.max(1.5, 2 * nozzleMm());
+  const found = detectWheels(M, side.cs, len, k).filter((w) => w.r >= pinR + 3);
+  const v = vehiclePlan(p, len, found.length >= 2 ? found : []);
   const holeR = v.pinR + p.axleFit / 2;
+  const circ = (r: number, x: number, y: number) => k(k(M.CrossSection.circle(r, 48)).translate([x, y]));
+  // vão das rodas desenhadas: sai da lateral, e o eixo fica preso ao corpo por um reforço (pad) e uma haste para cima
+  const wells = v.detected ? v.axles.map((a) => circ(a.rw + WELL_CLEAR, a.x, a.y)) : [];
+  const flat = wells.length ? k(side.cs.subtract(k(M.CrossSection.union(wells)))) : side.cs;
   let tabTop = 1;
   for (let off = 0; off <= len / 4; off += 1) {
-    const e = columnExtent(M, side.cs, off, k) ?? columnExtent(M, side.cs, -off, k);
+    const e = columnExtent(M, flat, off, k) ?? columnExtent(M, flat, -off, k);
     if (e) {
       tabTop = e[0] + 1;
       break;
     }
   }
-  const circ = (r: number, x: number, y: number) => k(k(M.CrossSection.circle(r, 48)).translate([x, y]));
   const tab = rect(M, -v.tw / 2, -t, v.tw / 2, Math.max(tabTop, 0.5), k);
-  const pads = [circ(holeR + 2.2, -v.xw, v.yh), circ(holeR + 2.2, v.xw, v.yh)];
-  const holes = [circ(holeR, -v.xw, v.yh), circ(holeR, v.xw, v.yh)];
+  const pads = v.axles.map((a) => circ(holeR + 2.2, a.x, a.y));
+  const holes = v.axles.map((a) => circ(holeR, a.x, a.y));
+  const reach = k(M.CrossSection.union([side.cs, ...wells]));
+  const posts = v.detected ? v.axles.map((a) => k(rect(M, a.x - 0.7 * (holeR + 2.2), a.y, a.x + 0.7 * (holeR + 2.2), a.y + a.rw + WELL_CLEAR + 1, k).intersect(reach))) : [];
   // os reforços dos furos precisam encostar na silhueta (senão viram ilhas): une e liga o que ficou solto por pontes
-  const body = cleanSilhouette(M, k(M.CrossSection.union([side.cs, tab, ...pads])), { close: 0, minIsland: 0, minHole: 0, bridgeW: Math.max(2 * nozzleMm(), 1.2) }, k);
+  const body = cleanSilhouette(M, k(M.CrossSection.union([flat, tab, ...pads, ...posts])), { close: 0, minIsland: 0, minHole: 0, bridgeW: Math.max(2 * nozzleMm(), 1.2) }, k);
   report.bridged += body.report.bridged;
   const lateral = k(body.cs.subtract(k(M.CrossSection.union(holes))));
   const bw = Math.max(BASE_W_FRAC * len, v.tw + p.fit + BASE_MIN_MM);
   const bd = 2 * (v.d + slotW / 2 + EDGE_MM);
   const windows = [-v.d, v.d].map((y) => rect(M, -(v.tw + p.fit) / 2, y - slotW / 2, (v.tw + p.fit) / 2, y + slotW / 2, k));
   const chassis = k(k(roundedRect(M, bw, bd, Math.min(3, bd / 4))).subtract(k(M.CrossSection.union(windows))));
-  const tt = v.rw - v.rd;
-  const outline = circ(v.rw, 0, 0), disc = tt > 0.1 ? circ(v.rd, 0, 0) : outline;
-  const tire = tt > 0.1 ? k(outline.subtract(disc)) : undefined;
+  const wheelPieces = v.axles.flatMap((a, i) => {
+    const tt = a.rw - a.rd;
+    const outline = circ(a.rw, 0, 0), disc = tt > 0.1 ? circ(a.rd, 0, 0) : outline;
+    const tire = tt > 0.1 ? k(outline.subtract(disc)) : undefined;
+    return [0, 1].map((): Omit<KitPiece, "number"> => ({ kind: "wheel", cs: outline, body: disc, tire, pinR: v.pinR, pinLen: v.pinLen, axle: i }));
+  });
   const pieces: KitPiece[] = [
     { kind: "spine", cs: lateral, number: 1 },
     { kind: "spine", cs: lateral, number: 2 },
     { kind: "base", cs: chassis, number: 3 },
-    ...[0, 1, 2, 3].map((i): KitPiece => ({ kind: "wheel", cs: outline, body: disc, tire, number: 4 + i, pinR: v.pinR, pinLen: v.pinLen })),
+    ...wheelPieces.map((w, i): KitPiece => ({ ...w, number: 4 + i })),
   ];
   for (const q of pieces) {
     if (q.kind === "wheel") continue;
@@ -405,7 +521,7 @@ export function pieceGates(M: ManifoldToplevel, piece: CS, edgeX: number, side: 
   return gates;
 }
 
-export type KitMeta = { card: { w: number; h: number }; scale: number; pieces: number; gatesPerPiece: number[]; split: number; report: CleanReport; ribs: number; spines: number };
+export type KitMeta = { card: { w: number; h: number }; scale: number; pieces: number; gatesPerPiece: number[]; split: number; report: CleanReport; ribs: number; spines: number; /** veículo: rodas achadas no desenho (eixos); 0 = usou as 4 padrão */ wheelsDetected: number };
 
 /**
  * Kit card (#193): a silhueta de uma imagem vira o esqueleto lateral de um modelo de costelas ("slice-form"): 1 ou 2
@@ -435,11 +551,12 @@ export function buildKitCard(ctx: ModelCtx, p: KitCardParams): ModelOutput & { m
     const unit: Dim[] = [], fixed: { w: number; h: number }[] = [];
     const add = (w: number, h: number, fw = 0, fh = 0) => (unit.push({ id: unit.length, w, h }), fixed.push({ w: fw, h: fh }));
     if (p.mode === "vehicle") {
-      const v = vehiclePlan(p, UNIT_W);
+      const unitWheels = detectWheels(M, unitSide.cs, UNIT_W, k);
+      const v = vehiclePlan(p, UNIT_W, unitWheels);
       add(UNIT_W, unitSide.h, 0, t);
       add(UNIT_W, unitSide.h, 0, t);
       add(Math.max(BASE_W_FRAC * UNIT_W, tw1), 2 * v.d, BASE_MIN_MM * 0.5, 2 * (t + p.fit) / 2 + 2 * EDGE_MM);
-      for (let i = 0; i < 4; i++) add(2 * v.rw, 2 * v.rw);
+      for (const a of v.axles) for (let i = 0; i < 2; i++) add(2 * a.rw, 2 * a.rw);
     } else {
       const spinesGuess = p.spines === 2 && unitRibs.length ? 2 : 1;
       for (let i = 0; i < spinesGuess; i++) add(UNIT_W, unitSide.h, 0, t);
@@ -606,9 +723,11 @@ export function buildKitCard(ctx: ModelCtx, p: KitCardParams): ModelOutput & { m
     }
     if (p.frame < 4 * nozzle) warnings.push(`Moldura de ${String(p.frame).replace(".", ",")} mm é fina para o bico de ${nozzleText()} mm: alargue para o cartão ficar firme.`);
     if (UNIT_W * s < 45) warnings.push(`As peças ficaram com ${Math.round(UNIT_W * s)} mm de comprimento neste cartão: um cartão maior deixa o modelo mais bonito.`);
+    const wheelCount = built.vehicle ? 2 * built.vehicle.axles.length : 0;
+    if (built.vehicle?.detected) warnings.push(`Achei ${built.vehicle.axles.length} rodas no desenho: o eixo fica no centro de cada uma, as rodas novas têm o mesmo tamanho e o vão delas ficou aberto na lateral (saem ${wheelCount} rodas, 2 por eixo, uma de cada lado).`);
     warnings.push(
       p.mode === "vehicle"
-        ? "Para montar: destaque as peças dobrando os pontos de corte, encaixe as duas laterais nas janelas do chassi e prenda as 4 rodas apertando o eixo no furo da lateral (de fora para dentro)."
+        ? `Para montar: destaque as peças dobrando os pontos de corte, encaixe as duas laterais nas janelas do chassi e prenda as ${wheelCount} rodas apertando o eixo no furo da lateral (de fora para dentro).`
         : "Para montar: destaque as peças dobrando os pontos de corte, encaixe a(s) lateral(is) na base e desça cada costela (pelo número) sobre a(s) lateral(is) pelas fendas.",
     );
     // vários cartões iguais na mesa (os pequenos cabem vários)
@@ -627,7 +746,7 @@ export function buildKitCard(ctx: ModelCtx, p: KitCardParams): ModelOutput & { m
       return { name: copies > 1 ? `Kit card ${i + 1}` : "Kit card", parts: parts.map((q) => ({ ...q, mesh: moveXY(q.mesh, dx, dy) })) };
     });
     if (p.showAssembled) models.push(assembled(M, built, p, cols * (W + CARD_GAP) - CARD_GAP, k));
-    const meta: KitMeta = { card: { w: W, h: H }, scale: s, pieces: placed.length, gatesPerPiece: gatesPer, split: built.split, report: built.report, ribs: built.ribs.length, spines: built.spines };
+    const meta: KitMeta = { card: { w: W, h: H }, scale: s, pieces: placed.length, gatesPerPiece: gatesPer, split: built.split, report: built.report, ribs: built.ribs.length, spines: built.spines, wheelsDetected: built.vehicle?.detected ? built.vehicle.axles.length : 0 };
     return { models, warnings, meta };
   });
 }
@@ -669,25 +788,25 @@ function assembledVehicle(M: ManifoldToplevel, b: KitPieces, v: VehiclePlan, p: 
   const t = p.thickness;
   const chassis = b.pieces.find((q) => q.kind === "base")!;
   const lateral = b.pieces.find((q) => q.kind === "spine")!;
-  const wheel = b.pieces.find((q) => q.kind === "wheel")!;
   const parts: Part[] = [{ name: "Montado: chassi", color: p.pieceColor, mesh: solidMesh(k(chassis.cs.extrude(t))) }];
   [-1, 1].forEach((sg, i) => {
     parts.push({ name: `Montado: lateral ${i + 1}`, color: p.pieceColor, mesh: solidMesh(k(k(k(lateral.cs.extrude(t)).rotate([90, 0, 0])).translate([0, sg * b.d + t / 2, t]))) });
   });
-  const hubCs = wheel.body ?? wheel.cs;
   let n = 1;
   for (const sg of [-1, 1])
-    for (const x of [-v.xw, v.xw]) {
+    v.axles.forEach((a, i) => {
+      const wheel = b.pieces.find((q) => q.kind === "wheel" && q.axle === i)!;
+      const hubCs = wheel.body ?? wheel.cs;
       // roda no plano XZ, do lado de fora (a face de dentro em |Y| = yw), e o eixo entrando para a lateral
       const yDisc = sg === 1 ? v.yw + t : -v.yw; // a placa da roda ocupa [yw, yw + t] (ou o espelho)
-      const place = (s3: Solid) => k(k(s3.rotate([90, 0, 0])).translate([x, yDisc, v.yh + t]));
+      const place = (s3: Solid) => k(k(s3.rotate([90, 0, 0])).translate([a.x, yDisc, a.y + t]));
       const hub = place(k(hubCs.extrude(t)));
       const cyl = k(M.Manifold.cylinder(v.pinLen, v.pinR, v.pinR, 32, false));
-      const pin = sg === 1 ? k(k(cyl.rotate([90, 0, 0])).translate([x, v.yw, v.yh + t])) : k(k(cyl.rotate([-90, 0, 0])).translate([x, -v.yw, v.yh + t]));
+      const pin = sg === 1 ? k(k(cyl.rotate([90, 0, 0])).translate([a.x, v.yw, a.y + t])) : k(k(cyl.rotate([-90, 0, 0])).translate([a.x, -v.yw, a.y + t]));
       parts.push({ name: `Montado: roda ${n}`, color: p.wheelColor, mesh: solidMesh(k(hub.add(pin))) });
       if (wheel.tire) parts.push({ name: `Montado: pneu ${n}`, color: p.tireColor, mesh: solidMesh(place(k(wheel.tire.extrude(t)))) });
       n++;
-    }
+    });
   const shift = cardW / 2 + 12 + b.len / 2;
   return { name: "Montado", previewOnly: true, parts: parts.map((q) => ({ ...q, mesh: moveXY(q.mesh, shift) })) };
 }

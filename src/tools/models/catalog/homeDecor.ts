@@ -287,7 +287,7 @@ export const HOME_DECOR_MODELS: ModelDef[] = [
         title: "Veículo (rodas e eixos)",
         when: { k: "mode", is: "vehicle" },
         fields: [
-          num("wheel", "Diâmetro das rodas", 12, 36, { step: 1, unit: "%", hint: "Em % do comprimento do veículo." }),
+          num("wheel", "Diâmetro das rodas", 12, 36, { step: 1, unit: "%", hint: "Em % do comprimento do veículo. Só vale se o desenho não tiver rodas: com rodas desenhadas (2 a 4 círculos embaixo), o app usa o tamanho e o lugar delas." }),
           num("track", "Distância entre as laterais", 22, 50, { step: 1, unit: "%", hint: "Em % do comprimento: define a largura do chassi." }),
           num("tire", "Espessura do pneu", 0, 3, { step: 0.5, hint: "0 = sem pneu. O pneu sai em outra cor, num anel em volta da roda." }),
           num("axleFit", "Folga do eixo no furo", 0.05, 0.4, { step: 0.05, hint: "O eixo entra por pressão no furo da lateral: 0,15 prende; aumente se ficar duro, diminua se soltar." }),

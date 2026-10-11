@@ -6,7 +6,7 @@ import { getManifold } from "../manifold";
 import { scoped } from "../shape2d";
 import { bedWarnings } from "../../tools/models/bedCheck";
 import { MissingInput, type ModelCtx } from "./common";
-import { buildKitCard, CARD_MM, cleanSilhouette, componentCount, DEFAULT_KIT_CARD as D, gateHeight, gateWidth, packRows, type KitCardParams } from "./kitCard";
+import { buildKitCard, CARD_MM, cleanSilhouette, componentCount, DEFAULT_KIT_CARD as D, detectWheels, gateHeight, gateWidth, packRows, type KitCardParams } from "./kitCard";
 
 let M: ManifoldToplevel;
 beforeAll(async () => {
@@ -520,3 +520,67 @@ describe("kit card: ajustes depois da aprovação visual (#193)", { timeout: 120
   });
 });
 
+
+describe("kit card: rodas desenhadas no veículo (#193)", { timeout: 120_000 }, () => {
+  const circ = (x: number, r: number) => M.CrossSection.circle(r, 64).translate([x, r]);
+  /** caminhão: cabine e carroceria com 3 rodas de raio 10 saindo por baixo (as rodas encostam no corpo) */
+  const truck = () => union(box(0, 14, 100, 40), box(72, 14, 100, 52), circ(20, 10), circ(62, 10), circ(82, 10));
+  const car = () => union(box(0, 12, 100, 28), box(25, 28, 70, 40), circ(22, 9), circ(78, 9));
+  const centered = (cs: CS) => cs.translate([-50, 0]);
+  const vehicle = (art: CS, p: Partial<KitCardParams> = {}) => buildKitCard(ctx(art), { ...D, spines: 1, mode: "vehicle", cardSize: "xlarge", tire: 0, ...p });
+  const solid2 = (m: { positions: Float32Array; indices: Uint32Array }) => M.Manifold.ofMesh(new M.Mesh({ numProp: 3, vertProperties: m.positions, triVerts: m.indices }));
+
+  test("acha as 3 rodas do caminhão (centro e raio) e as 2 do carro", () => {
+    scoped((k) => {
+      const t = detectWheels(M, k(centered(truck())), 100, k);
+      expect(t.map((w) => [Math.round(w.x + 50), Math.round(w.r)])).toEqual([[20, 10], [62, 10], [82, 10]]);
+      t.forEach((w) => expect(Math.abs(w.y - w.r)).toBeLessThan(0.01));
+      const c = detectWheels(M, k(centered(car())), 100, k);
+      expect(c.map((w) => [Math.round(w.x + 50), Math.round(w.r)])).toEqual([[22, 9], [78, 9]]);
+    });
+  });
+
+  test("sem rodas (bloco de fundo reto, silhueta redonda): devolve [] e usa as 4 padrão", () => {
+    scoped((k) => {
+      expect(detectWheels(M, k(centered(box(0, 0, 100, 30))), 100, k)).toEqual([]);
+      expect(detectWheels(M, k(centered(IMAGES.simples().translate([0, 0]))), 100, k)).toEqual([]);
+    });
+    const o = vehicle(box(0, 0, 100, 30));
+    expect(o.meta!.wheelsDetected).toBe(0);
+    expect(o.meta!.pieces).toBe(7);
+  });
+
+  for (const [name, make, n, r] of [["caminhão (3 rodas)", truck, 3, 10], ["carro (2 rodas)", car, 2, 9]] as const) {
+    test(`${name}: eixos no centro das rodas, rodas do mesmo diâmetro, vão aberto na lateral e montado sem colisão`, () => {
+      const o = vehicle(make());
+      expect(o.meta!.wheelsDetected).toBe(n);
+      expect(o.meta!.pieces).toBe(3 + 2 * n);
+      expect(o.warnings!.join(" ")).toMatch(new RegExp(`Achei ${n} rodas no desenho`));
+      const s = Object.fromEntries(o.models[1].parts.map((q) => [q.name.replace("Montado: ", ""), solid2(q.mesh)]));
+      const names = Object.keys(s);
+      const wheels = names.filter((q) => q.startsWith("roda"));
+      expect(wheels.length).toBe(2 * n);
+      for (let i = 0; i < names.length; i++) for (let j = i + 1; j < names.length; j++) expect(vol(s[names[i]], s[names[j]]), `${names[i]} × ${names[j]}`).toBeLessThan(1e-6);
+      const lat = s["lateral 1"], lb = lat.boundingBox();
+      const scale = (lb.max[0] - lb.min[0]) / 100; // a lateral tem a largura da silhueta
+      const t = D.thickness;
+      const boxes = wheels.map((q) => s[q].boundingBox());
+      boxes.forEach((b) => expect(Math.abs(b.max[2] - b.min[2] - 2 * r * scale)).toBeLessThan(0.9)); // mesmo diâmetro do desenhado (menos o vão para a roda vizinha)
+      boxes.forEach((b) => expect(Math.abs((b.max[2] + b.min[2]) / 2 - (r * scale + t))).toBeLessThan(0.6)); // eixo na altura do centro da roda
+      const xs = [...new Set(boxes.map((b) => Math.round(((b.min[0] + b.max[0]) / 2) * 10) / 10))].sort((a, b) => a - b);
+      expect(xs.length).toBe(n);
+      const want = (make === truck ? [20, 62, 82] : [22, 78]).map((x) => x * scale);
+      xs.forEach((x, i) => expect(Math.abs(x - xs[0] - (want[i] - want[0]))).toBeLessThan(0.6)); // distâncias entre eixos como no desenho
+      // vão aberto: na lateral não sobra material no anel entre o reforço do furo e a borda da roda desenhada
+      const ring = (b: (typeof boxes)[number]) => {
+        const cx = (b.min[0] + b.max[0]) / 2, cz = (b.min[2] + b.max[2]) / 2;
+        const outer = M.Manifold.cylinder(20, 0.9 * r * scale, 0.9 * r * scale, 64, true), inner = M.Manifold.cylinder(20, 7, 7, 64, true);
+        const rg = outer.subtract(inner).rotate([90, 0, 0]).translate([cx, 0, cz]);
+        return rg;
+      };
+      const lateralInWell = ring(boxes[0]).intersect(lat).volume();
+      expect(lateralInWell).toBeLessThan(0.15 * Math.PI * (0.81 * (r * scale) ** 2 - 49) * t);
+      Object.values(s).forEach((x) => x.delete());
+    });
+  }
+});
