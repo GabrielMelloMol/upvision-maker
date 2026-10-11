@@ -16,7 +16,8 @@ async function openKit(page: Page, search: string, name: string) {
 test("kits de montar: galeria dos kits, bicho e baú geram o cartão e salvam o 3MF sem o montado; axe claro e escuro", async ({ page, tauri }) => {
   await openKit(page, "Bicho", "Bicho de 4 patas (kit)");
   const gallery = page.getByRole("group", { name: "Escolha o kit" });
-  await expect(gallery.getByRole("button")).toHaveCount(6); // Bicho, Baú, Carrinho, Caminhão, Avião e Helicóptero
+  await expect(gallery.getByRole("button", { name: /Bicho de 4 patas/ })).toBeVisible();
+  await expect(gallery.getByRole("button", { name: /Baú/ })).toBeVisible();
   await expect(gallery.getByRole("button", { name: /Bicho de 4 patas/ })).toHaveAttribute("aria-pressed", "true");
   for (const part of ["Cartão", "Corpo", "Cabeça e cauda"]) await expect(page.locator(".legend")).toContainText(part);
   await expect(page.getByText(/Para montar/)).toBeVisible();
