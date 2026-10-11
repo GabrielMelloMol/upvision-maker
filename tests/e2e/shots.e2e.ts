@@ -6,9 +6,10 @@ import { expect, go, openApp, test, toastWith } from "./tauri";
 // Tudo no navegador de teste (sem mouse nem tela do Mac).
 const OUT = process.env.SHOTS_OUT ?? "test-results/shots";
 const KITS = [
-  { id: "kitBicho", name: "Bicho de 4 patas (kit)", file: "bicho-cachorro", variant: "Cachorro", patch: { head: "dog", tail: "up", profile: "oval" } },
-  { id: "kitBicho", name: "Bicho de 4 patas (kit)", file: "bicho-dino", variant: "Dinossauro", patch: { head: "dino", tail: "long", profile: "boxy" } },
-  { id: "kitBau", name: "Baú (kit)", file: "bau", variant: "Médio", patch: {}, open: true },
+  { id: "kitBicho", name: "Bicho", file: "bicho-cachorro", variant: "Cachorro", patch: { head: "dog", tail: "up", profile: "oval" } },
+  { id: "kitBicho", name: "Bicho", file: "bicho-dino", variant: "Saurópode", patch: { head: "sauro", tail: "thick", profile: "oval" } },
+  { id: "kitBicho", name: "Bicho", file: "bicho-trex", variant: "T-rex", patch: { head: "trex", tail: "thick", profile: "boxy" } },
+  { id: "kitBau", name: "Baú", file: "bau", variant: "Médio", patch: {}, open: true },
 ];
 
 async function saved3mf(page: Page, tauri: { files: Map<string, Uint8Array> }): Promise<Buffer> {

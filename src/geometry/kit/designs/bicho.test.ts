@@ -2,7 +2,7 @@ import { beforeAll, describe, expect, test } from "vitest";
 import type { ManifoldToplevel } from "../../manifold";
 import { getManifold } from "../../manifold";
 import { scoped } from "../../shape2d";
-import { BICHO_LIMITS, DEFAULT_BICHO, bichoDims, bichoHead, bichoRib, bichoSpine, bichoTail, type BichoParams, type Env } from "./bicho";
+import { BICHO_LIMITS, DEFAULT_BICHO, bichoAnchors, bichoDims, bichoHead, bichoRib, bichoSpine, bichoTail, type BichoParams, type Env } from "./bicho";
 
 let M: ManifoldToplevel;
 beforeAll(async () => {
@@ -56,17 +56,16 @@ describe("bicho de 4 patas: peças", () => {
       expect(k(body.intersect(slot)).area()).toBeLessThan(1e-6);
     }));
 
-  test.each(["dog", "cat", "dino"] as const)("cabeça %s e cauda: a espiga entra no soquete com folga, sem encostar", (head) =>
+  test.each(["dog", "cat", "sauro", "trex"] as const)("cabeça %s e cauda: a espiga entra no soquete com folga, sem encostar", (head) =>
     scoped((k) => {
-      const p: BichoParams = { ...DEFAULT_BICHO, head };
+      const p: BichoParams = { ...DEFAULT_BICHO, head, tail: head === "sauro" || head === "trex" ? "thick" : "long" };
       const e = env(k);
-      const d = bichoDims(p, e);
       const spine = k(bichoSpine(e, p));
-      const wall = Math.max(3, 2.5 * e.nozzle);
+      const a = bichoAnchors(p, e);
       const clearance = 0.05; // metade da folga de projeto (0,15 por lado)
       const placed = [
-        [bichoHead(e, p), d.L - (d.headSock.base + 2 * wall) / 2, d.H + 0.08 * d.L],
-        [bichoTail(e, p), (d.tailSock.base + 2 * wall) / 2, d.H + 0.04 * d.L],
+        [bichoHead(e, p), a.headX, a.headY],
+        [bichoTail(e, p), a.tailX, a.tailY],
       ] as const;
       for (const [cs, x, y] of placed) {
         const part = k(k(cs).translate([x, y]));
@@ -76,13 +75,21 @@ describe("bicho de 4 patas: peças", () => {
       }
     }));
 
-  test.each(NOZZLES)("bico %s: nenhum traço mais fino que 2× o bico em nenhuma peça", (nozzle) =>
+  test.each(NOZZLES.flatMap((n) => (["dog", "sauro", "trex"] as const).map((h) => [n, h] as const)))("bico %s, %s: nenhum traço mais fino que 2× o bico em nenhuma peça", (nozzle, head) =>
     scoped((k) => {
-      const p = DEFAULT_BICHO;
+      const p: BichoParams = { ...DEFAULT_BICHO, head, tail: head === "dog" ? "long" : "thick" };
       const e = env(k, nozzle);
       const parts = { coluna: bichoSpine(e, p), perna: bichoRib(e, p, true), corpo: bichoRib(e, p, false), cabeca: bichoHead(e, p), cauda: bichoTail(e, p) };
       for (const [name, cs] of Object.entries(parts)) expect(thinShare(k(cs), nozzle), name).toBeLessThan(0.02);
     }));
+
+  test("T-rex: só uma fatia de perna (a de trás, depois da coxa); o legado dino abre como saurópode", () => {
+    const e = { t: 1.6, fit: 0.2 };
+    const trex = bichoDims({ ...DEFAULT_BICHO, head: "trex" }, e).ribs;
+    expect(trex.filter((r) => r.leg)).toHaveLength(1);
+    expect(trex[0].leg).toBe(true);
+    expect(bichoDims({ ...DEFAULT_BICHO, head: "dino" }, e).species).toBe("sauro");
+  });
 
   test("fatias: 2 a 6; com 2 só há as de perna", () => {
     const e = { t: 1.6, fit: 0.2 };

@@ -80,8 +80,8 @@ function stagePlate(env: KitEnv, d: Dim, body: CS, fins: CS, stage: 0 | 1 | 2, p
 
 export const rocketKit: KitTemplate = {
   id: "kitRocket",
-  label: "Foguete (kit de montar)",
-  blurb: "Foguete de 3 estágios que se encaixam, com aletas e janelinhas, numa base de lançamento. Peças planas num cartão: cada estágio é um par de placas em cruz.",
+  label: "Foguete",
+  blurb: "Foguete de montar: 3 estágios que se encaixam, com aletas e janelinhas, numa base de lançamento.",
   palette: [
     { key: "s1", label: "Estágio 1", default: "#f4f4f2" },
     { key: "s2", label: "Estágio 2", default: "#d6262e" },

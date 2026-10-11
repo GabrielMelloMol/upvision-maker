@@ -55,7 +55,7 @@ export const FAMILIES: Family[] = [
   },
   { id: "vase", label: "Vaso", category: "home", variants: [{ id: "vase", label: "Vaso" }] },
   { id: "toys", label: "Brinquedos", category: "home", variants: [{ id: "puzzle", label: "Quebra-cabeça" }, { id: "alphabetCube", label: "Cubo alfabeto" }, { id: "rpgDice", label: "Dados de RPG" }, { id: "coloring", label: "Colorir" }, { id: "kitCard", label: "Kit card" }] },
-  { id: "assembleKits", label: "Kits de montar", category: "gifts", variants: [{ id: "kitBicho", label: "Bicho" }, { id: "kitBau", label: "Baú" }, { id: "kitCar", label: "Carrinho" }, { id: "kitTruck", label: "Caminhão" }, { id: "kitAviao", label: "Avião" }, { id: "kitHelicoptero", label: "Helicóptero" }, { id: "kitRocket", label: "Foguete" }, { id: "kitTractor", label: "Trator" }] },
+  { id: "assembleKits", label: "Kits de montar", category: "gifts", variants: [{ id: "kitCar", label: "Carro" }, { id: "kitTruck", label: "Caminhão" }, { id: "kitTractor", label: "Trator" }, { id: "kitAviao", label: "Avião" }, { id: "kitHelicoptero", label: "Helicóptero" }, { id: "kitRocket", label: "Foguete" }, { id: "kitBicho", label: "Bicho" }, { id: "kitBau", label: "Baú" }] },
   { id: "coaster", label: "Porta-copos", category: "gifts", variants: [{ id: "coaster", label: "Porta-copos" }] },
   { id: "phoneStand", label: "Suporte de celular e tablet", category: "organize", variants: [{ id: "phoneStand", label: "Fixo" }, { id: "phoneStandFold", label: "Dobrável" }] },
   { id: "bookmark", label: "Marca-página", category: "gifts", variants: [{ id: "bookmark", label: "Marca-página" }] },

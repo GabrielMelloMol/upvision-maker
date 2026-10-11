@@ -89,7 +89,7 @@ function skid(e: KitEnv): KitPart {
 export const HELICOPTERO: KitTemplate = {
   id: "kitHelicoptero",
   label: "Helicóptero",
-  blurb: "Kit card de helicóptero: cabine com janelas, esquis, cauda e rotores que giram.",
+  blurb: "Helicóptero de montar: cabine com janelas, esquis, cauda e rotores que giram.",
   palette: [{ key: "body", label: "Cabine", default: "#f4f4f2" }, { key: "tail", label: "Cauda", default: "#d94a3a" }, { key: "skid", label: "Esquis", default: "#1c1c1e" }, { key: "rotor", label: "Rotores", default: "#f0b429" }],
   artTargets: [["lateral", "Lateral da cabine"], ["cauda", "Cauda"]],
   defaults: { rotorBlades: 2 },

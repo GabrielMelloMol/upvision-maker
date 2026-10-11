@@ -139,7 +139,7 @@ const propPinLen = (t: number, s: number) => 55 * s + PROP_GAP - (noseX(s) - 1.5
 export const AVIAO: KitTemplate = {
   id: "kitAviao",
   label: "Avião",
-  blurb: "Kit card de avião de asa média: fuselagem de encaixe com tampa, asa que atravessa as laterais, deriva, trem de pouso e hélice que gira.",
+  blurb: "Avião de montar: fuselagem com tampa, asa que atravessa as laterais, deriva, trem de pouso e hélice que gira.",
   palette: [{ key: "body", label: "Fuselagem", default: "#f4f4f2" }, { key: "wing", label: "Asas e deriva", default: "#d94a3a" }, { key: "wheel", label: "Trem e rodas", default: "#1c1c1e" }, { key: "prop", label: "Hélice", default: "#f0b429" }],
   artTargets: [["lateral", "Lateral da fuselagem"], ["asa", "Asa"], ["tampa", "Tampa"]],
   defaults: { blades: 2, wingPos: "mid" },

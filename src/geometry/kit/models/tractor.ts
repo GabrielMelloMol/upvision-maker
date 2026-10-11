@@ -26,8 +26,8 @@ type Bar = { id: string; label: string; plane: "xy" | "yz"; at: number; z?: [num
 
 export const tractorKit: KitTemplate = {
   id: "kitTractor",
-  label: "Trator (kit de montar)",
-  blurb: "Trator de rodas grandes atrás, cabine com para-brisa e teto, capô e escapamento. Peças planas num cartão: laterais, travessas com abas, rodas com pino.",
+  label: "Trator",
+  blurb: "Trator de montar: rodas grandes atrás, cabine com para-brisa e teto, capô e escapamento, rodas com pino.",
   palette: [
     { key: "body", label: "Carroceria", default: "#3a9d3f" },
     { key: "cabin", label: "Cabine", default: "#f4f4f2" },

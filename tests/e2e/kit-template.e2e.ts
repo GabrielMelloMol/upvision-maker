@@ -12,7 +12,7 @@ async function openKit(page: Page, name: string) {
   await idle(page);
 }
 
-for (const [name, wheels] of [["Kit: carro", "Prenda cada roda"], ["Kit: caminhão", "Prenda cada roda"]] as const)
+for (const [name, wheels] of [["Carro", "Prenda cada roda"], ["Caminhão", "Prenda cada roda"]] as const)
   test(`${name}: cartão e montado na prévia, avisos de montagem, parâmetros e axe`, async ({ page }) => {
     await openKit(page, name);
     // o texto de montagem e a legenda das cores por grupo aparecem

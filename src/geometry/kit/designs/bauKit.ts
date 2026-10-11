@@ -20,8 +20,8 @@ const asParams = (p: Record<string, string | number | boolean>, scale: number): 
 
 export const bauTemplate: KitTemplate = {
   id: "kitBau",
-  label: "Baú (kit)",
-  blurb: "Um baú de encaixar: caixa com tampa que abre por dobradiça de pino. Escolha o tamanho.",
+  label: "Baú",
+  blurb: "Baú de montar: caixa com tampa que abre por dobradiça de pino, em 3 tamanhos.",
   palette: [
     { key: "body", label: "Caixa", default: "#9b6a3c" },
     { key: "lid", label: "Tampa", default: "#c58b4e" },

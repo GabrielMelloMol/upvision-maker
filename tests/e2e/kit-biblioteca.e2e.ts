@@ -6,8 +6,8 @@ const idle = (page: Page) => expect(page.locator(".viewer .overlay.busy")).toHav
 const objectNames = (buf: Buffer) => [...strFromU8(unzipSync(new Uint8Array(buf))["3D/3dmodel.model"]).matchAll(/<object id="\d+" name="([^"]*)" type="model"><components>/g)].map((m) => m[1]);
 
 for (const [search, label, steps, scaleField] of [
-  ["Foguete", "Foguete (kit de montar)", /Para montar: .*Encaixe o bocal do foguete/, /^Altura do foguete/],
-  ["Trator", "Trator (kit de montar)", /Para montar: .*Prenda as rodas/, /^Comprimento do trator/],
+  ["Foguete", "Foguete", /Para montar: .*Encaixe o bocal do foguete/, /^Altura do foguete/],
+  ["Trator", "Trator", /Para montar: .*Prenda as rodas/, /^Comprimento do trator/],
 ] as const) {
   test(`biblioteca de kit cards: ${search} abre, mostra o passo a passo e salva o cartão no 3MF`, async ({ page, tauri }) => {
     test.slow();

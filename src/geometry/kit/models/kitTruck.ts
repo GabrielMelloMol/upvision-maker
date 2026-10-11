@@ -5,8 +5,8 @@ import { buildVehicle, lockRadius, minWheel, VEHICLE_PALETTE, type Ledge, type W
 /** Caminhão de montar: cabine e carroceria nas laterais, chassi, capô, teto da cabine, parede da cabine e traseira; 2 ou 3 eixos. */
 export const KIT_TRUCK: KitTemplate = {
   id: "kitTruck",
-  label: "Kit: caminhão",
-  blurb: "Caminhão de montar projetado peça por peça: cabine com janela, carroceria aberta, chassi, capô, teto, traseira e rodas que giram no eixo.",
+  label: "Caminhão",
+  blurb: "Caminhão de montar: cabine com janela, carroceria aberta, chassi, capô, teto e traseira, rodas que giram no eixo.",
   palette: VEHICLE_PALETTE,
   artTargets: [["lateral1", "Lateral direita"], ["lateral2", "Lateral esquerda"], ["traseira", "Traseira"], ["teto", "Teto da cabine"], ["chassi", "Chassi"]],
   defaults: { length: 120, width: 34, cabinH: 36, boxH: 28, cabLen: 30, axlesN: 2, wheelD: 23, tire: 2, press: 0.05 },

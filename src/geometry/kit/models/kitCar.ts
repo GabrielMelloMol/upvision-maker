@@ -5,8 +5,8 @@ import { buildVehicle, lateralBase, minWheel, VEHICLE_PALETTE, type Ledge, type 
 /** Carro de montar: laterais com janelas, chassi, capô, teto e porta-malas; rodas que giram no pino, presas por travas. */
 export const KIT_CAR: KitTemplate = {
   id: "kitCar",
-  label: "Kit: carro",
-  blurb: "Carro de montar projetado peça por peça: laterais com janelas, chassi, capô, teto e porta-malas encaixados, rodas que giram no eixo.",
+  label: "Carro",
+  blurb: "Carro de montar: laterais com janelas, chassi, capô, teto e porta-malas encaixados, rodas que giram no eixo.",
   palette: VEHICLE_PALETTE,
   artTargets: [["lateral1", "Lateral direita"], ["lateral2", "Lateral esquerda"], ["capo", "Capô"], ["teto", "Teto"], ["chassi", "Chassi"]],
   defaults: { length: 90, width: 32, bodyH: 15, cabinH: 13, wheelD: 19, tire: 1.5, press: 0.05 },

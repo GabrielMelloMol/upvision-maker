@@ -3,7 +3,7 @@ import type { KitBuild, KitPair, KitTemplate, Placement } from "../types";
 import { BICHO_LIMITS, DEFAULT_BICHO, bichoAnchors, bichoDims, bichoHead, bichoRib, bichoSpine, bichoTail, type BichoParams, type HeadStyle, type Profile, type TailStyle } from "./bicho";
 
 /**
- * Kit "Bicho de 4 patas": coluna lateral + fatias encaixadas por meia-fenda + cabeça e cauda em rabo de andorinha.
+ * Kit "Bicho": coluna lateral + fatias encaixadas por meia-fenda + cabeça e cauda em rabo de andorinha.
  * Montado: x ao longo do corpo (cauda em 0), y na largura (centrado), z para cima (chão em 0).
  */
 const asParams = (p: Record<string, string | number | boolean>, scale: number): BichoParams => {
@@ -23,8 +23,8 @@ const maxSlicesFor = (length: number) => (length <= 90 ? 6 : length <= 110 ? 5 :
 
 export const bichoTemplate: KitTemplate = {
   id: "kitBicho",
-  label: "Bicho de 4 patas (kit)",
-  blurb: "Um bichinho de 4 patas de encaixar: coluna de lado, fatias do corpo e das pernas, cabeça e cauda. Escolha o tipo de cabeça e de cauda.",
+  label: "Bicho",
+  blurb: "Bicho de montar: coluna de lado, fatias do corpo e das pernas, cabeça e cauda. Cachorro, gato ou dinossauro.",
   palette: [
     { key: "body", label: "Corpo", default: "#c8a77d" },
     { key: "accent", label: "Cabeça e cauda", default: "#7a5a3a" },
@@ -38,8 +38,8 @@ export const bichoTemplate: KitTemplate = {
       fields: [
         { k: "length", kind: "num", label: "Comprimento do corpo", min: BICHO_LIMITS.length[0], max: BICHO_LIMITS.length[1], step: 5, unit: "mm", hint: "Sem a cabeça e a cauda (o bicho todo fica uns 50% maior). Com mais fatias, diminua o comprimento: as peças precisam caber no cartão." },
         { k: "slices", kind: "num", label: "Fatias", min: BICHO_LIMITS.slices[0], max: BICHO_LIMITS.slices[1], step: 1, unit: "", hint: "2 são as de perna (frente e trás); as outras são do corpo." },
-        { k: "head", kind: "choice", label: "Cabeça", options: [["dog", "Cachorro"], ["cat", "Gato"], ["dino", "Dinossauro"]] },
-        { k: "tail", kind: "choice", label: "Cauda", options: [["short", "Curta"], ["long", "Longa"], ["up", "Erguida"]] },
+        { k: "head", kind: "choice", label: "Bicho", options: [["dog", "Cachorro"], ["cat", "Gato"], ["sauro", "Dinossauro pescoçudo (saurópode)"], ["trex", "T-rex"]] },
+        { k: "tail", kind: "choice", label: "Cauda", options: [["short", "Curta"], ["long", "Longa"], ["up", "Erguida"], ["thick", "Grossa e longa (dinossauro)"]] },
         { k: "profile", kind: "choice", label: "Seção das fatias", options: [["oval", "Oval"], ["boxy", "Quase retangular"]] },
       ],
     },

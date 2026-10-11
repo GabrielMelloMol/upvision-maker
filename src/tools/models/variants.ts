@@ -63,7 +63,8 @@ export const VARIANTS: Record<string, Variant[]> = {
   kitBicho: [
     { label: "Cachorro", patch: { head: "dog", tail: "up", profile: "oval" } },
     { label: "Gato", patch: { head: "cat", tail: "long", profile: "oval" } },
-    { label: "Dinossauro", patch: { head: "dino", tail: "long", profile: "boxy" } },
+    { label: "Saurópode", patch: { head: "sauro", tail: "thick", profile: "oval" } },
+    { label: "T-rex", patch: { head: "trex", tail: "thick", profile: "boxy" } },
   ],
   kitBau: [
     { label: "Pequeno", patch: { width: 44, depth: 30, height: 22 } },

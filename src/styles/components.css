@@ -496,5 +496,5 @@ h3.subhead svg { width: 16px; height: 16px; color: var(--muted); }
 .kit-gallery-thumb img { width: 100%; height: 100%; object-fit: contain; }
 .kit-gallery-thumb svg { width: 32px; height: 32px; color: var(--muted); }
 .kit-gallery-name { font-weight: 600; font-size: var(--text-md); }
-.kit-gallery-tag { color: var(--muted); font-size: var(--text-sm); display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
+.kit-gallery-tag { color: var(--muted); font-size: var(--text-sm); display: -webkit-box; -webkit-line-clamp: 4; -webkit-box-orient: vertical; overflow: hidden; }
 .kit-gallery-facts { display: flex; flex-wrap: wrap; gap: 4px; }
