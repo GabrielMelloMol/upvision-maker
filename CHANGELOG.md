@@ -4,6 +4,7 @@ Cada versão aparece para a usuária na tela "O que há de novo" depois da atual
 Formato: `## <versão> — <data>` e itens `- …` em linguagem simples.
 
 ## Próxima versão (ainda não lançada)
+- **Kit card: nenhuma peça fica solta**: nos desenhos de linha fina, ícones, fotos e carros, uma peça às vezes saía do cartão sem estar presa. Agora os pontos de corte entram um pouco na peça e todas ficam presas ao galho; o número de cada peça também fica sempre junto dela.
 - **Kit card mais limpo**: a figura vem com 3 costelas por padrão (ajustável de 2 a 8, porque muitas costelas deixavam a lateral parecendo um pente), o número de cada peça fica sempre no galho dela e o cartão fica compacto, sem espaço vazio entre as peças (dá para desligar em "Cartão compacto").
 - **Kit card: que imagem usar**: um quadro "Que imagem funciona" mostra exemplos bons (bicho ou carro de lado, uma figura só, fundo liso) e ruins (de frente, várias coisas, fundo bagunçado); dá para experimentar sem imagem com um elefante, um dinossauro, um carro ou um avião; e, depois do envio, o app mostra a silhueta que entendeu e avisa se parece de frente, se tem várias figuras, se o contorno é fino demais para o bico ou se o recorte ficou incerto
 - **Recorte do fundo reconhece desenhos de contorno fino**: uma foto com o objeto só em linha fina (de 1 a 3 pixels) não some mais no recorte automático, e o miolo do contorno vira a silhueta.

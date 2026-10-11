@@ -36,33 +36,7 @@ const MODE_NAME: Record<KitMode, string> = { figure: "figura (costelas)", vehicl
 
 /** "caso:modo:verificação" → o que está quebrado. */
 const KNOWN: Record<string, string> = {
-  "02-estrela:figure:presas": "uma peça fica solta do cartão apesar de contar 2 pontos de corte: os pontos não chegam a encostar na peça ou no galho",
-  "04-aviao-linha:figure:presas": "uma peça fica solta do cartão apesar de contar 2 pontos de corte: os pontos não chegam a encostar na peça ou no galho",
-  "05-carro-linha-fina:figure:presas": "uma peça fica solta do cartão apesar de contar 2 pontos de corte: os pontos não chegam a encostar na peça ou no galho",
-  "05-carro-linha-fina:vehicle:numeros": "peça sem número gravado a menos de 15 mm dela (o número fica no galho de outra peça)",
-  "05-carro-linha-fina:vehicle:presas": "uma peça fica solta do cartão apesar de contar 2 pontos de corte: os pontos não chegam a encostar na peça ou no galho",
-  "06-casa-icone:vehicle:presas": "uma peça fica solta do cartão apesar de contar 2 pontos de corte: os pontos não chegam a encostar na peça ou no galho",
-  "07-engrenagem-icone:vehicle:presas": "uma peça fica solta do cartão apesar de contar 2 pontos de corte: os pontos não chegam a encostar na peça ou no galho",
-  "08-foguete:figure:presas": "uma peça fica solta do cartão apesar de contar 2 pontos de corte: os pontos não chegam a encostar na peça ou no galho",
-  "08-foguete:vehicle:presas": "uma peça fica solta do cartão apesar de contar 2 pontos de corte: os pontos não chegam a encostar na peça ou no galho",
-  "09-aviao-foto-liso:figure:presas": "uma peça sai com só 1 ponto de corte (o próprio aviso do Kit card já diz); o mínimo é 2",
-  "10-carro-foto-liso:figure:presas": "uma peça fica solta do cartão apesar de contar 2 pontos de corte: os pontos não chegam a encostar na peça ou no galho",
-  "10-carro-foto-liso:vehicle:numeros": "peça sem número gravado a menos de 15 mm dela (o número fica no galho de outra peça)",
-  "11-gato-foto-liso:figure:numeros": "peça sem número gravado a menos de 15 mm dela (o número fica no galho de outra peça)",
-  "11-gato-foto-liso:figure:presas": "uma peça sai com só 1 ponto de corte (o próprio aviso do Kit card já diz); o mínimo é 2",
   "13-cachorro-fundo-bagunca:figure:fendas": "as costelas não encostam nas laterais com a folga pedida (silhueta do recorte errado: fundo bagunçado)",
-  "14-texto-grosso:vehicle:presas": "uma peça fica solta do cartão apesar de contar 2 pontos de corte: os pontos não chegam a encostar na peça ou no galho",
-  "16-tres-circulos:figure:numeros": "peça sem número gravado a menos de 15 mm dela (o número fica no galho de outra peça)",
-  "17-aviao-e-satelites:figure:presas": "uma peça sai com só 1 ponto de corte (o próprio aviso do Kit card já diz); o mínimo é 2",
-  "18-carro-frente:figure:presas": "uma peça fica solta do cartão apesar de contar 2 pontos de corte: os pontos não chegam a encostar na peça ou no galho",
-  "19-cachorro:figure:numeros": "peça sem número gravado a menos de 15 mm dela (o número fica no galho de outra peça)",
-  "19-cachorro:figure:presas": "uma peça sai com só 1 ponto de corte (o próprio aviso do Kit card já diz); o mínimo é 2",
-  "21-caminhao:figure:numeros": "peça sem número gravado a menos de 15 mm dela (o número fica no galho de outra peça)",
-  "22-bicicleta-fina:figure:numeros": "peça sem número gravado a menos de 15 mm dela (o número fica no galho de outra peça)",
-  "22-bicicleta-fina:figure:presas": "uma peça fica solta do cartão apesar de contar 2 pontos de corte: os pontos não chegam a encostar na peça ou no galho",
-  "23-aviao-cacador:figure:presas": "uma peça sai com só 1 ponto de corte (o próprio aviso do Kit card já diz); o mínimo é 2",
-  "24-aviao-de-cima:figure:numeros": "peça sem número gravado a menos de 15 mm dela (o número fica no galho de outra peça)",
-  "24-aviao-de-cima:figure:presas": "uma peça sai com só 1 ponto de corte (o próprio aviso do Kit card já diz); o mínimo é 2",
 };
 
 let M: ManifoldToplevel;

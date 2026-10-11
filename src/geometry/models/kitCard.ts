@@ -55,6 +55,7 @@ const TAB_FRAC = 0.3; // largura da lingueta, em fração do comprimento
 const TAB_MAX_MM = 40;
 const BASE_W_FRAC = 0.6;
 const BASE_MIN_MM = 10; // sobra da base em volta das janelas
+const GATE_BITE = 0.15; // mm que o ponto de corte entra na peça
 const GATE_OVERLAP = 0.3; // o ponto de corte entra um pouco no galho e na peça, para não ficar fresta
 const MIN_PIECE_MM = 24; // silhueta menor que isso não vale a pena
 const THIN_LOSS = 0.04; // fração da área que some ao abrir com o bico
@@ -531,7 +532,11 @@ export function buildKitCard(ctx: ModelCtx, p: KitCardParams): ModelOutput & { m
       for (const g of gates) bars.push(rect(M, g.x0 - GATE_OVERLAP, g.y - gw / 2, g.x1 + GATE_OVERLAP, g.y + gw / 2, k));
     }
     const allPieces = k(M.CrossSection.union(placed.map((q) => q.cs)));
-    const gateCs = bars.length ? k(k(M.CrossSection.union(bars)).subtract(allPieces)) : null;
+    // o ponto de corte entra um pouco na peça: em ponta fina, só encostar na borda deixava a peça solta
+    const barsCs = bars.length ? k(M.CrossSection.union(bars)) : null;
+    const gateOut = barsCs ? k(barsCs.subtract(allPieces)) : null;
+    const gateBite = barsCs && gateOut ? k(k(barsCs.intersect(allPieces)).intersect(k(gateOut.offset(GATE_BITE + 0.01, "Square")))) : null;
+    const gateCs = gateOut && gateBite ? k(M.CrossSection.union([gateOut, gateBite])) : gateOut;
 
     // ---- moldura + galhos (uma região), pontos de corte (mais finos), peças e números
     const outer = k(roundedRect(M, W, H, Math.min(CORNER_MM, p.frame)));

@@ -45,6 +45,9 @@ const areaAt = (m: Parameters<typeof solid>[0], z: number) => {
 };
 const vol = (...a: ReturnType<typeof solid>[]) => a.reduce((x, y) => x.intersect(y)).volume();
 
+// os pontos de corte entram uns décimos de mm na peça (para ela não ficar solta); só esse encaixe pode se sobrepor
+const GATE_BITE_MM3 = 3;
+
 describe("limpeza da silhueta: cada peça é UM sólido (#193)", { timeout: 60_000 }, () => {
   const opts = { close: 1, minIsland: 6, minHole: 8, bridgeW: 1.2 };
   const clean = (cs: CS, o = {}) => scoped((k) => {
@@ -119,7 +122,7 @@ describe("kit card: o cartão com galhos, pontos de corte e números (#193)", { 
       meta.gatesPerPiece.forEach((n, i) => expect(n, `peça ${i + 1}`).toBeGreaterThanOrEqual(2));
       // sem sobreposição: peças entre si e peças × cartão
       for (let i = 0; i < comps.length; i++) for (let j = i + 1; j < comps.length; j++) expect(vol(comps[i], comps[j])).toBeLessThan(1e-6);
-      expect(vol(pieces, card)).toBeLessThan(1e-3);
+      expect(vol(pieces, card)).toBeLessThan(GATE_BITE_MM3);
       [pieces, card, ...comps].forEach((s) => s.delete());
     });
   }
@@ -340,7 +343,7 @@ describe("kit card: modo veículo (laterais + chassi + 4 rodas) (#193)", { timeo
       expect(comps(o, "Pneus")).toBe(4);
       o.meta!.gatesPerPiece.forEach((n) => expect(n).toBeGreaterThanOrEqual(2));
       const [pieces, wheels, tires, card] = ["Peças", "Rodas", "Pneus", "Cartão"].map((n) => solid(part(o, n)!));
-      for (const [a, b] of [[pieces, wheels], [pieces, tires], [wheels, tires], [pieces, card], [wheels, card], [tires, card]] as const) expect(vol(a, b)).toBeLessThan(1e-3);
+      for (const [a, b] of [[pieces, wheels], [pieces, tires], [wheels, tires], [pieces, card], [wheels, card], [tires, card]] as const) expect(vol(a, b)).toBeLessThan(a === pieces && b === card || b === card ? GATE_BITE_MM3 : 1e-3);
       [pieces, wheels, tires, card].forEach((s) => s.delete());
     });
 
