@@ -57,10 +57,42 @@ describe("cor por pedaço no 3MF", () => {
     expect(filamentPlan(r.models).filamentColors.map((c) => c.toLowerCase())).toEqual(expect.arrayContaining(Object.values(colors)));
   });
 
-  test("sem cor escolhida o pedaço mantém a cor do arquivo; a prévia destaca em cores diferentes", () => {
+  test("a prévia mostra cada peça na cor que vai para o arquivo; o plano e a região usam cores de interface", () => {
+    const r = runCuts(M, scene(), { cuts: [cut(-5, 25, colors.a), cut(35, 65)], restColor: colors.rest });
+    const byName = (n: string) => r.preview.find((m) => m.name === n)!;
+    expect(byName("Resto").parts[0].color).toBe(colors.rest);
+    expect(byName("Pedaço 1").parts[0].color).toBe(colors.a);
+    expect(byName("Pedaço 2").parts[0].color).toBe("#d4d4d8"); // sem escolha: a cor do arquivo
+    const plane = r.preview.filter((m) => m.name === "Plano de corte")[0].parts;
+    expect(plane[0].ghost).toBe(true); // translúcido
+    expect(plane[1]).toMatchObject({ name: "", ghost: false }); // contorno, fora da legenda
+    const filament = [colors.a, colors.b, colors.rest, "#d4d4d8"];
+    for (const m of r.preview.filter((x) => x.name === "Plano de corte" || x.name === "Região")) for (const p of m.parts) expect(filament).not.toContain(p.color);
+    expect(r.preview.find((m) => m.name === "Região")!.parts[0].color).toBe("#3b82f6");
+  });
+
+  test("sem cor escolhida o pedaço sai com a cor do arquivo", () => {
     const r = runCuts(M, scene(), { cuts: [cut(-5, 25), cut(35, 65)], restColor: null });
     expect(r.models[1].parts[0].color).toBe("#d4d4d8");
-    const [p1, p2] = r.preview.filter((m) => m.name.startsWith("Pedaço"));
-    expect(p1.parts[0].color).not.toBe(p2.parts[0].color);
+  });
+});
+
+describe("encaixe que não coube: saídas na hora", () => {
+  const thin = (): Model => ({ name: "Haste", parts: [{ name: "Peça", color: "#d4d4d8", mesh: toMesh(M.Manifold.cube([7, 7, 30])) }] });
+  const at = (pin: CutItem["pin"], size: number): CutItem => ({ ...DEFAULT_PARTIAL_CUT, offset: 15, region: null, pin, size, color: null });
+
+  test("face de 7 mm: o pino automático não cabe, mas há um pino fixo menor que cabe (e funciona)", () => {
+    const r = runCuts(M, thin(), { cuts: [{ ...at("round", 0), size: 8 }], restColor: null });
+    expect(r.pinIssues).toHaveLength(1);
+    expect(r.pinIssues[0].cut).toBe(0);
+    const fix = r.pinIssues[0].fixSize;
+    expect(fix).not.toBeNull();
+    const fixed = runCuts(M, thin(), { cuts: [{ ...at("round", fix!), mode: "fixed" }], restColor: null });
+    expect(fixed.pinIssues).toHaveLength(0);
+    expect(fixed.report.ok).toBe(true);
+  });
+
+  test("sem encaixe pedido não há problema a resolver", () => {
+    expect(runCuts(M, thin(), { cuts: [at("none", 0)], restColor: null }).pinIssues).toHaveLength(0);
   });
 });

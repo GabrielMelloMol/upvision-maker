@@ -42,7 +42,11 @@ export type CutReport = {
 const SLAB_MM = 0.2; // meia espessura do ladrilho que mostra o plano
 const MARGIN_MM = 1;
 const VOLUME_TOL = 1e-3;
-const COLORS = { region: "#38bdf8", plane: "#ef4444", piece: "#f97316" };
+/** Cores só de interface (nunca de filamento): região azul tracejada, plano translúcido neutro com contorno. */
+const COLORS = { region: "#3b82f6", plane: "#cbd5e1", planeEdge: "#475569" };
+const CONTOUR_MM = 0.8;
+const SMALLER_PINS = [4, 3, 2.5, 2]; // pinos menores que se oferecem quando a face não comporta o automático
+const MAX_AUTO_PIN = 12;
 
 const cross = (a: Vec3, b: Vec3): Vec3 => [a[1] * b[2] - a[2] * b[1], a[2] * b[0] - a[0] * b[2], a[0] * b[1] - a[1] * b[0]];
 const unit = (a: Vec3): Vec3 => {
@@ -89,7 +93,10 @@ function cutsSideways(k: K, all: Solid, B: Solid): boolean {
  * Corta `model` só dentro da região. `models` são os arquivos (resto, pedaço e, no pino solto, os pinos), lado a lado
  * na mesa; `preview` é o conjunto montado (pedaço em outra cor, afastado por `explode`) com a região e o plano.
  */
-export function partialCut(M: ManifoldToplevel, model: Model, o: PartialCutOptions): { models: Model[]; preview: Model[]; warnings: string[]; report: CutReport } {
+/** Saída do corte: `pinMissing` = pediu encaixe e a face não deu; `pinFix` = tamanho menor (mm) em que um pino fixo cabe escondido, se houver. */
+export type PartialCutResult = { models: Model[]; preview: Model[]; warnings: string[]; report: CutReport; pinMissing: boolean; pinFix: number | null };
+
+export function partialCut(M: ManifoldToplevel, model: Model, o: PartialCutOptions): PartialCutResult {
   const warnings: string[] = [];
   return scoped((k) => {
     const { to, from } = planeFrames(planeNormal(o.axis, o.tilt), o.offset);
@@ -122,17 +129,29 @@ export function partialCut(M: ManifoldToplevel, model: Model, o: PartialCutOptio
     // encaixe na face cortada: tamanho e posição pelo círculo livre da face, escondido dentro das duas peças
     let spots: [number, number][] = [];
     let pinSize = 0, depth = 0;
+    let pinMissing = false;
+    let pinFix: number | null = null;
     if (o.pin !== "none") {
-      const plan = planPins(M, k, section, o.size);
-      pinSize = plan.size;
       // quanto há de material acima e abaixo do plano (o fitDepth confere que o furo cabe de fato na coluna)
       const above = Math.max(...pieces.map(([, p]) => p.boundingBox().max[2]));
       const below = -Math.min(...rests.map(([, r]) => r.boundingBox().min[2]), 0);
-      const want = Math.min(pinSize * DEPTH_FACTOR, below * 0.6, above * 0.6);
-      const fitted = plan.spots.length && want >= 1.5 ? fitDepth(M, k, { shape: o.pin, size: pinSize, clearance: o.clearance, want }, plan.spots, k(M.Manifold.union(pieces.map(([, s]) => s))), k(M.Manifold.union(rests.map(([, s]) => s)))) : { spots: [], depth: 0 };
-      spots = fitted.spots;
-      depth = fitted.depth;
-      if (!spots.length) warnings.push(`A face do corte de "${model.name}" é pequena ou fina demais para um pino escondido nas duas peças: saiu sem encaixe.`);
+      const pieceAll = k(M.Manifold.union(pieces.map(([, s]) => s)));
+      const restAll = k(M.Manifold.union(rests.map(([, s]) => s)));
+      const tryPins = (size0: number) => {
+        const plan = planPins(M, k, section, size0);
+        const want = Math.min(plan.size * DEPTH_FACTOR, below * 0.6, above * 0.6);
+        const fit = plan.spots.length && want >= 1.5 ? fitDepth(M, k, { shape: o.pin, size: plan.size, clearance: o.clearance, want }, plan.spots, pieceAll, restAll) : { spots: [], depth: 0 };
+        return { size: plan.size, ...fit };
+      };
+      const first = tryPins(o.size);
+      ({ spots, depth } = first);
+      pinSize = first.size;
+      if (!spots.length) {
+        pinMissing = true;
+        const smaller = SMALLER_PINS.filter((s) => s < (o.size > 0 ? o.size : MAX_AUTO_PIN)).find((s) => tryPins(s).spots.length > 0);
+        pinFix = smaller ?? null;
+        warnings.push(`A face do corte de "${model.name}" é pequena ou fina demais para um pino escondido nas duas peças: saiu sem encaixe.`);
+      }
     }
     const pin2d: CS | null = spots.length ? k(M.CrossSection.union(spots.map((p) => k(k(pinCs(M, o.pin, pinSize)).translate(p))))) : null;
     const hole2d: CS | null = spots.length ? k(M.CrossSection.union(spots.map((p) => k(k(k(pinCs(M, o.pin, pinSize)).offset(o.clearance, "Miter")).translate(p))))) : null;
@@ -160,24 +179,33 @@ export function partialCut(M: ManifoldToplevel, model: Model, o: PartialCutOptio
     if (set) warnings.push(set);
 
     // prévia: tudo no lugar, pedaço destacado e afastado do plano
-    const lifted = pieces.map(([part, s], i): Part => ({ ...part, color: COLORS.piece, name: `Pedaço ${i + 1}`, mesh: toMesh(k(k(s.translate([0, 0, o.explode])).transform(from))) }));
-    const shown: Model[] = [{ name: "Resto", parts: asParts(restWorld, k, 0) }, { name: "Pedaço", parts: lifted }];
-    const slab = k(k(B.trimByPlane([0, 0, 1], -SLAB_MM)).trimByPlane([0, 0, -1], -SLAB_MM));
-    shown.push({ name: "Plano de corte", parts: [{ name: "Plano de corte", color: COLORS.plane, mesh: toMesh(k(slab.transform(from))) }] });
-    if (o.region) shown.push({ name: "Região", parts: [{ name: "Região", color: COLORS.region, mesh: toMesh(regionOutline(M, k, o.region)) }] });
-    return { models: placed, preview: shown, warnings, report };
+    const lifted = pieces.map(([part, s], i): Part => ({ ...part, name: `Pedaço ${i + 1}`, mesh: toMesh(k(k(s.translate([0, 0, o.explode])).transform(from))) }));
+    const shown: Model[] = [{ name: "Resto", parts: asParts(restWorld, k, 0).map((p) => ({ ...p, name: "Resto" })) }, { name: "Pedaço", parts: lifted }];
+    shown.push(...cutOverlay(M, { min: wb.min as Vec3, max: wb.max as Vec3 }, o));
+    return { models: placed, preview: shown, warnings, report, pinMissing, pinFix };
   });
 }
 
-/** Plano (ladrilho fino) e contorno da região, rápidos de calcular: seguem o arrasto ao vivo enquanto o corte em si espera. */
+/**
+ * Plano (ladrilho translúcido com contorno) e região (contorno azul tracejado), rápidos de calcular: seguem o arrasto
+ * ao vivo enquanto o corte em si espera. São só da prévia (`ghost`).
+ */
 export function cutOverlay(M: ManifoldToplevel, bounds: Box, o: Pick<PartialCutOptions, "axis" | "tilt" | "offset" | "region">): Model[] {
   return scoped((k) => {
     const n = planeNormal(o.axis, o.tilt);
+    const { to, from } = planeFrames(n, o.offset);
     const region: Region = o.region ?? { kind: "box", min: bounds.min.map((v) => v - MARGIN_MM) as Vec3, max: bounds.max.map((v) => v + MARGIN_MM) as Vec3 };
     const B = regionSolid(M, k, region);
     const above = k(B.trimByPlane(n, o.offset - SLAB_MM));
     const slab = k(above.trimByPlane([-n[0], -n[1], -n[2]], -(o.offset + SLAB_MM)));
-    const out: Model[] = [{ name: "Plano de corte", parts: [{ name: "Plano de corte", color: COLORS.plane, mesh: toMesh(slab) }] }];
+    const parts: Part[] = [{ name: "Plano de corte", color: COLORS.plane, mesh: toMesh(slab), ghost: true }];
+    // contorno do plano: a borda da seção, em volta do ladrilho
+    const face = k(k(B.transform(to)).slice(0));
+    if (!face.isEmpty()) {
+      const edge = k(face.subtract(k(face.offset(-CONTOUR_MM, "Miter"))));
+      parts.push({ name: "", color: COLORS.planeEdge, mesh: toMesh(k(k(k(edge.extrude(SLAB_MM * 2)).translate([0, 0, -SLAB_MM])).transform(from))), ghost: false });
+    }
+    const out: Model[] = [{ name: "Plano de corte", parts }];
     if (o.region) out.push({ name: "Região", parts: [{ name: "Região", color: COLORS.region, mesh: toMesh(regionOutline(M, k, o.region)) }] });
     return out;
   });

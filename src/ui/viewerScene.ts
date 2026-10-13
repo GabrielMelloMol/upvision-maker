@@ -25,6 +25,7 @@ const VIEWS: Record<ViewName, THREE.Vector3> = {
   top: new THREE.Vector3(0, -0.02, 1).normalize(),
   iso: VIEW_DIR,
 };
+const GHOST_OPACITY = 0.3;
 const MIN_RADIUS = 10; // modelos minúsculos não enchem a tela
 /** Menor ângulo entre a câmera e o eixo Z ao inclinar pelo teclado (não passa por cima nem por baixo). */
 const MIN_TILT = 0.08;
@@ -204,7 +205,13 @@ export function createViewer(el: HTMLElement) {
           g.setAttribute("position", new THREE.BufferAttribute(p.mesh.positions, 3));
           g.setIndex(new THREE.BufferAttribute(p.mesh.indices, 1));
           g.computeVertexNormals();
-          group.add(new THREE.Mesh(g, new THREE.MeshStandardMaterial({ color: p.color, roughness: 0.6, metalness: 0.05, flatShading: true })));
+          const mat = new THREE.MeshStandardMaterial({ color: p.color, roughness: 0.6, metalness: 0.05, flatShading: true, transparent: !!p.ghost, opacity: p.ghost ? GHOST_OPACITY : 1, depthWrite: !p.ghost });
+          const mesh = new THREE.Mesh(g, mat);
+          if (p.ghost) {
+            mesh.userData.ghost = true;
+            mesh.renderOrder = 2;
+          }
+          group.add(mesh);
         }
       }
       if (group.children.length === 0) lastSize = 0;
@@ -238,7 +245,7 @@ export function createViewer(el: HTMLElement) {
       if (!r.width || !r.height) return null;
       const ray = new THREE.Raycaster();
       ray.setFromCamera(new THREE.Vector2(((x - r.left) / r.width) * 2 - 1, -((y - r.top) / r.height) * 2 + 1), camera);
-      const hit = ray.intersectObjects(group.children, false)[0];
+      const hit = ray.intersectObjects(group.children.filter((m) => !m.userData.ghost), false)[0];
       if (!hit?.face) return null;
       const n = hit.face.normal;
       return { point: [hit.point.x, hit.point.y, hit.point.z], normal: [n.x, n.y, n.z] };

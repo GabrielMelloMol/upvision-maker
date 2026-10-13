@@ -32,7 +32,7 @@ describe("Corte parcial", { timeout: 60_000 }, () => {
   test("arquivo lido: mostra o pedaço, a região e o plano e confere que as peças somam o original", async () => {
     const { container } = renderWithApp(<PartialCut />);
     await open(container);
-    await waitFor(() => expect(legend(container)).toEqual(expect.arrayContaining(["Peça", "Pedaço", "Região", "Plano de corte"])), BUILD);
+    await waitFor(() => expect(legend(container)).toEqual(expect.arrayContaining(["Resto", "Pedaço", "Região", "Plano de corte"])), BUILD);
     expect(await screen.findByText(/Conferido: as duas peças saem fechadas/, {}, BUILD)).toBeInTheDocument();
   }, 40_000);
 
@@ -87,6 +87,41 @@ describe("Corte parcial", { timeout: 60_000 }, () => {
     const user = await open(container);
     await user.click(await screen.findByRole("switch", { name: /Pedaço em outra cor/ }));
     await waitFor(() => expect(legend(container)).toContain("Pedaço"), BUILD);
-    expect(await screen.findByLabelText("Cor do pedaço")).toBeInTheDocument();
+    expect(await screen.findByLabelText("Cor: pedaço")).toBeInTheDocument();
+  }, 40_000);
+
+  test("face pequena demais para o pino: oferece pino fixo menor e colar sem pino na hora", async () => {
+    const { container } = renderWithApp(<PartialCut />);
+    const user = userEvent.setup();
+    await user.upload(container.querySelector<HTMLInputElement>('input[type="file"]')!, new File([boxStl(7, 7, 30)], "haste.stl", { type: "model/stl" }));
+    const size = await screen.findByLabelText(/^Tamanho do pino/);
+    await user.clear(size);
+    await user.type(size, "8");
+    const smaller = await screen.findByRole("button", { name: /Usar pino fixo menor \(3,0 mm\)/ }, BUILD);
+    expect(screen.getByRole("button", { name: "Colar sem pino" })).toBeInTheDocument();
+    await user.click(smaller);
+    await waitFor(() => expect(screen.queryByRole("button", { name: "Colar sem pino" })).toBeNull(), BUILD);
+    expect(screen.getByRole("button", { name: "Pino fixo no resto", pressed: true })).toBeInTheDocument();
+  }, 40_000);
+
+  test("colar sem pino tira o encaixe e some o aviso", async () => {
+    const { container } = renderWithApp(<PartialCut />);
+    const user = userEvent.setup();
+    await user.upload(container.querySelector<HTMLInputElement>('input[type="file"]')!, new File([boxStl(7, 7, 30)], "haste.stl", { type: "model/stl" }));
+    const size = await screen.findByLabelText(/^Tamanho do pino/);
+    await user.clear(size);
+    await user.type(size, "8");
+    await user.click(await screen.findByRole("button", { name: "Colar sem pino" }, BUILD));
+    await waitFor(() => expect(screen.queryByRole("button", { name: "Colar sem pino" })).toBeNull(), BUILD);
+    expect(screen.getByRole("button", { name: "Sem encaixe", pressed: true })).toBeInTheDocument();
+  }, 40_000);
+
+  test("o card de cores lista o resto e todos os pedaços de uma vez", async () => {
+    const { container } = renderWithApp(<PartialCut />);
+    const user = await open(container);
+    await user.click(await screen.findByRole("button", { name: /Adicionar corte/ }));
+    expect(await screen.findByRole("switch", { name: "Resto em outra cor" })).toBeInTheDocument();
+    expect(screen.getByRole("switch", { name: "Pedaço 1 em outra cor" })).toBeInTheDocument();
+    expect(screen.getByRole("switch", { name: "Pedaço 2 em outra cor" })).toBeInTheDocument();
   }, 40_000);
 });

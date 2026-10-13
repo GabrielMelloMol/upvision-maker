@@ -14,15 +14,20 @@ export type CutItem = PartialCutOptions & {
 };
 export type CutPlan = { cuts: CutItem[]; restColor: string | null };
 
-/** Cores de destaque dos pedaços na prévia (quando nenhuma foi escolhida). */
+/** Cores sugeridas ao pôr um pedaço em outra cor (cada um começa numa diferente). */
 export const PIECE_PALETTE = ["#f97316", "#a855f7", "#22c55e", "#ec4899", "#eab308", "#06b6d4"];
 const BED_WARNING = "não cabem juntas na mesa";
 
 const paint = (parts: Part[], color: string | null): Part[] => (color ? parts.map((p) => ({ ...p, color })) : parts);
 
-export function runCuts(M: ManifoldToplevel, model: Model, plan: CutPlan): { models: Model[]; preview: Model[]; warnings: string[]; report: CutReport } {
+/** Corte que pediu encaixe e não coube: `fixSize` é o pino fixo menor que cabe, se houver. */
+export type PinIssue = { cut: number; fixSize: number | null };
+export type CutsResult = { models: Model[]; preview: Model[]; warnings: string[]; report: CutReport; pinIssues: PinIssue[] };
+
+export function runCuts(M: ManifoldToplevel, model: Model, plan: CutPlan): CutsResult {
   const many = plan.cuts.length > 1;
   const warnings: string[] = [];
+  const pinIssues: PinIssue[] = [];
   const pieces: Model[] = [];
   const pins: Model[] = [];
   const preview: Model[] = [];
@@ -42,18 +47,18 @@ export function runCuts(M: ManifoldToplevel, model: Model, plan: CutPlan): { mod
       else if (m.name.endsWith("pinos")) pins.push({ ...m, name: `${model.name} · pinos${tag}` });
       else rest = m;
     }
-    const color = cut.color ?? PIECE_PALETTE[i % PIECE_PALETTE.length];
     const piece = r.preview.find((m) => m.name === "Pedaço")!;
-    preview.push({ name: `Pedaço${tag}`, parts: piece.parts.map((p, j) => ({ ...p, color, name: piece.parts.length > 1 ? `Pedaço${many ? ` ${i + 1}` : ""}.${j + 1}` : `Pedaço${tag}` })) });
+    preview.push({ name: `Pedaço${tag}`, parts: paint(piece.parts, cut.color).map((p, j) => ({ ...p, name: piece.parts.length > 1 ? `Pedaço${tag}.${j + 1}` : `Pedaço${tag}` })) });
+    if (r.pinMissing) pinIssues.push({ cut: i, fixSize: r.pinFix });
     for (const m of r.preview) if (m.name === "Plano de corte" || m.name === "Região") preview.push(m);
     cur = { name: model.name, parts: r.preview.find((m) => m.name === "Resto")!.parts };
     warnings.push(...r.warnings.filter((w) => !w.includes(BED_WARNING)).map((w) => (many ? `Corte ${i + 1}: ${w}` : w)));
     report = i === 0 ? r.report : { original: report.original, sum: report.sum + (r.report.sum - r.report.original), ok: report.ok && r.report.ok };
   });
   const restModel = { ...rest!, name: `${model.name} · resto`, parts: paint(rest!.parts, plan.restColor) };
-  preview.unshift({ name: "Resto", parts: paint(cur.parts, plan.restColor) });
+  preview.unshift({ name: "Resto", parts: paint(cur.parts, plan.restColor).map((p) => ({ ...p, name: "Resto" })) });
   const placed = fitSetOnBed(spread([restModel, ...pieces, ...pins]));
   const set = setOnBedWarning(placed);
   if (set) warnings.push(set);
-  return { models: placed, preview, warnings, report };
+  return { models: placed, preview, warnings, report, pinIssues };
 }

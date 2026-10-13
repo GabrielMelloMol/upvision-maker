@@ -100,7 +100,7 @@ export default function Preview3D({ models, busy, busyText = "Gerando modelo…"
     viewer.current?.setHandles?.(gizmo?.handles ?? [], gizmo?.onDrag ?? (() => {}));
   }, [gizmo]);
 
-  const legend = [...new Map(models.flatMap((m) => m.parts).map((p) => [p.color + p.name, p])).values()].slice(0, 6);
+  const legend = [...new Map(models.flatMap((m) => m.parts).filter((p) => p.name).map((p) => [p.color + p.name, p])).values()].slice(0, 8); // parte sem nome (contorno do plano) não entra na legenda
   const hintId = useId();
   const b = modelsBounds(models);
   const size = b && { x: b.max[0] - b.min[0], y: b.max[1] - b.min[1], z: b.max[2] - b.min[2] };

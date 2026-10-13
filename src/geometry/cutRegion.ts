@@ -47,42 +47,71 @@ export function regionSolid(M: ManifoldToplevel, k: K, r: Region): Solid {
   return k(k(cyl.rotate(TO_AXIS[r.axis])).translate(r.center));
 }
 
-/** Contorno para a prévia (a malha não tem fio): barras finas nas arestas da caixa, anéis no cilindro e na esfera. */
+const DASH = 3; // mm de traço e de vão no contorno tracejado
+const GAP = 2;
+type Pt2 = [number, number];
+
+/** Barra tracejada ao longo do eixo `axis`, de `from` a `from + len`, com seção t × t. */
+function dashedBar(M: ManifoldToplevel, k: K, axis: number, from: Vec3, len: number, t: number): Solid[] {
+  const out: Solid[] = [];
+  for (let pos = 0; pos < len; pos += DASH + GAP) {
+    const size: Vec3 = [t, t, t];
+    const at: Vec3 = [from[0] - t / 2, from[1] - t / 2, from[2] - t / 2];
+    size[axis] = Math.min(DASH, len - pos);
+    at[axis] = from[axis] + pos;
+    out.push(k(k(M.Manifold.cube(size, false)).translate(at)));
+  }
+  return out;
+}
+
+/** Anel tracejado no plano XY (centrado na origem, espessura `t` em Z). */
+function dashedRing(M: ManifoldToplevel, k: K, radius: number, t: number): Solid {
+  const ring = k(k(M.CrossSection.circle(radius + t / 2, SEGMENTS)).subtract(k(M.CrossSection.circle(Math.max(radius - t / 2, 0.01), SEGMENTS))));
+  const n = Math.max(6, Math.round((2 * Math.PI * radius) / (DASH + GAP)));
+  const R = 2 * (radius + t);
+  const wedges = Array.from({ length: n }, (_, i) => {
+    const a0 = (i * 2 * Math.PI) / n;
+    const a1 = a0 + ((2 * Math.PI) / n) * (DASH / (DASH + GAP));
+    const mid = (a0 + a1) / 2;
+    const pts: Pt2[] = [[0, 0], [R * Math.cos(a0), R * Math.sin(a0)], [R * Math.cos(mid), R * Math.sin(mid)], [R * Math.cos(a1), R * Math.sin(a1)]];
+    return k(new M.CrossSection([pts], "NonZero"));
+  });
+  const dashes = k(ring.intersect(k(M.CrossSection.union(wedges))));
+  return k(k(dashes.extrude(t)).translate([0, 0, -t / 2]));
+}
+
+/** Contorno tracejado da região para a prévia (a malha não tem fio): traços nas arestas da caixa, anéis no cilindro e na esfera. */
 export function regionOutline(M: ManifoldToplevel, k: K, r: Region): Solid {
   const t = OUTLINE_MM;
   if (r.kind === "box") {
     const bars: Solid[] = [];
     for (let axis = 0; axis < 3; axis++) {
-      for (const a of [r.min, r.max]) {
-        for (const b of [r.min, r.max]) {
-          const size: Vec3 = [t, t, t];
-          const at: Vec3 = [0, 0, 0];
-          const [i, j] = [(axis + 1) % 3, (axis + 2) % 3];
-          size[axis] = r.max[axis] - r.min[axis] + t;
-          at[axis] = r.min[axis] - t / 2;
-          at[i] = a[i] - t / 2;
-          at[j] = b[j] - t / 2;
-          bars.push(k(k(M.Manifold.cube(size, false)).translate(at)));
+      const [i, j] = [(axis + 1) % 3, (axis + 2) % 3];
+      for (const a of [r.min[i], r.max[i]]) {
+        for (const b of [r.min[j], r.max[j]]) {
+          const from: Vec3 = [0, 0, 0];
+          from[axis] = r.min[axis];
+          from[i] = a;
+          from[j] = b;
+          bars.push(...dashedBar(M, k, axis, from, r.max[axis] - r.min[axis], t));
         }
       }
     }
     return k(M.Manifold.union(bars));
   }
-  const ring = (radius: number, rot: Vec3, at: Vec3) => {
-    const outer = k(M.Manifold.cylinder(t, radius + t / 2, radius + t / 2, SEGMENTS, true));
-    const inner = k(M.Manifold.cylinder(t * 3, Math.max(radius - t / 2, 0.01), Math.max(radius - t / 2, 0.01), SEGMENTS, true));
-    return k(k(k(outer.subtract(inner)).rotate(rot)).translate(at));
-  };
-  if (r.kind === "sphere") return k(M.Manifold.union([ring(r.radius, [0, 0, 0], r.center), ring(r.radius, [90, 0, 0], r.center), ring(r.radius, [0, 90, 0], r.center)]));
-  const a = AXIS_INDEX[r.axis];
-  const up = (s: number): Vec3 => r.center.map((v, i) => (i === a ? v + (s * r.height) / 2 : v)) as Vec3;
-  const rods = [0, 1, 2, 3].map((n) => {
+  if (r.kind === "sphere") {
+    const ring = dashedRing(M, k, r.radius, t);
+    const rot = (v: Vec3) => k(k(ring.rotate(v)).translate(r.center));
+    return k(M.Manifold.union([rot([0, 0, 0]), rot([90, 0, 0]), rot([0, 90, 0])]));
+  }
+  const ring = dashedRing(M, k, r.radius, t);
+  const at = (s: number) => k(ring.translate([0, 0, (s * r.height) / 2]));
+  const rods = [0, 1, 2, 3].flatMap((n) => {
     const ang = (n * Math.PI) / 2;
-    const local: Vec3 = [r.radius * Math.cos(ang) - t / 2, r.radius * Math.sin(ang) - t / 2, -r.height / 2];
-    const rod = k(k(M.Manifold.cube([t, t, r.height], false)).translate(local));
-    return k(k(rod.rotate(TO_AXIS[r.axis])).translate(r.center));
+    return dashedBar(M, k, 2, [r.radius * Math.cos(ang), r.radius * Math.sin(ang), -r.height / 2], r.height, t);
   });
-  return k(M.Manifold.union([ring(r.radius, TO_AXIS[r.axis], up(1)), ring(r.radius, TO_AXIS[r.axis], up(-1)), ...rods]));
+  const body = k(M.Manifold.union([at(1), at(-1), ...rods]));
+  return k(k(body.rotate(TO_AXIS[r.axis])).translate(r.center));
 }
 
 /** Centro da região. */

@@ -5,7 +5,7 @@ import { readOwnFile } from "../geometry/ownModel";
 import { applyHandle, regionHandles } from "../geometry/cutHandles";
 import { fitRegionToPart } from "../geometry/cutFit";
 import { centerRegionAt, regionBox as regionBoxOf, regionCenter, regionOfKind, type Region, type RegionKind } from "../geometry/cutRegion";
-import { PIECE_PALETTE, runCuts } from "../geometry/cutSequence";
+import { runCuts, type PinIssue } from "../geometry/cutSequence";
 import { cutOverlay, planeNormal, type CutReport, type Vec3 } from "../geometry/partialCut";
 import type { CutAxis, PinMode, PinShape } from "../geometry/planeCut";
 import type { Model } from "../geometry/types";
@@ -20,7 +20,8 @@ import Toggle from "../ui/Toggle";
 import { errorText } from "../ui/Toast";
 import { useModelBuilder } from "../ui/useModelBuilder";
 import { restoreBytes, storeBytes } from "./storedFile";
-import ColorPick from "./ColorPick";
+import ColorsCard from "./partialcut/ColorsCard";
+import PinIssues from "./partialcut/PinIssues";
 import CutList from "./partialcut/CutList";
 import PiecesCard from "./partialcut/PiecesCard";
 import RegionControls from "./partialcut/RegionControls";
@@ -163,10 +164,10 @@ export default function PartialCut() {
   }, [bounds, region, offset, opts.axis, opts.tilt, tool.set]);
 
   const valid = cuts.every((c) => inRange(c.clearance, 0, 1) && (c.size === 0 || inRange(c.size, 2, 30)));
-  const { models, warnings, busy, error, view } = useModelBuilder<{ preview: Model[]; report: CutReport }>(async () => {
+  const { models, warnings, busy, error, view } = useModelBuilder<{ preview: Model[]; report: CutReport; pinIssues: PinIssue[] }>(async () => {
     if (!model || !bounds || !valid) return null;
     const out = runCuts(await getManifold(), model, { cuts: cuts.map((c) => cutForEngine(c, bounds)), restColor });
-    return { models: out.models, warnings: out.warnings, view: { preview: out.preview, report: out.report } };
+    return { models: out.models, warnings: out.warnings, view: { preview: out.preview, report: out.report, pinIssues: out.pinIssues } };
   }, [model, cutKey, restColor, valid]);
 
   const shown = useMemo(() => (view?.preview ? [...view.preview.filter((m) => m.name !== "Região" && m.name !== "Plano de corte"), ...overlay] : []), [view, overlay]);
@@ -207,7 +208,7 @@ export default function PartialCut() {
                       <span className="field-label">Ao clicar na prévia</span>
                       <Segmented label="Ao clicar na prévia" value={pick} options={picksFor(opts.region?.kind ?? "box")} onChange={setPick} full />
                     </div>
-                    <span className="hint">O contorno azul mostra até onde o corte vale e o ladrilho vermelho é o plano. O pedaço aparece em laranja.</span>
+                    <span className="hint">O contorno azul tracejado mostra até onde o corte vale e o ladrilho translúcido é o plano. Cada peça aparece na cor que vai para o arquivo.</span>
                   </>
                 )}
               </div>
@@ -224,14 +225,12 @@ export default function PartialCut() {
                   </>
                 )}
               </div>
-              <div className="card stack">
-                <h3>Cores</h3>
-                <Toggle label={`Pedaço${cuts.length > 1 ? ` ${active + 1}` : ""} em outra cor`} checked={opts.color !== null} onChange={(on) => setO("color")(on ? PIECE_PALETTE[active % PIECE_PALETTE.length] : null)} />
-                {opts.color !== null && <ColorPick label={`Cor do pedaço${cuts.length > 1 ? ` ${active + 1}` : ""}`} value={opts.color} onChange={setO("color")} />}
-                <Toggle label="Resto em outra cor" checked={restColor !== null} onChange={(on) => tool.set((c) => ({ ...c, restColor: on ? "#2563eb" : null }), "restColor")} />
-                {restColor !== null && <ColorPick label="Cor do resto" value={restColor} onChange={(v) => tool.set((c) => ({ ...c, restColor: v }), "restColor")} />}
-                <span className="hint">Cada cor vira um filamento: no Bambu Studio cada objeto já abre no extrusor certo. Escolha entre os seus filamentos do estoque.</span>
-              </div>
+              <ColorsCard
+                cuts={cuts}
+                restColor={restColor}
+                onPiece={(i, color) => tool.set((c) => ({ ...c, cuts: c.cuts.map((x, j) => (j === i ? { ...x, color } : x)) }), `color:${i}`)}
+                onRest={(color) => tool.set((c) => ({ ...c, restColor: color }), "restColor")}
+              />
               <div className="card stack">
                 <h3>Prévia</h3>
                 <Slider label="Afastar o pedaço" min={0} max={MAX_EXPLODE} value={opts.explode} display={mm} onChange={setExplode} hint="Só na prévia: não muda os arquivos." />
@@ -254,7 +253,15 @@ export default function PartialCut() {
             gizmo={gizmo}
             views
           />
-          {warnings.map((w) => (
+          {view && !busy && (
+            <PinIssues
+              issues={view.pinIssues}
+              many={cuts.length > 1}
+              onSmallerFixed={(i, size) => tool.set((c) => ({ ...c, cuts: c.cuts.map((x, j) => (j === i ? { ...x, mode: "fixed", size } : x)) }), `pinfix:${i}`)}
+              onGlue={(i) => tool.set((c) => ({ ...c, cuts: c.cuts.map((x, j) => (j === i ? { ...x, pin: "none" } : x)) }), `pinnone:${i}`)}
+            />
+          )}
+          {warnings.filter((w) => !w.includes("pequena ou fina demais")).map((w) => (
             <Alert key={w} kind="warn">{w}</Alert>
           ))}
         </div>
