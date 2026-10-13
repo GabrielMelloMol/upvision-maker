@@ -16,6 +16,7 @@ const REFRAME_RATIO = 0.25;
 const VIEW_DIR = new THREE.Vector3(0, -1.6, 1.4).normalize();
 /** Folga em volta do modelo no enquadramento. */
 const FIT_MARGIN = 1.08;
+const MIN_RADIUS = 10; // modelos minúsculos não enchem a tela
 /** Menor ângulo entre a câmera e o eixo Z ao inclinar pelo teclado (não passa por cima nem por baixo). */
 const MIN_TILT = 0.08;
 
@@ -27,6 +28,25 @@ export function fitDistance(r: number, vfovDeg: number, aspect: number): number 
   const v = (vfovDeg * Math.PI) / 180;
   const h = 2 * Math.atan(Math.tan(v / 2) * Math.max(aspect, 0.01));
   return (r / Math.sin(Math.min(v, h) / 2)) * FIT_MARGIN;
+}
+
+/**
+ * Distância para os 8 cantos da caixa caberem na tela, olhando de `dir` (do centro para a câmera): mais justa que a
+ * esfera de `fitDistance` quando a caixa é achatada ou a prévia é alta e estreita. Nunca passa da distância da esfera.
+ */
+export function fitBoxDistance(box: THREE.Box3, vfovDeg: number, aspect: number, dir: THREE.Vector3 = VIEW_DIR): number {
+  const center = box.getCenter(new THREE.Vector3());
+  const right = new THREE.Vector3().crossVectors(dir.clone().negate(), new THREE.Vector3(0, 0, 1)).normalize();
+  const up = new THREE.Vector3().crossVectors(right, dir.clone().negate());
+  const tv = Math.tan((vfovDeg * Math.PI) / 360);
+  const th = tv * Math.max(aspect, 0.01);
+  let d = 0;
+  for (let i = 0; i < 8; i++) {
+    const c = new THREE.Vector3(i & 1 ? box.max.x : box.min.x, i & 2 ? box.max.y : box.min.y, i & 4 ? box.max.z : box.min.z).sub(center);
+    const z = c.dot(dir);
+    d = Math.max(d, z + Math.abs(c.dot(right)) / th, z + Math.abs(c.dot(up)) / tv);
+  }
+  return Math.min(d * FIT_MARGIN, fitDistance(box.getSize(new THREE.Vector3()).length() / 2, vfovDeg, aspect));
 }
 
 const reducedMotion = () => matchMedia("(prefers-reduced-motion: reduce)").matches;
@@ -142,8 +162,7 @@ export function createViewer(el: HTMLElement) {
     if (!wasEmpty && lastSize && Math.abs(size - lastSize) / lastSize < REFRAME_RATIO && moved < REFRAME_RATIO) return;
     lastSize = size;
     lastCenter.copy(center);
-    const r = Math.max(size / 2, 10);
-    const to = center.clone().add(VIEW_DIR.clone().multiplyScalar(fitDistance(r, camera.fov, camera.aspect)));
+        const to = center.clone().add(VIEW_DIR.clone().multiplyScalar(Math.max(fitDistance(MIN_RADIUS, camera.fov, camera.aspect), fitBoxDistance(box, camera.fov, camera.aspect))));
     if (reducedMotion()) {
       camera.position.copy(to);
       controls.target.copy(center);

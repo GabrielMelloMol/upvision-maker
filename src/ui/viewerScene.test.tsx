@@ -4,7 +4,7 @@ import * as THREE from "three";
 import { afterEach, beforeEach, describe, expect, test, vi } from "vitest";
 import type { Mesh, Model } from "../geometry/types";
 import Preview3D from "./Preview3D";
-import { createViewer, fitDistance } from "./viewerScene";
+import { createViewer, fitBoxDistance, fitDistance } from "./viewerScene";
 
 // happy-dom não tem WebGL: renderer falso que registra onde a câmera estava a cada quadro.
 const gl = vi.hoisted(() => ({ renders: [] as { x: number; y: number; z: number }[], sizes: [] as [number, number][], disposed: 0, contextLost: 0 }));
@@ -242,5 +242,17 @@ describe("fitDistance", () => {
     expect(50 / d).toBeLessThanOrEqual(Math.sin((35 * Math.PI) / 360)); // raio aparente dentro da metade do campo
     expect(fitDistance(50, 35, 0.5)).toBeGreaterThan(d); // estreita: manda o horizontal
     expect(fitDistance(50, 35, 2)).toBeCloseTo(d, 6); // larga: manda o vertical
+  });
+});
+
+describe("fitBoxDistance", () => {
+  test("caixa achatada em prévia alta chega mais perto que a esfera e nunca passa dela", () => {
+    const flat = new THREE.Box3(new THREE.Vector3(-30, -15, 0), new THREE.Vector3(30, 15, 5));
+    const sphere = fitDistance(flat.getSize(new THREE.Vector3()).length() / 2, 35, 0.6);
+    const tight = fitBoxDistance(flat, 35, 0.6);
+    expect(tight).toBeLessThan(sphere);
+    expect(tight).toBeGreaterThan(0);
+    const cube = new THREE.Box3(new THREE.Vector3(-10, -10, -10), new THREE.Vector3(10, 10, 10));
+    expect(fitBoxDistance(cube, 35, 1)).toBeLessThanOrEqual(fitDistance(Math.sqrt(3) * 10, 35, 1) + 1e-9);
   });
 });
