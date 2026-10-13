@@ -4,6 +4,7 @@ Cada versão aparece para a usuária na tela "O que há de novo" depois da atual
 Formato: `## <versão> — <data>` e itens `- …` em linguagem simples.
 
 ## Próxima versão (ainda não lançada)
+- **Corte parcial**: nova ferramenta que corta só um pedaço de um STL ou 3MF, sem o plano atravessar a peça inteira como no fatiador. Você escolhe a direção, a posição e a inclinação do plano e limita o corte a uma caixa (pelos controles ou clicando na prévia): fora da caixa nada é cortado, então dá para tirar só a cabeça de um personagem sem cortar a árvore ao lado. Pino ou furo com folga na face cortada, pedaço destacado em outra cor e afastável na prévia, e o 3MF sai com resto, pedaço (já deitado na face cortada) e pinos, conferidos como sólidos fechados que somam o volume original
 - **Salvar 3MF não fica mais mudo**: se o arquivo não pudesse ser montado, o botão não fazia nada e não avisava. Agora qualquer falha ao montar ou gravar o 3MF e o STL aparece num aviso de erro com o motivo
 - **Kits de montar com nomes iguais e dinossauros de verdade**: a galeria agora mostra Carro, Caminhão, Trator, Avião, Helicóptero, Foguete, Bicho e Baú, com descrições no mesmo jeito. O Bicho ganhou o saurópode (pescoço longo, cabeça pequena, patas grossas e cauda comprida) e o T-rex (cabeça grande, bracinho e cauda de contrapeso), e o cachorro agora fica de pé em pernas de verdade, com focinho e orelha
 

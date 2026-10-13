@@ -22,21 +22,21 @@ export type CutOptions = {
 };
 export const DEFAULT_CUT: CutOptions = { axis: "z", at: 0.5, pin: "round", mode: "loose", size: 0, clearance: 0.2 };
 
-const WALL = 1.6; // parede mínima em volta do pino
+export const WALL = 1.6; // parede mínima em volta do pino
 const MIN_SIZE = 3;
 const MAX_SIZE = 12;
-const DEPTH_FACTOR = 1.5;
-const EXTRA_DEPTH = 0.4; // o furo é mais fundo que o pino
+export const DEPTH_FACTOR = 1.5;
+export const EXTRA_DEPTH = 0.4; // o furo é mais fundo que o pino
 const LONG_RATIO = 2.5; // ilha comprida ganha 2 pinos
 const GAP = 10;
 
-type K = <D extends { delete(): void }>(o: D) => D;
+export type K = <D extends { delete(): void }>(o: D) => D;
 type Pt = [number, number];
 
 /** Gira o mundo para o eixo de corte virar Z (e desfaz). */
 const toZ: Record<CutAxis, [number, number, number]> = { z: [0, 0, 0], x: [0, 90, 0], y: [-90, 0, 0] };
 
-function pinCs(M: ManifoldToplevel, shape: PinShape, size: number): CS {
+export function pinCs(M: ManifoldToplevel, shape: PinShape, size: number): CS {
   if (shape === "round") return M.CrossSection.circle(size / 2, 48);
   if (shape === "square") return M.CrossSection.square([size, size], true);
   const r = size / Math.sqrt(3);
@@ -65,7 +65,7 @@ export function pinSpots(M: ManifoldToplevel, section: CS, size: number): Pt[] {
 }
 
 /** Medida automática do pino: cabe na menor ilha que recebe pino, entre 3 e 12 mm. */
-function autoSize(k: K, section: CS): number {
+export function autoSize(k: K, section: CS): number {
   let best = MIN_SIZE;
   for (const island of section.decompose().map(k)) {
     const b = island.bounds();
@@ -136,7 +136,7 @@ export function cutModels(M: ManifoldToplevel, models: Model[], o: CutOptions): 
 }
 
 /** Lado a lado em X, sem se tocar. */
-function spread(models: Model[]): Model[] {
+export function spread(models: Model[]): Model[] {
   let x = 0;
   return models.map((m) => {
     let x0 = Infinity, x1 = -Infinity;
