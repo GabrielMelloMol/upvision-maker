@@ -149,8 +149,17 @@ export default function PartialCut() {
     };
   }, [bounds, cutKey]);
 
+  const valid = cuts.every((c) => inRange(c.clearance, 0, 1) && (c.size === 0 || inRange(c.size, 2, 30)));
+  const { models, warnings, busy, error, view } = useModelBuilder<{ preview: Model[]; report: CutReport; pinIssues: PinIssue[] }>(async () => {
+    if (!model || !bounds || !valid) return null;
+    const out = await cutAsync(model, { cuts: cuts.map((c) => cutForEngine(c, bounds)), restColor });
+    return { models: out.models, warnings: out.warnings, view: { preview: out.preview, report: out.report, pinIssues: out.pinIssues } };
+  }, [model, cutKey, restColor, valid]);
+
+  const shown = useMemo(() => (view?.preview ? [...view.preview.filter((m) => m.name !== "Região" && m.name !== "Plano de corte"), ...overlay] : []), [view, overlay]);
+
   const gizmo = useMemo(() => {
-    if (!bounds) return undefined;
+    if (!bounds || !view?.preview) return undefined; // sem modelo na vista não há alça solta no ar
     const anchor = bounds.min.map((v, i) => (v + bounds.max[i]) / 2) as Vec3;
     const ref = { normal, offset };
     return {
@@ -163,16 +172,7 @@ export default function PartialCut() {
         }, `handle:${id}:${active}`),
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [bounds, region, offset, opts.axis, opts.tilt, tool.set]);
-
-  const valid = cuts.every((c) => inRange(c.clearance, 0, 1) && (c.size === 0 || inRange(c.size, 2, 30)));
-  const { models, warnings, busy, error, view } = useModelBuilder<{ preview: Model[]; report: CutReport; pinIssues: PinIssue[] }>(async () => {
-    if (!model || !bounds || !valid) return null;
-    const out = await cutAsync(model, { cuts: cuts.map((c) => cutForEngine(c, bounds)), restColor });
-    return { models: out.models, warnings: out.warnings, view: { preview: out.preview, report: out.report, pinIssues: out.pinIssues } };
-  }, [model, cutKey, restColor, valid]);
-
-  const shown = useMemo(() => (view?.preview ? [...view.preview.filter((m) => m.name !== "Região" && m.name !== "Plano de corte"), ...overlay] : []), [view, overlay]);
+  }, [bounds, view?.preview, region, offset, opts.axis, opts.tilt, tool.set]);
 
   return (
     <div className="page">

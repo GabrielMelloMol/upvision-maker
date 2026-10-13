@@ -10,10 +10,18 @@ export type CutReply = { id: number; ok: true; cut?: CutsResult; suggestions?: S
 
 /** Buffers de todas as malhas, para passar adiante sem copiar. */
 export function transferables(models: Model[]): ArrayBuffer[] {
-  const out: ArrayBuffer[] = [];
-  const add = (m: Mesh) => out.push(m.positions.buffer as ArrayBuffer, m.indices.buffer as ArrayBuffer);
-  for (const m of models) for (const p of m.parts) add(p.mesh);
-  return out;
+  const out = new Set<ArrayBuffer>(); // o mesmo buffer duas vezes na lista de transferência dá erro
+  const add = (m: Mesh) => {
+    out.add(m.positions.buffer as ArrayBuffer);
+    out.add(m.indices.buffer as ArrayBuffer);
+  };
+  for (const m of models) {
+    for (const p of m.parts) {
+      add(p.mesh);
+      if (p.lines) out.add(p.lines.points.buffer as ArrayBuffer);
+    }
+  }
+  return [...out];
 }
 
 self.onmessage = async (e: MessageEvent<CutRequest>) => {

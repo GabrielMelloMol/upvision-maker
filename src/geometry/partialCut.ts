@@ -2,7 +2,7 @@ import type { Mat4 } from "manifold-3d";
 import { fitSetOnBed, setOnBedWarning } from "./bedLayout";
 import { fitDepth, planPins } from "./cutPins";
 import { solidFromMesh } from "./cutSolid";
-import { regionOutline, regionSolid, type Box, type Region, type Vec3 } from "./cutRegion";
+import { dashFor, emptyMesh, regionSegments, regionSolid, type Box, type Region, type Vec3 } from "./cutRegion";
 import type { CS, ManifoldToplevel, Solid } from "./manifold";
 import { toMesh } from "./mesh";
 import { EXTRA_DEPTH, DEPTH_FACTOR, pinCs, spread, type CutAxis, type K, type PinMode, type PinShape } from "./planeCut";
@@ -45,7 +45,7 @@ const MARGIN_MM = 1;
 const VOLUME_TOL = 1e-3;
 /** Cores só de interface (nunca de filamento): região azul tracejada, plano translúcido neutro com contorno. */
 const COLORS = { region: "#3b82f6", plane: "#cbd5e1", planeEdge: "#475569" };
-const CONTOUR_MM = 0.8;
+const LINE_PX = 2; // largura do contorno na tela, em pixels
 const SMALLER_PINS = [4, 3, 2.5, 2]; // pinos menores que se oferecem quando a face não comporta o automático
 const MAX_AUTO_PIN = 12;
 
@@ -54,6 +54,9 @@ const unit = (a: Vec3): Vec3 => {
   const l = Math.hypot(...a);
   return [a[0] / l, a[1] / l, a[2] / l];
 };
+
+/** Ponto (x, y) do plano do corte (z = 0 no referencial) levado ao mundo. */
+const fromFrame = (m: Mat4, x: number, y: number): Vec3 => [m[0] * x + m[4] * y + m[12], m[1] * x + m[5] * y + m[13], m[2] * x + m[6] * y + m[14]];
 
 /** Normal do plano: o eixo escolhido girado `tilt` graus (z e x em torno de Y/Z, y em torno de X). */
 export function planeNormal(axis: CutAxis, tilt: number): Vec3 {
@@ -204,14 +207,18 @@ export function cutOverlay(M: ManifoldToplevel, bounds: Box, o: Pick<PartialCutO
     const above = k(B.trimByPlane(n, o.offset - SLAB_MM));
     const slab = k(above.trimByPlane([-n[0], -n[1], -n[2]], -(o.offset + SLAB_MM)));
     const parts: Part[] = [{ name: "Plano de corte", color: COLORS.plane, mesh: toMesh(slab), ghost: true }];
-    // contorno do plano: a borda da seção, em volta do ladrilho
+    // contorno do plano: a borda da seção, em linha fina (largura fixa em pixels), levada de volta ao mundo
     const face = k(k(B.transform(to)).slice(0));
-    if (!face.isEmpty()) {
-      const edge = k(face.subtract(k(face.offset(-CONTOUR_MM, "Miter"))));
-      parts.push({ name: "", color: COLORS.planeEdge, mesh: toMesh(k(k(k(edge.extrude(SLAB_MM * 2)).translate([0, 0, -SLAB_MM])).transform(from))), ghost: false });
+    const edge: number[] = [];
+    for (const ring of face.toPolygons()) {
+      for (let i = 0; i < ring.length; i++) {
+        const [a, b] = [ring[i], ring[(i + 1) % ring.length]];
+        edge.push(...fromFrame(from, a[0], a[1]), ...fromFrame(from, b[0], b[1]));
+      }
     }
+    if (edge.length) parts.push({ name: "", color: COLORS.planeEdge, mesh: emptyMesh(), lines: { points: Float32Array.from(edge), width: LINE_PX, dash: 0 } });
     const out: Model[] = [{ name: "Plano de corte", parts }];
-    if (o.region) out.push({ name: "Região", parts: [{ name: "Região", color: COLORS.region, mesh: toMesh(regionOutline(M, k, o.region)) }] });
+    if (o.region) out.push({ name: "Região", parts: [{ name: "Região", color: COLORS.region, mesh: emptyMesh(), lines: { points: regionSegments(o.region), width: LINE_PX, dash: dashFor(o.region) } }] });
     return out;
   });
 }

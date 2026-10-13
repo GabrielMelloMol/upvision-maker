@@ -47,3 +47,21 @@ describe("alças do corte parcial", () => {
     expect(applyHandle(null, plane, "move", [0, 0, 0]).region).toBeNull();
   });
 });
+
+describe("contorno da região em segmentos", () => {
+  test("caixa: 12 lados; cilindro: 2 círculos e 4 hastes; esfera: 3 círculos", async () => {
+    const { regionSegments } = await import("./cutRegion");
+    expect(regionSegments(box).length / 6).toBe(12);
+    expect(regionSegments(cyl).length / 6).toBe(72 * 2 + 4);
+    expect(regionSegments({ kind: "sphere", center: [0, 0, 0], radius: 5 }).length / 6).toBe(72 * 3);
+  });
+
+  test("o traço acompanha o tamanho da região: peça pequena, traço curto; peça grande, até 3 mm", async () => {
+    const { dashFor } = await import("./cutRegion");
+    const small: Region = { kind: "box", min: [0, 0, 0], max: [7, 7, 30] };
+    const big: Region = { kind: "box", min: [0, 0, 0], max: [200, 100, 100] };
+    expect(dashFor(small)).toBeLessThan(dashFor(big));
+    expect(dashFor(small)).toBeGreaterThanOrEqual(0.4);
+    expect(dashFor(big)).toBe(3);
+  });
+});

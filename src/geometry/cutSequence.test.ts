@@ -65,10 +65,14 @@ describe("cor por pedaço no 3MF", () => {
     expect(byName("Pedaço 2").parts[0].color).toBe("#d4d4d8"); // sem escolha: a cor do arquivo
     const plane = r.preview.filter((m) => m.name === "Plano de corte")[0].parts;
     expect(plane[0].ghost).toBe(true); // translúcido
-    expect(plane[1]).toMatchObject({ name: "", ghost: false }); // contorno, fora da legenda
+    expect(plane[1]).toMatchObject({ name: "", lines: { width: 2, dash: 0 } }); // contorno em linha fina, fora da legenda
+    expect(plane[1].lines!.points.length).toBeGreaterThanOrEqual(4 * 6); // pelo menos os 4 lados
     const filament = [colors.a, colors.b, colors.rest, "#d4d4d8"];
     for (const m of r.preview.filter((x) => x.name === "Plano de corte" || x.name === "Região")) for (const p of m.parts) expect(filament).not.toContain(p.color);
-    expect(r.preview.find((m) => m.name === "Região")!.parts[0].color).toBe("#3b82f6");
+    const region = r.preview.find((m) => m.name === "Região")!.parts[0];
+    expect(region.color).toBe("#3b82f6");
+    expect(region.lines).toMatchObject({ width: 2 });
+    expect(region.lines!.dash).toBeGreaterThan(0); // tracejada
   });
 
   test("sem cor escolhida o pedaço sai com a cor do arquivo", () => {

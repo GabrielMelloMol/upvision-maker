@@ -1,5 +1,8 @@
 import * as THREE from "three";
 import { OrbitControls } from "three/addons/controls/OrbitControls.js";
+import { LineMaterial } from "three/addons/lines/LineMaterial.js";
+import { LineSegments2 } from "three/addons/lines/LineSegments2.js";
+import { LineSegmentsGeometry } from "three/addons/lines/LineSegmentsGeometry.js";
 import { bedMm } from "../geometry/bed";
 import { encodeThumb } from "./thumbEncode";
 import { createGizmo, type Handle, type OnHandle } from "./viewerGizmo";
@@ -152,11 +155,13 @@ export function createViewer(el: HTMLElement) {
     wake();
   });
 
+  const lineMats: LineMaterial[] = []; // contornos da prévia: precisam saber o tamanho da tela
   const resize = () => {
     const { clientWidth: w, clientHeight: h } = el;
     renderer.setSize(w, h, false);
     camera.aspect = w / Math.max(h, 1);
     camera.updateProjectionMatrix();
+    for (const m of lineMats) m.resolution.set(w, h);
     render();
   };
   const ro = new ResizeObserver(resize);
@@ -168,6 +173,20 @@ export function createViewer(el: HTMLElement) {
   };
   scheme.addEventListener("change", onScheme);
   resize();
+
+  /** Contorno só da prévia: linha de largura fixa em pixels (não engrossa nem afina com o zoom), tracejada se pedir. */
+  function lineOf(l: { points: Float32Array; width: number; dash: number }, color: string) {
+    const geo = new LineSegmentsGeometry();
+    geo.setPositions(l.points);
+    const mat = new LineMaterial({ color: new THREE.Color(color).getHex(), linewidth: l.width, dashed: l.dash > 0, dashSize: l.dash, gapSize: l.dash * 0.7 });
+    mat.resolution.set(el.clientWidth, el.clientHeight);
+    lineMats.push(mat);
+    const line = new LineSegments2(geo, mat);
+    line.computeLineDistances();
+    line.userData.ghost = true; // não recebe clique
+    line.renderOrder = 3;
+    return line;
+  }
 
   function frame(wasEmpty: boolean) {
     const box = new THREE.Box3().setFromObject(group);
@@ -200,8 +219,13 @@ export function createViewer(el: HTMLElement) {
         (m.material as THREE.Material).dispose();
         group.remove(m);
       }
+      lineMats.length = 0;
       for (const model of models) {
         for (const p of model.parts) {
+          if (p.lines) {
+            group.add(lineOf(p.lines, p.color));
+            continue;
+          }
           const g = new THREE.BufferGeometry();
           g.setAttribute("position", new THREE.BufferAttribute(p.mesh.positions, 3));
           g.setIndex(new THREE.BufferAttribute(p.mesh.indices, 1));

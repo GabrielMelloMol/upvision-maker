@@ -14,7 +14,6 @@ export type Region =
 export type RegionKind = Region["kind"];
 
 const SEGMENTS = 48;
-const OUTLINE_MM = 0.6;
 const AXIS_INDEX: Record<CutAxis, number> = { x: 0, y: 1, z: 2 };
 /** Rotação que leva o eixo Z do cilindro padrão para o eixo pedido. */
 const TO_AXIS: Record<CutAxis, Vec3> = { z: [0, 0, 0], x: [0, 90, 0], y: [-90, 0, 0] };
@@ -47,72 +46,70 @@ export function regionSolid(M: ManifoldToplevel, k: K, r: Region): Solid {
   return k(k(cyl.rotate(TO_AXIS[r.axis])).translate(r.center));
 }
 
-const DASH = 3; // mm de traço e de vão no contorno tracejado
-const GAP = 2;
-type Pt2 = [number, number];
+const CIRCLE_SEGMENTS = 72;
 
-/** Barra tracejada ao longo do eixo `axis`, de `from` a `from + len`, com seção t × t. */
-function dashedBar(M: ManifoldToplevel, k: K, axis: number, from: Vec3, len: number, t: number): Solid[] {
-  const out: Solid[] = [];
-  for (let pos = 0; pos < len; pos += DASH + GAP) {
-    const size: Vec3 = [t, t, t];
-    const at: Vec3 = [from[0] - t / 2, from[1] - t / 2, from[2] - t / 2];
-    size[axis] = Math.min(DASH, len - pos);
-    at[axis] = from[axis] + pos;
-    out.push(k(k(M.Manifold.cube(size, false)).translate(at)));
+/** Pares de pontos dos 12 lados da caixa. */
+function boxSegments(min: Vec3, max: Vec3): number[] {
+  const out: number[] = [];
+  for (let axis = 0; axis < 3; axis++) {
+    const [i, j] = [(axis + 1) % 3, (axis + 2) % 3];
+    for (const a of [min[i], max[i]]) {
+      for (const b of [min[j], max[j]]) {
+        const p: Vec3 = [0, 0, 0];
+        p[axis] = min[axis];
+        p[i] = a;
+        p[j] = b;
+        const q: Vec3 = [...p];
+        q[axis] = max[axis];
+        out.push(...p, ...q);
+      }
+    }
   }
   return out;
 }
 
-/** Anel tracejado no plano XY (centrado na origem, espessura `t` em Z). */
-function dashedRing(M: ManifoldToplevel, k: K, radius: number, t: number): Solid {
-  const ring = k(k(M.CrossSection.circle(radius + t / 2, SEGMENTS)).subtract(k(M.CrossSection.circle(Math.max(radius - t / 2, 0.01), SEGMENTS))));
-  const n = Math.max(6, Math.round((2 * Math.PI * radius) / (DASH + GAP)));
-  const R = 2 * (radius + t);
-  const wedges = Array.from({ length: n }, (_, i) => {
-    const a0 = (i * 2 * Math.PI) / n;
-    const a1 = a0 + ((2 * Math.PI) / n) * (DASH / (DASH + GAP));
-    const mid = (a0 + a1) / 2;
-    const pts: Pt2[] = [[0, 0], [R * Math.cos(a0), R * Math.sin(a0)], [R * Math.cos(mid), R * Math.sin(mid)], [R * Math.cos(a1), R * Math.sin(a1)]];
-    return k(new M.CrossSection([pts], "NonZero"));
-  });
-  const dashes = k(ring.intersect(k(M.CrossSection.union(wedges))));
-  return k(k(dashes.extrude(t)).translate([0, 0, -t / 2]));
+/** Círculo de raio `r` em volta de `c`, no plano perpendicular ao eixo `axis`, em segmentos. */
+function circleSegments(c: Vec3, r: number, axis: number, offset = 0): number[] {
+  const [i, j] = [(axis + 1) % 3, (axis + 2) % 3];
+  const at = (n: number): Vec3 => {
+    const p: Vec3 = [...c];
+    p[axis] += offset;
+    p[i] += r * Math.cos((2 * Math.PI * n) / CIRCLE_SEGMENTS);
+    p[j] += r * Math.sin((2 * Math.PI * n) / CIRCLE_SEGMENTS);
+    return p;
+  };
+  const out: number[] = [];
+  for (let n = 0; n < CIRCLE_SEGMENTS; n++) out.push(...at(n), ...at(n + 1));
+  return out;
 }
 
-/** Contorno tracejado da região para a prévia (a malha não tem fio): traços nas arestas da caixa, anéis no cilindro e na esfera. */
-export function regionOutline(M: ManifoldToplevel, k: K, r: Region): Solid {
-  const t = OUTLINE_MM;
-  if (r.kind === "box") {
-    const bars: Solid[] = [];
-    for (let axis = 0; axis < 3; axis++) {
-      const [i, j] = [(axis + 1) % 3, (axis + 2) % 3];
-      for (const a of [r.min[i], r.max[i]]) {
-        for (const b of [r.min[j], r.max[j]]) {
-          const from: Vec3 = [0, 0, 0];
-          from[axis] = r.min[axis];
-          from[i] = a;
-          from[j] = b;
-          bars.push(...dashedBar(M, k, axis, from, r.max[axis] - r.min[axis], t));
-        }
-      }
-    }
-    return k(M.Manifold.union(bars));
-  }
-  if (r.kind === "sphere") {
-    const ring = dashedRing(M, k, r.radius, t);
-    const rot = (v: Vec3) => k(k(ring.rotate(v)).translate(r.center));
-    return k(M.Manifold.union([rot([0, 0, 0]), rot([90, 0, 0]), rot([0, 90, 0])]));
-  }
-  const ring = dashedRing(M, k, r.radius, t);
-  const at = (s: number) => k(ring.translate([0, 0, (s * r.height) / 2]));
+/** Contorno da região como segmentos (a vista os desenha finos e tracejados, de largura fixa em pixels). */
+export function regionSegments(r: Region): Float32Array {
+  if (r.kind === "box") return Float32Array.from(boxSegments(r.min, r.max));
+  if (r.kind === "sphere") return Float32Array.from([0, 1, 2].flatMap((a) => circleSegments(r.center, r.radius, a)));
+  const a = AXIS_INDEX[r.axis];
+  const [i, j] = [(a + 1) % 3, (a + 2) % 3];
   const rods = [0, 1, 2, 3].flatMap((n) => {
-    const ang = (n * Math.PI) / 2;
-    return dashedBar(M, k, 2, [r.radius * Math.cos(ang), r.radius * Math.sin(ang), -r.height / 2], r.height, t);
+    const p: Vec3 = [...r.center];
+    p[i] += r.radius * Math.cos((n * Math.PI) / 2);
+    p[j] += r.radius * Math.sin((n * Math.PI) / 2);
+    const [lo, hi]: [Vec3, Vec3] = [[...p], [...p]];
+    lo[a] -= r.height / 2;
+    hi[a] += r.height / 2;
+    return [...lo, ...hi];
   });
-  const body = k(M.Manifold.union([at(1), at(-1), ...rods]));
-  return k(k(body.rotate(TO_AXIS[r.axis])).translate(r.center));
+  return Float32Array.from([...circleSegments(r.center, r.radius, a, r.height / 2), ...circleSegments(r.center, r.radius, a, -r.height / 2), ...rods]);
 }
+
+/** Traço do tracejado em mm: acompanha o tamanho da região (peça pequena, traço curto). */
+export function dashFor(r: Region): number {
+  const b = regionBox(r);
+  const size = Math.max(...[0, 1, 2].map((a) => b.max[a] - b.min[a]));
+  return Math.min(3, Math.max(0.4, size / 30));
+}
+
+/** Malha vazia (a parte só tem linhas). Sempre nova: o worker não aceita o mesmo buffer duas vezes. */
+export const emptyMesh = () => ({ positions: new Float32Array(0), indices: new Uint32Array(0) });
 
 /** Centro da região. */
 export const regionCenter = (r: Region): Vec3 => (r.kind === "box" ? (r.min.map((v, i) => (v + r.max[i]) / 2) as Vec3) : r.center);

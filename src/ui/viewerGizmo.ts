@@ -9,7 +9,7 @@ export type Vec3 = [number, number, number];
 export type Handle = { id: string; pos: Vec3; axis?: Vec3; color?: string };
 export type OnHandle = (id: string, pos: Vec3, done: boolean) => void;
 
-const SCREEN_FRACTION = 0.022; // diâmetro da alça em relação à distância da câmera
+const HANDLE_PX = 11; // diâmetro da alça na tela, em pixels: não cresce com o zoom nem com o tamanho da peça
 const GRAB_BONUS = 1.6; // área de pegar um pouco maior que o desenho
 const DEFAULT_COLOR = "#38bdf8";
 const ACTIVE_COLOR = "#f97316";
@@ -38,7 +38,11 @@ export function createGizmo({ scene, camera, controls, el, canvas, render }: Dep
     const r = canvas.getBoundingClientRect();
     return new THREE.Vector2(((e.clientX - r.left) / r.width) * 2 - 1, -((e.clientY - r.top) / r.height) * 2 + 1);
   };
-  const scaleOf = (pos: THREE.Vector3) => camera.position.distanceTo(pos) * SCREEN_FRACTION;
+  /** Tamanho no mundo (mm) que dá `HANDLE_PX` pixels naquela distância da câmera. */
+  const scaleOf = (pos: THREE.Vector3) => {
+    const worldPerPixel = (2 * Math.tan((camera.fov * Math.PI) / 360) * camera.position.distanceTo(pos)) / Math.max(canvas.clientHeight, 1);
+    return worldPerPixel * HANDLE_PX;
+  };
 
   function build() {
     for (const m of [...group.children] as THREE.Mesh[]) {
