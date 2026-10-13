@@ -22,8 +22,9 @@
 }
 /* medidas sobre a prévia: fundo quase opaco, o texto não depende do que passa por trás (UX M13) */
 .viewer .hud { background: color-mix(in srgb, var(--surface) 92%, transparent); }
-.viewer .view-buttons { position: absolute; left: 12px; top: 12px; display: flex; gap: 6px; }
-.viewer .view-buttons button { background: var(--glass); -webkit-backdrop-filter: var(--blur); backdrop-filter: var(--blur); box-shadow: var(--shadow-1); }
+.viewer-box { position: relative; }
+.viewer-box .view-buttons { position: absolute; left: 12px; top: 12px; display: flex; gap: 6px; }
+.viewer-box .view-buttons button { background: var(--glass); -webkit-backdrop-filter: var(--blur); backdrop-filter: var(--blur); box-shadow: var(--shadow-1); }
 .viewer .legend { left: 12px; bottom: 12px; display: flex; gap: 12px; flex-wrap: wrap; }
 .viewer .legend i { display: inline-block; width: 10px; height: 10px; border-radius: 3px; margin-right: 5px; vertical-align: -1px; box-shadow: inset 0 0 0 0.5px rgb(0 0 0 / 0.2); }
 .viewer .hud { right: 12px; top: 12px; color: var(--muted); font-variant-numeric: tabular-nums; font-weight: 500; }

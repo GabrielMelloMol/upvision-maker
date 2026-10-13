@@ -103,7 +103,7 @@ export default function Preview3D({ models, busy, busyText = "Gerando modelo…"
   const b = modelsBounds(models);
   const size = b && { x: b.max[0] - b.min[0], y: b.max[1] - b.min[1], z: b.max[2] - b.min[2] };
 
-  return (
+  const viewerEl = (
     <div
       className="viewer"
       ref={host}
@@ -150,15 +150,6 @@ export default function Preview3D({ models, busy, busyText = "Gerando modelo…"
       <span id={hintId} className="sr-only">
         Setas giram e inclinam, mais e menos aproximam, zero volta ao começo.
       </span>
-      {views && models.length > 0 && (
-        <div className="view-buttons" role="group" aria-label="Vista" onPointerDown={(e) => e.stopPropagation()} onPointerUp={(e) => e.stopPropagation()}>
-          {VIEW_BUTTONS.map(([name, label]) => (
-            <button key={name} type="button" className="sm" onClick={() => viewer.current?.setView?.(name)}>
-              {label}
-            </button>
-          ))}
-        </div>
-      )}
       {size && (
         <div className="hud">
           {size.x.toFixed(1)} × {size.y.toFixed(1)} × {size.z.toFixed(1)} mm
@@ -194,6 +185,22 @@ export default function Preview3D({ models, busy, busyText = "Gerando modelo…"
               </>
             )}
           </div>
+        </div>
+      )}
+    </div>
+  );
+  // os botões ficam fora do role="img" da prévia (um controle dentro de imagem não passa no axe)
+  if (!views) return viewerEl;
+  return (
+    <div className="viewer-box">
+      {viewerEl}
+      {models.length > 0 && (
+        <div className="view-buttons" role="group" aria-label="Vista">
+          {VIEW_BUTTONS.map(([name, label]) => (
+            <button key={name} type="button" className="sm" onClick={() => viewer.current?.setView?.(name)}>
+              {label}
+            </button>
+          ))}
         </div>
       )}
     </div>
