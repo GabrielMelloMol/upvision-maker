@@ -3,6 +3,7 @@ import { meshBounds, type Bounds } from "../geometry/bounds";
 import { splitIslands } from "../geometry/islands";
 import { getManifold } from "../geometry/manifold";
 import { readOwnFile } from "../geometry/ownModel";
+import { applyHandle, regionHandles } from "../geometry/cutHandles";
 import { centerRegionAt, regionOfKind, type Region } from "../geometry/cutRegion";
 import { DEFAULT_PARTIAL_CUT, partialCut, planeNormal, type CutReport, type PartialCutOptions, type Vec3 } from "../geometry/partialCut";
 import type { CutAxis, PinMode, PinShape } from "../geometry/planeCut";
@@ -135,6 +136,22 @@ export default function PartialCut() {
     setO("region")(centerRegionAt(opts.region, p));
   }
 
+  const gizmo = useMemo(() => {
+    if (!bounds) return undefined;
+    const anchor = bounds.min.map((v, i) => (v + bounds.max[i]) / 2) as Vec3;
+    const ref = { normal, offset };
+    return {
+      handles: regionHandles(region, ref, anchor),
+      onDrag: (id: string, pos: Vec3) =>
+        tool.set((cur) => {
+          const n = planeNormal(cur.opts.axis, cur.opts.tilt);
+          const out = applyHandle(cur.limit ? cur.opts.region : null, { normal: n, offset: cur.opts.offset }, id, pos);
+          return { ...cur, opts: { ...cur.opts, offset: out.offset, region: cur.limit ? out.region : cur.opts.region } };
+        }, `handle:${id}`),
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [bounds, region, offset, opts.axis, opts.tilt, tool.set]);
+
   const valid = inRange(opts.clearance, 0, 1) && (opts.size === 0 || inRange(opts.size, 2, 30));
   const { models, warnings, busy, error, view } = useModelBuilder<{ preview: Model[]; report: CutReport }>(async () => {
     if (!model || !valid) return null;
@@ -211,6 +228,8 @@ export default function PartialCut() {
             error={error}
             emptyText={!valid ? "Corrija os campos em vermelho." : "Envie um STL ou 3MF para cortar."}
             onPick={model && opts.region ? onPick : undefined}
+            gizmo={gizmo}
+            views
           />
           {warnings.map((w) => (
             <Alert key={w} kind="warn">{w}</Alert>

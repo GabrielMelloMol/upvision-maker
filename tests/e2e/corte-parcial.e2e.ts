@@ -30,6 +30,34 @@ test("corte parcial: corta só a cabeça do personagem e deixa a árvore intacta
   expect([...tauri.files.keys()].some((p) => p.endsWith("personagem-arvore-corte.3mf"))).toBe(true);
 });
 
+test("corte parcial: arrastar a alça da face na vista 3D muda a região (e o slider acompanha); botões de vista", async ({ page }) => {
+  await openApp(page);
+  await go(page, "Corte parcial");
+  await page.locator('input[type="file"]').first().setInputFiles(STL);
+  await idle(page);
+  await set(page, /^Z de/, 20);
+  await set(page, /^Z até/, 45);
+  await idle(page);
+  await page.waitForTimeout(1200); // a câmera termina de pousar
+  const viewer = page.locator(".viewer");
+  const handles = async () => JSON.parse((await viewer.getAttribute("data-handles")) ?? "{}") as Record<string, [number, number]>;
+  const top = (await handles()).max2;
+  expect(top).toBeTruthy();
+  const before = await page.getByLabel(/^Z até/).inputValue();
+  await page.mouse.move(top[0], top[1]);
+  await page.mouse.down();
+  await page.mouse.move(top[0], top[1] - 40, { steps: 6 });
+  await page.mouse.up();
+  await expect.poll(async () => page.getByLabel(/^Z até/).inputValue()).not.toBe(before);
+  await idle(page);
+  await expect(page.locator(".legend")).toContainText("Pedaço 1");
+  // vistas: de cima o 3/4 muda a câmera (as alças andam na tela)
+  const iso = (await handles()).max2;
+  await page.getByRole("group", { name: "Vista" }).getByRole("button", { name: "Cima" }).click();
+  await page.waitForTimeout(1200);
+  expect((await handles()).max2).not.toEqual(iso);
+});
+
 for (const width of [1280, 720]) {
   test(`corte parcial: tela com o arquivo aberto passa no axe, claro e escuro (${width}px)`, async ({ page }) => {
     await page.setViewportSize({ width, height: 1000 });

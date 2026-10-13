@@ -2,6 +2,7 @@ import * as THREE from "three";
 import { OrbitControls } from "three/addons/controls/OrbitControls.js";
 import { bedMm } from "../geometry/bed";
 import { encodeThumb } from "./thumbEncode";
+import { createGizmo, type Handle, type OnHandle } from "./viewerGizmo";
 import type { Model } from "../geometry/types";
 
 const FLY_MS = 700;
@@ -16,6 +17,14 @@ const REFRAME_RATIO = 0.25;
 const VIEW_DIR = new THREE.Vector3(0, -1.6, 1.4).normalize();
 /** Folga em volta do modelo no enquadramento. */
 const FIT_MARGIN = 1.08;
+export type ViewName = "front" | "side" | "top" | "iso";
+/** Direções das vistas (do centro para a câmera); a de cima fica um fio inclinada para não travar o eixo Z. */
+const VIEWS: Record<ViewName, THREE.Vector3> = {
+  front: new THREE.Vector3(0, -1, 0),
+  side: new THREE.Vector3(1, 0, 0),
+  top: new THREE.Vector3(0, -0.02, 1).normalize(),
+  iso: VIEW_DIR,
+};
 const MIN_RADIUS = 10; // modelos minúsculos não enchem a tela
 /** Menor ângulo entre a câmera e o eixo Z ao inclinar pelo teclado (não passa por cima nem por baixo). */
 const MIN_TILT = 0.08;
@@ -96,7 +105,11 @@ export function createViewer(el: HTMLElement) {
   let settleUntil = 0;
   const lastCenter = new THREE.Vector3();
   let lastSize = 0;
-  const render = () => renderer.render(scene, camera);
+  let beforeRender = () => {};
+  const render = () => {
+    beforeRender();
+    renderer.render(scene, camera);
+  };
 
   function tick(now: number) {
     raf = 0;
@@ -122,6 +135,8 @@ export function createViewer(el: HTMLElement) {
     if (!raf) raf = requestAnimationFrame(tick);
   };
 
+  const gizmo = createGizmo({ scene, camera, controls, el, canvas: renderer.domElement, render });
+  beforeRender = gizmo.update;
   controls.addEventListener("change", () => !looping && !raf && render());
   controls.addEventListener("start", () => {
     dragging = true;
@@ -228,6 +243,30 @@ export function createViewer(el: HTMLElement) {
       const n = hit.face.normal;
       return { point: [hit.point.x, hit.point.y, hit.point.z], normal: [n.x, n.y, n.z] };
     },
+    /** Alças arrastáveis (corte parcial); `[]` tira todas. */
+    setHandles(handles: Handle[], onHandle: OnHandle) {
+      gizmo.set(handles, onHandle);
+    },
+    /** Vista de frente, de lado, de cima ou em 3/4, enquadrando o que está na cena. */
+    setView(name: ViewName) {
+      const box = new THREE.Box3().setFromObject(group);
+      if (box.isEmpty()) return;
+      const dir = VIEWS[name].clone();
+      const center = box.getCenter(new THREE.Vector3());
+      const to = center.clone().add(dir.clone().multiplyScalar(Math.max(fitDistance(MIN_RADIUS, camera.fov, camera.aspect), fitBoxDistance(box, camera.fov, camera.aspect, dir))));
+      lastCenter.copy(center);
+      lastSize = box.getSize(new THREE.Vector3()).length();
+      if (reducedMotion()) {
+        camera.position.copy(to);
+        controls.target.copy(center);
+        controls.update();
+        render();
+        return;
+      }
+      fly = { from: camera.position.clone(), to, fromT: controls.target.clone(), toT: center, t0: performance.now(), spin: false };
+      spinUntil = 0;
+      wake();
+    },
     /** Volta ao enquadramento de chegada. */
     reset() {
       lastSize = 0;
@@ -247,6 +286,7 @@ export function createViewer(el: HTMLElement) {
       return encodeThumb(c, 0.7, cssVar("--surface")); // WebP; sem ele (WebKit) JPEG sobre o fundo do tema (B22)
     },
     dispose() {
+      gizmo.dispose();
       cancelAnimationFrame(raf);
       scheme.removeEventListener("change", onScheme);
       ro.disconnect();

@@ -256,3 +256,14 @@ describe("fitBoxDistance", () => {
     expect(fitBoxDistance(cube, 35, 1)).toBeLessThanOrEqual(fitDistance(Math.sqrt(3) * 10, 35, 1) + 1e-9);
   });
 });
+
+describe("lineParam (alças da vista)", () => {
+  test("acha o ponto da reta do eixo mais perto do raio do ponteiro", async () => {
+    const { lineParam } = await import("./viewerGizmo");
+    // raio descendo em x = 3 (de cima para baixo), eixo X pela origem: o ponto mais perto é x = 3
+    const t = lineParam(new THREE.Vector3(3, 0, 10), new THREE.Vector3(0, 0, -1), new THREE.Vector3(0, 0, 0), new THREE.Vector3(1, 0, 0));
+    expect(t).toBeCloseTo(3, 6);
+    // paralelos: não explode
+    expect(lineParam(new THREE.Vector3(0, 1, 0), new THREE.Vector3(1, 0, 0), new THREE.Vector3(0, 0, 0), new THREE.Vector3(1, 0, 0))).toBe(0);
+  });
+});

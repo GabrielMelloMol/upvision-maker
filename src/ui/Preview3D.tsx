@@ -2,7 +2,8 @@ import { Box, TriangleAlert } from "lucide-react";
 import { useEffect, useId, useRef } from "react";
 import { modelsBounds } from "../geometry/bounds";
 import type { Model } from "../geometry/types";
-import { createViewer } from "./viewerScene";
+import { createViewer, type ViewName } from "./viewerScene";
+import type { Handle, OnHandle } from "./viewerGizmo";
 
 type Props = {
   models: Model[];
@@ -12,7 +13,18 @@ type Props = {
   emptyText?: string;
   /** Clique (sem arrastar) numa face da peça: ponto e normal no sistema do modelo (#113). */
   onPick?: (hit: { point: [number, number, number]; normal: [number, number, number] }) => void;
+  /** Alças arrastáveis na vista (corte parcial). */
+  gizmo?: { handles: Handle[]; onDrag: OnHandle };
+  /** Botões de vista: frente, lado, cima e 3/4. */
+  views?: boolean;
 };
+
+const VIEW_BUTTONS: [ViewName, string][] = [
+  ["front", "Frente"],
+  ["side", "Lado"],
+  ["top", "Cima"],
+  ["iso", "3/4"],
+];
 
 const CLICK_SLOP_PX = 5;
 
@@ -58,7 +70,7 @@ export const snapshotPreview = (max?: number) => {
 };
 
 /** Prévia 3D padrão de todas as ferramentas: Z para cima, mesa da impressora escolhida, girar/zoom com o mouse. */
-export default function Preview3D({ models, busy, busyText = "Gerando modelo…", error, emptyText = "A prévia aparece aqui.", onPick }: Props) {
+export default function Preview3D({ models, busy, busyText = "Gerando modelo…", error, emptyText = "A prévia aparece aqui.", onPick, gizmo, views }: Props) {
   const host = useRef<HTMLDivElement>(null);
   const viewer = useRef<ReturnType<typeof createViewer> | null>(null);
   const down = useRef<{ x: number; y: number } | null>(null);
@@ -81,6 +93,10 @@ export default function Preview3D({ models, busy, busyText = "Gerando modelo…"
     viewer.current?.setModels(models);
     if (active === viewer.current) activeModels = models;
   }, [models]);
+
+  useEffect(() => {
+    viewer.current?.setHandles?.(gizmo?.handles ?? [], gizmo?.onDrag ?? (() => {}));
+  }, [gizmo]);
 
   const legend = [...new Map(models.flatMap((m) => m.parts).map((p) => [p.color + p.name, p])).values()].slice(0, 6);
   const hintId = useId();
@@ -134,6 +150,15 @@ export default function Preview3D({ models, busy, busyText = "Gerando modelo…"
       <span id={hintId} className="sr-only">
         Setas giram e inclinam, mais e menos aproximam, zero volta ao começo.
       </span>
+      {views && models.length > 0 && (
+        <div className="view-buttons" role="group" aria-label="Vista" onPointerDown={(e) => e.stopPropagation()} onPointerUp={(e) => e.stopPropagation()}>
+          {VIEW_BUTTONS.map(([name, label]) => (
+            <button key={name} type="button" className="sm" onClick={() => viewer.current?.setView?.(name)}>
+              {label}
+            </button>
+          ))}
+        </div>
+      )}
       {size && (
         <div className="hud">
           {size.x.toFixed(1)} × {size.y.toFixed(1)} × {size.z.toFixed(1)} mm
