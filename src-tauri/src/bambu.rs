@@ -240,7 +240,7 @@ mod tests {
     #[test]
     fn flatten_erro_quando_falta_perfil_ou_ha_ciclo() {
         let d = dir_with("erros", &[("x", r#"{"inherits":"y"}"#), ("y", r#"{"inherits":"x"}"#), ("z", r#"{"inherits":"nada"}"#)]);
-        assert!(flatten("x", &[d.clone()]).unwrap_err().contains("circular"));
+        assert!(flatten("x", std::slice::from_ref(&d)).unwrap_err().contains("circular"));
         assert!(flatten("z", &[d]).unwrap_err().contains("\"nada\" não encontrado"));
     }
 
