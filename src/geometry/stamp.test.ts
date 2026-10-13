@@ -106,6 +106,18 @@ describe("carimbo: alinhamento", () => {
       expect(overlapVolume(k(pins.translate([p.pinFit + 0.4, 0, 0])), lid, k)).toBeGreaterThan(0.001);
     }));
 
+  test("pinos ficam na borda da placa, fora da área carimbada: o papel não é furado", () => {
+    for (const patch of [{}, { shape: "round" as const, w: 40 }, { align: "magnets" as const, magCount: 4 as const }, { align: "hinge" as const }]) {
+      const p = P(patch);
+      const edge = Math.max(p.edge, minEdge(p));
+      for (const [x, y] of alignPoints(p, edge)) {
+        const r = p.shape === "round" ? Math.hypot(x, y) - p.w / 2 : Math.max(Math.abs(x) - p.w / 2, Math.abs(y) - p.h / 2);
+        // o centro do pino/ímã está além da área e a folga até ela cobre o raio do pino
+        expect(r).toBeGreaterThan(2.2 + p.pinFit + 0.5);
+      }
+    }
+  });
+
   test("pinos são cones sem suporte: o furo alarga para cima na mesa e o pino afina para cima", () => {
     const p = P();
     const pts = alignPoints(p, 9);
