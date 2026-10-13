@@ -21,7 +21,7 @@ test("corte parcial: corta só a cabeça do personagem e deixa a árvore intacta
   await set(page, /^Z de/, 24);
   await set(page, /^Posição do plano/, 31);
   await idle(page);
-  await expect(page.locator(".legend")).toContainText("Pedaço 1");
+  await expect(page.locator(".legend")).toContainText("Pedaço");
   await expect(page.locator(".legend")).toContainText("Região");
   await expect(page.getByText(/Conferido: as duas peças saem fechadas/)).toBeVisible();
 
@@ -52,7 +52,7 @@ test("corte parcial: arrastar a alça da face na vista 3D muda a região (e o sl
   await page.mouse.up();
   await expect.poll(async () => page.getByLabel(/^Z até/).inputValue()).not.toBe(before);
   await idle(page);
-  await expect(page.locator(".legend")).toContainText("Pedaço 1");
+  await expect(page.locator(".legend")).toContainText("Pedaço");
   // vistas: de cima o 3/4 muda a câmera (as alças andam na tela)
   const iso = (await handles()).max2;
   await page.getByRole("group", { name: "Vista" }).getByRole("button", { name: "Cima" }).click();
@@ -75,6 +75,34 @@ test("corte parcial: trocar para cilindro ajusta o raio à cabeça (parte + marg
   await set(page, /^Raio/, 3);
   await idle(page);
   await expect(page.getByText(/corta a peça pelo lado.*aumente o raio/)).toBeVisible();
+});
+
+test("corte parcial: dois cortes, cor por pedaço, peso e tempo por peça e desfazer por corte", async ({ page, tauri }) => {
+  await openApp(page);
+  await go(page, "Corte parcial");
+  await page.locator('input[type="file"]').first().setInputFiles(STL);
+  await idle(page);
+  await set(page, /^X de/, -4);
+  await set(page, /^X até/, 20);
+  await set(page, /^Z de/, 24);
+  await set(page, /^Posição do plano/, 31);
+  await page.getByRole("button", { name: /Adicionar corte/ }).click();
+  await expect(page.getByRole("button", { name: "Corte 2", pressed: true })).toBeVisible();
+  await set(page, /^Posição do plano/, 14);
+  await page.getByRole("switch", { name: /Pedaço 2 em outra cor/ }).check();
+  await page.getByRole("switch", { name: /Resto em outra cor/ }).check();
+  await idle(page);
+  await expect(page.locator(".legend")).toContainText("Pedaço 1");
+  await expect(page.locator(".legend")).toContainText("Pedaço 2");
+  const card = page.getByLabel("Peso e tempo por peça");
+  await expect(card).toContainText("pedaço 1");
+  await expect(card).toContainText(/≈ [\d,]+ g/);
+  await page.getByRole("button", { name: /Salvar 3MF/ }).click();
+  await expect(toastWith(page, "Arquivo salvo em")).toBeVisible();
+  expect([...tauri.files.keys()].some((p) => p.endsWith("personagem-arvore-corte.3mf"))).toBe(true);
+  // desfazer: o último passo (a cor do resto) e depois o corte 2 inteiro
+  await page.getByRole("button", { name: "Desfazer" }).first().click();
+  await expect(page.getByRole("switch", { name: /Resto em outra cor/ })).not.toBeChecked();
 });
 
 for (const width of [1280, 720]) {

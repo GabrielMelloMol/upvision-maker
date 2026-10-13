@@ -2,11 +2,11 @@ import { useEffect, useMemo, useState } from "react";
 import { meshBounds, type Bounds } from "../geometry/bounds";
 import { getManifold } from "../geometry/manifold";
 import { readOwnFile } from "../geometry/ownModel";
-import { regionBox as regionBoxOf } from "../geometry/cutRegion";
 import { applyHandle, regionHandles } from "../geometry/cutHandles";
 import { fitRegionToPart } from "../geometry/cutFit";
-import { centerRegionAt, regionCenter, regionOfKind, type Region, type RegionKind } from "../geometry/cutRegion";
-import { cutOverlay, DEFAULT_PARTIAL_CUT, partialCut, planeNormal, type CutReport, type PartialCutOptions, type Vec3 } from "../geometry/partialCut";
+import { centerRegionAt, regionBox as regionBoxOf, regionCenter, regionOfKind, type Region, type RegionKind } from "../geometry/cutRegion";
+import { PIECE_PALETTE, runCuts } from "../geometry/cutSequence";
+import { cutOverlay, planeNormal, type CutReport, type Vec3 } from "../geometry/partialCut";
 import type { CutAxis, PinMode, PinShape } from "../geometry/planeCut";
 import type { Model } from "../geometry/types";
 import Alert from "../ui/Alert";
@@ -20,11 +20,13 @@ import Toggle from "../ui/Toggle";
 import { errorText } from "../ui/Toast";
 import { useModelBuilder } from "../ui/useModelBuilder";
 import { restoreBytes, storeBytes } from "./storedFile";
+import ColorPick from "./ColorPick";
+import CutList from "./partialcut/CutList";
+import PiecesCard from "./partialcut/PiecesCard";
 import RegionControls from "./partialcut/RegionControls";
+import { addedCut, clamp, cutForEngine, dot, freshCut, initialState, migrate, planeRange, type CutState, type Pick, type UiCut } from "./partialcut/state";
 import ToolSessionBar from "./ToolSessionBar";
 import { useToolState } from "./useToolState";
-
-type Pick = "center" | "island" | "plane";
 
 const AXES: [CutAxis, string][] = [
   ["z", "Horizontal (Z)"],
@@ -55,18 +57,6 @@ const MAX_TILT = 60;
 const MAX_EXPLODE = 60;
 const mm = (n: number) => n.toFixed(1).replace(".", ",") + " mm";
 
-const initialState = () => ({ file: null as { name: string; bytes: Uint8Array } | null, opts: DEFAULT_PARTIAL_CUT as PartialCutOptions, limit: true, pick: "center" as Pick });
-type CutState = ReturnType<typeof initialState>;
-
-const dot = (a: Vec3, b: Vec3) => a[0] * b[0] + a[1] * b[1] + a[2] * b[2];
-const clamp = (v: number, lo: number, hi: number) => Math.min(hi, Math.max(lo, v));
-
-/** Alcance do plano ao longo da normal: do canto mais baixo ao mais alto da peça. */
-function planeRange(b: Bounds, n: Vec3): [number, number] {
-  const d = [0, 1, 2, 3, 4, 5, 6, 7].map((i) => dot(n, [i & 1 ? b.max[0] : b.min[0], i & 2 ? b.max[1] : b.min[1], i & 4 ? b.max[2] : b.min[2]]));
-  return [Math.floor(Math.min(...d)), Math.ceil(Math.max(...d))];
-}
-
 /**
  * Corte parcial: o plano de corte só vale dentro de uma caixa que a pessoa limita, então o resto do arquivo
  * (a árvore ao lado do personagem) não é cortado. Pino ou furo na face cortada; o pedaço sai deitado nela.
@@ -76,16 +66,19 @@ export default function PartialCut() {
     label: "Corte parcial",
     save: (s) => ({ ...s, file: s.file && { name: s.file.name, bytes: storeBytes(s.file.bytes) } }),
     load: (raw) => {
-      const r = raw as Omit<CutState, "file"> & { file: { name: string; bytes: string | null } | null };
+      const r = raw as Record<string, unknown> & { file: { name: string; bytes: string | null } | null };
       const bytes = restoreBytes(r.file?.bytes);
-      const old = (r.opts as { box?: { min: Vec3; max: Vec3 } }).box; // projetos da 1ª versão guardavam só a caixa
-      const opts = old && !r.opts.region ? { ...r.opts, region: { kind: "box" as const, ...old } } : r.opts;
-      return { ...initialState(), ...r, opts, file: r.file && bytes ? { name: r.file.name, bytes } : null };
+      return { ...migrate(r), file: r.file && bytes ? { name: r.file.name, bytes } : null };
     },
   });
-  const { file, opts, limit, pick } = tool.state;
-  const [setLimit, setPick] = [tool.field("limit"), tool.field("pick")];
-  const setO = <K extends keyof PartialCutOptions>(key: K) => (v: PartialCutOptions[K]) => tool.set((s) => ({ ...s, opts: { ...s.opts, [key]: v } }), key);
+  const { file, cuts, pick, restColor } = tool.state;
+  const active = Math.min(tool.state.active, cuts.length - 1);
+  const opts = cuts[active];
+  const limit = opts.limit;
+  const setPick = tool.field("pick");
+  const patchActive = (cur: CutState, patch: Partial<UiCut>): CutState => ({ ...cur, cuts: cur.cuts.map((c, i) => (i === Math.min(cur.active, cur.cuts.length - 1) ? { ...c, ...patch } : c)) });
+  const setO = <K extends keyof UiCut>(key: K) => (v: UiCut[K]) => tool.set((s) => patchActive(s, { [key]: v } as Partial<UiCut>), `${key}:${active}`);
+  const setExplode = (v: number) => tool.set((s) => ({ ...s, cuts: s.cuts.map((c) => ({ ...c, explode: v })) }), "explode");
   const [fileError, setFileError] = useState<string | null>(null);
 
   const parsed = useMemo<{ model: Model; bounds: Bounds } | { error: string } | null>(() => {
@@ -105,6 +98,7 @@ export default function PartialCut() {
   const [lo, hi] = bounds ? planeRange(bounds, normal) : [0, 1];
   const offset = clamp(opts.offset, lo, hi);
   const region: Region | null = limit ? opts.region : null;
+  const cutKey = JSON.stringify(cuts);
 
   async function onFile(f: File) {
     setFileError(null);
@@ -113,8 +107,7 @@ export default function PartialCut() {
     const bytes = new Uint8Array(await f.arrayBuffer());
     try {
       const b = meshBounds(readOwnFile(bytes, f.name).parts.map((p) => p.mesh))!;
-      const [l, h] = planeRange(b, planeNormal("z", 0));
-      tool.set((cur) => ({ ...cur, file: { name: f.name, bytes }, opts: { ...cur.opts, axis: "z", tilt: 0, offset: (l + h) / 2, region: regionOfKind(cur.opts.region?.kind ?? "box", { min: b.min, max: b.max }) } }), "file");
+      tool.set((cur) => ({ ...cur, file: { name: f.name, bytes }, active: 0, cuts: [{ ...freshCut(b), pin: cur.cuts[0].pin, mode: cur.cuts[0].mode, size: cur.cuts[0].size, clearance: cur.cuts[0].clearance }] }), "file");
     } catch (e) {
       setFileError(errorText(e));
     }
@@ -138,16 +131,20 @@ export default function PartialCut() {
     setO("region")(centerRegionAt(opts.region, p));
   }
 
-  // plano e contorno da região seguem o arrasto ao vivo; o corte em si recalcula depois
+  // plano e contorno da região de cada corte seguem o arrasto ao vivo; o corte em si recalcula depois
   const [overlay, setOverlay] = useState<Model[]>([]);
   useEffect(() => {
     if (!bounds) return;
     let alive = true;
-    void getManifold().then((M) => alive && setOverlay(cutOverlay(M, { min: bounds.min, max: bounds.max }, { axis: opts.axis, tilt: opts.tilt, offset, region })));
+    const list = JSON.parse(cutKey) as UiCut[];
+    void getManifold().then((M) => {
+      if (!alive) return;
+      setOverlay(list.flatMap((c) => cutOverlay(M, { min: bounds.min, max: bounds.max }, cutForEngine(c, bounds))));
+    });
     return () => {
       alive = false;
     };
-  }, [bounds, opts.axis, opts.tilt, offset, region]);
+  }, [bounds, cutKey]);
 
   const gizmo = useMemo(() => {
     if (!bounds) return undefined;
@@ -157,20 +154,20 @@ export default function PartialCut() {
       handles: regionHandles(region, ref, anchor),
       onDrag: (id: string, pos: Vec3) =>
         tool.set((cur) => {
-          const n = planeNormal(cur.opts.axis, cur.opts.tilt);
-          const out = applyHandle(cur.limit ? cur.opts.region : null, { normal: n, offset: cur.opts.offset }, id, pos);
-          return { ...cur, opts: { ...cur.opts, offset: out.offset, region: cur.limit ? out.region : cur.opts.region } };
-        }, `handle:${id}`),
+          const c = cur.cuts[Math.min(cur.active, cur.cuts.length - 1)];
+          const out = applyHandle(c.limit ? c.region : null, { normal: planeNormal(c.axis, c.tilt), offset: c.offset }, id, pos);
+          return patchActive(cur, { offset: out.offset, region: c.limit ? out.region : c.region });
+        }, `handle:${id}:${active}`),
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [bounds, region, offset, opts.axis, opts.tilt, tool.set]);
 
-  const valid = inRange(opts.clearance, 0, 1) && (opts.size === 0 || inRange(opts.size, 2, 30));
+  const valid = cuts.every((c) => inRange(c.clearance, 0, 1) && (c.size === 0 || inRange(c.size, 2, 30)));
   const { models, warnings, busy, error, view } = useModelBuilder<{ preview: Model[]; report: CutReport }>(async () => {
-    if (!model || !valid) return null;
-    const out = partialCut(await getManifold(), model, { ...opts, offset, region });
+    if (!model || !bounds || !valid) return null;
+    const out = runCuts(await getManifold(), model, { cuts: cuts.map((c) => cutForEngine(c, bounds)), restColor });
     return { models: out.models, warnings: out.warnings, view: { preview: out.preview, report: out.report } };
-  }, [model, opts, offset, region, valid]);
+  }, [model, cutKey, restColor, valid]);
 
   const shown = useMemo(() => (view?.preview ? [...view.preview.filter((m) => m.name !== "Região" && m.name !== "Plano de corte"), ...overlay] : []), [view, overlay]);
 
@@ -190,8 +187,9 @@ export default function PartialCut() {
           </div>
           {model && bounds && (
             <>
+              <CutList count={cuts.length} active={active} onSelect={(i) => tool.set((c) => ({ ...c, active: i }), "active")} onAdd={() => tool.set((c) => ({ ...c, cuts: [...c.cuts, { ...addedCut(bounds), pin: c.cuts[0].pin, mode: c.cuts[0].mode, clearance: c.cuts[0].clearance }], active: c.cuts.length }), "add")} onRemove={() => tool.set((c) => ({ ...c, cuts: c.cuts.filter((_, i) => i !== active), active: Math.max(0, active - 1) }), "remove")} />
               <div className="card stack">
-                <h3>Plano de corte</h3>
+                <h3>Plano de corte{cuts.length > 1 ? ` · corte ${active + 1}` : ""}</h3>
                 <div>
                   <span className="field-label">Direção</span>
                   <Segmented label="Direção do plano" value={opts.axis} options={AXES} onChange={setO("axis")} full />
@@ -201,7 +199,7 @@ export default function PartialCut() {
               </div>
               <div className="card stack">
                 <h3>Região do corte</h3>
-                <Toggle label="Cortar só dentro da região (fora dela nada é cortado)" checked={limit} onChange={setLimit} />
+                <Toggle label="Cortar só dentro da região (fora dela nada é cortado)" checked={limit} onChange={setO("limit")} />
                 {limit && opts.region && (
                   <>
                     <RegionControls region={opts.region} bounds={bounds} onChange={setO("region")} onKind={(k) => void fitTo(k, regionCenter(opts.region!))} />
@@ -227,12 +225,21 @@ export default function PartialCut() {
                 )}
               </div>
               <div className="card stack">
+                <h3>Cores</h3>
+                <Toggle label={`Pedaço${cuts.length > 1 ? ` ${active + 1}` : ""} em outra cor`} checked={opts.color !== null} onChange={(on) => setO("color")(on ? PIECE_PALETTE[active % PIECE_PALETTE.length] : null)} />
+                {opts.color !== null && <ColorPick label={`Cor do pedaço${cuts.length > 1 ? ` ${active + 1}` : ""}`} value={opts.color} onChange={setO("color")} />}
+                <Toggle label="Resto em outra cor" checked={restColor !== null} onChange={(on) => tool.set((c) => ({ ...c, restColor: on ? "#2563eb" : null }), "restColor")} />
+                {restColor !== null && <ColorPick label="Cor do resto" value={restColor} onChange={(v) => tool.set((c) => ({ ...c, restColor: v }), "restColor")} />}
+                <span className="hint">Cada cor vira um filamento: no Bambu Studio cada objeto já abre no extrusor certo. Escolha entre os seus filamentos do estoque.</span>
+              </div>
+              <div className="card stack">
                 <h3>Prévia</h3>
-                <Slider label="Afastar o pedaço" min={0} max={MAX_EXPLODE} value={opts.explode} display={mm} onChange={setO("explode")} hint="Só na prévia: não muda os arquivos." />
+                <Slider label="Afastar o pedaço" min={0} max={MAX_EXPLODE} value={opts.explode} display={mm} onChange={setExplode} hint="Só na prévia: não muda os arquivos." />
               </div>
               {view?.report && !busy && (view.report.ok ? <Alert kind="ok">Conferido: as duas peças saem fechadas e, juntas, têm o mesmo volume do original.</Alert> : <Alert kind="warn">As peças não somam o volume do original (ou a malha não fecha). Confira o arquivo.</Alert>)}
             </>
           )}
+          {!busy && <PiecesCard models={models} />}
           <ExportButtons models={models} name={`${baseName}-corte`} busy={busy} onSaved={tool.exported} />
         </div>
         <div className="preview-col">

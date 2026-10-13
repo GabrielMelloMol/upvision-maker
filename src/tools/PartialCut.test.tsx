@@ -32,7 +32,7 @@ describe("Corte parcial", { timeout: 60_000 }, () => {
   test("arquivo lido: mostra o pedaço, a região e o plano e confere que as peças somam o original", async () => {
     const { container } = renderWithApp(<PartialCut />);
     await open(container);
-    await waitFor(() => expect(legend(container)).toEqual(expect.arrayContaining(["Peça", "Pedaço 1", "Região", "Plano de corte"])), BUILD);
+    await waitFor(() => expect(legend(container)).toEqual(expect.arrayContaining(["Peça", "Pedaço", "Região", "Plano de corte"])), BUILD);
     expect(await screen.findByText(/Conferido: as duas peças saem fechadas/, {}, BUILD)).toBeInTheDocument();
   }, 40_000);
 
@@ -53,7 +53,7 @@ describe("Corte parcial", { timeout: 60_000 }, () => {
     await screen.findByLabelText(/^Posição do plano/);
     await user.click(screen.getByRole("switch", { name: /Cortar só dentro da região/ }));
     await waitFor(() => expect(screen.queryByLabelText(/^X de/)).toBeNull());
-    await waitFor(() => expect(legend(container)).toContain("Pedaço 1"), BUILD);
+    await waitFor(() => expect(legend(container)).toContain("Pedaço"), BUILD);
     await user.click(await screen.findByRole("button", { name: /Salvar 3MF/ }));
     await waitFor(() => expect(t.files.has("/saida/caixa-corte.3mf")).toBe(true), BUILD);
   }, 40_000);
@@ -66,5 +66,27 @@ describe("Corte parcial", { timeout: 60_000 }, () => {
     expect(screen.getByLabelText(/^Comprimento do cilindro/)).toBeInTheDocument();
     expect(screen.queryByLabelText(/^X de/)).toBeNull();
     await waitFor(() => expect(legend(container)).toContain("Região"), BUILD);
+  }, 40_000);
+
+  test("adicionar um segundo corte cria o Corte 2, mais um pedaço e o peso e tempo por peça", async () => {
+    const { container } = renderWithApp(<PartialCut />);
+    const user = await open(container);
+    await screen.findByLabelText(/^Posição do plano/);
+    expect(screen.queryByRole("button", { name: /Remover o corte/ })).toBeNull();
+    await user.click(screen.getByRole("button", { name: /Adicionar corte/ }));
+    expect(await screen.findByRole("button", { name: "Corte 2", pressed: true })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /Remover o corte 2/ })).toBeInTheDocument();
+    await waitFor(() => expect(legend(container)).toEqual(expect.arrayContaining(["Pedaço 1", "Pedaço 2"])), BUILD);
+    const card = await screen.findByLabelText("Peso e tempo por peça", {}, BUILD);
+    expect(card.textContent).toMatch(/pedaço 1.*g.*min/s);
+    expect(card.textContent).toMatch(/pedaço 2/);
+  }, 40_000);
+
+  test("pedaço em outra cor: a cor entra no 3MF como um filamento a mais", async () => {
+    const { container } = renderWithApp(<PartialCut />);
+    const user = await open(container);
+    await user.click(await screen.findByRole("switch", { name: /Pedaço em outra cor/ }));
+    await waitFor(() => expect(legend(container)).toContain("Pedaço"), BUILD);
+    expect(await screen.findByLabelText("Cor do pedaço")).toBeInTheDocument();
   }, 40_000);
 });

@@ -19,6 +19,7 @@ import { buildLithophaneSet, lithoGrid } from "../geometry/lithophaneSet";
 import { fitAspect } from "../geometry/lithophaneShapes";
 import type { CS, ManifoldToplevel } from "../geometry/manifold";
 import { buildMedalDesign, DEFAULT_MEDAL_DESIGN, type MedalDesign } from "../geometry/medalDesign";
+import { runCuts, type CutItem } from "../geometry/cutSequence";
 import { partialCut, DEFAULT_PARTIAL_CUT, type PartialCutOptions } from "../geometry/partialCut";
 import { cutModels, DEFAULT_CUT } from "../geometry/planeCut";
 import { COLOR_LITHO_PROFILE, CUTTER_PROFILE, DEFAULT_PROFILE, LAYERED_PROFILE, LITHO_PROFILE, RELIEF_PROFILE, type PrintProfile } from "../geometry/printProfile";
@@ -205,8 +206,18 @@ export function toolCases(M: ManifoldToplevel): QaCase[] {
     return { models: o.models, warnings: o.warnings };
   };
 
+  // dois cortes em sequência, cada pedaço numa cor (cada cor = um filamento no 3MF)
+  const twoCuts = (colors: boolean): Out => {
+    const scene: Model = { name: "Cena", parts: [{ name: "Peça", color: "#d4d4d8", mesh: toMesh(M.Manifold.union([M.Manifold.cube([20, 20, 40]), M.Manifold.cube([20, 20, 40]).translate([40, 0, 0])])) }] };
+    const cut = (x0: number, x1: number, color: string | null): CutItem => ({ ...DEFAULT_PARTIAL_CUT, offset: 30, region: { kind: "box", min: [x0, -5, 20], max: [x1, 25, 50] }, color });
+    const o = runCuts(M, scene, { cuts: [cut(-5, 25, colors ? "#d6262e" : null), cut(35, 65, colors ? "#2563eb" : null)], restColor: colors ? "#f4f4f2" : null });
+    return { models: o.models, warnings: o.warnings };
+  };
+
   return [
     ...cases("partialcut", "Corte parcial", [
+      ["dois cortes", () => twoCuts(false)],
+      ["dois cortes em cores", () => twoCuts(true)],
       ["padrão", () => partial({})],
       ["pino fixo", () => partial({ mode: "fixed", pin: "square" })],
       ["inclinado", () => partial({ tilt: 30, offset: 28, region: { kind: "box", min: [-5, -5, 0], max: [25, 25, 50] } })],

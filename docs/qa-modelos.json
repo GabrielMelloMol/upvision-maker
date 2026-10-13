@@ -2227,11 +2227,44 @@
   "label": "Corte parcial (ferramenta)",
   "variant": "cilindro",
   "status": "ok",
-  "reasons": [],
+  "reasons": [
+   "app: A região corta a peça pelo lado (a borda dela atravessa o material acima do plano): aumente o raio."
+  ],
   "date": "2026-10-13",
   "slicers": "Bambu ✓ · Orca ✓",
   "minutes": 36,
   "grams": 17.2,
+  "plates": 1
+ },
+ {
+  "key": "partialcut:dois cortes",
+  "owner": "Forja",
+  "group": "tools",
+  "label": "Corte parcial (ferramenta)",
+  "variant": "dois cortes",
+  "status": "ok",
+  "reasons": [],
+  "date": "2026-10-13",
+  "slicers": "Bambu ✓ · Orca ✓",
+  "minutes": 37,
+  "grams": 19.2,
+  "plates": 1
+ },
+ {
+  "key": "partialcut:dois cortes em cores",
+  "owner": "Forja",
+  "group": "tools",
+  "label": "Corte parcial (ferramenta)",
+  "variant": "dois cortes em cores",
+  "status": "aviso",
+  "reasons": [
+   "Orca: torre de purga passa da mesa na posição padrão do CLI (na tela, arraste a torre ou use Arrumar)",
+   "Projeto Bambu: torre de purga passa da mesa na posição padrão do CLI (na tela, arraste a torre ou use Arrumar)"
+  ],
+  "date": "2026-10-13",
+  "slicers": "Bambu ✓ · Orca ✓ · Projeto Bambu ✓",
+  "minutes": 292,
+  "grams": 73.6,
   "plates": 1
  },
  {
@@ -2241,11 +2274,13 @@
   "label": "Corte parcial (ferramenta)",
   "variant": "esfera",
   "status": "ok",
-  "reasons": [],
+  "reasons": [
+   "app: A região corta a peça pelo lado (a borda dela atravessa o material acima do plano): aumente o raio."
+  ],
   "date": "2026-10-13",
   "slicers": "Bambu ✓ · Orca ✓",
   "minutes": 36,
-  "grams": 17.7,
+  "grams": 18.2,
   "plates": 1
  },
  {
@@ -2286,8 +2321,8 @@
   "reasons": [],
   "date": "2026-10-13",
   "slicers": "Bambu ✓ · Orca ✓",
-  "minutes": 37,
-  "grams": 13.3,
+  "minutes": 38,
+  "grams": 13.7,
   "plates": 1
  },
  {

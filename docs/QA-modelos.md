@@ -23,7 +23,7 @@ Peça maior que a mesa de 256 mm do A1 conta como **aviso** quando o app avisa n
 impressoras de mesa maior); sem o aviso do app, é **falha**.
 
 
-**Total:** 325 casos · 239 ok · 85 com aviso · 1 com falha · 0 n/a
+**Total:** 327 casos · 240 ok · 86 com aviso · 1 com falha · 0 n/a
 
 ## Forja
 
@@ -172,11 +172,13 @@ impressoras de mesa maior); sem o aviso do app, é **falha**.
 | Medalha (ferramenta) | máximo | ✅ ok | Bambu ✓ · Orca ✓ · Projeto Bambu ✓ | 150 | 99,1 | 1 | – | – |
 | Medalha (ferramenta) | mínimo | ⚠️ aviso | Bambu ✓ · Orca ✓ · Projeto Bambu ✓ | 6 | 2,3 | 1 | – | "CAMPEÃ": parede/traço < 0,4 mm em Z 1,7 mm; app: "CAMPEÃ" ficou com 2,0 mm de altura: os traços ficam com menos de 0,4 mm e somem na impressão. Aumente o texto ou a peça, encurte a linha ou use uma fonte mais grossa. |
 | Medalha (ferramenta) | padrão | ✅ ok | Bambu ✓ · Orca ✓ · Projeto Bambu ✓ | 24 | 11,3 | 1 | – | – |
-| Corte parcial (ferramenta) | cilindro | ✅ ok | Bambu ✓ · Orca ✓ | 36 | 17,2 | 1 | – | – |
-| Corte parcial (ferramenta) | esfera | ✅ ok | Bambu ✓ · Orca ✓ | 36 | 17,7 | 1 | – | – |
+| Corte parcial (ferramenta) | cilindro | ✅ ok | Bambu ✓ · Orca ✓ | 36 | 17,2 | 1 | – | app: A região corta a peça pelo lado (a borda dela atravessa o material acima do plano): aumente o raio. |
+| Corte parcial (ferramenta) | dois cortes | ✅ ok | Bambu ✓ · Orca ✓ | 37 | 19,2 | 1 | – | – |
+| Corte parcial (ferramenta) | dois cortes em cores | ⚠️ aviso | Bambu ✓ · Orca ✓ · Projeto Bambu ✓ | 292 | 73,6 | 1 | – | Orca: torre de purga passa da mesa na posição padrão do CLI (na tela, arraste a torre ou use Arrumar); Projeto Bambu: torre de purga passa da mesa na posição padrão do CLI (na tela, arraste a torre ou use Arrumar) |
+| Corte parcial (ferramenta) | esfera | ✅ ok | Bambu ✓ · Orca ✓ | 36 | 18,2 | 1 | – | app: A região corta a peça pelo lado (a borda dela atravessa o material acima do plano): aumente o raio. |
 | Corte parcial (ferramenta) | inclinado | ✅ ok | Bambu ✓ · Orca ✓ | 36 | 17,8 | 1 | – | – |
 | Corte parcial (ferramenta) | padrão | ✅ ok | Bambu ✓ · Orca ✓ | 34 | 17,1 | 1 | – | – |
-| Corte parcial (ferramenta) | personagem e árvore | ✅ ok | Bambu ✓ · Orca ✓ | 37 | 13,3 | 1 | – | – |
+| Corte parcial (ferramenta) | personagem e árvore | ✅ ok | Bambu ✓ · Orca ✓ | 38 | 13,7 | 1 | – | – |
 | Corte parcial (ferramenta) | pino fixo | ✅ ok | Bambu ✓ · Orca ✓ | 32 | 16,5 | 1 | – | – |
 | Corte parcial (ferramenta) | sem encaixe | ✅ ok | Bambu ✓ · Orca ✓ | 30 | 15,7 | 1 | – | – |
 | QR Code (ferramenta) | máximo | ⚠️ aviso | Bambu ✓ · Orca ✓ · Projeto Bambu ✓ | – | – | – | – | Bambu: torre de purga em cima de uma peça depois do --arrange do CLI (na tela, arraste a torre ou use Arrumar); Orca: torre de purga em cima de uma peça depois do --arrange do CLI (na tela, arraste a torre ou use Arrumar); Projeto Bambu: torre de purga em cima de uma peça depois do --arrange do CLI (na tela, arraste a torre ou use Arrumar) |
