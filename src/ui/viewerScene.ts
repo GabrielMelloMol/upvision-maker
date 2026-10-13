@@ -26,6 +26,7 @@ const VIEWS: Record<ViewName, THREE.Vector3> = {
   iso: VIEW_DIR,
 };
 const GHOST_OPACITY = 0.3;
+const BIG_MESH_INDICES = 600_000; // ~200 mil triângulos
 const MIN_RADIUS = 10; // modelos minúsculos não enchem a tela
 /** Menor ângulo entre a câmera e o eixo Z ao inclinar pelo teclado (não passa por cima nem por baixo). */
 const MIN_TILT = 0.08;
@@ -204,7 +205,7 @@ export function createViewer(el: HTMLElement) {
           const g = new THREE.BufferGeometry();
           g.setAttribute("position", new THREE.BufferAttribute(p.mesh.positions, 3));
           g.setIndex(new THREE.BufferAttribute(p.mesh.indices, 1));
-          g.computeVertexNormals();
+          if (p.mesh.indices.length < BIG_MESH_INDICES) g.computeVertexNormals(); // o sombreado é por face (flatShading): em malha enorme poupa o cálculo, que trava a tela por segundos
           const mat = new THREE.MeshStandardMaterial({ color: p.color, roughness: 0.6, metalness: 0.05, flatShading: true, transparent: !!p.ghost, opacity: p.ghost ? GHOST_OPACITY : 1, depthWrite: !p.ghost });
           const mesh = new THREE.Mesh(g, mat);
           if (p.ghost) {

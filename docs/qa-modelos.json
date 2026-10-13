@@ -2354,6 +2354,20 @@
   "plates": 1
  },
  {
+  "key": "partialcut:sugestão para menos suporte",
+  "owner": "Forja",
+  "group": "tools",
+  "label": "Corte parcial (ferramenta)",
+  "variant": "sugestão para menos suporte",
+  "status": "ok",
+  "reasons": [],
+  "date": "2026-10-13",
+  "slicers": "Bambu ✓ · Orca ✓",
+  "minutes": 28,
+  "grams": 9.1,
+  "plates": 1
+ },
+ {
   "key": "qr:máximo",
   "owner": "Forja",
   "group": "tools",

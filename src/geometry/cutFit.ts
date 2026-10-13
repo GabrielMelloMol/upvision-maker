@@ -1,6 +1,7 @@
 import { planeNormal, type PartialCutOptions } from "./partialCut";
 import type { Box, Region, RegionKind, Vec3 } from "./cutRegion";
 import { regionCenter } from "./cutRegion";
+import { solidFromMesh } from "./cutSolid";
 import type { ManifoldToplevel, Solid } from "./manifold";
 import { scoped } from "./shape2d";
 import type { Model } from "./types";
@@ -22,7 +23,7 @@ function distTo(s: Solid, p: Vec3): number {
 export function fitRegionToPart(M: ManifoldToplevel, model: Model, o: Pick<PartialCutOptions, "axis" | "tilt" | "offset" | "region">, kind: RegionKind, near: Vec3): Region {
   return scoped((k) => {
     const n = planeNormal(o.axis, o.tilt);
-    const all = k(M.Manifold.union(model.parts.map((p) => k(M.Manifold.ofMesh(new M.Mesh({ numProp: 3, vertProperties: p.mesh.positions, triVerts: p.mesh.indices }))))));
+    const all = k(M.Manifold.union(model.parts.map((p) => k(solidFromMesh(M, p.mesh).solid))));
     const comps = k(all.trimByPlane(n, o.offset)).decompose().map(k);
     const part = comps.sort((a, b) => distTo(a, near) - distTo(b, near))[0];
     if (!part) throw new Error("O plano de corte não passa pela peça.");

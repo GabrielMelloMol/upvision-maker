@@ -20,6 +20,7 @@ import { fitAspect } from "../geometry/lithophaneShapes";
 import type { CS, ManifoldToplevel } from "../geometry/manifold";
 import { buildMedalDesign, DEFAULT_MEDAL_DESIGN, type MedalDesign } from "../geometry/medalDesign";
 import { runCuts, type CutItem } from "../geometry/cutSequence";
+import { suggestCuts } from "../geometry/cutSuggest";
 import { partialCut, DEFAULT_PARTIAL_CUT, type PartialCutOptions } from "../geometry/partialCut";
 import { cutModels, DEFAULT_CUT } from "../geometry/planeCut";
 import { COLOR_LITHO_PROFILE, CUTTER_PROFILE, DEFAULT_PROFILE, LAYERED_PROFILE, LITHO_PROFILE, RELIEF_PROFILE, type PrintProfile } from "../geometry/printProfile";
@@ -45,6 +46,7 @@ const GAP_MM = 4;
 const MAX_COLS = 400; // como a Litofania: limita o detalhe
 const FIXTURE = join(__dirname, "../../tests/fixtures/3mf/cubo-pintado-bambu.3mf");
 const CHARACTER = join(__dirname, "../../tests/fixtures/stl/personagem-arvore.stl");
+const ARM = join(__dirname, "../../tests/fixtures/stl/boneco-braco.stl");
 
 const cases = (id: string, label: string, list: Variant[]): QaCase[] =>
   list.map(([variant, run, profile]) => ({
@@ -216,6 +218,12 @@ export function toolCases(M: ManifoldToplevel): QaCase[] {
 
   return [
     ...cases("partialcut", "Corte parcial", [
+      ["sugestão para menos suporte", (): Out => {
+        const model = readOwnFile(new Uint8Array(readFileSync(ARM)), "boneco-braco.stl");
+        const [s] = suggestCuts(M, model);
+        const o = runCuts(M, model, { cuts: [{ ...DEFAULT_PARTIAL_CUT, offset: s.z, region: { kind: "box", ...s.region }, color: null }], restColor: null });
+        return { models: o.models, warnings: o.warnings };
+      }],
       ["dois cortes", () => twoCuts(false)],
       ["dois cortes em cores", () => twoCuts(true)],
       ["padrão", () => partial({})],

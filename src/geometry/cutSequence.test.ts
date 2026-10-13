@@ -96,3 +96,26 @@ describe("encaixe que não coube: saídas na hora", () => {
     expect(runCuts(M, thin(), { cuts: [at("none", 0)], restColor: null }).pinIssues).toHaveLength(0);
   });
 });
+
+describe("malha suja", () => {
+  const dirty = (): Model => {
+    const m = toMesh(M.Manifold.cube([20, 20, 20]));
+    const keep: number[] = [];
+    for (let t = 0; t < m.indices.length / 3; t++) if (t !== 5) keep.push(m.indices[3 * t], m.indices[3 * t + 1], m.indices[3 * t + 2]);
+    return { name: "Suja", parts: [{ name: "Peça", color: "#d4d4d8", mesh: { positions: m.positions, indices: Uint32Array.from(keep) } }] };
+  };
+  const plan = { cuts: [{ ...DEFAULT_PARTIAL_CUT, offset: 10, pin: "none" as const, region: null, color: null }], restColor: null };
+
+  test("furo na malha: repara, corta e avisa", () => {
+    const r = runCuts(M, dirty(), plan);
+    expect(r.warnings.join(" ")).toMatch(/tinha 1 furo e foi reparada/);
+    expect(r.models).toHaveLength(2);
+    expect(r.report.ok).toBe(true);
+  });
+
+  test("lixo que não dá para reparar: erro claro em vez de peça vazia", () => {
+    const junk: Model = { name: "Lixo", parts: [{ name: "Peça", color: "#fff", mesh: { positions: Float32Array.from([0, 0, 0, 1, 0, 0, 0, 1, 0]), indices: Uint32Array.from([0, 1, 2]) } }] };
+    // um triângulo só: o leque fecha o furo e vira um sólido achatado de volume zero, que o Manifold recusa
+    expect(() => runCuts(M, junk, plan)).toThrow(/não deu para reparar|não passa/);
+  });
+});

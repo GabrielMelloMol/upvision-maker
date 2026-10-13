@@ -1,12 +1,13 @@
 import type { Mat4 } from "manifold-3d";
 import { fitSetOnBed, setOnBedWarning } from "./bedLayout";
 import { fitDepth, planPins } from "./cutPins";
+import { solidFromMesh } from "./cutSolid";
 import { regionOutline, regionSolid, type Box, type Region, type Vec3 } from "./cutRegion";
 import type { CS, ManifoldToplevel, Solid } from "./manifold";
 import { toMesh } from "./mesh";
 import { EXTRA_DEPTH, DEPTH_FACTOR, pinCs, spread, type CutAxis, type K, type PinMode, type PinShape } from "./planeCut";
 import { scoped } from "./shape2d";
-import type { Mesh, Model, Part } from "./types";
+import type { Model, Part } from "./types";
 
 export type { Box, Region, Vec3 };
 
@@ -72,8 +73,6 @@ export function planeFrames(n: Vec3, offset: number): { to: Mat4; from: Mat4 } {
   return { to, from };
 }
 
-const solidOf = (M: ManifoldToplevel, m: Mesh): Solid => M.Manifold.ofMesh(new M.Mesh({ numProp: 3, vertProperties: m.positions, triVerts: m.indices }));
-
 const asParts = (list: [Part, Solid][], k: K, z0: number): Part[] => list.map(([part, s]) => ({ ...part, mesh: toMesh(k(s.translate([0, 0, -z0]))) }));
 const minZ = (list: [Part, Solid][]) => (list.length ? Math.min(...list.map(([, s]) => s.boundingBox().min[2])) : 0);
 
@@ -100,7 +99,13 @@ export function partialCut(M: ManifoldToplevel, model: Model, o: PartialCutOptio
   const warnings: string[] = [];
   return scoped((k) => {
     const { to, from } = planeFrames(planeNormal(o.axis, o.tilt), o.offset);
-    const world = model.parts.map((p) => k(solidOf(M, p.mesh)));
+    let holes = 0;
+    const world = model.parts.map((p) => {
+      const built = solidFromMesh(M, p.mesh);
+      holes += built.holes;
+      return k(built.solid);
+    });
+    if (holes) warnings.push(`A malha de "${model.name}" tinha ${holes} ${holes === 1 ? "furo" : "furos"} e foi reparada automaticamente antes do corte: confira o resultado.`);
     const frame = world.map((s) => k(s.transform(to)));
     const all = k(M.Manifold.union(frame));
     const wb = k(M.Manifold.union(world)).boundingBox();

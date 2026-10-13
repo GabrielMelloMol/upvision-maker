@@ -1,9 +1,27 @@
 import { resolve } from "node:path";
 import AxeBuilder from "@axe-core/playwright";
 import type { Page } from "@playwright/test";
-import { expect, go, openApp, settleColors, test, toastWith } from "./tauri";
+import { expect as baseExpect, go, openApp, settleColors, test, toastWith } from "./tauri";
 
-const idle = (page: Page) => expect(page.locator(".viewer .overlay.busy")).toHaveCount(0, { timeout: 60_000 });
+// o corte roda em worker com WASM próprio: com muitos testes em paralelo o cálculo demora mais que os 5 s padrão
+const expect = baseExpect.configure({ timeout: 30_000 });
+
+// recalculando = véu (1º cálculo) ou o indicador discreto do canto (já há modelo na tela)
+const idle = async (page: Page) => {
+  await expect(page.locator(".viewer .overlay.busy")).toHaveCount(0, { timeout: 60_000 });
+  await expect(page.locator(".viewer .busy-chip")).toHaveCount(0, { timeout: 60_000 });
+};
+/** Espera as alças pararem na tela (a câmera termina de pousar) antes de arrastar. */
+async function handlesAt(page: Page, id: string): Promise<[number, number]> {
+  let last = "";
+  for (let i = 0; i < 40; i++) {
+    const now = (await page.locator(".viewer").getAttribute("data-handles")) ?? "";
+    if (now && now === last) return (JSON.parse(now) as Record<string, [number, number]>)[id];
+    last = now;
+    await page.waitForTimeout(300);
+  }
+  throw new Error("as alças não assentaram");
+}
 const STL = resolve("tests/fixtures/stl/personagem-arvore.stl");
 const set = (page: Page, label: RegExp, v: number) => page.getByLabel(label).fill(String(v));
 
@@ -38,10 +56,9 @@ test("corte parcial: arrastar a alça da face na vista 3D muda a região (e o sl
   await set(page, /^Z de/, 20);
   await set(page, /^Z até/, 45);
   await idle(page);
-  await page.waitForTimeout(1200); // a câmera termina de pousar
   const viewer = page.locator(".viewer");
   const handles = async () => JSON.parse((await viewer.getAttribute("data-handles")) ?? "{}") as Record<string, [number, number]>;
-  const top = (await handles()).max2;
+  const top = await handlesAt(page, "max2");
   expect(top).toBeTruthy();
   const before = await page.getByLabel(/^Z até/).inputValue();
   await page.mouse.move(top[0], top[1]);
@@ -54,10 +71,9 @@ test("corte parcial: arrastar a alça da face na vista 3D muda a região (e o sl
   await idle(page);
   await expect(page.locator(".legend")).toContainText("Pedaço");
   // vistas: de cima o 3/4 muda a câmera (as alças andam na tela)
-  const iso = (await handles()).max2;
+  const iso = await handlesAt(page, "max2");
   await page.getByRole("group", { name: "Vista" }).getByRole("button", { name: "Cima" }).click();
-  await page.waitForTimeout(1200);
-  expect((await handles()).max2).not.toEqual(iso);
+  await expect.poll(async () => (await handles()).max2, { timeout: 15_000 }).not.toEqual(iso);
 });
 
 test("corte parcial: trocar para cilindro ajusta o raio à cabeça (parte + margem) e avisa se a região corta pelo lado", async ({ page }) => {
@@ -103,6 +119,23 @@ test("corte parcial: dois cortes, cor por pedaço, peso e tempo por peça e desf
   // desfazer: o último passo (a cor do resto) e depois o corte 2 inteiro
   await page.getByRole("button", { name: "Desfazer" }).first().click();
   await expect(page.getByRole("switch", { name: /Resto em outra cor/ })).not.toBeChecked();
+});
+
+test("corte parcial: analisa as saliências, sugere cortar logo abaixo do braço e aplica o corte (worker no navegador)", async ({ page }) => {
+  await openApp(page);
+  await go(page, "Corte parcial");
+  await page.locator('input[type="file"]').first().setInputFiles(resolve("tests/fixtures/stl/boneco-braco.stl"));
+  await idle(page);
+  await page.getByRole("button", { name: "Analisar o modelo" }).click();
+  const list = page.getByRole("list", { name: "Sugestões de corte" });
+  await expect(list).toBeVisible({ timeout: 60_000 });
+  await expect(list.getByRole("listitem").first()).toContainText(/Cortar a 1[78],\d mm: tira \d+% da área no ar/);
+  await list.getByRole("button", { name: "Usar este corte" }).first().click();
+  await idle(page);
+  await expect(page.getByRole("button", { name: "Corte 1", pressed: true })).toBeVisible();
+  await expect(page.getByRole("button", { name: /Adicionar corte/ })).toBeVisible();
+  await expect(page.locator(".legend")).toContainText("Pedaço");
+  await expect(page.getByLabel(/^Posição do plano/)).toHaveValue(/^1[78]/);
 });
 
 for (const width of [1280, 720]) {

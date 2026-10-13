@@ -23,7 +23,7 @@ Peça maior que a mesa de 256 mm do A1 conta como **aviso** quando o app avisa n
 impressoras de mesa maior); sem o aviso do app, é **falha**.
 
 
-**Total:** 327 casos · 240 ok · 86 com aviso · 1 com falha · 0 n/a
+**Total:** 328 casos · 241 ok · 86 com aviso · 1 com falha · 0 n/a
 
 ## Forja
 
@@ -181,6 +181,7 @@ impressoras de mesa maior); sem o aviso do app, é **falha**.
 | Corte parcial (ferramenta) | personagem e árvore | ✅ ok | Bambu ✓ · Orca ✓ | 38 | 13,7 | 1 | – | – |
 | Corte parcial (ferramenta) | pino fixo | ✅ ok | Bambu ✓ · Orca ✓ | 32 | 16,5 | 1 | – | – |
 | Corte parcial (ferramenta) | sem encaixe | ✅ ok | Bambu ✓ · Orca ✓ | 30 | 15,7 | 1 | – | – |
+| Corte parcial (ferramenta) | sugestão para menos suporte | ✅ ok | Bambu ✓ · Orca ✓ | 28 | 9,1 | 1 | – | – |
 | QR Code (ferramenta) | máximo | ⚠️ aviso | Bambu ✓ · Orca ✓ · Projeto Bambu ✓ | – | – | – | – | Bambu: torre de purga em cima de uma peça depois do --arrange do CLI (na tela, arraste a torre ou use Arrumar); Orca: torre de purga em cima de uma peça depois do --arrange do CLI (na tela, arraste a torre ou use Arrumar); Projeto Bambu: torre de purga em cima de uma peça depois do --arrange do CLI (na tela, arraste a torre ou use Arrumar) |
 | QR Code (ferramenta) | mínimo | ✅ ok | Bambu ✓ · Orca ✓ · Projeto Bambu ✓ | 4 | 0,8 | 1 | – | app: Cada módulo ficou com 0,56 mm: aumente a placa ou encurte o texto (mínimo recomendado 1,2 mm). |
 | QR Code (ferramenta) | padrão | ✅ ok | Bambu ✓ · Orca ✓ · Projeto Bambu ✓ | 17 | 7,3 | 1 | – | – |

@@ -48,3 +48,9 @@ export function addedCut(b: Bounds): UiCut {
   const [lo, hi] = planeRange(b, planeNormal("z", 0));
   return { ...c, offset: lo + (hi - lo) * 0.25 };
 }
+
+/** O corte ainda é o de partida (ninguém mexeu): uma sugestão pode ocupar o lugar dele em vez de somar. */
+export function isFresh(c: UiCut, b: Bounds): boolean {
+  const f = freshCut(b);
+  return JSON.stringify([c.axis, c.tilt, c.offset, c.region, c.limit, c.color]) === JSON.stringify([f.axis, f.tilt, f.offset, f.region, f.limit, f.color]);
+}

@@ -5,7 +5,8 @@ import { readOwnFile } from "../geometry/ownModel";
 import { applyHandle, regionHandles } from "../geometry/cutHandles";
 import { fitRegionToPart } from "../geometry/cutFit";
 import { centerRegionAt, regionBox as regionBoxOf, regionCenter, regionOfKind, type Region, type RegionKind } from "../geometry/cutRegion";
-import { runCuts, type PinIssue } from "../geometry/cutSequence";
+import { cutAsync } from "../geometry/cutClient";
+import type { PinIssue } from "../geometry/cutSequence";
 import { cutOverlay, planeNormal, type CutReport, type Vec3 } from "../geometry/partialCut";
 import type { CutAxis, PinMode, PinShape } from "../geometry/planeCut";
 import type { Model } from "../geometry/types";
@@ -22,10 +23,11 @@ import { useModelBuilder } from "../ui/useModelBuilder";
 import { restoreBytes, storeBytes } from "./storedFile";
 import ColorsCard from "./partialcut/ColorsCard";
 import PinIssues from "./partialcut/PinIssues";
+import SuggestCard from "./partialcut/SuggestCard";
 import CutList from "./partialcut/CutList";
 import PiecesCard from "./partialcut/PiecesCard";
 import RegionControls from "./partialcut/RegionControls";
-import { addedCut, clamp, cutForEngine, dot, freshCut, initialState, migrate, planeRange, type CutState, type Pick, type UiCut } from "./partialcut/state";
+import { addedCut, clamp, cutForEngine, dot, freshCut, isFresh, initialState, migrate, planeRange, type CutState, type Pick, type UiCut } from "./partialcut/state";
 import ToolSessionBar from "./ToolSessionBar";
 import { useToolState } from "./useToolState";
 
@@ -166,7 +168,7 @@ export default function PartialCut() {
   const valid = cuts.every((c) => inRange(c.clearance, 0, 1) && (c.size === 0 || inRange(c.size, 2, 30)));
   const { models, warnings, busy, error, view } = useModelBuilder<{ preview: Model[]; report: CutReport; pinIssues: PinIssue[] }>(async () => {
     if (!model || !bounds || !valid) return null;
-    const out = runCuts(await getManifold(), model, { cuts: cuts.map((c) => cutForEngine(c, bounds)), restColor });
+    const out = await cutAsync(model, { cuts: cuts.map((c) => cutForEngine(c, bounds)), restColor });
     return { models: out.models, warnings: out.warnings, view: { preview: out.preview, report: out.report, pinIssues: out.pinIssues } };
   }, [model, cutKey, restColor, valid]);
 
@@ -175,7 +177,7 @@ export default function PartialCut() {
   return (
     <div className="page">
       <h1>Corte parcial</h1>
-      <p className="lead">Corta só um pedaço do modelo, dentro de uma caixa.</p>
+      <p className="lead">Corta só um pedaço do modelo, dentro de uma região.</p>
       <ToolSessionBar tool={tool} />
       <div className="tool-layout">
         <div className="controls">
@@ -188,6 +190,17 @@ export default function PartialCut() {
           </div>
           {model && bounds && (
             <>
+              <SuggestCard
+                key={`${file?.name}:${file?.bytes.length}`}
+                model={model}
+                onApply={(s) =>
+                  tool.set((c) => {
+                    const cut: UiCut = { ...freshCut(bounds), axis: "z", tilt: 0, offset: s.z, region: { kind: "box", ...s.region }, pin: c.cuts[0].pin, mode: c.cuts[0].mode, size: c.cuts[0].size, clearance: c.cuts[0].clearance };
+                    const replace = c.cuts.length === 1 && isFresh(c.cuts[0], bounds);
+                    return { ...c, cuts: replace ? [cut] : [...c.cuts, cut], active: replace ? 0 : c.cuts.length };
+                  }, "suggest")
+                }
+              />
               <CutList count={cuts.length} active={active} onSelect={(i) => tool.set((c) => ({ ...c, active: i }), "active")} onAdd={() => tool.set((c) => ({ ...c, cuts: [...c.cuts, { ...addedCut(bounds), pin: c.cuts[0].pin, mode: c.cuts[0].mode, clearance: c.cuts[0].clearance }], active: c.cuts.length }), "add")} onRemove={() => tool.set((c) => ({ ...c, cuts: c.cuts.filter((_, i) => i !== active), active: Math.max(0, active - 1) }), "remove")} />
               <div className="card stack">
                 <h3>Plano de corte{cuts.length > 1 ? ` · corte ${active + 1}` : ""}</h3>
@@ -224,6 +237,14 @@ export default function PartialCut() {
                     </div>
                   </>
                 )}
+                {view && !busy && (
+                  <PinIssues
+                    issues={view.pinIssues}
+                    many={cuts.length > 1}
+                    onSmallerFixed={(i, size) => tool.set((c) => ({ ...c, cuts: c.cuts.map((x, j) => (j === i ? { ...x, mode: "fixed", size } : x)) }), `pinfix:${i}`)}
+                    onGlue={(i) => tool.set((c) => ({ ...c, cuts: c.cuts.map((x, j) => (j === i ? { ...x, pin: "none" } : x)) }), `pinnone:${i}`)}
+                  />
+                )}
               </div>
               <ColorsCard
                 cuts={cuts}
@@ -253,14 +274,6 @@ export default function PartialCut() {
             gizmo={gizmo}
             views
           />
-          {view && !busy && (
-            <PinIssues
-              issues={view.pinIssues}
-              many={cuts.length > 1}
-              onSmallerFixed={(i, size) => tool.set((c) => ({ ...c, cuts: c.cuts.map((x, j) => (j === i ? { ...x, mode: "fixed", size } : x)) }), `pinfix:${i}`)}
-              onGlue={(i) => tool.set((c) => ({ ...c, cuts: c.cuts.map((x, j) => (j === i ? { ...x, pin: "none" } : x)) }), `pinnone:${i}`)}
-            />
-          )}
           {warnings.filter((w) => !w.includes("pequena ou fina demais")).map((w) => (
             <Alert key={w} kind="warn">{w}</Alert>
           ))}
