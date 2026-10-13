@@ -1,11 +1,12 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { meshBounds, type Bounds } from "../geometry/bounds";
-import { splitIslands } from "../geometry/islands";
 import { getManifold } from "../geometry/manifold";
 import { readOwnFile } from "../geometry/ownModel";
+import { regionBox as regionBoxOf } from "../geometry/cutRegion";
 import { applyHandle, regionHandles } from "../geometry/cutHandles";
-import { centerRegionAt, regionOfKind, type Region } from "../geometry/cutRegion";
-import { DEFAULT_PARTIAL_CUT, partialCut, planeNormal, type CutReport, type PartialCutOptions, type Vec3 } from "../geometry/partialCut";
+import { fitRegionToPart } from "../geometry/cutFit";
+import { centerRegionAt, regionCenter, regionOfKind, type Region, type RegionKind } from "../geometry/cutRegion";
+import { cutOverlay, DEFAULT_PARTIAL_CUT, partialCut, planeNormal, type CutReport, type PartialCutOptions, type Vec3 } from "../geometry/partialCut";
 import type { CutAxis, PinMode, PinShape } from "../geometry/planeCut";
 import type { Model } from "../geometry/types";
 import Alert from "../ui/Alert";
@@ -40,14 +41,16 @@ const PIN_MODES: [PinMode, string][] = [
   ["loose", "Pino solto"],
   ["fixed", "Pino fixo no resto"],
 ];
-const PICKS: [Pick, string][] = [
-  ["center", "Centrar a caixa"],
-  ["island", "Caixa na parte clicada"],
-  ["plane", "Plano neste ponto"],
-];
+const picksFor = (kind: RegionKind): [Pick, string][] => {
+  const what = kind === "box" ? "a caixa" : "a região";
+  return [
+    ["center", `Centrar ${what}`],
+    ["island", kind === "box" ? "Caixa na parte clicada" : "Região na parte clicada"],
+    ["plane", "Plano neste ponto"],
+  ];
+};
 const MAX_BYTES = 200 * 1024 * 1024;
 const STEP = 0.5;
-const PAD = 1; // folga da caixa em volta da parte clicada
 const MAX_TILT = 60;
 const MAX_EXPLODE = 60;
 const mm = (n: number) => n.toFixed(1).replace(".", ",") + " mm";
@@ -62,14 +65,6 @@ const clamp = (v: number, lo: number, hi: number) => Math.min(hi, Math.max(lo, v
 function planeRange(b: Bounds, n: Vec3): [number, number] {
   const d = [0, 1, 2, 3, 4, 5, 6, 7].map((i) => dot(n, [i & 1 ? b.max[0] : b.min[0], i & 2 ? b.max[1] : b.min[1], i & 4 ? b.max[2] : b.min[2]]));
   return [Math.floor(Math.min(...d)), Math.ceil(Math.max(...d))];
-}
-
-/** Caixa em volta da parte solta mais perto do ponto (ou da que o contém). */
-function islandBox(model: Model, p: Vec3): { min: Vec3; max: Vec3 } | null {
-  const boxes = model.parts.flatMap((part) => splitIslands(part.mesh).map((m) => meshBounds([m])!));
-  const dist = (b: Bounds) => Math.hypot(...[0, 1, 2].map((a) => Math.max(b.min[a] - p[a], 0, p[a] - b.max[a])));
-  const best = boxes.sort((a, b) => dist(a) - dist(b))[0];
-  return best ? { min: best.min.map((v) => v - PAD) as Vec3, max: best.max.map((v) => v + PAD) as Vec3 } : null;
 }
 
 /**
@@ -125,16 +120,34 @@ export default function PartialCut() {
     }
   }
 
+  /** Região da forma `kind` envolvendo a parte de cima do plano mais perto de `near` (cabeça, não só o pescoço). */
+  async function fitTo(kind: RegionKind, near: Vec3) {
+    if (!model || !bounds) return;
+    try {
+      setO("region")(fitRegionToPart(await getManifold(), model, { axis: opts.axis, tilt: opts.tilt, offset, region: opts.region }, kind, near));
+    } catch {
+      setO("region")(regionOfKind(kind, opts.region ? regionBoxOf(opts.region) : { min: bounds.min, max: bounds.max })); // sem parte acima do plano: só troca a forma
+    }
+  }
+
   function onPick(hit: { point: [number, number, number] }) {
     if (!model || !opts.region) return;
     const p = hit.point;
     if (pick === "plane") return setO("offset")(dot(normal, p));
-    if (pick === "island") {
-      const box = islandBox(model, p);
-      return limit && box && setO("region")(regionOfKind(opts.region.kind, box));
-    }
+    if (pick === "island") return limit && void fitTo(opts.region.kind, p);
     setO("region")(centerRegionAt(opts.region, p));
   }
+
+  // plano e contorno da região seguem o arrasto ao vivo; o corte em si recalcula depois
+  const [overlay, setOverlay] = useState<Model[]>([]);
+  useEffect(() => {
+    if (!bounds) return;
+    let alive = true;
+    void getManifold().then((M) => alive && setOverlay(cutOverlay(M, { min: bounds.min, max: bounds.max }, { axis: opts.axis, tilt: opts.tilt, offset, region })));
+    return () => {
+      alive = false;
+    };
+  }, [bounds, opts.axis, opts.tilt, offset, region]);
 
   const gizmo = useMemo(() => {
     if (!bounds) return undefined;
@@ -158,6 +171,8 @@ export default function PartialCut() {
     const out = partialCut(await getManifold(), model, { ...opts, offset, region });
     return { models: out.models, warnings: out.warnings, view: { preview: out.preview, report: out.report } };
   }, [model, opts, offset, region, valid]);
+
+  const shown = useMemo(() => (view?.preview ? [...view.preview.filter((m) => m.name !== "Região" && m.name !== "Plano de corte"), ...overlay] : []), [view, overlay]);
 
   return (
     <div className="page">
@@ -189,10 +204,10 @@ export default function PartialCut() {
                 <Toggle label="Cortar só dentro da região (fora dela nada é cortado)" checked={limit} onChange={setLimit} />
                 {limit && opts.region && (
                   <>
-                    <RegionControls region={opts.region} bounds={bounds} onChange={setO("region")} />
+                    <RegionControls region={opts.region} bounds={bounds} onChange={setO("region")} onKind={(k) => void fitTo(k, regionCenter(opts.region!))} />
                     <div>
                       <span className="field-label">Ao clicar na prévia</span>
-                      <Segmented label="Ao clicar na prévia" value={pick} options={PICKS} onChange={setPick} full />
+                      <Segmented label="Ao clicar na prévia" value={pick} options={picksFor(opts.region?.kind ?? "box")} onChange={setPick} full />
                     </div>
                     <span className="hint">O contorno azul mostra até onde o corte vale e o ladrilho vermelho é o plano. O pedaço aparece em laranja.</span>
                   </>
@@ -222,7 +237,8 @@ export default function PartialCut() {
         </div>
         <div className="preview-col">
           <Preview3D
-            models={view?.preview ?? []}
+            models={shown}
+            quietBusy
             busy={busy}
             busyText="Cortando…"
             error={error}

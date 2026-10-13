@@ -47,6 +47,8 @@ test("corte parcial: arrastar a alça da face na vista 3D muda a região (e o sl
   await page.mouse.move(top[0], top[1]);
   await page.mouse.down();
   await page.mouse.move(top[0], top[1] - 40, { steps: 6 });
+  await page.waitForTimeout(500); // passa o debounce: o corte recalcula com a peça ainda na tela
+  await expect(page.locator(".viewer .overlay")).toHaveCount(0); // sem véu borrado, só o indicador do canto
   await page.mouse.up();
   await expect.poll(async () => page.getByLabel(/^Z até/).inputValue()).not.toBe(before);
   await idle(page);
@@ -56,6 +58,23 @@ test("corte parcial: arrastar a alça da face na vista 3D muda a região (e o sl
   await page.getByRole("group", { name: "Vista" }).getByRole("button", { name: "Cima" }).click();
   await page.waitForTimeout(1200);
   expect((await handles()).max2).not.toEqual(iso);
+});
+
+test("corte parcial: trocar para cilindro ajusta o raio à cabeça (parte + margem) e avisa se a região corta pelo lado", async ({ page }) => {
+  await openApp(page);
+  await go(page, "Corte parcial");
+  await page.locator('input[type="file"]').first().setInputFiles(STL);
+  await idle(page);
+  await set(page, /^Posição do plano/, 31);
+  await page.getByRole("button", { name: "Cilindro" }).click();
+  await expect.poll(async () => Number(await page.getByLabel(/^Raio/).inputValue())).toBeGreaterThan(9);
+  await idle(page);
+  await expect(page.getByText(/corta a peça pelo lado/)).toHaveCount(0);
+  await expect(page.getByRole("button", { name: "Centrar a região" })).toBeVisible();
+  await expect(page.getByRole("button", { name: "Região na parte clicada" })).toBeVisible();
+  await set(page, /^Raio/, 3);
+  await idle(page);
+  await expect(page.getByText(/corta a peça pelo lado.*aumente o raio/)).toBeVisible();
 });
 
 for (const width of [1280, 720]) {

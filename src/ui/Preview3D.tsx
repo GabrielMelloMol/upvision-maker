@@ -17,6 +17,8 @@ type Props = {
   gizmo?: { handles: Handle[]; onDrag: OnHandle };
   /** Botões de vista: frente, lado, cima e 3/4. */
   views?: boolean;
+  /** Recalculando sem borrar a vista: só um indicador discreto no canto (quando já há modelo na tela). */
+  quietBusy?: boolean;
 };
 
 const VIEW_BUTTONS: [ViewName, string][] = [
@@ -70,7 +72,7 @@ export const snapshotPreview = (max?: number) => {
 };
 
 /** Prévia 3D padrão de todas as ferramentas: Z para cima, mesa da impressora escolhida, girar/zoom com o mouse. */
-export default function Preview3D({ models, busy, busyText = "Gerando modelo…", error, emptyText = "A prévia aparece aqui.", onPick, gizmo, views }: Props) {
+export default function Preview3D({ models, busy, busyText = "Gerando modelo…", error, emptyText = "A prévia aparece aqui.", onPick, gizmo, views, quietBusy }: Props) {
   const host = useRef<HTMLDivElement>(null);
   const viewer = useRef<ReturnType<typeof createViewer> | null>(null);
   const down = useRef<{ x: number; y: number } | null>(null);
@@ -165,7 +167,13 @@ export default function Preview3D({ models, busy, busyText = "Gerando modelo…"
           ))}
         </div>
       )}
-      {(busy || error || models.length === 0) && (
+      {quietBusy && busy && models.length > 0 && !error && (
+        <div className="busy-chip" role="status">
+          <div className="spinner" />
+          <span>{busyText}</span>
+        </div>
+      )}
+      {((busy && !(quietBusy && models.length > 0)) || error || models.length === 0) && (
         <div className={`overlay ${busy ? "busy" : ""}`} aria-live="polite">
           <div className="inner">
             {busy ? (

@@ -19,10 +19,10 @@ const PAD = 1;
 const NAMES = ["X", "Y", "Z"];
 const mm = (n: number) => n.toFixed(1).replace(".", ",") + " mm";
 
-type Props = { region: Region; bounds: Bounds; onChange: (r: Region) => void };
+type Props = { region: Region; bounds: Bounds; onChange: (r: Region) => void; /** Troca de forma: quem chama ajusta a nova região à parte de cima do plano. */ onKind: (k: RegionKind) => void };
 
 /** Controles da região por forma: sliders de ajuste fino (a alça na vista 3D faz o ajuste grosso). */
-export default function RegionControls({ region, bounds, onChange }: Props) {
+export default function RegionControls({ region, bounds, onChange, onKind }: Props) {
   const lo = (a: number) => Math.floor(bounds.min[a]) - PAD;
   const hi = (a: number) => Math.ceil(bounds.max[a]) + PAD;
   const maxR = Math.ceil(Math.max(...[0, 1, 2].map((a) => bounds.max[a] - bounds.min[a]))) / 2 + PAD;
@@ -38,7 +38,7 @@ export default function RegionControls({ region, bounds, onChange }: Props) {
     <>
       <div>
         <span className="field-label">Forma da região</span>
-        <Segmented label="Forma da região" value={region.kind} options={KINDS} onChange={(k) => onChange(regionOfKind(k, regionBox(region)))} full />
+        <Segmented label="Forma da região" value={region.kind} options={KINDS} onChange={(k) => (k === region.kind ? undefined : k === "box" ? onChange(regionOfKind(k, regionBox(region))) : onKind(k))} full />
       </div>
       {region.kind === "box" ? (
         <div className="grid two">

@@ -201,3 +201,38 @@ describe("corte parcial: encaixe inteligente", () => {
     expect(flat.depth).toBe(8);
   });
 });
+
+describe("corte parcial: região que envolve a parte (cabeça sobre pescoço)", () => {
+  const head = (): Model => ({
+    name: "Boneco",
+    parts: [{ name: "Peça", color: "#d4d4d8", mesh: toMesh(M.Manifold.union([cube(16, 12, 28), M.Manifold.cylinder(10, 5, 5, 32).translate([8, 6, 27]), M.Manifold.sphere(9, 32).translate([8, 6, 42]), cube(20, 20, 40, 40)])) }],
+  });
+  const plane = { axis: "z" as const, tilt: 0, offset: 31, region: null };
+
+  test("cilindro e esfera ajustados à cabeça: raio = parte + margem, e a região não corta pelo lado", async () => {
+    const { fitRegionToPart } = await import("./cutFit");
+    for (const kind of ["cylinder", "sphere"] as const) {
+      const region = fitRegionToPart(M, head(), plane, kind, [8, 6, 33]);
+      if (region.kind === "box") throw new Error("forma errada");
+      expect(region.radius).toBeGreaterThan(9); // a cabeça tem raio 9
+      const r = partialCut(M, head(), { ...DEFAULT_PARTIAL_CUT, offset: 31, pin: "none", region });
+      expect(r.warnings.join(" ")).not.toMatch(/pelo lado/);
+      expect(r.report.ok).toBe(true);
+      // tudo da cabeça acima do plano saiu no pedaço: o resto não tem nada da cabeça
+      const rest = solid(r.models.find((m) => m.name.endsWith("resto"))!.parts[0].mesh);
+      expect(rest.intersect(cube(30, 30, 20, -5, -5, 31)).volume()).toBeCloseTo(0, 1);
+    }
+  });
+
+  test("caixa ajustada envolve a parte; a árvore (outra parte) não entra", async () => {
+    const { fitRegionToPart } = await import("./cutFit");
+    const region = fitRegionToPart(M, head(), plane, "box", [8, 6, 33]);
+    if (region.kind !== "box") throw new Error("forma errada");
+    expect(region.max[0]).toBeLessThan(25);
+  });
+
+  test("raio pequeno (tarugo dentro da cabeça): avisa que a região corta pelo lado", () => {
+    const r = partialCut(M, head(), { ...DEFAULT_PARTIAL_CUT, offset: 31, pin: "none", region: { kind: "cylinder", center: [8, 6, 38], radius: 7, height: 20, axis: "z" } });
+    expect(r.warnings.join(" ")).toMatch(/corta a peça pelo lado.*aumente o raio/);
+  });
+});

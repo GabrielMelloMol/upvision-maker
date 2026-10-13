@@ -60,7 +60,7 @@ export function planeNormal(axis: CutAxis, tilt: number): Vec3 {
 }
 
 /** Mundo → referencial do corte (normal vira +Z, plano em z = 0) e o caminho de volta. */
-function frames(n: Vec3, offset: number): { to: Mat4; from: Mat4 } {
+export function planeFrames(n: Vec3, offset: number): { to: Mat4; from: Mat4 } {
   const u = unit(Math.abs(n[2]) < 0.9 ? cross([0, 0, 1], n) : [1, 0, 0]);
   const v = cross(n, u);
   const to: Mat4 = [u[0], v[0], n[0], 0, u[1], v[1], n[1], 0, u[2], v[2], n[2], 0, 0, 0, -offset, 1];
@@ -73,6 +73,18 @@ const solidOf = (M: ManifoldToplevel, m: Mesh): Solid => M.Manifold.ofMesh(new M
 const asParts = (list: [Part, Solid][], k: K, z0: number): Part[] => list.map(([part, s]) => ({ ...part, mesh: toMesh(k(s.translate([0, 0, -z0]))) }));
 const minZ = (list: [Part, Solid][]) => (list.length ? Math.min(...list.map(([, s]) => s.boundingBox().min[2])) : 0);
 
+const SIDE_RATIO = 0.01; // mais de 1% da peça de cima fora da região
+
+/** A borda da região atravessa material acima do plano: uma peça de cima que a região só pega em parte (um "tarugo"). */
+function cutsSideways(k: K, all: Solid, B: Solid): boolean {
+  const top = k(all.trimByPlane([0, 0, 1], 0));
+  for (const c of top.decompose().map(k)) {
+    if (k(c.intersect(B)).isEmpty()) continue;
+    if (k(c.subtract(B)).volume() > SIDE_RATIO * c.volume()) return true;
+  }
+  return false;
+}
+
 /**
  * Corta `model` só dentro da região. `models` são os arquivos (resto, pedaço e, no pino solto, os pinos), lado a lado
  * na mesa; `preview` é o conjunto montado (pedaço em outra cor, afastado por `explode`) com a região e o plano.
@@ -80,7 +92,7 @@ const minZ = (list: [Part, Solid][]) => (list.length ? Math.min(...list.map(([, 
 export function partialCut(M: ManifoldToplevel, model: Model, o: PartialCutOptions): { models: Model[]; preview: Model[]; warnings: string[]; report: CutReport } {
   const warnings: string[] = [];
   return scoped((k) => {
-    const { to, from } = frames(planeNormal(o.axis, o.tilt), o.offset);
+    const { to, from } = planeFrames(planeNormal(o.axis, o.tilt), o.offset);
     const world = model.parts.map((p) => k(solidOf(M, p.mesh)));
     const frame = world.map((s) => k(s.transform(to)));
     const all = k(M.Manifold.union(frame));
@@ -105,14 +117,18 @@ export function partialCut(M: ManifoldToplevel, model: Model, o: PartialCutOptio
     const closed = [...pieces, ...rests].every(([, s]) => s.status() === "NoError");
     const report: CutReport = { original, sum, ok: closed && Math.abs(sum - original) <= VOLUME_TOL * original + 0.01 };
 
+    if (o.region && cutsSideways(k, all, B)) warnings.push(`A região corta a peça pelo lado (a borda dela atravessa o material acima do plano): aumente ${o.region.kind === "box" ? "a caixa" : "o raio"}.`);
+
     // encaixe na face cortada: tamanho e posição pelo círculo livre da face, escondido dentro das duas peças
     let spots: [number, number][] = [];
     let pinSize = 0, depth = 0;
     if (o.pin !== "none") {
       const plan = planPins(M, k, section, o.size);
       pinSize = plan.size;
-      const inBox = k(all.intersect(B)).boundingBox();
-      const want = Math.min(pinSize * DEPTH_FACTOR, -inBox.min[2] * 0.6, inBox.max[2] * 0.6);
+      // quanto há de material acima e abaixo do plano (o fitDepth confere que o furo cabe de fato na coluna)
+      const above = Math.max(...pieces.map(([, p]) => p.boundingBox().max[2]));
+      const below = -Math.min(...rests.map(([, r]) => r.boundingBox().min[2]), 0);
+      const want = Math.min(pinSize * DEPTH_FACTOR, below * 0.6, above * 0.6);
       const fitted = plan.spots.length && want >= 1.5 ? fitDepth(M, k, { shape: o.pin, size: pinSize, clearance: o.clearance, want }, plan.spots, k(M.Manifold.union(pieces.map(([, s]) => s))), k(M.Manifold.union(rests.map(([, s]) => s)))) : { spots: [], depth: 0 };
       spots = fitted.spots;
       depth = fitted.depth;
@@ -150,5 +166,19 @@ export function partialCut(M: ManifoldToplevel, model: Model, o: PartialCutOptio
     shown.push({ name: "Plano de corte", parts: [{ name: "Plano de corte", color: COLORS.plane, mesh: toMesh(k(slab.transform(from))) }] });
     if (o.region) shown.push({ name: "Região", parts: [{ name: "Região", color: COLORS.region, mesh: toMesh(regionOutline(M, k, o.region)) }] });
     return { models: placed, preview: shown, warnings, report };
+  });
+}
+
+/** Plano (ladrilho fino) e contorno da região, rápidos de calcular: seguem o arrasto ao vivo enquanto o corte em si espera. */
+export function cutOverlay(M: ManifoldToplevel, bounds: Box, o: Pick<PartialCutOptions, "axis" | "tilt" | "offset" | "region">): Model[] {
+  return scoped((k) => {
+    const n = planeNormal(o.axis, o.tilt);
+    const region: Region = o.region ?? { kind: "box", min: bounds.min.map((v) => v - MARGIN_MM) as Vec3, max: bounds.max.map((v) => v + MARGIN_MM) as Vec3 };
+    const B = regionSolid(M, k, region);
+    const above = k(B.trimByPlane(n, o.offset - SLAB_MM));
+    const slab = k(above.trimByPlane([-n[0], -n[1], -n[2]], -(o.offset + SLAB_MM)));
+    const out: Model[] = [{ name: "Plano de corte", parts: [{ name: "Plano de corte", color: COLORS.plane, mesh: toMesh(slab) }] }];
+    if (o.region) out.push({ name: "Região", parts: [{ name: "Região", color: COLORS.region, mesh: toMesh(regionOutline(M, k, o.region)) }] });
+    return out;
   });
 }
