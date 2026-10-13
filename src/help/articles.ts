@@ -55,6 +55,13 @@ export const ARTICLES: HelpArticle[] = [
     tips: ["Lote: cole uma lista de nomes e o app monta várias medalhas numa mesa."],
   },
   {
+    id: "stamp",
+    title: "Carimbo seco",
+    intro: "Duas placas que se fecham sobre o papel e deixam o desenho gravado em relevo, sem tinta: a de cima tem o desenho em alto-relevo; a de baixo, o mesmo desenho espelhado em cavidade, com a folga do papel.",
+    steps: ["Comece por um modelo pronto (convite de casamento, cartão de visita, embalagem, ex-libris) ou digite o texto e envie um logo (SVG, PNG ou foto).", "Escolha o formato (retângulo ou selo redondo), o tamanho e a moldura. No selo, o texto pode correr em volta, entre dois anéis.", "Escolha o papel (comum, cartão 300 g ou grosso) e o alinhamento: pinos, ímãs ou dobradiça de livro.", "Salve o 3MF: as duas placas já saem planas na mesa, sem suporte. Para carimbar, ponha o papel entre elas e aperte forte."],
+    tips: ["O espelho da placa de baixo e o deslocamento do desenho são calculados juntos: as duas metades sempre casam.", "Traços mais finos que o bico (0,4 mm) são engrossados sozinhos, com aviso.", "Pinos pedem papel menor que a placa; com ímãs ou dobradiça o papel pode ser maior. A dobradiça de filme fino pede PETG."],
+  },
+  {
     id: "extrude",
     title: "Desenho em 3D",
     intro: "Dá altura a qualquer desenho: placas, letreiros, apliques e topos.",

@@ -5,6 +5,7 @@ export const PAGE_ALIASES: Record<string, string> = {
   cutter: "cortador de biscoito bolacha massa fondant molde",
   keychain: "chaveiro nome argola lote",
   medal: "medalha troféu prêmio fita",
+  stamp: "carimbo seco relevo sem tinta selo lacre gravar papel convite casamento cartão de visita ex-libris embossing emboss",
   extrude: "extrusão relevo desenho svg peça 3d stl transformar em 3d",
   qr: "qr code pix pagamento wifi link",
   models: "modelos prontos catálogo",

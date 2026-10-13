@@ -30,6 +30,12 @@ export const LAYERED_PROFILE: PrintProfile = { walls: 3, infill: 100, support: f
 /** Cortador: a lâmina tem 2 filetes de bico 0,4; sem suporte, deitado com a borda de apoio na mesa. */
 export const CUTTER_PROFILE: PrintProfile = { ...DEFAULT_PROFILE, walls: 2, notes: ["Lâmina fina: deixe ligado \"Detectar paredes finas\" no fatiador para ela não sumir."] };
 
+/** Carimbo seco: duas placas deitadas, sem suporte; camada fina para o relevo e as paredes de 3 filetes aguentarem a prensa. */
+export const STAMP_PROFILE: PrintProfile = { layerHeight: 0.16, walls: 3, infill: 25, support: false, brim: false, notes: ["Imprima as duas placas deitadas, como estão no arquivo, sem suporte (camadas de 0,16 a 0,20 mm).", "Use PLA ou PETG. Para carimbar: papel entre as placas, relevo para o papel, e aperte forte (prensa, morsa ou o peso do corpo)."] };
+
+/** Carimbo com dobradiça: o filme de 0,4 mm é a dobradiça. PETG aguenta muitas dobras; PLA racha cedo. */
+export const STAMP_HINGE_PROFILE: PrintProfile = { ...STAMP_PROFILE, notes: [...(STAMP_PROFILE.notes ?? []), "Dobradiça de filme fino: imprima em PETG (PLA racha em poucas dobras) e dobre devagar."] };
+
 const BRIM_MM = 5;
 const r2 = (n: number) => String(Math.round(n * 100) / 100);
 
