@@ -1,18 +1,20 @@
 import type { Mat4 } from "manifold-3d";
 import { fitSetOnBed, setOnBedWarning } from "./bedLayout";
+import { fitDepth, planPins } from "./cutPins";
+import { regionOutline, regionSolid, type Box, type Region, type Vec3 } from "./cutRegion";
 import type { CS, ManifoldToplevel, Solid } from "./manifold";
 import { toMesh } from "./mesh";
-import { autoSize, DEPTH_FACTOR, EXTRA_DEPTH, pinCs, pinSpots, spread, type CutAxis, type K, type PinMode, type PinShape } from "./planeCut";
+import { EXTRA_DEPTH, DEPTH_FACTOR, pinCs, spread, type CutAxis, type K, type PinMode, type PinShape } from "./planeCut";
 import { scoped } from "./shape2d";
 import type { Mesh, Model, Part } from "./types";
 
+export type { Box, Region, Vec3 };
+
 /**
- * Corte parcial: o plano de corte só vale dentro de uma caixa. Pedaço = peça ∩ (caixa ∩ lado de cima do plano);
- * resto = peça − essa região. Fora da caixa nada é cortado (o outro personagem, a árvore ao lado). Trabalha num
- * referencial em que o plano é z = 0 e a normal aponta para cima: o pedaço já sai com a face cortada na mesa.
+ * Corte parcial: o plano de corte só vale dentro de uma região (caixa, cilindro ou esfera). Pedaço = peça ∩ (região ∩
+ * lado de cima do plano); resto = peça − essa região. Fora da região nada é cortado (o outro personagem, a árvore ao
+ * lado). Trabalha num referencial em que o plano é z = 0 e a normal aponta para cima: o pedaço já sai com a face cortada na mesa.
  */
-export type Vec3 = [number, number, number];
-export type Box = { min: Vec3; max: Vec3 };
 export type PartialCutOptions = {
   axis: CutAxis;
   /** Inclinação do plano em graus, em torno de um eixo horizontal (0 = plano reto). */
@@ -20,7 +22,7 @@ export type PartialCutOptions = {
   /** Distância do plano à origem, em mm, ao longo da normal. */
   offset: number;
   /** Onde o corte vale, em mm no sistema do modelo. `null` = a peça toda. */
-  box: Box | null;
+  region: Region | null;
   pin: PinShape;
   mode: PinMode;
   size: number; // 0 = automático
@@ -28,7 +30,7 @@ export type PartialCutOptions = {
   /** Só na prévia: quanto o pedaço se afasta do plano, em mm. */
   explode: number;
 };
-export const DEFAULT_PARTIAL_CUT: PartialCutOptions = { axis: "z", tilt: 0, offset: 0, box: null, pin: "round", mode: "loose", size: 0, clearance: 0.2, explode: 0 };
+export const DEFAULT_PARTIAL_CUT: PartialCutOptions = { axis: "z", tilt: 0, offset: 0, region: null, pin: "round", mode: "loose", size: 0, clearance: 0.2, explode: 0 };
 
 export type CutReport = {
   original: number; // mm³
@@ -37,7 +39,6 @@ export type CutReport = {
   ok: boolean;
 };
 
-const OUTLINE_MM = 0.6;
 const SLAB_MM = 0.2; // meia espessura do ladrilho que mostra o plano
 const MARGIN_MM = 1;
 const VOLUME_TOL = 1e-3;
@@ -69,34 +70,11 @@ function frames(n: Vec3, offset: number): { to: Mat4; from: Mat4 } {
 
 const solidOf = (M: ManifoldToplevel, m: Mesh): Solid => M.Manifold.ofMesh(new M.Mesh({ numProp: 3, vertProperties: m.positions, triVerts: m.indices }));
 
-/** Contorno da caixa: 12 barras finas sobre as arestas (a prévia não tem fio, só malha). */
-function outline(M: ManifoldToplevel, k: K, box: Box): Solid {
-  const [lo, hi] = [box.min, box.max];
-  const t = OUTLINE_MM;
-  const bars: Solid[] = [];
-  for (let axis = 0; axis < 3; axis++) {
-    const len = hi[axis] - lo[axis] + t;
-    for (const a of [lo, hi]) {
-      for (const b of [lo, hi]) {
-        const size: Vec3 = [t, t, t];
-        const at: Vec3 = [0, 0, 0];
-        const [i, j] = [(axis + 1) % 3, (axis + 2) % 3];
-        size[axis] = len;
-        at[axis] = lo[axis] - t / 2;
-        at[i] = a[i] - t / 2;
-        at[j] = b[j] - t / 2;
-        bars.push(k(k(M.Manifold.cube(size, false)).translate(at)));
-      }
-    }
-  }
-  return k(M.Manifold.union(bars));
-}
-
 const asParts = (list: [Part, Solid][], k: K, z0: number): Part[] => list.map(([part, s]) => ({ ...part, mesh: toMesh(k(s.translate([0, 0, -z0]))) }));
 const minZ = (list: [Part, Solid][]) => (list.length ? Math.min(...list.map(([, s]) => s.boundingBox().min[2])) : 0);
 
 /**
- * Corta `model` só dentro da caixa. `models` são os arquivos (resto, pedaço e, no pino solto, os pinos), lado a lado
+ * Corta `model` só dentro da região. `models` são os arquivos (resto, pedaço e, no pino solto, os pinos), lado a lado
  * na mesa; `preview` é o conjunto montado (pedaço em outra cor, afastado por `explode`) com a região e o plano.
  */
 export function partialCut(M: ManifoldToplevel, model: Model, o: PartialCutOptions): { models: Model[]; preview: Model[]; warnings: string[]; report: CutReport } {
@@ -107,40 +85,43 @@ export function partialCut(M: ManifoldToplevel, model: Model, o: PartialCutOptio
     const frame = world.map((s) => k(s.transform(to)));
     const all = k(M.Manifold.union(frame));
     const wb = k(M.Manifold.union(world)).boundingBox();
-    const box: Box = o.box ?? { min: wb.min.map((v) => v - MARGIN_MM) as Vec3, max: wb.max.map((v) => v + MARGIN_MM) as Vec3 };
-    const size: Vec3 = [box.max[0] - box.min[0], box.max[1] - box.min[1], box.max[2] - box.min[2]];
-    const B = k(k(k(M.Manifold.cube(size, false)).translate(box.min)).transform(to));
-    const region = k(B.trimByPlane([0, 0, 1], 0)); // a caixa do lado de cima do plano
+    const region: Region = o.region ?? { kind: "box", min: wb.min.map((v) => v - MARGIN_MM) as Vec3, max: wb.max.map((v) => v + MARGIN_MM) as Vec3 };
+    const B = k(regionSolid(M, k, region).transform(to));
+    const upper = k(B.trimByPlane([0, 0, 1], 0)); // a região do lado de cima do plano
     const section = k(k(all.intersect(B)).slice(0));
-    if (section.isEmpty()) throw new Error("O plano de corte não passa pela peça dentro da caixa.");
+    if (section.isEmpty()) throw new Error("O plano de corte não passa pela peça dentro da região.");
 
     const pieces: [Part, Solid][] = [];
     const rests: [Part, Solid][] = [];
     let original = 0, sum = 0;
     model.parts.forEach((part, i) => {
-      const [piece, rest] = [k(frame[i].intersect(region)), k(frame[i].subtract(region))];
+      const [piece, rest] = [k(frame[i].intersect(upper)), k(frame[i].subtract(upper))];
       original += frame[i].volume();
       sum += piece.volume() + rest.volume();
       if (!piece.isEmpty()) pieces.push([part, piece]);
       if (!rest.isEmpty()) rests.push([part, rest]);
     });
-    if (!pieces.length) throw new Error("O plano de corte não passa pela peça dentro da caixa.");
+    if (!pieces.length) throw new Error("O plano de corte não passa pela peça dentro da região.");
     const closed = [...pieces, ...rests].every(([, s]) => s.status() === "NoError");
     const report: CutReport = { original, sum, ok: closed && Math.abs(sum - original) <= VOLUME_TOL * original + 0.01 };
 
-    // encaixe na face cortada
-    const pinSize = o.size > 0 ? o.size : autoSize(k, section);
-    const spots = o.pin === "none" ? [] : pinSpots(M, section, pinSize);
-    const inBox = k(all.intersect(B)).boundingBox();
-    const depth = Math.max(1, Math.min(pinSize * DEPTH_FACTOR, -inBox.min[2] * 0.6, inBox.max[2] * 0.6));
-    if (o.pin !== "none" && (!spots.length || depth < 1.5)) {
-      warnings.push(`O corte de "${model.name}" é fino demais para pino de ${pinSize.toFixed(1).replace(".", ",")} mm: saiu sem encaixe.`);
-      spots.length = 0;
+    // encaixe na face cortada: tamanho e posição pelo círculo livre da face, escondido dentro das duas peças
+    let spots: [number, number][] = [];
+    let pinSize = 0, depth = 0;
+    if (o.pin !== "none") {
+      const plan = planPins(M, k, section, o.size);
+      pinSize = plan.size;
+      const inBox = k(all.intersect(B)).boundingBox();
+      const want = Math.min(pinSize * DEPTH_FACTOR, -inBox.min[2] * 0.6, inBox.max[2] * 0.6);
+      const fitted = plan.spots.length && want >= 1.5 ? fitDepth(M, k, { shape: o.pin, size: pinSize, clearance: o.clearance, want }, plan.spots, k(M.Manifold.union(pieces.map(([, s]) => s))), k(M.Manifold.union(rests.map(([, s]) => s)))) : { spots: [], depth: 0 };
+      spots = fitted.spots;
+      depth = fitted.depth;
+      if (!spots.length) warnings.push(`A face do corte de "${model.name}" é pequena ou fina demais para um pino escondido nas duas peças: saiu sem encaixe.`);
     }
     const pin2d: CS | null = spots.length ? k(M.CrossSection.union(spots.map((p) => k(k(pinCs(M, o.pin, pinSize)).translate(p))))) : null;
     const hole2d: CS | null = spots.length ? k(M.CrossSection.union(spots.map((p) => k(k(k(pinCs(M, o.pin, pinSize)).offset(o.clearance, "Miter")).translate(p))))) : null;
     if (hole2d && pin2d) {
-      const holeUp = k(k(hole2d.extrude(depth + EXTRA_DEPTH)).translate([0, 0, 0]));
+      const holeUp = k(hole2d.extrude(depth + EXTRA_DEPTH));
       const holeDown = k(k(hole2d.extrude(depth + EXTRA_DEPTH)).translate([0, 0, -depth - EXTRA_DEPTH]));
       pieces.forEach((e, i) => (pieces[i] = [e[0], k(e[1].subtract(holeUp))]));
       if (o.mode === "loose") rests.forEach((e, i) => (rests[i] = [e[0], k(e[1].subtract(holeDown))]));
@@ -167,7 +148,7 @@ export function partialCut(M: ManifoldToplevel, model: Model, o: PartialCutOptio
     const shown: Model[] = [{ name: "Resto", parts: asParts(restWorld, k, 0) }, { name: "Pedaço", parts: lifted }];
     const slab = k(k(B.trimByPlane([0, 0, 1], -SLAB_MM)).trimByPlane([0, 0, -1], -SLAB_MM));
     shown.push({ name: "Plano de corte", parts: [{ name: "Plano de corte", color: COLORS.plane, mesh: toMesh(k(slab.transform(from))) }] });
-    if (o.box) shown.push({ name: "Região", parts: [{ name: "Região", color: COLORS.region, mesh: toMesh(outline(M, k, box)) }] });
+    if (o.region) shown.push({ name: "Região", parts: [{ name: "Região", color: COLORS.region, mesh: toMesh(regionOutline(M, k, o.region)) }] });
     return { models: placed, preview: shown, warnings, report };
   });
 }

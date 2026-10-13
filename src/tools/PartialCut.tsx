@@ -3,7 +3,8 @@ import { meshBounds, type Bounds } from "../geometry/bounds";
 import { splitIslands } from "../geometry/islands";
 import { getManifold } from "../geometry/manifold";
 import { readOwnFile } from "../geometry/ownModel";
-import { DEFAULT_PARTIAL_CUT, partialCut, planeNormal, type Box, type CutReport, type PartialCutOptions, type Vec3 } from "../geometry/partialCut";
+import { centerRegionAt, regionOfKind, type Region } from "../geometry/cutRegion";
+import { DEFAULT_PARTIAL_CUT, partialCut, planeNormal, type CutReport, type PartialCutOptions, type Vec3 } from "../geometry/partialCut";
 import type { CutAxis, PinMode, PinShape } from "../geometry/planeCut";
 import type { Model } from "../geometry/types";
 import Alert from "../ui/Alert";
@@ -17,6 +18,7 @@ import Toggle from "../ui/Toggle";
 import { errorText } from "../ui/Toast";
 import { useModelBuilder } from "../ui/useModelBuilder";
 import { restoreBytes, storeBytes } from "./storedFile";
+import RegionControls from "./partialcut/RegionControls";
 import ToolSessionBar from "./ToolSessionBar";
 import { useToolState } from "./useToolState";
 
@@ -62,7 +64,7 @@ function planeRange(b: Bounds, n: Vec3): [number, number] {
 }
 
 /** Caixa em volta da parte solta mais perto do ponto (ou da que o contém). */
-function islandBox(model: Model, p: Vec3): Box | null {
+function islandBox(model: Model, p: Vec3): { min: Vec3; max: Vec3 } | null {
   const boxes = model.parts.flatMap((part) => splitIslands(part.mesh).map((m) => meshBounds([m])!));
   const dist = (b: Bounds) => Math.hypot(...[0, 1, 2].map((a) => Math.max(b.min[a] - p[a], 0, p[a] - b.max[a])));
   const best = boxes.sort((a, b) => dist(a) - dist(b))[0];
@@ -80,7 +82,9 @@ export default function PartialCut() {
     load: (raw) => {
       const r = raw as Omit<CutState, "file"> & { file: { name: string; bytes: string | null } | null };
       const bytes = restoreBytes(r.file?.bytes);
-      return { ...initialState(), ...r, file: r.file && bytes ? { name: r.file.name, bytes } : null };
+      const old = (r.opts as { box?: { min: Vec3; max: Vec3 } }).box; // projetos da 1ª versão guardavam só a caixa
+      const opts = old && !r.opts.region ? { ...r.opts, region: { kind: "box" as const, ...old } } : r.opts;
+      return { ...initialState(), ...r, opts, file: r.file && bytes ? { name: r.file.name, bytes } : null };
     },
   });
   const { file, opts, limit, pick } = tool.state;
@@ -104,7 +108,7 @@ export default function PartialCut() {
   const normal = planeNormal(opts.axis, opts.tilt);
   const [lo, hi] = bounds ? planeRange(bounds, normal) : [0, 1];
   const offset = clamp(opts.offset, lo, hi);
-  const box: Box | null = limit ? opts.box : null;
+  const region: Region | null = limit ? opts.region : null;
 
   async function onFile(f: File) {
     setFileError(null);
@@ -114,34 +118,30 @@ export default function PartialCut() {
     try {
       const b = meshBounds(readOwnFile(bytes, f.name).parts.map((p) => p.mesh))!;
       const [l, h] = planeRange(b, planeNormal("z", 0));
-      tool.set((cur) => ({ ...cur, file: { name: f.name, bytes }, opts: { ...cur.opts, axis: "z", tilt: 0, offset: (l + h) / 2, box: { min: b.min, max: b.max } } }), "file");
+      tool.set((cur) => ({ ...cur, file: { name: f.name, bytes }, opts: { ...cur.opts, axis: "z", tilt: 0, offset: (l + h) / 2, region: regionOfKind(cur.opts.region?.kind ?? "box", { min: b.min, max: b.max }) } }), "file");
     } catch (e) {
       setFileError(errorText(e));
     }
   }
 
   function onPick(hit: { point: [number, number, number] }) {
-    if (!model || !opts.box) return;
+    if (!model || !opts.region) return;
     const p = hit.point;
     if (pick === "plane") return setO("offset")(dot(normal, p));
-    if (pick === "island") return limit && setO("box")(islandBox(model, p));
-    const size = [0, 1, 2].map((a) => opts.box!.max[a] - opts.box!.min[a]);
-    setO("box")({ min: p.map((v, a) => v - size[a] / 2) as Vec3, max: p.map((v, a) => v + size[a] / 2) as Vec3 });
+    if (pick === "island") {
+      const box = islandBox(model, p);
+      return limit && box && setO("region")(regionOfKind(opts.region.kind, box));
+    }
+    setO("region")(centerRegionAt(opts.region, p));
   }
-
-  const setEdge = (side: "min" | "max", a: number) => (v: number) => {
-    const cur = opts.box!;
-    setO("box")(side === "min" ? { ...cur, min: cur.min.map((x, i) => (i === a ? Math.min(v, cur.max[a] - STEP) : x)) as Vec3 } : { ...cur, max: cur.max.map((x, i) => (i === a ? Math.max(v, cur.min[a] + STEP) : x)) as Vec3 });
-  };
 
   const valid = inRange(opts.clearance, 0, 1) && (opts.size === 0 || inRange(opts.size, 2, 30));
   const { models, warnings, busy, error, view } = useModelBuilder<{ preview: Model[]; report: CutReport }>(async () => {
     if (!model || !valid) return null;
-    const out = partialCut(await getManifold(), model, { ...opts, offset, box });
+    const out = partialCut(await getManifold(), model, { ...opts, offset, region });
     return { models: out.models, warnings: out.warnings, view: { preview: out.preview, report: out.report } };
-  }, [model, opts, offset, box, valid]);
+  }, [model, opts, offset, region, valid]);
 
-  const axisName = ["X", "Y", "Z"];
   return (
     <div className="page">
       <h1>Corte parcial</h1>
@@ -169,20 +169,15 @@ export default function PartialCut() {
               </div>
               <div className="card stack">
                 <h3>Região do corte</h3>
-                <Toggle label="Cortar só dentro da caixa (fora dela nada é cortado)" checked={limit} onChange={setLimit} />
-                {limit && opts.box && (
+                <Toggle label="Cortar só dentro da região (fora dela nada é cortado)" checked={limit} onChange={setLimit} />
+                {limit && opts.region && (
                   <>
-                    <div className="grid two">
-                      {[0, 1, 2].flatMap((a) => [
-                        <Slider key={`${a}min`} label={`${axisName[a]} de`} min={Math.floor(bounds.min[a]) - PAD} max={Math.ceil(bounds.max[a]) + PAD} step={STEP} value={opts.box!.min[a]} display={mm} onChange={setEdge("min", a)} />,
-                        <Slider key={`${a}max`} label={`${axisName[a]} até`} min={Math.floor(bounds.min[a]) - PAD} max={Math.ceil(bounds.max[a]) + PAD} step={STEP} value={opts.box!.max[a]} display={mm} onChange={setEdge("max", a)} />,
-                      ])}
-                    </div>
+                    <RegionControls region={opts.region} bounds={bounds} onChange={setO("region")} />
                     <div>
                       <span className="field-label">Ao clicar na prévia</span>
                       <Segmented label="Ao clicar na prévia" value={pick} options={PICKS} onChange={setPick} full />
                     </div>
-                    <span className="hint">A caixa azul mostra até onde o corte vale e o ladrilho vermelho é o plano. O pedaço aparece em laranja.</span>
+                    <span className="hint">O contorno azul mostra até onde o corte vale e o ladrilho vermelho é o plano. O pedaço aparece em laranja.</span>
                   </>
                 )}
               </div>
@@ -215,7 +210,7 @@ export default function PartialCut() {
             busyText="Cortando…"
             error={error}
             emptyText={!valid ? "Corrija os campos em vermelho." : "Envie um STL ou 3MF para cortar."}
-            onPick={model && opts.box ? onPick : undefined}
+            onPick={model && opts.region ? onPick : undefined}
           />
           {warnings.map((w) => (
             <Alert key={w} kind="warn">{w}</Alert>

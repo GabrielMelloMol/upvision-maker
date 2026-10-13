@@ -2221,6 +2221,34 @@
   "plates": 1
  },
  {
+  "key": "partialcut:cilindro",
+  "owner": "Forja",
+  "group": "tools",
+  "label": "Corte parcial (ferramenta)",
+  "variant": "cilindro",
+  "status": "ok",
+  "reasons": [],
+  "date": "2026-10-13",
+  "slicers": "Bambu ✓ · Orca ✓",
+  "minutes": 36,
+  "grams": 17.2,
+  "plates": 1
+ },
+ {
+  "key": "partialcut:esfera",
+  "owner": "Forja",
+  "group": "tools",
+  "label": "Corte parcial (ferramenta)",
+  "variant": "esfera",
+  "status": "ok",
+  "reasons": [],
+  "date": "2026-10-13",
+  "slicers": "Bambu ✓ · Orca ✓",
+  "minutes": 36,
+  "grams": 17.7,
+  "plates": 1
+ },
+ {
   "key": "partialcut:inclinado",
   "owner": "Forja",
   "group": "tools",
@@ -2230,8 +2258,8 @@
   "reasons": [],
   "date": "2026-10-13",
   "slicers": "Bambu ✓ · Orca ✓",
-  "minutes": 34,
-  "grams": 17.1,
+  "minutes": 36,
+  "grams": 17.8,
   "plates": 1
  },
  {
@@ -2244,8 +2272,8 @@
   "reasons": [],
   "date": "2026-10-13",
   "slicers": "Bambu ✓ · Orca ✓",
-  "minutes": 33,
-  "grams": 16.5,
+  "minutes": 34,
+  "grams": 17.1,
   "plates": 1
  },
  {
@@ -2259,7 +2287,7 @@
   "date": "2026-10-13",
   "slicers": "Bambu ✓ · Orca ✓",
   "minutes": 37,
-  "grams": 13.1,
+  "grams": 13.3,
   "plates": 1
  },
  {
@@ -2273,7 +2301,7 @@
   "date": "2026-10-13",
   "slicers": "Bambu ✓ · Orca ✓",
   "minutes": 32,
-  "grams": 16.1,
+  "grams": 16.5,
   "plates": 1
  },
  {

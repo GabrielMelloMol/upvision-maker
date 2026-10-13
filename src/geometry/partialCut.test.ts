@@ -1,5 +1,8 @@
 import { beforeAll, describe, expect, test } from "vitest";
 import { meshBounds } from "./bounds";
+import { fitDepth } from "./cutPins";
+import { regionOfKind, regionBox, type Region } from "./cutRegion";
+import { splitIslands } from "./islands";
 import { getManifold, type ManifoldToplevel, type Solid } from "./manifold";
 import { toMesh } from "./mesh";
 import { DEFAULT_PARTIAL_CUT, planeNormal, partialCut, type PartialCutOptions } from "./partialCut";
@@ -20,7 +23,7 @@ function scene(): Model {
 const BLOCK = 20 * 20 * 40;
 const bounds = (m: Model) => meshBounds(m.parts.map((p) => p.mesh))!;
 /** Só a região do personagem, dos 20 mm para cima. */
-const HEAD: PartialCutOptions = { ...DEFAULT_PARTIAL_CUT, offset: 30, pin: "none", box: { min: [-5, -5, 20], max: [25, 25, 50] } };
+const HEAD: PartialCutOptions = { ...DEFAULT_PARTIAL_CUT, offset: 30, pin: "none", region: { kind: "box", min: [-5, -5, 20], max: [25, 25, 50] } };
 
 describe("corte parcial: só dentro da caixa (#cortes)", () => {
   test("personagem + árvore: corta só o topo de um bloco e a árvore fica intacta", () => {
@@ -63,18 +66,18 @@ describe("corte parcial: só dentro da caixa (#cortes)", () => {
   });
 
   test("caixa que não toca a peça ou plano fora da caixa: erro claro", () => {
-    expect(() => partialCut(M, scene(), { ...HEAD, box: { min: [100, 100, 20], max: [120, 120, 50] } })).toThrow(/não passa/);
+    expect(() => partialCut(M, scene(), { ...HEAD, region: { kind: "box", min: [100, 100, 20], max: [120, 120, 50] } })).toThrow(/não passa/);
     expect(() => partialCut(M, scene(), { ...HEAD, offset: 55 })).toThrow(/não passa/);
   });
 
   test("sem caixa o corte vale na peça inteira (como o plano do fatiador)", () => {
-    const r = partialCut(M, scene(), { ...HEAD, box: null });
+    const r = partialCut(M, scene(), { ...HEAD, region: null });
     const piece = r.models.find((m) => m.name.endsWith("pedaço"))!;
     expect(modelVolume(piece)).toBeCloseTo(2 * 20 * 20 * 10, 1);
   });
 
   test("plano inclinado a 45°: soma igual ao original e o pedaço deita na face cortada", () => {
-    const o: PartialCutOptions = { ...HEAD, tilt: 45, offset: 30 * Math.cos(Math.PI / 4) + 10 * Math.sin(Math.PI / 4), box: { min: [-5, -5, 0], max: [25, 25, 50] } };
+    const o: PartialCutOptions = { ...HEAD, tilt: 45, offset: 30 * Math.cos(Math.PI / 4) + 10 * Math.sin(Math.PI / 4), region: { kind: "box", min: [-5, -5, 0], max: [25, 25, 50] } };
     const r = partialCut(M, scene(), o);
     expect(r.report.sum).toBeCloseTo(r.report.original, 1);
     expect(r.report.ok).toBe(true);
@@ -120,6 +123,81 @@ describe("corte parcial: encaixe na face cortada", () => {
   test("corte fino demais para o pino: sai sem encaixe e avisa", () => {
     const r = partialCut(M, scene(), { ...PINS, size: 18 });
     expect(r.models).toHaveLength(2);
-    expect(r.warnings.join(" ")).toMatch(/fino demais/);
+    expect(r.warnings.join(" ")).toMatch(/pequena ou fina demais/);
+  });
+});
+
+describe("corte parcial: região em cilindro e esfera", () => {
+  const cut = (region: Region, extra: Partial<PartialCutOptions> = {}) => partialCut(M, scene(), { ...DEFAULT_PARTIAL_CUT, offset: 30, pin: "none", region, ...extra });
+  const pieceOf = (r: ReturnType<typeof partialCut>) => r.models.find((m) => m.name.endsWith("pedaço"))!;
+  const restOf = (r: ReturnType<typeof partialCut>) => r.models.find((m) => m.name.endsWith("resto"))!;
+  const tree = (m: Model) => solid(m.parts[0].mesh).intersect(cube(20, 20, 40, 40)).volume();
+
+  test("cilindro em volta do pescoço: só o que está dentro do raio sai, a árvore fica intacta", () => {
+    const r = cut({ kind: "cylinder", center: [10, 10, 35], radius: 8, height: 30, axis: "z" });
+    const disc = Math.PI * 64 * 0.9966; // 48 lados
+    expect(modelVolume(pieceOf(r))).toBeCloseTo(disc * 10, -1);
+    expect(tree(restOf(r))).toBeCloseTo(BLOCK, 1);
+    expect(r.report.ok).toBe(true);
+  });
+
+  test("cilindro deitado (eixo X) vale na altura e na largura dele", () => {
+    const r = cut({ kind: "cylinder", center: [10, 10, 35], radius: 6, height: 40, axis: "x" }, { offset: 32 });
+    expect(modelVolume(pieceOf(r))).toBeGreaterThan(100);
+    expect(r.report.ok).toBe(true);
+    expect(tree(restOf(r))).toBeCloseTo(BLOCK, 1);
+  });
+
+  test("esfera: pega só a calota de cima e mantém a árvore", () => {
+    const r = cut({ kind: "sphere", center: [10, 10, 33], radius: 6 });
+    const v = modelVolume(pieceOf(r));
+    expect(v).toBeGreaterThan(100);
+    expect(v).toBeLessThan((4 / 3) * Math.PI * 216);
+    expect(r.report.ok).toBe(true);
+    expect(tree(restOf(r))).toBeCloseTo(BLOCK, 1);
+  });
+
+  test("a prévia mostra o contorno de cada forma", () => {
+    for (const region of [regionOfKind("cylinder", { min: [0, 0, 20], max: [20, 20, 40] }), regionOfKind("sphere", { min: [0, 0, 20], max: [20, 20, 40] })]) {
+      const r = cut(region);
+      expect(r.preview.map((m) => m.name)).toContain("Região");
+    }
+  });
+
+  test("regionBox e regionOfKind: trocar de forma mantém o lugar", () => {
+    const b = { min: [0, 0, 20], max: [20, 20, 40] } as { min: [number, number, number]; max: [number, number, number] };
+    expect(regionBox(regionOfKind("cylinder", b))).toEqual({ min: [0, 0, 20], max: [20, 20, 40] });
+    expect(regionBox({ kind: "sphere", center: [5, 5, 5], radius: 2 }).max).toEqual([7, 7, 7]);
+  });
+});
+
+describe("corte parcial: encaixe inteligente", () => {
+  const slab = (w: number, d: number, h: number): Model => ({ name: "Peça", parts: [{ name: "Peça", color: "#d4d4d8", mesh: toMesh(cube(w, d, h)) }] });
+  const pinsOf = (m: Model[]) => m.find((x) => x.name.endsWith("pinos"));
+
+  test("o tamanho vem do maior círculo da face: face de 20 mm leva pino de 12 mm (o máximo)", () => {
+    const r = partialCut(M, slab(20, 20, 40), { ...DEFAULT_PARTIAL_CUT, offset: 20 });
+    const b = meshBounds(pinsOf(r.models)!.parts.map((p) => p.mesh))!;
+    expect(b.max[0] - b.min[0]).toBeCloseTo(12, 0);
+  });
+
+  test("face pequena demais: sem pino e com aviso", () => {
+    const r = partialCut(M, slab(5, 5, 40), { ...DEFAULT_PARTIAL_CUT, offset: 20 });
+    expect(pinsOf(r.models)).toBeUndefined();
+    expect(r.warnings.join(" ")).toMatch(/pequena ou fina demais/);
+  });
+
+  test("face comprida ganha mais de um pino, todos dentro da face", () => {
+    const r = partialCut(M, slab(70, 12, 30), { ...DEFAULT_PARTIAL_CUT, offset: 15 });
+    expect(splitIslands(pinsOf(r.models)!.parts[0].mesh).length).toBeGreaterThanOrEqual(2);
+  });
+
+  test("o furo nunca passa da parede: numa ponta que afina, o pino fica mais curto", () => {
+    const above = M.Manifold.cylinder(10, 5, 0.5, 32);
+    const below = M.Manifold.cylinder(10, 5, 5, 32).translate([0, 0, -10]);
+    const out = fitDepth(M, (o) => o, { shape: "round", size: 4, clearance: 0.2, want: 8 }, [[0, 0]], above, below);
+    expect(out.depth).toBeLessThan(8);
+    const flat = fitDepth(M, (o) => o, { shape: "round", size: 4, clearance: 0.2, want: 8 }, [[0, 0]], M.Manifold.cylinder(10, 5, 5, 32), below);
+    expect(flat.depth).toBe(8);
   });
 });

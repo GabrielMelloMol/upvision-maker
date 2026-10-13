@@ -51,10 +51,20 @@ describe("Corte parcial", { timeout: 60_000 }, () => {
     const { container } = renderWithApp(<PartialCut />);
     const user = await open(container);
     await screen.findByLabelText(/^Posição do plano/);
-    await user.click(screen.getByRole("switch", { name: /Cortar só dentro da caixa/ }));
+    await user.click(screen.getByRole("switch", { name: /Cortar só dentro da região/ }));
     await waitFor(() => expect(screen.queryByLabelText(/^X de/)).toBeNull());
     await waitFor(() => expect(legend(container)).toContain("Pedaço 1"), BUILD);
     await user.click(await screen.findByRole("button", { name: /Salvar 3MF/ }));
     await waitFor(() => expect(t.files.has("/saida/caixa-corte.3mf")).toBe(true), BUILD);
+  }, 40_000);
+
+  test("trocar a forma da região para cilindro mostra o raio e o comprimento e o contorno continua na prévia", async () => {
+    const { container } = renderWithApp(<PartialCut />);
+    const user = await open(container);
+    await user.click(await screen.findByRole("button", { name: "Cilindro" }));
+    expect(await screen.findByLabelText(/^Raio/)).toBeInTheDocument();
+    expect(screen.getByLabelText(/^Comprimento do cilindro/)).toBeInTheDocument();
+    expect(screen.queryByLabelText(/^X de/)).toBeNull();
+    await waitFor(() => expect(legend(container)).toContain("Região"), BUILD);
   }, 40_000);
 });

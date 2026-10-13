@@ -201,7 +201,7 @@ export function toolCases(M: ManifoldToplevel): QaCase[] {
   // corte parcial: "personagem + árvore" (dois blocos separados), corta só o topo do primeiro
   const partial = (patch: Partial<PartialCutOptions>): Out => {
     const scene: Model = { name: "Cena", parts: [{ name: "Peça", color: "#d4d4d8", mesh: toMesh(M.Manifold.union([M.Manifold.cube([20, 20, 40]), M.Manifold.cube([20, 20, 40]).translate([40, 0, 0])])) }] };
-    const o = partialCut(M, scene, { ...DEFAULT_PARTIAL_CUT, offset: 30, box: { min: [-5, -5, 20], max: [25, 25, 50] }, ...patch });
+    const o = partialCut(M, scene, { ...DEFAULT_PARTIAL_CUT, offset: 30, region: { kind: "box", min: [-5, -5, 20], max: [25, 25, 50] }, ...patch });
     return { models: o.models, warnings: o.warnings };
   };
 
@@ -209,11 +209,13 @@ export function toolCases(M: ManifoldToplevel): QaCase[] {
     ...cases("partialcut", "Corte parcial", [
       ["padrão", () => partial({})],
       ["pino fixo", () => partial({ mode: "fixed", pin: "square" })],
-      ["inclinado", () => partial({ tilt: 30, offset: 28, box: { min: [-5, -5, 0], max: [25, 25, 50] } })],
+      ["inclinado", () => partial({ tilt: 30, offset: 28, region: { kind: "box", min: [-5, -5, 0], max: [25, 25, 50] } })],
       ["sem encaixe", () => partial({ pin: "none" })],
+      ["cilindro", () => partial({ region: { kind: "cylinder", center: [10, 10, 35], radius: 12, height: 30, axis: "z" } })],
+      ["esfera", () => partial({ region: { kind: "sphere", center: [10, 10, 33], radius: 9 } })],
       ["personagem e árvore", (): Out => {
         const model = readOwnFile(new Uint8Array(readFileSync(CHARACTER)), "personagem-arvore.stl");
-        const o = partialCut(M, model, { ...DEFAULT_PARTIAL_CUT, offset: 31, box: { min: [-4, -9, 24], max: [20, 21, 60] } });
+        const o = partialCut(M, model, { ...DEFAULT_PARTIAL_CUT, offset: 31, region: { kind: "box", min: [-4, -9, 24], max: [20, 21, 60] } });
         return { models: o.models, warnings: o.warnings };
       }],
     ]),
