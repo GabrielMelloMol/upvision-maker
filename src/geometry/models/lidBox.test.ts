@@ -101,3 +101,30 @@ describe("Vista de cima da caixa com tampa", () => {
       expect(el.box[3]).toBeLessThanOrEqual(face.bounds.max[1]);
     });
 });
+
+describe("texto da tampa de encaixe (impressa de cabeça para baixo)", () => {
+  /** "L": haste em cima à esquerda, pé embaixo à direita; só lido certo se a haste ficar à esquerda com a caixa fechada. */
+  const letterL = (h: number) => M.CrossSection.ofPolygons([[[-h / 2, -h / 2], [h / 2, -h / 2], [h / 2, -h / 2 + h * 0.25], [-h / 2 + h * 0.25, -h / 2 + h * 0.25], [-h / 2 + h * 0.25, h / 2], [-h / 2, h / 2]]]);
+  const meanX = (m: { positions: Float32Array }, upper: boolean, y0: number) => {
+    const xs: number[] = [];
+    for (let i = 0; i < m.positions.length; i += 3) if (m.positions[i + 1] > y0 === upper) xs.push(m.positions[i]);
+    return xs.reduce((a, b) => a + b, 0) / xs.length;
+  };
+  test("na mesa a haste do L fica à direita (espelhado); fechada, volta para a esquerda: o 3MF sai com o texto certo", () => {
+    const out = buildLidBox({ M, art: null, text: (_s, h) => letterL(h) }, { ...D, lid: "snap", text: "L", textMode: "inlay" });
+    const mesh = out.models.find((m) => m.name === "Tampa")!.parts.find((x) => x.name === "Texto")!.mesh;
+    const b = meshBounds([mesh])!;
+    const y0 = (b.min[1] + b.max[1]) / 2;
+    const cx = (b.min[0] + b.max[0]) / 2;
+    expect(meanX(mesh, true, y0) - cx).toBeGreaterThan(0); // impressa: haste à direita
+    expect(-(meanX(mesh, true, y0) - cx)).toBeLessThan(0); // fechada (x → −x): haste à esquerda
+    expect(out.mirrorFace).toBe(true);
+  });
+  test("tampa deslizante imprime de cara para cima: o texto já sai legível e a vista não espelha", () => {
+    const out = buildLidBox({ M, art: null, text: (_s, h) => letterL(h) }, { ...D, lid: "slide", text: "L", textMode: "raised" });
+    const mesh = out.models.find((m) => m.name === "Tampa")!.parts.find((x) => x.name === "Texto")!.mesh;
+    const b = meshBounds([mesh])!;
+    expect(meanX(mesh, true, (b.min[1] + b.max[1]) / 2) - (b.min[0] + b.max[0]) / 2).toBeLessThan(0);
+    expect(out.mirrorFace).toBe(false);
+  });
+});

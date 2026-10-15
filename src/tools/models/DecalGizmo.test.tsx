@@ -21,3 +21,13 @@ test("setas movem a camada e o leitor de tela ouve a nova posição; o rótulo d
   fireEvent.keyDown(gizmo, { key: "ArrowUp", shiftKey: true });
   expect(live).toHaveTextContent(`y ${layer.y + 5} mm`);
 });
+
+test("peça virada na mesa (mirrorX): a vista espelha o x para mostrar a peça fechada, como a pessoa vê", () => {
+  const { container, rerender } = render(<DecalGizmo face={face} layers={[]} shapes={{}} selected={null} onSelect={() => {}} onCommit={() => {}} />);
+  const svg = () => container.querySelector("svg.decal-gizmo")!;
+  expect(svg().getAttribute("viewBox")!.split(" ")[0]).toBe("-6");
+  expect(container.querySelector("g")!.getAttribute("transform")).toBe("scale(1 -1)");
+  rerender(<DecalGizmo face={{ ...face, mirrorX: true }} layers={[]} shapes={{}} selected={null} onSelect={() => {}} onCommit={() => {}} />);
+  expect(svg().getAttribute("viewBox")!.split(" ")[0]).toBe("-56"); // −(50 + 6)
+  expect(container.querySelector("g")!.getAttribute("transform")).toBe("scale(-1 -1)");
+});

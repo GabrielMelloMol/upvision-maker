@@ -12,7 +12,9 @@ const TEXT_NORM_MM = 10;
 /** Contorno local de cada camada (centrado, na largura dela) para o gizmo desenhar a forma real. */
 export type LayerShape = { polys: [number, number][][]; width: number; height: number };
 /** `others`: silhueta vista de cima das outras peças do modelo (textos, arte), só para referência no gizmo. */
-export type FaceInfo = { outline: [number, number][][]; bounds: Bounds; part: string; others: [number, number][][] };
+export type FaceInfo = { outline: [number, number][][]; bounds: Bounds; part: string; others: [number, number][][];
+  /** A peça sai virada na mesa (ex.: tampa de encaixe de cara para baixo): a vista de cima mostra como a peça fica fechada, com x espelhado. */
+  mirrorX?: boolean };
 export type LayersResult = { models: Model[]; warnings: string[]; byLayer: Record<string, string[]>; face: FaceInfo | null; shapes: Record<string, LayerShape> };
 
 function otherParts(M: ManifoldToplevel, model: Model, main: string): [number, number][][] {

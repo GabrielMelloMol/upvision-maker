@@ -201,6 +201,7 @@ export function buildLidBox(ctx: ModelCtx, p: LidBoxParams): ModelOutput {
       ],
       warnings,
       elements,
+      mirrorFace: snap,
     };
   });
 }
