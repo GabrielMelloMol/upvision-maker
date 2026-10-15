@@ -47,6 +47,18 @@ Os dados de desenvolvimento ficam em `~/Library/Application Support/com.upvision
 5. **E2E** em `tests/e2e/<modelo>.e2e.ts`: abrir pela busca, gerar a prévia e salvar o 3MF.
 6. Tipos genéricos de produto: nada de copiar nomes, desenhos ou visual de terceiros nem personagens licenciados.
 
+## Gerador guiado (padrão para as outras ferramentas)
+
+A caixa organizadora (#204) é o primeiro gerador guiado; um modelo adota o padrão só com dados no `ModelDef` (`src/tools/models/fields.ts`), sem mexer em `Models.tsx`:
+
+- **`guide`**: `presets` ("Comece pelo uso": chips que aplicam um `patch` de campos num passo do desfazer; `PresetBar`) e `help` (`use`, `avoid`, `tips`, `faq`; `GeneratorHelp` monta o "Como usar" e a tabela de faixas e padrões a partir dos campos, então não repita números na prosa).
+- **`slider: true`** nos campos `num` que ganham deslizante junto da caixa de número (`NumField`), e **`hint`** (texto ou função dos valores) com a frase de ajuda embaixo; a unidade vem sempre no rótulo.
+- **`views`** no `ModelOutput`: abas da prévia (`ViewTabs`; padrão `closed` se existir, senão a primeira). O arquivo exportado continua sendo `models` (as peças na mesa), nunca a vista; em lote as vistas são ignoradas.
+- **`derive(changed, value, params)`**: campos que acompanham outro (o material muda a folga); devolve só o que muda e entra no mesmo passo do desfazer.
+- Campos próprios da caixa: `dividerMap` (mapa 2D ao vivo, `organizer/DividerMap`) e `strips` (editor faixa por faixa, `organizer/StripEditor`); os dois leem as funções puras de `geometry/models/organizer`.
+
+Teste um gerador novo com um `ModelDef` falso (veja `src/tools/models/guideModels.test.tsx`) em vez de depender do catálogo.
+
 ## Publicar uma versão
 
 1. Crie o repositório `GabrielMelloMol/upvision-maker` no GitHub (o endpoint do updater em `src-tauri/tauri.conf.json` aponta para ele).
