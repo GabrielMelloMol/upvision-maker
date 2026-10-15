@@ -73,7 +73,7 @@ test("categorias dos Modelos prontos (onde fica): Presentes, Casa e decoração 
 test("os nomes de cada ferramenta de Criar continuam levando a ela: os ids das telas antigas não somem", async () => {
   const pages = await import("../../pages");
   const redirects = (pages as unknown as { PAGE_REDIRECTS?: Record<string, unknown> }).PAGE_REDIRECTS ?? {};
-  const OLD = ["svg", "cutter", "keychain", "medal", "extrude", "qr", "models", "spools", "lithophane", "pixel", "drawer", "toolfit", "colorsplit", "owndecal", "scad", "search3d", "ai", "projects"];
+  const OLD = ["svg", "cutter", "keychain", "medal", "extrude", "qr", "models", "spools", "lithophane", "pixel", "drawer", "toolfit", "colorsplit", "owndecal", "partialcut", "scad", "search3d", "ai", "projects"];
   const known = new Set(pages.PAGES.map((p) => p.id));
   expect(OLD.filter((id) => !known.has(id) && !(id in redirects))).toEqual([]);
 });

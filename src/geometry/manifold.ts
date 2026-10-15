@@ -15,7 +15,7 @@ let ready: Promise<ManifoldToplevel> | undefined;
 export function getManifold(): Promise<ManifoldToplevel> {
   ready ??= (async () => {
     // No app o .wasm vem do bundle do Vite; nos testes (Node) o módulo acha o arquivo sozinho.
-    const inApp = typeof window !== "undefined" && !import.meta.env?.VITEST;
+    const inApp = typeof self !== "undefined" && !import.meta.env?.VITEST; // tela principal ou worker (nos testes em Node não há self)
     const url = inApp ? (await import("manifold-3d/manifold.wasm?url")).default : undefined;
     const m = await (Module as unknown as (o?: object) => Promise<ManifoldToplevel>)(url ? { locateFile: () => url } : undefined);
     m.setup();

@@ -3,7 +3,8 @@ import { useEffect, useId, useRef } from "react";
 import { modelsBounds } from "../geometry/bounds";
 import type { Model } from "../geometry/types";
 import BrandMark from "./BrandMark";
-import { createViewer } from "./viewerScene";
+import { createViewer, type ViewName } from "./viewerScene";
+import type { Handle, OnHandle } from "./viewerGizmo";
 
 type Props = {
   models: Model[];
@@ -13,7 +14,20 @@ type Props = {
   emptyText?: string;
   /** Clique (sem arrastar) numa face da peça: ponto e normal no sistema do modelo (#113). */
   onPick?: (hit: { point: [number, number, number]; normal: [number, number, number] }) => void;
+  /** Alças arrastáveis na vista (corte parcial). */
+  gizmo?: { handles: Handle[]; onDrag: OnHandle };
+  /** Botões de vista: frente, lado, cima e 3/4. */
+  views?: boolean;
+  /** Recalculando sem borrar a vista: só um indicador discreto no canto (quando já há modelo na tela). */
+  quietBusy?: boolean;
 };
+
+const VIEW_BUTTONS: [ViewName, string][] = [
+  ["front", "Frente"],
+  ["side", "Lado"],
+  ["top", "Cima"],
+  ["iso", "3/4"],
+];
 
 const CLICK_SLOP_PX = 5;
 
@@ -59,7 +73,7 @@ export const snapshotPreview = (max?: number) => {
 };
 
 /** Prévia 3D padrão de todas as ferramentas: Z para cima, mesa da impressora escolhida, girar/zoom com o mouse. */
-export default function Preview3D({ models, busy, busyText = "Gerando modelo…", error, emptyText = "A prévia aparece aqui.", onPick }: Props) {
+export default function Preview3D({ models, busy, busyText = "Gerando modelo…", error, emptyText = "A prévia aparece aqui.", onPick, gizmo, views, quietBusy }: Props) {
   const host = useRef<HTMLDivElement>(null);
   const viewer = useRef<ReturnType<typeof createViewer> | null>(null);
   const down = useRef<{ x: number; y: number } | null>(null);
@@ -83,12 +97,16 @@ export default function Preview3D({ models, busy, busyText = "Gerando modelo…"
     if (active === viewer.current) activeModels = models;
   }, [models]);
 
-  const legend = [...new Map(models.flatMap((m) => m.parts).map((p) => [p.color + p.name, p])).values()].slice(0, 6);
+  useEffect(() => {
+    viewer.current?.setHandles?.(gizmo?.handles ?? [], gizmo?.onDrag ?? (() => {}));
+  }, [gizmo]);
+
+  const legend = [...new Map(models.flatMap((m) => m.parts).filter((p) => p.name).map((p) => [p.color + p.name, p])).values()].slice(0, 8); // parte sem nome (contorno do plano) não entra na legenda
   const hintId = useId();
   const b = modelsBounds(models);
   const size = b && { x: b.max[0] - b.min[0], y: b.max[1] - b.min[1], z: b.max[2] - b.min[2] };
 
-  return (
+  const viewerEl = (
     <div
       className="viewer"
       ref={host}
@@ -150,7 +168,13 @@ export default function Preview3D({ models, busy, busyText = "Gerando modelo…"
           ))}
         </div>
       )}
-      {(busy || error || models.length === 0) && (
+      {quietBusy && busy && models.length > 0 && !error && (
+        <div className="busy-chip" role="status">
+          <div className="spinner" />
+          <span>{busyText}</span>
+        </div>
+      )}
+      {((busy && !(quietBusy && models.length > 0)) || error || models.length === 0) && (
         <div className={`overlay ${busy ? "busy" : ""}`} aria-live="polite">
           <div className="inner">
             {busy ? (
@@ -170,6 +194,22 @@ export default function Preview3D({ models, busy, busyText = "Gerando modelo…"
               </>
             )}
           </div>
+        </div>
+      )}
+    </div>
+  );
+  // os botões ficam fora do role="img" da prévia (um controle dentro de imagem não passa no axe)
+  if (!views) return viewerEl;
+  return (
+    <div className="viewer-box">
+      {viewerEl}
+      {models.length > 0 && (
+        <div className="view-buttons" role="group" aria-label="Vista">
+          {VIEW_BUTTONS.map(([name, label]) => (
+            <button key={name} type="button" className="sm" onClick={() => viewer.current?.setView?.(name)}>
+              {label}
+            </button>
+          ))}
         </div>
       )}
     </div>

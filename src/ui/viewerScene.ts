@@ -1,7 +1,11 @@
 import * as THREE from "three";
 import { OrbitControls } from "three/addons/controls/OrbitControls.js";
+import { LineMaterial } from "three/addons/lines/LineMaterial.js";
+import { LineSegments2 } from "three/addons/lines/LineSegments2.js";
+import { LineSegmentsGeometry } from "three/addons/lines/LineSegmentsGeometry.js";
 import { bedMm } from "../geometry/bed";
 import { encodeThumb } from "./thumbEncode";
+import { createGizmo, type Handle, type OnHandle } from "./viewerGizmo";
 import type { Model } from "../geometry/types";
 
 const FLY_MS = 700;
@@ -16,6 +20,17 @@ const REFRAME_RATIO = 0.25;
 const VIEW_DIR = new THREE.Vector3(0, -1.6, 1.4).normalize();
 /** Folga em volta do modelo no enquadramento. */
 const FIT_MARGIN = 1.08;
+export type ViewName = "front" | "side" | "top" | "iso";
+/** Direções das vistas (do centro para a câmera); a de cima fica um fio inclinada para não travar o eixo Z. */
+const VIEWS: Record<ViewName, THREE.Vector3> = {
+  front: new THREE.Vector3(0, -1, 0),
+  side: new THREE.Vector3(1, 0, 0),
+  top: new THREE.Vector3(0, -0.02, 1).normalize(),
+  iso: VIEW_DIR,
+};
+const GHOST_OPACITY = 0.3;
+const BIG_MESH_INDICES = 600_000; // ~200 mil triângulos
+const MIN_RADIUS = 10; // modelos minúsculos não enchem a tela
 /** Menor ângulo entre a câmera e o eixo Z ao inclinar pelo teclado (não passa por cima nem por baixo). */
 const MIN_TILT = 0.08;
 
@@ -27,6 +42,25 @@ export function fitDistance(r: number, vfovDeg: number, aspect: number): number 
   const v = (vfovDeg * Math.PI) / 180;
   const h = 2 * Math.atan(Math.tan(v / 2) * Math.max(aspect, 0.01));
   return (r / Math.sin(Math.min(v, h) / 2)) * FIT_MARGIN;
+}
+
+/**
+ * Distância para os 8 cantos da caixa caberem na tela, olhando de `dir` (do centro para a câmera): mais justa que a
+ * esfera de `fitDistance` quando a caixa é achatada ou a prévia é alta e estreita. Nunca passa da distância da esfera.
+ */
+export function fitBoxDistance(box: THREE.Box3, vfovDeg: number, aspect: number, dir: THREE.Vector3 = VIEW_DIR): number {
+  const center = box.getCenter(new THREE.Vector3());
+  const right = new THREE.Vector3().crossVectors(dir.clone().negate(), new THREE.Vector3(0, 0, 1)).normalize();
+  const up = new THREE.Vector3().crossVectors(right, dir.clone().negate());
+  const tv = Math.tan((vfovDeg * Math.PI) / 360);
+  const th = tv * Math.max(aspect, 0.01);
+  let d = 0;
+  for (let i = 0; i < 8; i++) {
+    const c = new THREE.Vector3(i & 1 ? box.max.x : box.min.x, i & 2 ? box.max.y : box.min.y, i & 4 ? box.max.z : box.min.z).sub(center);
+    const z = c.dot(dir);
+    d = Math.max(d, z + Math.abs(c.dot(right)) / th, z + Math.abs(c.dot(up)) / tv);
+  }
+  return Math.min(d * FIT_MARGIN, fitDistance(box.getSize(new THREE.Vector3()).length() / 2, vfovDeg, aspect));
 }
 
 const reducedMotion = () => matchMedia("(prefers-reduced-motion: reduce)").matches;
@@ -76,7 +110,11 @@ export function createViewer(el: HTMLElement) {
   let settleUntil = 0;
   const lastCenter = new THREE.Vector3();
   let lastSize = 0;
-  const render = () => renderer.render(scene, camera);
+  let beforeRender = () => {};
+  const render = () => {
+    beforeRender();
+    renderer.render(scene, camera);
+  };
 
   function tick(now: number) {
     raf = 0;
@@ -102,6 +140,8 @@ export function createViewer(el: HTMLElement) {
     if (!raf) raf = requestAnimationFrame(tick);
   };
 
+  const gizmo = createGizmo({ scene, camera, controls, el, canvas: renderer.domElement, render });
+  beforeRender = gizmo.update;
   controls.addEventListener("change", () => !looping && !raf && render());
   controls.addEventListener("start", () => {
     dragging = true;
@@ -115,11 +155,13 @@ export function createViewer(el: HTMLElement) {
     wake();
   });
 
+  const lineMats: LineMaterial[] = []; // contornos da prévia: precisam saber o tamanho da tela
   const resize = () => {
     const { clientWidth: w, clientHeight: h } = el;
     renderer.setSize(w, h, false);
     camera.aspect = w / Math.max(h, 1);
     camera.updateProjectionMatrix();
+    for (const m of lineMats) m.resolution.set(w, h);
     render();
   };
   const ro = new ResizeObserver(resize);
@@ -132,6 +174,20 @@ export function createViewer(el: HTMLElement) {
   scheme.addEventListener("change", onScheme);
   resize();
 
+  /** Contorno só da prévia: linha de largura fixa em pixels (não engrossa nem afina com o zoom), tracejada se pedir. */
+  function lineOf(l: { points: Float32Array; width: number; dash: number }, color: string) {
+    const geo = new LineSegmentsGeometry();
+    geo.setPositions(l.points);
+    const mat = new LineMaterial({ color: new THREE.Color(color).getHex(), linewidth: l.width, dashed: l.dash > 0, dashSize: l.dash, gapSize: l.dash * 0.7 });
+    mat.resolution.set(el.clientWidth, el.clientHeight);
+    lineMats.push(mat);
+    const line = new LineSegments2(geo, mat);
+    line.computeLineDistances();
+    line.userData.ghost = true; // não recebe clique
+    line.renderOrder = 3;
+    return line;
+  }
+
   function frame(wasEmpty: boolean) {
     const box = new THREE.Box3().setFromObject(group);
     if (box.isEmpty()) return;
@@ -142,8 +198,7 @@ export function createViewer(el: HTMLElement) {
     if (!wasEmpty && lastSize && Math.abs(size - lastSize) / lastSize < REFRAME_RATIO && moved < REFRAME_RATIO) return;
     lastSize = size;
     lastCenter.copy(center);
-    const r = Math.max(size / 2, 10);
-    const to = center.clone().add(VIEW_DIR.clone().multiplyScalar(fitDistance(r, camera.fov, camera.aspect)));
+        const to = center.clone().add(VIEW_DIR.clone().multiplyScalar(Math.max(fitDistance(MIN_RADIUS, camera.fov, camera.aspect), fitBoxDistance(box, camera.fov, camera.aspect))));
     if (reducedMotion()) {
       camera.position.copy(to);
       controls.target.copy(center);
@@ -164,13 +219,24 @@ export function createViewer(el: HTMLElement) {
         (m.material as THREE.Material).dispose();
         group.remove(m);
       }
+      lineMats.length = 0;
       for (const model of models) {
         for (const p of model.parts) {
+          if (p.lines) {
+            group.add(lineOf(p.lines, p.color));
+            continue;
+          }
           const g = new THREE.BufferGeometry();
           g.setAttribute("position", new THREE.BufferAttribute(p.mesh.positions, 3));
           g.setIndex(new THREE.BufferAttribute(p.mesh.indices, 1));
-          g.computeVertexNormals();
-          group.add(new THREE.Mesh(g, new THREE.MeshStandardMaterial({ color: p.color, roughness: 0.6, metalness: 0.05, flatShading: true })));
+          if (p.mesh.indices.length < BIG_MESH_INDICES) g.computeVertexNormals(); // o sombreado é por face (flatShading): em malha enorme poupa o cálculo, que trava a tela por segundos
+          const mat = new THREE.MeshStandardMaterial({ color: p.color, roughness: 0.6, metalness: 0.05, flatShading: true, transparent: !!p.ghost, opacity: p.ghost ? GHOST_OPACITY : 1, depthWrite: !p.ghost });
+          const mesh = new THREE.Mesh(g, mat);
+          if (p.ghost) {
+            mesh.userData.ghost = true;
+            mesh.renderOrder = 2;
+          }
+          group.add(mesh);
         }
       }
       if (group.children.length === 0) lastSize = 0;
@@ -204,10 +270,34 @@ export function createViewer(el: HTMLElement) {
       if (!r.width || !r.height) return null;
       const ray = new THREE.Raycaster();
       ray.setFromCamera(new THREE.Vector2(((x - r.left) / r.width) * 2 - 1, -((y - r.top) / r.height) * 2 + 1), camera);
-      const hit = ray.intersectObjects(group.children, false)[0];
+      const hit = ray.intersectObjects(group.children.filter((m) => !m.userData.ghost), false)[0];
       if (!hit?.face) return null;
       const n = hit.face.normal;
       return { point: [hit.point.x, hit.point.y, hit.point.z], normal: [n.x, n.y, n.z] };
+    },
+    /** Alças arrastáveis (corte parcial); `[]` tira todas. */
+    setHandles(handles: Handle[], onHandle: OnHandle) {
+      gizmo.set(handles, onHandle);
+    },
+    /** Vista de frente, de lado, de cima ou em 3/4, enquadrando o que está na cena. */
+    setView(name: ViewName) {
+      const box = new THREE.Box3().setFromObject(group);
+      if (box.isEmpty()) return;
+      const dir = VIEWS[name].clone();
+      const center = box.getCenter(new THREE.Vector3());
+      const to = center.clone().add(dir.clone().multiplyScalar(Math.max(fitDistance(MIN_RADIUS, camera.fov, camera.aspect), fitBoxDistance(box, camera.fov, camera.aspect, dir))));
+      lastCenter.copy(center);
+      lastSize = box.getSize(new THREE.Vector3()).length();
+      if (reducedMotion()) {
+        camera.position.copy(to);
+        controls.target.copy(center);
+        controls.update();
+        render();
+        return;
+      }
+      fly = { from: camera.position.clone(), to, fromT: controls.target.clone(), toT: center, t0: performance.now(), spin: false };
+      spinUntil = 0;
+      wake();
     },
     /** Volta ao enquadramento de chegada. */
     reset() {
@@ -228,6 +318,7 @@ export function createViewer(el: HTMLElement) {
       return encodeThumb(c, 0.7, cssVar("--surface")); // WebP; sem ele (WebKit) JPEG sobre o fundo do tema (B22)
     },
     dispose() {
+      gizmo.dispose();
       cancelAnimationFrame(raf);
       scheme.removeEventListener("change", onScheme);
       ro.disconnect();

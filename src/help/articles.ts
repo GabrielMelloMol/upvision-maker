@@ -113,6 +113,13 @@ export const ARTICLES: HelpArticle[] = [
     steps: ["Arraste o 3MF pintado (Bambu Studio, OrcaSlicer ou PrusaSlicer).", "Confira as cores encontradas.", "Se quiser, corte pelo plano com pino de encaixe.", "Salve as peças e cole ou encaixe depois de imprimir."],
   },
   {
+    id: "partialcut",
+    title: "Corte parcial",
+    intro: "Corte só um pedaço de um STL ou 3MF (a cabeça de um personagem, sem cortar a árvore ao lado): o plano de corte só vale dentro de uma caixa.",
+    steps: ["Arraste o STL ou 3MF (um sólido fechado).", "Escolha a direção e a posição do plano; incline se precisar.", "Reduza a caixa até pegar só o pedaço (ou clique na parte na prévia). Fora da caixa nada é cortado.", "Escolha o encaixe (pino solto ou fixo, com folga) e afaste o pedaço na prévia para conferir.", "Salve o 3MF: o pedaço sai deitado na face cortada, pronto para imprimir sem suporte."],
+    tips: ["O app confere que as duas peças fecham e que, somadas, voltam ao volume original.", "Cortes finos demais para o pino saem sem encaixe e avisam.", "Use só modelos que são seus ou cuja licença permite alterar."],
+  },
+  {
     id: "owndecal",
     title: "Nome ou logo no seu modelo",
     intro: "Ponha seu nome ou logo numa face plana de um STL ou 3MF que você já tem, em outra cor, para imprimir em duas cores.",

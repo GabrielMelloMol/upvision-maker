@@ -6,7 +6,7 @@ import { buildCutter, DEFAULT_CUTTER, type CutterParams } from "../geometry/cutt
 import { extrudeDesign } from "../geometry/extrude";
 import { loadFont } from "../geometry/fonts";
 import { toMesh } from "../geometry/mesh";
-import { planarFaces } from "../geometry/ownModel";
+import { planarFaces, readOwnFile } from "../geometry/ownModel";
 import { applyOwnDecals } from "../tools/models/applyOwn";
 import { newTextLayer } from "../tools/models/layers";
 import { composeKeychainArt } from "../geometry/keychainArt";
@@ -19,6 +19,9 @@ import { buildLithophaneSet, lithoGrid } from "../geometry/lithophaneSet";
 import { fitAspect } from "../geometry/lithophaneShapes";
 import type { CS, ManifoldToplevel } from "../geometry/manifold";
 import { buildMedalDesign, DEFAULT_MEDAL_DESIGN, type MedalDesign } from "../geometry/medalDesign";
+import { runCuts, type CutItem } from "../geometry/cutSequence";
+import { suggestCuts } from "../geometry/cutSuggest";
+import { partialCut, DEFAULT_PARTIAL_CUT, type PartialCutOptions } from "../geometry/partialCut";
 import { cutModels, DEFAULT_CUT } from "../geometry/planeCut";
 import { COLOR_LITHO_PROFILE, CUTTER_PROFILE, DEFAULT_PROFILE, STAMP_HINGE_PROFILE, STAMP_PROFILE, LAYERED_PROFILE, LITHO_PROFILE, RELIEF_PROFILE, type PrintProfile } from "../geometry/printProfile";
 import { qrModel, type QrStyle } from "../geometry/qr3d";
@@ -44,6 +47,8 @@ const PLATE_MM = 256;
 const GAP_MM = 4;
 const MAX_COLS = 400; // como a Litofania: limita o detalhe
 const FIXTURE = join(__dirname, "../../tests/fixtures/3mf/cubo-pintado-bambu.3mf");
+const CHARACTER = join(__dirname, "../../tests/fixtures/stl/personagem-arvore.stl");
+const ARM = join(__dirname, "../../tests/fixtures/stl/boneco-braco.stl");
 
 const cases = (id: string, label: string, list: Variant[]): QaCase[] =>
   list.map(([variant, run, profile]) => ({
@@ -208,7 +213,43 @@ export function toolCases(M: ManifoldToplevel): QaCase[] {
     return { models: c.models, warnings: [...out.warnings, ...c.warnings] };
   };
 
+  // corte parcial: "personagem + árvore" (dois blocos separados), corta só o topo do primeiro
+  const partial = (patch: Partial<PartialCutOptions>): Out => {
+    const scene: Model = { name: "Cena", parts: [{ name: "Peça", color: "#d4d4d8", mesh: toMesh(M.Manifold.union([M.Manifold.cube([20, 20, 40]), M.Manifold.cube([20, 20, 40]).translate([40, 0, 0])])) }] };
+    const o = partialCut(M, scene, { ...DEFAULT_PARTIAL_CUT, offset: 30, region: { kind: "box", min: [-5, -5, 20], max: [25, 25, 50] }, ...patch });
+    return { models: o.models, warnings: o.warnings };
+  };
+
+  // dois cortes em sequência, cada pedaço numa cor (cada cor = um filamento no 3MF)
+  const twoCuts = (colors: boolean): Out => {
+    const scene: Model = { name: "Cena", parts: [{ name: "Peça", color: "#d4d4d8", mesh: toMesh(M.Manifold.union([M.Manifold.cube([20, 20, 40]), M.Manifold.cube([20, 20, 40]).translate([40, 0, 0])])) }] };
+    const cut = (x0: number, x1: number, color: string | null): CutItem => ({ ...DEFAULT_PARTIAL_CUT, offset: 30, region: { kind: "box", min: [x0, -5, 20], max: [x1, 25, 50] }, color });
+    const o = runCuts(M, scene, { cuts: [cut(-5, 25, colors ? "#d6262e" : null), cut(35, 65, colors ? "#2563eb" : null)], restColor: colors ? "#f4f4f2" : null });
+    return { models: o.models, warnings: o.warnings };
+  };
+
   return [
+    ...cases("partialcut", "Corte parcial", [
+      ["sugestão para menos suporte", (): Out => {
+        const model = readOwnFile(new Uint8Array(readFileSync(ARM)), "boneco-braco.stl");
+        const [s] = suggestCuts(M, model);
+        const o = runCuts(M, model, { cuts: [{ ...DEFAULT_PARTIAL_CUT, offset: s.z, region: { kind: "box", ...s.region }, color: null }], restColor: null });
+        return { models: o.models, warnings: o.warnings };
+      }],
+      ["dois cortes", () => twoCuts(false)],
+      ["dois cortes em cores", () => twoCuts(true)],
+      ["padrão", () => partial({})],
+      ["pino fixo", () => partial({ mode: "fixed", pin: "square" })],
+      ["inclinado", () => partial({ tilt: 30, offset: 28, region: { kind: "box", min: [-5, -5, 0], max: [25, 25, 50] } })],
+      ["sem encaixe", () => partial({ pin: "none" })],
+      ["cilindro", () => partial({ region: { kind: "cylinder", center: [10, 10, 35], radius: 12, height: 30, axis: "z" } })],
+      ["esfera", () => partial({ region: { kind: "sphere", center: [10, 10, 33], radius: 9 } })],
+      ["personagem e árvore", (): Out => {
+        const model = readOwnFile(new Uint8Array(readFileSync(CHARACTER)), "personagem-arvore.stl");
+        const o = partialCut(M, model, { ...DEFAULT_PARTIAL_CUT, offset: 31, region: { kind: "box", min: [-4, -9, 24], max: [20, 21, 60] } });
+        return { models: o.models, warnings: o.warnings };
+      }],
+    ]),
     ...cases("keychain", "Chaveiro", [
       ["padrão", () => keychain(14, {})],
       ["mínimo", () => keychain(5, { base: 0.8, relief: 0.4, border: 1 })],
