@@ -1753,8 +1753,8 @@
   ],
   "date": "2026-10-15",
   "slicers": "Bambu ✓ · Orca ✓ · Projeto Bambu ✓",
-  "minutes": 100,
-  "grams": 23,
+  "minutes": 120,
+  "grams": 23.4,
   "plates": 1,
   "pauses": "0,80"
  },
@@ -1770,8 +1770,8 @@
   ],
   "date": "2026-10-15",
   "slicers": "Bambu ✓ · Orca ✓ · Projeto Bambu ✓",
-  "minutes": 57,
-  "grams": 14.4,
+  "minutes": 103,
+  "grams": 21.5,
   "plates": 1,
   "pauses": "0,80"
  },
@@ -1787,8 +1787,8 @@
   ],
   "date": "2026-10-15",
   "slicers": "Bambu ✓ · Orca ✓ · Projeto Bambu ✓",
-  "minutes": 69,
-  "grams": 16.2,
+  "minutes": 119,
+  "grams": 22.5,
   "plates": 1,
   "pauses": "0,80"
  },
@@ -1804,8 +1804,8 @@
   ],
   "date": "2026-10-15",
   "slicers": "Bambu ✓ · Orca ✓ · Projeto Bambu ✓",
-  "minutes": 96,
-  "grams": 22,
+  "minutes": 120,
+  "grams": 22.4,
   "plates": 1,
   "pauses": "0,80"
  },
@@ -1815,14 +1815,15 @@
   "group": "tools",
   "label": "Convite envelope: envelope (ferramenta)",
   "variant": "flores com tule (pausa)",
-  "status": "ok",
+  "status": "aviso",
   "reasons": [
+   "\"Envelope\": parede/traço < 0,4 mm em Z 0,1, 0,4, 0,6, 0,8, 1,1 mm",
    "app: Havia traços mais finos que o bico da impressora e eu os engrossei para o relevo sair inteiro."
   ],
   "date": "2026-10-15",
   "slicers": "Bambu ✓ · Orca ✓ · Projeto Bambu ✓",
-  "minutes": 98,
-  "grams": 22.3,
+  "minutes": 121,
+  "grams": 22.8,
   "plates": 1,
   "pauses": "0,80"
  },
@@ -1838,8 +1839,8 @@
   ],
   "date": "2026-10-15",
   "slicers": "Bambu ✓ · Orca ✓ · Projeto Bambu ✓",
-  "minutes": 148,
-  "grams": 34.6,
+  "minutes": 151,
+  "grams": 29.9,
   "plates": 1
  },
  {
@@ -1850,7 +1851,8 @@
   "variant": "máximo",
   "status": "aviso",
   "reasons": [
-   "\"Envelope\" não cabe na mesa de 256 mm (394,2 × 314,9 × 2,4 mm)",
+   "\"Envelope\" não cabe na mesa de 256 mm (394,0 × 314,9 × 2,4 mm)",
+   "\"Envelope\": parede/traço < 0,4 mm em Z 0,2, 0,7, 1,2, 1,7, 2,2 mm",
    "Bambu recusa na mesa de 256 mm do A1 (o app avisa)",
    "Orca recusa na mesa de 256 mm do A1 (o app avisa)",
    "Projeto Bambu recusa na mesa de 256 mm do A1 (o app avisa)",
@@ -1871,8 +1873,8 @@
   ],
   "date": "2026-10-15",
   "slicers": "Bambu ✓ · Orca ✓ · Projeto Bambu ✓",
-  "minutes": 41,
-  "grams": 8,
+  "minutes": 40,
+  "grams": 6.8,
   "plates": 1,
   "pauses": "0,60"
  },
@@ -1884,13 +1886,13 @@
   "variant": "máximo",
   "status": "aviso",
   "reasons": [
-   "o conjunto arrumado ocupa 636,9 × 54,1 mm: passa da mesa de 256 mm",
+   "o conjunto arrumado ocupa 636,7 × 54,1 mm: passa da mesa de 256 mm",
    "app: Havia traços mais finos que o bico da impressora e eu os engrossei para o relevo sair inteiro."
   ],
   "date": "2026-10-15",
   "slicers": "Bambu ✓ · Orca ✓ · Projeto Bambu ✓",
-  "minutes": 80,
-  "grams": 35.8,
+  "minutes": 89,
+  "grams": 35.6,
   "plates": 1
  },
  {

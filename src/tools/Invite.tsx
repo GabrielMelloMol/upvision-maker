@@ -9,7 +9,7 @@ import { loadEmojiFont, loadFont, type FontId } from "../geometry/fonts";
 import { buildInvite, buildInviteCard, DEFAULT_INVITE, PALETTES, paint, paletteOf, variations, type ButterflyMode, type InviteColors, type InviteInfo, type InviteParams } from "../geometry/invite/build";
 import type { CardStyle, CardText } from "../geometry/invite/card";
 import type { FlapShape, Hinge } from "../geometry/invite/envelope";
-import { PATTERN_LABELS, type LacePattern } from "../geometry/invite/lace";
+import { DENSITY_LABELS, PATTERN_LABELS, type LaceDensity, type LacePattern } from "../geometry/invite/lace";
 import { parseNames } from "../geometry/keychain";
 import { getManifold } from "../geometry/manifold";
 import { INVITE_CARD_PROFILE, INVITE_LACE_PROFILE, INVITE_PIECES_PROFILE } from "../geometry/printProfile";
@@ -120,7 +120,7 @@ export default function Invite() {
         colors: { ...paletteOf(pr.palette).colors },
         names: pr.names ?? "",
         palettes: pr.palettes ?? cur.palettes,
-        p: { ...cur.p, butterfly: pr.butterfly, pieces: { ...cur.p.pieces, flowers: pr.flowers }, env: { ...cur.p.env, pattern: pr.pattern } },
+        p: { ...cur.p, butterfly: pr.butterfly, pieces: { ...cur.p.pieces, flowers: pr.flowers }, env: { ...cur.p.env, pattern: pr.pattern, density: pr.density } },
       }),
       "preset",
     );
@@ -137,7 +137,7 @@ export default function Invite() {
       if (p.env.pattern === "custom" && !s.lace) warn.push("Envie o SVG da renda para usar o padrão próprio (por enquanto usei as flores e folhas).");
       warn.push(...bedWarnings([out.envelope], warn));
       const cardX = out.info.spread.w / 2 + TABLE_GAP + out.info.card.w / 2;
-      const table = [out.envelope, shiftModel(out.card, cardX, 0), ...out.pieces.map((m) => shiftModel(m, cardX, -(out.info.card.h / 2 + TABLE_GAP)))];
+      const table = [out.envelope, shiftModel(out.cardPreview, cardX, 0), ...out.pieces.map((m) => shiftModel(m, cardX, -(out.info.card.h / 2 + TABLE_GAP)))];
       if (cardX + out.info.card.w / 2 > bedMm() / 2 + out.info.spread.w / 2) warn.push("O envelope aberto e o cartão não cabem juntos na mesa: salve cada um num arquivo (já saem separados).");
       return { models: table, warnings: warn, pauses: out.pauses, view: { envelope: out.envelope, card: out.card, pieces: out.pieces, open: out.open, closed: out.closed, info: out.info, pauses: out.pauses } };
     } finally {
@@ -234,6 +234,13 @@ export default function Invite() {
                 ))}
               </select>
             </label>
+            {env.pattern !== "custom" && (
+              <>
+                <span className="field-label">Densidade da renda</span>
+                <Segmented label="Densidade da renda" value={env.density} options={DENSITY_LABELS} onChange={(v: LaceDensity) => setEnv("density")(v)} full />
+                <span className="hint">Delicada deixa o tule à mostra; Cheia cobre quase tudo de filigrana, como nas rendas de verdade. Os fios têm 0,5 mm: deixe ligado "Detectar paredes finas".</span>
+              </>
+            )}
             {env.pattern === "custom" && (
               <Dropzone accept={DESIGN_ACCEPT} label={s.lace ? s.lace.name : "Renda própria: SVG ou imagem"} hint="A renda precisa ter partes ligadas; o app liga as soltas" onFile={onLace} />
             )}
@@ -365,7 +372,7 @@ export default function Invite() {
         <div className="preview-col">
           <Segmented label="O que mostrar" value={show} options={SHOWS} onChange={setShow} full />
           <Preview3D models={shown} busy={busy} busyText="Gerando envelope, renda e cartão…" error={error} emptyText={!valid ? "Corrija os campos em vermelho para ver o convite." : "Escolha um modelo pronto para ver o convite."} />
-          {show !== "table" && <Alert kind="info">{show === "open" ? "Prévia do envelope com as abas levantadas e o cartão no corpo." : "Prévia do envelope fechado, com as abas dobradas sobre o cartão e as peças em relevo coladas. Não vai para o arquivo: o que imprime está em Mesa."}</Alert>}
+          {show !== "table" && <Alert kind="info">{show === "open" ? "Prévia do envelope com as abas quase planas e o cartão saindo um pouco. O cartão aparece em vidro escuro para o texto branco dar para ler." : "Prévia do envelope fechado, com as abas dobradas sobre o cartão e as peças em relevo coladas. Não vai para o arquivo: o que imprime está em Mesa."}</Alert>}
           {warnings.map((w) => (
             <Alert key={w} kind="warn">{w}</Alert>
           ))}

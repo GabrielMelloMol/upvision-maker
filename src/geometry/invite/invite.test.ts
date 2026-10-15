@@ -8,7 +8,7 @@ import { modelSize, modelVolume } from "../testUtil";
 import { buildInvite, buildInviteCard, DEFAULT_INVITE, foldMesh, PALETTES, paint, variations, type InviteParams } from "./build";
 import { buildEnvelope } from "./envelope";
 import { DEFAULT_ENVELOPE, type EnvelopeParams } from "./envelope";
-import { laceRoles, connectIslands, type LacePattern } from "./lace";
+import { COVERAGE, laceRoles, connectIslands, type LaceDensity, type LacePattern } from "./lace";
 
 let M: ManifoldToplevel;
 const buf = readFileSync(resolve(__dirname, "../../../node_modules/@fontsource/hanken-grotesk/files/hanken-grotesk-latin-800-normal.woff"));
@@ -26,7 +26,7 @@ describe("renda", () => {
   for (const pat of PATTERNS) {
     test(`${pat}: tem renda, sem sobreposição entre as funções`, () =>
       scoped((k) => {
-        const r = laceRoles(M, k, pat, 110, 80, 3);
+        const r = laceRoles(M, k, pat, 110, 80, 3, k(M.CrossSection.square([110, 80], true)));
         const total = r.leaf.area() + r.flower.area() + r.stem.area();
         expect(total).toBeGreaterThan(300);
         const all = k(M.CrossSection.union([r.leaf, r.flower, r.stem]));
@@ -36,10 +36,26 @@ describe("renda", () => {
 
   test("a mesma semente dá a mesma renda", () =>
     scoped((k) => {
-      const a = laceRoles(M, k, "floral", 100, 70, 11), b = laceRoles(M, k, "floral", 100, 70, 11), c = laceRoles(M, k, "floral", 100, 70, 12);
+      const box = k(M.CrossSection.square([100, 70], true));
+      const a = laceRoles(M, k, "floral", 100, 70, 11, box), b = laceRoles(M, k, "floral", 100, 70, 11, box), c = laceRoles(M, k, "floral", 100, 70, 12, box);
       expect(a.leaf.area()).toBeCloseTo(b.leaf.area(), 6);
       expect(a.leaf.area()).not.toBeCloseTo(c.leaf.area(), 3);
     }));
+
+  const DENSITIES: LaceDensity[] = ["light", "medium", "full"];
+  for (const pat of PATTERNS) {
+    test(`${pat}: a cobertura do tule segue a densidade (delicada < média < cheia) e perto do alvo`, () =>
+      scoped((k) => {
+        const area = k(M.CrossSection.square([110, 80], true));
+        const cov = DENSITIES.map((d) => {
+          const r = laceRoles(M, k, pat, 110, 80, 5, area, d);
+          return k(k(M.CrossSection.union([r.leaf, r.flower, r.stem])).intersect(area)).area() / area.area();
+        });
+        expect(cov[0]).toBeLessThan(cov[1]);
+        expect(cov[1]).toBeLessThan(cov[2]);
+        DENSITIES.forEach((d, i) => expect(Math.abs(cov[i] - COVERAGE[d])).toBeLessThan(0.08));
+      }));
+  }
 
   test("liga o pedaço solto ao corpo e tira o pó", () =>
     scoped((k) => {
@@ -104,6 +120,12 @@ describe("envelope", () => {
       expect(regionBodies(out, k)).toEqual([1, 1, 1, 1, 1]);
     }));
 
+  test("com tule também nada fica solto: cada região é uma peça só", () =>
+    scoped((k) => {
+      const out = buildEnvelope(M, k, DEFAULT_ENVELOPE, PAL, null);
+      expect(regionBodies(out, k)).toEqual([1, 1, 1, 1, 1]);
+    }));
+
   test("com tule: pausa no topo da camada depois do tule (tule em 1,0 mm, camada 0,2 → pausa em 1,2)", () =>
     scoped((k) => {
       const out = buildEnvelope(M, k, { ...DEFAULT_ENVELOPE, thickness: 1.6, tuleAt: 1 }, PAL, null);
@@ -154,6 +176,20 @@ describe("dobra em 3D", () => {
     expect(up.positions[1]).toBeCloseTo(45, 4);
     expect(up.positions[2]).toBeCloseTo(12, 4);
   });
+  test("aberto: abas quase planas (30° de elevação) e o cartão saindo do envelope, em vidro escuro", () => {
+    const out = buildInvite(M, P(), PAL, TEXT, fonts, null);
+    const top = out.open.find((m) => m.name === "Aba top")!;
+    const zs = top.parts.flatMap((q) => [...q.mesh.positions].filter((_, i) => i % 3 === 2));
+    // a aba de cima tem 45 mm: a 30° a ponta sobe uns 22 mm, bem longe dos 45 mm de uma aba em pé
+    expect(Math.max(...zs)).toBeGreaterThan(15);
+    expect(Math.max(...zs)).toBeLessThan(30);
+    const card = out.open.find((m) => m.name.startsWith("Cartão"))!;
+    const ys = card.parts.flatMap((q) => [...q.mesh.positions].filter((_, i) => i % 3 === 1));
+    expect(Math.max(...ys)).toBeGreaterThan(90 / 2 - 3 + 10); // a borda de cima do cartão passa da moldura de cima
+    expect(out.cardPreview.parts.find((q) => q.name === "Cartão")!.color).not.toBe(PAL.plate);
+    expect(out.card.parts.find((q) => q.name === "Cartão")!.color).toBe(PAL.plate); // o arquivo leva a cor da paleta
+  });
+
   test("fechado: as quatro abas ficam por cima do cartão e das peças em relevo por cima delas", () => {
     const out = buildInvite(M, P(), PAL, TEXT, fonts, null);
     const zMax = (m: { parts: { mesh: { positions: Float32Array } }[] }) => Math.max(...m.parts.flatMap((q) => [...q.mesh.positions].filter((_, i) => i % 3 === 2)));

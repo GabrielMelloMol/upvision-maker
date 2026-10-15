@@ -79,6 +79,8 @@ export type InviteOut = {
   /** O envelope aberto (abas levantadas) e fechado (abas dobradas), com o cartão e as peças, só para a prévia. */
   open: Model[];
   closed: Model[];
+  /** O cartão como a prévia mostra: vidro escuro. O arquivo leva a cor da paleta. */
+  cardPreview: Model;
   warnings: string[];
   info: InviteInfo;
 };
@@ -105,7 +107,9 @@ const move = (m: Model, dx: number, dy: number, dz: number, name = m.name, previ
   parts: m.parts.map((q) => ({ ...q, mesh: { ...q.mesh, positions: q.mesh.positions.map((v, i) => v + (i % 3 === 0 ? dx : i % 3 === 1 ? dy : dz)) } })),
 });
 
-const OPEN_DEG = 62;
+const OPEN_DEG = 30; // quase planas: 30° de elevação, ou seja, 150° entre a aba e o corpo
+const PULL_OUT = 0.22; // quanto do cartão sai do envelope, em fração da altura dele
+const GLASS = "#6f8aa0"; // o cartão transparente na prévia: um vidro mais escuro, para o texto branco aparecer
 const GLUE_Z = 0.05;
 
 /** Só o cartão, no tamanho que cabe no envelope (para as variações: muda o nome e a paleta, o resto da geometria é o mesmo). */
@@ -150,7 +154,9 @@ export function buildInvite(
         if (!pose) return { ...model, name: "Corpo", previewOnly: true };
         return { ...model, name: `Aba ${id}`, previewOnly: true, parts: model.parts.map((q) => ({ ...q, mesh: foldMesh(q.mesh, pose, deg, a) })) };
       });
-    const seated = move(cardModel, 0, 0, out.height + GLUE_Z, "Cartão (não imprime)");
+    const glass: Model = { ...cardModel, parts: cardModel.parts.map((q) => (q.name === "Cartão" ? { ...q, color: GLASS } : q)) };
+    const seated = move(glass, 0, 0, out.height + GLUE_Z, "Cartão (não imprime)");
+    const pulled = move(glass, 0, cardP.h * PULL_OUT, out.height + GLUE_Z, "Cartão (não imprime)");
     const topZ = 2 * a + GLUE_Z;
     const stack: Pt[] = [[0, 0], [-0.3 * p.env.w, -0.22 * p.env.h], [0.3 * p.env.w, 0.24 * p.env.h], [-0.3 * p.env.w, 0.26 * p.env.h]];
     const centerOf = (m: Model): Pt => {
@@ -167,7 +173,7 @@ export function buildInvite(
         return move(m, at[0] - c[0], at[1] - c[1], topZ, `${m.name} (não imprime)`);
       });
     };
-    const open = [...fold(OPEN_DEG), seated];
+    const open = [...fold(OPEN_DEG), pulled];
     const closed = [...fold(180), seated, ...onTop(pieces)];
 
     const lh = p.env.layer;
@@ -181,6 +187,6 @@ export function buildInvite(
       loose: out.loose,
       bridged: out.bridged,
     };
-    return { envelope, pieces, card: cardModel, pauses: out.pauseZ === null ? [] : [out.pauseZ], open, closed, warnings, info };
+    return { envelope, pieces, card: cardModel, cardPreview: glass, pauses: out.pauseZ === null ? [] : [out.pauseZ], open, closed, warnings, info };
   });
 }

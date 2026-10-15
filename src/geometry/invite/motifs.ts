@@ -32,26 +32,40 @@ export function stroke(M: ManifoldToplevel, k: K, pts: Pt[], w0: number, w1: num
 
 const place = (cs: CS, k: K, x: number, y: number, deg = 0, s = 1): CS => k(k(k(cs.scale([s, s])).rotate(deg)).translate([x, y]));
 
-/** Folha em lente, da base (0,0) à ponta (len,0), com a nervura central rasgada quando cabe. */
-export function leaf(M: ManifoldToplevel, k: K, len: number, wid: number): CS {
+/** Largura das nervuras e linhas vazadas: acima do mínimo que o bico imprime sobre o tule. */
+export const VEIN_W = 0.5;
+
+/** Folha em lente, da base (0,0) à ponta (len,0), com a nervura central e as laterais vazadas quando cabem. */
+export function leaf(M: ManifoldToplevel, k: K, len: number, wid: number, veins = true): CS {
   const s = wid / 2;
   const R = (len * len) / 4 / (2 * s) + s / 2;
   const d = R - s;
-  const a = k(k(M.CrossSection.circle(R, 40)).translate([len / 2, d]));
-  const b = k(k(M.CrossSection.circle(R, 40)).translate([len / 2, -d]));
+  const a = k(k(M.CrossSection.circle(R, 28)).translate([len / 2, d]));
+  const b = k(k(M.CrossSection.circle(R, 28)).translate([len / 2, -d]));
   const lens = k(a.intersect(b));
-  if (wid < 5) return lens;
-  const vein = k(k(M.CrossSection.square([len * 0.5, 0.6])).translate([len * 0.16, -0.3]));
-  return k(lens.subtract(vein));
+  if (!veins || wid < 4.5 || len < 9) return lens;
+  const bar = (l: number, x: number, deg: number) => k(k(k(M.CrossSection.square([l, VEIN_W])).translate([0, -VEIN_W / 2])).rotate(deg).translate([x, 0]));
+  const cuts: CS[] = [bar(len * 0.7, len * 0.14, 0)];
+  const n = len >= 16 ? 3 : len >= 12 ? 2 : 1;
+  const l = Math.min(len * 0.2, wid * 0.42);
+  for (let i = 0; i < n; i++) {
+    const x = len * (0.22 + (0.5 * (i + 0.5)) / n);
+    for (const sd of [1, -1]) cuts.push(bar(l, x, sd * 38));
+  }
+  return k(lens.subtract(k(M.CrossSection.union(cuts))));
 }
 
-/** Flor de 5 pétalas de raio `R`, com o miolo vazado. */
+/** Flor de `petals` pétalas de raio `R`: pétalas cheias com a nervura vazada, e o miolo vazado. */
 export function flower(M: ManifoldToplevel, k: K, R: number, petals = 5): CS {
-  const petal = k(k(M.CrossSection.circle(1, 28)).scale([R * 0.52, R * 0.34]));
-  const ring = Array.from({ length: petals }, (_, i) => k(k(petal.translate([R * 0.5, 0])).rotate((360 * i) / petals)));
-  const all = k(M.CrossSection.union(ring));
-  const core = R * 0.13;
-  return core >= 0.6 ? k(all.subtract(dot(M, k, core, [0, 0]))) : all;
+  const ellipse = (rx: number, ry: number, x: number, deg: number) => k(k(k(k(M.CrossSection.circle(1, 24)).scale([rx, ry])).translate([x, 0])).rotate(deg));
+  const ry = Math.min(R * 0.34 * (5 / petals) ** 0.5, R * 0.4);
+  const outer = k(M.CrossSection.union(Array.from({ length: petals }, (_, i) => ellipse(R * 0.52, ry, R * 0.5, (360 * i) / petals))));
+  // nervura de cada pétala: um traço vazado do meio até perto da ponta
+  const vein = (i: number) => k(k(k(M.CrossSection.square([R * 0.5, VEIN_W])).translate([R * 0.3, -VEIN_W / 2])).rotate((360 * i) / petals));
+  const cuts = R >= 7 ? Array.from({ length: petals }, (_, i) => vein(i)) : [];
+  const core = R * 0.1;
+  if (core >= 0.6) cuts.push(dot(M, k, core, [0, 0]));
+  return cuts.length ? k(outer.subtract(k(M.CrossSection.union(cuts)))) : outer;
 }
 
 export type Butterfly = {

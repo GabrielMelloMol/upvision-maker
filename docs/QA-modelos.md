@@ -23,7 +23,7 @@ Peça maior que a mesa de 256 mm do A1 conta como **aviso** quando o app avisa n
 impressoras de mesa maior); sem o aviso do app, é **falha**.
 
 
-**Total:** 343 casos · 253 ok · 90 com aviso · 0 com falha · 0 n/a
+**Total:** 343 casos · 252 ok · 91 com aviso · 0 com falha · 0 n/a
 
 ## Forja
 
@@ -139,15 +139,15 @@ impressoras de mesa maior); sem o aviso do app, é **falha**.
 | Convite envelope: cartão (ferramenta) | mínimo | ✅ ok | Bambu ✓ · Orca ✓ · Projeto Bambu ✓ | 14 | 6,0 | 1 | – | app: Havia traços mais finos que o bico da impressora e eu os engrossei para o relevo sair inteiro. |
 | Convite envelope: cartão (ferramenta) | relevo | ✅ ok | Bambu ✓ · Orca ✓ · Projeto Bambu ✓ | 29 | 16,3 | 1 | – | app: Havia traços mais finos que o bico da impressora e eu os engrossei para o relevo sair inteiro. |
 | Convite envelope: cartão (ferramenta) | texto longo | ✅ ok | Bambu ✓ · Orca ✓ · Projeto Bambu ✓ | 30 | 16,2 | 1 | – | app: A linha "MARIA EDUARDA & JOÃO PE…" foi reduzida para caber no cartão.; app: A linha "Convidamos você e toda …" foi reduzida para caber no cartão.; app: Havia traços mais finos que o bico da impressora e eu os engrossei para o relevo sair inteiro. |
-| Convite envelope: envelope (ferramenta) | abas arredondadas | ✅ ok | Bambu ✓ · Orca ✓ · Projeto Bambu ✓ | 100 | 23,0 | 1 | 0,80 | app: Havia traços mais finos que o bico da impressora e eu os engrossei para o relevo sair inteiro. |
-| Convite envelope: envelope (ferramenta) | arabescos 2 tons | ✅ ok | Bambu ✓ · Orca ✓ · Projeto Bambu ✓ | 57 | 14,4 | 1 | 0,80 | app: Havia traços mais finos que o bico da impressora e eu os engrossei para o relevo sair inteiro. |
-| Convite envelope: envelope (ferramenta) | borboletas e asas levantadas | ✅ ok | Bambu ✓ · Orca ✓ · Projeto Bambu ✓ | 69 | 16,2 | 1 | 0,80 | app: Havia traços mais finos que o bico da impressora e eu os engrossei para o relevo sair inteiro. |
-| Convite envelope: envelope (ferramenta) | dobra só no tule | ✅ ok | Bambu ✓ · Orca ✓ · Projeto Bambu ✓ | 96 | 22,0 | 1 | 0,80 | app: Havia traços mais finos que o bico da impressora e eu os engrossei para o relevo sair inteiro. |
-| Convite envelope: envelope (ferramenta) | flores com tule (pausa) | ✅ ok | Bambu ✓ · Orca ✓ · Projeto Bambu ✓ | 98 | 22,3 | 1 | 0,80 | app: Havia traços mais finos que o bico da impressora e eu os engrossei para o relevo sair inteiro. |
-| Convite envelope: envelope (ferramenta) | folhagem sem tule | ✅ ok | Bambu ✓ · Orca ✓ · Projeto Bambu ✓ | 148 | 34,6 | 1 | – | app: Havia traços mais finos que o bico da impressora e eu os engrossei para o relevo sair inteiro. |
-| Convite envelope: envelope (ferramenta) | máximo | ⚠️ aviso | Bambu ✓ · Orca ✓ · Projeto Bambu ✓ | – | – | – | – | "Envelope" não cabe na mesa de 256 mm (394,2 × 314,9 × 2,4 mm); Bambu recusa na mesa de 256 mm do A1 (o app avisa); Orca recusa na mesa de 256 mm do A1 (o app avisa); Projeto Bambu recusa na mesa de 256 mm do A1 (o app avisa); app: "Envelope" tem 394 × 315 × 2 mm e passa da mesa de 256 mm: diminua o tamanho. |
-| Convite envelope: envelope (ferramenta) | mínimo | ✅ ok | Bambu ✓ · Orca ✓ · Projeto Bambu ✓ | 41 | 8,0 | 1 | 0,60 | app: Havia traços mais finos que o bico da impressora e eu os engrossei para o relevo sair inteiro. |
-| Convite envelope: borboleta e flores (ferramenta) | máximo | ⚠️ aviso | Bambu ✓ · Orca ✓ · Projeto Bambu ✓ | 80 | 35,8 | 1 | – | o conjunto arrumado ocupa 636,9 × 54,1 mm: passa da mesa de 256 mm; app: Havia traços mais finos que o bico da impressora e eu os engrossei para o relevo sair inteiro. |
+| Convite envelope: envelope (ferramenta) | abas arredondadas | ✅ ok | Bambu ✓ · Orca ✓ · Projeto Bambu ✓ | 120 | 23,4 | 1 | 0,80 | app: Havia traços mais finos que o bico da impressora e eu os engrossei para o relevo sair inteiro. |
+| Convite envelope: envelope (ferramenta) | arabescos 2 tons | ✅ ok | Bambu ✓ · Orca ✓ · Projeto Bambu ✓ | 103 | 21,5 | 1 | 0,80 | app: Havia traços mais finos que o bico da impressora e eu os engrossei para o relevo sair inteiro. |
+| Convite envelope: envelope (ferramenta) | borboletas e asas levantadas | ✅ ok | Bambu ✓ · Orca ✓ · Projeto Bambu ✓ | 119 | 22,5 | 1 | 0,80 | app: Havia traços mais finos que o bico da impressora e eu os engrossei para o relevo sair inteiro. |
+| Convite envelope: envelope (ferramenta) | dobra só no tule | ✅ ok | Bambu ✓ · Orca ✓ · Projeto Bambu ✓ | 120 | 22,4 | 1 | 0,80 | app: Havia traços mais finos que o bico da impressora e eu os engrossei para o relevo sair inteiro. |
+| Convite envelope: envelope (ferramenta) | flores com tule (pausa) | ⚠️ aviso | Bambu ✓ · Orca ✓ · Projeto Bambu ✓ | 121 | 22,8 | 1 | 0,80 | "Envelope": parede/traço < 0,4 mm em Z 0,1, 0,4, 0,6, 0,8, 1,1 mm; app: Havia traços mais finos que o bico da impressora e eu os engrossei para o relevo sair inteiro. |
+| Convite envelope: envelope (ferramenta) | folhagem sem tule | ✅ ok | Bambu ✓ · Orca ✓ · Projeto Bambu ✓ | 151 | 29,9 | 1 | – | app: Havia traços mais finos que o bico da impressora e eu os engrossei para o relevo sair inteiro. |
+| Convite envelope: envelope (ferramenta) | máximo | ⚠️ aviso | Bambu ✓ · Orca ✓ · Projeto Bambu ✓ | – | – | – | – | "Envelope" não cabe na mesa de 256 mm (394,0 × 314,9 × 2,4 mm); "Envelope": parede/traço < 0,4 mm em Z 0,2, 0,7, 1,2, 1,7, 2,2 mm; Bambu recusa na mesa de 256 mm do A1 (o app avisa); Orca recusa na mesa de 256 mm do A1 (o app avisa); Projeto Bambu recusa na mesa de 256 mm do A1 (o app avisa); app: "Envelope" tem 394 × 315 × 2 mm e passa da mesa de 256 mm: diminua o tamanho. |
+| Convite envelope: envelope (ferramenta) | mínimo | ✅ ok | Bambu ✓ · Orca ✓ · Projeto Bambu ✓ | 40 | 6,8 | 1 | 0,60 | app: Havia traços mais finos que o bico da impressora e eu os engrossei para o relevo sair inteiro. |
+| Convite envelope: borboleta e flores (ferramenta) | máximo | ⚠️ aviso | Bambu ✓ · Orca ✓ · Projeto Bambu ✓ | 89 | 35,6 | 1 | – | o conjunto arrumado ocupa 636,7 × 54,1 mm: passa da mesa de 256 mm; app: Havia traços mais finos que o bico da impressora e eu os engrossei para o relevo sair inteiro. |
 | Convite envelope: borboleta e flores (ferramenta) | padrão | ✅ ok | Bambu ✓ · Orca ✓ · Projeto Bambu ✓ | 26 | 6,5 | 1 | – | app: Havia traços mais finos que o bico da impressora e eu os engrossei para o relevo sair inteiro. |
 | Chaveiro (ferramenta) | 3 camadas | ✅ ok | Bambu ✓ · Orca ✓ · Projeto Bambu ✓ | 10 | 3,6 | 1 | – | – |
 | Chaveiro (ferramenta) | arte girada | ✅ ok | Bambu ✓ · Orca ✓ · Projeto Bambu ✓ | 9 | 3,8 | 1 | – | – |

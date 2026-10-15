@@ -98,7 +98,7 @@ describe("Convite envelope", () => {
     await user.click(screen.getByRole("button", { name: "Fechado (não imprime)" }));
     expect(screen.getByText(/Prévia do envelope fechado/)).toBeInTheDocument();
     await user.click(screen.getByRole("button", { name: "Aberto (não imprime)" }));
-    expect(screen.getByText(/Prévia do envelope com as abas levantadas/)).toBeInTheDocument();
+    expect(screen.getByText(/Prévia do envelope com as abas quase planas/)).toBeInTheDocument();
     await user.click(screen.getByRole("button", { name: "Mesa (o que imprime)" }));
     expect(screen.queryByText(/Prévia do envelope/)).not.toBeInTheDocument();
   }, 120_000);

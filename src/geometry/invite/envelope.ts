@@ -4,7 +4,7 @@ import { toMesh } from "../mesh";
 import { fitInto } from "../shape2d";
 import { fixThinStrokes } from "../stampArt";
 import type { Part } from "../types";
-import { connectIslands, laceRoles, type LacePattern, type LaceRoles } from "./lace";
+import { connectIslands, laceRoles, type LaceDensity, type LacePattern, type LaceRoles } from "./lace";
 import { butterfly, type K, type Pt } from "./motifs";
 
 export type FlapShape = "triangle" | "round";
@@ -23,6 +23,8 @@ export type EnvelopeParams = {
   gap: number;
   hinge: Hinge;
   pattern: LacePattern;
+  /** Quanto do tule a renda cobre. */
+  density: LaceDensity;
   seed: number;
   /** Com tule: pausa na camada certa; sem: renda mais grossa e tudo ligado à moldura. */
   tulle: boolean;
@@ -40,7 +42,7 @@ export type EnvelopeParams = {
 };
 
 export const DEFAULT_ENVELOPE: EnvelopeParams = {
-  w: 120, h: 90, flap: "triangle", flapDepth: 100, frame: 3, gap: 1.6, hinge: "thin", pattern: "floral", seed: 7, tulle: true,
+  w: 120, h: 90, flap: "triangle", flapDepth: 100, frame: 3, gap: 1.6, hinge: "thin", pattern: "floral", density: "medium", seed: 7, tulle: true,
   thickness: 1.2, thicknessNoTulle: 1.6, tuleAt: 0.6, layer: 0.2, tones: 3, wings: false, wingSpan: 34,
 };
 
@@ -72,8 +74,10 @@ export type EnvelopeOut = {
   hingeT: number;
 };
 
+const MIN_WIRE = 0.5;
 const HINGE_T = 0.4;
 const HINGE_OVERLAP = 1.2;
+const HINGE_MERGE = 0.05; // a tira entra 0,05 mm na moldura: encostar só pela face deixaria a dobradiça como peça separada para o fatiador
 const MIN_ISLAND_NOZZLES = 6; // pedaço solto menor que isto (em bicos quadrados) é pó e sai
 
 type RegionShape = { id: RegionId; outline: CS; w: number; h: number; cx: number; cy: number; rot: number; ox: number; oy: number; out: Pt; hinge: Pt };
@@ -118,11 +122,12 @@ const roleColor = (role: Role, c: EnvelopeColors, tones: 2 | 3) => (role === "Mo
 export function buildEnvelope(M: ManifoldToplevel, k: K, p: EnvelopeParams, colors: EnvelopeColors, custom: CustomLace): EnvelopeOut {
   const warnings: string[] = [];
   const nozzle = nozzleMm();
-  const minWire = nozzle * 2;
+  const minWire = Math.max(MIN_WIRE, nozzle * 1.25); // fio mais fino que o bico imprime sobre o tule: 0,5 mm com bico 0,4
   const T = p.tulle ? p.thickness : p.thicknessNoTulle;
   const lh = p.layer;
   const regionsShape = shapes(M, k, p);
-  let loose = 0, bridged = 0;
+  const loose = 0;
+  let bridged = 0;
   const perRegion = regionsShape.map((r, idx) => {
     const g2 = p.gap / 2;
     const out0 = k(r.outline.offset(-g2, "Miter"));
@@ -135,7 +140,7 @@ export function buildEnvelope(M: ManifoldToplevel, k: K, p: EnvelopeParams, colo
       roles = { leaf: moved, flower: k(M.CrossSection.union([])), stem: k(M.CrossSection.union([])) };
     } else {
       const pat = p.pattern === "custom" ? "floral" : p.pattern;
-      const raw = laceRoles(M, k, pat, Math.max(10, r.w - 2 * p.frame), Math.max(10, r.h - 2 * p.frame), p.seed + idx * 101);
+      const raw = laceRoles(M, k, pat, Math.max(10, r.w - 2 * p.frame), Math.max(10, r.h - 2 * p.frame), p.seed + idx * 101, k(area.translate([-r.cx, -r.cy])), p.density);
       const sh = (cs: CS) => k(cs.translate([r.cx, r.cy]));
       roles = { leaf: sh(raw.leaf), flower: sh(raw.flower), stem: sh(raw.stem) };
     }
@@ -155,11 +160,10 @@ export function buildEnvelope(M: ManifoldToplevel, k: K, p: EnvelopeParams, colo
     const fixed = fixThinStrokes(M, all, true, minWire);
     k(fixed.cs);
     if (fixed.thin && p.pattern === "custom") warnings.push("O padrão do seu SVG tem traços mais finos que o dobro do bico: engrossei para a renda sair inteira.");
+    // nada fica solto, com ou sem tule: o que não encosta na moldura vira fio até ela (o tule só dá mais firmeza)
     const bridgedOne = connectIslands(M, k, fixed.cs, minWire, nozzle * nozzle * MIN_ISLAND_NOZZLES);
-    if (p.tulle) loose += Math.max(0, bridgedOne.cs.decompose().length - 1);
-    else bridged += bridgedOne.bridged;
-    // sem tule, nada solta: o que não ligou na moldura virou fio; com tule, os pedaços soltos ficam presos nele
-    const cleaned = p.tulle ? fixed.cs : bridgedOne.cs;
+    bridged += bridgedOne.bridged;
+    const cleaned = bridgedOne.cs;
     const enlarged = k(M.CrossSection.union([cleaned]));
     const flowerFinal = k(enlarged.intersect(flowerCs));
     const leafFinal = k(k(enlarged.intersect(leafCs)).subtract(flowerFinal));
@@ -189,7 +193,7 @@ export function buildEnvelope(M: ManifoldToplevel, k: K, p: EnvelopeParams, colo
         ...mk("Moldura", darkTable, 0, T),
         ...mk("Folhas", t(leaf), 0, T),
         ...mk("Flores", t(flower), 0, T),
-        ...(strip ? mk("Moldura", k(strip.subtract(darkTable)), 0, HINGE_T) : []),
+        ...(strip ? mk("Moldura", k(strip.subtract(k(darkTable.offset(-HINGE_MERGE, "Miter")))), 0, HINGE_T) : []),
       ],
     };
   });
@@ -200,7 +204,7 @@ export function buildEnvelope(M: ManifoldToplevel, k: K, p: EnvelopeParams, colo
     ...mk("Moldura", darkAll, 0, T),
     ...mk("Folhas", union((q) => q.leaf), 0, T),
     ...mk("Flores", union((q) => q.flower), 0, T),
-    ...(strips ? mk("Moldura", k(strips.subtract(darkAll)), 0, HINGE_T) : []),
+    ...(strips ? mk("Moldura", k(strips.subtract(k(darkAll.offset(-HINGE_MERGE, "Miter")))), 0, HINGE_T) : []),
   ];
 
   const f = p.flapDepth / 100;
@@ -211,7 +215,6 @@ export function buildEnvelope(M: ManifoldToplevel, k: K, p: EnvelopeParams, colo
     tuleZ = Math.max(lh, Math.round(p.tuleAt / lh) * lh);
     pauseZ = Math.round((tuleZ + lh) * 1000) / 1000;
     if (T - tuleZ < 2 * lh - 1e-6) warnings.push("O tule entra quase no topo da renda: deixe pelo menos 2 camadas por cima para prendê-lo.");
-    if (loose > 0) warnings.push(`${loose} pedaço${loose === 1 ? "" : "s"} da renda ${loose === 1 ? "fica" : "ficam"} solto${loose === 1 ? "" : "s"} da moldura e só ${loose === 1 ? "é preso" : "são presos"} pelo tule. Se preferir, imprima a versão sem tule: lá tudo é ligado.`);
-  } else if (bridged > 0) warnings.push(`${bridged} pedaço${bridged === 1 ? "" : "s"} solto${bridged === 1 ? "" : "s"} da renda ${bridged === 1 ? "foi ligado" : "foram ligados"} à moldura com um fio para a versão sem tule sair inteira.`);
+  }
   return { parts, regions, poses, height: T, tuleZ, pauseZ, spread, warnings, loose, bridged, hingeT: HINGE_T };
 }

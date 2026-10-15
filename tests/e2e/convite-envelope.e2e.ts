@@ -38,7 +38,7 @@ test("convite envelope: prévia aberta e fechada, sem tule e com asas levantadas
   await expect(page.getByText(/Prévia do envelope fechado/)).toBeVisible();
   await expect(page.locator(".legend")).toContainText("Borboleta");
   await page.getByRole("button", { name: "Aberto (não imprime)" }).click();
-  await expect(page.getByText(/abas levantadas/)).toBeVisible();
+  await expect(page.getByText(/abas quase planas/)).toBeVisible();
   await page.getByRole("button", { name: "Mesa (o que imprime)" }).click();
   await page.getByRole("button", { name: "Asas levantadas" }).click();
   await idle(page);
