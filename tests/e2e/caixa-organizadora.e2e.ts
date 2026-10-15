@@ -116,3 +116,14 @@ for (const scheme of ["light", "dark"] as const)
     const axe = await new AxeBuilder({ page }).include("main").exclude("canvas").exclude(".viewer").withTags(["wcag2a", "wcag2aa", "wcag22aa"]).analyze();
     expect(axe.violations.map((v) => `${v.id}: ${v.nodes.map((n) => n.target.join(" ")).join(" | ")}`)).toEqual([]);
   });
+
+test("Imagem para divulgar: PNG da caixa fechada com fundo claro, pelo diálogo de salvar (#211)", async ({ page, tauri }) => {
+  test.slow();
+  await open(page);
+  await page.getByRole("button", { name: "Imagem para divulgar" }).click();
+  await expect(toastWith(page, "Arquivo salvo em")).toBeVisible({ timeout: 60_000 });
+  const png = [...tauri.files].find(([p]) => p.endsWith("-divulgacao.png"))![1];
+  expect([...png.subarray(0, 4)]).toEqual([0x89, 0x50, 0x4e, 0x47]);
+  expect(png.length).toBeGreaterThan(20_000);
+  if (process.env.SHOTS_DIR) (await import("node:fs")).writeFileSync(`${process.env.SHOTS_DIR}/imagem-para-divulgar.png`, png);
+});

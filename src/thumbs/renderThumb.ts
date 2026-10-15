@@ -43,7 +43,9 @@ export async function buildModels(id: string, patch: Params = {}): Promise<Model
     fontText: (k) => (s, h) => (s.trim() ? textToCrossSection(M, extra[k] ?? font, s, h) : null),
     offset: () => [0, 0],
   };
-  return def.build(ctx, p).models;
+  const out = def.build(ctx, p);
+  // modelos com vistas (caixa organizadora): a miniatura mostra a peça pronta, fechada, não as peças soltas na mesa
+  return out.views?.find((v) => v.id === "closed")?.models ?? out.models;
 }
 
 function material(color: string): THREE.MeshPhysicalMaterial {

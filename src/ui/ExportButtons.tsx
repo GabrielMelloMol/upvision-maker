@@ -37,6 +37,10 @@ const MODES: [Mode, string][] = [
   ["single", "1 cor"],
 ];
 
+const PROMO_W = 1600;
+const PROMO_H = 1200;
+const PROMO_BG = 0xf3f4f6; // fundo claro de estúdio
+
 type Props = {
   models: Model[];
   name: string;
@@ -50,6 +54,8 @@ type Props = {
   profile?: PrintProfile;
   /** Dicas do modelo ou da ferramenta (ajuda), junto das do perfil de impressão, num só "Dicas de impressão". */
   tips?: string[];
+  /** Peças para a "Imagem para divulgar" (PNG): a peça pronta, montada; sem isto, as do arquivo (#211). */
+  promoModels?: Model[];
   /** Depois de salvar um arquivo (com o `name` legível): a ferramenta guarda o projeto nos "Últimos projetos" (#85). */
   onSaved?: (fileName: string) => void;
   /** O 3MF não é a saída principal da tela (ex.: etiquetas, cujo principal é o PDF): botão comum, sem cor (#139). */
@@ -60,7 +66,7 @@ type Props = {
 const recolor = (models: Model[], map: Record<string, string>): Model[] => models.map((m) => ({ ...m, parts: m.parts.map((p) => ({ ...p, color: map[p.color.toLowerCase()] ?? p.color })) }));
 
 /** Botões padrão de exportação: 3MF com cores (principal) e STL por objeto, ajustados ao jeito de imprimir. */
-export default function ExportButtons({ models: input, name, busy, pauses: inputPauses, printModes = true, modes, profile, tips, onSaved, secondary = false }: Props) {
+export default function ExportButtons({ models: input, name, busy, pauses: inputPauses, printModes = true, modes, profile, tips, promoModels, onSaved, secondary = false }: Props) {
   const toast = useToast();
   const [mode, setMode] = useState<Mode>("ams");
   const [layer, setLayer] = useState(profile?.layerHeight ?? 0.2);
@@ -217,6 +223,26 @@ export default function ExportButtons({ models: input, name, busy, pauses: input
       {/* um só botão cheio (#139); os outros formatos ficam numa linha discreta, sempre à vista */}
       <div className="export-more">
         <span>Outros formatos:</span>
+        <button
+          className="link"
+          disabled={disabled}
+          title="Foto da peça pronta, com fundo claro e sombra suave, para anúncio e redes sociais."
+          onClick={() =>
+            save(
+              `${slug(name)}-divulgacao.png`,
+              async () => {
+                // o desenho do render só carrega quando alguém pede a imagem
+                const { renderModels } = await import("../thumbs/renderThumb");
+                const url = renderModels(promoModels?.length ? promoModels : input, PROMO_W, PROMO_H, { background: PROMO_BG, png: true, margin: 0.1 });
+                return Uint8Array.from(atob(url.split(",")[1]), (c) => c.charCodeAt(0));
+              },
+              "png",
+              "Imagem PNG",
+            )
+          }
+        >
+          Imagem para divulgar
+        </button>
         {hasPauses && (
           <button className="link" disabled={disabled} onClick={() => save(`${slug(name)}-bambu.3mf`, () => bambuProject(models, pauses!, profile, slots), "3mf", "Projeto do Bambu Studio")}>
             Projeto do Bambu Studio (pausa pronta)
