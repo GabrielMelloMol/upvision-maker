@@ -137,7 +137,7 @@ export const FAMILY_HELP: Record<string, GuideHelp> = {
   },
   toys: {
     use: ["Brinquedos e jogos: quebra-cabeça, cubo com alfabeto, dados de RPG, para colorir e cartões de montar."],
-    avoid: ["Peças pequenas para crianças menores de 3 anos: risco de engasgo."],
+    avoid: ["Brinquedo para criança bem pequena: as peças pequenas podem engasgar; confira a idade indicada."],
     tips: ["Lixe de leve as bordas e use cores vivas.", "Os dados de RPG pedem camada fina e um furo de teste."],
     faq: [COLORS_FAQ],
   },
@@ -149,7 +149,7 @@ export const FAMILY_HELP: Record<string, GuideHelp> = {
   },
   coaster: {
     use: ["Porta-copos com nome, desenho ou data: lembrança de casamento e brinde."],
-    avoid: ["Bebida muito quente direto: PLA amolece perto de 55 °C; use PETG."],
+    avoid: ["Bebida muito quente direto: o plástico comum amolece com o calor; escolha um material que aguente mais."],
     tips: ["Mais de uma cor deixa o desenho em destaque.", "Cortiça ou feltro colados por baixo protegem a mesa."],
     faq: [COLORS_FAQ],
   },
