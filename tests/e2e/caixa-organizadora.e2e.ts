@@ -59,6 +59,13 @@ test("Caixa organizadora: sugestão por uso, deslizante com número e ajuda, jei
   await view(page, "Fechada").click();
   await view(page, "Peças na mesa").click();
   await expect(hud(page)).toContainText("×");
+  // a caixa padrão (180 mm) e a tampa não cabem juntas numa mesa de 256 mm: a tampa vai para a 2ª mesa, com aviso
+  await page.getByRole("button", { name: "Parafusos 5×4" }).click();
+  await idle(page);
+  await expect(page.getByText(/não cabem juntas numa mesa de 256 mm: .*Tampa na mesa 2/)).toBeVisible();
+  await page.getByRole("button", { name: "Pequena 3×2" }).click();
+  await idle(page);
+  await expect(page.getByText(/não cabem juntas numa mesa/)).toHaveCount(0);
   // nicho pequeno demais: some a prévia e a frase de ajuda explica
   await page.getByRole("button", { name: "Iguais", exact: true }).click();
   await page.getByLabel(/^Fileiras/).fill("8");

@@ -1,4 +1,6 @@
 import { bedMm } from "../bed";
+import { modelsBounds } from "../bounds";
+import { packPlates } from "../pack";
 import type { CS, ManifoldToplevel, Solid } from "../manifold";
 import { toMesh } from "../mesh";
 import { scoped } from "../shape2d";
@@ -134,7 +136,39 @@ export function buildOrganizerBox(ctx: ModelCtx, p: OrganizerParams): ModelOutpu
   if (Math.max(d.outerW, d.outerD) > bedMm()) warnings.push(`A caixa tem ${Math.round(Math.max(d.outerW, d.outerD))} mm e passa da mesa de ${bedMm()} mm: diminua ou imprima numa impressora maior.`);
   if (p.wall < 1.6) warnings.push("Parede abaixo de 1,6 mm: a caixa fica frágil e a tampa pode quebrar.");
   if (p.stackable && p.lid === "snap") warnings.push("Empilhável não vale para a tampa de encaixe (ela imprime de cara para baixo): use dobradiça, deslizante ou sem tampa.");
-  return scoped((k) => (p.lid === "snap" || p.lid === "slide" ? viaLidBox(ctx, k, p, d, warnings) : own(ctx, k, p, d, warnings)));
+  const built = scoped((k) => (p.lid === "snap" || p.lid === "slide" ? viaLidBox(ctx, k, p, d, warnings) : own(ctx, k, p, d, warnings)));
+  return onPlates(built);
+}
+
+const PLATE_GAP = 8;
+const PLATE_SPACING = 20; // entre uma mesa e a seguinte, lado a lado (como o organizador de gaveta)
+const spanOf = (ms: Model[]) => {
+  const b = modelsBounds(ms);
+  return b ? Math.max(b.max[0] - b.min[0], b.max[1] - b.min[1]) : 0;
+};
+const shift = (m: Model, dx: number, dy: number): Model => ({ ...m, parts: moveParts(m.parts, dx, dy, 0) });
+
+/**
+ * Peças na mesa da impressora escolhida: o que não cabe junto vai para a mesa seguinte, ao lado da primeira (a 1ª fica
+ * centrada na origem). Vale para a vista, o arquivo 3MF e o aviso; cada peça sozinha maior que a mesa fica como está.
+ */
+function onPlates(out: ModelOutput): ModelOutput {
+  const bed = bedMm();
+  if (out.models.length < 2 || spanOf(out.models) <= bed || out.models.some((m) => spanOf([m]) > bed - 2 * PLATE_GAP)) return out;
+  const plates = packPlates(out.models, bed, PLATE_GAP);
+  if (plates.length < 2) return out;
+  const packed = plates.flatMap((ms, i) => ms.map((m) => shift(m, -bed / 2 + i * (bed + PLATE_SPACING), -bed / 2)));
+  const placed = out.models.map((m) => packed.find((q) => q.name === m.name)!); // mesma ordem de antes: a 1ª peça (a tampa) é a da Vista de cima
+  const where = (name: string) => plates.findIndex((ms) => ms.some((m) => m.name === name)) + 1;
+  const lid = out.models.find((m) => m.name === "Tampa");
+  const moved = lid ? placed.find((m) => m.name === "Tampa") : undefined;
+  const before = lid && modelsBounds([lid]), after = moved && modelsBounds([moved]);
+  const [dx, dy] = before && after ? [after.min[0] - before.min[0], after.min[1] - before.min[1]] : [0, 0];
+  const elements = out.elements?.map((e) => ({ ...e, box: [e.box[0] + dx, e.box[1] + dy, e.box[2] + dx, e.box[3] + dy] as [number, number, number, number] }));
+  const apart = placed.map((m) => `${m.name} na mesa ${where(m.name)}`).join(", ");
+  const note = `As peças não cabem juntas numa mesa de ${bed} mm: ${apart}. A 2ª mesa sai ao lado da 1ª, no mesmo 3MF; no fatiador deixe cada mesa na sua placa (ou imprima uma mesa de cada vez).`;
+  const views = out.views?.map((v) => (v.id === "pieces" ? { ...v, models: placed, note: `Cada peça deitada como vai para a impressora, em ${plates.length} mesas de ${bed} mm lado a lado.` } : v));
+  return { ...out, models: placed, elements, views, warnings: [...(out.warnings ?? []), note] };
 }
 
 /** O que a lateral e o porta-etiqueta mexem na caixa (a trava da frente deixa só a faixa de baixo livre). */

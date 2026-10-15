@@ -152,3 +152,32 @@ describe("tampa de dobradiça: a peça principal da Vista de cima é a placa", {
     expect(lidB.max[0] - lidB.min[0]).toBeGreaterThan(170);
   });
 });
+
+import { ORGANIZER_PRESETS } from "../../tools/models/organizer/guide";
+import { withBedCheck } from "../../tools/models/bedCheck";
+import { ORGANIZER_BOX_MODEL } from "../../tools/models/catalog/organizerBox";
+
+describe("peças na mesa: o que não cabe junto vai para a mesa seguinte (#204)", { timeout: 120_000 }, () => {
+  const run = (patch: Partial<OrganizerParams>) => withBedCheck(ORGANIZER_BOX_MODEL).build(ctx(), { ...DEFAULT_ORGANIZER, ...patch } as never);
+  const x = (out: ReturnType<typeof run>, name: string) => meshBounds(out.models.find((m) => m.name === name)!.parts.map((q) => q.mesh))!;
+
+  test("caixa de 180 mm: a caixa fica na 1ª mesa, a tampa na 2ª, com aviso, na vista e no arquivo", () => {
+    const out = run({});
+    const box = x(out, "Caixa"), lid = x(out, "Tampa");
+    expect(box.min[0]).toBeGreaterThanOrEqual(-128 - 0.01);
+    expect(box.max[0]).toBeLessThanOrEqual(128 + 0.01);
+    expect(lid.min[0]).toBeGreaterThan(128); // além da 1ª mesa
+    expect(out.warnings!.some((w) => /não cabem juntas numa mesa de 256 mm: .*Tampa na mesa 2/.test(w))).toBe(true);
+    expect(out.views!.find((v) => v.id === "pieces")!.models).toBe(out.models); // a vista é o arquivo
+    // o texto da tampa acompanha: o elemento do gizmo cai dentro da tampa
+    const el = out.elements!.find((e) => e.id === "text")!;
+    expect(el.box[0]).toBeGreaterThanOrEqual(lid.min[0]);
+    expect(el.box[2]).toBeLessThanOrEqual(lid.max[0]);
+  });
+
+  test("caixa pequena (Pequena 3×2) cabe numa mesa só e fica como estava", () => {
+    const out = run(ORGANIZER_PRESETS.find((p) => p.id === "small")!.patch as Partial<OrganizerParams>);
+    expect(out.warnings!.some((w) => /não cabem juntas/.test(w))).toBe(false);
+    expect(x(out, "Tampa").max[0]).toBeLessThanOrEqual(128 + 0.01 + 200);
+  });
+});
