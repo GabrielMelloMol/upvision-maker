@@ -50,7 +50,7 @@ describe("Caixinha termoformada", () => {
     renderWithApp(<Thermoform />);
     await user.click(screen.getByRole("button", { name: "Páscoa" }));
     expect(screen.getByLabelText("Formato")).toHaveValue("egg");
-    expect(screen.getByLabelText(/^Texto \(uma linha/)).toHaveValue("Feliz|Páscoa");
+    expect(screen.getByLabelText(/^Texto \(Enter para nova linha\)/)).toHaveValue("Feliz\nPáscoa");
     await ready();
   }, 60_000);
 
@@ -69,8 +69,24 @@ describe("Caixinha termoformada", () => {
     const user = userEvent.setup();
     renderWithApp(<Thermoform />);
     await user.click(screen.getByRole("button", { name: "Texto" }));
-    expect(screen.getByLabelText(/^Texto da silhueta/)).toHaveValue("Ana");
+    expect(screen.getByLabelText(/^Texto da silhueta \(Enter/)).toHaveValue("Ana");
     await ready();
+  }, 60_000);
+
+  test("Mesa mostra o que imprime; Montada mostra a caixinha curva e avisa que não imprime", async () => {
+    const user = userEvent.setup();
+    renderWithApp(<Thermoform />);
+    await ready();
+    expect(screen.getByRole("button", { name: "Mesa (o que imprime)" })).toHaveAttribute("aria-pressed", "true");
+    expect(screen.queryByText(/Prévia da caixinha já prensada/)).not.toBeInTheDocument();
+    await user.click(screen.getByRole("button", { name: "Montada (não imprime)" }));
+    expect(screen.getByText(/Ela não vai para o arquivo/)).toBeInTheDocument();
+    // salvar continua salvando só as peças de imprimir (telas + clipe)
+    await user.click(saveButtons()[0]);
+    await waitFor(() => expect([...t.files.keys()].some((f) => /caixinha-telas.*\.3mf$/.test(f))).toBe(true));
+    expect(objects(t.files.get([...t.files.keys()].find((f) => /caixinha-telas.*\.3mf$/.test(f))!)!)).toBe(3);
+    await user.click(screen.getByRole("button", { name: "Mesa (o que imprime)" }));
+    expect(screen.queryByText(/Prévia da caixinha já prensada/)).not.toBeInTheDocument();
   }, 60_000);
 
   test("sem imagem enviada: pede a silhueta", async () => {

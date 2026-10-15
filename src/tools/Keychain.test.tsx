@@ -63,7 +63,7 @@ describe("Chaveiros", () => {
   test("logo sem texto: chaveiro só com o logo; remover logo esvazia", async () => {
     const user = userEvent.setup();
     const { container } = renderWithApp(<Keychain />);
-    await user.clear(screen.getByLabelText("Texto"));
+    await user.clear(screen.getByLabelText(/^Texto \(Enter para nova linha\)$/));
     expect(await screen.findByText("Digite um nome para ver o chaveiro.", undefined, BUILD)).toBeInTheDocument();
     await user.upload(container.querySelector<HTMLInputElement>('input[type="file"]')!, new File([LOGO_SVG], "logo.svg", { type: "image/svg+xml" }));
     expect(await screen.findByLabelText(/^Altura do logo/)).toHaveValue(16);
@@ -137,7 +137,7 @@ describe("Chaveiros", () => {
     expect([...container.querySelectorAll<HTMLElement>(".legend i")].map((i) => i.style.background)).toEqual(["#ff0000", "#00ff00"]);
     await user.click(screen.getByRole("button", { name: "Lote de nomes" }));
     await user.click(screen.getByRole("button", { name: "Um nome" }));
-    expect(screen.getByLabelText("Texto")).toHaveValue("Ana");
+    expect(screen.getByLabelText(/^Texto \(Enter para nova linha\)$/)).toHaveValue("Ana");
   }, 30_000);
 
   test("etiqueta retangular com 3 cores e nome em duas linhas (#67)", async () => {
@@ -150,8 +150,8 @@ describe("Chaveiros", () => {
     expect(screen.getByLabelText(/^Largura da etiqueta/)).toHaveValue(75);
     await user.click(screen.getByRole("button", { name: "3 cores" }));
     await waitFor(() => expect([...container.querySelectorAll(".legend span")].map((s) => s.textContent)).toEqual(["Base", "Meio", "Texto"]), BUILD);
-    await user.clear(screen.getByLabelText("Texto"));
-    await user.type(screen.getByLabelText("Texto"), "Ana|Silva");
+    await user.clear(screen.getByLabelText(/^Texto \(Enter para nova linha\)$/));
+    await user.type(screen.getByLabelText(/^Texto \(Enter para nova linha\)$/), "Ana{Enter}Silva");
     await waitFor(() => expect(size()[1]).toBeGreaterThan(oneLineH * 1.5), BUILD);
     await user.click(screen.getByRole("button", { name: /Salvar 3MF/ }));
     await waitFor(() => expect(t.files.has("/saida/chaveiro-ana-silva.3mf")).toBe(true));

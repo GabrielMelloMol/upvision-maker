@@ -16,7 +16,7 @@ test("ajuda: botão ?, passos da tela, Usar exemplo carrega o desenho e tecla ? 
 
   // tecla ? fora de campo abre a ajuda da tela atual; dentro de campo é só texto
   await go(page, "Chaveiros");
-  await page.getByLabel("Texto", { exact: true }).press("?");
+  await page.getByLabel(/^Texto \(Enter para nova linha\)/).press("?");
   await expect(page.getByRole("dialog", { name: "Chaveiros" })).toHaveCount(0);
   await page.locator("h1").click();
   await page.keyboard.press("?");

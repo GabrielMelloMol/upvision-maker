@@ -51,7 +51,7 @@ export function domeStack(M: ManifoldToplevel, sil: CS, g: DomeGeo, e: number, k
 }
 
 /** Perfil do domo como polilinha (raio visto de cima × altura), do topo à borda, e o comprimento de arco acumulado. */
-function domeArc(g: DomeGeo): { rho: number[]; z: number[]; arc: number[] } {
+export function domeArc(g: DomeGeo): { rho: number[]; z: number[]; arc: number[] } {
   const rho: number[] = [], z: number[] = [], arc: number[] = [];
   for (let i = 0; i <= ARC_STEPS; i++) {
     const th = Math.PI / 2 - (i / ARC_STEPS) * (Math.PI / 2); // topo (θ = π/2) → borda (θ = 0)
@@ -78,19 +78,4 @@ export function stretchOf(g: DomeGeo): { S: number; magnification: (r: number) =
     return rho[i - 1] + t * (rho[i] - rho[i - 1]);
   };
   return { S, magnification: (r) => (r <= 1e-6 ? S : at(Math.min(S * r, total)) / r) };
-}
-
-/**
- * Ampliação do desenho/malha na altura z do domo: raio visto de cima ÷ raio que o ponto tinha na tela plana
- * (comprimento do perfil desde o topo ÷ esticamento). Perto do topo é ≈ S; na borda, 1.
- */
-export function magnificationAtHeight(g: DomeGeo): (z: number) => number {
-  const { rho, z: zs, arc } = domeArc(g);
-  const { S } = stretchOf(g);
-  return (z) => {
-    let i = 0;
-    while (i < zs.length - 1 && zs[i] > z) i++; // zs vai do topo (H) à borda (0)
-    const flat = arc[i] / S;
-    return flat < 1e-6 ? S : Math.max(1, rho[i] / flat);
-  };
 }

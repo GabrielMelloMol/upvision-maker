@@ -37,7 +37,7 @@ export const DEFAULT_SCREEN: ScreenParams = {
   t: 1,
   border: 3,
   mesh: "honeycomb",
-  aperture: 3,
+  aperture: 2.5,
   wire: 0.8,
   closure: "clip",
   side: "top",

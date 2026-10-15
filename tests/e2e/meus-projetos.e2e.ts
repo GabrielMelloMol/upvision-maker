@@ -7,7 +7,7 @@ const idle = (page: Page) => expect(page.locator(".viewer .overlay.busy")).toHav
 test("chaveiro salvo aparece em Meus projetos (e no Início) e reabre com o texto; tags e favorito", async ({ page, tauri }) => {
   await openApp(page);
   await go(page, "Chaveiros");
-  await page.getByLabel("Texto", { exact: true }).fill("Júlia");
+  await page.getByLabel(/^Texto \(Enter para nova linha\)/).fill("Júlia");
   await idle(page);
   await page.getByRole("button", { name: /Salvar 3MF/ }).click();
   await expect(toastWith(page, "Arquivo salvo em")).toBeVisible();
@@ -33,5 +33,5 @@ test("chaveiro salvo aparece em Meus projetos (e no Início) e reabre com o text
 
   await grid.getByRole("button", { name: /^Abrir chaveiro-Júlia/i }).click();
   await expect(page.getByRole("heading", { name: "Chaveiros", level: 1 })).toBeVisible();
-  await expect(page.getByLabel("Texto", { exact: true })).toHaveValue("Júlia");
+  await expect(page.getByLabel(/^Texto \(Enter para nova linha\)/)).toHaveValue("Júlia");
 });

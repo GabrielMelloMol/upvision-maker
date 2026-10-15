@@ -9,9 +9,10 @@ import { buildStampArt, DEFAULT_ART, type StampLayout } from "../geometry/stampA
 import { buildThermo, DEFAULT_THERMO, type ThermoInfo, type ThermoParams } from "../geometry/thermo/build";
 import { ASYMMETRY_WARN, asymmetry, presetSilhouette, SHAPE_LABELS, silhouetteFromDesign, symmetrize, type SymSide, type ThermoShape } from "../geometry/thermo/shapes";
 import { hasEmoji, textToCrossSection } from "../geometry/text";
-import { stackLines } from "../geometry/keychain";
+import { splitLines, stackLines } from "../geometry/keychain";
 import type { Model } from "../geometry/types";
 import FontPicker from "../ui/FontPicker";
+import LinesField from "../ui/LinesField";
 import Alert from "../ui/Alert";
 import Dropzone from "../ui/Dropzone";
 import ExportButtons from "../ui/ExportButtons";
@@ -37,7 +38,6 @@ const CLOSURES = [["clip", "Clipe"], ["ring", "Faixa colada"], ["none", "Sem fec
 const SIDES = [["top", "Em cima"], ["bottom", "Embaixo"]] as const;
 const LAYOUTS = [["stack", "Logo em cima"], ["side", "Logo ao lado"]] as const;
 const SYMS = [["keep", "Como está"], ["left", "Espelhar a esquerda"], ["right", "Espelhar a direita"]] as const;
-const LINE_BREAK = /\n|\|/;
 const DESIGN_FILL = 0.8; // quanto da área da malha o desenho ocupa
 const DESIGN_MARGIN = 2; // folga do desenho até a borda sólida
 const BLOB_MM = 4; // texto vira silhueta engordando as letras até se tocarem
@@ -59,9 +59,11 @@ type State = {
   p: ThermoParams;
 };
 
-const initial = (): State => ({ source: "shape", shape: "heart", width: 70, sym: "keep", image: null, cutout: true, silText: "Ana", silFont: "pacifico", text: "Feliz|Natal", font: "great-vibes", logo: peekHandoff(), layout: "stack", textScale: 55, p: { ...DEFAULT_THERMO, colors: { ...DEFAULT_THERMO.colors } } });
+const initial = (): State => ({ source: "shape", shape: "heart", width: 70, sym: "keep", image: null, cutout: true, silText: "Ana", silFont: "pacifico", text: "Feliz\nNatal", font: "great-vibes", logo: peekHandoff(), layout: "stack", textScale: 55, p: { ...DEFAULT_THERMO, colors: { ...DEFAULT_THERMO.colors } } });
 
-type View = { screens: Model[]; mold: Model; info: ThermoInfo; asym: number };
+type View = { screens: Model[]; mold: Model; assembled: Model; info: ThermoInfo; asym: number };
+type Show = "table" | "assembled";
+const SHOWS = [["table", "Mesa (o que imprime)"], ["assembled", "Montada (não imprime)"]] as const;
 const shiftModel = (m: Model, dx: number, dy: number): Model => ({ ...m, parts: m.parts.map((q) => ({ ...q, mesh: { ...q.mesh, positions: q.mesh.positions.map((v, i) => (i % 3 === 0 ? v + dx : i % 3 === 1 ? v + dy : v)) } })) });
 
 const g = (n: number) => `${n.toLocaleString("pt-BR", { maximumFractionDigits: 0 })} g`;
@@ -80,7 +82,7 @@ async function silhouetteOf(s: State): Promise<CS | null> {
       d.cs.delete();
     }
   }
-  const lines = s.silText.split(LINE_BREAK).map((l) => l.trim()).filter(Boolean);
+  const lines = splitLines(s.silText);
   if (!lines.length) return null;
   const f = await loadFont(s.silFont);
   const emoji = lines.some(hasEmoji) ? await loadEmojiFont() : undefined;
@@ -103,9 +105,10 @@ export default function Thermoform() {
   const [fileError, setFileError] = useState<string | null>(null);
   const [cutWarn, setCutWarn] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  const [show, setShow] = useState<Show>("table");
   useEffect(clearHandoff, []);
 
-  const lines = s.text.split(LINE_BREAK).map((l) => l.trim()).filter(Boolean);
+  const lines = splitLines(s.text);
   const sc = p.screen;
   const valid =
     inRange(s.width, 40, 140) && inRange(p.domeH, 6, 40) && inRange(p.curve, 1.6, 4) && inRange(sc.t, 0.6, 2) && inRange(sc.border, 2, 8) && inRange(sc.aperture, 2, 8) && inRange(sc.wire, 0.6, 2) &&
@@ -173,8 +176,8 @@ export default function Thermoform() {
         const spread = out.screens.length ? Math.max(...out.screens.map((m) => Math.max(...m.parts.flatMap((q) => [...q.mesh.positions].filter((_, i) => i % 3 === 0).map(Math.abs))))) : 0;
         if (spread * 2 > bedMm()) warn.push("As duas telas lado a lado passam da largura da mesa: imprima uma de cada vez ou diminua o formato.");
         const moldOffset = (out.screens.length ? spread : 0) + 70 + p.mold.flange;
-        const preview = [...out.screens, out.assembled, shiftModel(out.mold, moldOffset, 0)];
-        return { models: preview, warnings: [...warn, ...bed], view: { screens: out.screens, mold: out.mold, info: out.info, asym: diff } };
+        const table = [...out.screens, shiftModel(out.mold, moldOffset, 0)];
+        return { models: table, warnings: [...warn, ...bed], view: { screens: out.screens, mold: out.mold, assembled: out.assembled, info: out.info, asym: diff } };
       } finally {
         design?.delete();
       }
@@ -233,11 +236,8 @@ export default function Thermoform() {
             )}
             {s.source === "text" && (
               <>
-                <label>
-                  Texto da silhueta (uma linha por linha)
-                  <textarea value={s.silText} rows={2} maxLength={40} onChange={(e) => field("silText")(e.target.value)} />
-                </label>
-                <FontPicker value={s.silFont} onChange={field("silFont")} sample={s.silText.split(LINE_BREAK)[0] ?? ""} label="Fonte da silhueta" />
+                <LinesField label="Texto da silhueta (Enter para nova linha)" value={s.silText} onChange={field("silText")} maxLength={40} />
+                <FontPicker value={s.silFont} onChange={field("silFont")} sample={splitLines(s.silText)[0] ?? ""} label="Fonte da silhueta" />
               </>
             )}
             {fileError && <Alert kind="error">{fileError}</Alert>}
@@ -252,10 +252,7 @@ export default function Thermoform() {
           </div>
           <div className="card stack">
             <h3>Desenho de cima</h3>
-            <label>
-              Texto (uma linha por linha)
-              <textarea value={s.text} rows={2} maxLength={60} onChange={(e) => field("text")(e.target.value)} />
-            </label>
+            <LinesField value={s.text} onChange={field("text")} maxLength={60} />
             <FontPicker value={s.font} onChange={field("font")} sample={lines[0] ?? ""} />
             <Dropzone accept={DESIGN_ACCEPT} label={s.logo ? s.logo.name : "Logo (opcional): SVG, PNG ou foto"} hint="Formas simples e grandes saem melhor" onFile={onLogo} />
             {s.logo && (
@@ -330,7 +327,9 @@ export default function Thermoform() {
           </div>
         </div>
         <div className="preview-col">
-          <Preview3D models={models} busy={busy || loading} busyText="Gerando telas e molde…" error={error} emptyText={!valid ? "Corrija os campos em vermelho para ver a caixinha." : s.source === "image" && !s.image ? "Envie a silhueta (SVG ou imagem) para ver a caixinha." : "Escolha um formato para ver a caixinha."} />
+          <Segmented label="O que mostrar" value={show} options={SHOWS} onChange={setShow} full />
+          <Preview3D models={show === "assembled" && view ? [view.assembled] : models} busy={busy || loading} busyText="Gerando telas e molde…" error={error} emptyText={!valid ? "Corrija os campos em vermelho para ver a caixinha." : s.source === "image" && !s.image ? "Envie a silhueta (SVG ou imagem) para ver a caixinha." : "Escolha um formato para ver a caixinha."} />
+          {show === "assembled" && <Alert kind="info">Prévia da caixinha já prensada, com a tela curvada sobre o domo. Ela não vai para o arquivo: o que imprime está em Mesa.</Alert>}
           {warnings.map((w) => (
             <Alert key={w} kind="warn">{w}</Alert>
           ))}

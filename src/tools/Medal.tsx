@@ -1,3 +1,4 @@
+import LinesField from "../ui/LinesField";
 import { bedMm } from "../geometry/bed";
 import { useEffect, useState } from "react";
 import { FONTS, loadFont, type FontId } from "../geometry/fonts";
@@ -230,10 +231,7 @@ export default function Medal() {
             <Toggle label="Verso com texto (peça separada, colada com 2 pinos)" checked={p.back} onChange={set("back")} />
             {p.back && (
               <>
-                <label>
-                  Texto do verso (uma linha por linha)
-                  <textarea rows={3} value={p.backText} onChange={(e) => set("backText")(e.target.value)} />
-                </label>
+                <LinesField label="Texto do verso (Enter para nova linha)" rows={3} value={p.backText} onChange={(v) => set("backText")(v)} />
                 <div className="grid two">
                   <NumField label="Altura do texto do verso" value={p.backSize} onChange={set("backSize")} min={2} max={20} step={0.5} />
                   {fontSelect("back", "verso")}

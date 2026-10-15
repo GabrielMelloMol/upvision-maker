@@ -11,6 +11,7 @@ import { scoped } from "../geometry/shape2d";
 import { hasEmoji, textToCrossSection } from "../geometry/text";
 import { checkText, textWarnings } from "../geometry/textCheck";
 import FontPicker from "../ui/FontPicker";
+import LinesField from "../ui/LinesField";
 import Alert from "../ui/Alert";
 import Dropzone from "../ui/Dropzone";
 import DecalGizmo from "./models/DecalGizmo";
@@ -64,7 +65,7 @@ export default function Keychain() {
   const { batch, text, names, font, textH, logo, logoH, move, p } = tool.state;
   const [setBatch, setText, setNames, setFont, setTextH, setLogo, setLogoH] = [tool.field("batch"), tool.field("text"), tool.field("names"), tool.field("font"), tool.field("textH"), tool.field("logo"), tool.field("logoH")];
   const setMove = tool.field("move");
-  const textRef = useRef<HTMLInputElement>(null);
+  const textRef = useRef<HTMLTextAreaElement>(null);
   useEffect(clearHandoff, []);
   const [logoError, setLogoError] = useState<string | null>(null);
   const set = <K extends keyof KeychainParams>(k: K) => (v: KeychainParams[K]) => tool.set((cur) => ({ ...cur, p: { ...cur.p, [k]: v } }), `p.${String(k)}`);
@@ -184,14 +185,10 @@ export default function Keychain() {
               </label>
             ) : (
               <div className="field-with-emoji">
-                <label>
-                  Texto
-                  <input ref={textRef} value={text} maxLength={40} onChange={(e) => setText(e.target.value)} />
-                </label>
+                <LinesField inputRef={textRef} value={text} maxLength={40} onChange={setText} />
                 <EmojiPicker inputRef={textRef} value={text} onChange={setText} />
               </div>
             )}
-            {!batch && <span className="hint">Use | para quebrar em duas linhas (ex.: Ana|Silva).</span>}
             <FontPicker value={font} onChange={setFont} sample={(batch ? parseNames(names)[0] : text) ?? ""} />
             <NumField label="Altura do texto" value={textH} onChange={setTextH} min={5} max={60} step={1} />
           </div>

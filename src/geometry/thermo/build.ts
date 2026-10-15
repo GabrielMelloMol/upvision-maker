@@ -6,7 +6,7 @@ import type { Model, Part } from "../types";
 import { fixThinStrokes } from "../stampArt";
 import { inradius, stretchOf, type DomeGeo } from "./dome";
 import { buildMoldSolid, DEFAULT_MOLD, type MoldParams } from "./mold";
-import { formedShell, mergeMeshes } from "./preview";
+import { mergeMeshes, warpOntoDome } from "./preview";
 import { clipRegion, DEFAULT_SCREEN, earOf, ringRegion, screenRegions, type ScreenParams } from "./screen";
 
 type K = <D extends { delete(): void }>(o: D) => D;
@@ -134,10 +134,14 @@ export function buildThermo(M: ManifoldToplevel, sil: CS, design: CS | null, p: 
     const mold = buildMoldSolid(M, base, g, p.mold, k, sil);
     const moldModel: Model = { name: "Molde", parts: [{ name: "Molde", color: c.mold, mesh: toMesh(mold) }] };
 
-    // caixa montada: duas cascas prensadas, uma de cabeça para baixo sobre a outra, com a emenda em z = 0
-    const top = formedShell(M, sil, design, flatDesign, g, p.screen, k);
-    const bottomDesign = second ? design : null;
-    const bot = bottomDesign === design ? top : formedShell(M, sil, bottomDesign, bottomDesign && flatDesign, g, p.screen, k);
+    // caixa montada: a tela plana deformada sobre o domo (como a termoformagem faz), uma metade de cabeça para baixo sobre a outra
+    const inner = k(sil.offset(-p.screen.border, "Round"));
+    const formed = (r: { border: CS; mesh: CS; design: CS }) => {
+      const warp = (cs: CS) => (cs.isEmpty() ? null : warpOntoDome(k(cs.extrude(t)), inner, g, k));
+      return { border: warp(r.border), mesh: warp(r.mesh), design: warp(r.design) };
+    };
+    const top = formed(reg);
+    const bot = plainReg ? formed(plainReg) : top;
     const flip = (s: Solid) => k(s.mirror([0, 0, 1]));
     const merged = (name: string, color: string, a: Solid | null, b: Solid | null): Part[] => {
       const meshes = [a && toMesh(a), b && toMesh(flip(b))].filter((m): m is NonNullable<typeof m> => !!m);
@@ -146,7 +150,7 @@ export function buildThermo(M: ManifoldToplevel, sil: CS, design: CS | null, p: 
     const yBox = Hs + 32;
     const place = (parts: Part[]): Part[] => parts.map((q) => ({ ...q, mesh: { ...q.mesh, positions: q.mesh.positions.map((v, i) => (i % 3 === 1 ? v + yBox - cy : v)) } }));
     const assembled: Model = {
-      name: "Caixa montada (prévia)",
+      name: "Caixa montada (não imprime)",
       previewOnly: true,
       parts: place([...merged("Borda", c.border, top.border, bot.border), ...merged("Malha", c.sheet, top.mesh, bot.mesh), ...merged("Design", c.design, top.design, bot.design)]),
     };

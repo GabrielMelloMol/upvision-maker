@@ -16,7 +16,7 @@ test("chaveiro: seletor visual com prévia do nome, categorias, busca, favoritas
   await openApp(page);
   await go(page, "Chaveiros");
   await expect(page.getByRole("button", { name: "Fonte: Pacifico. Trocar fonte" })).toContainText("Ana");
-  await page.getByLabel("Texto", { exact: true }).fill("Júlia");
+  await page.getByLabel(/^Texto \(Enter para nova linha\)/).fill("Júlia");
 
   const sheet = await openPicker(page);
   const cards = sheet.getByRole("list", { name: "Fontes" }).getByRole("listitem");
@@ -48,7 +48,7 @@ test("chaveiro: seletor visual com prévia do nome, categorias, busca, favoritas
 
   // cursiva de letras separadas: avisa que o nome não sai emendado
   await page.getByLabel(/^Altura do texto/).fill("16");
-  await page.getByLabel("Texto", { exact: true }).fill("Ana Júlia");
+  await page.getByLabel(/^Texto \(Enter para nova linha\)/).fill("Ana Júlia");
   await (await openPicker(page)).getByRole("searchbox", { name: "Buscar fonte" }).fill("courg");
   await page.getByRole("button", { name: "Courgette (Cursiva)" }).click();
   await expect(page.getByText(/as letras não se unem/)).toBeVisible({ timeout: 60_000 });
