@@ -43,7 +43,8 @@
 .bm-l1 { animation-delay: 0s; } .bm-l2 { animation-delay: 0.5s; } .bm-l3 { animation-delay: 1s; }
 .bm-f { stroke-dasharray: 240; stroke-dashoffset: 240; animation: bm-draw 4s infinite; }
 @keyframes bm-up { 0% { opacity: 0; transform: translateY(6px); } 8%, 85% { opacity: 1; transform: none; } 100% { opacity: 0; } }
-@keyframes bm-draw { 0%, 35% { stroke-dashoffset: 240; } 75%, 85% { stroke-dashoffset: 0; } 100% { stroke-dashoffset: 0; opacity: 0; } }
+/* a opacidade tem de estar fixada em 1 até 85%: com só o 100% ela esmaece o ciclo inteiro e o filamento fica pálido (o SVG do kit tem esse defeito) */
+@keyframes bm-draw { 0%, 35% { stroke-dashoffset: 240; opacity: 1; } 75%, 85% { stroke-dashoffset: 0; opacity: 1; } 100% { stroke-dashoffset: 0; opacity: 0; } }
 /* carregamento da prévia 3D */
 .busy-mark { width: 40px; height: 40px; }
 /* movimento reduzido: o quadro parado é o símbolo completo, sem ciclo */
