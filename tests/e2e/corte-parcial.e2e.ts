@@ -3,6 +3,9 @@ import AxeBuilder from "@axe-core/playwright";
 import type { Page } from "@playwright/test";
 import { expect as baseExpect, go, openApp, settleColors, test, toastWith } from "./tauri";
 
+// cada teste abre o app, calcula o corte no worker (WASM próprio) e, às vezes, espera a câmera: com a máquina em carga passa dos 60 s padrão
+test.describe.configure({ timeout: 180_000 });
+
 // o corte roda em worker com WASM próprio: com muitos testes em paralelo o cálculo demora mais que os 5 s padrão
 const expect = baseExpect.configure({ timeout: 30_000 });
 
@@ -53,7 +56,6 @@ test("corte parcial: corta só a cabeça do personagem e deixa a árvore intacta
 });
 
 test("corte parcial: arrastar a alça da face na vista 3D muda a região (e o slider acompanha); botões de vista", async ({ page }) => {
-  test.setTimeout(180_000); // abre o app, calcula o corte no worker, espera a câmera e arrasta: com a máquina em carga passa de 60 s
   await openApp(page);
   await go(page, "Corte parcial");
   await page.locator('input[type="file"]').first().setInputFiles(STL);
