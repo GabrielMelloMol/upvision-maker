@@ -69,6 +69,15 @@ function tierAt(c: Channel, price: number): { feePct: number; feeFixed: number }
 /** Comissão (com teto), taxa fixa (só abaixo do limite), frete obrigatório (acima do limite), custo extra por venda e imposto, num preço. */
 export const channelFees = (c: Channel, price: number, taxPct: number) => round2(feesAt(c, price, taxPct));
 
+/** Arredonda para cima ao centavo (com folga de ruído): o preço do canal nunca fica 1 centavo abaixo da margem pedida (B1). */
+export const ceilCent = (p: number) => Math.ceil(p * 100 - 1e-6) / 100;
+
+/** Preços em que as taxas do canal mudam (faixas, taxa fixa, frete, teto da comissão), em ordem. */
+export function feeCuts(c: Channel): number[] {
+  const base = pos(c.feePct) / 100;
+  return [...(c.tiers ?? []).map((x) => x.from), c.fixedBelow, c.freeShippingAbove, c.feeCapPerItem !== undefined && base > 0 ? c.feeCapPerItem / base : undefined].filter((x): x is number => x !== undefined).sort((a, b) => a - b);
+}
+
 function feesAt(c: Channel, price: number, taxPct: number): number {
   const tier = tierAt(c, price);
   const commission = Math.min((price * tier.feePct) / 100, c.feeCapPerItem ?? Infinity);
@@ -126,7 +135,8 @@ export function calculate(input: CalcInput, s: Settings) {
   const lost = filament + purge + energy + machine;
   const failure = lost / (1 - Math.min(pos(input.failurePct ?? s.failurePct), 90) / 100) - lost;
   const fixed = pos(input.fixedPerHour) * hours;
-  const maintenance = machine > 0 ? 0 : (filament + purge + extras + energy + labor) * (pos(s.maintenancePct) / 100);
+  // desgaste vem de imprimir: incide sobre filamento, purga e energia, não sobre mão de obra, embalagem nem os produtos de um kit (M6, B4)
+  const maintenance = machine > 0 ? 0 : (filament + purge + energy) * (pos(s.maintenancePct) / 100);
   const batchCost = filament + purge + extras + energy + labor + machine + failure + fixed + maintenance;
   const qty = Math.max(1, Math.floor(pos(input.quantity)));
   const unitCost = batchCost / qty;
@@ -140,11 +150,12 @@ export function calculate(input: CalcInput, s: Settings) {
   const tax = pos(s.taxPct) / 100;
   const grams = filamentGrams + (purge > 0 ? pos(input.purgeGrams) : 0);
   const channels: ChannelPrice[] = s.channels.map((c) => {
-    const price = channelPrice(c, unitCost + freight, margin * 100, pos(s.taxPct));
-    if (price === null) return { name: c.name, price: null, fees: 0, profit: 0, marginPct: 0, shippingIncluded: false };
+    const raw = channelPrice(c, unitCost + freight, margin * 100, pos(s.taxPct));
+    if (raw === null) return { name: c.name, price: null, fees: 0, profit: 0, marginPct: 0, shippingIncluded: false };
+    const price = ceilCent(raw);
     const fees = feesAt(c, price, pos(s.taxPct));
     const profit = price - fees - unitCost - freight;
-    return { name: c.name, price: round2(price), fees: round2(fees), profit: round2(profit), marginPct: round2((profit / price) * 100), shippingIncluded: shipsAt(c, price) };
+    return { name: c.name, price, fees: round2(fees), profit: round2(profit), marginPct: round2((profit / price) * 100), shippingIncluded: shipsAt(c, price) };
   });
 
   // Arredonda só no fim, para o centavo.

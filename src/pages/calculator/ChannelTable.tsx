@@ -46,6 +46,7 @@ export default function ChannelTable({ rows, minMarginPct, target, stale = {}, n
                 {c.name} {c.best && <span className="badge ok"><Trophy aria-hidden size={12} /> melhor lucro</span>}
                 {stale[c.name] && <span className="badge warn"><TriangleAlert aria-hidden size={12} /> {stale[c.name]}</span>}
                 {c.shippingIncluded && <span className="badge warn" title="Neste preço o frete fica por sua conta (faixas de preço do canal, Preferências)"><TriangleAlert aria-hidden size={12} /> frete obrigatório neste preço</span>}
+                {c.roundedBelow !== null && <span className="badge ok" title="O arredondamento para cima cairia numa faixa em que o canal cobra mais"><TriangleAlert aria-hidden size={12} /> arredondado para baixo: a {money(c.roundedBelow)} as taxas do canal mudam</span>}
                 {c.belowMin && <span className="badge warn" title={`Margem mínima: ${pct(minMarginPct)} (Preferências)`}><TriangleAlert aria-hidden size={12} /> abaixo da margem mínima</span>}
                 {notes[c.name] && <small className="hint channel-note">{notes[c.name]}</small>}
               </td>

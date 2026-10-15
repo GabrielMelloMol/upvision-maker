@@ -33,13 +33,13 @@ describe("calculate", () => {
     );
     expect(r.filament).toBe(10.2);
     expect(r.extras).toBe(5);
-    expect(r.unitCost).toBe(15.96);
-    expect(r.resale).toBe(47.88);
-    expect(r.consumer).toBe(79.8);
-    expect(r.consumerProfit).toBe(63.84);
+    expect(r.unitCost).toBe(15.71); // manutenção 5% só sobre filamento (10,20), não sobre a embalagem (M6): era 15,96
+    expect(r.resale).toBe(47.13);
+    expect(r.consumer).toBe(78.55);
+    expect(r.consumerProfit).toBe(62.84);
   });
 
-  test("soma vários filamentos, energia e mão de obra antes da manutenção", () => {
+  test("soma vários filamentos, energia e mão de obra; a manutenção incide só sobre filamento e energia (M6)", () => {
     const r = calculate(
       {
         ...empty,
@@ -56,8 +56,8 @@ describe("calculate", () => {
     expect(r.filament).toBe(8);
     expect(r.energy).toBe(0.9);
     expect(r.labor).toBe(10);
-    expect(r.maintenance).toBe(0.95); // 18,90 × 5%
-    expect(r.unitCost).toBe(19.85);
+    expect(r.maintenance).toBe(0.45); // 8,90 × 5%: filamento + energia; a mão de obra fica de fora (M6, era 18,90 × 5% = 0,95)
+    expect(r.unitCost).toBe(19.35);
   });
 
   test("divide o custo da mesa pela quantidade de objetos", () => {
@@ -204,9 +204,9 @@ describe("taxas de canal por faixa de preço (#31)", () => {
   });
 
   test("teto da comissão em R$ baixa o preço de peças caras", () => {
-    // sem teto: 200 ÷ 0,5 = 400 (comissão 80). Teto 30: (200 + 30) ÷ (1 − 0,3) = 328,57, comissão travada em 30
+    // sem teto: 200 ÷ 0,5 = 400 (comissão 80). Teto 30: (200 + 30) ÷ (1 − 0,3) = 328,5714…, comissão travada em 30
     const r = calculate({ ...cost10, filaments: [{ pricePerKg: 100, grams: 2000 }] }, { ...base, channels: [{ name: "X", feePct: 20, feeFixed: 0, feeCapPerItem: 30 }] });
-    expect(r.channels[0]).toMatchObject({ price: 328.57, fees: 30, marginPct: 30 });
+    expect(r.channels[0]).toMatchObject({ price: 328.58, fees: 30, marginPct: 30 }); // 328,5714…: sempre para cima, ao centavo (B1)
   });
 });
 
@@ -254,3 +254,28 @@ describe("desperdício multicor sem arquivo (#147)", () => {
 function round(n: number) {
   return Math.round(n * 100) / 100;
 }
+
+describe("manutenção e centavo (#243: M6, B4, B1)", () => {
+  const st: Settings = { ...DEFAULT_SETTINGS, kwhPrice: 0.9, laborHourCost: 30, maintenancePct: 5, failurePct: 0 };
+
+  test("M6: a manutenção de 5% não incide sobre mão de obra nem embalagem (cenário 24 da auditoria: custo R$ 7,41, não R$ 7,70)", () => {
+    const r = calculate({ filaments: [{ pricePerKg: 120, grams: 48 }], extras: [{ unitPrice: 2, qty: 4 }], printerWatts: 95, printHours: 3, laborHours: 0.5, quantity: 4, freight: 0, marketplaceMarginPct: 30 }, { ...st, failurePct: 5 });
+    expect(r.maintenance).toBeCloseTo(((r.filament + r.energy) * 5) / 100, 2);
+    expect(r.unitCost).toBe(7.41);
+  });
+
+  test("B4: o kit não paga manutenção de novo sobre o custo dos produtos de dentro (eles entram como extras)", () => {
+    const sem = calculate({ filaments: [], extras: [{ unitPrice: 10, qty: 1 }], printerWatts: 0, printHours: 0, laborHours: 0, quantity: 1, freight: 0, marketplaceMarginPct: 30 }, st);
+    expect(sem.maintenance).toBe(0);
+    expect(sem.unitCost).toBe(10);
+  });
+
+  test("B1: o preço do canal sobe ao centavo de cima e a margem nunca fica abaixo da pedida", () => {
+    const base = { filaments: [], extras: [{ unitPrice: 1.58, qty: 1 }], printerWatts: 0, printHours: 0, laborHours: 0, quantity: 1, freight: 0, marketplaceMarginPct: 30, failurePct: 0 };
+    for (const cost of [1.58, 3.33, 8.01, 12.34, 25.49]) {
+      const r = calculate({ ...base, extras: [{ unitPrice: cost, qty: 1 }] }, { ...DEFAULT_SETTINGS, channels: [{ name: "Shopee", feePct: 20, feeFixed: 4 }, { name: "TikTok", feePct: 12, feeFixed: 4 }] });
+      for (const c of r.channels) expect(c.marginPct, `${c.name} com custo ${cost}`).toBeGreaterThanOrEqual(30 - 1e-9);
+    }
+    expect(calculate({ ...base }, { ...DEFAULT_SETTINGS, channels: [{ name: "S", feePct: 20, feeFixed: 4 }] }).channels[0].price).toBe(11.16); // (1,58 + 4) ÷ 0,5 exato
+  });
+});
