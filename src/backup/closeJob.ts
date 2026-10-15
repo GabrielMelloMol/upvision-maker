@@ -17,8 +17,16 @@ export const SYNC_CLOSE_TIMEOUT_MS = 15_000;
  * mesmo assim (o backup da abertura cobre). Falha do backup fica guardada para avisar na próxima abertura (M13).
  */
 export async function runCloseJob(): Promise<void> {
-  const db = await getDb();
-  const syncing = session.active && (await loadSyncConfig(db)).enabled;
+  let db: Awaited<ReturnType<typeof getDb>>;
+  let syncing: boolean;
+  try {
+    db = await getDb();
+    syncing = session.active && (await loadSyncConfig(db)).enabled;
+  } catch (e) {
+    // sem banco não há o que enviar nem o que salvar; mas o erro não pode travar o Cmd+Q nem a instalação da atualização
+    logError("fechar", new Error(`Fechamento incompleto: ${errorText(e)}`), "warn");
+    return;
+  }
   const job = (async () => {
     await flushPendingSaves(); // a última edição das ferramentas (gravação adiada em 0,8 s) entra na sync e no backup (M14)
     if (syncing) await syncOnClose(db, await whoAmI(db), session.since);
