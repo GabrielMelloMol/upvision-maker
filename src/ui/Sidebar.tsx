@@ -3,7 +3,7 @@ import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { SECTIONS, type PageDef, type SectionDef } from "../pages";
 import { modKey } from "./shortcuts";
-import BrandMark, { BrandLogo } from "./BrandMark";
+import { BrandLogo } from "./BrandMark";
 import { toggleTheme, useDarkNow } from "./theme";
 
 /** Dica dos ícones da faixa recolhida (#167): espera um pouco para não piscar quando o mouse só passa por cima. */
@@ -84,7 +84,6 @@ export default function Sidebar({ pages, current, onNavigate, onNews, onSuggest,
       <div className="drag" data-tauri-drag-region />
       <div className="sidebar-head">
         <button className="brand" aria-label="UpVision Maker" onClick={() => onNavigate("home")}>
-          <BrandMark />
           <BrandLogo />
         </button>
         {onToggle && (
