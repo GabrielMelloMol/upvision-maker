@@ -104,4 +104,52 @@ describe("alça de copo térmico: luva cônica, fundo, alça com nome e anel de 
       s.delete();
     }
   });
+
+  test("alça arredondada: a seção é oval (a borda da face some, o meio é cheio) e as marcas de dedo tiram material", () => {
+    const L = handleLayout(DEFAULT_CUP_HANDLE);
+    const xBar = L.rMaxOut + DEFAULT_CUP_HANDLE.fingerGap + 4; // meio da barra de fora
+    const probe = (y: number, z: number) => M.Manifold.cube([7, 0.2, 1], true).translate([xBar, y, z]);
+    const body = solid(part(handle({ grooves: false }), "Alça")!.mesh);
+    const z = 40;
+    const mid = body.intersect(probe(0, z)).volume(), edge = body.intersect(probe(DEFAULT_CUP_HANDLE.handleWidth / 2 - 0.2, z)).volume();
+    body.delete();
+    expect(mid).toBeGreaterThan(1); // no meio da largura a barra é cheia
+    expect(edge).toBeLessThan(mid * 0.5); // na borda da face ela afina em arco
+    expect(vol(part(handle({ grooves: true }), "Alça")!.mesh)).toBeLessThan(vol(part(handle({ grooves: false }), "Alça")!.mesh) - 5);
+  });
+
+  test("nome em relevo é o padrão (outra cor); copo fantasma só na prévia, translúcido e sem nome na legenda", () => {
+    const out = handle();
+    expect(part(out, "Nome")).toBeDefined();
+    const ghost = out.models.find((m) => m.previewOnly)!;
+    expect(ghost.parts[0].ghost).toBe(true);
+    expect(ghost.parts[0].name).toBe("");
+    const gb = meshBounds([ghost.parts[0].mesh])!;
+    const L = handleLayout(DEFAULT_CUP_HANDLE);
+    expect(gb.min[2]).toBeCloseTo(L.z0, 2); // assentado onde o copo fica
+    expect(gb.max[2]).toBeGreaterThan(L.sleeveTop); // passa do topo da luva
+    expect(gb.max[0] - gb.min[0]).toBeCloseTo(DEFAULT_CUP_HANDLE.baseDiameter + ((DEFAULT_CUP_HANDLE.topDiameter - DEFAULT_CUP_HANDLE.baseDiameter) * (gb.max[2] - L.z0)) / DEFAULT_CUP_HANDLE.bodyHeight, 0);
+    expect(out.models.filter((m) => !m.previewOnly).map((m) => m.name)).toEqual(["Alça de copo"]);
+    expect(handle({ showCup: false }).models.some((m) => m.previewOnly)).toBe(false);
+    // o fantasma não toca a peça (o copo cabe com folga)
+    const body = solid(part(out, "Alça")!.mesh), cupSolid = solid(ghost.parts[0].mesh);
+    expect(body.intersect(cupSolid).volume()).toBeLessThan(0.5);
+    [body, cupSolid].forEach((o) => o.delete());
+  });
+
+  test("luva vazada: furos redondos em volta (menos a frente e a alça); faixas somam relevo; luva baixa avisa; o copo continua cabendo", () => {
+    const smooth = vol(part(handle({ nameMode: "none" }), "Alça")!.mesh);
+    const cut = handle({ sleeveStyle: "cutouts", nameMode: "none" });
+    expect(vol(part(cut, "Alça")!.mesh)).toBeLessThan(smooth - 100);
+    const body = solid(part(cut, "Alça")!.mesh);
+    expect(body.decompose().length).toBe(1);
+    const exact = cup(DEFAULT_CUP_HANDLE, 0);
+    expect(body.intersect(exact).volume()).toBeLessThan(0.5);
+    [body, exact].forEach((o) => o.delete());
+    const banded = handle({ sleeveStyle: "bands", nameMode: "none" });
+    expect(vol(part(banded, "Alça")!.mesh)).toBeGreaterThan(smooth + 20);
+    expect(handle({ sleeveStyle: "bands", sleeveHeight: 20 }).warnings?.join(" ")).toMatch(/luva é baixa/);
+    // o nome em relevo cabe entre as faixas
+    expect(part(handle({ sleeveStyle: "bands" }), "Nome")).toBeDefined();
+  });
 });

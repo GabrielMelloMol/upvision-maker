@@ -1,5 +1,6 @@
 import type { CS, Solid } from "../manifold";
 import { fitInto, scoped } from "../shape2d";
+import { bevelPrism } from "./bevel";
 import { solidMesh, type ModelCtx, type ModelOutput } from "./common";
 
 export type CupHandleParams = {
@@ -19,6 +20,12 @@ export type CupHandleParams = {
   handleWidth: number;
   /** Vão para os dedos. */
   fingerGap: number;
+  /** Luva: lisa, vazada (furos redondos em volta) ou com faixas em relevo no alto e embaixo. */
+  sleeveStyle: "smooth" | "cutouts" | "bands";
+  /** Marcas de dedo na pegada da alça. */
+  grooves: boolean;
+  /** Copo fantasma translúcido na prévia (só para ver o encaixe; não vai para o arquivo). */
+  showCup: boolean;
   name: string;
   nameMode: "engraved" | "raised" | "none";
   depth: number;
@@ -38,13 +45,18 @@ export const DEFAULT_CUP_HANDLE: CupHandleParams = {
   wall: 3,
   handleWidth: 18,
   fingerGap: 32,
+  sleeveStyle: "smooth",
+  grooves: true,
+  showCup: true,
   name: "Ana",
-  nameMode: "engraved",
+  nameMode: "raised",
   depth: 0.8,
   print: "full",
   bodyColor: "#1c1c1e",
   nameColor: "#f5c542",
 };
+
+const CUP_COLOR = "#8fd3ff";
 
 const FLOOR = 6; // espessura do fundo (mm)
 const RECESS = 3; // quanto o fundo do copo entra no assento
@@ -53,6 +65,18 @@ const TEST_HEIGHT = 14; // altura do anel de teste
 const SEGMENTS = 128;
 const SLANT_MIN = 10; // folga mínima entre a barra de baixo e o começo da inclinação de cima
 const MIN_TAPER_WALL = 1.2;
+const PLATE_ROUND = 12; // raio dos cantos de fora da alça
+const WINDOW_ROUND = 6; // raio dos cantos do vão dos dedos
+const EDGE_ROUND = 4; // arredondado da seção da alça (oval)
+const GROOVE_R = 3.5; // marcas de dedo
+const GROOVE_STEP = 14;
+const CUTOUT_COUNT = 12;
+const CUTOUT_FRONT_DEG = 40; // sem furo na frente (nome) nem do lado da alça
+const CUTOUT_HANDLE_DEG = 30;
+const BAND_H = 4;
+const BAND_UP = 0.8;
+const BANDS_MIN_SLEEVE = 30;
+const GHOST_ABOVE = 30; // quanto o copo fantasma passa do topo da luva
 const NAME_EMBED = 0.4; // quanto o relevo do nome entra na parede da luva (fica preso, não solto no ar)
 
 /** Diâmetro do copo a `z` mm da base. */
@@ -114,13 +138,28 @@ export function buildCupHandle(ctx: ModelCtx, p: CupHandleParams): ModelOutput {
     const zTop = L.sleeveTop;
     const zO = Math.max(zTop - (xOut - L.rSleeveTopOut), BAR + SLANT_MIN); // inclinação de 45° em cima: imprime sem suporte
     const outerPoly: [number, number][] = [[0, 0], [xOut, 0], [xOut, zO], [L.rSleeveTopOut, zTop], [0, zTop]];
+    const rounded = (cs: CS, r: number) => k(k(cs.offset(-r, "Round")).offset(r, "Round")); // tira as quinas vivas (cantos convexos com raio r)
     const plate = k(new M.CrossSection([outerPoly], "NonZero"));
     const inside = k(plate.offset(-BAR, "Round"));
     const keep = k(k(M.CrossSection.square([xOut, zTop], false)).translate([xW, 0]));
-    const window = k(inside.intersect(keep));
-    const frame = k(plate.subtract(window));
+    const window = rounded(k(inside.intersect(keep)), WINDOW_ROUND);
+    // a peça de fora arredondada só nos cantos de fora (o lado que entra na luva fica reto, vai para dentro do corpo)
+    const wide = k(new M.CrossSection([[[-50, 0], ...outerPoly.slice(1, 4), [-50, zTop]]], "NonZero")); // prolonga para o lado do eixo: o raio não morde a junção
+    const fromAxis = k(M.CrossSection.square([xOut + 1, zTop + 1], false)); // só o lado de fora do eixo
+    const frame = k(k(rounded(wide, PLATE_ROUND).intersect(fromAxis)).subtract(window));
+    // seção oval: as quatro bordas (fora, vão e topos) recuam em arco nas duas faces
+    const grip = k(bevelPrism(M, frame, p.handleWidth, "round", EDGE_ROUND, { bottom: true, top: true }));
     // CrossSection (x, z) → sólido: extrudado em Y e girado para o plano XZ
-    const handle = k(k(k(frame.extrude(p.handleWidth)).rotate([90, 0, 0])).translate([0, p.handleWidth / 2, 0]));
+    let handle = k(k(grip.rotate([90, 0, 0])).translate([0, p.handleWidth / 2, 0]));
+    if (p.grooves) {
+      // marcas de dedo: sulcos redondos na face de dentro da barra de fora
+      const n = Math.max(2, Math.min(5, Math.floor((zO - 2 * BAR) / GROOVE_STEP)));
+      const grooves = Array.from({ length: n }, (_, i) => {
+        const z = BAR + (zO - 2 * BAR) * ((i + 0.5) / n);
+        return k(k(k(M.Manifold.cylinder(p.handleWidth + 2, GROOVE_R, GROOVE_R, 24)).rotate([90, 0, 0])).translate([xOut - BAR, p.handleWidth / 2 + 1, z]));
+      });
+      handle = k(handle.subtract(k(M.Manifold.union(grooves))));
+    }
 
     let body = k(M.Manifold.union([floor, sleeve, handle]));
     // assento do copo e o espaço do corpo cônico (todo o cone, para a alça não entrar no copo)
@@ -128,24 +167,59 @@ export function buildCupHandle(ctx: ModelCtx, p: CupHandleParams): ModelOutput {
     const bore = k(cone(M, L.rIn(0), L.rIn(p.bodyHeight), L.z0, L.z0 + p.bodyHeight));
     body = k(k(body.subtract(seat)).subtract(bore));
 
+    // ---- luva: faixas em relevo ou furos vazados em volta
+    const outerCone = (extra: number, z0 = L.sleeveBottom, z1 = L.sleeveTop) => {
+      const at = (z: number) => rb + p.wall + ((rt - rb) * (z - L.sleeveBottom)) / p.sleeveHeight + extra;
+      return k(cone(M, at(z0), at(z1), z0, z1));
+    };
+    const bands = p.sleeveStyle === "bands" && p.sleeveHeight >= BANDS_MIN_SLEEVE;
+    if (p.sleeveStyle === "bands" && !bands) warnings.push("A luva é baixa para as faixas: aumente a altura da luva (30 mm ou mais).");
+    const bandParts: Solid[] = [];
+    if (bands) {
+      const lowZ = L.sleeveBottom + p.wall + 1, highZ = L.sleeveTop - BAND_H;
+      for (const z of [lowZ, highZ]) bandParts.push(k(outerCone(BAND_UP, z, z + BAND_H).subtract(outerCone(-NAME_EMBED, z, z + BAND_H))));
+      body = k(body.add(k(M.Manifold.union(bandParts))));
+    }
+    if (p.sleeveStyle === "cutouts" && p.sleeveHeight >= BANDS_MIN_SLEEVE) {
+      const zc = (L.sleeveBottom + p.wall + L.sleeveTop) / 2;
+      const r = Math.min(5, (L.sleeveTop - L.sleeveBottom - p.wall) / 2 - 3);
+      const holes: Solid[] = [];
+      for (let i = 0; i < CUTOUT_COUNT; i++) {
+        const deg = (360 * i) / CUTOUT_COUNT; // 0° = lado da alça (+X), 270° = frente (-Y, nome)
+        const fromHandle = Math.min(deg, 360 - deg), fromFront = Math.abs(deg - 270);
+        if (fromHandle < CUTOUT_HANDLE_DEG || fromFront < CUTOUT_FRONT_DEG) continue;
+        // furo redondo na direção do raio, atravessando só a parede
+        holes.push(k(k(k(k(M.Manifold.cylinder(L.rMaxOut + 5, r, r, 24)).rotate([-90, 0, 0])).rotate([0, 0, deg - 90])).translate([0, 0, zc])));
+      }
+      if (holes.length) body = k(body.subtract(k(M.Manifold.union(holes))));
+    }
+
     // ---- nome na frente da luva (o lado de quem olha, a 90° da alça), curvo como o cone: gravado ou em relevo
     const parts: { name: string; color: string; mesh: ReturnType<typeof solidMesh> }[] = [];
     let nameSolid: Solid | null = null;
     if (p.nameMode !== "none" && p.name.trim()) {
       const raw = ctx.text(p.name, 12);
       if (raw) {
-        const zLow = L.sleeveBottom + p.wall + 2, zHigh = L.sleeveTop - 2; // acima da rampa de baixo
+        const zLow = L.sleeveBottom + p.wall + (bands ? 1 + BAND_H + 1.5 : 2), zHigh = L.sleeveTop - (bands ? BAND_H + 1.5 : 2); // acima da rampa de baixo e entre as faixas
         const circumference = Math.PI * (L.rIn(p.gripZ) + p.wall + L.rSleeveTopOut);
         const t: CS = k(fitInto(k(raw), Math.min(circumference * 0.4, 90), Math.max(6, zHigh - zLow), (zLow + zHigh) / 2));
         // texto no plano XZ, empurrado para -Y a partir do eixo; a casca do cone recorta a profundidade
         const prism = k(k(t.extrude(L.rMaxOut + 5)).rotate([90, 0, 0]));
-        const outerCone = (extra: number) => k(cone(M, rb + p.wall + extra, rt + p.wall + extra, L.sleeveBottom, L.sleeveTop));
         if (p.nameMode === "engraved") body = k(body.subtract(k(prism.intersect(k(outerCone(1).subtract(outerCone(-p.depth)))))));
         else nameSolid = k(prism.intersect(k(outerCone(p.depth).subtract(outerCone(-NAME_EMBED)))));
       }
     }
     parts.push({ name: "Alça", color: p.bodyColor, mesh: solidMesh(body) });
     if (nameSolid) parts.push({ name: "Nome", color: p.nameColor, mesh: solidMesh(nameSolid) });
-    return { models: [{ name: "Alça de copo", parts }], warnings };
+    const models: { name: string; parts: typeof parts; previewOnly?: boolean }[] = [{ name: "Alça de copo", parts }];
+    if (p.showCup) {
+      // copo fantasma do perfil, assentado onde o copo fica: só a parte de baixo, até um pouco acima da luva
+      const h = Math.min(p.bodyHeight, L.sleeveTop + GHOST_ABOVE - L.z0);
+      const top = L.rIn(h) - p.clearance;
+      const cupBody = k(M.Manifold.cylinder(h, p.baseDiameter / 2, top, SEGMENTS)).translate([0, 0, L.z0]);
+      models.push({ name: "Copo (só na prévia)", previewOnly: true, parts: [{ name: "", color: CUP_COLOR, ghost: true, mesh: solidMesh(cupBody) } as (typeof parts)[number]] });
+      cupBody.delete();
+    }
+    return { models, warnings };
   });
 }

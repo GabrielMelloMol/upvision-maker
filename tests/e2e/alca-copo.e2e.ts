@@ -39,6 +39,22 @@ test("alça de copo: perfis prontos mudam as medidas, o anel de teste é pequeno
   await expect(page.getByText(/passa do topo/)).toBeVisible();
 });
 
+test("alça de copo: nome em relevo de outra cor por padrão, luva vazada e com faixas, copo fantasma não conta na medida", async ({ page }) => {
+  await open(page);
+  await expect(page.locator(".viewer .legend")).toContainText("Nome"); // outra cor: o nome não some no preto
+  const h = async () => Number(/× ([\d.]+) × /.exec((await page.locator(".viewer .hud").first().textContent()) ?? "")![1]);
+  const withCup = await h();
+  await page.getByRole("switch", { name: /copo fantasma/ }).uncheck();
+  await idle(page);
+  expect(await h()).toBeCloseTo(withCup, 1); // o fantasma é só para ver
+  await page.getByRole("button", { name: "Vazada" }).click();
+  await idle(page);
+  await expect(page.getByRole("button", { name: "Salvar 3MF" })).toBeEnabled();
+  await page.getByRole("button", { name: "Com faixas" }).click();
+  await idle(page);
+  await expect(page.getByRole("button", { name: "Salvar 3MF" })).toBeEnabled();
+});
+
 test("alça de copo: acessibilidade (axe), claro e escuro", async ({ page }) => {
   await open(page);
   for (const scheme of ["light", "dark"] as const) {
