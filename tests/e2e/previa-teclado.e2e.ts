@@ -4,7 +4,7 @@ test("prévia 3D pelo teclado e leitor de tela (#144): nome com medidas e partes
   test.slow(); // prévia 3D
   await openApp(page);
   await go(page, "Chaveiros");
-  await page.getByLabel("Texto", { exact: true }).fill("Ana");
+  await page.getByLabel(/^Texto \(Enter para nova linha\)/).fill("Ana");
   const viewer = page.getByRole("img", { name: /^Prévia 3D: .* mm; partes/ });
   await expect(viewer).toBeVisible({ timeout: 60_000 });
   await expect(viewer).toHaveAttribute("aria-keyshortcuts", /ArrowLeft/);
