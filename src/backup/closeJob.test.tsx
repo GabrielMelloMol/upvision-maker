@@ -36,6 +36,13 @@ describe("fechamento do app (M2)", () => {
     expect(order.slice(0, 2)).toEqual(["rascunho", "backup"]);
   });
 
+  test("banco que falha ao abrir o fechamento não derruba a saída: resolve, para o Cmd+Q e a atualização seguirem", async () => {
+    t.handlers["plugin:sql|select"] = () => {
+      throw new Error("banco travado");
+    };
+    await expect(runCloseJob()).resolves.toBeUndefined();
+  });
+
   test("com a sincronização desligada só faz o backup", async () => {
     await setSyncEnabled(t.db, false);
     await runCloseJob();

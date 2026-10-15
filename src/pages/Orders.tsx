@@ -145,7 +145,7 @@ export default function Orders() {
                 onDragOver={(e) => e.preventDefault()}
                 onDrop={() => {
                   const o = data.orders.find((x) => x.id === dragging);
-                  if (o && o.status !== s) move(o, s);
+                  if (o && o.status !== s) void move(o, s);
                 }}
               >
                 <h2>

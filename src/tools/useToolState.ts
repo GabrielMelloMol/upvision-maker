@@ -72,7 +72,7 @@ export function useToolState<T extends object>(toolId: string, initial: T | (() 
   // abrir: rascunho guardado (oferece continuar) e últimos projetos
   useEffect(() => {
     let alive = true;
-    (async () => {
+    void (async () => {
       try {
         const db = await getDb();
         const [row, list] = await Promise.all([toolState.get(db, toolId), toolProjects.list(db, toolId)]);

@@ -16,7 +16,8 @@ import { toolCases } from "./toolCases";
  * docs/qa-modelos.json + docs/QA-modelos.md.
  */
 const ROOT = resolve(__dirname, "../..");
-const OUT = join(ROOT, "test-results/qa");
+// fora de test-results/: o Playwright apaga essa pasta ao começar, e um E2E rodando junto levava os 3MF no meio da varredura ("input files not found")
+const OUT = join(ROOT, "qa-out/modelos");
 const list = (v?: string) => (v ? v.split(",").map((s) => s.trim()).filter(Boolean) : null);
 const IDS = list(process.env.QA_IDS);
 const GROUPS = list(process.env.QA_GROUPS);

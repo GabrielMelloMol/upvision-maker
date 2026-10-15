@@ -36,7 +36,7 @@ export default function AddressFields<T extends AddressValue>({ value, onChange 
             maxLength={9}
             onChange={(e) => {
               set("cep")(e);
-              if (e.target.value.replace(/\D/g, "").length === 8) search(e.target.value);
+              if (e.target.value.replace(/\D/g, "").length === 8) void search(e.target.value);
             }}
           />
           {msg ? <span className="error">{msg}</span> : busy && <span className="hint">Buscando…</span>}

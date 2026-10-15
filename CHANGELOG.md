@@ -3,6 +3,10 @@
 Cada versão aparece para a usuária na tela "O que há de novo" depois da atualização.
 Formato: `## <versão> — <data>` e itens `- …` em linguagem simples.
 
+## Próxima versão (ainda não lançada)
+- **Atualizações de segurança por baixo do capô**: bibliotecas de rede e de build atualizadas (sem mudança no que você vê) e um aviso novo para o desenvolvimento, que pega ações que falham em silêncio.
+- **Sair do app com Cmd+Q não demora mais quando o banco falha**: se o banco de dados não abrisse na hora de fechar, o app esperava até 25 segundos para sair (e podia travar a instalação de uma atualização). Agora ele registra o aviso e sai na hora.
+
 ## 0.12.4 — 2026-10-15
 - **Marca nova da UpVision no app**: novo ícone azul (Dock, janela e instalador; no macOS 26 ele ganha a aparência escura, em azul-noite), logo horizontal na barra lateral e no Sobre (claro e escuro), símbolo animado na abertura e no carregamento das prévias 3D, e a impressora 3D animada da marca no Início (ela pausa quando a janela não está visível e fica parada com "Reduzir movimento"). A fonte dos títulos agora é a Plus Jakarta Sans
 - **Carimbo seco em relevo (sem tinta)**: nova ferramenta em Criar › Ferramentas. Digite um texto, envie um logo (SVG, PNG ou foto) ou use os dois juntos, e o app gera duas placas que se fecham sobre o papel e gravam o desenho em relevo: uma com o desenho em alto-relevo e outra com o mesmo desenho espelhado em cavidade, já com a folga do papel (comum, cartão 300 g ou grosso). O espelho e o deslocamento são calculados juntos, então as duas metades sempre casam; traços mais finos que o bico são engrossados com aviso. Formato retângulo ou selo redondo, moldura em linha ou em selo com texto em volta, alinhamento por pinos cônicos, ímãs (diâmetro, altura e folga) ou dobradiça de livro, modelos prontos (convite de casamento, cartão de visita, embalagem, ex-libris) e prévia do papel já gravado. O 3MF sai com as duas placas planas na mesa, sem suporte

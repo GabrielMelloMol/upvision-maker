@@ -163,7 +163,7 @@ export default function AskAI({ go }: { go: Go }) {
     setInput("");
     const refs = images;
     setImages([]);
-    send(t || "Faça uma peça como na(s) imagem(ns).", history, MAX_AUTO_FIX, false, refs);
+    void send(t || "Faça uma peça como na(s) imagem(ns).", history, MAX_AUTO_FIX, false, refs);
   }
 
   if (settings && !settings.apiKey) {

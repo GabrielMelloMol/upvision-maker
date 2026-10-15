@@ -12,4 +12,10 @@ export default tseslint.config(
     plugins: { "react-hooks": reactHooks },
     rules: reactHooks.configs.recommended.rules,
   },
+  {
+    // promessa solta some com o erro: exige await, .catch ou void. Só em src/ (o tsconfig não cobre tests/ nem scripts/)
+    files: ["src/**/*.{ts,tsx}"],
+    languageOptions: { parserOptions: { projectService: true, tsconfigRootDir: import.meta.dirname } },
+    rules: { "@typescript-eslint/no-floating-promises": ["error", { ignoreVoid: true }] },
+  },
 );

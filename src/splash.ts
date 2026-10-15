@@ -81,10 +81,12 @@ const open = (skip: boolean) => {
     const m = el.querySelector(".brand-mark")!.getBoundingClientRect();
     const at = `${Math.round(m.left + m.width / 2)}px ${Math.round(m.top + m.height / 2)}px`;
     r.style.cssText += ";position:relative;z-index:1001";
-    r.animate([{ clipPath: `circle(0px at ${at})` }, { clipPath: `circle(150vmax at ${at})` }], { duration: dur, easing: "cubic-bezier(0.65, 0, 0.35, 1)" }).finished.finally(() => {
-      r.style.position = "";
-      r.style.zIndex = "";
-    });
+    r.animate([{ clipPath: `circle(0px at ${at})` }, { clipPath: `circle(150vmax at ${at})` }], { duration: dur, easing: "cubic-bezier(0.65, 0, 0.35, 1)" }).finished
+      .catch(() => {}) // animação cancelada (aba em segundo plano, elemento removido): só desfaz o estilo
+      .finally(() => {
+        r.style.position = "";
+        r.style.zIndex = "";
+      });
   } else r?.animate?.([{ opacity: 0 }, { opacity: 1 }], { duration: dur, easing: "ease-out" });
   setTimeout(() => el.remove(), dur);
 };

@@ -11,6 +11,9 @@ scripts/validate-models --jobs 4        # tudo (~15–40 min, conforme a carga d
 scripts/validate-models --ids keychain,nfc --jobs 4   # só alguns
 ```
 
+Os 3MF e G-codes da rodada ficam em `qa-out/` (fora do git). Não use `test-results/`: o Playwright apaga a pasta ao começar, então um
+E2E rodando junto levava os arquivos no meio da varredura e os três fatiadores diziam "input files not found" (não era o `--jobs`).
+
 O script gera cada caso (padrão, todos os campos no mínimo, todos no máximo, e variantes das ferramentas), confere a
 geometria e fatia em três caminhos, com perfil Bambu Lab A1 0.4 + 0.20mm Standard + Bambu PLA Basic e **um filamento
 por cor, cada um com a sua cor**:
