@@ -21,6 +21,8 @@ import PixelEditor from "./pixel/PixelEditor";
 import { restoreFile, storeFile, type StoredFile } from "./storedFile";
 import ToolSessionBar from "./ToolSessionBar";
 import { useToolState } from "./useToolState";
+import GeneratorHelp from "./models/guide/GeneratorHelp";
+import { TOOL_HELP } from "./models/help/toolHelp";
 
 const OUTPUTS: [PixelOutput, string][] = [
   ["mosaic", "Mosaico"],
@@ -178,6 +180,7 @@ export default function PixelArt() {
             </div>
           </details>
           <ExportButtons models={models} name="pixel-art" busy={busy} onSaved={tool.exported} />
+          <GeneratorHelp help={TOOL_HELP.pixel} />
         </div>
         <div className="preview-col">
           <Segmented label="Prévia" value={view} options={VIEWS} onChange={setView} />

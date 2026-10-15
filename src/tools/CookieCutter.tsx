@@ -12,6 +12,8 @@ import { exampleFile, useExample } from "../help/helpStore";
 import ToolSessionBar from "./ToolSessionBar";
 import { initialDesign, useDesignInput } from "./useDesignInput";
 import { useToolState } from "./useToolState";
+import GeneratorHelp from "./models/guide/GeneratorHelp";
+import { TOOL_HELP } from "./models/help/toolHelp";
 
 const LIMITS = {
   width: [20, 250],
@@ -109,6 +111,7 @@ export default function CookieCutter() {
             </div>
           </details>
           <ExportButtons models={models} name={svg ? `cortador-${svg.name}` : "cortador"} busy={busy} profile={CUTTER_PROFILE} onSaved={tool.exported} />
+          <GeneratorHelp help={TOOL_HELP.cutter} />
         </div>
         <div className="preview-col">
           <Preview3D models={models} busy={busy || loading} busyText={loading ? "Lendo o desenho…" : "Gerando cortador…"} error={error} emptyText={svg && !valid ? "Corrija os campos em vermelho para ver o cortador." : "Envie um desenho para ver o cortador."} />

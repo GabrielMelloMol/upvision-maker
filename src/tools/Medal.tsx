@@ -24,6 +24,8 @@ import { clearHandoff, peekHandoff } from "./handoff";
 import ToolSessionBar from "./ToolSessionBar";
 import { useToolState } from "./useToolState";
 import { parseBatch, PRESETS, RIMS, SHAPES, TEXTURES, type PresetId } from "./medalPresets";
+import GeneratorHelp from "./models/guide/GeneratorHelp";
+import { TOOL_HELP } from "./models/help/toolHelp";
 
 type Field = Exclude<MedalTextField, "back">;
 type SizeKey = "topSize" | "centerSize" | "rankSize" | "dateSize" | "bottomSize";
@@ -275,6 +277,7 @@ export default function Medal() {
           </details>
           {engraveTooDeep && <Alert kind="warn">No baixo relevo o relevo precisa ser menor que a espessura (menos 0,6 mm).</Alert>}
           <ExportButtons models={models} name={batch ? "medalhas" : `medalha-${p.center || "sem-texto"}`} busy={busy} profile={DEFAULT_PROFILE} onSaved={tool.exported} />
+          <GeneratorHelp help={TOOL_HELP.medal} />
         </div>
         <div className="preview-col">
           <Preview3D models={models} busy={busy} busyText="Gerando medalha…" error={error} emptyText={!valid ? "Corrija os campos em vermelho." : batch ? "Digite os nomes do lote." : undefined} />

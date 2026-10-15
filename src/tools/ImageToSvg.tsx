@@ -22,6 +22,8 @@ import { restoreFile, storeFile, type StoredFile } from "./storedFile";
 import ToolSessionBar from "./ToolSessionBar";
 import { useToolState } from "./useToolState";
 import TraceSettings from "./TraceSettings";
+import GeneratorHelp from "./models/guide/GeneratorHelp";
+import { TOOL_HELP } from "./models/help/toolHelp";
 
 const MANY_PATHS = 2000;
 const MOSTLY_FILLED = 96;
@@ -261,6 +263,7 @@ export default function ImageToSvg({ go }: { go: Go }) {
               </button>
             </div>
           </div>
+          <GeneratorHelp help={TOOL_HELP.svg} />
         </div>
 
         <div className="preview-col">

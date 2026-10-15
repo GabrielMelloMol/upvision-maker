@@ -36,6 +36,8 @@ import { filamentColors, loadFilaments } from "./filamentColors";
 import { toDataUrl } from "./rasterUrl";
 import LayeredPanel, { DEFAULT_LAYERED_UI, type LayeredUi, type Thumb } from "./layered/LayeredPanel";
 import { segmentSubject } from "../vectorize/segment";
+import GeneratorHelp from "./models/guide/GeneratorHelp";
+import { TOOL_HELP } from "./models/help/toolHelp";
 
 type Mode = ReliefMode;
 const MODES: [Mode, string][] = [
@@ -309,6 +311,7 @@ export default function Lithophane() {
             </div>
           </details>
           <ExportButtons printModes={mode === "layered" || mode === "color"} modes={["ams", "plates"]} models={models.length ? exportModels : []} name={mode === "litho" ? "litofania" : mode === "color" ? "litofania-colorida" : mode === "relief" ? "relevo" : "quadro-camadas"} busy={busy} pauses={pauses} profile={mode === "litho" ? LITHO_PROFILE : mode === "color" ? COLOR_LITHO_PROFILE : mode === "relief" ? RELIEF_PROFILE : { ...LAYERED_PROFILE, layerHeight: layered.layerHeight }} onSaved={tool.exported} />
+          <GeneratorHelp help={TOOL_HELP.lithophane} />
         </div>
         <div className="preview-col">
           {(mode === "litho" || mode === "color") && <Segmented label="Prévia" value={view} options={VIEWS} onChange={setView} />}

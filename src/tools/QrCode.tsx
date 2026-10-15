@@ -23,6 +23,8 @@ import { useExample } from "../help/helpStore";
 import ToolSessionBar from "./ToolSessionBar";
 import { useToolState } from "./useToolState";
 import { EMPTY_QR_FORM, qrContent, type QrForm, type QrMode } from "./qrContent";
+import GeneratorHelp from "./models/guide/GeneratorHelp";
+import { TOOL_HELP } from "./models/help/toolHelp";
 
 const MODES = [
   ["pix", "Pix"],
@@ -224,6 +226,7 @@ export default function QrCode() {
             )}
           </div>
           <ExportButtons models={models} name={name} busy={busy} profile={DEFAULT_PROFILE} onSaved={tool.exported} />
+          <GeneratorHelp help={TOOL_HELP.qr} />
         </div>
 
         <div className="preview-col">

@@ -30,6 +30,8 @@ import RegionControls from "./partialcut/RegionControls";
 import { addedCut, clamp, cutForEngine, dot, freshCut, isFresh, initialState, migrate, planeRange, type CutState, type Pick, type UiCut } from "./partialcut/state";
 import ToolSessionBar from "./ToolSessionBar";
 import { useToolState } from "./useToolState";
+import GeneratorHelp from "./models/guide/GeneratorHelp";
+import { TOOL_HELP } from "./models/help/toolHelp";
 
 const AXES: [CutAxis, string][] = [
   ["z", "Horizontal (Z)"],
@@ -261,6 +263,7 @@ export default function PartialCut() {
           )}
           {!busy && <PiecesCard models={models} />}
           <ExportButtons models={models} name={`${baseName}-corte`} busy={busy} onSaved={tool.exported} />
+          <GeneratorHelp help={TOOL_HELP.partialcut} />
         </div>
         <div className="preview-col">
           <Preview3D
