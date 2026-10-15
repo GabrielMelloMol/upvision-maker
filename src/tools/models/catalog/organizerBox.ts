@@ -43,10 +43,10 @@ export const ORGANIZER_BOX_MODEL: ModelDef = {
       title: "Divisórias",
       fields: [
         choice("layoutMode", "Jeito de dividir", [["equal", "Iguais"], ["mixed", "Largos + pequenos"], ["channel", "Canal longo"], ["custom", "Faixa por faixa"]], true),
+        { k: "map", kind: "dividerMap", label: "Mapa das divisórias" },
         slide("cols", "Nichos na largura", 1, 10, "Quantos nichos lado a lado. No modo Faixa por faixa vale o que você montar abaixo.", { step: 1, unit: "" }),
         slide("rows", "Fileiras", 1, 8, "Quantas fileiras da frente ao fundo.", { step: 1, unit: "" }),
         { k: "strips", kind: "strips", label: "Faixas" },
-        { k: "map", kind: "dividerMap", label: "Mapa das divisórias" },
       ],
     },
     {
