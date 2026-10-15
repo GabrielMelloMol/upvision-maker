@@ -127,9 +127,12 @@ export function artParts({ art, artLayers }: ModelCtx, placed: CS, color: string
 /** Falta um dado obrigatório (texto, desenho, chave): a interface mostra como estado vazio, não como erro. */
 export class MissingInput extends Error {}
 
+/** Texto da prévia vazia quando o modelo exige um desenho: a tela reconhece este texto e já abre o modelo com o desenho de exemplo. */
+export const ART_MISSING = "Envie um desenho (SVG ou imagem) para ver o modelo.";
+
 /** Exige um desenho enviado. */
 export function requireArt(art: CS | null): CS {
-  if (!art || art.isEmpty()) throw new MissingInput("Envie um desenho (SVG ou imagem) para ver o modelo.");
+  if (!art || art.isEmpty()) throw new MissingInput(ART_MISSING);
   return art;
 }
 

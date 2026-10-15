@@ -6,6 +6,9 @@ Formato: `## <versão> — <data>` e itens `- …` em linguagem simples.
 ## Próxima versão (ainda não lançada)
 - **Atualizações de segurança por baixo do capô**: bibliotecas de rede e de build atualizadas (sem mudança no que você vê) e um aviso novo para o desenvolvimento, que pega ações que falham em silêncio.
 - **Sair do app com Cmd+Q não demora mais quando o banco falha**: se o banco de dados não abrisse na hora de fechar, o app esperava até 25 segundos para sair (e podia travar a instalação de uma atualização). Agora ele registra o aviso e sai na hora.
+- **Janela pequena sem sub-telas escondidas**: com a barra lateral recolhida (janela estreita), passar o mouse no ícone da seção aberta mostra um menu com as telas dela (Vender: Pedidos, Orçamentos, Calculadora, Clientes, Produtos), e a seta para a direita abre o mesmo menu pelo teclado. Nas ferramentas, a prévia 3D fica ao lado do formulário em vez de ir para baixo dele.
+- **Modelos prontos que pedem desenho abrem com um exemplo**: Chaveiro de logo, Medalha adaptável, Porta-chaves e Cortador + carimbo já mostram a prévia e liberam o Salvar 3MF, com um aviso para trocar pelo seu desenho. A Placa Pix diz exatamente o que falta (a chave Pix).
+- Recado da Tag de pet e letras do Cartão de música agora ocupam a linha inteira, sem cortar o texto.
 
 ## 0.12.4 — 2026-10-15
 - **Marca nova da UpVision no app**: novo ícone azul (Dock, janela e instalador; no macOS 26 ele ganha a aparência escura, em azul-noite), logo horizontal na barra lateral e no Sobre (claro e escuro), símbolo animado na abertura e no carregamento das prévias 3D, e a impressora 3D animada da marca no Início (ela pausa quando a janela não está visível e fica parada com "Reduzir movimento"). A fonte dos títulos agora é a Plus Jakarta Sans

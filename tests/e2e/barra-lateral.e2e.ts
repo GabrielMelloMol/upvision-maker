@@ -71,3 +71,64 @@ test("barra lateral (#167): janela estreita começa recolhida, mas o botão abre
   await expect(page.locator(".rail-tip")).toHaveText("Criar");
   await expect(app).toHaveAttribute("data-sidebar", "rail");
 });
+
+test("barra lateral: na janela mínima (900 px) as telas da seção aberta ficam num menu ao lado do ícone (mouse e teclado)", async ({ page }) => {
+  await page.setViewportSize({ width: 900, height: 700 });
+  await openApp(page);
+  const nav = page.getByRole("navigation", { name: "Navegação principal" });
+  await expect(page.locator(".app")).toHaveAttribute("data-sidebar", "rail");
+  await nav.getByRole("button", { name: "Vender" }).click(); // abre Pedidos e a seção
+  await expect(page.getByRole("heading", { name: "Pedidos", level: 1 })).toBeVisible();
+  const before = process.env.SHOTS_DIR;
+  if (before) await page.screenshot({ path: `${before}/trilho-antes-do-menu.png` });
+
+  // mouse parado no ícone: o menu lista as telas da seção, a aberta marcada
+  await page.mouse.move(600, 400);
+  await nav.getByRole("button", { name: "Vender" }).hover();
+  const menu = page.getByRole("menu", { name: "Vender" });
+  await expect(menu).toBeVisible();
+  await expect(menu.getByRole("menuitem")).toHaveText(["Pedidos", "Orçamentos", "Calculadora", "Clientes", "Produtos"]);
+  await expect(menu.getByRole("menuitem", { name: "Pedidos" })).toHaveAttribute("aria-current", "page");
+  if (before) await page.screenshot({ path: `${before}/trilho-menu-vender.png` });
+  await menu.hover(); // cruzar o espaço até o menu não o fecha
+  await page.waitForTimeout(500);
+  await expect(menu).toBeVisible();
+  await menu.getByRole("menuitem", { name: "Clientes" }).click();
+  await expect(page.getByRole("heading", { name: "Clientes", level: 1 })).toBeVisible();
+  await expect(menu).toBeHidden();
+
+  // teclado: seta para a direita no ícone abre o menu com o foco na primeira tela; seta desce; Esc fecha e devolve o foco ao ícone
+  await nav.getByRole("button", { name: "Vender" }).focus();
+  await page.keyboard.press("ArrowRight");
+  await expect(menu.getByRole("menuitem", { name: "Pedidos" })).toBeFocused();
+  await page.keyboard.press("ArrowDown");
+  await expect(menu.getByRole("menuitem", { name: "Orçamentos" })).toBeFocused();
+  await page.keyboard.press("Enter");
+  await expect(page.getByRole("heading", { name: "Orçamentos", level: 1 })).toBeVisible();
+  await nav.getByRole("button", { name: "Vender" }).focus();
+  await page.keyboard.press("ArrowRight");
+  await page.keyboard.press("Escape");
+  await expect(menu).toBeHidden();
+  await expect(nav.getByRole("button", { name: "Vender" })).toBeFocused();
+
+  // Ajustes: telas e ações (backup, novidades) no mesmo menu
+  await nav.getByRole("button", { name: "Ajustes" }).click();
+  await page.mouse.move(600, 400);
+  await nav.getByRole("button", { name: "Ajustes" }).hover();
+  const settings = page.getByRole("menu", { name: "Ajustes" });
+  await expect(settings.getByRole("menuitem", { name: "Preferências" })).toBeVisible();
+  await expect(settings.getByRole("menuitem", { name: "Fazer backup" })).toBeVisible();
+});
+
+test("janela mínima (900 px, faixa recolhida): a prévia 3D fica ao lado do formulário, sem precisar rolar até ela", async ({ page }) => {
+  await page.setViewportSize({ width: 900, height: 700 });
+  await openApp(page);
+  await go(page, "Chaveiros");
+  const controls = page.locator(".tool-layout > .controls");
+  const preview = page.locator(".tool-layout > .preview-col");
+  await expect(preview).toBeVisible();
+  const [c, v] = [(await controls.boundingBox())!, (await preview.boundingBox())!];
+  expect(v.x).toBeGreaterThanOrEqual(c.x + c.width); // lado a lado
+  expect(v.y).toBeLessThan(700); // já aparece na primeira tela
+  expect(v.width).toBeGreaterThan(300);
+});

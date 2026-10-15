@@ -29,6 +29,7 @@ export function overflow(page: Page): Promise<string[]> {
       // só o que a caixa corta de verdade: rolagem, reticências e texto para leitor de tela (1 px) são de propósito
       if (!["hidden", "clip"].includes(st.overflowX) || st.textOverflow === "ellipsis" || el.clientWidth <= 2) continue;
       if (el.closest(".viewer, svg, canvas")) continue; // prévia 3D e desenhos
+      if (el.closest(".sr-only")) continue; // texto só para leitor de tela (1 px, cortado de propósito)
       if (el.scrollWidth > el.clientWidth + 2) out.push(`cortado: ${name(el)}`);
     }
     return [...new Set(out)].slice(0, 30);
