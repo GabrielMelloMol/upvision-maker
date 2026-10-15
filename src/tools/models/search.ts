@@ -56,6 +56,7 @@ export const MODEL_ALIASES: Record<string, string> = {
   gridDrawerBase: "gridfinity gaveta organizador medir",
   deskOrganizer: "organizador de mesa gaveta bandeja escritório",
   lidBox: "caixa com tampa organizador presente",
+  organizerBox: "caixa organizadora parafusos componentes bijuteria nichos divisórias tampa dobradiça trava gaveteiro presente",
   screwCase: "estojo porta batom rosca tampa",
   pen: "porta caneta lápis copo escritório",
   stamp: "carimbo brigadeiro biscoito sabonete",

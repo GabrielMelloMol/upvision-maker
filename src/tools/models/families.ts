@@ -45,7 +45,7 @@ export const FAMILIES: Family[] = [
   { id: "frame", label: "Moldura", category: "home", variants: [{ id: "windowFrame", label: "Shaker" }, { id: "photoHolder", label: "Porta-foto" }, { id: "bigFrame", label: "Grande" }] },
   { id: "lamp", label: "Luminárias e abajures", category: "home", variants: [{ id: "lamp", label: "Luminária" }, { id: "tableLamp", label: "Abajur de mesa" }], tools: [{ page: "lithophane", label: "Foto em relevo" }] },
   { id: "wallArt", label: "Quadro e desenho", category: "home", variants: [{ id: "stringArt", label: "String art" }, { id: "lineArt", label: "Desenho em pé" }, { id: "goalBoard", label: "Metas" }, { id: "shadowbox", label: "Shadowbox" }, { id: "reliefTile", label: "Azulejo" }, { id: "cutoutFrame", label: "Quadro vazado" }, { id: "cutoutStand", label: "Vazada em pé" }], tools: [{ page: "lithophane", label: "Foto em relevo" }] },
-  { id: "containers", label: "Potes e organizadores", category: "organize", variants: [{ id: "pen", label: "Porta-caneta" }, { id: "deskOrganizer", label: "Organizador" }, { id: "lidBox", label: "Com tampa" }, { id: "screwCase", label: "Estojo rosca" }, { id: "nfcJewelry", label: "Porta-joia NFC" }] },
+  { id: "containers", label: "Potes e organizadores", category: "organize", variants: [{ id: "pen", label: "Porta-caneta" }, { id: "deskOrganizer", label: "Organizador" }, { id: "organizerBox", label: "Organizadora" }, { id: "lidBox", label: "Caixa simples" }, { id: "screwCase", label: "Estojo rosca" }, { id: "nfcJewelry", label: "Porta-joia NFC" }] },
   {
     id: "gridfinity",
     label: "Organizador modular (Gridfinity)",
