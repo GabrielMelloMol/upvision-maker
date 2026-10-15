@@ -25,6 +25,8 @@ test("sem voltar para a janela, a checagem de hora em hora também acha a versã
   await page.clock.install();
   await openApp(page);
   tauri.update = UPDATE;
-  await page.clock.runFor("01:00:05");
+  // fastForward pula o tempo e dispara o intervalo uma vez. runFor("01:00:05") rodava 1 h de quadros (216 mil rAF) da impressora 3D da
+  // tela inicial e travava a página, o que derrubava este teste desde a marca nova
+  await page.clock.fastForward("01:00:05");
   await expect(page.locator(".banner", { hasText: "Nova versão v0.9.9 disponível." })).toBeVisible();
 });
