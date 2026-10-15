@@ -7,7 +7,7 @@ import { renderWithApp, setupTauri } from "../test/harness";
 import ExportButtons from "./ExportButtons";
 
 /** "Imagem para divulgar" (#211): PNG da peça pronta, com fundo claro, pelo mesmo diálogo de salvar. */
-const render = vi.fn((_models: Model[], _w: number, _h: number, _opts: object) => "data:image/png;base64,iVBORw0KGgo=");
+const render = vi.fn<(models: Model[], w: number, h: number, opts: object) => string>(() => "data:image/png;base64,iVBORw0KGgo=");
 vi.mock("../thumbs/renderThumb", () => ({ renderModels: (...a: Parameters<typeof render>) => render(...a) }));
 
 const t = setupTauri();
