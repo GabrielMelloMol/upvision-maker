@@ -84,6 +84,8 @@ export type ModelDef = {
   /** Tem texto: mostra o seletor de fonte (na seção `fontSection`, padrão 0). */
   font?: boolean;
   fontSection?: number;
+  /** Seção que leva o envio de desenho (padrão 0). */
+  artSection?: number;
   /** Mostra a grade de ícones junto do envio de desenho (#115). */
   iconPicker?: boolean;
   /** Gerador guiado (#204): sugestões por uso e explicação na tela. */

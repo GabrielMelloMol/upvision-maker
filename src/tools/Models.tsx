@@ -395,7 +395,7 @@ export default function Models({ only, embedded }: { only?: string; embedded?: {
               {s === def.sections[def.fontSection ?? 0] && def.font && (
                 <FontPicker value={font} onChange={setFont} sample={firstText(def.sections, p)} />
               )}
-              {s === def.sections[0] && def.art && (
+              {s === def.sections[def.artSection ?? 0] && def.art && (
                 <>
                   <Dropzone accept={DESIGN_ACCEPT} label={art ? art.name : def.art} hint="SVG ou imagem (vira vetor sozinha)." onFile={onArt} />
                   {artError && <Alert kind="error">{artError}</Alert>}

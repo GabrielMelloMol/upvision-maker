@@ -614,6 +614,62 @@
   "plates": 1
  },
  {
+  "key": "organizerBox:máximo",
+  "owner": "Forja",
+  "group": "organize",
+  "label": "Caixa organizadora (organizerBox)",
+  "variant": "máximo",
+  "status": "falha",
+  "reasons": [
+   "Orca: OrcaSlicer: Some objects are located over the boundary of the heated bed. (código -52)",
+   "o conjunto arrumado ocupa 610,0 × 309,6 mm: passa da mesa de 256 mm",
+   "\"Tampa\" não cabe na mesa de 256 mm (300,0 × 307,4 × 6,8 mm)",
+   "\"Caixa\" não cabe na mesa de 256 mm (300,0 × 309,6 × 126,5 mm)",
+   "Bambu: a cor 2 (#f8f8f6) não saiu no G-code (o app avisa)",
+   "Projeto Bambu: a cor 2 (#f8f8f6) não saiu no G-code (o app avisa)",
+   "app: A caixa tem 300 mm e passa da mesa de 256 mm: diminua ou imprima numa impressora maior."
+  ],
+  "date": "2026-10-15",
+  "slicers": "Bambu ✓ · Orca ✗ · Projeto Bambu ✓",
+  "minutes": 3,
+  "grams": 0.4,
+  "plates": 1
+ },
+ {
+  "key": "organizerBox:mínimo",
+  "owner": "Forja",
+  "group": "organize",
+  "label": "Caixa organizadora (organizerBox)",
+  "variant": "mínimo",
+  "status": "ok",
+  "reasons": [
+   "app: Parede abaixo de 1,6 mm: a caixa fica frágil e a tampa pode quebrar."
+  ],
+  "date": "2026-10-15",
+  "slicers": "Bambu ✓ · Orca ✓ · Projeto Bambu ✓",
+  "minutes": 39,
+  "grams": 19.1,
+  "plates": 1
+ },
+ {
+  "key": "organizerBox:padrão",
+  "owner": "Forja",
+  "group": "organize",
+  "label": "Caixa organizadora (organizerBox)",
+  "variant": "padrão",
+  "status": "aviso",
+  "reasons": [
+   "o conjunto arrumado ocupa 370,0 × 129,6 mm: passa da mesa de 256 mm",
+   "não coube numa placa: 2 placas",
+   "app: As 4 peças não cabem juntas na mesa de 256 mm: o fatiador vai usar mais de uma mesa (ou imprima uma de cada vez)."
+  ],
+  "date": "2026-10-15",
+  "slicers": "Bambu ✓ · Orca ✓ · Projeto Bambu ✓",
+  "minutes": 362,
+  "grams": 251.3,
+  "plates": 2
+ },
+ {
   "key": "adaptiveMedal:máximo",
   "owner": "Forja",
   "group": "party",

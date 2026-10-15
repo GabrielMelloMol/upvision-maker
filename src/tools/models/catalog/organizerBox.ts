@@ -24,6 +24,7 @@ export const ORGANIZER_BOX_MODEL: ModelDef = {
   icon: PackageOpen,
   font: true,
   fontSection: 4,
+  artSection: 4,
   art: "Desenho na tampa (opcional)",
   defaults: DEFAULT_ORGANIZER,
   guide: ORGANIZER_GUIDE,
