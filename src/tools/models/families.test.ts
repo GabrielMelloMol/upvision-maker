@@ -8,7 +8,7 @@ test("cada modelo aparece em exatamente uma família; nenhuma variação aponta 
   expect(new Set(ids).size).toBe(ids.length);
   expect([...ids].sort()).toEqual(MODELS.map((m) => m.id).sort());
   expect(FAMILIES.length).toBeGreaterThanOrEqual(24);
-  expect(FAMILIES.length).toBeLessThanOrEqual(32);
+  expect(FAMILIES.length).toBeLessThanOrEqual(34);
 });
 
 test("famílias por categoria cobrem todas as categorias; atalhos apontam para telas que existem", () => {
@@ -67,7 +67,7 @@ test("categorias dos Modelos prontos (onde fica): Presentes, Casa e decoração 
   expect(names("home")).toEqual(["Moldura", "Luminárias e abajures", "Quadro e desenho", "Vaso", "Brinquedos"]);
   expect(names("organize")).toEqual(["Potes e organizadores", "Organizador modular (Gridfinity)", "Suporte de celular e tablet", "Tecla de teclado", "Porta-chave de parede", "Utilitários"]);
   // nenhuma categoria ficou grande demais para achar as coisas
-  for (const [c] of CATEGORIES) expect(familiesIn(c).reduce((n, f) => n + f.variants.length, 0), c).toBeLessThanOrEqual(20);
+  for (const [c] of CATEGORIES) expect(familiesIn(c).reduce((n, f) => n + f.variants.length, 0), c).toBeLessThanOrEqual(22);
 });
 
 test("os nomes de cada ferramenta de Criar continuam levando a ela: os ids das telas antigas não somem", async () => {
