@@ -1,6 +1,8 @@
 import { certificatePayload, bytesLabel, groupedHash, localStamp, proofCode, type Certificate } from "../domain/fileProof";
+import type { Company } from "../domain/customers";
 import { qrMatrix } from "../domain/qr";
 import { A4, COLOR, MARGIN, Pdf, mm, type PdfFonts } from "./doc";
+import { companyHeader } from "./header";
 
 const QR_SIZE = mm(38);
 
@@ -9,13 +11,20 @@ const QR_SIZE = mm(38);
  * é exatamente este (qualquer mudança de um bit muda o hash); a data vem do relógio de quem emitiu, então o certificado
  * não é registro de autoria por si só. O texto diz isso com todas as letras.
  */
-export async function fileCertificatePdf(fonts: PdfFonts, c: Certificate): Promise<{ bytes: Uint8Array; trace: string[] }> {
+export async function fileCertificatePdf(fonts: PdfFonts, c: Certificate, company?: Company): Promise<{ bytes: Uint8Array; trace: string[] }> {
   const pdf = await Pdf.create(fonts, `Certificado de integridade: ${c.name}`);
-  pdf.text("Certificado de integridade de arquivo", { size: 20, font: "bold" });
-  pdf.text(`Código ${proofCode(c.sha256)}`, { size: 11, font: "semibold", color: COLOR.accent });
-  pdf.gap(8);
-  pdf.rule();
-  pdf.gap(10);
+  // com os Dados da empresa preenchidos, o cabeçalho é o mesmo do orçamento (logo, nome e contatos)
+  if (company && (company.logo || company.name || company.tradeName)) {
+    await companyHeader(pdf, company, "Certificado", [`Código ${proofCode(c.sha256)}`]);
+    pdf.text("Certificado de integridade de arquivo", { size: 18, font: "bold" });
+    pdf.gap(8);
+  } else {
+    pdf.text("Certificado de integridade de arquivo", { size: 20, font: "bold" });
+    pdf.text(`Código ${proofCode(c.sha256)}`, { size: 11, font: "semibold", color: COLOR.accent });
+    pdf.gap(8);
+    pdf.rule();
+    pdf.gap(10);
+  }
 
   const top = pdf.y;
   const half = pdf.width - QR_SIZE - 16;

@@ -2,6 +2,7 @@ import { Copy, FileDown, FileJson, ShieldCheck, Sticker } from "lucide-react";
 import { useEffect, useState } from "react";
 import { getDb } from "../db";
 import { loadCompany } from "../db/customersRepo";
+import type { Company } from "../domain/customers";
 import { bytesLabel, certificateJson, groupedHash, localStamp, normalizeHash, parseCertificateJson, parsePayload, proofCode, sha256Hex, verify, type Certificate } from "../domain/fileProof";
 import { fileCertificatePdf } from "../pdf/fileCertificate";
 import { loadPdfFonts } from "../pdf/fonts";
@@ -33,13 +34,20 @@ export default function Protect() {
   const [contact, setContact] = useState("");
   const [note, setNote] = useState("");
   const [saving, setSaving] = useState(false);
+  const [company, setCompany] = useState<Company | null>(null);
 
   // o nome da loja já vem dos Dados da empresa, se houver
   useEffect(() => {
     let alive = true;
     getDb()
       .then(loadCompany)
-      .then((c) => alive && setAuthor((cur) => cur || c.tradeName || c.name || ""))
+      .then((c) => {
+        if (!alive) return;
+        // autor e contato vêm dos Dados da empresa, e o PDF leva o logo e o nome como o orçamento
+        setCompany(c);
+        setAuthor((cur) => cur || c.tradeName || c.name || "");
+        setContact((cur) => cur || [c.phone, c.email, c.instagram && `@${c.instagram.replace(/^@/, "")}`, c.website].filter(Boolean).join(" · "));
+      })
       .catch((e) => console.warn("Sem dados da empresa para o certificado:", e));
     return () => {
       alive = false;
@@ -67,7 +75,7 @@ export default function Protect() {
     setSaving(true);
     try {
       const c = certificate();
-      const { bytes } = await fileCertificatePdf(await loadPdfFonts(), c);
+      const { bytes } = await fileCertificatePdf(await loadPdfFonts(), c, company ?? undefined);
       const p = await saveFile(`certificado-${slug(file.name)}.pdf`, bytes, "pdf", "PDF");
       if (p) toast(`Certificado salvo em ${p}`);
     } catch (e) {

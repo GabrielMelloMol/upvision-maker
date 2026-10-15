@@ -8,7 +8,9 @@ vi.mock("../ui/saveFile", async (orig) => ({
   ...(await orig<typeof import("../ui/saveFile")>()),
   saveFile: vi.fn(async (name: string, data: string | Uint8Array) => (saved.push({ name, data }), `/saida/${name}`)),
 }));
-vi.mock("../db", () => ({ getDb: () => Promise.reject(new Error("sem banco")) }));
+const company = vi.hoisted(() => ({ value: null as null | Record<string, string> }));
+vi.mock("../db", () => ({ getDb: () => (company.value ? Promise.resolve({}) : Promise.reject(new Error("sem banco"))) }));
+vi.mock("../db/customersRepo", () => ({ loadCompany: async () => company.value }));
 vi.mock("../pdf/fonts", async () => {
   const { readFileSync } = await import("node:fs");
   const { resolve } = await import("node:path");
@@ -27,6 +29,7 @@ const drop = () => [...document.querySelectorAll<HTMLInputElement>('input[type="
 
 beforeEach(() => {
   saved.length = 0;
+  company.value = null;
   vi.spyOn(console, "warn").mockImplementation(() => {});
 });
 
@@ -75,4 +78,17 @@ test("conferir pelo .json salvo: mostra quem emitiu; .json que não é certifica
   expect(await screen.findByText(/não é um certificado do UpVision Maker/)).toBeInTheDocument();
   await user.type(screen.getByLabelText(/^Hash do certificado/), "123");
   expect(await screen.findByText(/64 letras e números/)).toBeInTheDocument();
+});
+
+test("Dados da empresa preenchem autor e contato por padrão (e dá para trocar)", async () => {
+  company.value = { name: "Ana Souza ME", tradeName: "Ana 3D", phone: "(11) 99999-0000", email: "ana@ana3d.com.br", instagram: "ana3d", website: "", logo: "" };
+  setup();
+  const user = userEvent.setup({ applyAccept: false });
+  await user.upload(drop()[0], file("gato.stl", "abc"));
+  await screen.findByLabelText("Hash SHA-256 do arquivo");
+  await waitFor(() => expect(screen.getByLabelText(/^Autor ou loja/)).toHaveValue("Ana 3D"));
+  expect(screen.getByLabelText(/^Contato/)).toHaveValue("(11) 99999-0000 · ana@ana3d.com.br · @ana3d");
+  await user.clear(screen.getByLabelText(/^Autor ou loja/));
+  await user.type(screen.getByLabelText(/^Autor ou loja/), "Outra loja");
+  expect(screen.getByLabelText(/^Autor ou loja/)).toHaveValue("Outra loja");
 });
