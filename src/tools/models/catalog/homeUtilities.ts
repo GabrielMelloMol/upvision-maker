@@ -1,4 +1,5 @@
-import { Cable, CircleDot, Cog, Sprout, Wind } from "lucide-react";
+import { BookOpen, Cable, CircleDot, Cog, Fingerprint, Sprout, Wind } from "lucide-react";
+import { buildBookStand, buildBookThumb, DEFAULT_BOOK_STAND, DEFAULT_BOOK_THUMB } from "../../../geometry/models/bookHolder";
 import { buildCableComb, DEFAULT_CABLE_COMB } from "../../../geometry/models/cableComb";
 import { buildHoseAdapter, DEFAULT_HOSE_ADAPTER } from "../../../geometry/models/hoseAdapter";
 import { buildKnob, DEFAULT_KNOB } from "../../../geometry/models/knob";
@@ -8,6 +9,36 @@ import { as, bool, choice, color, num, text, type ModelDef } from "../fields";
 
 /** Casa, utilitários paramétricos rápidos (#121): arruela, marcador de planta, pente de cabos, botão e adaptador de mangueira. */
 export const HOME_UTILITY_MODELS: ModelDef[] = [
+  {
+    id: "bookThumb",
+    category: "organize",
+    label: "Apoio de polegar para livro",
+    blurb: "Anel que prende a página aberta com uma mão só, com o nome na aba.",
+    icon: Fingerprint,
+    font: true,
+    art: "Desenho na aba (opcional; no lugar do texto)",
+    defaults: DEFAULT_BOOK_THUMB,
+    sections: [
+      { title: "Texto", fields: [text("text", "Texto na aba", 12)] },
+      { title: "Medidas e cores", fields: [num("thumb", "Furo do polegar", 18, 34, { step: 0.5, hint: "Meça o polegar mais grosso: 22 mm criança, 24 a 26 mm adulto." }), num("wall", "Parede do anel", 2, 5, { step: 0.2 }), num("ringH", "Altura do anel", 6, 14, { step: 0.5 }), num("length", "Comprimento da aba", 30, 70, { step: 1 }), num("tabW", "Largura da aba", 18, 40, { step: 1 }), num("tabT", "Espessura da aba", 1.6, 4, { step: 0.2 }), num("relief", "Relevo", 0.4, 1.5), color("ringColor", "Anel"), color("tabColor", "Aba"), color("textColor", "Texto")] },
+    ],
+    build: (ctx, p) => buildBookThumb(ctx, as(p)),
+  },
+  {
+    id: "bookStand",
+    category: "organize",
+    label: "Suporte de livro de mesa",
+    blurb: "Cavalete inclinado com batente para livro de receitas, caderno ou tablet, com o nome na frente.",
+    icon: BookOpen,
+    font: true,
+    art: "Desenho no batente (opcional; no lugar do texto)",
+    defaults: DEFAULT_BOOK_STAND,
+    sections: [
+      { title: "Texto", fields: [text("text", "Texto no batente", 16)] },
+      { title: "Medidas e cores", fields: [num("width", "Largura", 60, 220, { step: 1 }), num("thick", "Espessura do livro", 10, 90, { step: 1, hint: "O vão entre o batente e o apoio. Caderno: 15 mm; livro grosso: 40 mm." }), num("height", "Altura do apoio", 90, 220, { step: 1 }), num("tilt", "Inclinação", 10, 35, { step: 1, unit: "°", hint: "Quanto o apoio deita para trás. 20° é confortável de ler." }), num("plate", "Espessura da base", 3, 6, { step: 0.5 }), num("lip", "Altura do batente", 8, 30, { step: 1 }), num("relief", "Relevo", 0.4, 2), color("bodyColor", "Suporte"), color("textColor", "Texto")] },
+    ],
+    build: (ctx, p) => buildBookStand(ctx, as(p)),
+  },
   {
     id: "spacer",
     category: "home",

@@ -55,6 +55,9 @@ export const MODEL_COLLECTIONS: Record<string, Collection[]> = {
   textureRoller: ["natal", "pascoa"],
   goalBoard: ["negocio", "casamento"],
   rpgDice: ["criancas", "aniversario"],
+  bookThumb: ["maes", "pais"],
+  bookStand: ["maes"],
+  paperClip: ["maes", "pais"],
 };
 
 const PINK = "#f472b6", GOLD = "#f5c542", WHITE = "#f8f8f6", BLACK = "#1c1c1e", RED = "#d6262e", GREEN = "#22a04b", BLUE = "#2563eb", LILAC = "#7e3fd6", SKY = "#7cc4f5";
@@ -192,6 +195,40 @@ export const VARIANTS: Record<string, Variant[]> = {
   businessCard: [
     { label: "Escuro e dourado", patch: { cardColor: BLACK, textColor: GOLD } },
     { label: "Claro", patch: { cardColor: WHITE, textColor: BLACK } },
+  ],
+  gymDumbbell: [
+    { label: "20 KG", patch: { text: "20 KG", plateColor: BLACK, barColor: "#9ca3af", textColor: WHITE } },
+    { label: "Rosa", patch: { text: "GYM", plateColor: PINK, barColor: WHITE, textColor: PINK } },
+    { label: "Personal", patch: { text: "PERSONAL", plateColor: BLACK, barColor: GOLD, textColor: BLACK }, collections: ["profissoes"] },
+    { label: "Presente", patch: { text: "TREINA", plateColor: BLUE, barColor: "#9ca3af", textColor: WHITE }, collections: ["pais", "aniversario"] },
+    { label: "Compacto", patch: { length: 50, plateH: 24, text: "10", plateColor: RED, barColor: "#9ca3af", textColor: WHITE } },
+  ],
+  gymKettlebell: [
+    { label: "16 KG", patch: { text: "16", bodyColor: BLACK, textColor: RED } },
+    { label: "24 KG", patch: { text: "24", bodyColor: RED, textColor: WHITE } },
+    { label: "Rosa", patch: { text: "8", bodyColor: PINK, textColor: WHITE } },
+    { label: "Personal", patch: { text: "PT", bodyColor: BLACK, textColor: GOLD }, collections: ["profissoes"] },
+    { label: "Presente", patch: { text: "12", bodyColor: BLUE, textColor: WHITE }, collections: ["pais", "aniversario"] },
+  ],
+  paperClip: [
+    { label: "Leitura", patch: { text: "LER", clipColor: BLUE, artColor: WHITE } },
+    { label: "Mãe", patch: { text: "MÃE", clipColor: PINK, artColor: WHITE }, collections: ["maes"] },
+    { label: "Pai", patch: { text: "PAI", clipColor: BLUE, artColor: WHITE }, collections: ["pais"] },
+    { label: "Prô", patch: { text: "PRÔ", clipColor: GREEN, artColor: WHITE }, collections: ["profissoes"] },
+    { label: "Dourado", patch: { text: "LER", clipColor: GOLD, artColor: BLACK } },
+    { label: "Pequeno", patch: { length: 32, width: 12, headSize: 20, text: "OK", clipColor: LILAC, artColor: WHITE } },
+  ],
+  bookThumb: [
+    { label: "Adulto", patch: { thumb: 25, text: "LER" } },
+    { label: "Criança", patch: { thumb: 22, text: "LER", ringColor: PINK, tabColor: WHITE, textColor: PINK }, collections: ["criancas"] },
+    { label: "Presente", patch: { thumb: 25, text: "Boa leitura", ringColor: BLACK, tabColor: GOLD, textColor: BLACK }, collections: ["maes", "pais", "aniversario"] },
+    { label: "Estudo", patch: { thumb: 24, text: "ESTUDO", ringColor: GREEN, tabColor: WHITE, textColor: GREEN }, collections: ["formatura"] },
+  ],
+  bookStand: [
+    { label: "Receitas", patch: { thick: 30, height: 150, tilt: 24, width: 110, text: "RECEITAS", bodyColor: RED, textColor: WHITE }, collections: ["maes"] },
+    { label: "Livro grosso", patch: { thick: 60, height: 180, tilt: 20, width: 140, text: "LEITURA", bodyColor: BLUE, textColor: WHITE } },
+    { label: "Caderno", patch: { thick: 15, height: 130, tilt: 25, width: 100, text: "ESTUDOS", bodyColor: GREEN, textColor: WHITE }, collections: ["formatura"] },
+    { label: "Tablet", patch: { thick: 12, height: 130, tilt: 28, width: 130, lip: 16, text: "", bodyColor: BLACK, textColor: WHITE } },
   ],
   gymKeychain: [
     { label: "20 KG", patch: { text: "20 KG", plateColor: BLACK, artColor: RED } },
