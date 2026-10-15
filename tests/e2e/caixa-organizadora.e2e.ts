@@ -1,7 +1,7 @@
 import AxeBuilder from "@axe-core/playwright";
 import type { Page } from "@playwright/test";
 import { strFromU8, unzipSync } from "fflate";
-import { expect, go, openApp, test, toastWith } from "./tauri";
+import { expect, go, openApp, settleColors, test, toastWith } from "./tauri";
 
 const hud = (page: Page) => page.locator(".viewer .hud");
 const idle = (page: Page) => expect(page.locator(".viewer .overlay.busy")).toHaveCount(0, { timeout: 120_000 });
@@ -99,6 +99,9 @@ for (const scheme of ["light", "dark"] as const)
     await open(page);
     await page.getByRole("button", { name: "Faixa por faixa", exact: true }).click();
     await page.getByText("Como usar").first().click();
+    await idle(page);
+    await expect(page.getByRole("button", { name: /Salvar 3MF/ })).toBeEnabled({ timeout: 60_000 });
+    await settleColors(page);
     const axe = await new AxeBuilder({ page }).include("main").exclude("canvas").exclude(".viewer").withTags(["wcag2a", "wcag2aa", "wcag22aa"]).analyze();
     expect(axe.violations.map((v) => `${v.id}: ${v.nodes.map((n) => n.target.join(" ")).join(" | ")}`)).toEqual([]);
   });
