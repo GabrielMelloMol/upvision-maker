@@ -6,8 +6,8 @@ import { modelSize, modelVolume, volume } from "../testUtil";
 import type { Mesh } from "../types";
 import { buildBoard } from "./board";
 import { DEFAULT_BOARD, DEFAULT_COUNTS, DEFAULT_PIECE, DEFAULT_POT, boardSize, pieceSide, pocketSide } from "./params";
-import { buildPieces, pieceList, pieceMeshes, plateCapacity, type MosaicColor } from "./pieces";
-import { buildPot, compartmentVolume, compartments, rectGrid } from "./pot";
+import { buildPieces, fullPlateCounts, pieceList, pieceMeshes, plateCapacity, type MosaicColor } from "./pieces";
+import { buildPot, compartmentVolume, compartments, lidShift, rectGrid } from "./pot";
 import { placedOutline, shapeArea, shapeOutline, type MosaicShape } from "./shapes";
 
 let M: ManifoldToplevel;
@@ -169,7 +169,7 @@ describe("peças", () => {
   });
 
   test("multicor: uma mesa com várias cores, uma parte por cor", () => {
-    const items = pieceList([RED, BLUE], { ...DEFAULT_COUNTS, eye: 0 }, null);
+    const items = pieceList([RED, BLUE], { square: 10, half: 2, quarter: 2, triangle: 2, circle: 2, eye: 0 }, null);
     const out = buildPieces(M, DEFAULT_BOARD, DEFAULT_PIECE, items, { layout: "mixed", fill: false, pupil: BLACK });
     expect(out.models).toHaveLength(1);
     expect(out.models[0].parts.map((p) => p.color)).toEqual([RED.hex, BLUE.hex]);
@@ -187,6 +187,23 @@ describe("peças", () => {
     expect(s.decompose()).toHaveLength(total);
     expect(s.volume()).toBeCloseTo(total * volume(pieceMeshes(M, DEFAULT_BOARD, DEFAULT_PIECE, "square").main), 1);
     s.delete();
+  });
+
+  test("mais de quatro mesas vão para a segunda fileira da grade", () => {
+    const { total } = plateCapacity(DEFAULT_BOARD);
+    const out = buildPieces(M, DEFAULT_BOARD, DEFAULT_PIECE, [{ shape: "square", color: RED, n: total * 5 }], { layout: "color", fill: false, pupil: BLACK });
+    expect(out.platesN).toBe(5);
+    const boxes = out.models.map((m) => meshBounds(m.parts.map((p) => p.mesh))!);
+    expect(boxes[4].max[1]).toBeLessThan(boxes[0].min[1]);
+    expect(Math.abs(boxes[4].min[0] - boxes[0].min[0])).toBeLessThan(1);
+  });
+
+  test("uma mesa cheia por cor: as quantidades somam a capacidade", () => {
+    const { total } = plateCapacity(DEFAULT_BOARD);
+    const c = fullPlateCounts(total, 12);
+    expect(c.square + c.half + c.quarter + c.triangle + c.circle).toBe(total);
+    expect(c.eye).toBe(12);
+    expect(c.square).toBeGreaterThan(c.circle);
   });
 
   test("passou de uma mesa: mais de um modelo, lado a lado, com aviso", () => {
@@ -229,7 +246,7 @@ describe("pote", () => {
     expect(modelSize(models[0])[0]).toBeCloseTo(DEFAULT_POT.w, 1);
     expect(modelSize(models[0])[2]).toBeCloseTo(DEFAULT_POT.height, 3);
     // a tampa de volta ao lugar: a saia desce por fora do pote sem encostar
-    const flipped = lid.mirror([0, 0, 1]).translate([0, 0, DEFAULT_POT.height + 1.8]);
+    const flipped = lid.translate([-lidShift(DEFAULT_POT), 0, 0]).mirror([0, 0, 1]).translate([0, 0, DEFAULT_POT.height + 1.8]);
     expect(pot.intersect(flipped).volume()).toBeCloseTo(0, 3);
     [pot, lid, flipped].forEach((s) => s.delete());
   });
@@ -259,5 +276,70 @@ describe("pote", () => {
 
   test("sem tampa, só o pote", () => {
     expect(buildPot(M, { ...DEFAULT_POT, lid: false }, 4).models).toHaveLength(1);
+  });
+});
+
+describe("desenho montado (prévia)", () => {
+  test("as peças do desenho vão nas casas certas, giradas, e o desenho maior que o tabuleiro avisa quantas ficaram fora", async () => {
+    const { parseDesign } = await import("./grid");
+    const { assembledPreview } = await import("./pieces");
+    const kit = [RED, BLUE, WHITE, BLACK];
+    const g = parseDesign(["r# b2", "wo .."]);
+    const small = { ...DEFAULT_BOARD, cols: 2, rows: 2 };
+    const { model, outside } = assembledPreview(M, small, DEFAULT_PIECE, g, [{ ...RED, key: "red" }, { ...BLUE, key: "blue" }, { ...WHITE, key: "white" }, BLACK], BLACK);
+    expect(outside).toBe(0);
+    expect(model!.previewOnly).toBe(true);
+    expect(model!.parts.map((p) => p.color)).toEqual([RED.hex, BLUE.hex, WHITE.hex]);
+    // a peça vermelha está na casa de cima à esquerda: x < 0, y > 0
+    const red = meshBounds([model!.parts[0].mesh])!;
+    expect(red.max[0]).toBeLessThan(0);
+    expect(red.min[1]).toBeGreaterThan(0);
+    expect(red.min[2]).toBeCloseTo(DEFAULT_BOARD.floor, 6);
+    // desenho 2×2 num tabuleiro 1×1: três casas ficam fora
+    const tiny = { ...DEFAULT_BOARD, cols: 1, rows: 1 };
+    expect(assembledPreview(M, tiny, DEFAULT_PIECE, g, kit.map((c, i) => ({ ...c, key: ["red", "blue", "white", "black"][i] })), BLACK).outside).toBe(3);
+  });
+});
+
+describe("kit inteiro", () => {
+  test("o padrão gera tabuleiro, peças e pote, sem avisos", async () => {
+    const { buildKit, DEFAULT_SETTINGS, potFillWarning } = await import("./kit");
+    const out = buildKit(M, DEFAULT_SETTINGS);
+    expect(out.board.model.parts).toHaveLength(1);
+    expect(out.pieces.count).toBeGreaterThan(100);
+    expect(out.divisions).toBe(8);
+    expect(out.pot.models).toHaveLength(2);
+    expect(out.board.warnings).toEqual([]);
+    expect(potFillWarning(out)).toBeNull();
+  });
+
+  test("peças pelo desenho: só o que ele pede, mais a sobra", async () => {
+    const { DEFAULT_SETTINGS, pieceItemsOf, totalPieces } = await import("./kit");
+    const { DESIGNS } = await import("./designs");
+    const { countCells } = await import("./grid");
+    const g = DESIGNS[0].grid;
+    const s = { ...DEFAULT_SETTINGS, source: "design" as const, spare: 0, grid: g };
+    expect(totalPieces(pieceItemsOf(s))).toBe(countCells(g));
+    expect(totalPieces(pieceItemsOf({ ...s, spare: 50 }))).toBeGreaterThan(countCells(g));
+  });
+
+  test("cores desligadas não viram peças nem divisórias", async () => {
+    const { buildKit, DEFAULT_SETTINGS, kitColors } = await import("./kit");
+    const off = { ...DEFAULT_SETTINGS, kit: { ...DEFAULT_SETTINGS.kit, red: { on: false, hex: "#d62828" }, green: { on: false, hex: "#16a34a" } } };
+    expect(kitColors(off, true).map((c) => c.key)).not.toContain("red");
+    expect(buildKit(M, off).divisions).toBe(6);
+  });
+
+  test("pote pequeno demais para as peças avisa", async () => {
+    const { buildKit, DEFAULT_SETTINGS, potFillWarning } = await import("./kit");
+    const out = buildKit(M, { ...DEFAULT_SETTINGS, pot: { ...DEFAULT_SETTINGS.pot, w: 110, height: 20 } });
+    expect(potFillWarning(out)).toMatch(/não cabem na divisória/);
+  });
+
+  test("desenho maior que o tabuleiro pede mais tabuleiros", async () => {
+    const { boardsNeeded, DEFAULT_SETTINGS } = await import("./kit");
+    const { blankGrid } = await import("./grid");
+    expect(boardsNeeded({ ...DEFAULT_SETTINGS, grid: blankGrid(12, 8) })).toEqual([2, 1]);
+    expect(boardsNeeded(DEFAULT_SETTINGS)).toEqual([1, 1]);
   });
 });

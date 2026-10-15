@@ -38,7 +38,7 @@ export const DEFAULT_PIECE: PieceParams = { height: 3.2, chamfer: 0.7 };
 
 /** Quantas peças de cada formato, por cor. O olho é branco com pupila preta e só tem a quantidade dele. */
 export type PieceCounts = Record<MosaicShape, number>;
-export const DEFAULT_COUNTS: PieceCounts = { square: 16, half: 4, quarter: 6, triangle: 4, circle: 4, eye: 8 };
+export const DEFAULT_COUNTS: PieceCounts = { square: 40, half: 10, quarter: 12, triangle: 10, circle: 12, eye: 12 };
 
 export type PotShape = "round" | "rect";
 export type PotParams = {
@@ -55,7 +55,7 @@ export type PotParams = {
   color: string;
   lidColor: string;
 };
-export const DEFAULT_POT: PotParams = { shape: "round", w: 160, d: 110, height: 40, wall: 1.6, floor: 1.6, lid: true, lidClearance: 0.3, color: "#3b82f6", lidColor: "#3b82f6" };
+export const DEFAULT_POT: PotParams = { shape: "round", w: 200, d: 130, height: 50, wall: 1.6, floor: 1.6, lid: true, lidClearance: 0.3, color: "#3b82f6", lidColor: "#3b82f6" };
 
 /** Lado da peça quadrada. */
 export const pieceSide = (b: BoardParams) => b.cell - b.rib - 2 * b.clearance;

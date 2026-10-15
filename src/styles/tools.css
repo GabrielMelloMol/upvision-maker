@@ -287,3 +287,19 @@ details.advanced[open] > .stack, details.advanced[open] > .grid { margin-top: va
 .photo-corners .corner-lens .lens-ring { fill: none; stroke: #fff; stroke-width: 3px; vector-effect: non-scaling-stroke; filter: drop-shadow(0 2px 6px rgb(0 0 0 / 0.5)); }
 @media (prefers-reduced-motion: reduce) { .photo-corners .corner.low .corner-dot { animation: none; stroke-width: 5px; } }
 .page .tool-layout { scroll-margin-top: 72px; } /* a barra do alto não cobre o início ao rolar até aqui (UX B3) */
+
+/* Mosaico (#206) */
+.mosaic-svg { display: block; width: 100%; max-width: 560px; height: auto; margin-inline: auto; border-radius: var(--r-sm); cursor: crosshair; touch-action: none; }
+.mosaic-svg.read-only { cursor: default; }
+.mosaic-svg .mosaic-paper { fill: var(--surface-2); }
+.mosaic-svg .mosaic-pocket { fill: none; stroke: var(--grid-minor); stroke-width: 1; }
+.mosaic-svg .mosaic-piece { stroke: rgb(0 0 0 / 0.18); stroke-width: 0.6; }
+.mosaic-svg .mosaic-cursor { fill: none; stroke: var(--accent); stroke-width: 2.5; }
+.mosaic-svg:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.mosaic-colors, .mosaic-parts, .mosaic-cards, .mosaic-summary { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: var(--space-2); }
+.mosaic-cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); }
+.mosaic-counts { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: var(--space-3); }
+.mosaic-count { display: flex; align-items: flex-end; gap: var(--space-2); }
+.mosaic-count > svg { flex: none; margin-bottom: 10px; color: var(--muted); }
+.mosaic-count > label { flex: 1; min-width: 0; }
+.mosaic-summary li { display: flex; justify-content: space-between; gap: var(--space-3); }

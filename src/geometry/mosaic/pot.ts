@@ -1,6 +1,7 @@
 import { bedMm } from "../bed";
 import type { ManifoldToplevel, Solid } from "../manifold";
 import { toMesh } from "../mesh";
+import { moveMesh } from "../models/common";
 import { scoped } from "../shape2d";
 import type { Model } from "../types";
 import type { PotParams } from "./params";
@@ -12,6 +13,7 @@ import type { PotParams } from "./params";
 const LID_THICK = 1.8;
 const LID_SKIRT_H = 8;
 const LID_SKIRT_WALL = 1.6;
+const LID_GAP = 12;
 const MIN_COMPARTMENT_MM = 22;
 
 type K = <D extends { delete(): void }>(o: D) => D;
@@ -60,6 +62,9 @@ export function compartmentVolume(p: PotParams, n: number): number {
   return (area * (p.height - p.floor)) / compartments(p, n);
 }
 
+/** Quanto a tampa foi deslocada em x para ficar ao lado do pote no arquivo. */
+export const lidShift = (p: PotParams) => p.w + LID_GAP + p.lidClearance + LID_SKIRT_WALL;
+
 export function buildPot(M: ManifoldToplevel, p: PotParams, n: number): { models: Model[]; warnings: string[] } {
   const warnings: string[] = [];
   const big = p.shape === "round" ? p.w : Math.max(p.w, p.d);
@@ -81,7 +86,8 @@ export function buildPot(M: ManifoldToplevel, p: PotParams, n: number): { models
       const ring = k(k(outer(M, k, p, skirtOut, LID_SKIRT_H)).subtract(k(outer(M, k, p, p.lidClearance, LID_SKIRT_H + 1))));
       return toMesh(k(M.Manifold.union([plate, k(ring.translate([0, 0, LID_THICK - 0.01]))])));
     });
-    models.push({ name: "Tampa", parts: [{ name: "Tampa", color: p.lidColor, mesh: lid }] });
+    // a tampa fica ao lado do pote (os dois são objetos do mesmo arquivo)
+    models.push({ name: "Tampa", parts: [{ name: "Tampa", color: p.lidColor, mesh: moveMesh(lid, lidShift(p), 0) }] });
     if (big + 2 * skirtOut > bedMm() && big <= bedMm()) warnings.push(`A tampa tem ${Math.round(big + 2 * skirtOut)} mm e passa da mesa de ${bedMm()} mm.`);
   }
   return { models, warnings };

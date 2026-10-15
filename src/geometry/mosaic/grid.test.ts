@@ -1,6 +1,6 @@
 import { describe, expect, test } from "vitest";
 import { DESIGNS } from "./designs";
-import { blankGrid, cellAt, colorsUsed, countCells, gridFromImage, KIT_COLORS, paintCell, parseDesign, partsOf, roundCorners } from "./grid";
+import { blankGrid, cellAt, clearBackground, colorsUsed, countCells, gridFromImage, KIT_COLORS, paintCell, parseDesign, partsOf, roundCorners } from "./grid";
 
 describe("desenho", () => {
   test("lê o texto: cor, formato e giro", () => {
@@ -94,6 +94,28 @@ describe("imagem para mosaico", () => {
     expect(cellAt(g, 4, 1)?.color).toBe("red");
     expect(cellAt(g, 4, 6)?.color).toBe("blue");
     expect(g.cells.every((c) => !c || c.shape === "square")).toBe(true);
+  });
+
+  test("o fundo (cor que domina a borda) vira vazio, mas a mesma cor lá dentro fica", () => {
+    // fundo branco, um anel vermelho com um miolo branco
+    const g = clearBackground(parseDesign(["w# w# w# w# w#", "w# r# r# r# w#", "w# r# w# r# w#", "w# r# r# r# w#", "w# w# w# w# w#"]));
+    expect(g.cells.filter((c) => c?.color === "white")).toHaveLength(1);
+    expect(cellAt(g, 2, 2)?.color).toBe("white");
+    expect(cellAt(g, 0, 0)).toBeNull();
+    expect(cellAt(g, 1, 1)?.color).toBe("red");
+  });
+
+  test("sem cor dominante na borda, nada some", () => {
+    const g = parseDesign(["r# b# r# b#", "b# .. .. r#", "r# .. .. b#", "b# r# b# r#"]);
+    expect(clearBackground(g)).toBe(g);
+  });
+
+  test("a imagem com fundo branco opaco ganha fundo vazio (e dá para manter)", () => {
+    const px = new Uint8ClampedArray(16 * 16 * 4).fill(255);
+    for (let y = 4; y < 12; y++) for (let x = 4; x < 12; x++) px.set([214, 40, 40, 255], (y * 16 + x) * 4);
+    const kit = KIT_COLORS.filter((c) => ["red", "white"].includes(c.key));
+    expect(gridFromImage(px, 16, 16, 8, kit, "none").cells.filter(Boolean)).toHaveLength(16);
+    expect(gridFromImage(px, 16, 16, 8, kit, "none", false).cells.filter(Boolean)).toHaveLength(64);
   });
 
   test("com cantos redondos, os cantos de fora viram quarto de círculo", () => {

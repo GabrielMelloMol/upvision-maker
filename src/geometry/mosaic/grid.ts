@@ -84,21 +84,49 @@ export function roundCorners(g: MosaicGrid, style: CornerStyle): MosaicGrid {
   return { ...g, cells };
 }
 
+/**
+ * Tira o fundo: a cor que domina a borda da grade (se ocupar 60% dela ou mais) e tudo que se liga a ela pelas casas da
+ * mesma cor, de fora para dentro. A mesma cor dentro do desenho (o branco de um olho) fica.
+ */
+const BACKGROUND_SHARE = 0.6;
+export function clearBackground(g: MosaicGrid): MosaicGrid {
+  const edge: [number, number][] = [];
+  for (let c = 0; c < g.cols; c++) edge.push([c, 0], [c, g.rows - 1]);
+  for (let r = 1; r < g.rows - 1; r++) edge.push([0, r], [g.cols - 1, r]);
+  const count = new Map<string, number>();
+  for (const [c, r] of edge) {
+    const k = cellAt(g, c, r)?.color;
+    if (k) count.set(k, (count.get(k) ?? 0) + 1);
+  }
+  const [bg, n] = [...count.entries()].sort((a, b) => b[1] - a[1])[0] ?? [null, 0];
+  if (!bg || n < edge.length * BACKGROUND_SHARE) return g;
+  const cells = [...g.cells];
+  const stack = edge.filter(([c, r]) => cellAt(g, c, r)?.color === bg);
+  while (stack.length) {
+    const [c, r] = stack.pop()!;
+    if (c < 0 || r < 0 || c >= g.cols || r >= g.rows || cells[r * g.cols + c]?.color !== bg) continue;
+    cells[r * g.cols + c] = null;
+    stack.push([c + 1, r], [c - 1, r], [c, r + 1], [c, r - 1]);
+  }
+  return { ...g, cells };
+}
+
 /** Cor do kit mais perto de um hex que a conversão devolveu (a paleta enviada à conversão tem só cores do kit). */
 const keyOfHex = (hex: string, colors: MosaicColor[]) => colors.find((c) => c.hex.toLowerCase() === hex.toLowerCase())?.key;
 
 /**
  * Imagem → mosaico: reduz para `size` casas no lado maior usando só as cores do kit e põe quadrados; `corners` troca
- * os cantos de fora por quartos de círculo ou triângulos.
+ * os cantos de fora por quartos de círculo ou triângulos. `dropBackground` tira a cor de fundo (ver `clearBackground`).
  */
-export function gridFromImage(rgba: Uint8ClampedArray, w: number, h: number, size: number, colors: MosaicColor[], corners: CornerStyle): MosaicGrid {
+export function gridFromImage(rgba: Uint8ClampedArray, w: number, h: number, size: number, colors: MosaicColor[], corners: CornerStyle, dropBackground = true): MosaicGrid {
   const g = pixelate(rgba, w, h, size, Math.min(8, Math.max(2, colors.length)), colors.map((c) => c.hex));
   const cells = g.cells.map((v): Cell | null => {
     if (v < 0) return null;
     const key = keyOfHex(g.palette[v], colors);
     return key ? { color: key, shape: "square", rot: 0 } : null;
   });
-  return roundCorners({ cols: g.cols, rows: g.rows, cells }, corners);
+  const grid: MosaicGrid = { cols: g.cols, rows: g.rows, cells };
+  return roundCorners(dropBackground ? clearBackground(grid) : grid, corners);
 }
 
 const SHAPE_CODES: Record<string, { shape: MosaicShape; rot: number }> = {

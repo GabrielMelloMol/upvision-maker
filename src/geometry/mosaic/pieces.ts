@@ -5,6 +5,7 @@ import { moveMesh } from "../models/common";
 import { scoped } from "../shape2d";
 import type { Mesh, Model, Part } from "../types";
 import { mergeMeshes } from "../thermo/preview";
+import type { MosaicGrid } from "./grid";
 import { pieceSide, type BoardParams, type PieceCounts, type PieceParams } from "./params";
 import { PUPIL, shapeOutline, type MosaicShape, type Pt } from "./shapes";
 
@@ -18,6 +19,7 @@ const PUPIL_PLAY = 0.05; // a pupila é um pouco menor que o furo: dá para impr
 const PLATE_MARGIN = 5;
 const PIECE_GAP = 2.5;
 const PLATE_GAP = 40;
+const PLATES_PER_ROW = 4;
 
 type K = <D extends { delete(): void }>(o: D) => D;
 
@@ -67,6 +69,13 @@ export function pieceList(colors: MosaicColor[], counts: PieceCounts, eyeColor: 
 }
 
 export type PlateLayout = "color" | "mixed";
+
+/** Quantidades por formato que enchem uma mesa inteira de uma cor (metade de quadrados, o resto dividido). */
+export function fullPlateCounts(capacity: number, eyes: number): PieceCounts {
+  const part = (f: number) => Math.floor(capacity * f);
+  const [square, quarter, triangle, half] = [part(0.5), part(0.16), part(0.12), part(0.1)];
+  return { square, quarter, triangle, half, circle: capacity - square - quarter - triangle - half, eye: eyes };
+}
 
 /** Quantas peças cabem numa mesa. */
 export function plateCapacity(b: BoardParams): { perRow: number; total: number } {
@@ -134,9 +143,56 @@ export function buildPieces(M: ManifoldToplevel, b: BoardParams, p: PieceParams,
     });
   }
   const models = groups.flatMap((g) => plates(b, g, meshes, o.pupil, o.layout));
-  // as mesas lado a lado, na ordem, com folga: o arquivo sai com tudo, o fatiador separa em mesas
-  const placed = models.map((m, i) => ({ ...m, parts: m.parts.map((pt) => ({ ...pt, mesh: moveMesh(pt.mesh, i * (bedMm() + PLATE_GAP), 0) })) }));
+  // as mesas em grade, na ordem, com folga: o arquivo sai com tudo, o fatiador separa em mesas
+  const step = bedMm() + PLATE_GAP;
+  const placed = models.map((m, i) => ({ ...m, parts: m.parts.map((pt) => ({ ...pt, mesh: moveMesh(pt.mesh, (i % PLATES_PER_ROW) * step, -Math.floor(i / PLATES_PER_ROW) * step) })) }));
   const count = groups.reduce((n, g) => n + g.length, 0) - extra;
-  if (placed.length > 1) warnings.push(`São ${placed.length} mesas de peças. O arquivo traz uma ao lado da outra: no fatiador, use "Organizar" para distribuir em mesas ou imprima uma de cada vez.`);
+  if (placed.length > 1) warnings.push(`São ${placed.length} mesas de peças. O arquivo traz uma ao lado da outra (em grade): no fatiador, use "Organizar" para distribuir em mesas ou imprima uma de cada vez.`);
   return { models: placed, count, extra, platesN: placed.length, warnings };
+}
+
+/** Malha girada `rot` × 90° em volta do eixo z (a origem é o centro da casa). */
+export function turnMesh(m: Mesh, rot: number): Mesh {
+  const q = ((Math.round(rot) % 4) + 4) % 4;
+  if (q === 0) return m;
+  const [c, s] = [[1, 0], [0, 1], [-1, 0], [0, -1]][q];
+  const p = m.positions.slice();
+  for (let i = 0; i < p.length; i += 3) {
+    const [x, y] = [p[i], p[i + 1]];
+    p[i] = x * c - y * s;
+    p[i + 1] = x * s + y * c;
+  }
+  return { positions: p, indices: m.indices };
+}
+
+/** Onde a casa (c, r) de um desenho cai no tabuleiro: o desenho fica centrado na grade. */
+export const cellOnBoard = (b: BoardParams, gridCols: number, gridRows: number, c: number, r: number): { col: number; row: number } | null => {
+  const col = c + Math.floor((b.cols - gridCols) / 2), row = r + Math.floor((b.rows - gridRows) / 2);
+  return col < 0 || row < 0 || col >= b.cols || row >= b.rows ? null : { col, row };
+};
+
+/** O desenho montado no tabuleiro: as peças nas casas, só para a prévia. Devolve também quantas casas ficaram fora do tabuleiro. */
+export function assembledPreview(M: ManifoldToplevel, b: BoardParams, p: PieceParams, g: MosaicGrid, colors: MosaicColor[], pupil: MosaicColor): { model: Model | null; outside: number } {
+  const byKey = new Map(colors.map((c) => [c.key, c]));
+  const shapes = [...new Set(g.cells.flatMap((c) => (c ? [c.shape] : [])))];
+  const meshes = new Map(shapes.map((s) => [s, pieceMeshes(M, b, p, s)]));
+  const groups = new Map<string, { color: MosaicColor; list: Mesh[] }>();
+  const pupils: Mesh[] = [];
+  let outside = 0;
+  g.cells.forEach((cell, i) => {
+    if (!cell) return;
+    const at = cellOnBoard(b, g.cols, g.rows, i % g.cols, Math.floor(i / g.cols));
+    if (!at) return void outside++;
+    const color = byKey.get(cell.shape === "eye" ? "white" : cell.color);
+    if (!color) return;
+    const x = (at.col - (b.cols - 1) / 2) * b.cell, y = ((b.rows - 1) / 2 - at.row) * b.cell;
+    const m = meshes.get(cell.shape)!;
+    const grp = groups.get(color.key) ?? { color, list: [] };
+    grp.list.push(moveMesh(turnMesh(m.main, cell.rot), x, y, b.floor));
+    groups.set(color.key, grp);
+    if (m.pupil) pupils.push(moveMesh(m.pupil, x, y, b.floor));
+  });
+  const parts: Part[] = [...groups.values()].map((g2) => ({ name: g2.color.label, color: g2.color.hex, mesh: mergeMeshes(g2.list) }));
+  if (pupils.length) parts.push({ name: "Pupila", color: pupil.hex, mesh: mergeMeshes(pupils) });
+  return { model: parts.length ? { name: "Desenho montado", parts, previewOnly: true } : null, outside };
 }

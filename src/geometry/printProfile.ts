@@ -41,6 +41,11 @@ export const THERMO_SCREEN_PROFILE: PrintProfile = { layerHeight: 0.2, walls: 2,
 /** Molde em domo (PETG, para a tela de PLA não grudar): casca oca com nervuras, sem suporte. */
 export const THERMO_MOLD_PROFILE: PrintProfile = { layerHeight: 0.2, walls: 3, infill: 8, topLayers: 4, bottomLayers: 4, support: false, brim: false, notes: ["Imprima o molde em PETG (o PLA da tela não gruda nele), com o domo para cima e sem suporte.", "O molde é oco com nervuras: não aumente o preenchimento; ele já pesa menos que o maciço."] };
 
+/** Mosaico (#206): tabuleiro e pote deitados, sem suporte; as peças são chatas e pequenas, maciças. */
+export const MOSAIC_BOARD_PROFILE: PrintProfile = { layerHeight: 0.2, walls: 3, infill: 15, support: false, brim: false, notes: ["Imprima como está no arquivo, com as casas para cima, sem suporte."] };
+export const MOSAIC_PIECES_PROFILE: PrintProfile = { layerHeight: 0.2, walls: 2, infill: 100, support: false, brim: false, notes: ["Peças chatas, sem suporte. Se elas prenderem nas casas, ligue a compensação do pé de elefante no fatiador (0,1 a 0,2 mm).", "Imprima uma cor por vez (Mesa por cor) ou com AMS; o pote guarda uma cor em cada divisória."] };
+export const MOSAIC_POT_PROFILE: PrintProfile = { layerHeight: 0.2, walls: 3, infill: 15, support: false, brim: false, notes: ["O pote sai em pé e a tampa sai virada, com a saia para cima: sem suporte."] };
+
 const BRIM_MM = 5;
 const r2 = (n: number) => String(Math.round(n * 100) / 100);
 
