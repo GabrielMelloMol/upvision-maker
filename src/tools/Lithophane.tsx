@@ -310,7 +310,7 @@ export default function Lithophane() {
               )}
             </div>
           </details>
-          <ExportButtons printModes={mode === "layered" || mode === "color"} modes={["ams", "plates"]} models={models.length ? exportModels : []} name={mode === "litho" ? "litofania" : mode === "color" ? "litofania-colorida" : mode === "relief" ? "relevo" : "quadro-camadas"} busy={busy} pauses={pauses} profile={mode === "litho" ? LITHO_PROFILE : mode === "color" ? COLOR_LITHO_PROFILE : mode === "relief" ? RELIEF_PROFILE : { ...LAYERED_PROFILE, layerHeight: layered.layerHeight }} onSaved={tool.exported} />
+          <ExportButtons printModes={mode === "layered" || mode === "color"} modes={["ams", "plates"]} models={models.length ? exportModels : []} name={mode === "litho" ? "litofania" : mode === "color" ? "litofania-colorida" : mode === "relief" ? "relevo" : "quadro-camadas"} busy={busy} pauses={pauses} profile={mode === "litho" ? LITHO_PROFILE : mode === "color" ? COLOR_LITHO_PROFILE : mode === "relief" ? RELIEF_PROFILE : { ...LAYERED_PROFILE, layerHeight: layered.layerHeight }} onSaved={tool.exported} tips={TOOL_HELP.lithophane.tips} />
           <GeneratorHelp help={TOOL_HELP.lithophane} />
         </div>
         <div className="preview-col">

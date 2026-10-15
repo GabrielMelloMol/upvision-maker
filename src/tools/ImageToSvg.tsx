@@ -263,7 +263,7 @@ export default function ImageToSvg({ go }: { go: Go }) {
               </button>
             </div>
           </div>
-          <GeneratorHelp help={TOOL_HELP.svg} />
+          <GeneratorHelp help={TOOL_HELP.svg} showTips />
         </div>
 
         <div className="preview-col">

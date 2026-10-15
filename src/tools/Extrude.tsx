@@ -84,7 +84,7 @@ export default function Extrude() {
               </div>
             </details>
           )}
-          <ExportButtons models={models} name={svg?.name ?? "extrusao"} busy={busy} profile={DEFAULT_PROFILE} onSaved={tool.exported} />
+          <ExportButtons models={models} name={svg?.name ?? "extrusao"} busy={busy} profile={DEFAULT_PROFILE} onSaved={tool.exported} tips={TOOL_HELP.extrude.tips} />
           <GeneratorHelp help={TOOL_HELP.extrude} />
         </div>
         <div className="preview-col">

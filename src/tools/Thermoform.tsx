@@ -325,7 +325,7 @@ export default function Thermoform() {
           </div>
           <div className="card stack">
             <h3>Molde (PETG, outro arquivo)</h3>
-            <ExportButtons models={view ? [view.mold] : []} name={`caixinha-molde-${s.source === "shape" ? s.shape : "silhueta"}`} busy={busy} profile={THERMO_MOLD_PROFILE} onSaved={tool.exported} />
+            <ExportButtons models={view ? [view.mold] : []} name={`caixinha-molde-${s.source === "shape" ? s.shape : "silhueta"}`} busy={busy} profile={THERMO_MOLD_PROFILE} onSaved={tool.exported} tips={TOOL_HELP.thermoform.tips} />
           </div>
           <GeneratorHelp help={TOOL_HELP.thermoform} />
         </div>

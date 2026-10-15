@@ -110,7 +110,7 @@ export default function CookieCutter() {
               )}
             </div>
           </details>
-          <ExportButtons models={models} name={svg ? `cortador-${svg.name}` : "cortador"} busy={busy} profile={CUTTER_PROFILE} onSaved={tool.exported} />
+          <ExportButtons models={models} name={svg ? `cortador-${svg.name}` : "cortador"} busy={busy} profile={CUTTER_PROFILE} onSaved={tool.exported} tips={TOOL_HELP.cutter.tips} />
           <GeneratorHelp help={TOOL_HELP.cutter} />
         </div>
         <div className="preview-col">

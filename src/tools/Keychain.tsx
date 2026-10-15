@@ -257,7 +257,7 @@ export default function Keychain() {
               </div>
             </details>
           </div>
-          <ExportButtons models={models} name={batch ? "chaveiros" : `chaveiro-${splitLines(text).join(" ") || "logo"}`} busy={busy} profile={DEFAULT_PROFILE} onSaved={tool.exported} />
+          <ExportButtons models={models} name={batch ? "chaveiros" : `chaveiro-${splitLines(text).join(" ") || "logo"}`} busy={busy} profile={DEFAULT_PROFILE} onSaved={tool.exported} tips={TOOL_HELP.keychain.tips} />
           <GeneratorHelp help={TOOL_HELP.keychain} />
         </div>
         <div className="preview-col">

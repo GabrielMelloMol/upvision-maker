@@ -94,7 +94,11 @@ test("Caixa organizadora: material muda a folga da trava num passo só, e a ajud
   await expect(help.getByText("Quando usar")).toBeVisible();
   await expect(help.getByText("Quando não usar")).toBeVisible();
   await expect(help.getByRole("table")).toContainText("Largura");
-  await expect(help.getByText("Dicas de impressão")).toBeVisible();
+  // as dicas de impressão aparecem uma vez só: no recolhível do Salvar 3MF (com as do modelo), não dentro do Como usar
+  await expect(help.getByText("Dicas de impressão")).toHaveCount(0);
+  await expect(page.locator(".export-tips")).toHaveCount(1);
+  await page.locator(".export-tips summary").click();
+  await expect(page.locator(".export-tips").getByText(/PETG é o melhor para a dobradiça/)).toBeVisible();
   await help.getByText("Como encaixo o pino da dobradiça?").click();
   await expect(help.getByText(/empurre cada pino/)).toBeVisible();
 });

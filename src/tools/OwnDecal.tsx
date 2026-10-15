@@ -149,7 +149,7 @@ export default function OwnDecal() {
               disabled={face ? undefined : "Escolha uma face primeiro."}
             />
           )}
-          <ExportButtons models={models} name={`${baseName}-decal`} busy={busy} onSaved={tool.exported} />
+          <ExportButtons models={models} name={`${baseName}-decal`} busy={busy} onSaved={tool.exported} tips={TOOL_HELP.owndecal.tips} />
           <GeneratorHelp help={TOOL_HELP.owndecal} />
         </div>
         <div className="preview-col">

@@ -276,7 +276,7 @@ export default function Medal() {
             </div>
           </details>
           {engraveTooDeep && <Alert kind="warn">No baixo relevo o relevo precisa ser menor que a espessura (menos 0,6 mm).</Alert>}
-          <ExportButtons models={models} name={batch ? "medalhas" : `medalha-${p.center || "sem-texto"}`} busy={busy} profile={DEFAULT_PROFILE} onSaved={tool.exported} />
+          <ExportButtons models={models} name={batch ? "medalhas" : `medalha-${p.center || "sem-texto"}`} busy={busy} profile={DEFAULT_PROFILE} onSaved={tool.exported} tips={TOOL_HELP.medal.tips} />
           <GeneratorHelp help={TOOL_HELP.medal} />
         </div>
         <div className="preview-col">

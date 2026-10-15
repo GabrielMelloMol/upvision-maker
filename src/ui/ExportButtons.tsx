@@ -48,6 +48,8 @@ type Props = {
   modes?: readonly Mode[];
   /** Configuração de impressão recomendada: vai no 3MF (Bambu/Orca) e aparece na tela. */
   profile?: PrintProfile;
+  /** Dicas do modelo ou da ferramenta (ajuda), junto das do perfil de impressão, num só "Dicas de impressão". */
+  tips?: string[];
   /** Depois de salvar um arquivo (com o `name` legível): a ferramenta guarda o projeto nos "Últimos projetos" (#85). */
   onSaved?: (fileName: string) => void;
   /** O 3MF não é a saída principal da tela (ex.: etiquetas, cujo principal é o PDF): botão comum, sem cor (#139). */
@@ -58,7 +60,7 @@ type Props = {
 const recolor = (models: Model[], map: Record<string, string>): Model[] => models.map((m) => ({ ...m, parts: m.parts.map((p) => ({ ...p, color: map[p.color.toLowerCase()] ?? p.color })) }));
 
 /** Botões padrão de exportação: 3MF com cores (principal) e STL por objeto, ajustados ao jeito de imprimir. */
-export default function ExportButtons({ models: input, name, busy, pauses: inputPauses, printModes = true, modes, profile, onSaved, secondary = false }: Props) {
+export default function ExportButtons({ models: input, name, busy, pauses: inputPauses, printModes = true, modes, profile, tips, onSaved, secondary = false }: Props) {
   const toast = useToast();
   const [mode, setMode] = useState<Mode>("ams");
   const [layer, setLayer] = useState(profile?.layerHeight ?? 0.2);
@@ -243,6 +245,11 @@ export default function ExportButtons({ models: input, name, busy, pauses: input
         <div className="stack">
           {profile && <span className="hint">A configuração já vai no 3MF para o Bambu Studio e o OrcaSlicer.</span>}
           {profile?.notes?.map((n) => (
+            <span key={n} className="hint">
+              {n}
+            </span>
+          ))}
+          {tips?.map((n) => (
             <span key={n} className="hint">
               {n}
             </span>

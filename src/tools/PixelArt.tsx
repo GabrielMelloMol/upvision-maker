@@ -179,7 +179,7 @@ export default function PixelArt() {
               {opts.output === "puzzle" && <Segmented label="Marca em cada casa" value={opts.marks} options={MARKS} onChange={setO("marks")} full />}
             </div>
           </details>
-          <ExportButtons models={models} name="pixel-art" busy={busy} onSaved={tool.exported} />
+          <ExportButtons models={models} name="pixel-art" busy={busy} onSaved={tool.exported} tips={TOOL_HELP.pixel.tips} />
           <GeneratorHelp help={TOOL_HELP.pixel} />
         </div>
         <div className="preview-col">

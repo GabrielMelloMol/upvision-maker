@@ -31,7 +31,8 @@ describe("GeneratorHelp", () => {
     expect(screen.getByRole("heading", { name: "Quando usar" })).toBeInTheDocument();
     expect(screen.getByText("Parafusos soltos")).toBeInTheDocument();
     expect(screen.getByRole("heading", { name: "Quando não usar" })).toBeInTheDocument();
-    expect(screen.getByText("Imprima em PETG")).toBeInTheDocument();
+    // as dicas de impressão ficam no recolhível do Salvar 3MF: aqui só com showTips
+    expect(screen.queryByText("Imprima em PETG")).toBeNull();
     expect(screen.getByText("Cabe na mesa?").closest("details")).not.toHaveAttribute("open");
   });
 
@@ -45,5 +46,18 @@ describe("GeneratorHelp", () => {
     expect(within(row("Parede")).getByText("1,2 a 4 mm")).toBeInTheDocument();
     expect(within(row("Parede")).getByText("2,4 mm")).toBeInTheDocument();
     expect(within(row("Tampa")).getByText("Dobradiça, Sem tampa")).toBeInTheDocument();
+  });
+
+  test("showTips mostra as dicas aqui (tela sem botão de salvar)", () => {
+    render(<GeneratorHelp def={base} showTips />);
+    expect(screen.getByRole("heading", { name: "Dicas de impressão" })).toBeInTheDocument();
+    expect(screen.getByText("Imprima em PETG")).toBeInTheDocument();
+  });
+
+  test("sem nenhuma frase de ajuda nos campos, a coluna Dica some", () => {
+    const bare: ModelDef = { ...base, sections: [{ title: "Medidas", fields: [num("width", "Largura", 60, 300, { step: 1 })] }] };
+    render(<GeneratorHelp def={bare} />);
+    expect(screen.queryByRole("columnheader", { name: "Dica" })).toBeNull();
+    expect(screen.getByRole("columnheader", { name: "Faixa" })).toBeInTheDocument();
   });
 });

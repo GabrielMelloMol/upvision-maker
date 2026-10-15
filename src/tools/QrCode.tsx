@@ -225,7 +225,7 @@ export default function QrCode() {
               </button>
             )}
           </div>
-          <ExportButtons models={models} name={name} busy={busy} profile={DEFAULT_PROFILE} onSaved={tool.exported} />
+          <ExportButtons models={models} name={name} busy={busy} profile={DEFAULT_PROFILE} onSaved={tool.exported} tips={TOOL_HELP.qr.tips} />
           <GeneratorHelp help={TOOL_HELP.qr} />
         </div>
 
@@ -240,7 +240,7 @@ export default function QrCode() {
             ]}
           />
           {view === "2d" ? (
-            <div className="viewer qr-preview" role="img" aria-label="Prévia do QR Code">
+            <div className="viewer qr-preview" data-ready={svgUrl ? "" : undefined} role="img" aria-label="Prévia do QR Code">
               {svgUrl ? (
                 <img src={svgUrl} alt="" />
               ) : (

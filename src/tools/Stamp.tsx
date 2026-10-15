@@ -242,7 +242,7 @@ export default function Stamp() {
               </div>
             </details>
           </div>
-          <ExportButtons models={models.filter((m) => !m.previewOnly)} name={`carimbo-${lines[0] ?? s.logo?.name ?? "seco"}`} busy={busy} profile={profile} onSaved={tool.exported} />
+          <ExportButtons models={models.filter((m) => !m.previewOnly)} name={`carimbo-${lines[0] ?? s.logo?.name ?? "seco"}`} busy={busy} profile={profile} onSaved={tool.exported} tips={TOOL_HELP.stamp.tips} />
           <GeneratorHelp help={TOOL_HELP.stamp} />
         </div>
         <div className="preview-col">

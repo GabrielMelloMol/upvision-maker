@@ -396,8 +396,10 @@ td.best-name { max-width: 0; width: 100%; overflow: hidden; text-overflow: ellip
 .gen-help-body { display: grid; gap: var(--space-3); margin-top: var(--space-2); font-size: var(--text-sm); }
 .gen-help h4 { margin: 0 0 4px; font-size: var(--text-sm); }
 .gen-help ul { margin: 0; padding-left: 1.2em; }
-.gen-help-scroll { overflow-x: auto; }
+.gen-help-body > * { min-width: 0; }
+.gen-help-scroll { overflow-x: auto; max-width: 100%; }
 .gen-help table { width: 100%; border-collapse: collapse; }
+.gen-help td:last-child { overflow-wrap: anywhere; }
 .gen-help :is(th, td) { text-align: left; vertical-align: top; padding: 4px 8px; border-bottom: 1px solid var(--border-strong); }
 .gen-help thead th { color: var(--muted); font-weight: 600; }
 .gen-faq { padding: 2px 0; }

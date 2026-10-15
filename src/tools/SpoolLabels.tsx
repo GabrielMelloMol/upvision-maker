@@ -164,7 +164,7 @@ export default function SpoolLabels() {
             )}
           </div>
           {/* um só botão cheio por tarefa (#139): o PDF é o principal das etiquetas; a plaquinha 3D é extra */}
-          <ExportButtons models={models} name="plaquinhas-de-rolo" busy={busy} profile={DEFAULT_PROFILE} secondary />
+          <ExportButtons models={models} name="plaquinhas-de-rolo" busy={busy} profile={DEFAULT_PROFILE} secondary tips={TOOL_HELP.spools.tips} />
           <GeneratorHelp help={TOOL_HELP.spools} />
         </div>
         <div className="preview-col">

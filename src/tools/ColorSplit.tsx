@@ -152,7 +152,7 @@ export default function ColorSplit() {
               </ul>
             </div>
           )}
-          <ExportButtons models={models} name={`${file?.name ?? "separado"}-cores`} busy={busy} onSaved={tool.exported} />
+          <ExportButtons models={models} name={`${file?.name ?? "separado"}-cores`} busy={busy} onSaved={tool.exported} tips={TOOL_HELP.colorsplit.tips} />
           <GeneratorHelp help={TOOL_HELP.colorsplit} />
         </div>
         <div className="preview-col">
