@@ -11,6 +11,7 @@ import { formatDuration } from "../../ui/parse";
 import { saveFile } from "../../ui/saveFile";
 import { errorText, useToast } from "../../ui/Toast";
 import { useData } from "../../ui/useData";
+import { fallbackPricePerKg } from "../../domain/estimateDefaults";
 import { setPendingEstimate } from "../../pages/calculator/pendingFile";
 import { loadFilaments } from "../filamentColors";
 import type { DrawerPrint } from "./printPlan";
@@ -63,7 +64,8 @@ export default function PrintPlanCard({ plan, name, onSaved }: Props) {
 
   function toCalculator() {
     setPendingEstimate({
-      filaments: plan.byColor.map((c) => ({ filamentId: fil(c.color)?.id ?? null, pricePerKg: fil(c.color)?.pricePerKg ?? null, grams: c.grams })),
+      filaments: plan.byColor.map((c) => ({ filamentId: fil(c.color)?.id ?? null, pricePerKg: fil(c.color)?.pricePerKg ?? fallbackPricePerKg(stock), grams: c.grams, ...(fil(c.color) ? {} : { estimated: true }) })),
+      pieces: 1, // o conjunto da gaveta é um lote só: o custo não se divide
       printerWatts: null,
       seconds: plan.seconds,
       name: "Organizador de gaveta",

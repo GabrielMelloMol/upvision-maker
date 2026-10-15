@@ -22,7 +22,7 @@ import { takePendingEstimate } from "./calculator/pendingFile";
 import { type SlicerApply } from "./SlicerImport";
 import type { Go } from "../pages";
 import { setProductDraft } from "./products/draft";
-import { draftComposition, hasTyped, registerTyped, typedItems, type Registered, type Typed } from "./calculator/productDraft";
+import { draftComposition, equivalentWatts, hasTyped, kwhPrinterId, registerTyped, typedItems, withPurge, type Registered, type Typed } from "./calculator/productDraft";
 import TypedItemsSheet from "./calculator/TypedItemsSheet";
 import { errorText, useToast } from "../ui/Toast";
 import ChannelTable from "./calculator/ChannelTable";
@@ -107,7 +107,11 @@ export default function Calculator({ go }: { go: Go }) {
     if (!a) return;
     setMode("full");
     applySlicer(a);
-    toast("Estimativa trazida da ferramenta 3D. Pode errar ±20%: se fatiar, importe o arquivo para o valor certo.");
+    toast(
+      a.filaments.some((x) => x.estimated)
+        ? "Estimativa trazida da ferramenta 3D. Cores sem filamento cadastrado usam o preço médio do seu estoque (ou R$ 100/kg): confira. Pode errar ±20%."
+        : "Estimativa trazida da ferramenta 3D. Pode errar ±20%: se fatiar, importe o arquivo para o valor certo.",
+    );
   });
   useEffect(() => takeEstimate.current(), []);
 
@@ -159,6 +163,8 @@ export default function Calculator({ go }: { go: Go }) {
     const t = staleChannelText(c, todayIso());
     return t ? [[c.name, t]] : [];
   }));
+  const dateBr = (iso: string) => iso.split("-").reverse().join("/");
+  const ruleNotes = Object.fromEntries(data.settings.channels.filter((c) => c.tiers?.length).map((c) => [c.name, `Taxas por faixa de preço${c.checkedAt ? `, conferidas em ${dateBr(c.checkedAt)}` : ""}: confira em Preferências.`]));
   const snapshot: Saved = { mode, fil, ext, printerId, f };
   const grams = fil.reduce((t, l) => t + num(l.qty), 0);
   const history = useCalcHistory(snapshot, { name: f.name.trim(), grams, hours: printMin / 60, price: r.consumer }, r.unitCost > 0);
@@ -185,14 +191,14 @@ export default function Calculator({ go }: { go: Go }) {
   function applySlicer(a: SlicerApply) {
     const brl = (n: number) => formatMoneyInput(String(n));
     setFil(
-      a.filaments.map((x) => ({ ref: x.filamentId ? String(x.filamentId) : "", price: x.pricePerKg !== null ? brl(x.pricePerKg) : "", qty: str(x.grams) })),
+      a.filaments.map((x) => ({ ref: x.filamentId ? String(x.filamentId) : "", price: x.pricePerKg !== null ? brl(x.pricePerKg) : "", qty: str(x.grams), ...(x.estimated ? { estimated: true } : {}) })),
     );
     if (a.printerId !== undefined) setPrinterId(a.printerId ? String(a.printerId) : "");
     setF((cur) => ({
       ...cur,
       watts: a.printerWatts !== null ? str(a.printerWatts) : cur.watts,
       time: a.seconds !== undefined ? formatDuration(Math.round(a.seconds / 60)) : cur.time,
-      quantity: a.pieces ? String(a.pieces) : cur.quantity,
+      quantity: a.pieces !== undefined && a.pieces > 0 ? String(a.pieces) : cur.quantity, // a estimativa da ferramenta é da peça desenhada: o "Peças na mesa" da conta anterior não vale (C4)
       name: a.name && (!cur.name.trim() || cur.name === autoName.current) ? a.name : cur.name,
     }));
     if (a.name) autoName.current = a.name;
@@ -203,25 +209,41 @@ export default function Calculator({ go }: { go: Go }) {
   function saveAsProduct() {
     const t = typedItems(fil, ext, printerId, f.watts, num, num);
     if (hasTyped(t)) return setTypedAsk(t);
-    finishProduct(null);
+    void finishProduct(null);
   }
   async function registerAndSave(t: Typed) {
     try {
       const ids = await registerTyped(await getDb(), t, f.name.trim());
       setTypedAsk(null);
-      finishProduct(ids);
+      await finishProduct(ids);
     } catch (e) {
       toast(errorText(e), "error");
     }
   }
-  function finishProduct(ids: Registered | null) {
+  async function finishProduct(ids: Registered | null) {
     setTypedAsk(null);
-    const composition = draftComposition(fil, ext, num, num, ids);
+    // a purga digitada vira gramas nas linhas e o kWh medido vira uma impressora de mesma potência (C3): nada some em silêncio
+    const composition = withPurge(draftComposition(fil, ext, num, num, ids), num(f.swaps) * num(f.perSwap));
     const skipped = [...fil, ...ext].filter((l) => num(l.qty) > 0).length - composition.filaments.length - composition.materials.length;
     if (skipped > 0) toast(`${skipped} linha(s) sem item cadastrado ficaram de fora do produto.`, "error");
+    let productPrinter: number | null = ids?.printerId ?? (printerId ? Number(printerId) : null);
+    const kwh = num(f.kwh);
+    if (kwh > 0) {
+      const watts = equivalentWatts(kwh, printMin / 60);
+      if (watts === null) toast("O kWh medido ficou de fora do produto: informe o tempo de impressão para converter em potência.", "error");
+      else {
+        try {
+          const base = data.printers.find((p) => p.id === productPrinter);
+          productPrinter = await kwhPrinterId(await getDb(), base, watts);
+          toast(`O kWh medido foi gravado como a impressora "${base?.name ?? "Impressora da calculadora"} (kWh medido)", de ${watts.toLocaleString("pt-BR")} W.`);
+        } catch (e) {
+          toast(`Não consegui gravar o kWh medido: ${errorText(e)}`, "error");
+        }
+      }
+    }
     setProductDraft({
       composition,
-      printerId: ids?.printerId ?? (printerId ? Number(printerId) : null),
+      printerId: productPrinter,
       printMinutes: printMin,
       laborMinutes: laborMin,
       piecesPerPlate: Math.max(1, Math.floor(num(f.quantity)) || 1),
@@ -386,7 +408,7 @@ export default function Calculator({ go }: { go: Go }) {
         />
       )}
       {mode === "full" && (
-        <ChannelTable rows={rows} minMarginPct={data.settings.minMarginPct} target={data.settings.targetProfitPerHour} stale={staleFees}>
+        <ChannelTable rows={rows} minMarginPct={data.settings.minMarginPct} target={data.settings.targetProfitPerHour} stale={staleFees} notes={ruleNotes}>
           <PriceControls rounding={rounding} onRounding={setRounding} competitor={competitor} onCompetitor={setCompetitor} ours={roundPrice(r.consumer, rounding)} />
         </ChannelTable>
       )}

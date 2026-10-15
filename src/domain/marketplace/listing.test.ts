@@ -1,3 +1,4 @@
+import { LEGACY_CHANNELS } from "../../test/legacyChannels";
 import { describe, expect, test } from "vitest";
 import type { Filament, Material } from "../entities";
 import { EMPTY_PRODUCT, type Product, type ProductCtx } from "../products";
@@ -12,7 +13,7 @@ const product = (id: number, p: Partial<Product>): Product => ({ ...EMPTY_PRODUC
 
 // exemplo da home: luminária 120 g de PLA a R$ 85/kg + embalagem R$ 5 → custo 15,96; Shopee 20% + R$ 4 com 30% = 39,92
 const lum = product(1, { name: "Luminária de lua", sku: "LUM-1", stock: 3.6, composition: { filaments: [{ filamentId: 1, grams: 120 }], materials: [{ materialId: 1, qty: 1 }], items: [] } });
-const ctx = (products: Product[]): ProductCtx => ({ filaments: [fil(1, 85)], materials: [box], printers: [], products, settings: { ...DEFAULT_SETTINGS, maintenancePct: 5, failurePct: 0 } });
+const ctx = (products: Product[]): ProductCtx => ({ filaments: [fil(1, 85)], materials: [box], printers: [], products, settings: { ...DEFAULT_SETTINGS, channels: LEGACY_CHANNELS, maintenancePct: 5, failurePct: 0 } });
 const opts: ListingOptions = { marketplace: "shopee", channel: "Shopee", categoryId: "101152", packagingG: 30, box: { length: 20, width: 15, height: 10 } };
 
 describe("linhas da planilha de upload em massa (#78)", () => {

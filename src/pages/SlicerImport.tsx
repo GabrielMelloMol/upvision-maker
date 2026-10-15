@@ -17,11 +17,12 @@ import { errorText } from "../ui/Toast";
 /** Tudo que a calculadora precisa, já resolvido a partir das MESMAS listas usadas no casamento
  *  (a calculadora não busca de novo: evita usar um cadastro desatualizado). */
 export type SlicerApply = {
-  filaments: { filamentId: number | null; pricePerKg: number | null; grams: number }[];
+  filaments: { filamentId: number | null; pricePerKg: number | null; grams: number; /** O preço é uma estimativa (média do estoque ou padrão): a calculadora marca a linha para conferir. */ estimated?: boolean }[];
   /** undefined = mantém a impressora já escolhida (estimativa das ferramentas 3D, #99). */
   printerId?: number | null;
   printerWatts: number | null;
   seconds?: number;
+  /** Peças na mesa: a estimativa das ferramentas manda 1 (ou o lote); o fatiador não sabe e deixa como está. */
   pieces?: number;
   /** Nome da peça sugerido pelo arquivo. */
   name?: string;
