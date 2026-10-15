@@ -23,9 +23,11 @@ import { runCuts, type CutItem } from "../geometry/cutSequence";
 import { suggestCuts } from "../geometry/cutSuggest";
 import { partialCut, DEFAULT_PARTIAL_CUT, type PartialCutOptions } from "../geometry/partialCut";
 import { cutModels, DEFAULT_CUT } from "../geometry/planeCut";
-import { COLOR_LITHO_PROFILE, CUTTER_PROFILE, DEFAULT_PROFILE, STAMP_HINGE_PROFILE, STAMP_PROFILE, THERMO_MOLD_PROFILE, THERMO_SCREEN_PROFILE, LAYERED_PROFILE, LITHO_PROFILE, RELIEF_PROFILE, type PrintProfile } from "../geometry/printProfile";
+import { COLOR_LITHO_PROFILE, CUTTER_PROFILE, DEFAULT_PROFILE, STAMP_HINGE_PROFILE, STAMP_PROFILE, THERMO_MOLD_PROFILE, THERMO_SCREEN_PROFILE, INVITE_CARD_PROFILE, INVITE_LACE_PROFILE, INVITE_PIECES_PROFILE, LAYERED_PROFILE, LITHO_PROFILE, RELIEF_PROFILE, type PrintProfile } from "../geometry/printProfile";
 import { qrModel, type QrStyle } from "../geometry/qr3d";
 import { buildStamp, DEFAULT_STAMP, type StampParams } from "../geometry/stamp";
+import { buildInvite, DEFAULT_INVITE, PALETTES, type InviteParams } from "../geometry/invite/build";
+import { DEFAULT_ENVELOPE, type EnvelopeParams } from "../geometry/invite/envelope";
 import { buildThermo, DEFAULT_THERMO, type ThermoParams } from "../geometry/thermo/build";
 import { presetSilhouette, type ThermoShape } from "../geometry/thermo/shapes";
 import { buildStampArt, DEFAULT_ART, fixThinStrokes, type StampArtInput } from "../geometry/stampArt";
@@ -155,6 +157,14 @@ export function toolCases(M: ManifoldToplevel): QaCase[] {
     const out = buildStamp(M, thin.cs, p);
     const models = out.models.filter((m) => !m.previewOnly);
     return { models, warnings: [...made.warnings, ...out.warnings, ...bedWarnings(models, out.warnings)] };
+  };
+  // como a tela do Convite envelope: o envelope (com a pausa do tule), o cartão transparente e as peças em relevo, cada um num arquivo
+  const invite = async (part: "envelope" | "card" | "pieces", env: Partial<EnvelopeParams> = {}, rest: Partial<InviteParams> = {}, text?: Partial<import("../geometry/invite/card").CardText>): Promise<Out> => {
+    const fonts = { name: await loadFont("playfair"), text: await loadFont("montserrat") };
+    const p: InviteParams = { ...DEFAULT_INVITE, ...rest, env: { ...DEFAULT_ENVELOPE, ...env } };
+    const out = buildInvite(M, p, PALETTES[0].colors, { name: "Amanda", title: "XV anos", phrase: "Uma noite cheia de glamour,\nbrilho e a minha ilustre presença", date: "06.12.26", place: "Palácio dos Lírios", ...text }, fonts, null);
+    const models = part === "envelope" ? [out.envelope] : part === "card" ? [out.card] : out.pieces;
+    return { models, pauses: part === "envelope" ? out.pauses : [], warnings: [...out.warnings, ...bedWarnings(models, out.warnings)] };
   };
   // como a tela da Caixinha termoformada: silhueta pronta, texto de cima, as telas (PLA) e o molde (PETG) em arquivos separados
   const thermo = async (part: "screens" | "mold", shape: ThermoShape, width: number, patch: Partial<ThermoParams> = {}): Promise<Out> => {
@@ -296,6 +306,26 @@ export function toolCases(M: ManifoldToplevel): QaCase[] {
       ["ímãs (4) no redondo", () => stamp({ align: "magnets", magCount: 4, shape: "round", w: 40, h: 40 }), STAMP_PROFILE],
       ["dobradiça", () => stamp({ align: "hinge", w: 50, h: 60 }, { frame: "line", lines: ["EX LIBRIS", "Maria"] }), STAMP_HINGE_PROFILE],
       ["logo e texto", () => stamp({ w: 60, h: 60 }, { layout: "stack" }, true), STAMP_PROFILE],
+    ]),
+    ...cases("inviteEnvelope", "Convite envelope: envelope", [
+      ["flores com tule (pausa)", () => invite("envelope"), INVITE_LACE_PROFILE],
+      ["abas arredondadas", () => invite("envelope", { flap: "round" }), INVITE_LACE_PROFILE],
+      ["dobra só no tule", () => invite("envelope", { hinge: "tulle" }), INVITE_LACE_PROFILE],
+      ["arabescos 2 tons", () => invite("envelope", { pattern: "arabesque" }, { tones: 2 }), INVITE_LACE_PROFILE],
+      ["borboletas e asas levantadas", () => invite("envelope", { pattern: "butterflies" }, { butterfly: "wings" }), INVITE_LACE_PROFILE],
+      ["folhagem sem tule", () => invite("envelope", { pattern: "leaves", tulle: false }), INVITE_LACE_PROFILE],
+      ["mínimo", () => invite("envelope", { w: 70, h: 50, frame: 2, gap: 1, thickness: 0.8, tuleAt: 0.4 }), INVITE_LACE_PROFILE],
+      ["máximo", () => invite("envelope", { w: 200, h: 160, frame: 8, gap: 4, thickness: 2.4, tuleAt: 2 }), INVITE_LACE_PROFILE],
+    ]),
+    ...cases("inviteCard", "Convite envelope: cartão", [
+      ["relevo", () => invite("card"), INVITE_CARD_PROFILE],
+      ["embutido", () => invite("card", {}, { card: { ...DEFAULT_INVITE.card, style: "inlay" } }), INVITE_CARD_PROFILE],
+      ["mínimo", () => invite("card", { w: 70, h: 50, frame: 2 }, {}, { phrase: "", place: "" }), INVITE_CARD_PROFILE],
+      ["texto longo", () => invite("card", {}, {}, { name: "Maria Eduarda & João Pedro", phrase: "Convidamos você e toda a sua família\npara celebrar conosco este dia\ntão especial das nossas vidas" }), INVITE_CARD_PROFILE],
+    ]),
+    ...cases("invitePieces", "Convite envelope: borboleta e flores", [
+      ["padrão", () => invite("pieces"), INVITE_PIECES_PROFILE],
+      ["máximo", () => invite("pieces", {}, { pieces: { butterflies: 4, butterflySpan: 80, flowers: 6, flowerR: 24 } }), INVITE_PIECES_PROFILE],
     ]),
     ...cases("thermoScreens", "Caixinha termoformada: telas", [
       ["coração", () => thermo("screens", "heart", 70), THERMO_SCREEN_PROFILE],

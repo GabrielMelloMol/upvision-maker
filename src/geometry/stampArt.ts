@@ -201,11 +201,11 @@ const THIN_MIN_AREA = 0.2; // área mínima de um resto, em bicos quadrados: men
  * Procura traços mais finos que o bico: o que some na abertura (−bico/2, +bico/2). Com `thicken`, engrossa só esses
  * traços (o resto do desenho fica como está). Quem chama apaga `cs`.
  */
-export function fixThinStrokes(M: ManifoldToplevel, art: CS, thicken: boolean, nozzle = nozzleMm()): ThinFix {
+export function fixThinStrokes(M: ManifoldToplevel, art: CS, thicken: boolean, nozzle = nozzleMm(), minArea = THIN_MIN_AREA): ThinFix {
   return scoped((k) => {
     const opened = k(k(art.offset(-nozzle / 2, "Round")).offset(nozzle / 2, "Round"));
     const lost = k(art.subtract(opened));
-    const real = lost.decompose().map(k).filter((c) => c.area() >= nozzle * nozzle * THIN_MIN_AREA);
+    const real = lost.decompose().map(k).filter((c) => c.area() >= nozzle * nozzle * minArea);
     const thin = real.length > 0;
     if (!thin || !thicken) return { cs: art.translate([0, 0]), thin, fixed: false };
     const fat = k(k(M.CrossSection.union(real)).offset(nozzle / 2, "Round"));

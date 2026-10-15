@@ -62,6 +62,13 @@ export const ARTICLES: HelpArticle[] = [
     tips: ["O espelho da placa de baixo e o deslocamento do desenho são calculados juntos: as duas metades sempre casam.", "Traços mais finos que o bico (0,4 mm) são engrossados sozinhos, com aviso.", "Pinos pedem papel menor que a placa; com ímãs ou dobradiça o papel pode ser maior. A dobradiça de filme fino pede PETG."],
   },
   {
+    id: "invite",
+    title: "Convite envelope",
+    intro: "Um envelope em cruz com renda vazada, impresso em 3D sobre tule, mais o cartão transparente com o nome e a data, e a borboleta em relevo para colar.",
+    steps: ["Escolha um modelo pronto (XV anos, casamento, chá de bebê, batizado, madrinhas e padrinhos) ou ajuste o tamanho do envelope, o formato das abas, a renda e as cores.", "Digite o nome, o título, a frase, a data e o local do cartão e escolha as fontes.", "Salve o envelope (o arquivo já pausa na camada do tule), o cartão em PETG transparente e as peças em relevo; o app mostra o passo a passo do tule na tela.", "Para as damas, escreva os nomes um por linha, marque as paletas e salve todas as variações de uma vez."],
+    tips: ["No Bambu Studio, abra o projeto do Bambu (ele leva a pausa); no Orca e no Prusa, o 3MF comum já leva.", "Sem tule, desmarque Imprimir sobre tule: a renda sai mais grossa e todos os pedaços ficam ligados à moldura.", "As asas levantadas ficam planas sobre o tule, presas só por ele, e se levantam com a mão."],
+  },
+  {
     id: "thermoform",
     title: "Caixinha termoformada",
     intro: "Duas telas planas de PLA, em malha de favo com borda e desenho sólidos, prensadas a quente sobre um molde em domo de PETG viram as metades de uma caixinha de presente.",

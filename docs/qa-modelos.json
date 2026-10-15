@@ -1676,6 +1676,240 @@
   "plates": 1
  },
  {
+  "key": "inviteCard:embutido",
+  "owner": "Forja",
+  "group": "tools",
+  "label": "Convite envelope: cartão (ferramenta)",
+  "variant": "embutido",
+  "status": "ok",
+  "reasons": [
+   "app: Havia traços mais finos que o bico da impressora e eu os engrossei para o relevo sair inteiro."
+  ],
+  "date": "2026-10-15",
+  "slicers": "Bambu ✓ · Orca ✓ · Projeto Bambu ✓",
+  "minutes": 39,
+  "grams": 15.5,
+  "plates": 1
+ },
+ {
+  "key": "inviteCard:mínimo",
+  "owner": "Forja",
+  "group": "tools",
+  "label": "Convite envelope: cartão (ferramenta)",
+  "variant": "mínimo",
+  "status": "ok",
+  "reasons": [
+   "app: Havia traços mais finos que o bico da impressora e eu os engrossei para o relevo sair inteiro."
+  ],
+  "date": "2026-10-15",
+  "slicers": "Bambu ✓ · Orca ✓ · Projeto Bambu ✓",
+  "minutes": 14,
+  "grams": 6,
+  "plates": 1
+ },
+ {
+  "key": "inviteCard:relevo",
+  "owner": "Forja",
+  "group": "tools",
+  "label": "Convite envelope: cartão (ferramenta)",
+  "variant": "relevo",
+  "status": "ok",
+  "reasons": [
+   "app: Havia traços mais finos que o bico da impressora e eu os engrossei para o relevo sair inteiro."
+  ],
+  "date": "2026-10-15",
+  "slicers": "Bambu ✓ · Orca ✓ · Projeto Bambu ✓",
+  "minutes": 29,
+  "grams": 16.3,
+  "plates": 1
+ },
+ {
+  "key": "inviteCard:texto longo",
+  "owner": "Forja",
+  "group": "tools",
+  "label": "Convite envelope: cartão (ferramenta)",
+  "variant": "texto longo",
+  "status": "ok",
+  "reasons": [
+   "app: A linha \"MARIA EDUARDA & JOÃO PE…\" foi reduzida para caber no cartão.",
+   "app: A linha \"Convidamos você e toda …\" foi reduzida para caber no cartão.",
+   "app: Havia traços mais finos que o bico da impressora e eu os engrossei para o relevo sair inteiro."
+  ],
+  "date": "2026-10-15",
+  "slicers": "Bambu ✓ · Orca ✓ · Projeto Bambu ✓",
+  "minutes": 30,
+  "grams": 16.2,
+  "plates": 1
+ },
+ {
+  "key": "inviteEnvelope:abas arredondadas",
+  "owner": "Forja",
+  "group": "tools",
+  "label": "Convite envelope: envelope (ferramenta)",
+  "variant": "abas arredondadas",
+  "status": "ok",
+  "reasons": [
+   "app: Havia traços mais finos que o bico da impressora e eu os engrossei para o relevo sair inteiro."
+  ],
+  "date": "2026-10-15",
+  "slicers": "Bambu ✓ · Orca ✓ · Projeto Bambu ✓",
+  "minutes": 100,
+  "grams": 23,
+  "plates": 1,
+  "pauses": "0,80"
+ },
+ {
+  "key": "inviteEnvelope:arabescos 2 tons",
+  "owner": "Forja",
+  "group": "tools",
+  "label": "Convite envelope: envelope (ferramenta)",
+  "variant": "arabescos 2 tons",
+  "status": "ok",
+  "reasons": [
+   "app: Havia traços mais finos que o bico da impressora e eu os engrossei para o relevo sair inteiro."
+  ],
+  "date": "2026-10-15",
+  "slicers": "Bambu ✓ · Orca ✓ · Projeto Bambu ✓",
+  "minutes": 57,
+  "grams": 14.4,
+  "plates": 1,
+  "pauses": "0,80"
+ },
+ {
+  "key": "inviteEnvelope:borboletas e asas levantadas",
+  "owner": "Forja",
+  "group": "tools",
+  "label": "Convite envelope: envelope (ferramenta)",
+  "variant": "borboletas e asas levantadas",
+  "status": "ok",
+  "reasons": [
+   "app: Havia traços mais finos que o bico da impressora e eu os engrossei para o relevo sair inteiro."
+  ],
+  "date": "2026-10-15",
+  "slicers": "Bambu ✓ · Orca ✓ · Projeto Bambu ✓",
+  "minutes": 69,
+  "grams": 16.2,
+  "plates": 1,
+  "pauses": "0,80"
+ },
+ {
+  "key": "inviteEnvelope:dobra só no tule",
+  "owner": "Forja",
+  "group": "tools",
+  "label": "Convite envelope: envelope (ferramenta)",
+  "variant": "dobra só no tule",
+  "status": "ok",
+  "reasons": [
+   "app: Havia traços mais finos que o bico da impressora e eu os engrossei para o relevo sair inteiro."
+  ],
+  "date": "2026-10-15",
+  "slicers": "Bambu ✓ · Orca ✓ · Projeto Bambu ✓",
+  "minutes": 96,
+  "grams": 22,
+  "plates": 1,
+  "pauses": "0,80"
+ },
+ {
+  "key": "inviteEnvelope:flores com tule (pausa)",
+  "owner": "Forja",
+  "group": "tools",
+  "label": "Convite envelope: envelope (ferramenta)",
+  "variant": "flores com tule (pausa)",
+  "status": "ok",
+  "reasons": [
+   "app: Havia traços mais finos que o bico da impressora e eu os engrossei para o relevo sair inteiro."
+  ],
+  "date": "2026-10-15",
+  "slicers": "Bambu ✓ · Orca ✓ · Projeto Bambu ✓",
+  "minutes": 98,
+  "grams": 22.3,
+  "plates": 1,
+  "pauses": "0,80"
+ },
+ {
+  "key": "inviteEnvelope:folhagem sem tule",
+  "owner": "Forja",
+  "group": "tools",
+  "label": "Convite envelope: envelope (ferramenta)",
+  "variant": "folhagem sem tule",
+  "status": "ok",
+  "reasons": [
+   "app: Havia traços mais finos que o bico da impressora e eu os engrossei para o relevo sair inteiro."
+  ],
+  "date": "2026-10-15",
+  "slicers": "Bambu ✓ · Orca ✓ · Projeto Bambu ✓",
+  "minutes": 148,
+  "grams": 34.6,
+  "plates": 1
+ },
+ {
+  "key": "inviteEnvelope:máximo",
+  "owner": "Forja",
+  "group": "tools",
+  "label": "Convite envelope: envelope (ferramenta)",
+  "variant": "máximo",
+  "status": "aviso",
+  "reasons": [
+   "\"Envelope\" não cabe na mesa de 256 mm (394,2 × 314,9 × 2,4 mm)",
+   "Bambu recusa na mesa de 256 mm do A1 (o app avisa)",
+   "Orca recusa na mesa de 256 mm do A1 (o app avisa)",
+   "Projeto Bambu recusa na mesa de 256 mm do A1 (o app avisa)",
+   "app: \"Envelope\" tem 394 × 315 × 2 mm e passa da mesa de 256 mm: diminua o tamanho."
+  ],
+  "date": "2026-10-15",
+  "slicers": "Bambu ✓ · Orca ✓ · Projeto Bambu ✓"
+ },
+ {
+  "key": "inviteEnvelope:mínimo",
+  "owner": "Forja",
+  "group": "tools",
+  "label": "Convite envelope: envelope (ferramenta)",
+  "variant": "mínimo",
+  "status": "ok",
+  "reasons": [
+   "app: Havia traços mais finos que o bico da impressora e eu os engrossei para o relevo sair inteiro."
+  ],
+  "date": "2026-10-15",
+  "slicers": "Bambu ✓ · Orca ✓ · Projeto Bambu ✓",
+  "minutes": 41,
+  "grams": 8,
+  "plates": 1,
+  "pauses": "0,60"
+ },
+ {
+  "key": "invitePieces:máximo",
+  "owner": "Forja",
+  "group": "tools",
+  "label": "Convite envelope: borboleta e flores (ferramenta)",
+  "variant": "máximo",
+  "status": "aviso",
+  "reasons": [
+   "o conjunto arrumado ocupa 636,9 × 54,1 mm: passa da mesa de 256 mm",
+   "app: Havia traços mais finos que o bico da impressora e eu os engrossei para o relevo sair inteiro."
+  ],
+  "date": "2026-10-15",
+  "slicers": "Bambu ✓ · Orca ✓ · Projeto Bambu ✓",
+  "minutes": 80,
+  "grams": 35.8,
+  "plates": 1
+ },
+ {
+  "key": "invitePieces:padrão",
+  "owner": "Forja",
+  "group": "tools",
+  "label": "Convite envelope: borboleta e flores (ferramenta)",
+  "variant": "padrão",
+  "status": "ok",
+  "reasons": [
+   "app: Havia traços mais finos que o bico da impressora e eu os engrossei para o relevo sair inteiro."
+  ],
+  "date": "2026-10-15",
+  "slicers": "Bambu ✓ · Orca ✓ · Projeto Bambu ✓",
+  "minutes": 26,
+  "grams": 6.5,
+  "plates": 1
+ },
+ {
   "key": "keychain:3 camadas",
   "owner": "Forja",
   "group": "tools",
