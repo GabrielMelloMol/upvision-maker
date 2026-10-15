@@ -19,6 +19,7 @@ import ExportButtons from "../ui/ExportButtons";
 import NumField, { inRange } from "../ui/NumField";
 import Preview3D from "../ui/Preview3D";
 import Segmented from "../ui/Segmented";
+import ViewToggle, { type View as Show } from "../ui/ViewToggle";
 import SeeAlso from "../ui/SeeAlso";
 import { formatDuration } from "../ui/parse";
 import { errorText } from "../ui/Toast";
@@ -62,8 +63,6 @@ type State = {
 const initial = (): State => ({ source: "shape", shape: "heart", width: 70, sym: "keep", image: null, cutout: true, silText: "Ana", silFont: "pacifico", text: "Feliz\nNatal", font: "great-vibes", logo: peekHandoff(), layout: "stack", textScale: 55, p: { ...DEFAULT_THERMO, colors: { ...DEFAULT_THERMO.colors } } });
 
 type View = { screens: Model[]; mold: Model; assembled: Model; info: ThermoInfo; asym: number };
-type Show = "table" | "assembled";
-const SHOWS = [["table", "Mesa (o que imprime)"], ["assembled", "Montada (não imprime)"]] as const;
 const shiftModel = (m: Model, dx: number, dy: number): Model => ({ ...m, parts: m.parts.map((q) => ({ ...q, mesh: { ...q.mesh, positions: q.mesh.positions.map((v, i) => (i % 3 === 0 ? v + dx : i % 3 === 1 ? v + dy : v)) } })) });
 
 const g = (n: number) => `${n.toLocaleString("pt-BR", { maximumFractionDigits: 0 })} g`;
@@ -327,9 +326,8 @@ export default function Thermoform() {
           </div>
         </div>
         <div className="preview-col">
-          <Segmented label="O que mostrar" value={show} options={SHOWS} onChange={setShow} full />
+          <ViewToggle value={show} onChange={setShow} info="Prévia da caixinha já prensada, com a tela curvada sobre o domo. Ela não vai para o arquivo: o que imprime está em Mesa." />
           <Preview3D models={show === "assembled" && view ? [view.assembled] : models} busy={busy || loading} busyText="Gerando telas e molde…" error={error} emptyText={!valid ? "Corrija os campos em vermelho para ver a caixinha." : s.source === "image" && !s.image ? "Envie a silhueta (SVG ou imagem) para ver a caixinha." : "Escolha um formato para ver a caixinha."} />
-          {show === "assembled" && <Alert kind="info">Prévia da caixinha já prensada, com a tela curvada sobre o domo. Ela não vai para o arquivo: o que imprime está em Mesa.</Alert>}
           {warnings.map((w) => (
             <Alert key={w} kind="warn">{w}</Alert>
           ))}

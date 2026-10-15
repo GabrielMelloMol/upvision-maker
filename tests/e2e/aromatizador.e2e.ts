@@ -36,15 +36,20 @@ test("aromatizador: cápsula com logo em texto, corpo e tampa, teste da rosca me
 test("aromatizador: formatos, sugestões prontas, estrias, montado ao lado e rótulo de quantidade de furos", async ({ page }) => {
   await open(page);
   await expect(page.getByLabel(/^Quantidade de furos/)).toBeVisible();
+  const width = async () => Number(/([\d.]+) × [\d.]+ × /.exec((await page.locator(".viewer .hud").first().textContent()) ?? "")![1]);
   const height = async () => Number(/× ([\d.]+) × /.exec((await page.locator(".viewer .hud").first().textContent()) ?? "")![1]);
-  const withAssembled = await height();
-  await page.getByRole("switch", { name: /conjunto montado/ }).uncheck();
+  const onTable = await width();
+  const tall = await height();
+  // montada só aparece na outra vista: não fica junto das peças da mesa
+  await page.getByRole("button", { name: "Montada (não imprime)" }).click();
+  await expect(page.getByText(/Ela não vai para o arquivo/)).toBeVisible();
   await idle(page);
-  expect(await height()).toBeLessThan(withAssembled - 20); // a prévia do montado ocupa a frente
-  await page.getByRole("switch", { name: /conjunto montado/ }).check();
+  expect(await width()).toBeLessThan(onTable);
+  await page.getByRole("button", { name: "Mesa (o que imprime)" }).click();
+  expect(await width()).toBeGreaterThan(0);
   await page.getByRole("button", { name: "Gota", exact: true }).click();
   await idle(page);
-  expect(await height()).toBeGreaterThan(withAssembled);
+  expect(await height()).toBeGreaterThan(tall + 5); // a gota é mais alta que o redondo
   await page.getByRole("button", { name: "Dia das Mães (coração)" }).click();
   await idle(page);
   await expect(page.getByRole("button", { name: "Coração", exact: true })).toHaveAttribute("aria-pressed", "true");

@@ -168,6 +168,7 @@ export const KEYCHAIN_MODELS: ModelDef[] = [
     font: true,
     art: "Logo em relevo (opcional; sem logo, vale o texto)",
     artColors: true,
+    assembledInfo: "Prévia do aromatizador com a tampa rosqueada. Ela não vai para o arquivo: o que imprime está em Mesa (corpo e tampa separados, a tampa de pé).",
     defaults: DEFAULT_AROMA,
     sections: [
       {
@@ -176,7 +177,6 @@ export const KEYCHAIN_MODELS: ModelDef[] = [
           choice("shape", "Formato da cápsula", [["round", "Redondo"], ["heart", "Coração"], ["drop", "Gota"], ["hex", "Hexágono"]]),
           choice("edge", "Arestas", [["round", "Arredondadas"], ["chamfer", "Chanfradas"], ["none", "Retas"]]),
           bool("knurl", "Estrias na borda da tampa (pegada para girar)"),
-          bool("assembled", "Mostrar o conjunto montado ao lado (só na prévia)"),
         ],
       },
       {
@@ -194,7 +194,7 @@ export const KEYCHAIN_MODELS: ModelDef[] = [
           num("holes", "Quantidade de furos", 3, 16, { step: 1, unit: "", hint: "Mais furos, cheiro mais forte e mais rápido." }),
           num("holeDiameter", "Diâmetro do furo", 1.2, 4, { step: 0.2 }),
           text("text", "Texto do logo (sem desenho)", 10),
-          num("logoSize", "Tamanho do logo", 8, 30, { step: 1 }),
+          num("logoSize", "Tamanho do logo", 8, 40, { step: 1, hint: "Se for maior que o espaço dentro do anel de furos, o logo ocupa o espaço todo." }),
           num("relief", "Relevo do logo", 0.4, 1.6),
           bool("keyring", "Olhal para argola"),
         ],

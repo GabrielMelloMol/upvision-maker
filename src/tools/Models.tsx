@@ -16,6 +16,7 @@ import Dropzone from "../ui/Dropzone";
 import ExportButtons from "../ui/ExportButtons";
 import Field from "../ui/Field";
 import Preview3D from "../ui/Preview3D";
+import ViewToggle, { type View } from "../ui/ViewToggle";
 import Toggle from "../ui/Toggle";
 import { errorText } from "../ui/Toast";
 import { useModelBuilder } from "../ui/useModelBuilder";
@@ -121,6 +122,7 @@ export default function Models({ only, embedded }: { only?: string; embedded?: {
   }, [adopt, wanted, intent]);
   const [query, setQuery] = useState("");
   const [missing, setMissing] = useState<string | null>(null);
+  const [show, setShow] = useState<View>("table"); // modelos com peça montada só de prévia: Mesa × Montada
   // ocasião ou favoritos: filtro que atravessa as categorias (como a busca)
   const [occasion, setOccasion] = useState<Occasion>(intent?.occasion ?? null);
   const [favorites, setFavorites] = useState<string[]>(loadFavorites);
@@ -435,7 +437,8 @@ export default function Models({ only, embedded }: { only?: string; embedded?: {
           <ExportButtons models={models.filter((m) => !m.previewOnly)} name={copies ? `${def.label}-lote` : `${def.label}-${String(p.text ?? p.line1 ?? p.title ?? p.base ?? "")}`} busy={busy} pauses={pauses} profile={profileFor(id, p)} onSaved={tool.exported} />
         </div>
         <div className="preview-col">
-          <Preview3D models={models} busy={busy} busyText={`Gerando ${def.label.toLowerCase()}…`} error={error} emptyText={!valid ? "Corrija os campos em vermelho." : (missing ?? undefined)} />
+          {def.assembledInfo && <ViewToggle value={show} onChange={setShow} info={def.assembledInfo} />}
+          <Preview3D models={def.assembledInfo ? models.filter((m) => !!m.previewOnly === (show === "assembled")) : models} busy={busy} busyText={`Gerando ${def.label.toLowerCase()}…`} error={error} emptyText={!valid ? "Corrija os campos em vermelho." : (missing ?? undefined)} />
           {lay.view.face && (lay.layers.length > 0 || elements.length > 0) && !copies && (
             <section className="card stack gizmo-card">
               <h3>Vista de cima · {lay.view.face.part}</h3>

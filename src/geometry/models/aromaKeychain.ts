@@ -28,8 +28,6 @@ export type AromaParams = {
   edge: Edge;
   /** Olhal para argola/cordão no corpo. */
   keyring: boolean;
-  /** Mostra também o conjunto montado ao lado (só na prévia, não vai para o arquivo). */
-  assembled: boolean;
   /** "test": só a rosca num tamanho pequeno, para conferir a folga antes da peça inteira. */
   print: "full" | "test";
   bodyColor: string;
@@ -46,13 +44,12 @@ export const DEFAULT_AROMA: AromaParams = {
   holes: 8,
   holeDiameter: 2,
   text: "Ana",
-  logoSize: 14,
+  logoSize: 40, // maior que o espaço: ocupa a área dentro do anel de furos
   relief: 0.8,
   shape: "round",
   knurl: true,
   edge: "round",
   keyring: true,
-  assembled: true,
   print: "full",
   bodyColor: "#1c1c1e",
   lidColor: "#f5f5f7",
@@ -179,15 +176,13 @@ export function buildAroma(ctx: ModelCtx, p: AromaParams): ModelOutput {
       { name: "Corpo", parts: [{ name: "Corpo", color: p.bodyColor, mesh: solidMesh(body) }] },
       { name: "Tampa", parts: [{ name: "Tampa", color: p.lidColor, mesh: solidMesh(placedLid) }, ...logoParts(dx, 0, lidTopZ - L.shoulder)] },
     ];
-    // ---- montado: a tampa rosqueada no corpo, só para ver (não vai para o arquivo nem para a conta da mesa)
-    if (p.assembled && !test) {
-      const ob = outline.bounds();
-      const dy = -(ob.max[1] - ob.min[1] + GAP);
-      const asm = (s: typeof body) => solidMesh(k(s.translate([0, dy, 0])));
+    // ---- montado: a tampa rosqueada no corpo, só para ver (não vai para o arquivo nem para a conta da mesa; a prévia alterna entre ele e a mesa)
+    if (!test) {
+      const asm = (s: typeof body) => solidMesh(s);
       models.push({
         name: "Montado",
         previewOnly: true,
-        parts: [{ name: "Corpo", color: p.bodyColor, mesh: asm(body) }, { name: "Tampa", color: p.lidColor, mesh: asm(lid) }, ...logoParts(0, dy, lidTopZ)],
+        parts: [{ name: "Corpo", color: p.bodyColor, mesh: asm(body) }, { name: "Tampa", color: p.lidColor, mesh: asm(lid) }, ...logoParts(0, 0, lidTopZ)],
       } as (typeof models)[number]);
     }
     if (p.clearance < 0.2) warnings.push("Folga pequena: a tampa pode não rosquear. Imprima o teste da rosca antes.");

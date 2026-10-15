@@ -61,7 +61,7 @@ const PINK = "#f472b6", GOLD = "#f5c542", WHITE = "#f8f8f6", BLACK = "#1c1c1e", 
 
 export const VARIANTS: Record<string, Variant[]> = {
   aroma: [
-    { label: "Carro (logo de empresa)", patch: { shape: "round", text: "Sua marca", holes: 10, bodyColor: BLACK, lidColor: WHITE, logoColor: RED }, collections: ["negocio"] },
+    { label: "Carro (logo de empresa)", patch: { shape: "round", text: "Sua marca", holes: 10, logoSize: 40, bodyColor: BLACK, lidColor: WHITE, logoColor: RED }, collections: ["negocio"] },
     { label: "Lembrancinha de festa (nome)", patch: { shape: "hex", text: "Ana", holes: 8, bodyColor: LILAC, lidColor: WHITE, logoColor: PINK }, collections: ["aniversario"] },
     { label: "Dia das Mães (coração)", patch: { shape: "heart", text: "Mãe", holes: 8, bodyColor: PINK, lidColor: WHITE, logoColor: RED }, collections: ["maes"] },
   ],

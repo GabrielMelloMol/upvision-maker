@@ -123,17 +123,25 @@ describe("chaveiro aromatizador: cápsula de rosca com feltro, furos e logo (#21
     expect(v("chamfer")).toBeLessThan(v("round")); // 45° tira mais que o quarto de círculo
   });
 
-  test("montado: modelo só de prévia ao lado, com a tampa no alto do corpo; desligado some", () => {
+  test("montado: modelo só de prévia, com a tampa fechada no alto do corpo, centrado (a prévia alterna com a mesa)", () => {
     const out = aroma();
     const asm = out.models.find((m) => m.name === "Montado")!;
     expect(asm.previewOnly).toBe(true);
-    const printed = out.models.filter((m) => !m.previewOnly);
-    expect(printed.map((m) => m.name)).toEqual(["Corpo", "Tampa"]);
+    expect(out.models.filter((m) => !m.previewOnly).map((m) => m.name)).toEqual(["Corpo", "Tampa"]);
     const ab = meshBounds(asm.parts.map((x) => x.mesh))!;
-    const pb = meshBounds(printed.flatMap((m) => m.parts.map((x) => x.mesh)))!;
-    expect(ab.max[1]).toBeLessThan(pb.min[1] + 1); // atrás/à frente, sem sobrepor a mesa
-    expect(ab.max[2]).toBeGreaterThan(pb.max[2] - 1); // a tampa fechada alcança a altura toda
-    expect(aroma({ assembled: false }).models.find((m) => m.name === "Montado")).toBeUndefined();
+    const body = meshBounds([part(out, "Corpo", "Corpo")!.mesh])!;
+    expect(ab.min[0]).toBeCloseTo(body.min[0], 1); // no mesmo lugar do corpo, não ao lado
+    expect(ab.max[2]).toBeGreaterThan(body.max[2]); // a tampa fechada passa do topo do corpo aberto
+    expect(out.models.find((m) => m.name === "Montado")!.parts.some((x) => x.name === "Logo")).toBe(true);
+  });
+
+  test("o logo padrão ocupa a área dentro do anel de furos", () => {
+    const out = aroma({ text: "Sua marca" });
+    const logo = meshBounds([part(out, "Tampa", "Logo")!.mesh])!;
+    const lid = meshBounds([part(out, "Tampa", "Tampa")!.mesh])!;
+    const w = logo.max[0] - logo.min[0];
+    expect(w).toBeGreaterThan(20); // com 14 ficava num canto: agora preenche até a faixa dos furos
+    expect(w).toBeLessThan(lid.max[0] - lid.min[0]);
   });
 
   test("logo de 2 cores: uma parte por cor, dentro da tampa", () => {
