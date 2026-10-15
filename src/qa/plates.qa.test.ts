@@ -14,7 +14,8 @@ import { BAMBU, installed, ORCA, slice, writeProfiles, type Slicer } from "./sli
  * fatiar, ter gramas e usar só o filamento 1. Fora da suíte normal: `scripts/validate-models --plates [--ids a,b]`.
  */
 const ROOT = resolve(__dirname, "../..");
-const OUT = join(ROOT, "test-results/qa-plates");
+// fora de test-results/: o Playwright apaga essa pasta ao começar, e um E2E rodando junto levava os 3MF no meio da varredura ("input files not found")
+const OUT = join(ROOT, "qa-out/mesas");
 const IDS = process.env.QA_IDS?.split(",").map((s) => s.trim()).filter(Boolean);
 // Mesas que são só peças soltas no ar (letras na parede): o Bambu avisa "floating regions" e fatia, o Orca CLI recusa (-100).
 const ORCA_FLOATING_ONLY = new Set(["screwCase:padrão · cor 2"]);

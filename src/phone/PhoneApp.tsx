@@ -35,7 +35,7 @@ export default function PhoneApp() {
   }, []);
 
   useEffect(() => {
-    (async () => {
+    void (async () => {
       const code = codeFromHash(); // leu o QR da tela do computador: conecta sem digitar
       if (code) await pair(code).catch(() => {}); // código vencido cai na tela de código, com o erro do servidor
       await refresh();

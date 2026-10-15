@@ -205,7 +205,7 @@
    "app: Encaixe feito para chave tipo Cherry MX (e compatíveis). Imprima a chapa e a cruz primeiro: se ficar justo, aumente as folgas.",
    "app: A chave entra por cima na chapa do corpo; a tecla encaixa na haste."
   ],
-  "date": "2026-10-02",
+  "date": "2026-10-15",
   "slicers": "Bambu ✓ · Orca ✓ · Projeto Bambu ✓",
   "minutes": 78,
   "grams": 21.3,
@@ -222,7 +222,7 @@
    "app: Encaixe feito para chave tipo Cherry MX (e compatíveis). Imprima a chapa e a cruz primeiro: se ficar justo, aumente as folgas.",
    "app: A chave entra por cima na chapa do corpo; a tecla encaixa na haste."
   ],
-  "date": "2026-10-02",
+  "date": "2026-10-15",
   "slicers": "Bambu ✓ · Orca ✓ · Projeto Bambu ✓",
   "minutes": 67,
   "grams": 18.7,
@@ -239,7 +239,7 @@
    "app: Encaixe feito para chave tipo Cherry MX (e compatíveis). Imprima a chapa e a cruz primeiro: se ficar justo, aumente as folgas.",
    "app: A chave entra por cima na chapa do corpo; a tecla encaixa na haste."
   ],
-  "date": "2026-10-02",
+  "date": "2026-10-15",
   "slicers": "Bambu ✓ · Orca ✓ · Projeto Bambu ✓",
   "minutes": 72,
   "grams": 20,
@@ -441,7 +441,7 @@
   "reasons": [
    "app: Peça que faz força: imprima com 4+ paredes e 40%+ de preenchimento; PETG aguenta mais que PLA."
   ],
-  "date": "2026-10-02",
+  "date": "2026-10-15",
   "slicers": "Bambu ✓ · Orca ✓ · Projeto Bambu ✓",
   "minutes": 22,
   "grams": 17.7,
@@ -457,7 +457,7 @@
   "reasons": [
    "app: Peça que faz força: imprima com 4+ paredes e 40%+ de preenchimento; PETG aguenta mais que PLA."
   ],
-  "date": "2026-10-02",
+  "date": "2026-10-15",
   "slicers": "Bambu ✓ · Orca ✓ · Projeto Bambu ✓",
   "minutes": 36,
   "grams": 10.5,
@@ -473,7 +473,7 @@
   "reasons": [
    "app: Peça que faz força: imprima com 4+ paredes e 40%+ de preenchimento; PETG aguenta mais que PLA."
   ],
-  "date": "2026-10-02",
+  "date": "2026-10-15",
   "slicers": "Bambu ✓ · Orca ✓ · Projeto Bambu ✓",
   "minutes": 20,
   "grams": 11.4,
@@ -535,9 +535,9 @@
   "variant": "máximo",
   "status": "ok",
   "reasons": [],
-  "date": "2026-10-02",
+  "date": "2026-10-15",
   "slicers": "Bambu ✓ · Orca ✓ · Projeto Bambu ✓",
-  "minutes": 23,
+  "minutes": 24,
   "grams": 8.9,
   "plates": 1
  },
@@ -551,7 +551,7 @@
   "reasons": [
    "app: O nome encosta na borda da tag e foi cortado: arraste de volta ou use \"Centralizar tudo\"."
   ],
-  "date": "2026-10-02",
+  "date": "2026-10-15",
   "slicers": "Bambu ✓ · Orca ✓ · Projeto Bambu ✓",
   "minutes": 9,
   "grams": 2.7,
@@ -565,7 +565,7 @@
   "variant": "padrão",
   "status": "ok",
   "reasons": [],
-  "date": "2026-10-02",
+  "date": "2026-10-15",
   "slicers": "Bambu ✓ · Orca ✓ · Projeto Bambu ✓",
   "minutes": 15,
   "grams": 4.6,
@@ -579,7 +579,7 @@
   "variant": "máximo",
   "status": "ok",
   "reasons": [],
-  "date": "2026-10-08",
+  "date": "2026-10-15",
   "slicers": "Bambu ✓ · Orca ✓ · Projeto Bambu ✓",
   "minutes": 93,
   "grams": 31.6,
@@ -593,7 +593,7 @@
   "variant": "mínimo",
   "status": "ok",
   "reasons": [],
-  "date": "2026-10-08",
+  "date": "2026-10-15",
   "slicers": "Bambu ✓ · Orca ✓ · Projeto Bambu ✓",
   "minutes": 40,
   "grams": 10.2,
@@ -607,7 +607,7 @@
   "variant": "padrão",
   "status": "ok",
   "reasons": [],
-  "date": "2026-10-08",
+  "date": "2026-10-15",
   "slicers": "Bambu ✓ · Orca ✓ · Projeto Bambu ✓",
   "minutes": 51,
   "grams": 14.2,

@@ -61,7 +61,7 @@ impressoras de mesa maior); sem o aviso do app, é **falha**.
 | Topo de lápis (pencilTopper) | máximo | ✅ ok | Bambu ✓ · Orca ✓ · Projeto Bambu ✓ | 34 | 18,0 | 1 | – | app: Furo de 12 mm: lápis comum tem ~7,5 mm. Se ficar justo ou folgado, ajuste e imprima de novo. |
 | Topo de lápis (pencilTopper) | mínimo | ✅ ok | Bambu ✓ · Orca ✓ · Projeto Bambu ✓ | 10 | 4,0 | 1 | – | app: Furo de 5 mm: lápis comum tem ~7,5 mm. Se ficar justo ou folgado, ajuste e imprima de novo. |
 | Topo de lápis (pencilTopper) | padrão | ✅ ok | Bambu ✓ · Orca ✓ · Projeto Bambu ✓ | 16 | 6,9 | 1 | – | app: Furo de 7,8 mm: lápis comum tem ~7,5 mm. Se ficar justo ou folgado, ajuste e imprima de novo. |
-| Tag de pet (petTag) | máximo | ✅ ok | Bambu ✓ · Orca ✓ · Projeto Bambu ✓ | 23 | 8,9 | 1 | – | – |
+| Tag de pet (petTag) | máximo | ✅ ok | Bambu ✓ · Orca ✓ · Projeto Bambu ✓ | 24 | 8,9 | 1 | – | – |
 | Tag de pet (petTag) | mínimo | ✅ ok | Bambu ✓ · Orca ✓ · Projeto Bambu ✓ | 9 | 2,7 | 1 | – | app: O nome encosta na borda da tag e foi cortado: arraste de volta ou use "Centralizar tudo". |
 | Tag de pet (petTag) | padrão | ✅ ok | Bambu ✓ · Orca ✓ · Projeto Bambu ✓ | 15 | 4,6 | 1 | – | – |
 | Chaveiro giratório (spinner) | máximo | ✅ ok | Bambu ✓ · Orca ✓ · Projeto Bambu ✓ | 93 | 31,6 | 1 | – | – |

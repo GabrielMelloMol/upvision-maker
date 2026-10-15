@@ -369,7 +369,7 @@ export default function ImageToSvg({ go }: { go: Go }) {
                   onClick={() => {
                     const next = { ...opts, thicken: true };
                     setOpts(next);
-                    apply(next);
+                    void apply(next);
                   }}
                 >
                   Engrossar traços finos automaticamente

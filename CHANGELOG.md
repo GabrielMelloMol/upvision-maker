@@ -4,6 +4,7 @@ Cada versão aparece para a usuária na tela "O que há de novo" depois da atual
 Formato: `## <versão> — <data>` e itens `- …` em linguagem simples.
 
 ## Próxima versão (ainda não lançada)
+- **Atualizações de segurança por baixo do capô**: bibliotecas de rede e de build atualizadas (sem mudança no que você vê) e um aviso novo para o desenvolvimento, que pega ações que falham em silêncio.
 - **Sair do app com Cmd+Q não demora mais quando o banco falha**: se o banco de dados não abrisse na hora de fechar, o app esperava até 25 segundos para sair (e podia travar a instalação de uma atualização). Agora ele registra o aviso e sai na hora.
 
 ## 0.12.4 — 2026-10-15
