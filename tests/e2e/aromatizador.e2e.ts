@@ -33,6 +33,27 @@ test("aromatizador: cápsula com logo em texto, corpo e tampa, teste da rosca me
   await expect(page.getByText(/Folga pequena/)).toBeVisible();
 });
 
+test("aromatizador: formatos, sugestões prontas, estrias, montado ao lado e rótulo de quantidade de furos", async ({ page }) => {
+  await open(page);
+  await expect(page.getByLabel(/^Quantidade de furos/)).toBeVisible();
+  const height = async () => Number(/× ([\d.]+) × /.exec((await page.locator(".viewer .hud").first().textContent()) ?? "")![1]);
+  const withAssembled = await height();
+  await page.getByRole("switch", { name: /conjunto montado/ }).uncheck();
+  await idle(page);
+  expect(await height()).toBeLessThan(withAssembled - 20); // a prévia do montado ocupa a frente
+  await page.getByRole("switch", { name: /conjunto montado/ }).check();
+  await page.getByRole("button", { name: "Gota", exact: true }).click();
+  await idle(page);
+  expect(await height()).toBeGreaterThan(withAssembled);
+  await page.getByRole("button", { name: "Dia das Mães (coração)" }).click();
+  await idle(page);
+  await expect(page.getByRole("button", { name: "Coração", exact: true })).toHaveAttribute("aria-pressed", "true");
+  await expect(page.getByLabel(/^Texto do logo/)).toHaveValue("Mãe");
+  await page.getByRole("switch", { name: /Estrias/ }).uncheck();
+  await idle(page);
+  await expect(page.getByRole("button", { name: "Salvar 3MF" })).toBeEnabled();
+});
+
 test("aromatizador: acessibilidade (axe), claro e escuro", async ({ page }) => {
   await open(page);
   for (const scheme of ["light", "dark"] as const) {

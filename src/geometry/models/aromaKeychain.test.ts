@@ -4,7 +4,8 @@ import { getManifold, type ManifoldToplevel } from "../manifold";
 import type { Mesh } from "../types";
 import type { ModelCtx } from "./common";
 import { aromaCase, buildAroma, DEFAULT_AROMA, type AromaParams } from "./aromaKeychain";
-import { screwCaseClosed } from "./screwCase";
+import { caseOutlines } from "./caseShapes";
+import { caseLayout, screwCaseClosed } from "./screwCase";
 import { testArt } from "./sampleArt";
 
 let M: ManifoldToplevel;
@@ -70,7 +71,7 @@ describe("chaveiro aromatizador: cápsula de rosca com feltro, furos e logo (#21
     const w = meshBounds([part(withEar, "Corpo", "Corpo")!.mesh])!, n = meshBounds([part(without, "Corpo", "Corpo")!.mesh])!;
     expect(w.max[0] - w.min[0]).toBeGreaterThan(n.max[0] - n.min[0] + 5);
     const s = solid(part(withEar, "Corpo", "Corpo")!.mesh);
-    const hole = M.Manifold.cylinder(2, 0.5, 0.5, 8).translate([n.max[0] - 3 + 12 + 6, 0, 0.5]); // centro do furo do olhal
+    const hole = M.Manifold.cylinder(2, 0.5, 0.5, 8).translate([n.max[0] - 5 + 12 + 6, 0, 0.5]); // centro do furo do olhal
     expect(s.intersect(hole).volume()).toBeLessThan(0.01);
     [s, hole].forEach((o) => o.delete());
   });
@@ -79,5 +80,68 @@ describe("chaveiro aromatizador: cápsula de rosca com feltro, furos e logo (#21
     expect(aroma({ clearance: 0.1 }).warnings?.join(" ")).toMatch(/Folga pequena/);
     expect(aroma({ feltDiameter: 8, holeDiameter: 4 }).warnings?.join(" ")).toMatch(/não cabem/);
     expect(aroma().warnings).toEqual([]);
+  });
+
+  describe.each(["round", "heart", "drop", "hex"] as const)("formato %s", (shape) => {
+    test("o contorno guarda o círculo da rosca, o encaixe fechado não se toca e a peça sai inteira", () => {
+      const L = caseLayout(aromaCase({ ...DEFAULT_AROMA, shape }));
+      const o = caseOutlines(M, shape, L.outer, true);
+      const circle = M.CrossSection.circle(L.outer - 0.01, 64);
+      expect(circle.subtract(o.outline).area(), "círculo para fora do corpo").toBeLessThan(0.05);
+      expect(circle.subtract(o.lidOutline).area(), "círculo para fora da tampa").toBeLessThan(0.05);
+      [o.outline, o.lidOutline, circle].forEach((c) => c.delete());
+      const out = aroma({ shape });
+      expect(out.warnings).toEqual([]);
+      const lid = solid(part(out, "Tampa", "Tampa")!.mesh);
+      expect(lid.decompose().length).toBe(1);
+      const body = solid(part(out, "Corpo", "Corpo")!.mesh);
+      expect(body.decompose().length).toBe(1); // o olhal está preso ao corpo
+      [lid, body].forEach((o2) => o2.delete());
+    });
+    test("tampa e corpo rosqueados não se tocam", () => {
+      const sc = aromaCase({ ...DEFAULT_AROMA, shape });
+      const L = caseLayout(sc);
+      const o = caseOutlines(M, shape, L.outer, true);
+      const { body, lid } = screwCaseClosed(ctx(), sc, { outline: o.outline, lidOutline: o.lidOutline, edge: "round", bevel: 0.9 });
+      const both = body.intersect(lid);
+      expect(both.volume()).toBeLessThan(0.5);
+      [body, lid, both, o.outline, o.lidOutline].forEach((x) => x.delete());
+    });
+  });
+
+  test("estrias: a tampa ganha material na borda que sem estrias; o corpo não muda", () => {
+    const on = aroma({ knurl: true }), off = aroma({ knurl: false });
+    const v = (o: ReturnType<typeof aroma>) => vol(part(o, "Tampa", "Tampa")!.mesh);
+    expect(v(on)).toBeGreaterThan(v(off) + 5);
+    expect(vol(part(on, "Corpo", "Corpo")!.mesh)).toBeCloseTo(vol(part(off, "Corpo", "Corpo")!.mesh), 1);
+  });
+
+  test("arestas arredondadas e chanfradas tiram material nas quinas; retas não", () => {
+    const v = (edge: AromaParams["edge"]) => vol(part(aroma({ edge, knurl: false }), "Corpo", "Corpo")!.mesh);
+    expect(v("round")).toBeLessThan(v("none") - 5);
+    expect(v("chamfer")).toBeLessThan(v("none") - 5);
+    expect(v("chamfer")).toBeLessThan(v("round")); // 45° tira mais que o quarto de círculo
+  });
+
+  test("montado: modelo só de prévia ao lado, com a tampa no alto do corpo; desligado some", () => {
+    const out = aroma();
+    const asm = out.models.find((m) => m.name === "Montado")!;
+    expect(asm.previewOnly).toBe(true);
+    const printed = out.models.filter((m) => !m.previewOnly);
+    expect(printed.map((m) => m.name)).toEqual(["Corpo", "Tampa"]);
+    const ab = meshBounds(asm.parts.map((x) => x.mesh))!;
+    const pb = meshBounds(printed.flatMap((m) => m.parts.map((x) => x.mesh)))!;
+    expect(ab.max[1]).toBeLessThan(pb.min[1] + 1); // atrás/à frente, sem sobrepor a mesa
+    expect(ab.max[2]).toBeGreaterThan(pb.max[2] - 1); // a tampa fechada alcança a altura toda
+    expect(aroma({ assembled: false }).models.find((m) => m.name === "Montado")).toBeUndefined();
+  });
+
+  test("logo de 2 cores: uma parte por cor, dentro da tampa", () => {
+    const art = testArt(M);
+    const half = art.intersect(M.CrossSection.square([200, 200], false).translate([0, -100]));
+    const rest = art.subtract(half);
+    const out = aroma({}, { ...ctx(art), artLayers: [{ color: "#ff0000", cs: half }, { color: "#0000ff", cs: rest }] });
+    const logos = out.models[1].parts.filter((x) => x.name.startsWith("Logo"));
+    expect(logos.map((x) => x.color).sort()).toEqual(["#0000ff", "#ff0000"]);
   });
 });

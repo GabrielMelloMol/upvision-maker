@@ -167,9 +167,18 @@ export const KEYCHAIN_MODELS: ModelDef[] = [
     icon: Wind,
     font: true,
     art: "Logo em relevo (opcional; sem logo, vale o texto)",
-    artColors: false,
+    artColors: true,
     defaults: DEFAULT_AROMA,
     sections: [
+      {
+        title: "Formato",
+        fields: [
+          choice("shape", "Formato da cápsula", [["round", "Redondo"], ["heart", "Coração"], ["drop", "Gota"], ["hex", "Hexágono"]]),
+          choice("edge", "Arestas", [["round", "Arredondadas"], ["chamfer", "Chanfradas"], ["none", "Retas"]]),
+          bool("knurl", "Estrias na borda da tampa (pegada para girar)"),
+          bool("assembled", "Mostrar o conjunto montado ao lado (só na prévia)"),
+        ],
+      },
       {
         title: "Feltro e cápsula",
         fields: [
@@ -182,7 +191,7 @@ export const KEYCHAIN_MODELS: ModelDef[] = [
       {
         title: "Tampa: furos e logo",
         fields: [
-          num("holes", "Furos de aroma", 3, 16, { step: 1, unit: "", hint: "Mais furos, cheiro mais forte e mais rápido." }),
+          num("holes", "Quantidade de furos", 3, 16, { step: 1, unit: "", hint: "Mais furos, cheiro mais forte e mais rápido." }),
           num("holeDiameter", "Diâmetro do furo", 1.2, 4, { step: 0.2 }),
           text("text", "Texto do logo (sem desenho)", 10),
           num("logoSize", "Tamanho do logo", 8, 30, { step: 1 }),
