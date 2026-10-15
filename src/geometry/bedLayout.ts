@@ -29,3 +29,24 @@ export function setOnBedWarning(models: Model[]): string | null {
   if (models.length < 2 || size(models) <= bedMm() || models.some((m) => size([m]) > bedMm())) return null;
   return `As ${models.length} peças não cabem juntas na mesa de ${bedMm()} mm: o fatiador vai usar mais de uma mesa (ou imprima uma de cada vez).`;
 }
+
+/** Mesas que um projeto pode ter no Bambu Studio e no OrcaSlicer: passando disso o fatiador deixa peças de fora da mesa. */
+export const MAX_PLATES = 36;
+const PACK_EFFICIENCY = 0.7; // aproveitamento da mesa ao arrumar caixas (peça que sobra de lado não encaixa)
+
+/** Mesas (estimativa) para imprimir todas as peças: soma das caixas de cada uma sobre a área útil da mesa. */
+export function platesNeeded(models: Model[]): number {
+  const bed = bedMm();
+  let area = 0;
+  for (const m of models) {
+    const b = meshBounds(m.parts.map((p) => p.mesh));
+    if (b) area += (b.max[0] - b.min[0]) * (b.max[1] - b.min[1]);
+  }
+  return Math.ceil(area / (bed * bed * PACK_EFFICIENCY));
+}
+
+/** Aviso quando as peças pedem mais mesas que o fatiador aceita num projeto: imprimir por lotes. */
+export function platesLimitWarning(models: Model[]): string | null {
+  const n = platesNeeded(models);
+  return n > MAX_PLATES ? `São ${models.length} peças, umas ${n} mesas de ${bedMm()} mm: mais que as ${MAX_PLATES} que o Bambu Studio e o OrcaSlicer aceitam num projeto. Salve e imprima em lotes (por exemplo, uma ou duas letras de cada vez) ou diminua a altura ou o texto.` : null;
+}

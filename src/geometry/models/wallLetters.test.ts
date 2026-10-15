@@ -62,4 +62,15 @@ describe("letras soltas para parede (#57)", { timeout: 60_000 }, () => {
     const s = M.Manifold.cube([100, 100, 8]);
     expect(pinHoles(M, s, 256, 1, 4).volume()).toBeCloseTo(s.volume());
   });
+
+  test("texto grande demais para um projeto: avisa o número de mesas e sugere lotes", () => {
+    const w = (build({ text: "ABCDEFGHIJKLMNOPQRST", height: 1000 }).warnings ?? []).join(" ");
+    expect(w).toMatch(/mais que as 36 que o Bambu Studio e o OrcaSlicer aceitam/);
+    expect(w).toMatch(/imprima em lotes/);
+  });
+
+  test("texto que cabe nas mesas de um projeto não leva esse aviso", () => {
+    expect((build({ text: "OI", height: 600 }).warnings ?? []).join(" ")).not.toMatch(/mais que as 36/);
+    expect((build().warnings ?? []).join(" ")).not.toMatch(/lotes/);
+  });
 });

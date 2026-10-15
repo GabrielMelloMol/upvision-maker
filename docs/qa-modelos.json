@@ -4711,22 +4711,41 @@
   "plates": 1
  },
  {
+  "key": "wallLetters:FESTA 600 mm (muitas partes)",
+  "owner": "Torno",
+  "group": "party",
+  "label": "Letras para parede (wallLetters)",
+  "variant": "FESTA 600 mm (muitas partes)",
+  "status": "aviso",
+  "reasons": [
+   "o conjunto arrumado ocupa 2327,2 × 958,0 mm: passa da mesa de 256 mm",
+   "Bambu: torre de purga em cima de uma peça depois do --arrange do CLI (na tela, arraste a torre ou use Arrumar)",
+   "Orca: torre de purga em cima de uma peça depois do --arrange do CLI (na tela, arraste a torre ou use Arrumar)",
+   "Projeto Bambu: torre de purga em cima de uma peça depois do --arrange do CLI (na tela, arraste a torre ou use Arrumar)",
+   "app: 5 letra(s) passam da mesa de 256 mm e saíram em partes: una com cola e um pedaço de filamento de 1,75 mm nos furos.",
+   "app: Gabarito: cole a tira na parede com fita, alinhe cada letra entre os riscos dela e retire a tira depois."
+  ],
+  "date": "2026-10-15",
+  "slicers": "Bambu ✓ · Orca ✓ · Projeto Bambu ✓"
+ },
+ {
   "key": "wallLetters:máximo",
   "owner": "Torno",
   "group": "party",
   "label": "Letras para parede (wallLetters)",
   "variant": "máximo",
-  "status": "falha",
+  "status": "aviso",
   "reasons": [
-   "Bambu: Bambu Studio: Some objects are located over the boundary of the heated bed. (código -52)",
-   "Orca: OrcaSlicer: Some objects are located over the boundary of the heated bed. (código -52)",
-   "Projeto Bambu: Bambu Studio: Some objects are located over the boundary of the heated bed. (código -52)",
    "o conjunto arrumado ocupa 3905,4 × 1600,0 mm: passa da mesa de 256 mm",
+   "Bambu recusa: mais mesas que o limite de um projeto (o app avisa e sugere lotes)",
+   "Orca recusa: mais mesas que o limite de um projeto (o app avisa e sugere lotes)",
+   "Projeto Bambu recusa: mais mesas que o limite de um projeto (o app avisa e sugere lotes)",
    "app: 5 letra(s) passam da mesa de 256 mm e saíram em partes: una com cola e um pedaço de filamento de 1,75 mm nos furos.",
-   "app: Gabarito: cole a tira na parede com fita, alinhe cada letra entre os riscos dela e retire a tira depois."
+   "app: Gabarito: cole a tira na parede com fita, alinhe cada letra entre os riscos dela e retire a tira depois.",
+   "app: São 83 peças, umas 62 mesas de 256 mm: mais que as 36 que o Bambu Studio e o OrcaSlicer aceitam num projeto. Salve e imprima em lotes (por exemplo, uma ou duas letras de cada vez) ou diminua a altura ou o texto."
   ],
-  "date": "2026-10-02",
-  "slicers": "Bambu ✗ · Orca ✗ · Projeto Bambu ✗"
+  "date": "2026-10-15",
+  "slicers": "Bambu ✓ · Orca ✓ · Projeto Bambu ✓"
  },
  {
   "key": "wallLetters:mínimo",
@@ -4738,7 +4757,7 @@
   "reasons": [
    "app: Gabarito: cole a tira na parede com fita, alinhe cada letra entre os riscos dela e retire a tira depois."
   ],
-  "date": "2026-10-02",
+  "date": "2026-10-15",
   "slicers": "Bambu ✓ · Orca ✓ · Projeto Bambu ✓",
   "minutes": 33,
   "grams": 16,
@@ -4759,7 +4778,7 @@
    "app: 5 letra(s) passam da mesa de 256 mm e saíram em partes: una com cola e um pedaço de filamento de 1,75 mm nos furos.",
    "app: Gabarito: cole a tira na parede com fita, alinhe cada letra entre os riscos dela e retire a tira depois."
   ],
-  "date": "2026-10-02",
+  "date": "2026-10-15",
   "slicers": "Bambu ✓ · Orca ✓ · Projeto Bambu ✓"
  },
  {

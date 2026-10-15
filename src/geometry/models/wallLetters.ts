@@ -1,4 +1,5 @@
 import { bedMm } from "../bed";
+import { platesLimitWarning } from "../bedLayout";
 import type { CS, Solid } from "../manifold";
 import { fitInto, outerOnly, scoped } from "../shape2d";
 import type { Model } from "../types";
@@ -98,6 +99,8 @@ export function buildWallLetters({ M, text }: ModelCtx, p: WallLettersParams): M
       );
       warnings.push("Gabarito: cole a tira na parede com fita, alinhe cada letra entre os riscos dela e retire a tira depois.");
     }
+    const lots = platesLimitWarning(models);
+    if (lots) warnings.push(lots);
     return { models, warnings };
   });
 }
