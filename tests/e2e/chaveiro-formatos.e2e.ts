@@ -10,7 +10,7 @@ test("chaveiro: etiqueta retangular em 3 cores, nome em duas linhas, lote e silh
   await go(page, "Chaveiros");
   await page.getByRole("button", { name: "Retângulo" }).click();
   await page.getByRole("button", { name: "3 cores" }).click();
-  await page.getByLabel("Texto", { exact: true }).fill("Ana|Silva");
+  await page.getByLabel(/^Texto \(Enter para nova linha\)/).fill("Ana\nSilva");
   await idle(page);
   await expect(page.locator(".legend")).toContainText("Meio");
 
@@ -38,7 +38,7 @@ test("chaveiro com emoji: seletor insere no cursor e a peça sai com o desenho (
   await page.getByRole("button", { name: "Inserir emoji" }).click();
   await expect(page.getByRole("dialog", { name: "Emojis" })).toBeVisible();
   await page.getByRole("button", { name: "Emoji ⭐" }).click();
-  await expect(page.getByLabel("Texto", { exact: true })).toHaveValue("Ana⭐");
+  await expect(page.getByLabel(/^Texto \(Enter para nova linha\)/)).toHaveValue("Ana⭐");
   await page.keyboard.press("Escape");
   await expect(page.getByRole("dialog", { name: "Emojis" })).toHaveCount(0);
   await idle(page);

@@ -62,6 +62,13 @@ export const ARTICLES: HelpArticle[] = [
     tips: ["O espelho da placa de baixo e o deslocamento do desenho são calculados juntos: as duas metades sempre casam.", "Traços mais finos que o bico (0,4 mm) são engrossados sozinhos, com aviso.", "Pinos pedem papel menor que a placa; com ímãs ou dobradiça o papel pode ser maior. A dobradiça de filme fino pede PETG."],
   },
   {
+    id: "thermoform",
+    title: "Caixinha termoformada",
+    intro: "Duas telas planas de PLA, em malha de favo com borda e desenho sólidos, prensadas a quente sobre um molde em domo de PETG viram as metades de uma caixinha de presente.",
+    steps: ["Escolha um modelo pronto (Natal, Dia dos Namorados, Páscoa, brinde) ou um formato: coração, estrela, flor, círculo, quadrado, bola de Natal, ovo, uma imagem, um SVG ou um texto.", "Digite o texto e, se quiser, envie um logo. O desenho é o que fica sólido sobre a malha.", "Ajuste a altura do domo e a malha. O app mostra quanto a tela estica ao cobrir o molde e encolhe o desenho para ele sair do tamanho certo.", "Salve as telas e o clipe (PLA) num arquivo e o molde (PETG) em outro, e siga o passo a passo da termoformagem que aparece na tela."],
+    tips: ["As duas metades usam o mesmo molde, por isso a silhueta precisa ser simétrica pelo eixo vertical. Se a imagem não for, use Espelhar a esquerda ou a direita.", "A malha é desenhada na peça (favo ou losango), então o 3MF fatia igual no Bambu Studio e no OrcaSlicer, sem mexer em nada no fatiador.", "O molde é oco com nervuras: pesa a metade de um molde maciço a 100% e aguenta a prensagem sem depender do preenchimento do fatiador."],
+  },
+  {
     id: "extrude",
     title: "Desenho em 3D",
     intro: "Dá altura a qualquer desenho: placas, letreiros, apliques e topos.",

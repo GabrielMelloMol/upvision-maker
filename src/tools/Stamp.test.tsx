@@ -73,7 +73,7 @@ describe("Carimbo seco", () => {
   test("sem texto nem logo: pede um desenho", async () => {
     const user = userEvent.setup();
     renderWithApp(<Stamp />);
-    const box = screen.getByLabelText(/^Texto \(uma linha/);
+    const box = screen.getByLabelText(/^Texto \(Enter para nova linha\)/);
     await user.clear(box);
     expect(await screen.findByText("Digite um texto ou envie um logo para ver o carimbo.")).toBeInTheDocument();
   });

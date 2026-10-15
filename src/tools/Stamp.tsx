@@ -7,7 +7,9 @@ import { STAMP_HINGE_PROFILE, STAMP_PROFILE } from "../geometry/printProfile";
 import { buildStamp, DEFAULT_STAMP, minEdge, PAPER_PROFILES, type StampAlign, type StampParams, type StampShape } from "../geometry/stamp";
 import { buildStampArt, DEFAULT_ART, fixThinStrokes, NO_MOVE, thinWarning, type ArtMove, type StampFrame, type StampLayout } from "../geometry/stampArt";
 import { hasEmoji } from "../geometry/text";
+import { splitLines } from "../geometry/keychain";
 import FontPicker from "../ui/FontPicker";
+import LinesField from "../ui/LinesField";
 import Alert from "../ui/Alert";
 import Dropzone from "../ui/Dropzone";
 import ExportButtons from "../ui/ExportButtons";
@@ -31,7 +33,6 @@ const LAYOUTS = [["stack", "Logo em cima"], ["side", "Logo ao lado"]] as const;
 const FRAMES = [["none", "Sem moldura"], ["line", "Linha"], ["seal", "Selo"]] as const;
 const MOVE_LIMIT_MM = 60;
 const DEFAULT_TEXT = "Ana & Bruno";
-const LINE_BREAK = /\n|\|/;
 
 type State = {
   text: string;
@@ -64,7 +65,7 @@ export default function Stamp() {
 
   const round = p.shape === "round";
   const seal = round && s.frame === "seal";
-  const lines = s.text.split(LINE_BREAK).map((l) => l.trim()).filter(Boolean);
+  const lines = splitLines(s.text);
   const edgeNeeded = minEdge(p);
   const valid =
     inRange(p.w, 15, 140) && (round || inRange(p.h, 10, 140)) && inRange(p.edge, 6, 25) && inRange(p.plate, 3, 8) && inRange(p.relief, 0.4, 3) && inRange(p.draft, 0, 20) && inRange(p.paper, 0.2, 2) &&
@@ -145,10 +146,7 @@ export default function Stamp() {
           </div>
           <div className="card stack">
             <h3>Desenho</h3>
-            <label>
-              Texto (uma linha por linha)
-              <textarea value={s.text} rows={2} maxLength={80} onChange={(e) => field("text")(e.target.value)} />
-            </label>
+            <LinesField value={s.text} onChange={field("text")} maxLength={80} />
             <FontPicker value={s.font} onChange={field("font")} sample={lines[0] ?? ""} />
             <Dropzone accept={DESIGN_ACCEPT} label={s.logo ? s.logo.name : "SVG, PNG ou foto do logo"} hint="Fotos e PNG viram desenho sozinhos; sobreposições são unidas pelo app" onFile={onLogo} />
             {logoError && <Alert kind="error">{logoError}</Alert>}

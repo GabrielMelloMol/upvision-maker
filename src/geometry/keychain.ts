@@ -129,7 +129,8 @@ export function stackLines(M: ManifoldToplevel, lines: CS[], gap: number): CS {
 }
 
 /** "Ana|Silva" → ["Ana", "Silva"]: a barra vertical quebra o nome em linhas. */
-export const splitLines = (s: string) => s.split("|").map((l) => l.trim()).filter(Boolean);
+/** Linhas de um texto: o Enter quebra (e o "|" antigo continua valendo, para projetos guardados). */
+export const splitLines = (s: string) => s.split(/\n|\|/).map((l) => l.trim()).filter(Boolean);
 
 /** Nomes separados por linha ou vírgula, sem vazios e sem repetição. */
 export function parseNames(s: string): string[] {
