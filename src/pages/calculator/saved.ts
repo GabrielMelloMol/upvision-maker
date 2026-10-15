@@ -1,7 +1,7 @@
 import { z } from "zod";
 
 /** `estimated`: o preço veio de uma estimativa (média do estoque ou padrão) e a pessoa ainda não conferiu. */
-const Line = z.object({ ref: z.string(), price: z.string(), qty: z.string(), estimated: z.boolean().optional() });
+const Line = z.object({ ref: z.string(), price: z.string(), qty: z.string(), estimated: z.boolean().optional(), /** A quantidade acompanha as peças na mesa (embalagem padrão, A4). */ perPiece: z.boolean().optional() });
 export type Line = z.infer<typeof Line>;
 
 export const EMPTY_FORM = { watts: "", time: "", labor: "", quantity: "1", freight: "", margin: "", kwh: "", name: "", prepTime: "", prepFixed: "", swaps: "", perSwap: "0,8" };

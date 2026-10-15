@@ -30,7 +30,7 @@ import PrefsNav from "./preferences/PrefsNav";
 import { FORM_SECTIONS, loadSection, PREF_SECTIONS, saveSection, sectionFromIntent, sectionsWithErrors, type PrefSection } from "./preferences/sections";
 import { useTakenIntent } from "../tools/intent";
 
-type NumKey = Exclude<keyof Settings, "channels" | "kwhHistory" | "includeFixedCosts" | "multiplyLabor" | "packagingMaterialId" | "failureByMaterial" | "ams" | "bedPrinterId" | "slicer">;
+type NumKey = Exclude<keyof Settings, "channels" | "kwhHistory" | "includeFixedCosts" | "multiplyLabor" | "packagingMaterialId" | "failureByMaterial" | "ams" | "bedPrinterId" | "slicer" | "rounding">;
 type NumField = { key: NumKey; label: string; money?: true; hint?: string };
 const FIELDS: NumField[] = [
   { key: "kwhPrice", label: "Preço do kWh", money: true, hint: "Valor total da conta ÷ kWh consumidos." },
@@ -108,7 +108,7 @@ function PreferencesForm({ initial, materials, section, onSection, onFlagged }: 
       packagingMaterialId: packaging ? Number(packaging) : null,
       failureByMaterial: Object.fromEntries(Object.entries(byMaterial).flatMap(([k, v]) => (v.trim() === "" ? [] : [[k, parseDecimal(v)]]))), // vazio = a geral
       channels: channels.map(fromChannelForm),
-    }) as Omit<Settings, "kwhHistory" | "ams" | "slicer">;
+    }) as Omit<Settings, "kwhHistory" | "ams" | "slicer" | "rounding">;
 
   // Alterações não salvas (UX A2): a barra de baixo mostra o estado e, ao sair da tela, o que está válido é salvo sozinho.
   const [baseline, setBaseline] = useState(() => JSON.stringify(build()));

@@ -68,27 +68,52 @@ export default function OrderEditor({ data, order, draft, onClose, onSaved, save
     const p = data.products.find((x) => String(x.id) === productId);
     if (!p) return null;
     try {
-      return priceForChannel(p, productPricing(p, data).result, ch);
+      return priceForChannel(p, productPricing(p, data).result, ch, data.settings.rounding, data.settings);
     } catch {
       return null;
     }
   }
 
+  /** Produtos cujo canal escolhido não fecha a conta com a margem pedida (A1): o preço fica em branco e o pedido avisa. */
+  const impossible = lines.flatMap((l) => {
+    const p = data.products.find((x) => String(x.id) === l.productId);
+    if (!p || l.manualPrice || channel === CONSUMER || channel === RESALE) return [];
+    try {
+      return priceForChannel(p, productPricing(p, data).result, channel, data.settings.rounding, data.settings) === null ? [p.name] : [];
+    } catch {
+      return [];
+    }
+  });
+
   const update = (i: number, patch: Partial<Line>) => setLines(lines.map((l, j) => (j === i ? { ...l, ...patch } : l)));
+
+  /** false = o canal não fecha a conta para o produto (A1). */
+  const channelCloses = (productId: string, ch: string) => {
+    const p = data.products.find((x) => String(x.id) === productId);
+    if (!p || ch === CONSUMER || ch === RESALE) return true;
+    try {
+      return priceForChannel(p, productPricing(p, data).result, ch, data.settings.rounding, data.settings) !== null;
+    } catch {
+      return true;
+    }
+  };
 
   function pickProduct(i: number, productId: string) {
     const p = data.products.find((x) => String(x.id) === productId);
     const price = suggested(productId, channel);
     // produto trocado: custo e tempo voltam a ser os de hoje (A7)
-    update(i, { productId, description: p?.name ?? lines[i].description, unitPrice: price === null ? lines[i].unitPrice : brl(price), manualPrice: false, unitCost: undefined, printMinutes: undefined });
+    // canal que não fecha a conta (price null com o produto achado): preço em branco, não o da venda direta
+    update(i, { productId, description: p?.name ?? lines[i].description, unitPrice: price === null ? (p && channelCloses(productId, channel) ? lines[i].unitPrice : "") : brl(price), manualPrice: false, unitCost: undefined, printMinutes: undefined });
   }
 
   function changeChannel(ch: string) {
     setChannel(ch);
     // preços que não foram digitados à mão acompanham o canal
     setLines(lines.map((l) => {
-      const price = !l.manualPrice && l.productId ? suggested(l.productId, ch) : null;
-      return price === null ? l : { ...l, unitPrice: brl(price) };
+      if (l.manualPrice || !l.productId) return l;
+      const price = suggested(l.productId, ch);
+      if (price === null) return channelCloses(l.productId, ch) ? l : { ...l, unitPrice: "" }; // canal impossível: em branco (A1)
+      return { ...l, unitPrice: brl(price) };
     }));
   }
 
@@ -212,6 +237,11 @@ export default function OrderEditor({ data, order, draft, onClose, onSaved, save
             ))}
           </select>
         </label>
+        {impossible.length > 0 && (
+          <Alert kind="warn">
+            Este canal não fecha a conta com a margem de marketplace ({[...new Set(impossible)].join(", ")}): taxa + margem passam de 100%, então o preço ficou em branco. Escolha outro canal ou digite o preço à mão.
+          </Alert>
+        )}
         <label>
           Prazo de entrega
           <input type="date" value={dueDate} onChange={(e) => setDueDate(e.target.value)} />

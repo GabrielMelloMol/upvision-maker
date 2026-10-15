@@ -496,7 +496,7 @@ test("canais com faixas de preço mostram a data da regra na tabela (#242)", asy
   await screen.findByLabelText("Gramas");
   await user.type(screen.getByLabelText("Gramas"), "200");
   expect(await within(await screen.findByRole("row", { name: /^Shopee/ })).findByText(/Taxas por faixa de preço, conferidas em 15\/10\/2026/)).toBeInTheDocument();
-  expect(screen.getByRole("row", { name: /^TikTok Shop/ })).not.toHaveTextContent(/faixa de preço/);
+  expect(screen.getByRole("row", { name: /^TikTok Shop/ })).toHaveTextContent(/Taxas por faixa de preço/); // também por faixa (M7)
 });
 
 test("taxas conferidas há mais de 90 dias (#34): a linha do canal avisa", async () => {

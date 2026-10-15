@@ -1,6 +1,6 @@
 import { z } from "zod";
 import { KwhEntrySchema } from "./energy";
-import { ML_CLASSIC_2026, SHOPEE_2026 } from "./channelDefaults";
+import { ML_CLASSIC_2026, SHOPEE_2026, TIKTOK_2026 } from "./channelDefaults";
 
 const pct = z.number().min(0).max(100);
 
@@ -73,6 +73,8 @@ export const SettingsSchema = z.object({
   /** Abaixo disso a calculadora alerta o canal. */
   minMarginPct: pct,
   channels: z.array(ChannelSchema),
+  /** Arredondamento dos preços sugeridos (B2, M4): o mesmo na calculadora, nos orçamentos e nos pedidos. */
+  rounding: z.enum(["none", "90", "99", "int"]).default("none"),
   /** Cálculos do kWh pela conta de luz (mais recente primeiro). */
   kwhHistory: z.array(KwhEntrySchema),
   ams: AmsSchema,
@@ -99,7 +101,8 @@ export const DEFAULT_SETTINGS: Settings = {
   multConsumer: 5,
   marketplaceMarginPct: 30,
   minMarginPct: 10,
-  channels: [SHOPEE_2026, ML_CLASSIC_2026, { name: "TikTok Shop", feePct: 12, feeFixed: 4 }],
+  channels: [SHOPEE_2026, ML_CLASSIC_2026, TIKTOK_2026],
+  rounding: "none",
   kwhHistory: [],
   ams: { slots: 4, filaments: [] },
   bedPrinterId: null,

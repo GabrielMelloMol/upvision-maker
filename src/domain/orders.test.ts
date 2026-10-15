@@ -106,6 +106,39 @@ test("preço sugerido por canal", () => {
   expect(priceForChannel({ ...p, manualPrice: 30 }, r, "Consumidor final")).toBe(30);
 });
 
+describe("preço do pedido por canal (#243: A1, M4)", () => {
+  const p = (extra: Partial<Product> = {}) => ({ id: 1, name: "Luminária", kind: "simple", composition: { filaments: [{ filamentId: 1, grams: 13 }], materials: [], items: [] }, printerId: null, printMinutes: 0, laborMinutes: 0, piecesPerPlate: 1, freight: 0, manualPrice: null, consignmentPrice: null, stock: 0, minStock: 0, sku: "", notes: "", failurePct: null, ...extra }) as unknown as Product;
+  const settingsFor = (over: object) => ({ ...DEFAULT_SETTINGS, channels: [{ name: "Shopee", feePct: 20, feeFixed: 4, checkedAt: "2999-01-01" }], failurePct: 0, ...over });
+
+  test("A1: canal que não fecha a conta (taxa + margem passam de 100%) devolve null em vez do preço da venda direta com prejuízo", () => {
+    const st = settingsFor({ marketplaceMarginPct: 85 });
+    const prod = p();
+    const r = productPricing(prod, { ...ctx([prod]), settings: st }).result;
+    expect(r.channels[0].price).toBeNull();
+    expect(priceForChannel(prod, r, "Shopee", "none", st)).toBeNull();
+    expect(priceForChannel(prod, r, "Consumidor final", "none", st)).toBe(r.consumer); // os outros canais seguem
+  });
+
+  test("canal que não existe mais usa o preço da venda direta", () => {
+    const st = settingsFor({});
+    const prod = p();
+    const r = productPricing(prod, { ...ctx([prod]), settings: st }).result;
+    expect(priceForChannel(prod, r, "Canal apagado", "none", st)).toBe(r.consumer);
+  });
+
+  test("M4: o pedido usa o arredondamento das preferências, o mesmo do orçamento (Shopee R$ 10,60 vira R$ 10,90)", () => {
+    const st = settingsFor({ rounding: "90" });
+    const prod = p();
+    const r = productPricing(prod, { ...ctx([prod]), settings: st }).result;
+    const raw = r.channels[0].price!;
+    const out = priceForChannel(prod, r, "Shopee", "90", st)!;
+    expect(out).toBeGreaterThanOrEqual(raw);
+    expect(Math.round((out % 1) * 100)).toBe(90); // termina em ,90
+    expect(priceForChannel(prod, r, "Consumidor final", "int", st)).toBe(Math.ceil(r.consumer));
+    expect(priceForChannel(prod, r, "Revenda", "99", st)! % 1).toBeCloseTo(0.99, 5);
+  });
+});
+
 describe("pagamento do pedido (#177)", () => {
   const o = (paidAmount: number, extra: Partial<Order> = {}) => ({ id: 7, customerName: "Ana Souza", paymentMethod: "Pix", status: "done" as const, freight: 10, paidAmount, items: [{ qty: 2, unitPrice: 45, discountPct: 0 }], ...extra }) as Order;
 

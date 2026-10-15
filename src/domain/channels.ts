@@ -1,4 +1,4 @@
-import { ML_PREMIUM_2026 } from "./channelDefaults";
+import { AMAZON_2026, ML_PREMIUM_2026, SHEIN_2026 } from "./channelDefaults";
 import type { Channel } from "./settings";
 
 /**
@@ -7,9 +7,9 @@ import type { Channel } from "./settings";
  */
 export const CHANNEL_PRESETS: Channel[] = [
   ML_PREMIUM_2026, // premium 15–19%; custo por unidade por faixa abaixo de R$ 79 e frete a partir dele
-  { name: "Amazon", feePct: 15, feeFixed: 0 }, // 8–15% conforme a categoria
-  { name: "Elo7", feePct: 18, feeFixed: 0 },
-  { name: "Shein", feePct: 16, feeFixed: 0 },
+  AMAZON_2026, // 10–15% conforme a categoria
+  SHEIN_2026, // o Elo7 encerrou as operações em 11/05/2026 e saiu dos canais prontos
+
   { name: "Instagram/WhatsApp (maquininha)", feePct: 4, feeFixed: 0 }, // taxa do cartão de crédito à vista
 ];
 

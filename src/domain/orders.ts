@@ -1,6 +1,8 @@
 import { z } from "zod";
 import type { CalcResult } from "./calc";
 import { round2 } from "./format";
+import { roundForChannel, roundPrice, type Rounding } from "./pricing";
+import type { Settings } from "./settings";
 import { planConsumption, type ConsumptionPlan, type Product, type ProductCtx } from "./products";
 
 export const STATUSES = ["pending", "production", "done", "delivered", "canceled"] as const;
@@ -84,11 +86,19 @@ export function planForOrder(items: Pick<OrderItem, "productId" | "qty">[], ctx:
   return plan;
 }
 
-/** Preço sugerido do produto no canal do pedido. */
-export function priceForChannel(p: Product, r: CalcResult, channel: string): number {
-  if (channel === CONSUMER) return p.manualPrice ?? r.consumer;
-  if (channel === RESALE) return r.resale;
-  return r.channels.find((c) => c.name === channel)?.price ?? p.manualPrice ?? r.consumer;
+/**
+ * Preço sugerido do produto no canal do pedido, com o mesmo arredondamento da calculadora e do orçamento (M4).
+ * null = o canal não fecha a conta com a margem pedida (taxa + margem passam de 100%): o pedido fica sem preço e avisa,
+ * em vez de usar o da venda direta com prejuízo (A1). Canal que não existe mais usa o da venda direta.
+ */
+export function priceForChannel(p: Product, r: CalcResult, channel: string, rounding: Rounding = "none", settings?: Settings): number | null {
+  if (channel === CONSUMER) return p.manualPrice ?? roundPrice(r.consumer, rounding);
+  if (channel === RESALE) return roundPrice(r.resale, rounding);
+  const row = r.channels.find((c) => c.name === channel);
+  if (!row) return p.manualPrice ?? roundPrice(r.consumer, rounding);
+  if (row.price === null) return null;
+  const cfg = settings?.channels.find((c) => c.name === channel);
+  return cfg && settings ? roundForChannel(row.price, rounding, cfg, settings.taxPct, r.unitCost, 0).price : roundPrice(row.price, rounding);
 }
 
 /** Atrasado: tem prazo, já passou e ainda não foi entregue/cancelado. */

@@ -10,5 +10,5 @@ export const KEEP = "2999-01-01";
 export const LEGACY_CHANNELS: Channel[] = [
   { name: "Shopee", feePct: 20, feeFixed: 4, checkedAt: KEEP },
   { name: "Mercado Livre (clássico)", feePct: 14, feeFixed: 6.75, checkedAt: KEEP },
-  { name: "TikTok Shop", feePct: 12, feeFixed: 4 },
+  { name: "TikTok Shop", feePct: 12, feeFixed: 4, checkedAt: KEEP },
 ];

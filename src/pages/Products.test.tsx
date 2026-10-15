@@ -78,8 +78,8 @@ describe("Produtos: lista", () => {
       INSERT INTO photos (owner, position, dataUrl, createdAt) VALUES ('product:1', 0, 'data:image/png;base64,AAA', '2026-10-01T10:00:00Z');`);
     renderWithApp(<Products />);
     const lum = await screen.findByRole("row", { name: /Luminária/ });
-    expect(lum).toHaveTextContent("R$ 15,96"); // custo por peça (mesmo exemplo do E2E)
-    expect(lum).toHaveTextContent("R$ 79,80");
+    expect(lum).toHaveTextContent("R$ 15,71"); // custo por peça (mesmo exemplo do E2E)
+    expect(lum).toHaveTextContent("R$ 78,55");
     expect(lum).toHaveTextContent("preço calculado"); // UX B9: a legenda diz de onde vem o preço
     expect(lum.querySelector(".term-tip")).toHaveAttribute("data-tip", expect.stringContaining("muda quando o custo muda"));
     expect(lum).toHaveTextContent("LUM-1");
@@ -193,8 +193,8 @@ describe("Produtos: editor", () => {
     await user.type(within(mat).getByLabelText("Quantidade"), "1");
 
     const price = within(sheet).getByRole("row", { name: /Custo por peça/ });
-    expect(price).toHaveTextContent("R$ 15,96");
-    expect(within(sheet).getByLabelText(/Preço manual/)).toHaveAttribute("placeholder", "79,80");
+    expect(price).toHaveTextContent("R$ 15,71");
+    expect(within(sheet).getByLabelText(/Preço manual/)).toHaveAttribute("placeholder", "78,55");
 
     await user.selectOptions(within(sheet).getByLabelText("Impressora"), "A1");
     await user.type(within(sheet).getByLabelText("Tempo de impressão"), "1h30");
@@ -554,7 +554,7 @@ describe("Produtos: planilha de upload em massa (#78)", () => {
     expect(rows).toHaveLength(3);
     const lum = rows.find((r) => r[1] === "Luminária de lua")!;
     expect(lum[0]).toBe("101152");
-    expect(lum[rows[0].indexOf("Preço")]).toBe("40.92"); // Shopee 2026: taxa fixa de R$ 4,50 (eram R$ 4,00: 39,92)
+    expect(lum[rows[0].indexOf("Preço")]).toBe("40.42"); // Shopee 2026: taxa fixa de R$ 4,50 e a manutenção só sobre o filamento (M6)
     expect(lum[rows[0].indexOf("Peso")]).toBe("0.15"); // 120 g + 30 g de embalagem
   });
 });

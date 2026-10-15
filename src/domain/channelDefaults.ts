@@ -33,10 +33,23 @@ const mlShipping = { freeShippingAbove: 79, shippingCost: 20 } as const;
 export const ML_CLASSIC_2026: Channel = { name: "Mercado Livre (clássico)", feePct: 14, feeFixed: 5.65, tiers: mlTiers(14), ...mlShipping, checkedAt: RULES_DATE, rulesNote: ML_NOTE };
 export const ML_PREMIUM_2026: Channel = { name: "Mercado Livre (premium)", feePct: 17, feeFixed: 5.65, tiers: mlTiers(17), ...mlShipping, checkedAt: RULES_DATE, rulesNote: ML_NOTE };
 
+const TIKTOK_NOTE = "TikTok Shop (desde 15/07/2026): 10% + R$ 4 abaixo de R$ 50; 6% + R$ 6 a partir de R$ 50, sobre o preço depois do seu desconto. O programa de frete grátis é opcional e cobra +6% (teto de R$ 50): some à parte. Regra lida em fontes secundárias em 15/10/2026: confira na central do vendedor.";
+export const TIKTOK_2026: Channel = { name: "TikTok Shop", feePct: 10, feeFixed: 4, tiers: [{ from: 50, feePct: 6, feeFixed: 6 }], checkedAt: RULES_DATE, rulesNote: TIKTOK_NOTE };
+
+export const AMAZON_2026: Channel = {
+  name: "Amazon",
+  feePct: 15,
+  feeFixed: 2,
+  checkedAt: RULES_DATE,
+  rulesNote: "Amazon: comissão de 10% a 15% conforme a categoria (mínimo de R$ 1 por item). O R$ 2 por item é do plano individual: no profissional ele não existe (R$ 19 por mês). Confira a categoria e o plano na central do vendedor (página de 19/09/2026).",
+};
+export const SHEIN_2026: Channel = { name: "Shein", feePct: 18, feeFixed: 0, checkedAt: RULES_DATE, rulesNote: "Shein: 18% (20% em moda feminina), sem taxa fixa; novos CNPJ têm 90 dias de isenção. Fontes secundárias em 15/10/2026: confira na central do vendedor." };
+
 /** O canal de fábrica antigo, sem nada mexido pela pessoa: troca pelo de 2026 ao abrir as preferências salvas. */
 const OLD_FACTORY: Record<string, { feePct: number; feeFixed: number; replace: Channel }> = {
   Shopee: { feePct: 20, feeFixed: 4, replace: SHOPEE_2026 },
   "Mercado Livre (clássico)": { feePct: 14, feeFixed: 6.75, replace: ML_CLASSIC_2026 },
+  "TikTok Shop": { feePct: 12, feeFixed: 4, replace: TIKTOK_2026 },
 };
 
 /** Só os campos básicos: quem mexeu em faixas, teto, frete, custo extra ou conferiu a data fica como está. */
