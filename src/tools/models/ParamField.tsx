@@ -11,6 +11,8 @@ import type { FieldDef, Params, Section } from "./fields";
 import MusicCodeField from "./MusicCodeField";
 import PlaceField from "./PlaceField";
 import StarPrintPreview from "./StarPrintPreview";
+import DividerMap from "./organizer/DividerMap";
+import StripEditor from "./organizer/StripEditor";
 import ProfileEditor from "./ProfileEditor";
 
 const MAX_CHIPS = 12; // acima disso a escolha vira uma lista (cidades do mapa estelar)
@@ -53,6 +55,10 @@ export default function ParamField({ f, value, onChange, sample = "", emoji, par
       return params && patch ? <MusicCodeField label={f.label} params={params} patch={patch} /> : null;
     case "place":
       return params && patch ? <PlaceField label={f.label} params={params} patch={patch} /> : null;
+    case "dividerMap":
+      return params ? <DividerMap label={f.label} params={params} /> : null;
+    case "strips":
+      return params ? <StripEditor label={f.label} value={String(value)} onChange={onChange} params={params} /> : null;
     case "starPrint":
       return params ? <StarPrintPreview label={f.label} params={params} /> : null;
     case "profile":
@@ -64,7 +70,7 @@ export default function ParamField({ f, value, onChange, sample = "", emoji, par
         </div>
       );
     case "num":
-      return <NumField label={f.label} value={value as number} onChange={onChange} min={f.min} max={f.max} step={f.step} unit={f.unit} hint={typeof f.hint === "function" ? f.hint(params ?? {}) : f.hint} cm={f.cm} />;
+      return <NumField label={f.label} value={value as number} onChange={onChange} min={f.min} max={f.max} step={f.step} unit={f.unit} hint={typeof f.hint === "function" ? f.hint(params ?? {}) : f.hint} cm={f.cm} slider={f.slider} />;
     case "text":
       if (emoji) return <EmojiText label={f.label} hint={f.hint} max={f.max} value={String(value)} onChange={onChange} />;
       return (
