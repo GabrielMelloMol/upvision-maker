@@ -27,6 +27,9 @@ export type ModelCtx = {
 /** Elemento interno que pode ser movido no gizmo (#79): caixa [x0, y0, x1, y1] em mm, Y para cima, já na posição final. */
 export type ElementBox = { id: string; label: string; box: [number, number, number, number] };
 
+/** Uma vista da prévia 3D (aba): as mesmas peças em outra pose. `models` do ModelOutput é o que vai para o arquivo. */
+export type ModelView = { id: string; label: string; models: Model[]; note?: string };
+
 export type ModelOutput = {
   models: Model[];
   /** Alturas (topo da camada) onde a impressora pausa — vão para o 3MF. */
@@ -34,6 +37,8 @@ export type ModelOutput = {
   warnings?: string[];
   /** Elementos internos móveis (textos, QR, ícone) para o gizmo (#79). */
   elements?: ElementBox[];
+  /** Vistas da prévia (#204): compartimentos, aberta, fechada, peças na mesa. Sem isto, a prévia mostra `models`. */
+  views?: ModelView[];
   /** A peça principal sai virada na mesa: a Vista de cima mostra a peça como fica montada (texto legível), não como vai impressa. */
   mirrorFace?: boolean;
 };
