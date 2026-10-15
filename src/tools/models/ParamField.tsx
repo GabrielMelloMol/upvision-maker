@@ -100,8 +100,9 @@ export default function ParamField({ f, value, onChange, sample = "", emoji, par
               ))}
             </div>
           ) : (
-            <Segmented label={f.label} value={String(value)} options={f.options} onChange={onChange} full />
+            <Segmented label={f.label} value={String(value)} options={f.options} onChange={onChange} full icons={f.icons} />
           )}
+          {f.hint && <span className="hint">{f.hint}</span>}
         </div>
       );
   }

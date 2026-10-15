@@ -20,6 +20,8 @@ type Props = {
   views?: boolean;
   /** Recalculando sem borrar a vista: só um indicador discreto no canto (quando já há modelo na tela). */
   quietBusy?: boolean;
+  /** Mostra também a medida da peça pronta em cm (modelos que a pessoa dimensiona em cm). */
+  cm?: boolean;
 };
 
 const VIEW_BUTTONS: [ViewName, string][] = [
@@ -73,7 +75,7 @@ export const snapshotPreview = (max?: number) => {
 };
 
 /** Prévia 3D padrão de todas as ferramentas: Z para cima, mesa da impressora escolhida, girar/zoom com o mouse. */
-export default function Preview3D({ models, busy, busyText = "Gerando modelo…", error, emptyText = "A prévia aparece aqui.", onPick, gizmo, views, quietBusy }: Props) {
+export default function Preview3D({ models, busy, busyText = "Gerando modelo…", error, emptyText = "A prévia aparece aqui.", onPick, gizmo, views, quietBusy, cm }: Props) {
   const host = useRef<HTMLDivElement>(null);
   const viewer = useRef<ReturnType<typeof createViewer> | null>(null);
   const down = useRef<{ x: number; y: number } | null>(null);
@@ -158,6 +160,7 @@ export default function Preview3D({ models, busy, busyText = "Gerando modelo…"
           {size.x.toFixed(1)} × {size.y.toFixed(1)} × {size.z.toFixed(1)} mm
         </div>
       )}
+      {size && cm && <div className="hud hud-cm">Peça pronta: {(size.x / 10).toFixed(1)} × {(size.y / 10).toFixed(1)} cm</div>}
       {legend.length > 1 && (
         <div className="legend">
           {legend.map((p) => (

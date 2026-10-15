@@ -16,6 +16,7 @@ export type TraceOptions = {
   smoothMm: number; // silhueta: suavização do contorno
   colors: number; // 1 = forma única; 2–4 = modo colorido (uma camada por cor)
   palette: string[] | null; // cores dos filamentos para o modo colorido (null = cores da imagem)
+  keepDetail?: boolean; // modo logo com recorte (`seg`): o que fica fora do recorte vira fundo e o resto mantém os detalhes (não vira silhueta cheia)
   nozzleMm?: number; // bico da impressora das ferramentas (o worker não vê a impressora: quem chama manda); padrão 0,4
 };
 
@@ -61,7 +62,11 @@ export function prepare(rgba: Uint8ClampedArray, w: number, h: number, o: TraceO
     mask = fillHoles(largestComponent(mask, w, h), w, h);
   } else {
     let lum = luminance(rgba);
-    const bg = o.removeBg ? floodBackground(rgba, w, h) : null;
+    let bg = o.removeBg ? floodBackground(rgba, w, h) : null;
+    if (o.keepDetail && seg) {
+      bg = bg ?? new Uint8Array(w * h);
+      for (let i = 0; i < bg.length; i++) if (!seg[i]) bg[i] = 1;
+    }
     if (bg) for (let i = 0; i < lum.length; i++) if (bg[i]) lum[i] = o.invert ? 0 : 255;
     lum = boxBlur(lum, w, h, Math.round(o.cleanup));
     threshold = o.threshold ?? otsu(bg ? lum.filter((_, i) => !bg[i]) : lum);

@@ -10,7 +10,7 @@ export type FieldDef =
   | { k: string; kind: "money"; label: string; hint?: string }
   | { k: string; kind: "color"; label: string }
   | { k: string; kind: "bool"; label: string }
-  | { k: string; kind: "choice"; label: string; options: readonly (readonly [string, string])[] }
+  | { k: string; kind: "choice"; label: string; options: readonly (readonly [string, string])[]; hint?: string; /** Ícone de cada opção (lado, posição). */ icons?: Record<string, LucideIcon> }
   /** Fonte própria de uma parte do modelo (a letra, uma linha); `sample` = campo de texto da prévia. */
   | { k: string; kind: "font"; label: string; sample?: string }
   /** Perfil por pontos de controle (raios de baixo para cima, "40, 55, 48"), com editor de arrastar (#92). */
@@ -54,6 +54,12 @@ export type ModelDef = {
   art2?: string;
   /** Foto enviada: oferece "Recortar o fundo da foto" (ligado) antes de vetorizar (#193). */
   cutout?: boolean;
+  /** Com `cutout`: o recorte só tira o fundo e o desenho continua com os detalhes (abridor pela imagem); sem isso a foto vira uma silhueta cheia. */
+  cutoutDetail?: boolean;
+  /** A prévia mostra também a medida da peça pronta em cm. */
+  showCm?: boolean;
+  /** Campos de cor que a imagem enviada preenche sozinha (base clara, relevo escuro); a pessoa pode trocar depois. */
+  autoColors?: { base: string; relief: string; rim?: string };
   /** Mostra o quadro "Que imagem funciona", os exemplos prontos e a silhueta entendida com avisos (kit card). */
   artGuide?: boolean;
   /** O modelo usa as cores do desenho (uma camada por cor): QA e miniatura usam um desenho de exemplo colorido. */
@@ -77,7 +83,7 @@ export const text = (k: string, label: string, max = 30, hint?: string): FieldDe
 export const place = (k: string, label: string): FieldDef => ({ k, kind: "place", label });
 export const starPrint = (k: string, label: string): FieldDef => ({ k, kind: "starPrint", label });
 export const bool = (k: string, label: string): FieldDef => ({ k, kind: "bool", label });
-export const choice = (k: string, label: string, options: readonly (readonly [string, string])[]): FieldDef => ({ k, kind: "choice", label, options });
+export const choice = (k: string, label: string, options: readonly (readonly [string, string])[], extra: { hint?: string; icons?: Record<string, LucideIcon> } = {}): FieldDef => ({ k, kind: "choice", label, options, ...extra });
 /** Textura rebaixada no fundo de placas e letreiros (#50). */
 /** Cavidade para resina epóxi (#53). */
 export const resinFields: FieldDef[] = [

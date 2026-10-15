@@ -42,6 +42,7 @@
 /* "full": os botões dividem a linha pelo tamanho do texto e o texto nunca quebra; se não couber, quebra de botão inteiro (UX M4) */
 .seg.full { display: flex; flex-wrap: wrap; }
 .seg.full button { flex: 1 1 auto; padding: 0 10px; white-space: nowrap; }
+.seg button:has(svg) { display: inline-flex; align-items: center; justify-content: center; gap: 6px; }
 
 /* Badge */
 .badge { display: inline-flex; align-items: center; gap: 4px; font-size: var(--text-xs); padding: 1px 8px; border-radius: var(--r-pill); background: var(--danger-soft); color: var(--danger); font-weight: 600; vertical-align: 1px; }

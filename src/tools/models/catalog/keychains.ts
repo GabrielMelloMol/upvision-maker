@@ -1,4 +1,4 @@
-import { BottleWine, Smartphone, CircleDashed, Disc3, Dumbbell, KeyRound, Link2, Nfc, PawPrint, Pencil, ToggleLeft } from "lucide-react";
+import { ArrowDown, ArrowLeft, ArrowRight, ArrowUp, BottleWine, Cat, Smartphone, CircleDashed, Disc3, Dumbbell, KeyRound, Link2, Nfc, PawPrint, Pencil, ToggleLeft } from "lucide-react";
 import { buildArticulatedName, DEFAULT_ARTICULATED } from "../../../geometry/models/articulatedName";
 import { buildClicker, DEFAULT_CLICKER } from "../../../geometry/models/clicker";
 import { buildGymKeychain, DEFAULT_GYM_KEYCHAIN } from "../../../geometry/models/gymKeychain";
@@ -7,6 +7,7 @@ import { buildMirrorKeychain, DEFAULT_MIRROR } from "../../../geometry/models/mi
 import { buildNamePendants, DEFAULT_NAME_PENDANTS } from "../../../geometry/models/namePendants";
 import { buildNfcKeychain, DEFAULT_NFC } from "../../../geometry/models/nfcKeychain";
 import { buildOpener, DEFAULT_OPENER } from "../../../geometry/models/opener";
+import { buildOpenerImage, DEFAULT_OPENER_IMAGE } from "../../../geometry/models/openerImage";
 import { buildPencilTopper, DEFAULT_PENCIL_TOPPER } from "../../../geometry/models/pencilTopper";
 import { buildPhoneKeychain, DEFAULT_PHONE_KEYCHAIN } from "../../../geometry/models/phoneKeychain";
 import { buildPetTag, DEFAULT_PET_TAG } from "../../../geometry/models/petTag";
@@ -157,6 +158,56 @@ export const KEYCHAIN_MODELS: ModelDef[] = [
       },
     ],
     build: (ctx, p) => buildOpener(ctx, as(p)),
+  },
+  {
+    id: "openerImage",
+    category: "keychains",
+    label: "Chaveiro abridor com sua arte",
+    blurb: "Envie uma imagem ou foto: o app tira o fundo, a base segue o contorno e o abridor entra num dos lados, com a argola onde você quiser.",
+    icon: Cat,
+    art: "Imagem, foto ou SVG",
+    cutout: true,
+    cutoutDetail: true,
+    showCm: true,
+    autoColors: { base: "baseColor", relief: "artColor", rim: "rimColor" },
+    artColors: true,
+    defaults: DEFAULT_OPENER_IMAGE,
+    sections: [
+      {
+        title: "Tamanho e tipo",
+        fields: [
+          num("sizeCm", "Tamanho da imagem", 3, 12, { step: 0.5, unit: "cm", hint: "Maior lado do desenho. A peça pronta fica um pouco maior: ganha a aba do abridor e a argola." }),
+          choice("kind", "Abre", [["bottle", "Garrafa"], ["can", "Lata"]]),
+          num("margin", "Borda da base em volta da imagem", 1.5, 6, { step: 0.5 }),
+        ],
+      },
+      {
+        title: "Abridor e argola",
+        fields: [
+          choice("openerSide", "Abridor", [["bottom", "Embaixo"], ["left", "Esquerda"], ["right", "Direita"], ["top", "Em cima"]], {
+            icons: { bottom: ArrowDown, left: ArrowLeft, right: ArrowRight, top: ArrowUp },
+            hint: "A parte reta da abertura (o dente) prende a tampinha e faz a força. Imprima em PETG, com 4 paredes: não precisa de moeda nem de anel de metal.",
+          }),
+          num("overlap", "Abridor entra no desenho", 0, 25, { step: 1, hint: "0 deixa o desenho inteiro e o abridor todo para fora. Aumente para a peça ficar mais curta: o abridor corta a ponta do desenho." }),
+          choice("ringSide", "Argola", [["top", "Em cima"], ["left", "Esquerda"], ["right", "Direita"], ["bottom", "Embaixo"]], {
+            icons: { top: ArrowUp, left: ArrowLeft, right: ArrowRight, bottom: ArrowDown },
+            hint: "Também dá para arrastar a argola e o abridor na prévia.",
+          }),
+        ],
+      },
+      {
+        title: "Cores e espessura",
+        fields: [
+          color("baseColor", "Base"),
+          color("artColor", "Relevo"),
+          bool("rim", "Borda levantada em volta"),
+          color("rimColor", "Cor da borda"),
+          num("thickness", "Espessura da base", 4, 8, { hint: "Faz força: 5 mm ou mais." }),
+          num("relief", "Altura do relevo", 0.4, 2),
+        ],
+      },
+    ],
+    build: (ctx, p) => buildOpenerImage(ctx, as(p)),
   },
   {
     id: "clicker",
