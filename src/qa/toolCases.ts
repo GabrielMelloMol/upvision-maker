@@ -20,9 +20,11 @@ import { fitAspect } from "../geometry/lithophaneShapes";
 import type { CS, ManifoldToplevel } from "../geometry/manifold";
 import { buildMedalDesign, DEFAULT_MEDAL_DESIGN, type MedalDesign } from "../geometry/medalDesign";
 import { cutModels, DEFAULT_CUT } from "../geometry/planeCut";
-import { COLOR_LITHO_PROFILE, CUTTER_PROFILE, DEFAULT_PROFILE, STAMP_HINGE_PROFILE, STAMP_PROFILE, LAYERED_PROFILE, LITHO_PROFILE, RELIEF_PROFILE, type PrintProfile } from "../geometry/printProfile";
+import { COLOR_LITHO_PROFILE, CUTTER_PROFILE, DEFAULT_PROFILE, STAMP_HINGE_PROFILE, STAMP_PROFILE, THERMO_MOLD_PROFILE, THERMO_SCREEN_PROFILE, LAYERED_PROFILE, LITHO_PROFILE, RELIEF_PROFILE, type PrintProfile } from "../geometry/printProfile";
 import { qrModel, type QrStyle } from "../geometry/qr3d";
 import { buildStamp, DEFAULT_STAMP, type StampParams } from "../geometry/stamp";
+import { buildThermo, DEFAULT_THERMO, type ThermoParams } from "../geometry/thermo/build";
+import { presetSilhouette, type ThermoShape } from "../geometry/thermo/shapes";
 import { buildStampArt, DEFAULT_ART, fixThinStrokes, type StampArtInput } from "../geometry/stampArt";
 import { buildSpoolTag, spoolTagsThatFit } from "../geometry/spoolTag";
 import { arcTextToCrossSection, textToCrossSection } from "../geometry/text";
@@ -149,6 +151,23 @@ export function toolCases(M: ManifoldToplevel): QaCase[] {
     const models = out.models.filter((m) => !m.previewOnly);
     return { models, warnings: [...made.warnings, ...out.warnings, ...bedWarnings(models, out.warnings)] };
   };
+  // como a tela da Caixinha termoformada: silhueta pronta, texto de cima, as telas (PLA) e o molde (PETG) em arquivos separados
+  const thermo = async (part: "screens" | "mold", shape: ThermoShape, width: number, patch: Partial<ThermoParams> = {}): Promise<Out> => {
+    const font = await loadFont("pacifico");
+    const sil = presetSilhouette(M, shape, width);
+    try {
+      const art = buildStampArt(M, { shape: "rect", w: width * 0.6, h: width * 0.4, logo: null, lines: ["Feliz Natal"], font, ...DEFAULT_ART }).art;
+      try {
+        const out = buildThermo(M, sil, art, { ...DEFAULT_THERMO, ...patch });
+        const models = part === "screens" ? out.screens : [out.mold];
+        return { models, warnings: [...out.warnings, ...bedWarnings(models, out.warnings)] };
+      } finally {
+        art.delete();
+      }
+    } finally {
+      sil.delete();
+    }
+  };
   const medalSizes = (v: number) => ({ topSize: v, centerSize: v, rankSize: v, dateSize: v, bottomSize: v });
 
   // como a tela: grade e recorte por formato, peça mais base de LED e tampas, aviso de mesa junto
@@ -236,6 +255,27 @@ export function toolCases(M: ManifoldToplevel): QaCase[] {
       ["ímãs (4) no redondo", () => stamp({ align: "magnets", magCount: 4, shape: "round", w: 40, h: 40 }), STAMP_PROFILE],
       ["dobradiça", () => stamp({ align: "hinge", w: 50, h: 60 }, { frame: "line", lines: ["EX LIBRIS", "Maria"] }), STAMP_HINGE_PROFILE],
       ["logo e texto", () => stamp({ w: 60, h: 60 }, { layout: "stack" }, true), STAMP_PROFILE],
+    ]),
+    ...cases("thermoScreens", "Caixinha termoformada: telas", [
+      ["coração", () => thermo("screens", "heart", 70), THERMO_SCREEN_PROFILE],
+      ["estrela", () => thermo("screens", "star", 70), THERMO_SCREEN_PROFILE],
+      ["flor", () => thermo("screens", "flower", 70), THERMO_SCREEN_PROFILE],
+      ["círculo losango", () => thermo("screens", "circle", 60, { screen: { ...DEFAULT_THERMO.screen, mesh: "diamond" } }), THERMO_SCREEN_PROFILE],
+      ["bola de Natal com faixa", () => thermo("screens", "ball", 70, { screen: { ...DEFAULT_THERMO.screen, closure: "ring" } }), THERMO_SCREEN_PROFILE],
+      ["mínimo", () => thermo("screens", "square", 40, { screen: { ...DEFAULT_THERMO.screen, t: 0.6, border: 2, aperture: 2, wire: 0.6 } }), THERMO_SCREEN_PROFILE],
+      ["máximo", () => thermo("screens", "egg", 100, { screen: { ...DEFAULT_THERMO.screen, t: 2, border: 8, aperture: 8, wire: 2 } }), THERMO_SCREEN_PROFILE],
+    ]),
+    ...cases("thermoMold", "Caixinha termoformada: molde", [
+      ["coração", () => thermo("mold", "heart", 70), THERMO_MOLD_PROFILE],
+      ["estrela", () => thermo("mold", "star", 70), THERMO_MOLD_PROFILE],
+      ["flor", () => thermo("mold", "flower", 70), THERMO_MOLD_PROFILE],
+      ["bola de Natal", () => thermo("mold", "ball", 70), THERMO_MOLD_PROFILE],
+      ["maciço", () => thermo("mold", "circle", 60, { mold: { ...DEFAULT_THERMO.mold, hollow: false } }), THERMO_MOLD_PROFILE],
+      // referência: o molde de domo maciço, 8% e 100% de preenchimento (o que se imprimiria sem a casca oca)
+      ["coração maciço 8%", () => thermo("mold", "heart", 70, { mold: { ...DEFAULT_THERMO.mold, hollow: false } }), THERMO_MOLD_PROFILE],
+      ["coração maciço 100%", () => thermo("mold", "heart", 70, { mold: { ...DEFAULT_THERMO.mold, hollow: false } }), { ...THERMO_MOLD_PROFILE, infill: 100 }],
+      ["mínimo", () => thermo("mold", "square", 40, { domeH: 6 }), THERMO_MOLD_PROFILE],
+      ["máximo", () => thermo("mold", "egg", 130, { domeH: 40 }), THERMO_MOLD_PROFILE],
     ]),
     ...cases("lithophane", "Litofania", [
       ["padrão", () => litho(100, 0.3, {}), LITHO_PROFILE],

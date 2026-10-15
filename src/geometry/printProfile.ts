@@ -36,6 +36,11 @@ export const STAMP_PROFILE: PrintProfile = { layerHeight: 0.16, walls: 3, infill
 /** Carimbo com dobradiça: o filme de 0,4 mm é a dobradiça. PETG aguenta muitas dobras; PLA racha cedo. */
 export const STAMP_HINGE_PROFILE: PrintProfile = { ...STAMP_PROFILE, notes: [...(STAMP_PROFILE.notes ?? []), "Dobradiça de filme fino: imprima em PETG (PLA racha em poucas dobras) e dobre devagar."] };
 
+/** Telas da caixinha termoformada: placa fina de 1 mm com fios de 0,8 mm (2 filetes); sólida, sem preenchimento esparso. */
+export const THERMO_SCREEN_PROFILE: PrintProfile = { layerHeight: 0.2, walls: 2, infill: 100, support: false, brim: false, notes: ["Imprima as telas deitadas, em PLA, como estão no arquivo, sem suporte. Os fios da malha têm 2 filetes: deixe ligado \"Detectar paredes finas\".", "O clipe sai em PETG ou PLA; em PETG dura mais."] };
+/** Molde em domo (PETG, para a tela de PLA não grudar): casca oca com nervuras, sem suporte. */
+export const THERMO_MOLD_PROFILE: PrintProfile = { layerHeight: 0.2, walls: 3, infill: 8, topLayers: 4, bottomLayers: 4, support: false, brim: false, notes: ["Imprima o molde em PETG (o PLA da tela não gruda nele), com o domo para cima e sem suporte.", "O molde é oco com nervuras: não aumente o preenchimento; ele já pesa menos que o maciço."] };
+
 const BRIM_MM = 5;
 const r2 = (n: number) => String(Math.round(n * 100) / 100);
 
