@@ -23,7 +23,7 @@ Peça maior que a mesa de 256 mm do A1 conta como **aviso** quando o app avisa n
 impressoras de mesa maior); sem o aviso do app, é **falha**.
 
 
-**Total:** 328 casos · 241 ok · 86 com aviso · 1 com falha · 0 n/a
+**Total:** 344 casos · 255 ok · 89 com aviso · 0 com falha · 0 n/a
 
 ## Forja
 
@@ -43,6 +43,12 @@ impressoras de mesa maior); sem o aviso do app, é **falha**.
 | Clicker (clicker) | máximo | ✅ ok | Bambu ✓ · Orca ✓ · Projeto Bambu ✓ | 78 | 21,3 | 1 | – | app: Encaixe feito para chave tipo Cherry MX (e compatíveis). Imprima a chapa e a cruz primeiro: se ficar justo, aumente as folgas.; app: A chave entra por cima na chapa do corpo; a tecla encaixa na haste. |
 | Clicker (clicker) | mínimo | ✅ ok | Bambu ✓ · Orca ✓ · Projeto Bambu ✓ | 67 | 18,7 | 1 | – | app: Encaixe feito para chave tipo Cherry MX (e compatíveis). Imprima a chapa e a cruz primeiro: se ficar justo, aumente as folgas.; app: A chave entra por cima na chapa do corpo; a tecla encaixa na haste. |
 | Clicker (clicker) | padrão | ✅ ok | Bambu ✓ · Orca ✓ · Projeto Bambu ✓ | 72 | 20,0 | 1 | – | app: Encaixe feito para chave tipo Cherry MX (e compatíveis). Imprima a chapa e a cruz primeiro: se ficar justo, aumente as folgas.; app: A chave entra por cima na chapa do corpo; a tecla encaixa na haste. |
+| Chaveiro halter (gymDumbbell) | máximo | ✅ ok | Bambu ✓ · Orca ✓ · Projeto Bambu ✓ | 90 | 28,2 | 1 | – | – |
+| Chaveiro halter (gymDumbbell) | mínimo | ✅ ok | Bambu ✓ · Orca ✓ · Projeto Bambu ✓ | 31 | 7,6 | 1 | – | – |
+| Chaveiro halter (gymDumbbell) | padrão | ✅ ok | Bambu ✓ · Orca ✓ · Projeto Bambu ✓ | 53 | 14,1 | 1 | – | – |
+| Chaveiro kettlebell (gymKettlebell) | máximo | ✅ ok | Bambu ✓ · Orca ✓ · Projeto Bambu ✓ | 28 | 19,1 | 1 | – | – |
+| Chaveiro kettlebell (gymKettlebell) | mínimo | ✅ ok | Bambu ✓ · Orca ✓ · Projeto Bambu ✓ | 8 | 3,3 | 1 | – | – |
+| Chaveiro kettlebell (gymKettlebell) | padrão | ✅ ok | Bambu ✓ · Orca ✓ · Projeto Bambu ✓ | 12 | 6,3 | 1 | – | – |
 | Chaveiro anilha (gymKeychain) | máximo | ✅ ok | Bambu ✓ · Orca ✓ · Projeto Bambu ✓ | 45 | 19,2 | 1 | – | – |
 | Chaveiro anilha (gymKeychain) | mínimo | ✅ ok | Bambu ✓ · Orca ✓ · Projeto Bambu ✓ | 8 | 2,7 | 1 | – | – |
 | Chaveiro anilha (gymKeychain) | padrão | ✅ ok | Bambu ✓ · Orca ✓ · Projeto Bambu ✓ | 18 | 6,9 | 1 | – | – |
@@ -67,6 +73,12 @@ impressoras de mesa maior); sem o aviso do app, é **falha**.
 | Chaveiro giratório (spinner) | máximo | ✅ ok | Bambu ✓ · Orca ✓ · Projeto Bambu ✓ | 93 | 31,6 | 1 | – | – |
 | Chaveiro giratório (spinner) | mínimo | ✅ ok | Bambu ✓ · Orca ✓ · Projeto Bambu ✓ | 40 | 10,2 | 1 | – | – |
 | Chaveiro giratório (spinner) | padrão | ✅ ok | Bambu ✓ · Orca ✓ · Projeto Bambu ✓ | 51 | 14,2 | 1 | – | – |
+| Suporte de livro de mesa (bookStand) | máximo | ⚠️ aviso | Bambu ✓ · Orca ✓ · Projeto Bambu ✓ | – | – | – | – | Bambu: torre de purga em cima de uma peça depois do --arrange do CLI (na tela, arraste a torre ou use Arrumar); Orca: torre de purga em cima de uma peça depois do --arrange do CLI (na tela, arraste a torre ou use Arrumar); Projeto Bambu: torre de purga em cima de uma peça depois do --arrange do CLI (na tela, arraste a torre ou use Arrumar) |
+| Suporte de livro de mesa (bookStand) | mínimo | ✅ ok | Bambu ✓ · Orca ✓ · Projeto Bambu ✓ | 100 | 44,5 | 1 | – | – |
+| Suporte de livro de mesa (bookStand) | padrão | ✅ ok | Bambu ✓ · Orca ✓ · Projeto Bambu ✓ | 242 | 147,9 | 1 | – | – |
+| Apoio de polegar para livro (bookThumb) | máximo | ✅ ok | Bambu ✓ · Orca ✓ · Projeto Bambu ✓ | 62 | 27,6 | 1 | – | – |
+| Apoio de polegar para livro (bookThumb) | mínimo | ✅ ok | Bambu ✓ · Orca ✓ · Projeto Bambu ✓ | 22 | 6,6 | 1 | – | – |
+| Apoio de polegar para livro (bookThumb) | padrão | ✅ ok | Bambu ✓ · Orca ✓ · Projeto Bambu ✓ | 33 | 12,0 | 1 | – | – |
 | Medalha adaptável (adaptiveMedal) | máximo | ✅ ok | Bambu ✓ · Orca ✓ · Projeto Bambu ✓ | 78 | 67,8 | 1 | – | – |
 | Medalha adaptável (adaptiveMedal) | mínimo | ✅ ok | Bambu ✓ · Orca ✓ · Projeto Bambu ✓ | 9 | 4,0 | 1 | – | – |
 | Medalha adaptável (adaptiveMedal) | padrão | ✅ ok | Bambu ✓ · Orca ✓ · Projeto Bambu ✓ | 19 | 11,7 | 1 | – | – |
@@ -265,6 +277,9 @@ impressoras de mesa maior); sem o aviso do app, é **falha**.
 | Cumbuca no contorno (outlineBowl) | máximo | ✅ ok | Bambu ✓ · Orca ✓ · Projeto Bambu ✓ | 781 | 530,5 | 1 | – | – |
 | Cumbuca no contorno (outlineBowl) | mínimo | ✅ ok | Bambu ✓ · Orca ✓ · Projeto Bambu ✓ | 11 | 2,5 | 1 | – | – |
 | Cumbuca no contorno (outlineBowl) | padrão | ✅ ok | Bambu ✓ · Orca ✓ · Projeto Bambu ✓ | 54 | 33,8 | 1 | – | – |
+| Clipe de papel (paperClip) | máximo | ✅ ok | Bambu ✓ · Orca ✓ · Projeto Bambu ✓ | 22 | 10,9 | 1 | – | – |
+| Clipe de papel (paperClip) | mínimo | ✅ ok | Bambu ✓ · Orca ✓ · Projeto Bambu ✓ | 5 | 1,6 | 1 | – | – |
+| Clipe de papel (paperClip) | padrão | ✅ ok | Bambu ✓ · Orca ✓ · Projeto Bambu ✓ | 8 | 3,2 | 1 | – | – |
 | Porta-caneta (pen) | máximo | ✅ ok | Bambu ✓ · Orca ✓ · Projeto Bambu ✓ | 687 | 430,1 | 1 | – | – |
 | Porta-caneta (pen) | mínimo | ✅ ok | Bambu ✓ · Orca ✓ · Projeto Bambu ✓ | 82 | 26,3 | 1 | – | – |
 | Porta-caneta (pen) | padrão | ✅ ok | Bambu ✓ · Orca ✓ · Projeto Bambu ✓ | 197 | 106,6 | 1 | – | – |
@@ -343,7 +358,8 @@ impressoras de mesa maior); sem o aviso do app, é **falha**.
 | Letreiro em camadas (layeredSign) | máximo | ⚠️ aviso | Bambu ✓ · Orca ✓ · Projeto Bambu ✓ | – | – | – | – | o conjunto arrumado ocupa 854,9 × 231,9 mm: passa da mesa de 256 mm; "Letreiro" não cabe na mesa de 256 mm (830,9 × 179,9 × 15,0 mm); "Moldura" não cabe na mesa de 256 mm (854,9 × 203,9 × 12,0 mm); "Suporte" não cabe na mesa de 256 mm (581,7 × 30,0 × 12,0 mm); Bambu recusa na mesa de 256 mm do A1 (o app avisa); Orca recusa na mesa de 256 mm do A1 (o app avisa); Projeto Bambu recusa na mesa de 256 mm do A1 (o app avisa); app: O letreiro tem 831 × 180 mm: passa da mesa de 256 mm. Diminua as alturas das linhas. |
 | Letreiro em camadas (layeredSign) | mínimo | ⚠️ aviso | Bambu ✓ · Orca ✓ · Projeto Bambu ✓ | 39 | 15,7 | 1 | – | Orca: torre de purga passa da mesa na posição padrão do CLI (na tela, arraste a torre ou use Arrumar); Projeto Bambu: torre de purga passa da mesa na posição padrão do CLI (na tela, arraste a torre ou use Arrumar) |
 | Letreiro em camadas (layeredSign) | padrão | ⚠️ aviso | Bambu ✓ · Orca ✓ · Projeto Bambu ✓ | 162 | 83,4 | 1 | – | Orca: torre de purga em cima de uma peça depois do --arrange do CLI (na tela, arraste a torre ou use Arrumar); Projeto Bambu: torre de purga passa da mesa na posição padrão do CLI (na tela, arraste a torre ou use Arrumar) |
-| Letras para parede (wallLetters) | máximo | ❌ falha | Bambu ✗ · Orca ✗ · Projeto Bambu ✗ | – | – | – | – | Bambu: Bambu Studio: Some objects are located over the boundary of the heated bed. (código -52); Orca: OrcaSlicer: Some objects are located over the boundary of the heated bed. (código -52); Projeto Bambu: Bambu Studio: Some objects are located over the boundary of the heated bed. (código -52); o conjunto arrumado ocupa 3905,4 × 1600,0 mm: passa da mesa de 256 mm; app: 5 letra(s) passam da mesa de 256 mm e saíram em partes: una com cola e um pedaço de filamento de 1,75 mm nos furos.; app: Gabarito: cole a tira na parede com fita, alinhe cada letra entre os riscos dela e retire a tira depois. |
+| Letras para parede (wallLetters) | FESTA 600 mm (muitas partes) | ⚠️ aviso | Bambu ✓ · Orca ✓ · Projeto Bambu ✓ | – | – | – | – | o conjunto arrumado ocupa 2327,2 × 958,0 mm: passa da mesa de 256 mm; Bambu: torre de purga em cima de uma peça depois do --arrange do CLI (na tela, arraste a torre ou use Arrumar); Orca: torre de purga em cima de uma peça depois do --arrange do CLI (na tela, arraste a torre ou use Arrumar); Projeto Bambu: torre de purga em cima de uma peça depois do --arrange do CLI (na tela, arraste a torre ou use Arrumar); app: 5 letra(s) passam da mesa de 256 mm e saíram em partes: una com cola e um pedaço de filamento de 1,75 mm nos furos.; app: Gabarito: cole a tira na parede com fita, alinhe cada letra entre os riscos dela e retire a tira depois. |
+| Letras para parede (wallLetters) | máximo | ⚠️ aviso | Bambu ✓ · Orca ✓ · Projeto Bambu ✓ | – | – | – | – | o conjunto arrumado ocupa 3905,4 × 1600,0 mm: passa da mesa de 256 mm; Bambu recusa: mais mesas que o limite de um projeto (o app avisa e sugere lotes); Orca recusa: mais mesas que o limite de um projeto (o app avisa e sugere lotes); Projeto Bambu recusa: mais mesas que o limite de um projeto (o app avisa e sugere lotes); app: 5 letra(s) passam da mesa de 256 mm e saíram em partes: una com cola e um pedaço de filamento de 1,75 mm nos furos.; app: Gabarito: cole a tira na parede com fita, alinhe cada letra entre os riscos dela e retire a tira depois.; app: São 83 peças, umas 62 mesas de 256 mm: mais que as 36 que o Bambu Studio e o OrcaSlicer aceitam num projeto. Salve e imprima em lotes (por exemplo, uma ou duas letras de cada vez) ou diminua a altura ou o texto. |
 | Letras para parede (wallLetters) | mínimo | ✅ ok | Bambu ✓ · Orca ✓ · Projeto Bambu ✓ | 33 | 16,0 | 1 | – | app: Gabarito: cole a tira na parede com fita, alinhe cada letra entre os riscos dela e retire a tira depois. |
 | Letras para parede (wallLetters) | padrão | ⚠️ aviso | Bambu ✓ · Orca ✓ · Projeto Bambu ✓ | – | – | – | – | o conjunto arrumado ocupa 1167,6 × 483,0 mm: passa da mesa de 256 mm; Bambu: torre de purga em cima de uma peça depois do --arrange do CLI (na tela, arraste a torre ou use Arrumar); Orca: torre de purga em cima de uma peça depois do --arrange do CLI (na tela, arraste a torre ou use Arrumar); Projeto Bambu: torre de purga em cima de uma peça depois do --arrange do CLI (na tela, arraste a torre ou use Arrumar); app: 5 letra(s) passam da mesa de 256 mm e saíram em partes: una com cola e um pedaço de filamento de 1,75 mm nos furos.; app: Gabarito: cole a tira na parede com fita, alinhe cada letra entre os riscos dela e retire a tira depois. |
 | Peça com janela (shaker) (windowFrame) | máximo | ⚠️ aviso | Bambu ✓ · Orca ✓ · Projeto Bambu ✓ | 180 | 161,9 | 1 | 15,24 | o conjunto arrumado ocupa 200,0 × 308,0 mm: passa da mesa de 256 mm; "Janela" não cabe na mesa de 256 mm (200,0 × 260,0 × 18,3 mm); Orca: torre de purga em cima de uma peça depois do --arrange do CLI (na tela, arraste a torre ou use Arrumar); Projeto Bambu: torre de purga em cima de uma peça depois do --arrange do CLI (na tela, arraste a torre ou use Arrumar); app: Pausa em 15.36 mm: coloque o glitter na câmara, deslize a folha de acetato na ranhura e continue.; app: "Janela" tem 200 × 260 × 18 mm e passa da mesa de 256 mm: diminua o tamanho. |

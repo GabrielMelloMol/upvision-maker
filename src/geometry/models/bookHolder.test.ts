@@ -19,15 +19,15 @@ beforeAll(async () => {
 });
 const solid = (m: Mesh): Solid => M.Manifold.ofMesh(new M.Mesh({ numProp: 3, vertProperties: m.positions, triVerts: m.indices }));
 
-/** Centro de massa (x) de uma malha fechada, pela soma de tetraedros. */
-function centroidX(m: Mesh): number {
+/** Centro de massa (y) de uma malha fechada, pela soma de tetraedros. */
+function centroidY(m: Mesh): number {
   let v = 0, cx = 0;
   const p = m.positions;
   for (let i = 0; i < m.indices.length; i += 3) {
     const [a, b, c] = [m.indices[i] * 3, m.indices[i + 1] * 3, m.indices[i + 2] * 3];
     const vol = (p[a] * (p[b + 1] * p[c + 2] - p[b + 2] * p[c + 1]) - p[a + 1] * (p[b] * p[c + 2] - p[b + 2] * p[c]) + p[a + 2] * (p[b] * p[c + 1] - p[b + 1] * p[c])) / 6;
     v += vol;
-    cx += (vol * (p[a] + p[b] + p[c])) / 4;
+    cx += (vol * (p[a + 1] + p[b + 1] + p[c + 1])) / 4;
   }
   return cx / v;
 }
@@ -70,8 +70,8 @@ describe("suporte de livro de mesa (#213)", () => {
     expect(body.decompose()).toHaveLength(1);
     const b = body.boundingBox();
     expect(b.min[2]).toBeCloseTo(0, 6);
-    expect(b.max[1] - b.min[1]).toBeCloseTo(p.width, 2);
-    expect(b.min[1] + b.max[1]).toBeCloseTo(0, 3); // centrado
+    expect(b.max[0] - b.min[0]).toBeCloseTo(p.width, 2); // a largura corre em x; a frente aponta para −y
+    expect(b.min[0] + b.max[0]).toBeCloseTo(0, 3); // centrado
   });
 
   test("o apoio inclina para trás no ângulo pedido e o vão do livro tem a espessura pedida", () => {
@@ -81,22 +81,22 @@ describe("suporte de livro de mesa (#213)", () => {
     const dx = g.along(p.height)[0] - g.foot[0], dz = g.along(p.height)[1] - g.foot[1];
     expect((Math.atan2(dx, dz) * 180) / Math.PI).toBeCloseTo(p.tilt, 3);
     // vão livre entre o batente e o apoio, na altura da base: o livro grosso máximo passa
-    const livro = M.Manifold.cube([p.thick - 0.2, p.width - 20, 6], false).translate([-4.1 - (p.thick - 0.2), -(p.width - 20) / 2, p.plate]); // a frente aponta para +x
+    const livro = M.Manifold.cube([p.width - 20, p.thick - 0.2, 6], false).translate([-(p.width - 20) / 2, 4.1, p.plate]);
     expect(body.intersect(livro).volume()).toBeCloseTo(0, 3);
   });
 
   test("não tomba: o centro de massa fica sobre a base", () => {
     const g = bookStandProfile(p);
-    const cx = centroidX(buildBookStand(ctx, p).models[0].parts[0].mesh);
-    expect(-cx).toBeGreaterThan(g.foot[0] - 20); // frente em +x: a base vai de 0 a −baseLen
-    expect(-cx).toBeLessThan(g.baseLen);
+    const cy = centroidY(buildBookStand(ctx, p).models[0].parts[0].mesh);
+    expect(cy).toBeGreaterThan(g.foot[0] - 20); // a base vai de y = 0 (batente) a y = baseLen
+    expect(cy).toBeLessThan(g.baseLen);
   });
 
   test("o texto fica em relevo na frente do batente, sem entrar nele", () => {
     const { models } = buildBookStand(ctx, p);
     const t = meshBounds([models[0].parts[1].mesh])!;
-    expect(t.min[0]).toBeCloseTo(0, 3);
-    expect(t.max[0]).toBeCloseTo(p.relief, 3);
+    expect(t.max[1]).toBeCloseTo(0, 3);
+    expect(t.min[1]).toBeCloseTo(-p.relief, 3);
     expect(t.max[2]).toBeLessThanOrEqual(p.lip);
     expect(solid(models[0].parts[0].mesh).intersect(solid(models[0].parts[1].mesh)).volume()).toBeCloseTo(0, 3);
   });

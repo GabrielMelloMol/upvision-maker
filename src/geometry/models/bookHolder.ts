@@ -83,7 +83,7 @@ export function bookStandProfile(p: Pick<BookStandParams, "thick" | "height" | "
   return { foot, along, baseLen, top: along(p.height, p.plate) };
 }
 
-/** Suporte de mesa: base com batente, apoio inclinado e duas nervuras atrás; o texto fica em relevo na frente do batente. Sai virado 180° em z: a frente (batente e texto) aponta para +x, para a câmera padrão. */
+/** Suporte de mesa: base com batente, apoio inclinado e duas nervuras atrás; o texto fica em relevo na frente do batente. Sai girado 90° em z: a frente (batente e texto) aponta para −y, de frente para a câmera padrão da prévia; a largura corre em x. */
 export function buildBookStand(ctx: ModelCtx, p: BookStandParams): ModelOutput {
   const { M, text, art } = ctx;
   const g = bookStandProfile(p);
@@ -100,8 +100,8 @@ export function buildBookStand(ctx: ModelCtx, p: BookStandParams): ModelOutput {
     const ribY = p.width / 2 - RIB_INSET - RIB_W / 2;
     const ribs = [sweep(rib, RIB_W, ribY), sweep(rib, RIB_W, -ribY)];
     const whole = k(M.Manifold.union([body, ...ribs]));
-    // de frente para a câmera padrão da prévia: o batente com o texto aparece, não as costas do apoio (a impressão não muda)
-    const parts = [{ name: "Suporte", color: p.bodyColor, mesh: solidMesh(k(whole.rotate([0, 0, 180]))) }];
+    // girado 90° em z: a frente (batente com o texto) aponta para −y, de frente para a câmera padrão da prévia (a impressão não muda)
+    const parts = [{ name: "Suporte", color: p.bodyColor, mesh: solidMesh(k(whole.rotate([0, 0, 90]))) }];
     const src = art ?? (() => { const t = text(p.text, 100); return t && k(t); })();
     if (src) {
       const w = p.width - 24, h = Math.max(4, p.lip - 5);
@@ -109,7 +109,7 @@ export function buildBookStand(ctx: ModelCtx, p: BookStandParams): ModelOutput {
       // texto no plano do batente: x local → direita de quem lê (−y), y local → z, extrusão → −x (para quem lê)
       const slabX = k(fitted.extrude(p.relief));
       const placed = k(slabX.transform([0, -1, 0, 0, 0, 0, 1, 0, -1, 0, 0, 0, 0, 0, 0, 1]));
-      parts.push({ name: "Texto", color: p.textColor, mesh: solidMesh(k(placed.rotate([0, 0, 180]))) });
+      parts.push({ name: "Texto", color: p.textColor, mesh: solidMesh(k(placed.rotate([0, 0, 90]))) });
     }
     return { models: [{ name: "Suporte de livro", parts }] };
   });
