@@ -20,7 +20,7 @@ import Toggle from "../ui/Toggle";
 import { errorText } from "../ui/Toast";
 import { useModelBuilder } from "../ui/useModelBuilder";
 import { DESIGN_ACCEPT, designFromSvg, fileToCutSvg, fileToSvg, type CutoutInfo } from "./designInput";
-import { MissingInput } from "../geometry/models/common";
+import { ART_MISSING, MissingInput } from "../geometry/models/common";
 import { MODELS, validParams, type Category, type Params } from "./models/defs";
 import { inCollection, VARIANTS, type Collection } from "./models/variants";
 import { profileFor } from "./models/printProfiles";
@@ -190,6 +190,17 @@ export default function Models({ only, embedded }: { only?: string; embedded?: {
     setCutout(on);
     for (const which of ["art", "art2"] as const) if (files.current[which]) await loadArt(which, files.current[which]!, on);
   }
+
+  // modelo que exige desenho abre com o desenho de exemplo (o coração), para já ter prévia e o Salvar 3MF; uma vez por modelo, para não
+  // trazer o exemplo de volta depois de "Remover desenho"
+  const exampleTried = useRef(new Set<string>());
+  useEffect(() => {
+    if (missing !== ART_MISSING || art || !def.art || exampleTried.current.has(id)) return;
+    exampleTried.current.add(id);
+    void exampleFile("heart").then(onArt);
+    // onArt muda a cada renderização: só o que decide se o exemplo entra importa aqui
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [missing, art, id, def.art]);
 
   const valid = validParams(def, p);
   const batchKeys = BATCH_FIELDS[id];
@@ -373,6 +384,7 @@ export default function Models({ only, embedded }: { only?: string; embedded?: {
                 <>
                   <Dropzone accept={DESIGN_ACCEPT} label={art ? art.name : def.art} hint="SVG ou imagem (vira vetor sozinha)." onFile={onArt} />
                   {artError && <Alert kind="error">{artError}</Alert>}
+                  {art?.name.startsWith("exemplo-") && !def.artGuide && <span className="hint">Desenho de exemplo (um coração). Para usar o seu, arraste o arquivo aqui em cima.</span>}
                   {def.artGuide && <KitArtHelp art={art} cut={cutInfo.art} onExample={onKitExample} />}
                   {def.cutout && (
                     <>

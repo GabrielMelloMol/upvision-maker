@@ -16,6 +16,9 @@ import ProfileEditor from "./ProfileEditor";
 const MAX_CHIPS = 12; // acima disso a escolha vira uma lista (cidades do mapa estelar)
 const MAX_SEGMENTS = 4; // acima disso a escolha vira pílulas (Segmented é para 2–4 opções)
 
+/** Texto de até este tamanho cabe na linha de campo; acima, o campo ocupa a linha inteira (o recado do pet e as letras do cartão de música passavam da caixa). */
+const LONG_TEXT = 24;
+
 /** Primeiro texto preenchido do modelo: é a prévia no seletor de fonte. */
 export const firstText = (sections: Section[], p: Params) =>
   sections.flatMap((s) => s.fields).map((f) => (f.kind === "text" ? String(p[f.k] ?? "").trim() : "")).find(Boolean) ?? "";
@@ -65,7 +68,7 @@ export default function ParamField({ f, value, onChange, sample = "", emoji, par
     case "text":
       if (emoji) return <EmojiText label={f.label} hint={f.hint} max={f.max} value={String(value)} onChange={onChange} />;
       return (
-        <Field label={f.label} hint={f.hint}>
+        <Field label={f.label} hint={f.hint} wide={(f.max ?? 0) >= LONG_TEXT}>
           <input value={String(value)} maxLength={f.max} onChange={(e) => onChange(e.target.value)} />
         </Field>
       );

@@ -42,7 +42,7 @@ export const DEFAULT_PIX_PLATE: PixPlateParams = {
 /** Placa de balcão: título, QR do Pix e nome em relevo escuro sobre placa clara; suporte inclinado opcional. */
 export function buildPixPlate(ctx: ModelCtx, p: PixPlateParams): ModelOutput {
   const { M, text } = ctx;
-  if (!p.key.trim()) throw new MissingInput("Preencha a chave Pix para ver a placa.");
+  if (!p.key.trim()) throw new MissingInput("Falta a chave Pix: digite-a no campo “Chave Pix” (CPF, CNPJ, telefone, e-mail ou chave aleatória) para ver a placa.");
   const payload = pixPayload({ key: p.key, name: p.name, city: p.city, amount: p.amount > 0 ? p.amount : undefined });
   const W = p.width;
   const m = W * 0.08; // margem

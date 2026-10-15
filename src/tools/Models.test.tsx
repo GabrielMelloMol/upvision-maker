@@ -119,15 +119,19 @@ describe("Modelos prontos", () => {
     await user.click(screen.getByRole("button", { name: "Placas" }));
     await user.click(families().getByRole("button", { name: "Placa de balcão" }));
     expect(variations().getByRole("button", { name: "Pix" })).toHaveAttribute("aria-pressed", "true");
-    expect(await screen.findByText("Preencha a chave Pix para ver a placa.", undefined, BUILD)).toBeInTheDocument();
+    expect(await screen.findByText(/Falta a chave Pix/, undefined, BUILD)).toBeInTheDocument();
     expect(screen.queryByRole("alert")).not.toBeInTheDocument();
     await user.click(families().getByRole("button", { name: "Placa" }));
     await user.click(variations().getByRole("button", { name: "No contorno" }));
+    // modelo que exige desenho abre com o desenho de exemplo: já tem prévia, sem pedir nada antes
+    expect(await screen.findByRole("button", { name: "Remover desenho" }, BUILD)).toBeInTheDocument();
+    expect(screen.getByText(/Desenho de exemplo \(um coração\)/)).toBeInTheDocument();
+    await waitFor(() => expect(screen.queryByText(/Envie um desenho/)).not.toBeInTheDocument(), BUILD);
+    // quem remove o exemplo volta ao estado vazio (e ele não reaparece sozinho), com o botão para usá-lo de novo
+    await user.click(screen.getByRole("button", { name: "Remover desenho" }));
     expect(await screen.findByText(/Envie um desenho/, undefined, BUILD)).toBeInTheDocument();
-    // sem arte, dá para ver o modelo com um desenho de exemplo (UX M5)
     await user.click(screen.getByRole("button", { name: "Usar um desenho de exemplo" }));
     expect(await screen.findByRole("button", { name: "Remover desenho" }, BUILD)).toBeInTheDocument();
-    await waitFor(() => expect(screen.queryByText(/Envie um desenho/)).not.toBeInTheDocument(), BUILD);
     expect(screen.queryByRole("button", { name: "Usar um desenho de exemplo" })).not.toBeInTheDocument();
   }, 30_000);
 

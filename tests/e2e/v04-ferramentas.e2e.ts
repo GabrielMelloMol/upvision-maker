@@ -204,9 +204,11 @@ test("Modelos prontos (#9): cada modelo novo gera prévia 3D sem erro", async ({
   await openApp(page);
   await go(page, "Modelos prontos");
   const gallery = page.getByRole("group", { name: "Modelo" });
-  // os modelos com desenho pedem um antes de gerar; o desenho enviado vale para todos eles
+  // os modelos com desenho abrem com o desenho de exemplo (já têm prévia); o desenho enviado troca o exemplo e vale para todos eles
   await pickModel(page, NEW_MODELS[0]);
-  await expect(page.getByText("Envie um desenho (SVG ou imagem) para ver o modelo.")).toBeVisible({ timeout: 60_000 });
+  await expect(page.getByText("exemplo-coracao.svg")).toBeVisible({ timeout: 60_000 });
+  await waitModel(page);
+  await expect(page.getByRole("button", { name: /^Salvar 3MF$/ })).toBeEnabled();
   await page.locator('input[type="file"]').first() /* o do modelo; o das camadas livres (#26) vem depois */.setInputFiles(svgFile);
   for (const name of NEW_MODELS) {
     await pickModel(page, name);
