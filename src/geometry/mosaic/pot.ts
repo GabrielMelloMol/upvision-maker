@@ -88,7 +88,9 @@ export function buildPot(M: ManifoldToplevel, p: PotParams, n: number): { models
     });
     // a tampa fica ao lado do pote (os dois são objetos do mesmo arquivo)
     models.push({ name: "Tampa", parts: [{ name: "Tampa", color: p.lidColor, mesh: moveMesh(lid, lidShift(p), 0) }] });
+    const together = p.w / 2 + lidShift(p) + p.w / 2 + skirtOut;
     if (big + 2 * skirtOut > bedMm() && big <= bedMm()) warnings.push(`A tampa tem ${Math.round(big + 2 * skirtOut)} mm e passa da mesa de ${bedMm()} mm.`);
+    else if (together > bedMm() && big <= bedMm()) warnings.push(`O pote e a tampa juntos têm ${Math.round(together)} mm e não cabem lado a lado na mesa de ${bedMm()} mm: o fatiador usa duas mesas (ou imprima um de cada vez).`);
   }
   return { models, warnings };
 }

@@ -239,7 +239,7 @@ describe("peças", () => {
 describe("pote", () => {
   test("redondo com 6 divisórias: malha fechada, tampa que cobre por fora com folga", () => {
     const { models, warnings } = buildPot(M, DEFAULT_POT, 6);
-    expect(warnings).toEqual([]);
+    expect(warnings.some((w) => /estreita|passa da mesa/.test(w))).toBe(false);
     expect(models.map((m) => m.name)).toEqual(["Pote", "Tampa"]);
     const pot = manifoldOf(models[0].parts[0].mesh);
     const lid = manifoldOf(models[1].parts[0].mesh);
@@ -274,6 +274,12 @@ describe("pote", () => {
     expect(buildPot(M, { ...DEFAULT_POT, w: 70 }, 9).warnings.join(" ")).toMatch(/estreita/);
   });
 
+  test("pote e tampa que não cabem lado a lado na mesa avisam; sem tampa não avisa", () => {
+    expect(buildPot(M, DEFAULT_POT, 6).warnings.join(" ")).toMatch(/não cabem lado a lado/);
+    expect(buildPot(M, { ...DEFAULT_POT, w: 100 }, 6).warnings).toEqual([]);
+    expect(buildPot(M, { ...DEFAULT_POT, lid: false }, 6).warnings).toEqual([]);
+  });
+
   test("sem tampa, só o pote", () => {
     expect(buildPot(M, { ...DEFAULT_POT, lid: false }, 4).models).toHaveLength(1);
   });
@@ -302,7 +308,7 @@ describe("desenho montado (prévia)", () => {
 });
 
 describe("kit inteiro", () => {
-  test("o padrão gera tabuleiro, peças e pote, sem avisos", async () => {
+  test("o padrão gera tabuleiro, peças e pote", async () => {
     const { buildKit, DEFAULT_SETTINGS, potFillWarning } = await import("./kit");
     const out = buildKit(M, DEFAULT_SETTINGS);
     expect(out.board.model.parts).toHaveLength(1);
@@ -310,6 +316,7 @@ describe("kit inteiro", () => {
     expect(out.divisions).toBe(8);
     expect(out.pot.models).toHaveLength(2);
     expect(out.board.warnings).toEqual([]);
+    expect(out.pot.warnings.join(" ")).toMatch(/lado a lado/); // 200 mm de pote + tampa passam da mesa: o app diz
     expect(potFillWarning(out)).toBeNull();
   });
 

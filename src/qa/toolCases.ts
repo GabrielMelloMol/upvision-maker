@@ -23,11 +23,13 @@ import { runCuts, type CutItem } from "../geometry/cutSequence";
 import { suggestCuts } from "../geometry/cutSuggest";
 import { partialCut, DEFAULT_PARTIAL_CUT, type PartialCutOptions } from "../geometry/partialCut";
 import { cutModels, DEFAULT_CUT } from "../geometry/planeCut";
-import { COLOR_LITHO_PROFILE, CUTTER_PROFILE, DEFAULT_PROFILE, STAMP_HINGE_PROFILE, STAMP_PROFILE, THERMO_MOLD_PROFILE, THERMO_SCREEN_PROFILE, LAYERED_PROFILE, LITHO_PROFILE, RELIEF_PROFILE, type PrintProfile } from "../geometry/printProfile";
+import { COLOR_LITHO_PROFILE, CUTTER_PROFILE, DEFAULT_PROFILE, MOSAIC_BOARD_PROFILE, MOSAIC_PIECES_PROFILE, MOSAIC_POT_PROFILE, STAMP_HINGE_PROFILE, STAMP_PROFILE, THERMO_MOLD_PROFILE, THERMO_SCREEN_PROFILE, LAYERED_PROFILE, LITHO_PROFILE, RELIEF_PROFILE, type PrintProfile } from "../geometry/printProfile";
 import { qrModel, type QrStyle } from "../geometry/qr3d";
 import { buildStamp, DEFAULT_STAMP, type StampParams } from "../geometry/stamp";
 import { buildThermo, DEFAULT_THERMO, type ThermoParams } from "../geometry/thermo/build";
 import { presetSilhouette, type ThermoShape } from "../geometry/thermo/shapes";
+import { buildKit, DEFAULT_SETTINGS as MOSAIC_DEFAULT, type MosaicSettings } from "../geometry/mosaic/kit";
+import { DESIGNS } from "../geometry/mosaic/designs";
 import { buildStampArt, DEFAULT_ART, fixThinStrokes, type StampArtInput } from "../geometry/stampArt";
 import { buildSpoolTag, spoolTagsThatFit } from "../geometry/spoolTag";
 import { arcTextToCrossSection, textToCrossSection } from "../geometry/text";
@@ -146,6 +148,16 @@ export function toolCases(M: ManifoldToplevel): QaCase[] {
     const ctx = { M, art: null, artLayers: null, warn: (m: string) => void warnings.push(m), text: (s: string, h: number) => textToCrossSection(M, f, s, h), arc: (s: string, h: number, r: number, side: "top" | "bottom") => arcTextToCrossSection(M, f, s, h, r, side) };
     return { models: buildMedalDesign(ctx, { ...DEFAULT_MEDAL_DESIGN, ...patch }), warnings };
   };
+  // kit do Mosaico: a mesma geometria da tela (buildKit); `item` escolhe o que vai para o arquivo
+  const mosaic = (patch: Partial<MosaicSettings>, item: "board" | "pieces" | "pot"): Out => {
+    const s: MosaicSettings = { ...MOSAIC_DEFAULT, ...patch };
+    const k = buildKit(M, s);
+    return item === "board" ? { models: [k.board.model], warnings: k.board.warnings } : item === "pieces" ? { models: k.pieces.models, warnings: k.pieces.warnings } : { models: k.pot.models, warnings: k.pot.warnings };
+  };
+  const off = (keys: string[]) => Object.fromEntries(Object.entries(MOSAIC_DEFAULT.kit).map(([k, v]) => [k, keys.includes(k) ? { ...v, on: false } : v]));
+  const board = (patch: Partial<MosaicSettings["board"]>) => ({ board: { ...MOSAIC_DEFAULT.board, ...patch } });
+  const pot = (patch: Partial<MosaicSettings["pot"]>) => ({ pot: { ...MOSAIC_DEFAULT.pot, ...patch } });
+
   // como a tela do Carimbo seco: arte com texto (e logo de teste), traço fino engrossado, só as placas vão para o arquivo
   const stamp = async (patch: Partial<StampParams>, art: Partial<StampArtInput> = {}, logo = false): Promise<Out> => {
     const font = await loadFont("pacifico");
@@ -286,6 +298,21 @@ export function toolCases(M: ManifoldToplevel): QaCase[] {
       ["padrão", () => medal({})],
       ["mínimo", () => medal({ diameter: 25, thickness: 1.5, rim: 0, relief: 0.4, arcInset: 0, backSize: 2, ...medalSizes(2) })],
       ["máximo", () => medal({ diameter: 150, thickness: 10, rim: 12, relief: 5, arcInset: 10, backSize: 20, ...medalSizes(24) })],
+    ]),
+    ...cases("mosaic", "Mosaico", [
+      ["tabuleiro padrão", () => mosaic({}, "board"), MOSAIC_BOARD_PROFILE],
+      ["tabuleiro mínimo", () => mosaic(board({ cols: 2, rows: 2, cell: 12, rib: 1, clearance: 0.1, floor: 0.8, depth: 1.2, border: 2 }), "board"), MOSAIC_BOARD_PROFILE],
+      ["tabuleiro máximo", () => mosaic(board({ cols: 12, rows: 12, cell: 20, border: 6 }), "board"), MOSAIC_BOARD_PROFILE],
+      ["tabuleiro com encaixe", () => mosaic(board({ join: "dovetail", cols: 10, rows: 7 }), "board"), MOSAIC_BOARD_PROFILE],
+      ["peças: uma cor por mesa", () => mosaic({}, "pieces"), MOSAIC_PIECES_PROFILE],
+      ["peças: multicor com AMS", () => mosaic({ layout: "mixed", kit: off(["orange", "purple", "white", "black"]) }, "pieces"), MOSAIC_PIECES_PROFILE],
+      ["peças: mínimo", () => mosaic({ counts: { square: 1, half: 1, quarter: 1, triangle: 1, circle: 1, eye: 1 }, kit: off(["orange", "yellow", "green", "blue", "purple"]) }, "pieces"), MOSAIC_PIECES_PROFILE],
+      ["peças: só as do desenho (borboleta)", () => mosaic({ source: "design", spare: 10, grid: DESIGNS[0].grid }, "pieces"), MOSAIC_PIECES_PROFILE],
+      ["peças: mesa cheia", () => mosaic({ fill: true, counts: { square: 60, half: 8, quarter: 8, triangle: 8, circle: 8, eye: 0 }, kit: off(["orange", "yellow", "green", "blue", "purple", "white", "black"]) }, "pieces"), MOSAIC_PIECES_PROFILE],
+      ["pote redondo com tampa", () => mosaic({}, "pot"), MOSAIC_POT_PROFILE],
+      ["pote retangular", () => mosaic(pot({ shape: "rect", w: 220, d: 140, height: 40 }), "pot"), MOSAIC_POT_PROFILE],
+      ["pote mínimo", () => mosaic({ ...pot({ w: 80, height: 20, wall: 1.2, floor: 1, lidClearance: 0.1 }), kit: off(["orange", "yellow", "green", "blue", "purple", "white"]) }, "pot"), MOSAIC_POT_PROFILE],
+      ["pote máximo", () => mosaic(pot({ w: 240, height: 120, wall: 3, floor: 3, lidClearance: 0.6 }), "pot"), MOSAIC_POT_PROFILE],
     ]),
     ...cases("stamp", "Carimbo seco", [
       ["padrão", () => stamp({}), STAMP_PROFILE],

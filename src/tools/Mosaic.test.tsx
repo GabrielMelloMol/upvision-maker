@@ -68,6 +68,11 @@ describe("Mosaico", () => {
     await user.click(screen.getByRole("button", { name: "Borboleta" }));
     expect(await screen.findByRole("heading", { name: /Peças do desenho: \d+ · Borboleta/ })).toBeInTheDocument();
     expect(screen.getByRole("application", { name: /Desenho do mosaico, 8 por 8 casas/ })).toBeInTheDocument();
+    // "Imprimir só as peças deste desenho" leva para as peças já nesse modo
+    await user.click(screen.getByRole("button", { name: "Imprimir só as peças deste desenho" }));
+    expect(screen.getByRole("tab", { name: "Peças" })).toHaveAttribute("aria-selected", "true");
+    expect(screen.getByRole("button", { name: "Só as do desenho" })).toHaveAttribute("aria-pressed", "true");
+    expect(screen.getByText(/Imprime só as peças do desenho/)).toBeInTheDocument();
   }, 40_000);
 
   test("aba Cartões: sem desenho marcado, o botão do PDF fica desligado; marcando um, liga", async () => {

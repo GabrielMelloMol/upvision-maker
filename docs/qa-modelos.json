@@ -2221,6 +2221,211 @@
   "plates": 1
  },
  {
+  "key": "mosaic:peças: mesa cheia",
+  "owner": "Forja",
+  "group": "tools",
+  "label": "Mosaico (ferramenta)",
+  "variant": "peças: mesa cheia",
+  "status": "ok",
+  "reasons": [],
+  "date": "2026-10-15",
+  "slicers": "Bambu ✓ · Orca ✓",
+  "minutes": 277,
+  "grams": 163,
+  "plates": 1
+ },
+ {
+  "key": "mosaic:peças: mínimo",
+  "owner": "Forja",
+  "group": "tools",
+  "label": "Mosaico (ferramenta)",
+  "variant": "peças: mínimo",
+  "status": "aviso",
+  "reasons": [
+   "o conjunto arrumado ocupa 691,5 × 17,9 mm: passa da mesa de 256 mm",
+   "app: São 3 mesas de peças. O arquivo traz uma ao lado da outra (em grade): no fatiador, use \"Organizar\" para distribuir em mesas ou imprima uma de cada vez."
+  ],
+  "date": "2026-10-15",
+  "slicers": "Bambu ✓ · Orca ✓ · Projeto Bambu ✓",
+  "minutes": 81,
+  "grams": 26.7,
+  "plates": 1
+ },
+ {
+  "key": "mosaic:peças: multicor com AMS",
+  "owner": "Forja",
+  "group": "tools",
+  "label": "Mosaico (ferramenta)",
+  "variant": "peças: multicor com AMS",
+  "status": "aviso",
+  "reasons": [
+   "o conjunto arrumado ocupa 834,3 × 242,3 mm: passa da mesa de 256 mm",
+   "Bambu: torre de purga em cima de uma peça depois do --arrange do CLI (na tela, arraste a torre ou use Arrumar)",
+   "Orca: torre de purga em cima de uma peça depois do --arrange do CLI (na tela, arraste a torre ou use Arrumar)",
+   "Projeto Bambu: torre de purga em cima de uma peça depois do --arrange do CLI (na tela, arraste a torre ou use Arrumar)",
+   "app: São 3 mesas de peças. O arquivo traz uma ao lado da outra (em grade): no fatiador, use \"Organizar\" para distribuir em mesas ou imprima uma de cada vez."
+  ],
+  "date": "2026-10-15",
+  "slicers": "Bambu ✓ · Orca ✓ · Projeto Bambu ✓"
+ },
+ {
+  "key": "mosaic:peças: só as do desenho (borboleta)",
+  "owner": "Forja",
+  "group": "tools",
+  "label": "Mosaico (ferramenta)",
+  "variant": "peças: só as do desenho (borboleta)",
+  "status": "aviso",
+  "reasons": [
+   "o conjunto arrumado ocupa 834,3 × 38,3 mm: passa da mesa de 256 mm",
+   "app: São 3 mesas de peças. O arquivo traz uma ao lado da outra (em grade): no fatiador, use \"Organizar\" para distribuir em mesas ou imprima uma de cada vez."
+  ],
+  "date": "2026-10-15",
+  "slicers": "Bambu ✓ · Orca ✓ · Projeto Bambu ✓",
+  "minutes": 167,
+  "grams": 80.1,
+  "plates": 1
+ },
+ {
+  "key": "mosaic:peças: uma cor por mesa",
+  "owner": "Forja",
+  "group": "tools",
+  "label": "Mosaico (ferramenta)",
+  "variant": "peças: uma cor por mesa",
+  "status": "aviso",
+  "reasons": [
+   "o conjunto arrumado ocupa 1130,3 × 456,7 mm: passa da mesa de 256 mm",
+   "8 cores: mais que os 4 do AMS lite",
+   "não coube numa placa: 8 placas",
+   "app: São 8 mesas de peças. O arquivo traz uma ao lado da outra (em grade): no fatiador, use \"Organizar\" para distribuir em mesas ou imprima uma de cada vez."
+  ],
+  "date": "2026-10-15",
+  "slicers": "Bambu ✓ · Orca ✓ · Projeto Bambu ✓",
+  "minutes": 1249,
+  "grams": 689.1,
+  "plates": 8
+ },
+ {
+  "key": "mosaic:pote máximo",
+  "owner": "Forja",
+  "group": "tools",
+  "label": "Mosaico (ferramenta)",
+  "variant": "pote máximo",
+  "status": "aviso",
+  "reasons": [
+   "o conjunto arrumado ocupa 496,4 × 244,4 mm: passa da mesa de 256 mm",
+   "não coube numa placa: 2 placas"
+  ],
+  "date": "2026-10-15",
+  "slicers": "Bambu ✓ · Orca ✓",
+  "minutes": 857,
+  "grams": 930.4,
+  "plates": 2
+ },
+ {
+  "key": "mosaic:pote mínimo",
+  "owner": "Forja",
+  "group": "tools",
+  "label": "Mosaico (ferramenta)",
+  "variant": "pote mínimo",
+  "status": "ok",
+  "reasons": [],
+  "date": "2026-10-15",
+  "slicers": "Bambu ✓ · Orca ✓",
+  "minutes": 37,
+  "grams": 30.6,
+  "plates": 1
+ },
+ {
+  "key": "mosaic:pote redondo com tampa",
+  "owner": "Forja",
+  "group": "tools",
+  "label": "Mosaico (ferramenta)",
+  "variant": "pote redondo com tampa",
+  "status": "aviso",
+  "reasons": [
+   "o conjunto arrumado ocupa 415,8 × 203,8 mm: passa da mesa de 256 mm",
+   "não coube numa placa: 2 placas"
+  ],
+  "date": "2026-10-15",
+  "slicers": "Bambu ✓ · Orca ✓",
+  "minutes": 275,
+  "grams": 272.3,
+  "plates": 2
+ },
+ {
+  "key": "mosaic:pote retangular",
+  "owner": "Forja",
+  "group": "tools",
+  "label": "Mosaico (ferramenta)",
+  "variant": "pote retangular",
+  "status": "aviso",
+  "reasons": [
+   "o conjunto arrumado ocupa 455,8 × 143,8 mm: passa da mesa de 256 mm",
+   "não coube numa placa: 2 placas"
+  ],
+  "date": "2026-10-15",
+  "slicers": "Bambu ✓ · Orca ✓",
+  "minutes": 244,
+  "grams": 239.6,
+  "plates": 2
+ },
+ {
+  "key": "mosaic:tabuleiro com encaixe",
+  "owner": "Forja",
+  "group": "tools",
+  "label": "Mosaico (ferramenta)",
+  "variant": "tabuleiro com encaixe",
+  "status": "ok",
+  "reasons": [],
+  "date": "2026-10-15",
+  "slicers": "Bambu ✓ · Orca ✓",
+  "minutes": 83,
+  "grams": 66.2,
+  "plates": 1
+ },
+ {
+  "key": "mosaic:tabuleiro máximo",
+  "owner": "Forja",
+  "group": "tools",
+  "label": "Mosaico (ferramenta)",
+  "variant": "tabuleiro máximo",
+  "status": "ok",
+  "reasons": [],
+  "date": "2026-10-15",
+  "slicers": "Bambu ✓ · Orca ✓",
+  "minutes": 151,
+  "grams": 128.2,
+  "plates": 1
+ },
+ {
+  "key": "mosaic:tabuleiro mínimo",
+  "owner": "Forja",
+  "group": "tools",
+  "label": "Mosaico (ferramenta)",
+  "variant": "tabuleiro mínimo",
+  "status": "ok",
+  "reasons": [],
+  "date": "2026-10-15",
+  "slicers": "Bambu ✓ · Orca ✓",
+  "minutes": 3,
+  "grams": 1.1,
+  "plates": 1
+ },
+ {
+  "key": "mosaic:tabuleiro padrão",
+  "owner": "Forja",
+  "group": "tools",
+  "label": "Mosaico (ferramenta)",
+  "variant": "tabuleiro padrão",
+  "status": "ok",
+  "reasons": [],
+  "date": "2026-10-15",
+  "slicers": "Bambu ✓ · Orca ✓",
+  "minutes": 74,
+  "grams": 60.6,
+  "plates": 1
+ },
+ {
   "key": "partialcut:cilindro",
   "owner": "Forja",
   "group": "tools",

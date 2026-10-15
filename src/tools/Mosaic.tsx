@@ -63,6 +63,11 @@ export default function Mosaic() {
     document.title = "Mosaico";
   }, []);
 
+  function printDesignParts() {
+    tool.set((cur) => ({ ...cur, source: "design" }), "source");
+    setTab("pieces");
+  }
+
   function onKeyDown(e: KeyboardEvent, i: number) {
     const to = e.key === "ArrowRight" ? (i + 1) % TABS.length : e.key === "ArrowLeft" ? (i + TABS.length - 1) % TABS.length : e.key === "Home" ? 0 : e.key === "End" ? TABS.length - 1 : -1;
     if (to < 0) return;
@@ -113,7 +118,7 @@ export default function Mosaic() {
           {tab === "board" && <BoardPanel tool={tool} />}
           {tab === "pieces" && <PiecesPanel tool={tool} platesN={out?.pieces.platesN ?? 0} extra={out?.pieces.extra ?? 0} />}
           {tab === "pot" && <PotPanel tool={tool} />}
-          {tab === "design" && <DesignPanel tool={tool} brush={brush} setBrush={setBrush} />}
+          {tab === "design" && <DesignPanel tool={tool} brush={brush} setBrush={setBrush} onPrintParts={printDesignParts} />}
           {tab === "cards" && <CardsPanel tool={tool} />}
           {exportModels.length > 0 && (
             <ExportButtons

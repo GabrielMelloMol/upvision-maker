@@ -17,7 +17,7 @@ import type { Tool } from "./tool";
 const CORNERS = [["none", "Só quadrados"], ["quarter", "Cantos redondos"], ["triangle", "Cantos em diagonal"]] as const;
 
 /** Aba Desenho: pintar a grade, escolher um cartão pronto ou converter uma imagem em mosaico. */
-export default function DesignPanel({ tool, brush, setBrush }: { tool: Tool; brush: Brush; setBrush: (b: Brush) => void }) {
+export default function DesignPanel({ tool, brush, setBrush, onPrintParts }: { tool: Tool; brush: Brush; setBrush: (b: Brush) => void; /** Vai para a aba Peças já pedindo só as peças deste desenho. */ onPrintParts: () => void }) {
   const s = tool.state;
   const all = kitColors(s);
   const usable = kitColors(s, true);
@@ -93,6 +93,9 @@ export default function DesignPanel({ tool, brush, setBrush }: { tool: Tool; bru
               </li>
             ))}
           </ul>
+          <button type="button" onClick={onPrintParts}>
+            Imprimir só as peças deste desenho
+          </button>
           {bx * by > 1 && <Alert kind="info">O desenho pede {bx * by} tabuleiros de {s.board.cols} × {s.board.rows} ({bx} × {by}). Use o encaixe entre tabuleiros para montar o painel.</Alert>}
         </div>
       )}
