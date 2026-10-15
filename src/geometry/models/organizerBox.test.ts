@@ -60,7 +60,7 @@ describe("caixa organizadora: dobradiça, trava e encaixes (#204)", { timeout: 1
 
   test("dobradiça fechada: a tampa não invade a caixa nem os pinos, e os pinos não prendem nas orelhas (folga radial 0,3)", () => {
     const out = build({ lid: "hinge" });
-    const box = partsOf(out, "closed", "Caixa"), lid = partsOf(out, "closed", "Tampa"), pins = partsOf(out, "closed", "Pino");
+    const box = partsOf(out, "closed", "Caixa"), lid = partsOf(out, "closed", "Tampa", "Dobradiça"), pins = partsOf(out, "closed", "Pino");
     expect(pins).toHaveLength(2);
     expect(overlap(lid, box)).toBeLessThan(0.01);
     expect(overlap(pins, box)).toBeLessThan(0.001);
@@ -69,7 +69,7 @@ describe("caixa organizadora: dobradiça, trava e encaixes (#204)", { timeout: 1
 
   test("a tampa gira até o batente (~100°) sem bater e bate logo depois", () => {
     const out = build({ lid: "hinge" });
-    const box = partsOf(out, "closed", "Caixa"), lid = partsOf(out, "closed", "Tampa");
+    const box = partsOf(out, "closed", "Caixa"), lid = partsOf(out, "closed", "Tampa", "Dobradiça");
     const A = hingeAxis();
     const turned = (deg: number) => (m: Mesh) => turnMesh(m, A.y, A.z, deg);
     for (const deg of [10, 45, 90, HINGE.stopDeg - 4]) expect(overlap(lid, box, turned(deg)), `${deg}°`).toBeLessThan(0.01);
@@ -84,7 +84,7 @@ describe("caixa organizadora: dobradiça, trava e encaixes (#204)", { timeout: 1
   test("trava: o dente fica a `latchClearance` da tampa; erguer a tampa mais que isso bate nele", () => {
     const c = 0.4;
     const out = build({ lid: "hinge", latchClearance: c });
-    const box = partsOf(out, "closed", "Caixa"), lid = partsOf(out, "closed", "Tampa");
+    const box = partsOf(out, "closed", "Caixa"), lid = partsOf(out, "closed", "Tampa", "Dobradiça");
     expect(overlap(lid, box, lift(c - 0.05))).toBeLessThan(0.01);
     expect(overlap(lid, box, lift(c + 0.15))).toBeGreaterThan(0.05);
   });
@@ -142,3 +142,13 @@ function hingeAxis() {
   const d = dimsOf(DEFAULT_ORGANIZER);
   return { y: d.outerD / 2 + HINGE.off, z: d.bodyH + HINGE.rk };
 }
+
+describe("tampa de dobradiça: a peça principal da Vista de cima é a placa", { timeout: 120_000 }, () => {
+  test("a face escolhida para o desenho e o texto livre é a Tampa (não o Texto nem os nós)", async () => {
+    const { decalFace } = await import("../decals");
+    const out = build({ lid: "hinge" });
+    expect(decalFace(M, out.models).part).toBe("Tampa");
+    const lidB = meshBounds(out.models[0].parts.filter((q) => q.name === "Tampa").map((q) => q.mesh))!;
+    expect(lidB.max[0] - lidB.min[0]).toBeGreaterThan(170);
+  });
+});

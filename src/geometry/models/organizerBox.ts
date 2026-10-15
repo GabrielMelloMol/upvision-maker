@@ -224,10 +224,12 @@ function own(ctx: ModelCtx, k: K, p: OrganizerParams, d: Dims, warnings: string[
 
   const top = Hb + p.lidT;
   let lid = at(k, k(roundedRect(M, d.outerW, d.outerD, p.outerRadius)), p.lidT, Hb);
-  lid = k(k(lid.subtract(hg.lidTrim)).add(hg.lidAdd));
+  lid = k(lid.subtract(hg.lidTrim));
+  // nós e pescoço da dobradiça numa parte à parte (mesma cor): assim a "peça principal" da Vista de cima e das camadas livres é a placa da tampa
+  const hingePart = k(hg.lidAdd.subtract(lid));
   if (p.stackable) lid = k(lid.add(at(k, stackRing(M, k, p, d, 0), STACK.h + EPS, top - EPS)));
   const dec = decorLid(ctx, k, p, d, lid, top, false);
-  const lidParts: Part[] = [{ name: "Tampa", color: p.lidColor, mesh: solidMesh(dec.lid) }, ...dec.extra];
+  const lidParts: Part[] = [{ name: "Tampa", color: p.lidColor, mesh: solidMesh(dec.lid) }, { name: "Dobradiça", color: p.lidColor, mesh: solidMesh(hingePart) }, ...dec.extra];
   const pins: Part[][] = hg.pins.map((s) => [{ name: "Pino", color: p.lidColor, mesh: solidMesh(s) }]);
   const handle = p.handle ? handlePieces(M, k, p, d) : null;
   const dx = d.outerW + GAP;
