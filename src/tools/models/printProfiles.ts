@@ -26,6 +26,7 @@ export const MODEL_PROFILES: Record<string, PrintProfile> = {
   kitBau: { walls: 2, infill: 100, brim: false, notes: ["Imprima o cartão como está no arquivo e destaque as peças nos pontos de corte. Os pinos saem de pé no cartão: corte rente e lixe. Se as abas ficarem justas demais, aumente a folga da fenda; se o pino ficar frouxo, diminua a folga do pino."] },
   keycap: { walls: 3, infill: 20, notes: ["Sai de ponta-cabeça, com o topo na mesa: a legenda fica lisa e a haste cresce sem suporte. A folga da cruz depende da impressora: imprima uma tecla de teste e ajuste de 0,1 em 0,1 mm. Troque o filamento nas primeiras camadas (a legenda) como no AMS."] },
   phoneKeychain: { walls: 4, infill: 40, notes: ["Faz força (abridor e apoio do celular): PETG aguenta mais que PLA. Imprima deitado, como sai no arquivo."] },
+  cupHandle: { walls: 4, infill: 25, notes: ["Imprima em PETG (aguenta o peso e o calor do copo). Fica de pé como no arquivo: a alça inclinada em cima imprime sem suporte. Antes da peça inteira, imprima só o anel de teste e confira o encaixe no copo."] },
   opener: { walls: 4, infill: 40, notes: ["Faz força: PETG aguenta mais que PLA."] },
   clicker: { walls: 3, infill: 30 },
   articulatedName: { walls: 2, brim: false, notes: ["Dobradiça já montada: sem brim nem suporte. Depois de esfriar, gire as letras para soltar."] },
