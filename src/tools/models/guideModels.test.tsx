@@ -52,7 +52,7 @@ describe("gerador guiado em Models", () => {
     // preset aplica o patch
     await userEvent.click(screen.getByRole("button", { name: "Grande" }));
     expect(screen.getByLabelText(/^Largura/)).toHaveValue(180);
-    expect(screen.getByRole("slider", { name: "Deslizar: Largura" })).toHaveValue("180");
+    expect(document.querySelector('input[type="range"][data-for="Largura"]')).toHaveValue("180");
 
     // derive: trocar o material muda a folga junto
     await userEvent.click(screen.getByRole("button", { name: "PETG" }));

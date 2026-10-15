@@ -1,11 +1,12 @@
 import HintText from "./HintText";
 import { useId } from "react";
 import { labelTerm, TermDesc, TermTip } from "./TermTip";
+import { fieldHelp, rangeHelp, wantsSlider } from "./fieldHelp";
 
 type Props = { label: string; value: number; onChange: (n: number) => void; min?: number; max?: number; step?: number; unit?: string; hint?: string;
   /** Medida de comprimento em mm que a pessoa pode digitar em cm por engano (gaveta): mostra "= 35 cm" e sugere ×10 (#194). */
   cm?: boolean;
-  /** Deslizante junto da caixa de número, com o mesmo min/max/step (precisa de min e max). */
+  /** Deslizante junto da caixa de número, com o mesmo min/max/step. Sem isso, aparece sozinho nas faixas curtas (até 1000); `false` deixa só o número. */
   slider?: boolean };
 
 const br = (n: number) => n.toLocaleString("pt-BR", { maximumFractionDigits: 2 });
@@ -23,11 +24,13 @@ function rangeMessage(value: number, min?: number, max?: number, cm = false, uni
 const clampTo = (v: number, min: number, max: number) => (Number.isFinite(v) ? Math.min(max, Math.max(min, v)) : min);
 
 /** Campo numérico com limites; valores fora da faixa ficam marcados e não são aplicados. */
-export default function NumField({ label, value, onChange, min, max, step = 0.1, unit = "mm", hint, cm = false, slider = false }: Props) {
+export default function NumField({ label, value, onChange, min, max, step = 0.1, unit = "mm", hint: ownHint, cm = false, slider }: Props) {
   const term = labelTerm(label);
   const tipId = useId();
   const hintId = useId();
-  const withSlider = slider && min !== undefined && max !== undefined;
+  const withSlider = (slider ?? wantsSlider(min, max)) && min !== undefined && max !== undefined;
+  // frase de ajuda: a do campo, senão a do nome na lista (#210), senão a faixa
+  const hint = ownHint ?? fieldHelp(label) ?? (min !== undefined && max !== undefined ? rangeHelp(min, max, unit) : undefined);
   const bad = !Number.isFinite(value) || (min !== undefined && value < min) || (max !== undefined && value > max);
   const asCm = cm && unit === "mm";
   const showEq = asCm && Number.isFinite(value) && value >= 10;
@@ -48,7 +51,11 @@ export default function NumField({ label, value, onChange, min, max, step = 0.1,
       <input
         type="range"
         className="num-slider"
-        aria-label={`Deslizar: ${label}`}
+        // o nome não repete o rótulo do campo (a caixa de número já o leva): assim "pelo rótulo" acha um campo só
+        aria-label="Deslizar o valor"
+        data-for={label}
+        aria-valuetext={Number.isFinite(value) ? `${br(value)}${unit ? ` ${unit}` : ""}` : undefined}
+        aria-describedby={hint && !bad ? hintId : undefined}
         min={min}
         max={max}
         step={step}

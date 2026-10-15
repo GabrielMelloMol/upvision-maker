@@ -346,11 +346,11 @@ export const PLATE_MODELS: ModelDef[] = [
       {
         title: "Data e hora",
         fields: [
-          num("day", "Dia", 1, 31, { step: 1 }),
-          num("month", "Mês", 1, 12, { step: 1 }),
-          num("year", "Ano", 1900, 2100, { step: 1 }),
-          num("hour", "Hora", 0, 23, { step: 1 }),
-          num("minute", "Minuto", 0, 59, { step: 1 }),
+          num("day", "Dia", 1, 31, { step: 1, unit: "" }),
+          num("month", "Mês", 1, 12, { step: 1, unit: "" }),
+          num("year", "Ano", 1900, 2100, { step: 1, unit: "" }),
+          num("hour", "Hora", 0, 23, { step: 1, unit: "" }),
+          num("minute", "Minuto", 0, 59, { step: 1, unit: "" }),
           bool("tzAuto", "Fuso e horário de verão automáticos"),
           num("utcOffset", "Fuso manual (horas)", -12, 14, { step: 0.5, hint: "Só vale com o fuso automático desligado. Brasília: -3." }),
         ],

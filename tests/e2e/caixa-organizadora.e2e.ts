@@ -29,11 +29,11 @@ test("Caixa organizadora: sugestão por uso, deslizante com número e ajuda, jei
   await expect(page.getByText("Caixa de bolso com 6 nichos", { exact: false })).toBeVisible();
   // deslizante e número andam juntos; a frase mostra a outra leitura da medida
   await expect(page.getByText("Por dentro: 95,2 mm.")).toBeVisible();
-  await page.getByLabel("Deslizar: Largura").fill("140");
+  await page.locator('input[type=range][data-for="Largura"]').fill("140");
   await expect(page.getByLabel(/^Largura \(mm\)/)).toHaveValue("140");
   await expect(page.getByText("Por dentro: 135,2 mm.")).toBeVisible();
   await page.getByLabel(/^Largura \(mm\)/).fill("150");
-  await expect(page.getByLabel("Deslizar: Largura")).toHaveValue("150");
+  await expect(page.locator('input[type=range][data-for="Largura"]')).toHaveValue("150");
   await page.getByRole("button", { name: "Por dentro", exact: true }).click();
   await expect(page.getByText("Por fora: 154,8 mm.")).toBeVisible();
   await page.getByRole("button", { name: "Por fora", exact: true }).click();
