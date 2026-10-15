@@ -1,5 +1,6 @@
 import { beforeAll, describe, expect, test } from "vitest";
 import { meshBounds } from "../bounds";
+import { decalFace } from "../decals";
 import { getManifold, type ManifoldToplevel, type Solid } from "../manifold";
 import { volume } from "../testUtil";
 import type { ModelCtx } from "./common";
@@ -84,4 +85,19 @@ describe("Caixa com tampa (#94)", { timeout: 60_000 }, () => {
   test("avisa quando a caixa passa da mesa de 256 mm", () => {
     expect(box({ innerW: 260 }).warnings?.join(" ")).toMatch(/mesa/);
   });
+});
+
+describe("Vista de cima da caixa com tampa", () => {
+  for (const lid of ["snap", "slide"] as const)
+    test(`${lid}: a face do gizmo fica na tampa (não na caixa) e o texto cai dentro dela`, () => {
+      const out = box({ lid, text: "Linhas" });
+      const face = decalFace(M, out.models);
+      expect(out.models[0].name).toBe("Tampa");
+      if (lid === "slide") expect(face.part).toBe("Tampa");
+      const el = out.elements!.find((e) => e.id === "text")!;
+      expect(el.box[0]).toBeGreaterThanOrEqual(face.bounds.min[0]);
+      expect(el.box[2]).toBeLessThanOrEqual(face.bounds.max[0]);
+      expect(el.box[1]).toBeGreaterThanOrEqual(face.bounds.min[1]);
+      expect(el.box[3]).toBeLessThanOrEqual(face.bounds.max[1]);
+    });
 });

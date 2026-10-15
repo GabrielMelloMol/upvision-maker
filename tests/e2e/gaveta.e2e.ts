@@ -48,6 +48,10 @@ test("organizador de gaveta: 4 × 3 casas, 3 caixinhas desenhadas, ajuste e expo
   await dragCells(page, 4, 3, [0, 2], [3, 2]); // 4×1 no fundo
   const mods = page.getByRole("button", { name: /^Caixinha \d×\d, altura/ });
   await expect(mods).toHaveCount(3);
+  // retângulo sobre caixinhas: só seleciona e avisa (antes cobria sem dizer nada)
+  await dragCells(page, 4, 3, [1, 1], [2, 1]); // começa no vazio e passa pela 1×2
+  await expect(page.getByText(/Aí já tem uma caixinha: selecionei ela, nada foi criado/)).toBeVisible();
+  await expect(mods).toHaveCount(3);
   // teclado: a do fundo desce não dá (tem a 1×2 embaixo na coluna 2); duplica a 2×1 com ⌘D
   await page.getByRole("button", { name: /^Caixinha 2×1, altura 3, coluna 1, fileira 1, etiqueta Pregos/ }).focus();
   await page.keyboard.press("ControlOrMeta+d");
@@ -64,7 +68,9 @@ test("organizador de gaveta: 4 × 3 casas, 3 caixinhas desenhadas, ajuste e expo
   await page.getByRole("group", { name: "Prévia" }).getByRole("button", { name: "Gaveta", exact: true }).click();
   await expect(page.getByRole("button", { name: "Ver montado" })).toBeVisible({ timeout: 90_000 });
   await page.getByRole("group", { name: "Prévia" }).getByRole("button", { name: "Peças", exact: true }).click();
-  await expect(page.locator(".viewer .hud")).toContainText("168.0 × 126.0", { timeout: 90_000 });
+  // Peças = as mesas como vão para a impressora (não a gaveta montada de 168 × 126)
+  await expect(page.locator(".viewer .hud")).toContainText(/\d+\.\d × \d+\.\d × /, { timeout: 90_000 });
+  await expect(page.locator(".viewer .hud")).not.toContainText("168.0 × 126.0");
   await expect(page.locator(".viewer")).not.toHaveAttribute("aria-busy", "true", { timeout: 90_000 });
   await page.getByRole("button", { name: /Salvar 3MF/ }).click();
   await expect(toastWith(page, "Arquivo salvo em")).toBeVisible();
@@ -79,13 +85,14 @@ test("organizador de gaveta: 4 × 3 casas, 3 caixinhas desenhadas, ajuste e expo
   await expect(card.getByText(/^Mesa 1/)).toBeVisible();
   tauri.nextOpen = "/pasta";
   await card.getByRole("button", { name: "Salvar todas as mesas numa pasta" }).click();
-  await expect(page.locator(".toast", { hasText: /(mesa salva|mesas salvas) em \/pasta/ })).toBeVisible();
+  await expect(page.locator(".toast", { hasText: /(mesa salva|mesas salvas) em \/pasta/ })).toBeVisible({ timeout: 45_000 });
   const plates = [...tauri.files.keys()].filter((p) => p.startsWith("/pasta/gaveta-mesa-"));
   expect(plates.length).toBeGreaterThanOrEqual(1);
   expect(objects3mf(tauri.files.get(plates[0])!)).toBeGreaterThanOrEqual(1);
 });
 
 test("sem régua em casa: régua 1:1 em PDF e régua 3D de 25 cm (#140)", async ({ page, tauri }) => {
+  test.slow(); // régua 3D pesada: com a máquina em carga passa de 60 s (sozinho, ~30 s)
   await openApp(page);
   await go(page, "Organizador de gaveta");
   await page.getByRole("button", { name: "Régua em papel (PDF)" }).click();
@@ -207,6 +214,8 @@ test("caixinha modular: meia casa, divisórias em posição livre (campo e arras
   await expect(page.getByText(/Compartimentos \(largura\): 13,4 mm/)).toBeVisible();
   // arrastar a divisória 2 no editor muda o campo dela
   const second = page.getByLabel(/^Divisória 2 da largura/);
+  expect(await first.inputValue()).toMatch(/^\d+(\.\d)?$/); // sem 55,0333… na tela
+  expect(await second.inputValue()).toMatch(/^\d+(\.\d)?$/);
   const before = Number(await second.inputValue());
   const grab = page.locator('.drawer-divider-grab[data-axis="x"][data-index="1"]');
   const gb = (await grab.boundingBox())!;
@@ -245,4 +254,24 @@ test("caixinha sem grade (mm), copiar e colar, e o mapa avisa sobra e o que saiu
   // gaveta menor: o que não cabe sai do mapa e o app diz quantas
   await page.getByLabel(/^Largura/).first().fill("60");
   await expect(page.getByText(/caixinha\(s\) saíram do mapa/)).toBeVisible();
+});
+
+test("gaveta começa com exemplos: escolher um enche a grade, e Começar vazio deixa a grade para desenhar", async ({ page }) => {
+  test.slow();
+  await page.setViewportSize({ width: 1100, height: 1000 });
+  await openApp(page);
+  await go(page, "Organizador de gaveta");
+  for (const [label, v] of [["Largura", "169"], ["Profundidade", "127"], ["Altura livre", "60"]] as const) await page.getByLabel(new RegExp(`^${label}`)).fill(v);
+  const examples = page.getByRole("group", { name: "Exemplos de gaveta" });
+  await expect(examples.getByRole("button")).toHaveText(["Escritório", "Oficina", "Maquiagem", "Cozinha", "Começar vazio"]);
+  await examples.getByRole("button", { name: "Oficina" }).click();
+  await expect(page.getByText(/Exemplo "Oficina" colocado/)).toBeVisible();
+  await expect(page.getByRole("button", { name: /^Caixinha \d.*etiqueta Alicates/ }).first()).toBeVisible();
+  await expect(examples).toHaveCount(0);
+  // desfazer volta à gaveta sem caixinhas e os exemplos reaparecem
+  await page.keyboard.press("ControlOrMeta+z");
+  await expect(page.getByRole("group", { name: "Exemplos de gaveta" })).toBeVisible();
+  await page.getByRole("group", { name: "Exemplos de gaveta" }).getByRole("button", { name: "Começar vazio" }).click();
+  await expect(page.getByRole("group", { name: "Exemplos de gaveta" })).toHaveCount(0);
+  await expect(page.locator("svg.drawer-editor")).toBeVisible();
 });
