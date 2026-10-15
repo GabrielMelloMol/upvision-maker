@@ -19,7 +19,7 @@ export const COLLECTIONS = [
 export type Collection = (typeof COLLECTIONS)[number][0];
 
 /** Variação pronta: muda textos, cores ou tamanho do modelo. Sem personagens, marcas ou temas licenciados. */
-export type Variant = { label: string; patch: Params; collections?: Collection[] };
+export type Variant = { label: string; patch: Params; collections?: Collection[]; /** Frase de ajuda: o que o clique faz (padrão: preenche o exemplo). */ blurb?: string };
 
 /** Coleções do modelo inteiro (além das que vêm das variações). */
 export const MODEL_COLLECTIONS: Record<string, Collection[]> = {

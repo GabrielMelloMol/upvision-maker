@@ -29,6 +29,7 @@ import { BATCH_FIELDS, layoutCopies, MAX_COPIES, parseBatch } from "./models/bat
 import type { Model } from "../geometry/types";
 import type { ModelView } from "../geometry/models/common";
 import GeneratorHelp from "./models/guide/GeneratorHelp";
+import { guideFor } from "./models/help/resolve";
 import PresetBar from "./models/guide/PresetBar";
 import ViewTabs from "./models/guide/ViewTabs";
 import { applyLayers } from "./models/applyLayers";
@@ -97,7 +98,7 @@ export default function Models({ only, embedded }: { only?: string; embedded?: {
   });
   const { id, all, font, art, art2, cutout, batchOn, batchText } = tool.state;
   const { adopt } = tool;
-  const [setId, setAll, setFont, setArt, setArt2, setCutout, setBatchOn, setBatchText] = [tool.field("id"), tool.field("all"), tool.field("font"), tool.field("art"), tool.field("art2"), tool.field("cutout"), tool.field("batchOn"), tool.field("batchText")];
+  const [setId, setFont, setArt, setArt2, setCutout, setBatchOn, setBatchText] = [tool.field("id"), tool.field("font"), tool.field("art"), tool.field("art2"), tool.field("cutout"), tool.field("batchOn"), tool.field("batchText")];
   const [artError, setArtError] = useState<string | null>(null);
   // aberto pela galeria Criar (#139): já vem com o modelo escolhido, sem virar passo de desfazer
   // ou pelo pedido (#164, "Preparar impressão"): com a personalização do item no lote
@@ -144,7 +145,7 @@ export default function Models({ only, embedded }: { only?: string; embedded?: {
   }
   // variações do modelo; com uma ocasião escolhida, as dela vêm primeiro
   const variants = [...(VARIANTS[id] ?? [])].sort((a, b) => Number(!!occasion && occasion !== "favorites" && !!b.collections?.includes(occasion)) - Number(!!occasion && occasion !== "favorites" && !!a.collections?.includes(occasion)));
-  const applyVariant = (patch: Params) => setAll((a) => ({ ...a, [id]: { ...baseParams(def), ...patch } }));
+  const guide = guideFor(def, variants); // sugestões por uso e ajuda (#209): o do modelo ou as variações e a ajuda da família
   const p = all[id];
   const patchParams = (next: Params) => tool.set((cur) => ({ ...cur, all: { ...cur.all, [id]: { ...cur.all[id], ...next } } }), `${id}.lugar`);
   // o campo muda junto com o que acompanha (def.derive), num passo só do desfazer
@@ -354,16 +355,7 @@ export default function Models({ only, embedded }: { only?: string; embedded?: {
           </div>
           <p className="hint">{def.blurb}</p>
           {!only && family.id !== "assembleKits" && <VariantPicker id={id} onPick={pickVariant} only={embeddedIds} />}
-          {def.guide && <PresetBar presets={def.guide.presets} params={p} label={def.guide.presetsLabel} onPick={(pr) => tool.set((cur) => ({ ...cur, all: { ...cur.all, [id]: { ...baseParams(def), ...pr.patch } } }), `${id}.preset`)} />}
-          {!def.guide && variants.length > 0 && (
-            <div className="chips" role="group" aria-label="Variações prontas">
-              {variants.map((v) => (
-                <button key={v.label} type="button" onClick={() => applyVariant(v.patch)}>
-                  {v.label}
-                </button>
-              ))}
-            </div>
-          )}
+          {guide.presets.length > 0 && <PresetBar presets={guide.presets} params={p} label={guide.presetsLabel} groupLabel={def.guide ? undefined : "Variações prontas"} onPick={(pr) => tool.set((cur) => ({ ...cur, all: { ...cur.all, [id]: { ...baseParams(def), ...pr.patch } } }), `${id}.preset`)} />}
           <UserVariants
             modelId={id}
             params={p}
@@ -448,7 +440,7 @@ export default function Models({ only, embedded }: { only?: string; embedded?: {
             disabled={copies ? "No lote, os desenhos e textos livres ficam de fora: desligue o lote para usá-los." : undefined}
           />
           <ExportButtons models={models.filter((m) => !m.previewOnly)} name={copies ? `${def.label}-lote` : `${def.label}-${String(p.text ?? p.line1 ?? p.title ?? p.base ?? "")}`} busy={busy} pauses={pauses} profile={profileFor(id, p)} onSaved={tool.exported} />
-          <GeneratorHelp def={def} />
+          <GeneratorHelp def={def} help={guide.help} />
         </div>
         <div className="preview-col">
           {shownViews && activeView && <ViewTabs views={shownViews} value={activeView.id} onChange={setViewId} />}

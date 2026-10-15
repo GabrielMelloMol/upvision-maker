@@ -1,4 +1,4 @@
-import type { FieldDef, ModelDef, Params } from "../fields";
+import type { FieldDef, GuideHelp, ModelDef, Params } from "../fields";
 
 const br = (n: number) => n.toLocaleString("pt-BR", { maximumFractionDigits: 2 });
 
@@ -40,11 +40,15 @@ const List = ({ title, items }: { title: string; items: string[] }) =>
     </div>
   ) : null;
 
-/** "Como usar": quando usar, faixas e padrões (saem dos campos do modelo), dicas de impressão e perguntas frequentes. */
-export default function GeneratorHelp({ def }: { def: ModelDef }) {
-  if (!def.guide) return null;
-  const { use, avoid, tips, faq } = def.guide.help;
-  const fields = def.sections.flatMap((s) => s.fields);
+/**
+ * "Como usar": quando usar, faixas e padrões (saem dos campos do modelo), dicas de impressão e perguntas frequentes.
+ * Sem `def` (ferramentas com tela própria) não há tabela de campos; `help` manda no texto, senão vale o do `def.guide`.
+ */
+export default function GeneratorHelp({ def, help }: { def?: ModelDef; help?: GuideHelp }) {
+  const h = help ?? def?.guide?.help;
+  if (!h) return null;
+  const { use, avoid, tips, faq } = h;
+  const fields = def ? def.sections.flatMap((s) => s.fields) : [];
   const rows = fields.filter((f): f is NumDef | ChoiceDef => f.kind === "num" || f.kind === "choice");
   return (
     <details className="gen-help">
@@ -65,7 +69,7 @@ export default function GeneratorHelp({ def }: { def: ModelDef }) {
                 </tr>
               </thead>
               <tbody>
-                {rows.map((f) => (f.kind === "num" ? <NumRow key={f.k} f={f} defaults={def.defaults} /> : <ChoiceRow key={f.k} f={f} defaults={def.defaults} />))}
+                {rows.map((f) => (f.kind === "num" ? <NumRow key={f.k} f={f} defaults={def!.defaults} /> : <ChoiceRow key={f.k} f={f} defaults={def!.defaults} />))}
               </tbody>
             </table>
           </div>
