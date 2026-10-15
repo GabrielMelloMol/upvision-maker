@@ -1,4 +1,5 @@
-import { Grid2x2, Grid3x3, Package, Ruler, RulerDimensionLine, TestTube } from "lucide-react";
+import { CircuitBoard, Grid2x2, Grid3x3, Package, Ruler, RulerDimensionLine, TestTube } from "lucide-react";
+import { buildBoardBox, DEFAULT_BOARD_BOX } from "../../../geometry/models/boardBox";
 import { buildGridBase, buildGridBin, buildGridTest, DEFAULT_GRID_BASE, DEFAULT_GRID_BIN } from "../../../geometry/models/gridfinity";
 import { buildLidBox, DEFAULT_LID_BOX } from "../../../geometry/models/lidBox";
 import { buildRuler3d, DEFAULT_RULER } from "../../../geometry/models/ruler3d";
@@ -170,5 +171,49 @@ export const HOME_STORAGE_MODELS: ModelDef[] = [
       },
     ],
     build: (ctx, p) => buildRuler3d(ctx, as(p)),
+  },
+  {
+    id: "boardBox",
+    category: "home",
+    label: "Caixa para placa eletrônica",
+    blurb: "Caixa e tampa para Arduino, ESP32, Raspberry Pi e outras placas: a placa assenta em pinos, os conectores saem por aberturas e a tampa encaixa. Imprima antes a bandeja de teste.",
+    icon: CircuitBoard,
+    font: true,
+    defaults: DEFAULT_BOARD_BOX,
+    sections: [
+      {
+        title: "A placa (confira com a sua)",
+        fields: [
+          num("boardL", "Comprimento da placa", 15, 150, { step: 0.1, hint: "Os perfis prontos vêm das fichas dos fabricantes e podem variar de uma marca ou revisão para outra: meça a sua com paquímetro." }),
+          num("boardW", "Largura da placa", 10, 110, { step: 0.1 }),
+          num("boardT", "Espessura da placa", 0.8, 3, { step: 0.1, hint: "Quase todas têm 1,6 mm." }),
+          text("holes", "Furos de fixação (x, y; x, y)", 120, "Em mm, a partir do canto inferior esquerdo da placa, com ponto nos decimais: 14, 2.5; 66.1, 7.6. Sem furos? Escolha \"Só apoios\" abaixo."),
+          num("holeD", "Diâmetro do furo da placa", 2, 5, { step: 0.1 }),
+        ],
+      },
+      {
+        title: "Conectores",
+        fields: [
+          text("connectors", "Aberturas (uma por linha ou separadas por ;)", 300, "Cada abertura: lado, posição, largura, altura, altura do fundo. Lado: esquerda, direita, cima ou baixo. Posição: onde está o centro do conector, em mm, no lado escolhido. Ex.: esquerda, 38, 13, 12, 0."),
+          num("headroom", "Espaço livre acima da placa", 8, 60, { step: 1, hint: "Do topo da placa até a tampa: o conector e o pino mais altos mais uma folga." }),
+        ],
+      },
+      {
+        title: "Fixação e tampa",
+        fields: [
+          choice("mount", "A placa fica", [["pegs", "Em pinos"], ["screws", "Com parafuso"], ["pads", "Só apoios"]]),
+          num("standoffH", "Altura das colunas", 2, 12, { step: 0.5, hint: "Deixa as soldas de baixo livres: 4 mm costuma bastar." }),
+          num("wall", "Parede", 1.2, 4, { step: 0.2 }),
+          num("clearance", "Folga em volta da placa", 0.2, 1.5, { step: 0.1 }),
+          num("lidGap", "Folga da tampa", 0.1, 0.6, { step: 0.05, hint: "0,25 encaixa com leve pressão; se a tampa não entrar, aumente de 0,05 em 0,05." }),
+          num("vents", "Respiros na tampa", 0, 10, { step: 1, unit: "" }),
+          text("label", "Nome gravado na tampa", 16),
+          choice("print", "Imprimir", [["box", "Caixa e tampa"], ["test", "Só a bandeja de teste"]]),
+          color("boxColor", "Caixa"),
+          color("lidColor", "Tampa"),
+        ],
+      },
+    ],
+    build: (ctx, p) => buildBoardBox(ctx, as(p)),
   },
 ];
