@@ -33,7 +33,9 @@ export function withBedCheck(def: ModelDef): ModelDef {
       const models = [...fitSetOnBed(out.models.filter((m) => !m.previewOnly)), ...preview];
       const bed = bedWarnings(models, warnings);
       const set = bed.length || warnings.some((w) => /mesa/i.test(w)) ? null : setOnBedWarning(models.filter((m) => !m.previewOnly));
-      return { ...out, models, warnings: [...warnings, ...bed, ...(set ? [set] : [])] };
+      // a vista "Peças na mesa" mostra a arrumação final (depois de caber na mesa), a mesma do arquivo
+      const views = out.views?.map((v) => (v.id === "pieces" ? { ...v, models } : v));
+      return { ...out, models, ...(views ? { views } : {}), warnings: [...warnings, ...bed, ...(set ? [set] : [])] };
     },
   };
 }

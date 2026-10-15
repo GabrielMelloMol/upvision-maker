@@ -23,7 +23,7 @@ export type FieldDef =
   | { k: string; kind: "money"; label: string; hint?: string }
   | { k: string; kind: "color"; label: string }
   | { k: string; kind: "bool"; label: string }
-  | { k: string; kind: "choice"; label: string; options: readonly (readonly [string, string])[] }
+  | { k: string; kind: "choice"; label: string; options: readonly (readonly [string, string])[]; /** Sempre como pílulas (opções com rótulo comprido não cabem no controle segmentado). */ chips?: boolean }
   /** Fonte própria de uma parte do modelo (a letra, uma linha); `sample` = campo de texto da prévia. */
   | { k: string; kind: "font"; label: string; sample?: string }
   /** Perfil por pontos de controle (raios de baixo para cima, "40, 55, 48"), com editor de arrastar (#92). */
@@ -91,7 +91,7 @@ export type ModelDef = {
   /** Gerador guiado (#204): sugestões por uso e explicação na tela. */
   guide?: GuideDef;
   /** Ao mudar um campo, outros campos que acompanham (ex.: o material muda a folga da trava); devolve só o que muda. */
-  derive?: (changed: string, value: string | number | boolean, p: Params) => Params | undefined;
+  derive?: (changed: string, value: string | number | boolean, p: Params, prev: Params) => Params | undefined;
   build: (ctx: ModelCtx, p: Params) => ModelOutput;
 };
 
@@ -106,7 +106,7 @@ export const text = (k: string, label: string, max = 30, hint?: string): FieldDe
 export const place = (k: string, label: string): FieldDef => ({ k, kind: "place", label });
 export const starPrint = (k: string, label: string): FieldDef => ({ k, kind: "starPrint", label });
 export const bool = (k: string, label: string): FieldDef => ({ k, kind: "bool", label });
-export const choice = (k: string, label: string, options: readonly (readonly [string, string])[]): FieldDef => ({ k, kind: "choice", label, options });
+export const choice = (k: string, label: string, options: readonly (readonly [string, string])[], chips = false): FieldDef => ({ k, kind: "choice", label, options, ...(chips ? { chips } : {}) });
 /** Textura rebaixada no fundo de placas e letreiros (#50). */
 /** Cavidade para resina epóxi (#53). */
 export const resinFields: FieldDef[] = [

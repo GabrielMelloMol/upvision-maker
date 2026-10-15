@@ -69,7 +69,7 @@ export default function NumField({ label, value, onChange, min, max, step = 0.1,
     {term && <TermDesc id={tipId} term={term} />}
     </>
   );
-  return asCm ? <div className="num-wrap">{field}</div> : field;
+  return asCm || withSlider ? <div className="num-wrap">{field}</div> : field; // um só item da grade: número, deslizante e frase ficam juntos
 }
 
 export const inRange = (v: number, min: number, max: number) => Number.isFinite(v) && v >= min && v <= max;

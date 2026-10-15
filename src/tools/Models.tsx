@@ -151,7 +151,7 @@ export default function Models({ only, embedded }: { only?: string; embedded?: {
   const set = (k: string) => (v: string | number | boolean) =>
     tool.set((cur) => {
       const next = { ...cur.all[id], [k]: v };
-      return { ...cur, all: { ...cur.all, [id]: { ...next, ...def.derive?.(k, v, next) } } };
+      return { ...cur, all: { ...cur.all, [id]: { ...next, ...def.derive?.(k, v, next, cur.all[id]) } } };
     }, `${id}.${k}`);
   // vista da prévia escolhida (gerador guiado): "closed" se existir, senão a primeira
   const [viewId, setViewId] = useState<string | null>(null);

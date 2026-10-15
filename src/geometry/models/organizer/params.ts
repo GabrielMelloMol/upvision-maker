@@ -1,4 +1,4 @@
-import { stripsOf, type LayoutMode } from "./layout";
+import { formatStrips, stripsOf, type LayoutMode } from "./layout";
 
 /** Parâmetros da caixa organizadora (#204). Medidas em mm. */
 export type OrganizerParams = {
@@ -96,8 +96,12 @@ export function dimsOf(p: OrganizerParams): Dims {
 }
 
 /** Escolhas que dependem de outra: ao mudar o material, a folga da trava vai para a padrão dele. */
-export function deriveOrganizer(changed: string, value: string | number | boolean): Record<string, string | number | boolean> | undefined {
-  return changed === "material" && typeof value === "string" && value in LATCH_BY_MATERIAL ? { latchClearance: LATCH_BY_MATERIAL[value as Material] } : undefined;
+export function deriveOrganizer(changed: string, value: string | number | boolean, p?: Record<string, unknown>, prev?: Record<string, unknown>): Record<string, string | number | boolean> | undefined {
+  if (changed === "material" && typeof value === "string" && value in LATCH_BY_MATERIAL) return { latchClearance: LATCH_BY_MATERIAL[value as Material] };
+  // ao ir para "Faixa por faixa", as faixas partem do que estava na tela (iguais, largos + pequenos ou canal), não de um exemplo
+  if (changed === "layoutMode" && value === "custom" && prev && prev.layoutMode !== "custom") return { strips: formatStrips(stripsOf({ ...(prev as unknown as OrganizerParams), layoutMode: prev.layoutMode as LayoutMode })) };
+  void p;
+  return undefined;
 }
 
 /** Quantos nichos a caixa tem agora (para o resumo e as dicas). */

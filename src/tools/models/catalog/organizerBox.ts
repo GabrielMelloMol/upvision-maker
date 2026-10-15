@@ -28,7 +28,7 @@ export const ORGANIZER_BOX_MODEL: ModelDef = {
   art: "Desenho na tampa (opcional)",
   defaults: DEFAULT_ORGANIZER,
   guide: ORGANIZER_GUIDE,
-  derive: (changed, value) => deriveOrganizer(changed, value),
+  derive: (changed, value, p, prev) => deriveOrganizer(changed, value, p, prev),
   sections: [
     {
       title: "Medidas",
@@ -42,7 +42,7 @@ export const ORGANIZER_BOX_MODEL: ModelDef = {
     {
       title: "Divisórias",
       fields: [
-        choice("layoutMode", "Jeito de dividir", [["equal", "Iguais"], ["mixed", "Largos + pequenos"], ["channel", "Canal longo"], ["custom", "Faixa por faixa"]]),
+        choice("layoutMode", "Jeito de dividir", [["equal", "Iguais"], ["mixed", "Largos + pequenos"], ["channel", "Canal longo"], ["custom", "Faixa por faixa"]], true),
         slide("cols", "Nichos na largura", 1, 10, "Quantos nichos lado a lado. No modo Faixa por faixa vale o que você montar abaixo.", { step: 1, unit: "" }),
         slide("rows", "Fileiras", 1, 8, "Quantas fileiras da frente ao fundo.", { step: 1, unit: "" }),
         { k: "strips", kind: "strips", label: "Faixas" },
@@ -62,7 +62,7 @@ export const ORGANIZER_BOX_MODEL: ModelDef = {
     {
       title: "Tampa",
       fields: [
-        choice("lid", "Tipo", [["hinge", "Dobradiça"], ["snap", "Encaixe"], ["slide", "Deslizante"], ["none", "Sem tampa"]]),
+        choice("lid", "Tipo", [["hinge", "Dobradiça"], ["snap", "Encaixe"], ["slide", "Deslizante"], ["none", "Sem tampa"]], true),
         slide("lidT", "Espessura da tampa", 1.6, 4, "2,4 mm fica firme e deixa o pino bem preso.", { step: 0.1 }),
         choice("material", "Material", MATERIALS),
         slide("latchClearance", "Folga da trava", 0.15, 0.6, "Dura demais, aumente 0,05; solta demais, diminua. O material já ajusta o padrão.", { step: 0.05 }),
@@ -74,7 +74,7 @@ export const ORGANIZER_BOX_MODEL: ModelDef = {
     {
       title: "Nome e cores",
       fields: [
-        choice("labelPlace", "Onde vai o nome", [["none", "Sem nome"], ["lid", "Na tampa"], ["sideLong", "Lateral maior"], ["sideShort", "Lateral menor"]]),
+        choice("labelPlace", "Onde vai o nome", [["none", "Sem nome"], ["lid", "Na tampa"], ["sideLong", "Lateral maior"], ["sideShort", "Lateral menor"]], true),
         text("text", "Nome", 24),
         choice("textMode", "Como grava", [["inlay", "Embutido"], ["raised", "Em relevo"], ["engraved", "Gravado"]]),
         slide("textSize", "Altura das letras", 4, 40, "Se o nome não couber na lateral ou na tampa, o app reduz sozinho.", { step: 1 }),

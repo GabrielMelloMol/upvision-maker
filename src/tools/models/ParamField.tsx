@@ -96,7 +96,7 @@ export default function ParamField({ f, value, onChange, sample = "", emoji, par
                 </option>
               ))}
             </select>
-          ) : f.options.length > MAX_SEGMENTS ? (
+          ) : f.chips || f.options.length > MAX_SEGMENTS ? (
             // muitas opções: pílulas que quebram linha (o Segmented é para 2–4)
             <div className="chips" role="group" aria-label={f.label}>
               {f.options.map(([v, text]) => (

@@ -93,6 +93,9 @@ describe("caixa organizadora: dobradiça, trava e encaixes (#204)", { timeout: 1
     expect(deriveOrganizer("material", "pla")).toEqual({ latchClearance: LATCH_BY_MATERIAL.pla });
     expect(deriveOrganizer("material", "nylon")).toEqual({ latchClearance: 0.5 });
     expect(deriveOrganizer("wall", 2)).toBeUndefined();
+    // Faixa por faixa parte das faixas que estavam na tela
+    expect(deriveOrganizer("layoutMode", "custom", {}, { ...DEFAULT_ORGANIZER, layoutMode: "channel", cols: 4, rows: 3 })).toEqual({ strips: "1:1.5, 4:1, 4:1" });
+    expect(deriveOrganizer("layoutMode", "equal", {}, { ...DEFAULT_ORGANIZER })).toBeUndefined();
   });
 
   for (const lid of ["snap", "slide"] as const)

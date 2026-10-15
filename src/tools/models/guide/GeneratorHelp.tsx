@@ -53,7 +53,7 @@ export default function GeneratorHelp({ def }: { def: ModelDef }) {
         <List title="Quando usar" items={use} />
         <List title="Quando não usar" items={avoid} />
         {rows.length > 0 && (
-          <div className="gen-help-scroll">
+          <div className="gen-help-scroll" tabIndex={0} role="region" aria-label="Tabela de medidas, faixas e padrões">
             <table>
               <caption className="sr-only">Faixas e valores padrão dos campos</caption>
               <thead>
