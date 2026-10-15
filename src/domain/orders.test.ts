@@ -1,6 +1,6 @@
 import { describe, expect, test } from "vitest";
 import type { Filament } from "./entities";
-import { lineTotal, orderTotals, paymentOf, planForOrder, priceForChannel, readyMessage, transition, whatsappLink, type Order, type OrderItem } from "./orders";
+import { lineTotal, orderFees, orderTotals, paymentOf, planForOrder, priceForChannel, readyMessage, transition, whatsappLink, type Order, type OrderItem } from "./orders";
 import { productPricing, type Product, type ProductCtx } from "./products";
 import { DEFAULT_SETTINGS } from "./settings";
 
@@ -163,5 +163,27 @@ describe("pagamento do pedido (#177)", () => {
     expect(whatsappLink("+55 21 99999-0000", "a b")).toBe("https://wa.me/5521999990000?text=a%20b");
     expect(whatsappLink("9999-0000", "oi")).toBeNull();
     expect(whatsappLink("", "oi")).toBeNull();
+  });
+});
+
+describe("taxas do pedido (#243, A5)", () => {
+  const items = [{ qty: 2, unitPrice: 50, discountPct: 0 }, { qty: 1, unitPrice: 100, discountPct: 10 }];
+  const st = (channels: object[], taxPct = 0) => ({ ...DEFAULT_SETTINGS, channels, taxPct }) as typeof DEFAULT_SETTINGS;
+
+  test("canal com comissão e taxa fixa: por unidade, no preço depois do desconto do item", () => {
+    // 2 × (20% de 50 + 4) + 1 × (20% de 90 + 4) = 28 + 22
+    expect(orderFees(items, "Shopee", st([{ name: "Shopee", feePct: 20, feeFixed: 4, checkedAt: "2999-01-01" }]))).toBe(50);
+  });
+
+  test("com faixas de preço cada unidade cai na faixa do seu preço (Shopee 2026: R$ 50 e R$ 90)", () => {
+    const shopee = DEFAULT_SETTINGS.channels[0];
+    // R$ 50: 20% + 4,50 = 14,50 (×2); R$ 90: 14% + 16 = 28,60
+    expect(orderFees(items, "Shopee", st([shopee]))).toBe(57.6);
+  });
+
+  test("venda direta e revenda só pagam o imposto; canal que não existe mais também", () => {
+    expect(orderFees(items, "Consumidor final", st([], 6))).toBe(11.4); // 6% de 190
+    expect(orderFees(items, "Revenda", st([], 0))).toBe(0);
+    expect(orderFees(items, "Canal apagado", st([], 6))).toBe(11.4);
   });
 });

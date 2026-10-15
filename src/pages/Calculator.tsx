@@ -327,7 +327,7 @@ export default function Calculator({ go }: { go: Go }) {
     num(f.kwh) > 0 && `kWh medido de ${num(f.kwh)}`,
     f.margin.trim() !== "" && Number.isFinite(parseDecimal(f.margin)) && `margem de ${f.margin}%`,
   ].filter((x): x is string => !!x);
-  const timeField = <TimeField label="Tempo de impressão" value={f.time} onChange={setText("time")} hint={bareHoursNote(f.time) ?? "Ex.: 3h20, 3:20 ou 200 min"} />;
+  const timeField = <TimeField label="Tempo de impressão" value={f.time} onChange={setText("time")} warn={bareHoursNote(f.time)} />;
   const piecesField = (
     <SmartField label="Peças na mesa" inputMode="numeric" parse={(t: string) => { const n = parseDecimal(t); return Number.isInteger(n) && n >= 1 ? n : NaN; }} invalidText="Digite um número inteiro de peças, ex.: 4." value={f.quantity} onChange={setText("quantity")} />
   );

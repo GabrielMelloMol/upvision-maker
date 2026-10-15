@@ -4,7 +4,7 @@ import { useState } from "react";
 import { getDb } from "../../db";
 import { ordersRepo } from "../../db/ordersRepo";
 import { money, parseDecimal } from "../../domain/format";
-import { CONSUMER, lineTotal, orderTotals, priceForChannel, RESALE, type Order, type OrderInput } from "../../domain/orders";
+import { CONSUMER, lineTotal, orderFees, orderTotals, priceForChannel, RESALE, type Order, type OrderInput } from "../../domain/orders";
 import { productPricing } from "../../domain/products";
 import Alert from "../../ui/Alert";
 import Button from "../../ui/Button";
@@ -164,6 +164,8 @@ export default function OrderEditor({ data, order, draft, onClose, onSaved, save
     items,
   };
   const valid = items.every((i) => Number.isFinite(i.qty) && Number.isFinite(i.unitPrice));
+  // taxas do canal e imposto da venda, gravadas no pedido para o Financeiro descontar (A5); pedido já entregue guarda as do dia
+  input.fees = order?.status === "delivered" ? order.fees ?? 0 : valid ? orderFees(items, channel, data.settings) : 0;
   const totals = valid ? orderTotals(items, input.freight) : null;
 
   async function save(e: React.FormEvent) {
@@ -326,6 +328,7 @@ export default function OrderEditor({ data, order, draft, onClose, onSaved, save
             {totals.discount > 0 && <tr><td>Descontos</td><td className="num">− {money(totals.discount)}</td></tr>}
             {totals.freight > 0 && <tr><td>Frete</td><td className="num">{money(totals.freight)}</td></tr>}
             <tr><th>Total</th><th className="num">{money(totals.total)}</th></tr>
+            {(input.fees ?? 0) > 0 && <tr><td>Taxas e imposto do canal <span className="hint">(descontados do lucro)</span></td><td className="num">− {money(input.fees ?? 0)}</td></tr>}
           </tbody>
         </table>
       )}

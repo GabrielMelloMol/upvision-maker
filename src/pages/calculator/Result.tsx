@@ -88,6 +88,7 @@ export function CostBreakdown({ r, s, machinePerHour, fixedPerHour, failure, pur
           <tr><td>Custo por hora de impressão</td><td className="num">{r.perHour === null ? "—" : money(r.perHour)}</td></tr>
         </tbody>
       </table>
+      <p className="hint">A taxa de falha vem do material ou das Preferências. Um produto salvo usa a taxa própria dele ou a medida nas fichas de impressão, se tiver: o preço do produto pode diferir deste.</p>
     </section>
   );
 }

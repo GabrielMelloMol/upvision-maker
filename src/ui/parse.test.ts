@@ -105,3 +105,17 @@ describe("mesma leitura de número em todos os campos (M9, M12)", () => {
     expect(numberNote("850")).toBeUndefined();
   });
 });
+
+describe("tempo solto acima de 24 h (#243, M3)", () => {
+  test("avisa quando um número sem unidade passa de 24 h; com unidade, relógio ou até 24 não avisa", async () => {
+    const { bareHoursNote } = await import("./parse");
+    expect(bareHoursNote("90")).toBe("90 horas? Se eram minutos, escreva 90 min.");
+    expect(bareHoursNote("25")).toBe("25 horas? Se eram minutos, escreva 25 min.");
+    expect(bareHoursNote("24")).toBeUndefined();
+    expect(bareHoursNote("3")).toBeUndefined();
+    expect(bareHoursNote("90 min")).toBeUndefined();
+    expect(bareHoursNote("90h")).toBeUndefined();
+    expect(bareHoursNote("1:30")).toBeUndefined();
+    expect(bareHoursNote("")).toBeUndefined();
+  });
+});

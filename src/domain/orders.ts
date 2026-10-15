@@ -1,5 +1,5 @@
 import { z } from "zod";
-import type { CalcResult } from "./calc";
+import { channelFees, type CalcResult } from "./calc";
 import { round2 } from "./format";
 import { roundForChannel, roundPrice, type Rounding } from "./pricing";
 import type { Settings } from "./settings";
@@ -41,6 +41,8 @@ export const OrderInput = z.object({
   paymentMethod: z.string().trim().max(60),
   notes: z.string().trim().max(2000),
   freight: nonNeg,
+  /** Taxas do canal e imposto da venda, gravados no pedido (A5); 0 em pedidos antigos e no orçamento. */
+  fees: nonNeg.optional(), // ausente em dados antigos e no orçamento
   /** Impressora em que o pedido vai (#188); null = ainda sem definir. */
   printerId: z.number().int().positive().nullable().optional(), // ausente em dados antigos
   items: z.array(OrderItem).min(1, "Adicione pelo menos um item"),
@@ -59,6 +61,12 @@ export type Order = Omit<OrderInput, "items"> & {
   paidAmount: number;
   items: (OrderItem & { id: number })[];
 };
+
+/** Taxas do canal e imposto de um pedido: por unidade, no preço depois do desconto do item, com as regras de hoje do canal. */
+export function orderFees(items: Pick<OrderItem, "qty" | "unitPrice" | "discountPct">[], channel: string, settings: Settings): number {
+  const cfg = settings.channels.find((c) => c.name === channel) ?? { name: channel, feePct: 0, feeFixed: 0 }; // venda direta e revenda: só o imposto
+  return round2(items.reduce((t, i) => t + i.qty * channelFees(cfg, round2(i.unitPrice * (1 - i.discountPct / 100)), settings.taxPct), 0));
+}
 
 export const lineTotal = (i: Pick<OrderItem, "qty" | "unitPrice" | "discountPct">) => round2(i.qty * i.unitPrice * (1 - i.discountPct / 100));
 

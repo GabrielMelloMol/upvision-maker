@@ -9,7 +9,7 @@ export type HealthCheck = { id: "margin" | "stock" | "late" | "bills"; level: He
 export type HealthInput = {
   today: string;
   /** Resumo do mês corrente (já com custos operacionais e amostras/erros). */
-  month: Pick<FinanceSummary, "revenue" | "cogs" | "expenses" | "waste" | "profit">;
+  month: Pick<FinanceSummary, "revenue" | "cogs" | "expenses" | "waste" | "profit"> & { fees?: number };
   /** Pedidos em aberto com prazo vencido (data do prazo). */
   lateDueDates: string[];
   /** Filamentos e materiais abaixo do mínimo, e quantos desses já zeraram. */
@@ -62,7 +62,7 @@ function billsCheck({ today, month: m }: HealthInput): HealthCheck {
   const inMonth = new Date(Number(today.slice(0, 4)), Number(today.slice(5, 7)), 0).getDate();
   if (day <= BILLS_GRACE_DAYS) return { ...base, level: "ok", detail: `${brl(m.expenses)} em contas neste mês; o mês está começando.`, todo: "Nada a fazer ainda." };
   const expected = m.expenses * (day / inMonth);
-  const gross = m.revenue - m.cogs - m.waste; // o que sobra das vendas antes das contas
+  const gross = m.revenue - m.cogs - (m.fees ?? 0) - m.waste; // o que sobra das vendas antes das contas
   const detail = `Contas de ${brl(m.expenses)}; até hoje as vendas deixaram ${brl(gross)} depois do custo das peças.`;
   if (gross >= expected) return { ...base, level: "ok", detail, todo: "Nada a fazer." };
   return { ...base, level: gross >= expected * BILLS_WARN_COVER ? "warn" : "critical", detail, todo: "Faltam vendas para cobrir as contas do mês: feche os orçamentos em aberto e cobre o que está a receber." };

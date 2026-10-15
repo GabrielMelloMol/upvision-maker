@@ -74,7 +74,7 @@ export default function Finance({ go }: { go: Go }) {
       const total = orderTotals(o.items, o.freight).total;
       o.items.forEach((i, k) => rows.push([o.id, o.deliveredAt, o.customerName, o.channel, i.description, i.qty, i.unitPrice, i.discountPct, lineTotal(i), i.unitCost, Math.round((lineTotal(i) - i.unitCost * i.qty) * 100) / 100, k === 0 ? o.freight : null, k === 0 ? total : null]));
     }
-    rows.push([], ["Resumo", `${from} a ${to}`], ["Receita", s.revenue], ["Custo das peças", s.cogs], ["Despesas operacionais", s.expenses], ["Amostras e erros de impressão", s.waste], ["Lucro", s.profit], ["Horas de impressão", s.machineHours], ["R$ por hora de impressão", s.revenuePerHour]);
+    rows.push([], ["Resumo", `${from} a ${to}`], ["Receita", s.revenue], ["Custo das peças", s.cogs], ["Taxas e imposto", s.fees], ["Despesas operacionais", s.expenses], ["Amostras e erros de impressão", s.waste], ["Lucro", s.profit], ["Horas de impressão", s.machineHours], ["R$ por hora de impressão", s.revenuePerHour]);
     try {
       const path = await saveFile(`financeiro-${from}-a-${to}.csv`, toCsv(rows), "csv", "Planilha CSV");
       if (path) toast(`Planilha salva em ${path}`);
@@ -151,6 +151,7 @@ export default function Finance({ go }: { go: Go }) {
       <div className="stats" aria-live="polite">
         <StatTile label="Receita" value={money(s.revenue)} delta={change(s.revenue, prev.revenue)} hint={`${s.orders} pedidos entregues`} />
         <StatTile label="Custo das peças" value={money(s.cogs)} delta={change(s.cogs, prev.cogs)} upIsGood={false} />
+        <StatTile label="Taxas e imposto" value={money(s.fees)} delta={change(s.fees, prev.fees)} upIsGood={false} hint="Taxa do canal e imposto, gravados em cada pedido no dia da venda." />
         <StatTile label="Custos operacionais" value={money(s.expenses)} delta={change(s.expenses, prev.expenses)} upIsGood={false} hint={productId ? "não se aplicam a um produto" : undefined} />
         <StatTile label="Amostras e erros" value={money(s.waste)} delta={change(s.waste, prev.waste)} upIsGood={false} hint={s.waste > 0 ? `${money(lost.failure)} em erros · ${money(lost.sample)} em amostras${failPct !== null ? ` · erros são ${failPct.toLocaleString("pt-BR")}% do custo de produção` : ""}` : "Filamento gasto fora das vendas; registre em Filamentos."} />
         <StatTile label="Lucro" value={money(s.profit)} delta={change(s.profit, prev.profit)} deltaMoney={s.profit < 0 || prev.profit < 0 ? s.profit - prev.profit : undefined} tone={s.profit < 0 ? "bad" : undefined} hint={s.profit < 0 ? "prejuízo no período" : undefined} />

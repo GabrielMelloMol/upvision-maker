@@ -17,6 +17,9 @@ export default function PriceControls({ rounding, onRounding, competitor, onComp
       <div style={{ flex: "1 1 240px", maxWidth: 360 }}>
         <MoneyField label="Testar um preço (seu ou do concorrente)" value={competitor} onChange={onCompetitor} hint={<CompetitorHint ours={ours} competitor={parseMoney(competitor) || 0} />} />
       </div>
+      <p className="hint" style={{ flexBasis: "100%", margin: 0 }}>
+        A venda direta e o lojista são multiplicadores sobre o custo (×5 e ×3), sem taxa de canal. Os marketplaces e a maquininha calculam o preço para sobrar a margem pedida <em>depois</em> das taxas: por isso o "Instagram/WhatsApp (maquininha)" sai menor que a venda direta de ×5.
+      </p>
     </div>
   );
 }

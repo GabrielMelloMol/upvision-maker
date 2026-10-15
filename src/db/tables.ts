@@ -36,6 +36,7 @@ export const TABLES = {
     deliveredAt: z.string().nullable(),
     quoteId: z.number().int().nullable(),
     paidAmount: z.number().min(0).default(0), // #177; backups antigos não têm
+    fees: z.number().min(0).default(0), // A5; backups antigos não têm
   }),
   order_items: OrderItem.extend({ id, orderId: id, position: z.number().int() }),
   order_history: z.object({ id, orderId: id, status: z.string(), note: z.string(), at: z.string() }),
