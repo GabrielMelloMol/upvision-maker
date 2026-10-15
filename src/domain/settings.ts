@@ -1,7 +1,12 @@
 import { z } from "zod";
 import { KwhEntrySchema } from "./energy";
+import { ML_CLASSIC_2026, SHOPEE_2026 } from "./channelDefaults";
 
 const pct = z.number().min(0).max(100);
+
+/** Faixa de preço do canal (C1): a partir de `from` valem esta comissão e esta taxa fixa, no lugar das do canal. */
+export const FeeTierSchema = z.object({ from: z.number().positive(), feePct: pct, feeFixed: z.number().min(0) });
+export type FeeTier = z.infer<typeof FeeTierSchema>;
 
 export const ChannelSchema = z.object({
   name: z.string().trim().min(1),
@@ -9,6 +14,13 @@ export const ChannelSchema = z.object({
   feeFixed: z.number().min(0),
   /** Custo por venda só deste canal: embalagem reforçada, etiqueta, brinde (#33). */
   extraPerSale: z.number().min(0).optional(),
+  /**
+   * Taxas por faixa de preço (Shopee 2026, TikTok Shop, Mercado Livre): `feePct` e `feeFixed` do canal valem abaixo da
+   * primeira faixa; a partir do `from` de cada faixa valem os dela (a última que o preço alcança).
+   */
+  tiers: z.array(FeeTierSchema).max(12).optional(),
+  /** De onde vêm as taxas e o que a pessoa precisa conferir (mostrado ao lado do canal). */
+  rulesNote: z.string().trim().max(700).optional(),
   // Faixas de preço (#31), todas opcionais: sem elas o canal é só comissão % + taxa fixa.
   /** A taxa fixa só vale para preço abaixo disto. */
   fixedBelow: z.number().positive().optional(),
@@ -87,11 +99,7 @@ export const DEFAULT_SETTINGS: Settings = {
   multConsumer: 5,
   marketplaceMarginPct: 30,
   minMarginPct: 10,
-  channels: [
-    { name: "Shopee", feePct: 20, feeFixed: 4 },
-    { name: "Mercado Livre (clássico)", feePct: 14, feeFixed: 6.75 },
-    { name: "TikTok Shop", feePct: 12, feeFixed: 4 },
-  ],
+  channels: [SHOPEE_2026, ML_CLASSIC_2026, { name: "TikTok Shop", feePct: 12, feeFixed: 4 }],
   kwhHistory: [],
   ams: { slots: 4, filaments: [] },
   bedPrinterId: null,

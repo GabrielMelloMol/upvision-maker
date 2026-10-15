@@ -1,9 +1,10 @@
+import { LEGACY_CHANNELS } from "../test/legacyChannels";
 import { describe, expect, test } from "vitest";
 import { calculate, type CalcInput } from "./calc";
 import { compareChannels, competitorHint, hourStatus, markupText, prepCost, quantityTable, roundPrice } from "./pricing";
 import { DEFAULT_SETTINGS, type Settings } from "./settings";
 
-const s: Settings = { ...DEFAULT_SETTINGS, kwhPrice: 0.9, laborHourCost: 20, maintenancePct: 5, failurePct: 0, minMarginPct: 10 };
+const s: Settings = { ...DEFAULT_SETTINGS, channels: LEGACY_CHANNELS, kwhPrice: 0.9, laborHourCost: 20, maintenancePct: 5, failurePct: 0, minMarginPct: 10 };
 const input: CalcInput = { filaments: [{ pricePerKg: 85, grams: 120 }], extras: [{ unitPrice: 5, qty: 1 }], printerWatts: 0, printHours: 0, laborHours: 0, quantity: 1, freight: 0, marketplaceMarginPct: 30 };
 const r = calculate(input, s); // custo 15,96 · consumidor 79,80 · revenda 47,88 · Shopee 39,92
 

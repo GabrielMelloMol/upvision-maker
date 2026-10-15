@@ -112,8 +112,34 @@ describe("Preferences", () => {
     await user.click(screen.getByRole("button", { name: "Salvar preferências" }));
     expect(await screen.findByText("Preferências salvas.")).toBeInTheDocument();
     const shopee = (await settings()).channels[0];
-    expect(shopee).toEqual({ name: "Shopee", feePct: 20, feeFixed: 4, extraPerSale: 2.5, freeShippingAbove: 79, shippingCost: 20, checkedAt: expect.any(String) });
+    // o Shopee de fábrica (2026) já tem faixas e nota; o que a pessoa preencheu vai junto
+    expect(shopee).toMatchObject({ name: "Shopee", feePct: 20, feeFixed: 4.5, extraPerSale: 2.5, freeShippingAbove: 79, shippingCost: 20, checkedAt: expect.any(String) });
+    expect(shopee.tiers).toHaveLength(3);
     expect((await settings()).channels[1]).not.toHaveProperty("extraPerSale");
+  });
+
+  test("taxas por faixa de preço (#242): a Shopee vem com 3 faixas e a nota da regra; adicionar, editar, remover e gravar", async () => {
+    const user = userEvent.setup();
+    renderWithApp(<Preferences />);
+    await open(user, "Canais de venda");
+    expect(await screen.findByText(/Shopee CNPJ: 20% \+ R\$ 4,50 até R\$ 79,99/)).toBeInTheDocument();
+    expect(screen.getByLabelText("A partir de (faixa 1, Shopee)")).toHaveValue("80,00");
+    expect(screen.getByLabelText("A partir de (faixa 3, Shopee)")).toHaveValue("200,00");
+    await user.clear(screen.getByLabelText("Taxa fixa da faixa 3 (Shopee)"));
+    await user.type(screen.getByLabelText("Taxa fixa da faixa 3 (Shopee)"), "28");
+    await user.click(screen.getByRole("button", { name: "Remover faixa 2 (Shopee)" }));
+    expect(screen.queryByLabelText("A partir de (faixa 3, Shopee)")).not.toBeInTheDocument();
+    await user.click(screen.getByRole("button", { name: "Adicionar faixa de preço (Shopee)" }));
+    await user.type(screen.getByLabelText("A partir de (faixa 3, Shopee)"), "500");
+    await user.click(screen.getByRole("button", { name: "Salvar preferências" }));
+    expect(await screen.findByText("Preferências salvas.")).toBeInTheDocument();
+    const shopee = (await settings()).channels[0];
+    expect(shopee.tiers).toEqual([
+      { from: 80, feePct: 14, feeFixed: 16 },
+      { from: 200, feePct: 14, feeFixed: 28 },
+      { from: 500, feePct: 20, feeFixed: 4.5 }, // a faixa nova nasce com a taxa do canal
+    ]);
+    expect(shopee.rulesNote).toMatch(/central do vendedor/);
   });
 
   test("canais prontos e data de conferência (#34): adicionar, conferir hoje, mexer na taxa também confere", async () => {
@@ -124,18 +150,18 @@ describe("Preferences", () => {
     await user.selectOptions(screen.getByLabelText("Adicionar canal pronto"), "Shein");
     expect(screen.getByDisplayValue("Shein")).toBeInTheDocument();
     expect(screen.getAllByText("Taxas ainda não conferidas por você.").length).toBeGreaterThan(1);
-    await user.click(screen.getByRole("button", { name: "Conferi hoje (Shopee)" }));
-    const tiktok = screen.getByDisplayValue("TikTok Shop").closest(".row")! as HTMLElement;
-    await user.clear(within(tiktok).getByLabelText("Comissão (%)"));
-    await user.type(within(tiktok).getByLabelText("Comissão (%)"), "13");
+    await user.click(screen.getByRole("button", { name: "Conferi hoje (TikTok Shop)" }));
+    const shopeeRow = screen.getByDisplayValue("Shopee").closest(".row")! as HTMLElement;
+    await user.clear(within(shopeeRow).getByLabelText("Comissão (%)"));
+    await user.type(within(shopeeRow).getByLabelText("Comissão (%)"), "19");
     await user.click(screen.getByRole("button", { name: "Salvar preferências" }));
     expect(await screen.findByText("Preferências salvas.")).toBeInTheDocument();
     const byName = Object.fromEntries((await settings()).channels.map((c: { name: string }) => [c.name, c]));
     const today = todayIso();
-    expect(byName.Shopee.checkedAt).toBe(today);
-    expect(byName["TikTok Shop"]).toMatchObject({ feePct: 13, checkedAt: today });
+    expect(byName["TikTok Shop"].checkedAt).toBe(today);
+    expect(byName.Shopee).toMatchObject({ feePct: 19, checkedAt: today });
     expect(byName.Shein).toEqual({ name: "Shein", feePct: 16, feeFixed: 0 });
-    expect(byName["Mercado Livre (clássico)"]).not.toHaveProperty("checkedAt");
+    expect(byName["Mercado Livre (clássico)"].checkedAt).toBe("2026-10-15"); // a data da regra de fábrica (2026)
   });
 
   test("falha por material (#35): só os preenchidos são gravados", async () => {

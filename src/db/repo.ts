@@ -1,5 +1,6 @@
 import type { z } from "zod";
 import { FilamentInput, MaterialInput, PrinterInput, type WithId } from "../domain/entities";
+import { migrateChannels } from "../domain/channelDefaults";
 import { DEFAULT_SETTINGS, SettingsSchema, type Settings } from "../domain/settings";
 import { weightedAverage } from "../domain/stock";
 import { salvage } from "./salvage";
@@ -91,7 +92,8 @@ export const materials = stockCrud("materials", MaterialInput, "stock", "unitPri
 export async function loadSettings(db: Db): Promise<Settings> {
   const [row] = await db.select<{ data: string }>("SELECT data FROM settings WHERE id = 1");
   if (!row) return DEFAULT_SETTINGS;
-  return salvage("preferências", SettingsSchema, DEFAULT_SETTINGS, row.data);
+  const s = salvage("preferências", SettingsSchema, DEFAULT_SETTINGS, row.data);
+  return { ...s, channels: migrateChannels(s.channels) }; // o canal de fábrica antigo, sem mexida da pessoa, vira o de 2026 (#242)
 }
 
 export async function saveSettings(db: Db, s: Settings): Promise<void> {

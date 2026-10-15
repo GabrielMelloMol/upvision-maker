@@ -1,3 +1,4 @@
+import { LEGACY_CHANNELS } from "../test/legacyChannels";
 import { describe, expect, test } from "vitest";
 import { adsFor, adsSentence } from "./ads";
 import { calculate, type CalcInput } from "./calc";
@@ -5,7 +6,7 @@ import { compareChannels } from "./pricing";
 import { DEFAULT_SETTINGS, type Settings } from "./settings";
 
 // exemplo da home: custo 15,96; Shopee 20% + R$ 4 com margem 30% → R$ 39,92, lucro 11,98
-const s: Settings = { ...DEFAULT_SETTINGS, laborHourCost: 20, maintenancePct: 5, failurePct: 0 };
+const s: Settings = { ...DEFAULT_SETTINGS, channels: LEGACY_CHANNELS, laborHourCost: 20, maintenancePct: 5, failurePct: 0 };
 const input: CalcInput = { filaments: [{ pricePerKg: 85, grams: 120 }], extras: [{ unitPrice: 5, qty: 1 }], printerWatts: 0, printHours: 0, laborHours: 0, quantity: 1, freight: 0, marketplaceMarginPct: 30 };
 const r = calculate(input, s);
 const shopee = compareChannels(r, s, 0, { rounding: "none" })[2];

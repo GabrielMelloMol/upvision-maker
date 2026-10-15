@@ -498,3 +498,4 @@ h3.subhead svg { width: 16px; height: 16px; color: var(--muted); }
 .kit-gallery-name { font-weight: 600; font-size: var(--text-md); }
 .kit-gallery-tag { color: var(--muted); font-size: var(--text-sm); display: -webkit-box; -webkit-line-clamp: 4; -webkit-box-orient: vertical; overflow: hidden; }
 .kit-gallery-facts { display: flex; flex-wrap: wrap; gap: 4px; }
+.channel-note { display: block; margin-top: 2px; }

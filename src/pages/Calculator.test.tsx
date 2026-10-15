@@ -4,8 +4,10 @@ import userEvent from "@testing-library/user-event";
 import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
 import { beforeEach, describe, expect, test, vi } from "vitest";
+import { LEGACY_CHANNELS } from "../test/legacyChannels";
 import { renderWithApp, setupTauri } from "../test/harness";
 import Calculator from "./Calculator";
+import { setPendingEstimate } from "./calculator/pendingFile";
 import { clearProductDraft, peekProductDraft } from "./products/draft";
 import { clearQuoteDraft, peekOpenQuoteDraft, peekQuoteDraft } from "./quotes/draft";
 
@@ -21,7 +23,8 @@ beforeEach(async () => {
   clearProductDraft();
   // Casos antigos: modo Completo, manutenção 5% e sem taxa de falha (os números abaixo são desse jeito).
   localStorage.setItem("upvision:calculadora", JSON.stringify({ mode: "full", fil: [{ ref: "", price: "", qty: "" }], ext: [], printerId: "", f: {} }));
-  await t.db.execute(`INSERT INTO settings (id, data) VALUES (1, '{"maintenancePct":5,"failurePct":0}')`);
+  // canais de fábrica antigos (taxas redondas): as regras de 2026 têm os testes delas em domain/channelTiers.test.ts
+  await t.db.execute(`INSERT INTO settings (id, data) VALUES (1, '${JSON.stringify({ maintenancePct: 5, failurePct: 0, channels: LEGACY_CHANNELS })}')`);
 });
 
 describe("Calculator", () => {
@@ -196,6 +199,53 @@ describe("Calculator", () => {
     expect(screen.queryByRole("dialog", { name: "Cadastrar o que você digitou?" })).toBeNull();
   });
 
+  test("salvar como produto leva a purga (gramas somadas) e o kWh medido (impressora de mesma potência) (#242, C3)", async () => {
+    await t.db.execute("INSERT INTO filaments (material, color, brand, pricePerKg) VALUES ('PLA', 'Preto', '', 120)");
+    await t.db.execute("INSERT INTO printers (name, watts, price, lifeHours) VALUES ('A1', 95, 3000, 5000)");
+    const go = vi.fn();
+    const user = userEvent.setup();
+    renderWithApp(<Calculator go={go} />);
+    await screen.findByRole("option", { name: "PLA · Preto" });
+    await user.selectOptions(screen.getByLabelText("Filamento"), "PLA · Preto");
+    await user.type(screen.getByLabelText("Gramas"), "40");
+    await user.selectOptions(screen.getByLabelText("Impressora"), "A1");
+    await user.type(screen.getByLabelText("Tempo de impressão"), "2h");
+    await user.type(screen.getByLabelText("Trocas de cor"), "60"); // 60 × 0,8 g = 48 g de purga
+    await user.type(screen.getByLabelText("kWh medido desta impressão"), "0,5");
+    await user.click(screen.getByRole("button", { name: "Salvar como produto" }));
+    await waitFor(() => expect(go).toHaveBeenCalledWith("products"));
+    const draft = peekProductDraft()!;
+    expect(draft.composition!.filaments).toEqual([{ filamentId: 1, grams: 88 }]); // 40 + 48 de purga: antes só 40
+    const [, copy] = (await t.db.select("SELECT id, name, watts FROM printers ORDER BY id")) as { id: number; name: string; watts: number }[];
+    expect(copy).toMatchObject({ name: "A1 (kWh medido)", watts: 250 }); // 0,5 kWh em 2 h
+    expect(draft.printerId).toBe(copy.id);
+  });
+
+  test("estimativa de uma ferramenta 3D troca 'Peças na mesa' e põe preço nas cores sem filamento, marcado para conferir (#242, C4 e C5)", async () => {
+    localStorage.setItem("upvision:calculadora", JSON.stringify({ mode: "full", fil: [{ ref: "", price: "", qty: "" }], ext: [], printerId: "", f: { quantity: "10" } })); // a conta anterior tinha 10 na mesa
+    setPendingEstimate({
+      filaments: [
+        { filamentId: null, pricePerKg: 100, grams: 12, estimated: true },
+        { filamentId: null, pricePerKg: 100, grams: 6, estimated: true },
+      ],
+      pieces: 1,
+      printerWatts: null,
+      seconds: 3600,
+      name: "Chaveiro giratório",
+    });
+    renderWithApp(<Calculator go={() => {}} />);
+    await waitFor(() => expect(screen.getByLabelText("Peças na mesa")).toHaveValue("1")); // antes ficava 10 e o custo saía 10 vezes menor
+    expect(screen.getAllByLabelText("Preço por kg").map((i) => (i as HTMLInputElement).value)).toEqual(["100,00", "100,00"]);
+    expect(screen.getAllByText("preço estimado: confira")).toHaveLength(2);
+    // R$ 1,80 de filamento (18 g a R$ 100/kg), não R$ 0,00
+    expect(within(screen.getByRole("row", { name: /^Filamento/ })).getAllByRole("cell")[1]).toHaveTextContent(brl("1,80"));
+    // corrigir o preço tira o aviso daquela linha
+    const first = screen.getAllByLabelText("Preço por kg")[0];
+    await userEvent.setup().clear(first);
+    await userEvent.setup().type(first, "90");
+    expect(screen.getAllByText("preço estimado: confira")).toHaveLength(1);
+  });
+
   test("arquivo do fatiador preenche filamentos, impressora, tempo e peças", async () => {
     await t.db.execute("INSERT INTO printers (name, watts) VALUES ('A1', 110)");
     await t.db.execute("INSERT INTO filaments (material, color, brand, pricePerKg) VALUES ('PLA', 'Azul', 'Bambu', 120), ('PLA', 'Branco', 'Bambu', 110)");
@@ -345,7 +395,7 @@ test("adicionar ao orçamento (#28): soma cálculos num rascunho com preço, cus
 describe("lucro por hora (#30) e testar um preço no Rápido (#37)", () => {
   beforeEach(async () => {
     localStorage.removeItem("upvision:calculadora");
-    await t.db.execute(`INSERT OR REPLACE INTO settings (id, data) VALUES (1, '{"failurePct":0,"targetProfitPerHour":10,"channels":[{"name":"Shopee","feePct":20,"feeFixed":4}]}')`);
+    await t.db.execute(`INSERT OR REPLACE INTO settings (id, data) VALUES (1, '{"failurePct":0,"targetProfitPerHour":10,"channels":[{"name":"Shopee","feePct":20,"feeFixed":4,"checkedAt":"2999-01-01"}]}')`);
   });
 
   async function fill(user: ReturnType<typeof userEvent.setup>) {
@@ -422,7 +472,7 @@ test("preço por quantidade (#32): preparo diluído, desconto em relação a 1 u
 
 test("anúncios pagos (#29): ROAS de equilíbrio, frase e preço com anúncio; ROAS baixo demais avisa", async () => {
   localStorage.setItem("upvision:calculadora", JSON.stringify({ mode: "full", fil: [{ ref: "", price: "", qty: "" }], ext: [], printerId: "", f: {} }));
-  await t.db.execute(`INSERT OR REPLACE INTO settings (id, data) VALUES (1, '{"failurePct":0,"channels":[{"name":"Shopee","feePct":20,"feeFixed":4}]}')`);
+  await t.db.execute(`INSERT OR REPLACE INTO settings (id, data) VALUES (1, '{"failurePct":0,"channels":[{"name":"Shopee","feePct":20,"feeFixed":4,"checkedAt":"2999-01-01"}]}')`);
   const user = userEvent.setup();
   renderWithApp(<Calculator go={() => {}} />);
   await screen.findAllByRole("option", { name: /^Shopee/ });
@@ -437,6 +487,16 @@ test("anúncios pagos (#29): ROAS de equilíbrio, frase e preço com anúncio; R
   await user.clear(roas);
   await user.type(roas, "2");
   expect(within(ads).getByRole("row", { name: /^Shopee/ })).toHaveTextContent("com este ROAS não há preço possível");
+});
+
+test("canais com faixas de preço mostram a data da regra na tabela (#242)", async () => {
+  await t.db.execute("DELETE FROM settings");
+  const user = userEvent.setup();
+  renderWithApp(<Calculator go={() => {}} />); // modo Completo (beforeEach do arquivo), com as preferências de fábrica
+  await screen.findByLabelText("Gramas");
+  await user.type(screen.getByLabelText("Gramas"), "200");
+  expect(await within(await screen.findByRole("row", { name: /^Shopee/ })).findByText(/Taxas por faixa de preço, conferidas em 15\/10\/2026/)).toBeInTheDocument();
+  expect(screen.getByRole("row", { name: /^TikTok Shop/ })).not.toHaveTextContent(/faixa de preço/);
 });
 
 test("taxas conferidas há mais de 90 dias (#34): a linha do canal avisa", async () => {

@@ -2,13 +2,13 @@ import { expect, test } from "vitest";
 import { CHANNEL_PRESETS, staleChannelText } from "./channels";
 import { ChannelSchema } from "./settings";
 
-test("canais prontos: válidos, sem data de conferência (são ponto de partida)", () => {
+test("canais prontos: válidos; só o Mercado Livre premium traz a data da regra de 2026, os outros não têm conferência (ponto de partida)", () => {
   expect(CHANNEL_PRESETS.map((c) => c.name)).toEqual(
     expect.arrayContaining(["Mercado Livre (premium)", "Amazon", "Elo7", "Shein", "Instagram/WhatsApp (maquininha)"]),
   );
   for (const c of CHANNEL_PRESETS) {
     expect(ChannelSchema.parse(c)).toEqual(c);
-    expect(c.checkedAt).toBeUndefined();
+    expect(c.checkedAt).toBe(c.name === "Mercado Livre (premium)" ? "2026-10-15" : undefined);
   }
 });
 

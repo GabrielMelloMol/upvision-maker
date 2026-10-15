@@ -1,3 +1,4 @@
+import { ML_PREMIUM_2026 } from "./channelDefaults";
 import type { Channel } from "./settings";
 
 /**
@@ -5,7 +6,7 @@ import type { Channel } from "./settings";
  * plataforma (a comissão varia por categoria e tipo de anúncio): são ponto de partida, a pessoa confere e ajusta.
  */
 export const CHANNEL_PRESETS: Channel[] = [
-  { name: "Mercado Livre (premium)", feePct: 17, feeFixed: 6.75, fixedBelow: 79 }, // premium 15–19%; custo fixo só abaixo de R$ 79
+  ML_PREMIUM_2026, // premium 15–19%; custo por unidade por faixa abaixo de R$ 79 e frete a partir dele
   { name: "Amazon", feePct: 15, feeFixed: 0 }, // 8–15% conforme a categoria
   { name: "Elo7", feePct: 18, feeFixed: 0 },
   { name: "Shein", feePct: 16, feeFixed: 0 },

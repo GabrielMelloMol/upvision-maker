@@ -30,8 +30,9 @@ export default function Lines(props: { lines: Line[]; setLines: (l: Line[]) => v
               {options.map((o) => <option key={o.id} value={o.id}>{o.label}</option>)}
             </select>
           </label>
-          <MoneyField label={props.priceLabel} value={l.price} onChange={(v) => update(i, { price: v, ref: "" })} />
+          <MoneyField label={props.priceLabel} value={l.price} onChange={(v) => update(i, { price: v, ref: "", estimated: undefined })} />
           <SmartField label={props.qtyLabel} inputMode="decimal" parse={parseDecimal} invalidText={qtyInvalid(props.qtyLabel)} value={l.qty} onChange={(v) => update(i, { qty: v })} />
+          {l.estimated && <span className="badge warn" role="note">preço estimado: confira</span>}
           {!props.single && <button className="link danger" onClick={() => setLines(lines.filter((_, j) => j !== i))}>Remover</button>}
         </div>
       ))}

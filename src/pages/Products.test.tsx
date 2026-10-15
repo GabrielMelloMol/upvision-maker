@@ -554,7 +554,7 @@ describe("Produtos: planilha de upload em massa (#78)", () => {
     expect(rows).toHaveLength(3);
     const lum = rows.find((r) => r[1] === "Luminária de lua")!;
     expect(lum[0]).toBe("101152");
-    expect(lum[rows[0].indexOf("Preço")]).toBe("39.92");
+    expect(lum[rows[0].indexOf("Preço")]).toBe("40.92"); // Shopee 2026: taxa fixa de R$ 4,50 (eram R$ 4,00: 39,92)
     expect(lum[rows[0].indexOf("Peso")]).toBe("0.15"); // 120 g + 30 g de embalagem
   });
 });
