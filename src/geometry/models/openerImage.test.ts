@@ -80,6 +80,16 @@ describe("abridor pela imagem: base no contorno, abridor e argola nos 4 lados", 
     s.delete();
   });
 
+  test("encaixe automático: peça mais curta que com o abridor todo para fora, e o relevo não é cortado", () => {
+    const flat = () => ctx(M.CrossSection.square([100, 60], true)); // fundo reto: o abridor encosta nele
+    const fora = build({ fit: false }, flat());
+    const auto = build({}, flat());
+    const h = (o: ReturnType<typeof build>) => { const b = meshBounds([part(o, "Base")!.mesh])!; return b.max[1] - b.min[1]; };
+    expect(h(auto)).toBeLessThan(h(fora) - 3);
+    const vol = (o: ReturnType<typeof build>) => { const s = solid(part(o, "Relevo")!.mesh); const v = s.volume(); s.delete(); return v; };
+    expect(vol(auto)).toBeGreaterThan(vol(fora) * 0.99);
+  });
+
   test("argola e abridor no mesmo lado: a argola vai para o lado oposto e avisa", () => {
     const out = build({ openerSide: "bottom", ringSide: "bottom" });
     expect(out.warnings?.join(" ")).toMatch(/lado oposto/);

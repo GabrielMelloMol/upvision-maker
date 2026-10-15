@@ -188,7 +188,8 @@ export const KEYCHAIN_MODELS: ModelDef[] = [
             icons: { bottom: ArrowDown, left: ArrowLeft, right: ArrowRight, top: ArrowUp },
             hint: "A parte reta da abertura (o dente) prende a tampinha e faz a força. Imprima em PETG, com 4 paredes: não precisa de moeda nem de anel de metal.",
           }),
-          num("overlap", "Abridor entra no desenho", 0, 25, { step: 1, hint: "0 deixa o desenho inteiro e o abridor todo para fora. Aumente para a peça ficar mais curta: o abridor corta a ponta do desenho." }),
+          bool("fit", "Encaixar o abridor no desenho (automático)"),
+          num("overlap", "Abridor entra no desenho (manual)", 0, 25, { step: 1, hint: "Só vale com o automático desligado. 0 deixa o abridor todo para fora; mais deixa a peça curta, mas o abridor corta a ponta do desenho." }),
           choice("ringSide", "Argola", [["top", "Em cima"], ["left", "Esquerda"], ["right", "Direita"], ["bottom", "Embaixo"]], {
             icons: { top: ArrowUp, left: ArrowLeft, right: ArrowRight, bottom: ArrowDown },
             hint: "Também dá para arrastar a argola e o abridor na prévia.",

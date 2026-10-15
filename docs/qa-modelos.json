@@ -490,25 +490,39 @@
    "6 cores: mais que os 4 do AMS lite",
    "Bambu: torre de purga passa da mesa na posição padrão do CLI (na tela, arraste a torre ou use Arrumar)",
    "Orca: torre de purga passa da mesa na posição padrão do CLI (na tela, arraste a torre ou use Arrumar)",
-   "Projeto Bambu: torre de purga passa da mesa na posição padrão do CLI (na tela, arraste a torre ou use Arrumar)",
-   "app: O dente (a parte reta da abertura) é quem faz a força: imprima em PETG com 4 paredes e 40% de preenchimento. Não precisa de moeda nem de anel de metal."
+   "Projeto Bambu: torre de purga passa da mesa na posição padrão do CLI (na tela, arraste a torre ou use Arrumar)"
   ],
   "date": "2026-10-15",
   "slicers": "Bambu ✓ · Orca ✓ · Projeto Bambu ✓"
  },
  {
-  "key": "openerImage:abridor dentro do desenho",
+  "key": "openerImage:abridor dentro do desenho (manual)",
   "owner": "Forja",
   "group": "keychains",
   "label": "Chaveiro abridor com sua arte (openerImage)",
-  "variant": "abridor dentro do desenho",
+  "variant": "abridor dentro do desenho (manual)",
   "status": "aviso",
   "reasons": [
    "6 cores: mais que os 4 do AMS lite",
    "Bambu: torre de purga passa da mesa na posição padrão do CLI (na tela, arraste a torre ou use Arrumar)",
    "Orca: torre de purga passa da mesa na posição padrão do CLI (na tela, arraste a torre ou use Arrumar)",
-   "Projeto Bambu: torre de purga passa da mesa na posição padrão do CLI (na tela, arraste a torre ou use Arrumar)",
-   "app: O dente (a parte reta da abertura) é quem faz a força: imprima em PETG com 4 paredes e 40% de preenchimento. Não precisa de moeda nem de anel de metal."
+   "Projeto Bambu: torre de purga passa da mesa na posição padrão do CLI (na tela, arraste a torre ou use Arrumar)"
+  ],
+  "date": "2026-10-15",
+  "slicers": "Bambu ✓ · Orca ✓ · Projeto Bambu ✓"
+ },
+ {
+  "key": "openerImage:abridor fora do desenho",
+  "owner": "Forja",
+  "group": "keychains",
+  "label": "Chaveiro abridor com sua arte (openerImage)",
+  "variant": "abridor fora do desenho",
+  "status": "aviso",
+  "reasons": [
+   "6 cores: mais que os 4 do AMS lite",
+   "Bambu: torre de purga passa da mesa na posição padrão do CLI (na tela, arraste a torre ou use Arrumar)",
+   "Orca: torre de purga passa da mesa na posição padrão do CLI (na tela, arraste a torre ou use Arrumar)",
+   "Projeto Bambu: torre de purga passa da mesa na posição padrão do CLI (na tela, arraste a torre ou use Arrumar)"
   ],
   "date": "2026-10-15",
   "slicers": "Bambu ✓ · Orca ✓ · Projeto Bambu ✓"
@@ -524,8 +538,7 @@
    "6 cores: mais que os 4 do AMS lite",
    "Bambu: torre de purga passa da mesa na posição padrão do CLI (na tela, arraste a torre ou use Arrumar)",
    "Orca: torre de purga passa da mesa na posição padrão do CLI (na tela, arraste a torre ou use Arrumar)",
-   "Projeto Bambu: torre de purga passa da mesa na posição padrão do CLI (na tela, arraste a torre ou use Arrumar)",
-   "app: O dente (a parte reta da abertura) é quem faz a força: imprima em PETG com 4 paredes e 40% de preenchimento. Não precisa de moeda nem de anel de metal."
+   "Projeto Bambu: torre de purga passa da mesa na posição padrão do CLI (na tela, arraste a torre ou use Arrumar)"
   ],
   "date": "2026-10-15",
   "slicers": "Bambu ✓ · Orca ✓ · Projeto Bambu ✓"
@@ -541,8 +554,7 @@
    "6 cores: mais que os 4 do AMS lite",
    "Bambu: torre de purga passa da mesa na posição padrão do CLI (na tela, arraste a torre ou use Arrumar)",
    "Orca: torre de purga passa da mesa na posição padrão do CLI (na tela, arraste a torre ou use Arrumar)",
-   "Projeto Bambu: torre de purga passa da mesa na posição padrão do CLI (na tela, arraste a torre ou use Arrumar)",
-   "app: O dente (a parte reta da abertura) é quem faz a força: imprima em PETG com 4 paredes e 40% de preenchimento. Não precisa de moeda nem de anel de metal."
+   "Projeto Bambu: torre de purga passa da mesa na posição padrão do CLI (na tela, arraste a torre ou use Arrumar)"
   ],
   "date": "2026-10-15",
   "slicers": "Bambu ✓ · Orca ✓ · Projeto Bambu ✓"
@@ -559,9 +571,7 @@
    "Bambu: torre de purga passa da mesa na posição padrão do CLI (na tela, arraste a torre ou use Arrumar)",
    "Orca: torre de purga passa da mesa na posição padrão do CLI (na tela, arraste a torre ou use Arrumar)",
    "Projeto Bambu: torre de purga passa da mesa na posição padrão do CLI (na tela, arraste a torre ou use Arrumar)",
-   "app: O abridor ou a argola ficou separado da peça: aproxime-o da imagem.",
-   "app: Abridor de garrafa faz força: use espessura de 5 mm ou mais.",
-   "app: O dente (a parte reta da abertura) é quem faz a força: imprima em PETG com 4 paredes e 40% de preenchimento. Não precisa de moeda nem de anel de metal."
+   "app: Abridor de garrafa faz força: use espessura de 5 mm ou mais."
   ],
   "date": "2026-10-15",
   "slicers": "Bambu ✓ · Orca ✓ · Projeto Bambu ✓"
@@ -577,8 +587,7 @@
    "6 cores: mais que os 4 do AMS lite",
    "Bambu: torre de purga passa da mesa na posição padrão do CLI (na tela, arraste a torre ou use Arrumar)",
    "Orca: torre de purga passa da mesa na posição padrão do CLI (na tela, arraste a torre ou use Arrumar)",
-   "Projeto Bambu: torre de purga passa da mesa na posição padrão do CLI (na tela, arraste a torre ou use Arrumar)",
-   "app: O dente (a parte reta da abertura) é quem faz a força: imprima em PETG com 4 paredes e 40% de preenchimento. Não precisa de moeda nem de anel de metal."
+   "Projeto Bambu: torre de purga passa da mesa na posição padrão do CLI (na tela, arraste a torre ou use Arrumar)"
   ],
   "date": "2026-10-15",
   "slicers": "Bambu ✓ · Orca ✓ · Projeto Bambu ✓"
@@ -594,8 +603,7 @@
    "5 cores: mais que os 4 do AMS lite",
    "Bambu: torre de purga passa da mesa na posição padrão do CLI (na tela, arraste a torre ou use Arrumar)",
    "Orca: torre de purga passa da mesa na posição padrão do CLI (na tela, arraste a torre ou use Arrumar)",
-   "Projeto Bambu: torre de purga passa da mesa na posição padrão do CLI (na tela, arraste a torre ou use Arrumar)",
-   "app: O dente (a parte reta da abertura) é quem faz a força: imprima em PETG com 4 paredes e 40% de preenchimento. Não precisa de moeda nem de anel de metal."
+   "Projeto Bambu: torre de purga passa da mesa na posição padrão do CLI (na tela, arraste a torre ou use Arrumar)"
   ],
   "date": "2026-10-15",
   "slicers": "Bambu ✓ · Orca ✓ · Projeto Bambu ✓"

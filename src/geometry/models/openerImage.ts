@@ -14,7 +14,9 @@ export type OpenerImageParams = {
   relief: number;
   openerSide: OpenerSide;
   ringSide: OpenerSide;
-  /** Quanto o abridor entra no desenho (mm): 0 deixa o desenho inteiro e a aba toda para fora; mais deixa a peça mais curta, cortando a ponta do desenho. */
+  /** Encaixa o abridor no desenho o máximo possível sem cobrir a arte (a peça sai mais curta). */
+  fit: boolean;
+  /** Com `fit` desligado: quanto o abridor entra no desenho (mm): 0 deixa o desenho inteiro e a aba toda para fora; mais deixa a peça mais curta, cortando a ponta do desenho. */
   overlap: number;
   /** Fio levantado em volta da peça, na cor da borda. */
   rim: boolean;
@@ -31,6 +33,7 @@ export const DEFAULT_OPENER_IMAGE: OpenerImageParams = {
   relief: 0.8,
   openerSide: "bottom",
   ringSide: "top",
+  fit: true,
   overlap: 0,
   rim: true,
   baseColor: "#ffffff",
@@ -46,7 +49,7 @@ const OPPOSITE: Record<OpenerSide, OpenerSide> = { bottom: "top", top: "bottom",
 const JOIN = 4; // quanto da aba entra na base (mm)
 const JOIN_AREA = 120; // área mínima (mm²) da aba sobre a base: sem isso a aba ficaria presa por uma ponta fina
 const MAX_SLIDE = 30; // até onde a aba entra na imagem para achar chão firme (pontas de coração, orelhas)
-const WALL_IN = 4; // material entre a base e a abertura
+const WALL_IN = 3; // material entre a base e a abertura
 const WALL_SIDE = 4;
 const WALL_OUT = 6; // o "dente": material do outro lado da abertura, que faz a força
 const CAP_R = 13; // a tampinha tem ~32 mm; a abertura pega a borda dela
@@ -62,7 +65,7 @@ const RING_JOIN = 2.5;
 const RING_JOIN_AREA = 25; // mm² do disco da argola sobre a base
 const CLOSE = 2.5; // raio dos cantos de dentro da silhueta
 const RIM_W = 1.2;
-const ART_GAP = 1; // folga entre o relevo e a abertura
+const ART_GAP = 0.6; // folga entre o relevo e a abertura
 const MIN_WALL = 3; // abaixo disso a parede em volta da abertura é fraca
 const WALLS = [6, 5, 4, 3, 2, 1.5, 1];
 const SLIVER = 0.5; // mm²
@@ -137,7 +140,15 @@ export function buildOpenerImage(ctx: ModelCtx, p: OpenerImageParams): ModelOutp
     const put = (cs: CS, pos: [number, number]) => k(k(cs.rotate(angleOf(u))).translate(pos));
     const slide = slideIn(k, (d) => put(tabLocal, at(d)), body, JOIN_AREA);
     const [ox, oy] = offsetOf(ctx, "opener");
-    const base0 = at(slide + p.overlap);
+    let depth = slide + p.overlap;
+    if (p.fit) {
+      // o mais fundo que a aba vai sem o relevo (abertura e folga, ou a rampa) tocar o desenho
+      for (let d = slide; d <= slide + MAX_SLIDE; d++) {
+        if (k(put(keepOut, at(d)).intersect(placed)).area() >= SLIVER) break;
+        depth = d;
+      }
+    }
+    const base0 = at(depth);
     const pos: [number, number] = [base0[0] + ox, base0[1] + oy];
     const tab = put(tabLocal, pos);
     const hole = put(holeLocal, pos);
