@@ -19,19 +19,19 @@ test("produtos: salvar da calculadora leva a composição e o preço acompanha o
   const sheet = page.getByRole("dialog", { name: "Novo produto" });
   await expect(sheet).toBeVisible();
   await sheet.getByLabel("Nome").fill("Luminária");
-  await expect(sheet.getByText("R$ 15,96")).toBeVisible(); // custo por peça (exemplo da home)
+  await expect(sheet.getByText("R$ 15,71")).toBeVisible(); // custo por peça (exemplo da home)
   await sheet.getByRole("button", { name: "Salvar produto" }).click();
 
   const row = page.getByRole("row", { name: /Luminária/ });
-  await expect(row).toContainText("R$ 15,96");
-  await expect(row).toContainText("R$ 79,80");
+  await expect(row).toContainText("R$ 15,71");
+  await expect(row).toContainText("R$ 78,55");
 
   // filamento mais caro → preço do produto sobe sozinho
   tauri.db.exec("UPDATE filaments SET pricePerKg = 100");
   await go(page, "Calculadora");
   await page.getByRole("button", { name: "Completo" }).click(); // abre no Rápido (#22)
   await go(page, "Produtos");
-  await expect(page.getByRole("row", { name: /Luminária/ })).toContainText("R$ 17,85");
+  await expect(page.getByRole("row", { name: /Luminária/ })).toContainText("R$ 17,60");
 });
 
 test("produtos: kit mostra custo dos componentes e bloqueia kit dentro de si", async ({ page, tauri }) => {

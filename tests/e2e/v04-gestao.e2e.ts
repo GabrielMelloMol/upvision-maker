@@ -1,6 +1,7 @@
 import { resolve } from "node:path";
 import { expect, go, openApp, prefsSection, test, toastWith } from "./tauri";
 import { rowAction } from "./rowMenu";
+import { LEGACY_CHANNELS } from "../../src/test/legacyChannels";
 
 const fixture = (name: string) => resolve("tests/fixtures/slicer", name);
 const settingsOf = (db: { prepare: (q: string) => { get: () => unknown } }) => JSON.parse((db.prepare("SELECT data FROM settings WHERE id = 1").get() as { data: string }).data);
@@ -191,9 +192,11 @@ test("calculadora: filamento do fatiador sem cadastro vira cadastro e a linha pa
 });
 
 /** Preferências de antes da v0.6 (manutenção 5%, sem taxa de falha), para os números do exemplo da home. */
-const LEGACY = `INSERT INTO settings (id, data) VALUES (1, '{"maintenancePct":5,"failurePct":0}') ON CONFLICT(id) DO UPDATE SET data = excluded.data`;
+// canais de fábrica até a 0.12.5 (valores redondos), com data de conferência futura para a migração das regras de 2026 não trocá-los
+const LEGACY_SETTINGS = JSON.stringify({ maintenancePct: 5, failurePct: 0, channels: LEGACY_CHANNELS });
+const LEGACY = `INSERT INTO settings (id, data) VALUES (1, '${LEGACY_SETTINGS}') ON CONFLICT(id) DO UPDATE SET data = excluded.data`;
 
-/** Exemplo da home: custo R$ 15,96, revenda 47,88, consumidor 79,80; canais padrão (Shopee 20% + 4, ML 14% + 6,75, TikTok 12% + 4) com 30% de margem. */
+/** Exemplo da home: custo R$ 15,71, revenda 47,13, consumidor 78,55; canais padrão (Shopee 20% + 4, ML 14% + 6,75, TikTok 12% + 4) com 30% de margem. */
 async function fillHomeExample(page: import("@playwright/test").Page) {
   await go(page, "Calculadora");
   await page.getByRole("button", { name: "Completo" }).click(); // abre no Rápido (#22)
@@ -203,7 +206,7 @@ async function fillHomeExample(page: import("@playwright/test").Page) {
   await main.getByRole("button", { name: "Adicionar material" }).click();
   await main.getByLabel("Preço unitário").fill("5");
   await main.getByLabel("Quantidade").fill("1");
-  await expect(page.getByRole("row", { name: /Custo por peça/ })).toContainText("R$ 15,96");
+  await expect(page.getByRole("row", { name: /Custo por peça/ })).toContainText("R$ 15,71");
   return page.locator(".card", { has: page.getByRole("heading", { name: "Preço por canal" }) });
 }
 
@@ -213,12 +216,12 @@ test("calculadora: preço por canal com arredondamento e melhor lucro", async ({
   await openApp(page);
   tauri.db.exec(LEGACY);
   const card = await fillHomeExample(page);
-  // Shopee: (15,96 + 4) ÷ (1 − 20% − 30%) = 39,92; taxas 7,98 + 4 = 11,98; lucro 11,98
-  await expect(cells(card, /Shopee/)).toHaveText([/^Shopee/, "R$ 39,92", "R$ 11,98", "R$ 11,98", "30%"]);
-  await expect(cells(card, /Venda direta/)).toHaveText([/Venda direta/, "R$ 79,80", "R$ 0,00", "R$ 63,84", "80%"]);
-  await expect(cells(card, /Mercado Livre/).nth(1)).toHaveText("R$ 40,55");
-  await expect(cells(card, /TikTok Shop/).nth(1)).toHaveText("R$ 34,41");
-  // melhor lucro: direto (63,84)
+  // Shopee: (15,71 + 4) ÷ (1 − 20% − 30%) = 39,42; taxas 7,88 + 4 = 11,88; lucro 11,83
+  await expect(cells(card, /Shopee/)).toHaveText([/^Shopee/, "R$ 39,42", "R$ 11,88", "R$ 11,83", "30%"]);
+  await expect(cells(card, /Venda direta/)).toHaveText([/Venda direta/, "R$ 78,55", "R$ 0,00", "R$ 62,84", "80%"]);
+  await expect(cells(card, /Mercado Livre/).nth(1)).toHaveText("R$ 40,11");
+  await expect(cells(card, /TikTok Shop/).nth(1)).toHaveText("R$ 33,99");
+  // melhor lucro: direto (62,84)
   await expect(card.locator(".badge", { hasText: "melhor lucro" })).toHaveCount(1);
   await expect(card.getByRole("row", { name: /Venda direta/ })).toContainText("melhor lucro");
   await expect(card.locator(".badge", { hasText: "abaixo da margem mínima" })).toHaveCount(0);
@@ -226,9 +229,9 @@ test("calculadora: preço por canal com arredondamento e melhor lucro", async ({
   const seg = card.getByRole("group", { name: "Arredondar preços" });
   await expect(seg.getByRole("button", { name: "Sem" })).toHaveAttribute("aria-pressed", "true");
   const expected: [string, string, string, string][] = [
-    [",90", "R$ 40,90", "R$ 79,90", "R$ 47,90"],
-    [",99", "R$ 39,99", "R$ 79,99", "R$ 47,99"],
-    ["Inteiro", "R$ 40,00", "R$ 80,00", "R$ 48,00"],
+    [",90", "R$ 39,90", "R$ 78,90", "R$ 47,90"],
+    [",99", "R$ 39,99", "R$ 78,99", "R$ 47,99"],
+    ["Inteiro", "R$ 40,00", "R$ 79,00", "R$ 48,00"],
   ];
   for (const [mode, shopee, direct, resale] of expected) {
     await seg.getByRole("button", { name: mode, exact: true }).click();
@@ -237,8 +240,8 @@ test("calculadora: preço por canal com arredondamento e melhor lucro", async ({
     await expect(cells(card, /Venda direta/).nth(1)).toHaveText(direct);
     await expect(cells(card, /Para lojista/).nth(1)).toHaveText(resale);
   }
-  // Inteiro na Shopee: 40 → taxas 8 + 4 = 12; lucro 40 − 12 − 15,96 = 12,04
-  await expect(cells(card, /Shopee/)).toHaveText([/^Shopee/, "R$ 40,00", "R$ 12,00", "R$ 12,04", "30,1%"]);
+  // Inteiro na Shopee: 40 → taxas 8 + 4 = 12; lucro 40 − 12 − 15,71 = 12,29
+  await expect(cells(card, /Shopee/)).toHaveText([/^Shopee/, "R$ 40,00", "R$ 12,00", "R$ 12,29", "30,7%"]);
 });
 
 test("calculadora: preço do concorrente mostra coluna, dica e prejuízo", async ({ page, tauri }) => {
@@ -251,21 +254,21 @@ test("calculadora: preço do concorrente mostra coluna, dica e prejuízo", async
 
   await competitor.fill("120");
   await expect(card.getByRole("columnheader", { name: "Lucro no preço testado" })).toBeVisible();
-  // 79,80 vs 120 → 33,5% abaixo: ok (vende)
-  await expect(card.getByText("34% abaixo do concorrente.")).toBeVisible();
-  await expect(cells(card, /Venda direta/).nth(5)).toHaveText("R$ 104,04"); // 120 − 15,96
+  // 78,55 vs 120 → 34,5% abaixo: ok (vende)
+  await expect(card.getByText("35% abaixo do concorrente.")).toBeVisible();
+  await expect(cells(card, /Venda direta/).nth(5)).toHaveText("R$ 104,29"); // 120 − 15,71
 
   await competitor.fill("78");
   await expect(card.getByText("Parecido com o concorrente.")).toBeVisible();
 
-  // a R$ 20: Shopee cobra 4 + 4 = 8 → 20 − 8 − 15,96 = −3,96
+  // a R$ 20: Shopee cobra 4 + 4 = 8 → 20 − 8 − 15,71 = −3,71
   await competitor.fill("20");
-  await expect(card.getByText("299% acima do concorrente (R$ 20,00).")).toBeVisible();
+  await expect(card.getByText("293% acima do concorrente (R$ 20,00).")).toBeVisible();
   const shopeeAtComp = cells(card, /Shopee/).nth(5);
-  await expect(shopeeAtComp).toContainText("3,96");
+  await expect(shopeeAtComp).toContainText("3,71");
   await expect(shopeeAtComp).toContainText("-");
   await expect(shopeeAtComp.locator(".badge", { hasText: "prejuízo" }).locator("svg")).toBeVisible();
-  await expect(cells(card, /Venda direta/).nth(5)).toHaveText("R$ 4,04");
+  await expect(cells(card, /Venda direta/).nth(5)).toHaveText("R$ 4,29");
   await expect(cells(card, /Venda direta/).nth(5).locator(".badge")).toHaveCount(0);
   // o preço sugerido do canal continua com lucro
   await expect(cells(card, /Shopee/).nth(3).locator(".badge", { hasText: "prejuízo" })).toHaveCount(0);
