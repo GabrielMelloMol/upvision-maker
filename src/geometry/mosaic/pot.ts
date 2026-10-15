@@ -62,8 +62,12 @@ export function compartmentVolume(p: PotParams, n: number): number {
   return (area * (p.height - p.floor)) / compartments(p, n);
 }
 
-/** Quanto a tampa foi deslocada em x para ficar ao lado do pote no arquivo. */
-export const lidShift = (p: PotParams) => p.w + LID_GAP + p.lidClearance + LID_SKIRT_WALL;
+const LID_PLATE_GAP = 40;
+const sideShift = (p: PotParams) => p.w + LID_GAP + p.lidClearance + LID_SKIRT_WALL;
+/** O pote e a tampa cabem lado a lado na mesa da impressora? */
+export const lidFitsBeside = (p: PotParams) => p.w / 2 + sideShift(p) + p.w / 2 + p.lidClearance + LID_SKIRT_WALL <= bedMm();
+/** Quanto a tampa foi deslocada em x no arquivo: ao lado do pote se couber; senão uma mesa adiante (o fatiador a põe em outra mesa). */
+export const lidShift = (p: PotParams) => (lidFitsBeside(p) ? sideShift(p) : bedMm() + LID_PLATE_GAP);
 
 export function buildPot(M: ManifoldToplevel, p: PotParams, n: number): { models: Model[]; warnings: string[] } {
   const warnings: string[] = [];
@@ -86,11 +90,9 @@ export function buildPot(M: ManifoldToplevel, p: PotParams, n: number): { models
       const ring = k(k(outer(M, k, p, skirtOut, LID_SKIRT_H)).subtract(k(outer(M, k, p, p.lidClearance, LID_SKIRT_H + 1))));
       return toMesh(k(M.Manifold.union([plate, k(ring.translate([0, 0, LID_THICK - 0.01]))])));
     });
-    // a tampa fica ao lado do pote (os dois são objetos do mesmo arquivo)
+    // a tampa fica ao lado do pote se couber na mesa; senão, numa mesa só dela (os dois são objetos do mesmo arquivo)
     models.push({ name: "Tampa", parts: [{ name: "Tampa", color: p.lidColor, mesh: moveMesh(lid, lidShift(p), 0) }] });
-    const together = p.w / 2 + lidShift(p) + p.w / 2 + skirtOut;
-    if (big + 2 * skirtOut > bedMm() && big <= bedMm()) warnings.push(`A tampa tem ${Math.round(big + 2 * skirtOut)} mm e passa da mesa de ${bedMm()} mm.`);
-    else if (together > bedMm() && big <= bedMm()) warnings.push(`O pote e a tampa juntos têm ${Math.round(together)} mm e não cabem lado a lado na mesa de ${bedMm()} mm: o fatiador usa duas mesas (ou imprima um de cada vez).`);
+    if (big + 2 * skirtOut > bedMm() && big <= bedMm()) warnings.push(`A tampa tem ${Math.round(big + 2 * skirtOut)} mm e passa da mesa de ${bedMm()} mm: diminua o diâmetro ou a largura do pote.`);
   }
   return { models, warnings };
 }

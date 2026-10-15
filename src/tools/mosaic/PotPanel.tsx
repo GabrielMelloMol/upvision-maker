@@ -1,4 +1,4 @@
-import { compartments } from "../../geometry/mosaic/pot";
+import { compartments, lidFitsBeside } from "../../geometry/mosaic/pot";
 import { kitColors } from "../../geometry/mosaic/kit";
 import type { PotShape } from "../../geometry/mosaic/params";
 import NumField from "../../ui/NumField";
@@ -37,7 +37,7 @@ export default function PotPanel({ tool }: { tool: Tool }) {
         <Toggle label="Fazer a tampa" checked={p.lid} onChange={setP("lid")} />
         {p.lid && (
           <>
-            <span className="hint">A tampa cobre a boca por fora, como a de uma lata. No arquivo ela fica ao lado do pote, virada com a saia para cima: sem suporte.</span>
+            <span className="hint">A tampa cobre a boca por fora, como a de uma lata. Ela sai virada, com a saia para cima: sem suporte. {lidFitsBeside(p) ? "No arquivo fica ao lado do pote." : "Pote e tampa não cabem juntos na mesa: no arquivo a tampa fica numa mesa só dela (no fatiador, é a segunda mesa)."}</span>
             <ColorPick label="Cor da tampa" value={p.lidColor} onChange={setP("lidColor")} />
           </>
         )}

@@ -2312,12 +2312,12 @@
   "variant": "pote máximo",
   "status": "aviso",
   "reasons": [
-   "o conjunto arrumado ocupa 496,4 × 244,4 mm: passa da mesa de 256 mm",
+   "o conjunto arrumado ocupa 538,2 × 244,4 mm: passa da mesa de 256 mm",
    "não coube numa placa: 2 placas"
   ],
   "date": "2026-10-15",
   "slicers": "Bambu ✓ · Orca ✓",
-  "minutes": 857,
+  "minutes": 858,
   "grams": 930.4,
   "plates": 2
  },
@@ -2343,7 +2343,7 @@
   "variant": "pote redondo com tampa",
   "status": "aviso",
   "reasons": [
-   "o conjunto arrumado ocupa 415,8 × 203,8 mm: passa da mesa de 256 mm",
+   "o conjunto arrumado ocupa 497,9 × 203,8 mm: passa da mesa de 256 mm",
    "não coube numa placa: 2 placas"
   ],
   "date": "2026-10-15",
@@ -2360,7 +2360,7 @@
   "variant": "pote retangular",
   "status": "aviso",
   "reasons": [
-   "o conjunto arrumado ocupa 455,8 × 143,8 mm: passa da mesa de 256 mm",
+   "o conjunto arrumado ocupa 517,9 × 143,8 mm: passa da mesa de 256 mm",
    "não coube numa placa: 2 placas"
   ],
   "date": "2026-10-15",

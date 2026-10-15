@@ -7,7 +7,8 @@ import type { Mesh } from "../types";
 import { buildBoard } from "./board";
 import { DEFAULT_BOARD, DEFAULT_COUNTS, DEFAULT_PIECE, DEFAULT_POT, boardSize, pieceSide, pocketSide } from "./params";
 import { buildPieces, fullPlateCounts, pieceList, pieceMeshes, plateCapacity, type MosaicColor } from "./pieces";
-import { buildPot, compartmentVolume, compartments, lidShift, rectGrid } from "./pot";
+import { setBed } from "../bed";
+import { buildPot, compartmentVolume, compartments, lidFitsBeside, lidShift, rectGrid } from "./pot";
 import { placedOutline, shapeArea, shapeOutline, type MosaicShape } from "./shapes";
 
 let M: ManifoldToplevel;
@@ -274,10 +275,29 @@ describe("pote", () => {
     expect(buildPot(M, { ...DEFAULT_POT, w: 70 }, 9).warnings.join(" ")).toMatch(/estreita/);
   });
 
-  test("pote e tampa que não cabem lado a lado na mesa avisam; sem tampa não avisa", () => {
-    expect(buildPot(M, DEFAULT_POT, 6).warnings.join(" ")).toMatch(/não cabem lado a lado/);
-    expect(buildPot(M, { ...DEFAULT_POT, w: 100 }, 6).warnings).toEqual([]);
-    expect(buildPot(M, { ...DEFAULT_POT, lid: false }, 6).warnings).toEqual([]);
+  test("o pote padrão cabe na mesa, com a tampa numa mesa só dela; um pote menor leva a tampa ao lado", () => {
+    expect(lidFitsBeside(DEFAULT_POT)).toBe(false);
+    const { models, warnings } = buildPot(M, DEFAULT_POT, 6);
+    expect(warnings).toEqual([]);
+    const [pot, lid] = models.map((m) => meshBounds(m.parts.map((p) => p.mesh))!);
+    expect(pot.max[0] - pot.min[0]).toBeLessThanOrEqual(256);
+    expect(lid.max[0] - lid.min[0]).toBeLessThanOrEqual(256);
+    expect(lid.min[0] - pot.max[0]).toBeGreaterThan(256 - DEFAULT_POT.w); // a tampa vai para a mesa seguinte
+    const small = { ...DEFAULT_POT, w: 100 };
+    expect(lidFitsBeside(small)).toBe(true);
+    const sm = buildPot(M, small, 6).models.map((m) => meshBounds(m.parts.map((p) => p.mesh))!);
+    expect(sm[1].max[0] - sm[0].min[0]).toBeLessThanOrEqual(256);
+  });
+
+  test("avisa quando o pote passa da mesa da impressora escolhida", () => {
+    setBed({ x: 180, y: 180, z: 180 });
+    try {
+      expect(buildPot(M, DEFAULT_POT, 6).warnings.join(" ")).toMatch(/passa da mesa de 180 mm/);
+      expect(buildPot(M, { ...DEFAULT_POT, w: 178 }, 6).warnings.join(" ")).toMatch(/tampa tem .* passa da mesa de 180 mm/);
+      expect(buildPot(M, { ...DEFAULT_POT, w: 150 }, 6).warnings).toEqual([]);
+    } finally {
+      setBed(null);
+    }
   });
 
   test("sem tampa, só o pote", () => {
@@ -316,7 +336,7 @@ describe("kit inteiro", () => {
     expect(out.divisions).toBe(8);
     expect(out.pot.models).toHaveLength(2);
     expect(out.board.warnings).toEqual([]);
-    expect(out.pot.warnings.join(" ")).toMatch(/lado a lado/); // 200 mm de pote + tampa passam da mesa: o app diz
+    expect(out.pot.warnings).toEqual([]);
     expect(potFillWarning(out)).toBeNull();
   });
 

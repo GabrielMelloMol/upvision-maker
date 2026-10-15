@@ -6,6 +6,8 @@ import { assembledPreview } from "../geometry/mosaic/pieces";
 import { DESIGNS } from "../geometry/mosaic/designs";
 import { countCells } from "../geometry/mosaic/grid";
 import { MOSAIC_BOARD_PROFILE, MOSAIC_PIECES_PROFILE, MOSAIC_POT_PROFILE } from "../geometry/printProfile";
+import { meshBounds } from "../geometry/bounds";
+import { moveModel } from "../geometry/models/common";
 import type { Model } from "../geometry/types";
 import Alert from "../ui/Alert";
 import ExportButtons from "../ui/ExportButtons";
@@ -14,7 +16,7 @@ import SeeAlso from "../ui/SeeAlso";
 import { useModelBuilder } from "../ui/useModelBuilder";
 import BoardPanel from "./mosaic/BoardPanel";
 import CardsPanel from "./mosaic/CardsPanel";
-import DesignPanel from "./mosaic/DesignPanel";
+import DesignPanel, { PartsCard } from "./mosaic/DesignPanel";
 import KitSummary from "./mosaic/KitSummary";
 import MosaicEditor, { type Brush } from "./mosaic/MosaicEditor";
 import PiecesPanel from "./mosaic/PiecesPanel";
@@ -38,6 +40,7 @@ export default function Mosaic() {
   const tool = useToolState<State>("mosaic", initialState, { label: "Mosaico" });
   const s = tool.state;
   const [tab, setTab] = useState<Tab>("board");
+  const [plate, setPlate] = useState(0);
   const [brush, setBrush] = useState<Brush>({ color: "blue", shape: "square", rot: 0 });
   const refs = useRef<Record<string, HTMLButtonElement | null>>({});
   const valid = validState(s);
@@ -80,7 +83,10 @@ export default function Mosaic() {
   const pieces = out ? out.pieces.models : [];
   const pot = out ? out.pot.models.filter((m) => m.name === "Pote") : [];
   const lid = out ? out.pot.models.filter((m) => m.name === "Tampa") : [];
-  const preview: Model[] = tab === "board" ? [...board, ...asm.models] : tab === "pieces" ? pieces : tab === "pot" ? [...pot, ...lid] : [];
+  // as mesas de peças aparecem uma por vez, no centro da mesa, num tamanho legível; o arquivo leva todas
+  const plateNow = Math.min(plate, Math.max(0, pieces.length - 1));
+  const onePlate = pieces.length ? [centered(pieces[plateNow])] : [];
+  const preview: Model[] = tab === "board" ? [...board, ...asm.models] : tab === "pieces" ? onePlate : tab === "pot" ? [...pot, ...lid] : [];
   const warnings: string[] =
     !out ? [] : tab === "board" ? [...out.board.warnings, ...(asm.view?.outside ? [`${asm.view.outside} casas do desenho ficam fora deste tabuleiro: aumente a grade ou monte um painel com mais tabuleiros.`] : [])] : tab === "pieces" ? out.pieces.warnings : tab === "pot" ? [...out.pot.warnings, ...(potFillWarning(out) ? [potFillWarning(out)!] : [])] : [];
   const first = DESIGNS.find((d) => s.cardIds.includes(d.id)) ?? (countCells(s.grid) ? { name: s.designName || "Meu desenho", grid: s.grid } : null);
@@ -118,7 +124,7 @@ export default function Mosaic() {
           {tab === "board" && <BoardPanel tool={tool} />}
           {tab === "pieces" && <PiecesPanel tool={tool} platesN={out?.pieces.platesN ?? 0} extra={out?.pieces.extra ?? 0} />}
           {tab === "pot" && <PotPanel tool={tool} />}
-          {tab === "design" && <DesignPanel tool={tool} brush={brush} setBrush={setBrush} onPrintParts={printDesignParts} />}
+          {tab === "design" && <DesignPanel tool={tool} brush={brush} setBrush={setBrush} />}
           {tab === "cards" && <CardsPanel tool={tool} />}
           {exportModels.length > 0 && (
             <ExportButtons
@@ -132,6 +138,7 @@ export default function Mosaic() {
         </div>
         <div className="preview-col">
           {tab === "design" || tab === "cards" ? (
+            <>
             <div className="card stack">
               {tab === "design" ? (
                 <MosaicEditor grid={s.grid} colors={kitColors(s)} brush={brush} onChange={(g) => tool.set((cur) => ({ ...cur, grid: g }), "grid")} />
@@ -144,8 +151,24 @@ export default function Mosaic() {
                 <span className="hint">Marque um desenho para ver o cartão.</span>
               )}
             </div>
+            {tab === "design" && <PartsCard tool={tool} onPrintParts={printDesignParts} />}
+            </>
           ) : (
-            <Preview3D models={preview} busy={busy} busyText="Montando o kit…" error={kit.error} emptyText={!valid ? "Corrija os campos em vermelho para ver o kit." : "Montando o kit…"} views />
+            <>
+              {tab === "pieces" && pieces.length > 0 && (
+                <label className="plate-pick">
+                  Mesa
+                  <select aria-label="Mesa de peças" value={plateNow} onChange={(e) => setPlate(Number(e.target.value))}>
+                    {pieces.map((m, i) => (
+                      <option key={m.name} value={i}>
+                        {`Mesa ${i + 1} de ${pieces.length} · ${m.parts.filter((p) => p.name !== "Pupila").map((p) => p.name).join(", ")}`}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+              )}
+            <Preview3D key={tab} models={preview} busy={busy} busyText="Montando o kit…" error={kit.error} emptyText={!valid ? "Corrija os campos em vermelho para ver o kit." : "Montando o kit…"} views />
+            </>
           )}
           {warnings.map((w) => (
             <Alert key={w} kind="warn">{w}</Alert>
@@ -159,3 +182,9 @@ export default function Mosaic() {
   );
 }
 
+
+/** O modelo com o centro (em x e y) na origem: a mesa de peças vista sozinha, sem o recuo que ela tem no arquivo. */
+function centered(m: Model): Model {
+  const b = meshBounds(m.parts.map((p) => p.mesh));
+  return b ? moveModel(m, -(b.min[0] + b.max[0]) / 2, -(b.min[1] + b.max[1]) / 2) : m;
+}
