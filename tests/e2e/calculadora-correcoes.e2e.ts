@@ -79,3 +79,25 @@ test("C4 e C5: 'Levar para a Calculadora' troca as peças na mesa e põe preço 
   expect(prices.every((p) => p !== "" && p !== "0,00")).toBe(true);
   await shot(page, "06-depois-calculadora-apos-levar");
 });
+
+test("#243: arredondar não cai na faixa pior, margem inválida avisa e o Rápido lista o que o Completo guardou", async ({ page }) => {
+  await openApp(page);
+  await full(page);
+  await go(page, "Calculadora");
+  await page.getByLabel("Preço por kg").fill("1000");
+  await page.getByLabel("Gramas").fill("32");
+  await page.getByLabel("Tempo de impressão").fill("90");
+  await expect(page.getByText(/90 horas\? Se eram minutos, escreva 90 min\./)).toBeVisible();
+  await page.getByLabel("Margem em marketplace (%)").fill("trinta");
+  await page.getByLabel("Margem em marketplace (%)").blur();
+  await expect(page.getByText(/Digite a margem, ex\.: 30/)).toBeVisible();
+  await shot(page, "07-depois-avisos-de-campo", page.getByLabel("Tempo de impressão"));
+  await page.getByLabel("Tempo de impressão").fill("1h");
+  await page.getByRole("button", { name: "Rápido" }).click();
+  await expect(page.getByText(/Também entram na conta \(modo Completo\)/)).toHaveCount(0); // margem inválida não conta
+  await page.getByRole("button", { name: "Completo" }).click();
+  await page.getByLabel("Frete absorvido por peça").fill("5");
+  await page.getByRole("button", { name: "Rápido" }).click();
+  await expect(page.getByText(/frete de R\$\s5,00 por peça/)).toBeVisible();
+  await shot(page, "08-depois-rapido-lista-o-que-entra");
+});
