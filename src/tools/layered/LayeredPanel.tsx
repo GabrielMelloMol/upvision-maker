@@ -93,7 +93,7 @@ export default function LayeredPanel({ layered, setLayered, filColors, colors, n
         <span className="hint">Com o TD cadastrado em Filamentos, as faixas ficam proporcionais a ele (mais transparente = faixa mais alta).</span>
         <div className="grid two">
           <NumField label="Base" value={layered.base} onChange={setQ("base")} min={0.2} max={3} hint="Fundo na 1ª cor." />
-          <NumField label="Relevo" value={layered.relief} onChange={setQ("relief")} min={0.4} max={6} />
+          <NumField label="Relevo" value={layered.relief} onChange={setQ("relief")} min={0.4} max={6} hint="Quanto o relevo sobe acima do fundo do quadro." />
           <NumField label="Altura de camada" value={layered.layerHeight} onChange={setQ("layerHeight")} min={0.04} max={0.32} step={0.02} hint="A mesma do fatiador, inclusive na 1ª camada." />
         </div>
         <Toggle label="Uma parte por cor (AMS / multimaterial)" checked={layered.split} onChange={setQ("split")} />

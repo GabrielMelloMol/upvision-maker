@@ -205,7 +205,7 @@ export default function Keychain() {
             {logoError && <Alert kind="error">{logoError}</Alert>}
             {logo && (
               <div className="row">
-                <NumField label={silhouette ? "Altura da silhueta" : "Altura do logo"} value={logoH} onChange={setLogoH} min={5} max={80} step={1} />
+                <NumField label={silhouette ? "Altura da silhueta" : "Altura do logo"} value={logoH} onChange={setLogoH} min={5} max={80} step={1} hint="Altura da arte ao lado do texto; a largura acompanha a proporção." />
                 <button className="link danger" onClick={() => setLogo(null)}>Remover logo</button>
               </div>
             )}
@@ -246,9 +246,9 @@ export default function Keychain() {
               <summary>Opções avançadas</summary>
               <div className="stack">
                 <div className="grid two">
-                  <NumField label="Espessura" value={p.base} onChange={set("base")} min={0.8} max={8} />
+                  <NumField label="Espessura" value={p.base} onChange={set("base")} min={0.8} max={8} hint="Espessura da placa do chaveiro: mais grossa aguenta mais o uso e gasta mais filamento." />
                   <NumField label="Relevo do texto" value={p.relief} onChange={set("relief")} min={0.4} max={5} />
-                  <NumField label="Borda" value={p.border} onChange={set("border")} min={1} max={10} step={0.5} />
+                  <NumField label="Borda" value={p.border} onChange={set("border")} min={1} max={10} step={0.5} hint="Largura da borda da placa em volta do texto e da arte." />
                 </div>
                 <label className="check">
                   <input type="checkbox" checked={!!p.resin} onChange={(e) => set("resin")(e.target.checked)} /> Cavidade para resina (borda elevada)

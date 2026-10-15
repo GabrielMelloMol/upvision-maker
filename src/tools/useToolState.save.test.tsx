@@ -1,14 +1,15 @@
 // @vitest-environment happy-dom
 import { act, fireEvent, screen, waitFor } from "@testing-library/react";
 import { useState } from "react";
-import { expect, test } from "vitest";
+import { beforeEach, expect, test } from "vitest";
 import { toolState } from "../db/toolStateRepo";
 import { renderWithApp, setupTauri } from "../test/harness";
 import { flushPendingSaves } from "./pendingSaves";
-import { useToolState } from "./useToolState";
+import { forgetAnnounced, useToolState } from "./useToolState";
 
 /** Auditoria 2026-10, M14: o "seu trabalho ficou guardado" só vale se o rascunho foi mesmo gravado. */
 const t = setupTauri();
+beforeEach(forgetAnnounced);
 
 /** A ferramenta e um botão "sair" no mesmo app (mesmo ToastProvider): trocar de tela desmonta só a ferramenta. */
 function Probe() {
@@ -94,4 +95,34 @@ test("Ctrl+Y refaz fora do Mac, além de Ctrl+Shift+Z (B21)", async () => {
   expect(screen.getByLabelText("n")).toHaveTextContent("0");
   fireEvent.keyDown(window, { key: "y", ctrlKey: true }); // refaz
   expect(screen.getByLabelText("n")).toHaveTextContent("1");
+});
+
+test("o aviso 'ficou guardado' sai uma vez só por trabalho: voltar e sair sem mexer não repete, mexer de novo avisa de novo", async () => {
+  function Twice() {
+    const [n, setN] = useState(0);
+    return (
+      <>
+        <button onClick={() => setN((x) => x + 1)}>sair da tela</button>
+        {n % 2 === 0 ? <Tool key={n} /> : <p>outra tela {n}</p>}
+      </>
+    );
+  }
+  renderWithApp(<Twice />);
+  const type = async (v: string) => {
+    await screen.findByLabelText("texto");
+    fireEvent.change(screen.getByLabelText("texto"), { target: { value: v } });
+  };
+  await type("Ana");
+  fireEvent.click(screen.getByText("sair da tela"));
+  expect(await screen.findByText(/Chaveiro: seu trabalho ficou guardado/)).toBeInTheDocument();
+  await act(async () => {
+    await new Promise((r) => setTimeout(r, 3300)); // o aviso é curto: some sozinho
+  });
+  expect(screen.queryByText(/ficou guardado/)).toBeNull();
+  fireEvent.click(screen.getByText("sair da tela")); // volta (o rascunho é oferecido) ...
+  fireEvent.click(await screen.findByText("sair da tela")); // ... e sai de novo sem mexer em nada
+  await act(async () => {
+    await new Promise((r) => setTimeout(r, 200));
+  });
+  expect(screen.queryByText(/ficou guardado/)).toBeNull();
 });

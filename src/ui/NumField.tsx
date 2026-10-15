@@ -7,7 +7,9 @@ type Props = { label: string; value: number; onChange: (n: number) => void; min?
   /** Medida de comprimento em mm que a pessoa pode digitar em cm por engano (gaveta): mostra "= 35 cm" e sugere ×10 (#194). */
   cm?: boolean;
   /** Deslizante junto da caixa de número, com o mesmo min/max/step. Sem isso, aparece sozinho nas faixas curtas (até 1000); `false` deixa só o número. */
-  slider?: boolean };
+  slider?: boolean;
+  /** Título da seção em que o campo está: muda a frase de ajuda dos nomes genéricos (Altura de um texto não é a altura da peça). */
+  section?: string };
 
 const br = (n: number) => n.toLocaleString("pt-BR", { maximumFractionDigits: 2 });
 const mmToCm = (mm: number) => br(Math.round(mm) / 10);
@@ -24,13 +26,13 @@ function rangeMessage(value: number, min?: number, max?: number, cm = false, uni
 const clampTo = (v: number, min: number, max: number) => (Number.isFinite(v) ? Math.min(max, Math.max(min, v)) : min);
 
 /** Campo numérico com limites; valores fora da faixa ficam marcados e não são aplicados. */
-export default function NumField({ label, value, onChange, min, max, step = 0.1, unit = "mm", hint: ownHint, cm = false, slider }: Props) {
+export default function NumField({ label, value, onChange, min, max, step = 0.1, unit = "mm", hint: ownHint, cm = false, slider, section }: Props) {
   const term = labelTerm(label);
   const tipId = useId();
   const hintId = useId();
   const withSlider = (slider ?? wantsSlider(min, max)) && min !== undefined && max !== undefined;
   // frase de ajuda: a do campo, senão a do nome na lista (#210), senão a faixa
-  const hint = ownHint ?? fieldHelp(label) ?? (min !== undefined && max !== undefined ? rangeHelp(min, max, unit) : undefined);
+  const hint = ownHint ?? fieldHelp(label, section) ?? (min !== undefined && max !== undefined ? rangeHelp(min, max, unit) : undefined);
   const bad = !Number.isFinite(value) || (min !== undefined && value < min) || (max !== undefined && value > max);
   const asCm = cm && unit === "mm";
   const showEq = asCm && Number.isFinite(value) && value >= 10;

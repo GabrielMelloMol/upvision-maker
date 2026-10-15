@@ -5,8 +5,8 @@
  */
 const H: Record<string, string> = {
   // medidas gerais
-  "Largura": "Medida da esquerda para a direita. Maior ocupa mais mesa e gasta mais filamento.",
-  "Altura": "Medida de baixo para cima. Confira se cabe na altura da sua impressora.",
+  "Largura": "Medida da esquerda para a direita.",
+  "Altura": "Medida de baixo para cima.",
   "Profundidade": "Medida da frente para o fundo.",
   "Espessura": "Quanto a peça é grossa: mais grossa fica mais firme e gasta mais filamento.",
   "Tamanho": "Tamanho da peça toda; o resto acompanha.",
@@ -25,7 +25,7 @@ const H: Record<string, string> = {
   "Quantidade": "Quantas unidades a peça tem.",
   "Passo": "Distância entre uma volta e a seguinte da rosca.",
   "Cantos": "Arredondamento dos cantos: 0 deixa retos.",
-  "Lado": "Medida do lado do quadrado.",
+  "Lado": "Medida de cada lado.",
   "Meta": "Valor que você quer alcançar; entra no texto do quadro.",
   "Dia": "Dia do mês.",
   "Mês": "Mês do ano, de 1 a 12.",
@@ -288,10 +288,44 @@ const H: Record<string, string> = {
   "Profundidade da cor": "Quanto a cor afunda na peça.",
 };
 
-/** Frase de ajuda do campo pelo nome (e pela unidade, no que for genérico); `undefined` se não houver. */
-export function fieldHelp(label: string): string | undefined {
-  const h = H[label];
-  return h || undefined;
+/**
+ * Os nomes genéricos (Altura, Largura, Espessura…) mudam de sentido conforme a seção: dentro de uma seção só de texto são as
+ * letras; de logo ou desenho, o desenho; de furo ou alça, o furo. A frase vem da seção quando ela é uma dessas.
+ */
+type Ctx = "text" | "art" | "hole";
+const CTX: Record<Ctx, Record<string, string>> = {
+  text: {
+    "Altura": "Altura das letras. Abaixo de 4 mm ficam difíceis de ler.",
+    "Largura": "Largura máxima do texto; o que passar é reduzido.",
+    "Tamanho": "Tamanho das letras.",
+    "Espessura": "Espessura das letras.",
+    "Relevo": "Quanto o texto sobe acima da peça. Entre 0,6 e 1 mm fica bem visível.",
+    "Profundidade": "Quanto o texto afunda na peça.",
+  },
+  art: {
+    "Altura": "Altura do desenho; a largura acompanha.",
+    "Largura": "Largura do desenho; a altura acompanha.",
+    "Tamanho": "Tamanho do desenho na peça.",
+    "Relevo": "Quanto o desenho sobe acima da peça.",
+    "Profundidade": "Quanto o desenho afunda na peça.",
+  },
+  hole: {
+    "Diâmetro": "Diâmetro do furo.",
+    "Largura": "Largura do furo ou da alça.",
+    "Altura": "Altura do furo ou da alça.",
+    "Tamanho": "Tamanho do furo.",
+    "Espessura": "Espessura da alça ao redor do furo.",
+    "Margem": "Material que sobra em volta do furo.",
+    "Borda": "Material que sobra em volta do furo.",
+  },
+};
+const ctxOf = (section?: string): Ctx | undefined =>
+  !section ? undefined : /^(linha\b|texto|textos|nome( ou logo)?( em relevo)?$|legenda)/i.test(section.trim()) ? "text" : /^(logo|arte|desenho|ícone|imagem|foto)\b/i.test(section.trim()) ? "art" : /^(furo|alça|argola|fita)\b/i.test(section.trim()) ? "hole" : undefined;
+
+/** Frase de ajuda do campo pelo nome (e pela seção, no que for genérico); `undefined` se não houver. */
+export function fieldHelp(label: string, section?: string): string | undefined {
+  const c = ctxOf(section);
+  return (c && CTX[c][label]) || H[label] || undefined;
 }
 
 const br = (n: number) => n.toLocaleString("pt-BR", { maximumFractionDigits: 2 });

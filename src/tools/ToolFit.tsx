@@ -217,8 +217,8 @@ export default function ToolFit({ embedded = false }: { embedded?: boolean } = {
                 <span className="field-label">Gaveta</span>
                 {/* rótulos curtos: "Profundidade da gaveta" quebrava em 2 linhas e desalinhava os campos */}
                 <div className="grid two">
-                  <NumField label="Largura" value={p.drawerW} onChange={set("drawerW")} min={LIMITS.drawerW[0]} max={LIMITS.drawerW[1]} step={1} cm />
-                  <NumField label="Profundidade" value={p.drawerD} onChange={set("drawerD")} min={LIMITS.drawerD[0]} max={LIMITS.drawerD[1]} step={1} cm />
+                  <NumField label="Largura" value={p.drawerW} onChange={set("drawerW")} min={LIMITS.drawerW[0]} max={LIMITS.drawerW[1]} step={1} cm hint="Largura da gaveta por dentro: o organizador ocupa o que couber." />
+                  <NumField label="Profundidade" value={p.drawerD} onChange={set("drawerD")} min={LIMITS.drawerD[0]} max={LIMITS.drawerD[1]} step={1} cm hint="Profundidade da gaveta por dentro, da frente ao fundo." />
                   {modular && <NumField label="Altura útil" value={p.drawerH} onChange={set("drawerH")} min={LIMITS.drawerH[0]} max={LIMITS.drawerH[1]} step={1} cm />}
                 </div>
               </div>
@@ -237,8 +237,8 @@ export default function ToolFit({ embedded = false }: { embedded?: boolean } = {
           <details className="advanced">
             <summary>Opções avançadas</summary>
             <div className="grid two">
-              <NumField label="Fundo" value={p.floor} onChange={set("floor")} min={LIMITS.floor[0]} max={LIMITS.floor[1]} step={0.2} />
-              <NumField label="Parede" value={p.wall} onChange={set("wall")} min={LIMITS.wall[0]} max={LIMITS.wall[1]} step={0.2} />
+              <NumField label="Fundo" value={p.floor} onChange={set("floor")} min={LIMITS.floor[0]} max={LIMITS.floor[1]} step={0.2} hint="Espessura do chão das caixinhas do organizador." />
+              <NumField label="Parede" value={p.wall} onChange={set("wall")} min={LIMITS.wall[0]} max={LIMITS.wall[1]} step={0.2} hint="Espessura das paredes das caixinhas do organizador." />
             </div>
           </details>
           {modular ? (

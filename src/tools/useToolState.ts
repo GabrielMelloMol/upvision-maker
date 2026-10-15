@@ -7,6 +7,12 @@ import { previewThumb, snapshotPreview } from "../ui/Preview3D";
 import { errorText, useToast } from "../ui/Toast";
 import { useHistory } from "../ui/useHistory";
 
+/** Último estado de cada ferramenta que já foi anunciado como guardado: sair de novo sem mexer em nada não repete o aviso. */
+const announced = new Map<string, string>();
+const NOTICE_MS = 3000; // aviso curto: não fica por cima da tela seguinte
+/** Só para testes: esquece o que já foi anunciado. */
+export const forgetAnnounced = () => announced.clear();
+
 /** Espera depois da última mudança para gravar o rascunho no banco. */
 const AUTOSAVE_MS = 800;
 
@@ -138,17 +144,25 @@ export function useToolState<T extends object>(toolId: string, initial: T | (() 
 
   // ao sair da ferramenta: grava a última edição (antes o save adiado era descartado) e só então avisa (M14)
   const flushOnLeave = useRef<(() => Promise<boolean>) | null>(null);
+  const latest = useRef(state);
+  useEffect(() => {
+    latest.current = state;
+  });
   useEffect(
     () => () => {
       const pending = flushOnLeave.current;
       flushOnLeave.current = null;
       if (exported.current) return;
       const label = optsRef.current.label;
-      void (pending ? pending() : Promise.resolve(true)).then((ok) =>
-        ok ? toast(`${label}: seu trabalho ficou guardado. Ao voltar, é só tocar em Continuar.`) : toast(`${label}: não deu para guardar o seu trabalho. Salve o arquivo antes de sair.`, "error"),
-      );
+      const key = JSON.stringify(latest.current, fileKey);
+      void (pending ? pending() : Promise.resolve(true)).then((ok) => {
+        if (!ok) return toast(`${label}: não deu para guardar o seu trabalho. Salve o arquivo antes de sair.`, "error");
+        if (announced.get(toolId) === key) return; // já avisado deste mesmo trabalho: uma vez só
+        announced.set(toolId, key);
+        toast(`${label}: seu trabalho ficou guardado. Ao voltar, é só tocar em Continuar.`, "ok", undefined, NOTICE_MS);
+      });
     },
-    [toast],
+    [toast, toolId],
   );
 
   // ⌘Z / ⇧⌘Z fora de campos de texto (dentro deles vale o desfazer do próprio campo)

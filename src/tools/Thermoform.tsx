@@ -243,7 +243,7 @@ export default function Thermoform() {
               </>
             )}
             {fileError && <Alert kind="error">{fileError}</Alert>}
-            <NumField label="Largura" value={s.width} onChange={field("width")} min={40} max={140} step={1} />
+            <NumField label="Largura" value={s.width} onChange={field("width")} min={40} max={140} step={1} hint="Largura da caixinha de presente pronta." />
             {s.source !== "shape" && (
               <>
                 <span className="field-label">Simetria</span>

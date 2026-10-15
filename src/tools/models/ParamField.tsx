@@ -34,6 +34,8 @@ type ParamProps = {
   /** Todos os valores do modelo e um jeito de mudar vários de uma vez (campo "place"). */
   params?: Params;
   patch?: (next: Params) => void;
+  /** Título da seção do campo (dá o contexto da frase de ajuda). */
+  section?: string;
 };
 
 /** Texto com seletor de emoji ao lado (fora do <label>, para o rótulo nomear só o campo). */
@@ -49,7 +51,7 @@ function EmojiText({ label, hint, max, value, onChange }: { label: string; hint?
   );
 }
 
-export default function ParamField({ f, value, onChange, sample = "", emoji, params, patch }: ParamProps) {
+export default function ParamField({ f, value, onChange, sample = "", emoji, params, patch, section }: ParamProps) {
   switch (f.kind) {
     case "musicCode":
       return params && patch ? <MusicCodeField label={f.label} params={params} patch={patch} /> : null;
@@ -70,7 +72,7 @@ export default function ParamField({ f, value, onChange, sample = "", emoji, par
         </div>
       );
     case "num":
-      return <NumField label={f.label} value={value as number} onChange={onChange} min={f.min} max={f.max} step={f.step} unit={f.unit} hint={typeof f.hint === "function" ? f.hint(params ?? {}) : f.hint} cm={f.cm} slider={f.slider} />;
+      return <NumField label={f.label} value={value as number} onChange={onChange} min={f.min} max={f.max} step={f.step} unit={f.unit} hint={typeof f.hint === "function" ? f.hint(params ?? {}) : f.hint} cm={f.cm} slider={f.slider} section={section} />;
     case "text":
       if (emoji) return <EmojiText label={f.label} hint={f.hint} max={f.max} value={String(value)} onChange={onChange} />;
       return (

@@ -238,7 +238,7 @@ export default function Lithophane() {
             <h3>Foto</h3>
             <Segmented label="Tipo" value={mode} options={MODES} onChange={setMode} full />
             <Dropzone accept={IMAGE_ACCEPT} label={file ? file.name : "Arraste uma foto ou clique"} hint="Rostos e paisagens com bom contraste ficam melhores." onFile={setFile} />
-            {!(mode === "litho" && litho.shape === "cylinder") && <NumField label="Largura" value={width} onChange={setWidth} min={20} max={250} step={1} />}
+            {!(mode === "litho" && litho.shape === "cylinder") && <NumField label="Largura" value={width} onChange={setWidth} min={20} max={250} step={1} hint="Largura da foto em relevo; a altura segue a proporção da foto." />}
           </div>
           {mode === "litho" ? (
             <>
@@ -256,8 +256,8 @@ export default function Lithophane() {
               </label>
               {litho.shape === "cylinder" && (
                 <div className="grid two">
-                  <NumField label="Diâmetro" value={litho.diameter} onChange={setL("diameter")} min={30} max={150} step={1} />
-                  <NumField label="Altura" value={litho.height} onChange={setL("height")} min={30} max={200} step={1} />
+                  <NumField label="Diâmetro" value={litho.diameter} onChange={setL("diameter")} min={30} max={150} step={1} hint="Diâmetro do cilindro da litofania." />
+                  <NumField label="Altura" value={litho.height} onChange={setL("height")} min={30} max={200} step={1} hint="Altura do cilindro da litofania." />
                 </div>
               )}
               <span className="hint">
@@ -273,7 +273,7 @@ export default function Lithophane() {
                 {led && (
                   <>
                     <Segmented label="Tipo de LED" value={led.kind} options={LED_KINDS} onChange={(kind) => setL("led")({ ...led, kind, size: kind === "disc" ? 50 : 10 })} full />
-                    <NumField label={led.kind === "disc" ? "Diâmetro do disco" : "Largura da fita"} value={led.size} onChange={(size) => setL("led")({ ...led, size })} min={led.kind === "disc" ? 15 : 4} max={led.kind === "disc" ? 120 : 20} step={1} />
+                    <NumField label={led.kind === "disc" ? "Diâmetro do disco" : "Largura da fita"} value={led.size} onChange={(size) => setL("led")({ ...led, size })} min={led.kind === "disc" ? 15 : 4} max={led.kind === "disc" ? 120 : 20} step={1} hint="Tamanho do LED: o encaixe atrás da foto segue essa medida." />
                     <Segmented label="Alimentação" value={led.power} options={LED_POWER} onChange={(power) => setL("led")({ ...led, power })} full />
                     <span className="hint">{led.power === "cable" ? "Sai um furo de 5 mm atrás para o cabo." : "Compartimento para 2 pilhas AAA atrás, fechado pela tampa de baixo."} A tampa de baixo encaixa por atrito; um pingo de cola ou fita segura. A base aguenta preenchimento de 15% a 20% no fatiador.</span>
                   </>
@@ -296,15 +296,15 @@ export default function Lithophane() {
               {mode === "color" && (
                 <>
                   <NumField label="Tinta máxima" value={color.maxInk} onChange={(maxInk) => setColor((o) => ({ ...o, maxInk }))} min={0.4} max={4} step={0.1} hint="mm de ciano, magenta e amarelo no escuro." />
-                  <NumField label="Branco de difusão" value={color.whiteT} onChange={(whiteT) => setColor((o) => ({ ...o, whiteT }))} min={0.4} max={3} step={0.1} />
-                  <NumField label="Moldura" value={color.border} onChange={(border) => setColor((o) => ({ ...o, border }))} min={3} max={15} step={0.5} />
+                  <NumField label="Branco de difusão" value={color.whiteT} onChange={(whiteT) => setColor((o) => ({ ...o, whiteT }))} min={0.4} max={3} step={0.1} hint="Espessura da camada branca que espalha a luz atrás da foto colorida." />
+                  <NumField label="Moldura" value={color.border} onChange={(border) => setColor((o) => ({ ...o, border }))} min={3} max={15} step={0.5} hint="Largura da moldura em volta da foto colorida." />
                 </>
               )}
               {mode === "litho" && (
                 <>
                   <NumField label="Espessura mínima" value={litho.minT} onChange={setL("minT")} min={0.4} max={3} hint="No branco: mais luz passa." />
                   <NumField label="Espessura máxima" value={litho.maxT} onChange={setL("maxT")} min={1} max={8} hint="No preto." />
-                  <NumField label="Moldura" value={litho.border} onChange={setL("border")} min={0} max={15} step={0.5} />
+                  <NumField label="Moldura" value={litho.border} onChange={setL("border")} min={0} max={15} step={0.5} hint="Largura da moldura em volta da litofania; 0 deixa sem moldura." />
                   {litho.shape === "curved" && <NumField label="Arco" value={litho.arc} onChange={setL("arc")} min={30} max={270} step={5} unit="°" />}
                 </>
               )}

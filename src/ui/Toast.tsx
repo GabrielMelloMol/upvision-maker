@@ -5,9 +5,9 @@ import { createContext, useCallback, useContext, useState, type ReactNode } from
 type Kind = "ok" | "error";
 export type ToastAction = { label: string; onClick: () => void };
 type Item = { id: number; text: string; kind: Kind; leaving: boolean; action?: ToastAction };
-const Ctx = createContext<(text: string, kind?: Kind, action?: ToastAction) => void>(() => {});
+const Ctx = createContext<(text: string, kind?: Kind, action?: ToastAction, ms?: number) => void>(() => {});
 
-/** `toast("Salvo.")`, `toast("Falhou", "error")` ou `toast("Excluído.", "ok", { label: "Desfazer", onClick })`. Empilha até 3; some em 5 s (8 s com ação). */
+/** `toast("Salvo.")`, `toast("Falhou", "error")` ou `toast("Excluído.", "ok", { label: "Desfazer", onClick })`. Empilha até 3; some em 5 s (8 s com ação, ou o `ms` pedido). */
 export const useToast = () => useContext(Ctx);
 
 const TOAST_MS = 5000;
@@ -23,11 +23,11 @@ export function ToastProvider({ children }: { children: ReactNode }) {
     setTimeout(() => setItems((list) => list.filter((t) => t.id !== id)), LEAVE_MS);
   }, []);
   const show = useCallback(
-    (text: string, kind: Kind = "ok", action?: ToastAction) => {
+    (text: string, kind: Kind = "ok", action?: ToastAction, ms?: number) => {
       if (kind === "error") logError("aviso", text); // o que ela viu de erro fica no registro de diagnóstico
       const id = nextId++;
       setItems((list) => [...list.slice(-(MAX - 1)), { id, text, kind, leaving: false, action }]);
-      setTimeout(() => dismiss(id), action ? ACTION_MS : TOAST_MS);
+      setTimeout(() => dismiss(id), ms ?? (action ? ACTION_MS : TOAST_MS));
     },
     [dismiss],
   );

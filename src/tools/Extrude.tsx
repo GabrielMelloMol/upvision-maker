@@ -59,7 +59,7 @@ export default function Extrude() {
           <div className="card stack">
             <h3>Peça</h3>
             <div className="grid two">
-              <NumField label="Largura" value={width} onChange={setWidth} min={5} max={300} step={1} />
+              <NumField label="Largura" value={width} onChange={setWidth} min={5} max={300} step={1} hint="Largura do desenho em 3D; a altura segue a proporção do desenho." />
               <NumField label="Altura do desenho" value={height} onChange={setHeight} min={0.2} max={100} />
             </div>
             <label className="check">
