@@ -60,7 +60,7 @@ export const FAMILIES: Family[] = [
   { id: "assembleKits", label: "Kits de montar", category: "gifts", variants: [{ id: "kitCar", label: "Carro" }, { id: "kitTruck", label: "Caminhão" }, { id: "kitTractor", label: "Trator" }, { id: "kitAviao", label: "Avião" }, { id: "kitHelicoptero", label: "Helicóptero" }, { id: "kitRocket", label: "Foguete" }, { id: "kitBicho", label: "Bicho" }, { id: "kitBau", label: "Baú" }] },
   { id: "coaster", label: "Porta-copos", category: "gifts", variants: [{ id: "coaster", label: "Porta-copos" }] },
   { id: "phoneStand", label: "Suporte de celular e tablet", category: "organize", variants: [{ id: "phoneStand", label: "Fixo" }, { id: "phoneStandFold", label: "Dobrável" }] },
-  { id: "bookHolder", label: "Suporte de livro", category: "organize", variants: [{ id: "bookThumb", label: "De polegar" }, { id: "bookStand", label: "De mesa" }] },
+  { id: "bookHolder", label: "Suporte de livro", category: "home", variants: [{ id: "bookThumb", label: "De polegar" }, { id: "bookStand", label: "De mesa" }] },
   { id: "bookmark", label: "Marca-página", category: "gifts", variants: [{ id: "bookmark", label: "Marca-página" }, { id: "paperClip", label: "Clipe de papel" }] },
   { id: "keycap", label: "Tecla de teclado", category: "organize", variants: [{ id: "keycap", label: "Tecla de teclado" }] },
   { id: "keyHolder", label: "Porta-chave de parede", category: "organize", variants: [{ id: "keyHolder", label: "Porta-chave de parede" }] },

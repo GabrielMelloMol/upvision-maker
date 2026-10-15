@@ -11,7 +11,7 @@ import { as, bool, choice, color, num, text, type ModelDef } from "../fields";
 export const HOME_UTILITY_MODELS: ModelDef[] = [
   {
     id: "bookThumb",
-    category: "organize",
+    category: "home",
     label: "Apoio de polegar para livro",
     blurb: "Anel que prende a página aberta com uma mão só, com o nome na aba.",
     icon: Fingerprint,
@@ -26,7 +26,7 @@ export const HOME_UTILITY_MODELS: ModelDef[] = [
   },
   {
     id: "bookStand",
-    category: "organize",
+    category: "home",
     label: "Suporte de livro de mesa",
     blurb: "Cavalete inclinado com batente para livro de receitas, caderno ou tablet, com o nome na frente.",
     icon: BookOpen,

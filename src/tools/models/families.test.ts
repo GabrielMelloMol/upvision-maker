@@ -64,8 +64,8 @@ test("categorias dos Modelos prontos (onde fica): Presentes, Casa e decoração 
   expect(CATEGORIES.map(([, label]) => label)).toEqual(["Chaveiros", "Placas", "Presentes e lembrancinhas", "Festa e esporte", "Casa e decoração", "Organização e utilidades", "Cozinha"]);
   expect(names("gifts")).toEqual(["Mapa estelar", "Cartão de música", "Lembrancinhas", "Kits de montar", "Porta-copos", "Marca-página"]);
   expect(familiesIn("gifts").find((f) => f.id === "souvenirs")!.variants.map((v) => v.id)).toEqual(["fridgeMagnet", "shirtPrint", "outlineBowl"]);
-  expect(names("home")).toEqual(["Moldura", "Luminárias e abajures", "Quadro e desenho", "Vaso", "Brinquedos"]);
-  expect(names("organize")).toEqual(["Potes e organizadores", "Organizador modular (Gridfinity)", "Suporte de celular e tablet", "Suporte de livro", "Tecla de teclado", "Porta-chave de parede", "Utilitários"]);
+  expect(names("home")).toEqual(["Moldura", "Luminárias e abajures", "Quadro e desenho", "Vaso", "Brinquedos", "Suporte de livro"]);
+  expect(names("organize")).toEqual(["Potes e organizadores", "Organizador modular (Gridfinity)", "Suporte de celular e tablet", "Tecla de teclado", "Porta-chave de parede", "Utilitários"]);
   // nenhuma categoria ficou grande demais para achar as coisas
   for (const [c] of CATEGORIES) expect(familiesIn(c).reduce((n, f) => n + f.variants.length, 0), c).toBeLessThanOrEqual(20);
 });
