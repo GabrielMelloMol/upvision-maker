@@ -1,0 +1,44 @@
+import AxeBuilder from "@axe-core/playwright";
+import type { Page } from "@playwright/test";
+import { expect, go, openApp, settleColors, test } from "./tauri";
+
+const idle = (page: Page) => expect(page.locator(".viewer .overlay.busy")).toHaveCount(0, { timeout: 90_000 });
+async function open(page: Page) {
+  await openApp(page);
+  await go(page, "Modelos prontos");
+  await page.getByRole("searchbox", { name: "Buscar modelo" }).fill("aromatizador");
+  await page.getByRole("group", { name: "Modelo" }).getByRole("button", { name: "Chaveiro aromatizador", exact: true }).click();
+  await idle(page);
+}
+async function width(page: Page): Promise<number> {
+  const m = /([\d.]+) × ([\d.]+) × /.exec((await page.locator(".viewer .hud").first().textContent()) ?? "");
+  return Number(m![1]);
+}
+
+test("aromatizador: cápsula com logo em texto, corpo e tampa, teste da rosca menor e Salvar 3MF", async ({ page }) => {
+  await open(page);
+  await expect(page.locator(".viewer .legend")).toContainText("Corpo");
+  await expect(page.locator(".viewer .legend")).toContainText("Logo");
+  await expect(page.getByRole("button", { name: "Salvar 3MF" })).toBeEnabled();
+  const full = await width(page);
+  await page.getByLabel(/^Texto do logo/).fill("Rosa");
+  await idle(page);
+  await page.getByLabel(/^Diâmetro do feltro/).fill("40");
+  await idle(page);
+  expect(await width(page)).toBeGreaterThan(full + 10);
+  await page.getByRole("button", { name: "Só o teste da rosca" }).click();
+  await idle(page);
+  expect(await width(page)).toBeLessThan(full);
+  await page.getByLabel(/^Folga da rosca/).fill("0.15");
+  await expect(page.getByText(/Folga pequena/)).toBeVisible();
+});
+
+test("aromatizador: acessibilidade (axe), claro e escuro", async ({ page }) => {
+  await open(page);
+  for (const scheme of ["light", "dark"] as const) {
+    await page.emulateMedia({ colorScheme: scheme });
+    await settleColors(page);
+    const r = await new AxeBuilder({ page }).include("main").exclude("canvas").withTags(["wcag2a", "wcag2aa", "wcag21a", "wcag21aa", "wcag22aa"]).analyze();
+    expect(r.violations.map((v) => `${scheme} ${v.id}: ${v.nodes.slice(0, 2).map((n) => n.target.join(" ")).join(" | ")}`)).toEqual([]);
+  }
+});

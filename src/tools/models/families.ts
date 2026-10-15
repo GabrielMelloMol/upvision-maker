@@ -29,6 +29,7 @@ export const FAMILIES: Family[] = [
       { id: "gymKeychain", label: "Anilha", group: ART },
       { id: "mirror", label: "Espelho", group: FN },
       { id: "opener", label: "Abridor", group: FN },
+      { id: "aroma", label: "Aromatizador", group: FN },
       { id: "phoneKeychain", label: "Apoio celular", group: FN },
       { id: "spinner", label: "Giratório", group: FN },
       { id: "clicker", label: "Clicker", group: FN },
