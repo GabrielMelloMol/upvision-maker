@@ -1,6 +1,6 @@
 import { describe, expect, test } from "vitest";
 import { DESIGNS } from "./designs";
-import { blankGrid, cellAt, clearBackground, colorsUsed, countCells, gridFromImage, KIT_COLORS, paintCell, parseDesign, partsOf, roundCorners } from "./grid";
+import { blankGrid, cellAt, clearBackground, findEyes, colorsUsed, countCells, gridFromImage, KIT_COLORS, paintCell, parseDesign, partsOf, roundCorners } from "./grid";
 
 describe("desenho", () => {
   test("lê o texto: cor, formato e giro", () => {
@@ -116,6 +116,38 @@ describe("imagem para mosaico", () => {
     const kit = KIT_COLORS.filter((c) => ["red", "white"].includes(c.key));
     expect(gridFromImage(px, 16, 16, 8, kit, "none").cells.filter(Boolean)).toHaveLength(16);
     expect(gridFromImage(px, 16, 16, 8, kit, "none", false).cells.filter(Boolean)).toHaveLength(64);
+  });
+
+  /** 32×32 de fundo branco: um disco azul de 24 px com um olho (2 casas claras e um ponto preto) e, se pedido, um miolo claro sem ponto. */
+  function bird(pupil: boolean): Uint8ClampedArray {
+    const px = new Uint8ClampedArray(32 * 32 * 4).fill(255);
+    for (let y = 0; y < 32; y++) for (let x = 0; x < 32; x++) if (Math.hypot(x - 16, y - 16) < 13) px.set([37, 99, 235, 255], (y * 32 + x) * 4);
+    for (let y = 10; y < 12; y++) for (let x = 14; x < 18; x++) px.set([255, 255, 255, 255], (y * 32 + x) * 4); // área clara: 2 casas × 1
+    if (pupil) for (let y = 10; y < 12; y++) for (let x = 15; x < 17; x++) px.set([20, 20, 20, 255], (y * 32 + x) * 4);
+    return px;
+  }
+  const BIRD_KIT = KIT_COLORS.filter((c) => ["blue", "white", "black"].includes(c.key));
+
+  test("um ponto escuro dentro de uma área clara pequena vira a peça olho", () => {
+    const g = gridFromImage(bird(true), 32, 32, 16, BIRD_KIT, "none");
+    const eyes = g.cells.filter((c) => c?.shape === "eye");
+    expect(eyes).toHaveLength(1);
+    expect(eyes[0]).toMatchObject({ color: "white" });
+    expect(g.cells.filter((c) => c?.color === "white")).toHaveLength(2); // o olho e a outra casa, que é clara
+  });
+
+  test("área clara sem ponto escuro continua quadrado branco; o fundo e as bordas pretas soltas não viram olho", () => {
+    const g = gridFromImage(bird(false), 32, 32, 16, BIRD_KIT, "none");
+    expect(g.cells.some((c) => c?.shape === "eye")).toBe(false);
+    const withBg = gridFromImage(bird(true), 32, 32, 16, BIRD_KIT, "none", false);
+    expect(withBg.cells.filter((c) => c?.shape === "eye")).toHaveLength(1);
+  });
+
+  test("área clara grande (mais de 2 casas) não é olho", () => {
+    const px = bird(true);
+    for (let y = 8; y < 24; y++) for (let x = 8; x < 24; x++) px.set([255, 255, 255, 255], (y * 32 + x) * 4);
+    for (let y = 10; y < 12; y++) for (let x = 15; x < 17; x++) px.set([20, 20, 20, 255], (y * 32 + x) * 4);
+    expect(findEyes(gridFromImage(px, 32, 32, 16, BIRD_KIT, "none"), px, 32, 32).cells.some((c) => c?.shape === "eye")).toBe(false);
   });
 
   test("com cantos redondos, os cantos de fora viram quarto de círculo", () => {

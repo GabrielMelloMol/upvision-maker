@@ -111,12 +111,70 @@ export function clearBackground(g: MosaicGrid): MosaicGrid {
   return { ...g, cells };
 }
 
+const EYE_MAX_CELLS = 2; // área pequena: até 2 casas
+const DARK_LUMA = 70;
+const LIGHT_LUMA = 200;
+const EYE_SHARE = 0.02; // fatia mínima de pixels escuros e de claros (da imagem original) dentro da área
+
+/**
+ * Olhos: uma área pequena (até 2 casas, brancas ou pretas depois da redução de cores), cercada de desenho (não encosta
+ * no vazio nem na borda), que na imagem original tem um ponto escuro dentro de uma parte clara, vira a peça "olho"
+ * (branca com a pupila preta) na casa que mais mistura claro e escuro; a outra casa fica branca se for mais clara.
+ */
+export function findEyes(g: MosaicGrid, rgba: Uint8ClampedArray, w: number, h: number): MosaicGrid {
+  const share = (c: number, r: number) => {
+    const x0 = Math.floor((c * w) / g.cols), x1 = Math.max(x0 + 1, Math.floor(((c + 1) * w) / g.cols));
+    const y0 = Math.floor((r * h) / g.rows), y1 = Math.max(y0 + 1, Math.floor(((r + 1) * h) / g.rows));
+    let dark = 0, light = 0;
+    for (let y = y0; y < y1; y++)
+      for (let x = x0; x < x1; x++) {
+        const i = (y * w + x) * 4;
+        if (rgba[i + 3] <= 128) continue;
+        const l = 0.299 * rgba[i] + 0.587 * rgba[i + 1] + 0.114 * rgba[i + 2];
+        if (l < DARK_LUMA) dark++;
+        else if (l > LIGHT_LUMA) light++;
+      }
+    const total = (x1 - x0) * (y1 - y0);
+    return { dark: dark / total, light: light / total };
+  };
+  const small = (c: number, r: number) => {
+    const cell = cellAt(g, c, r);
+    return !!cell && cell.shape === "square" && (cell.color === "white" || cell.color === "black");
+  };
+  const cells = [...g.cells];
+  const seen = new Set<number>();
+  g.cells.forEach((_, i) => {
+    if (seen.has(i) || !small(i % g.cols, Math.floor(i / g.cols))) return;
+    const comp: number[] = [];
+    const stack = [i];
+    let open = false;
+    while (stack.length && comp.length <= EYE_MAX_CELLS) {
+      const j = stack.pop()!;
+      if (seen.has(j)) continue;
+      seen.add(j);
+      comp.push(j);
+      const [c, r] = [j % g.cols, Math.floor(j / g.cols)];
+      for (const [nc, nr] of [[c + 1, r], [c - 1, r], [c, r + 1], [c, r - 1]]) {
+        if (!cellAt(g, nc, nr)) open = true; // vazio ou fora da grade
+        else if (small(nc, nr)) stack.push(nr * g.cols + nc);
+      }
+    }
+    if (open || comp.length > EYE_MAX_CELLS || stack.length) return;
+    const parts = comp.map((j) => ({ j, ...share(j % g.cols, Math.floor(j / g.cols)) }));
+    const dark = Math.max(...parts.map((x) => x.dark)), light = Math.max(...parts.map((x) => x.light));
+    if (dark < EYE_SHARE || light < EYE_SHARE) return;
+    const best = [...parts].sort((a, b) => Math.min(b.dark, b.light) - Math.min(a.dark, a.light))[0];
+    for (const p of parts) cells[p.j] = p.j === best.j ? { color: "white", shape: "eye", rot: 0 } : p.light >= p.dark ? { color: "white", shape: "square", rot: 0 } : cells[p.j];
+  });
+  return { ...g, cells };
+}
+
 /** Cor do kit mais perto de um hex que a conversão devolveu (a paleta enviada à conversão tem só cores do kit). */
 const keyOfHex = (hex: string, colors: MosaicColor[]) => colors.find((c) => c.hex.toLowerCase() === hex.toLowerCase())?.key;
 
 /**
  * Imagem → mosaico: reduz para `size` casas no lado maior usando só as cores do kit e põe quadrados; `corners` troca
- * os cantos de fora por quartos de círculo ou triângulos. `dropBackground` tira a cor de fundo (ver `clearBackground`).
+ * os cantos de fora por quartos de círculo ou triângulos. `dropBackground` tira a cor de fundo (ver `clearBackground`); olhos são achados por `findEyes`.
  */
 export function gridFromImage(rgba: Uint8ClampedArray, w: number, h: number, size: number, colors: MosaicColor[], corners: CornerStyle, dropBackground = true): MosaicGrid {
   const g = pixelate(rgba, w, h, size, Math.min(8, Math.max(2, colors.length)), colors.map((c) => c.hex));
@@ -126,7 +184,8 @@ export function gridFromImage(rgba: Uint8ClampedArray, w: number, h: number, siz
     return key ? { color: key, shape: "square", rot: 0 } : null;
   });
   const grid: MosaicGrid = { cols: g.cols, rows: g.rows, cells };
-  return roundCorners(dropBackground ? clearBackground(grid) : grid, corners);
+  const clear = dropBackground ? clearBackground(grid) : grid;
+  return roundCorners(findEyes(clear, rgba, w, h), corners);
 }
 
 const SHAPE_CODES: Record<string, { shape: MosaicShape; rot: number }> = {

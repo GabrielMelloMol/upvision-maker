@@ -134,6 +134,7 @@ test("mosaico: um desenho enviado (pássaro) vira mosaico com as cores do kit e 
   await expect(page.getByRole("img", { name: "Imagem enviada: passaro.png" })).toBeVisible();
   const list = page.getByLabel("Peças do desenho");
   for (const cor of ["azul", "amarelo", "verde", "vermelho"]) await expect(list).toContainText(cor);
+  await expect(list).toContainText("1 × olho"); // o branco com a pupila preta vira a peça olho
   await shot(page, "09-imagem-para-mosaico");
 });
 
