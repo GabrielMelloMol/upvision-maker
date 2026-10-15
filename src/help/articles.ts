@@ -134,6 +134,13 @@ export const ARTICLES: HelpArticle[] = [
     tips: ["Só vale para faces planas e na parte de fora da peça; faces curvas ficam para depois.", "Use só modelos que são seus ou cuja licença permite alterar. O app não confere a licença."],
   },
   {
+    id: "protect",
+    title: "Proteger arquivo",
+    intro: "Gere a impressão digital (SHA-256) do seu STL ou 3MF e um certificado em PDF com data e QR; depois confira o arquivo sem internet.",
+    steps: ["Arraste o arquivo: o app calcula o hash na hora, sem enviar nada.", "Preencha obra, autor e contato (o nome da loja já vem dos Dados da empresa).", "Salve o certificado em PDF e, de preferência, o .json para conferir depois.", "Para conferir, escolha o arquivo e informe o hash: digitando, lendo o QR ou abrindo o .json."],
+    tips: ["Mudou um byte do arquivo, o hash muda e a conferência falha: serve para provar que a peça entregue é a mesma.", "A data vem do relógio deste computador e não é um carimbo de tempo independente; guarde o PDF e o arquivo juntos e registre o envio por e-mail ou plataforma de venda.", "Para gravar seu nome na própria peça, use Nome ou logo no seu modelo."],
+  },
+  {
     id: "pixel",
     title: "Pixel art",
     intro: "Transforme uma imagem numa grade de pixels com as cores dos seus filamentos e imprima como mosaico, quebra-cabeça ou ímã.",
