@@ -8,11 +8,24 @@
     {
       "appearance": "dark",
       "value": {
-        "automatic-gradient": "srgb:0.10980,0.10980,0.11765,1.00000"
+        "automatic-gradient": "srgb:0.07843,0.10196,0.18039,1.00000"
       }
     }
   ],
   "groups": [
+    {
+      "name": "Filamento",
+      "layers": [
+        {
+          "image-name": "filament.svg",
+          "name": "filament"
+        }
+      ],
+      "shadow": {
+        "kind": "neutral",
+        "opacity": 0.4
+      }
+    },
     {
       "name": "Pilha",
       "layers": [
@@ -20,23 +33,6 @@
           "image-name": "stack.svg",
           "name": "stack",
           "glass": true
-        }
-      ],
-      "shadow": {
-        "kind": "layer-color",
-        "opacity": 0.5
-      },
-      "translucency": {
-        "enabled": true,
-        "value": 0.2
-      }
-    },
-    {
-      "name": "Mesa",
-      "layers": [
-        {
-          "image-name": "bed.svg",
-          "name": "bed"
         }
       ],
       "shadow": {
@@ -53,7 +49,7 @@
           "fill-specializations": [
             {
               "value": {
-                "solid": "srgb:0.11373,0.11373,0.12157,1.00000"
+                "solid": "srgb:0.07843,0.10196,0.18039,1.00000"
               }
             },
             {

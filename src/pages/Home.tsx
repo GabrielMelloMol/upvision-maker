@@ -11,6 +11,7 @@ import { PAGES, type Go } from "../pages";
 import { setPendingOpen } from "../ui/search";
 import { useData } from "../ui/useData";
 import OccasionCard from "../ui/OccasionCard";
+import PrinterPanel from "../ui/PrinterPanel";
 import StartHere, { type StartSteps } from "../help/StartHere";
 
 const ACTIONS = [
@@ -70,17 +71,22 @@ export default function Home({ go }: { go: Go }) {
 
   return (
     <div className="page home">
-      <h1>{greeting()}</h1>
-      <ul className="home-actions" aria-label="Começar">
-        {ACTIONS.map((a) => (
-          <li key={a.page}>
-            <button onClick={() => go(a.page)}>
-              <a.icon aria-hidden />
-              {a.label}
-            </button>
-          </li>
-        ))}
-      </ul>
+      <div className="home-hero">
+        <div className="home-hero-main">
+          <h1>{greeting()}</h1>
+          <ul className="home-actions" aria-label="Começar">
+            {ACTIONS.map((a) => (
+              <li key={a.page}>
+                <button onClick={() => go(a.page)}>
+                  <a.icon aria-hidden />
+                  {a.label}
+                </button>
+              </li>
+            ))}
+          </ul>
+        </div>
+        <PrinterPanel />
+      </div>
       <OccasionCard go={go} />
       {!loading && <StartHere go={go} done={data.steps} />}
 

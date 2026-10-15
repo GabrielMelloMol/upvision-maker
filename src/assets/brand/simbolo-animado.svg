@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200">
+<path fill="var(--brand-ink,#141a2e)" d="M30 170H52L92 190H14ZM148 170H170L186 190H108Z"/>
+<g fill="#0244e6">
+<path class="bm-l bm-l1" d="M44 146L100 174L156 146V160L100 188L44 160Z"/>
+<path class="bm-l bm-l2" d="M44 126L100 154L156 126V140L100 168L44 140Z"/>
+<path class="bm-l bm-l3" d="M44 106L100 134L156 106V120L100 148L44 120Z"/></g>
+<path class="bm-f" d="M100 64V78L142 99L100 120L58 99L86 85" fill="none" stroke="#f85a00" stroke-width="10" stroke-linecap="round" stroke-linejoin="round"/>
+<rect x="14" y="18" width="172" height="12" rx="6" fill="var(--brand-ink,#141a2e)"/>
+<g><rect x="80" y="8" width="40" height="34" rx="7" fill="var(--brand-ink,#141a2e)"/><path fill="var(--brand-ink,#141a2e)" d="M86 46H114L105 62H95Z"/></g>
+</svg>

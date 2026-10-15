@@ -1,52 +1,32 @@
-/* Abertura (#139, #150, #153) e a impressão do símbolo camada por camada (também no Sobre). Carrega antes dos tokens:
-   cores com fallback. Só transform/opacity/clip-path no que se repete (60 fps em máquina fraca).
+/* Abertura (#139, #150, #153) e o símbolo animado da marca (também no carregamento da prévia 3D). Carrega antes dos tokens:
+   cores com fallback. Só transform/opacity/clip-path/stroke-dashoffset no que se repete (60 fps em máquina fraca).
    Linha do tempo (~3,6 s, toda vez que o app abre, #168, conta de quando a janela aparece):
-   0–700 ms o mini-ícone sobe com mola · 500–2100 o bico deposita as 3 camadas, com calma · 1500–2500 o nome entra
-   letra a letra · 2300–2900 reflexo de vidro · 3000 o app se abre num círculo a partir da peça (íris, splash.ts). */
+   0–700 ms o símbolo sobe com mola · o ciclo de 4 s dele (simbolo-animado.svg) põe as 3 camadas e, de 1,4 a 3 s, desenha o
+   filamento · 1500–2500 o nome entra letra a letra · 3000 o app se abre num círculo a partir do símbolo (íris, splash.ts). */
 #splash {
   position: fixed; inset: 0; z-index: 1000; display: grid; place-content: center; justify-items: center; gap: 26px;
   background: var(--bg, #f5f5f7); color: var(--text, #1d1d1f);
-  font: 600 24px/1.2 -apple-system, BlinkMacSystemFont, "SF Pro Display", "Segoe UI Variable Display", "Segoe UI", system-ui, sans-serif;
-  letter-spacing: -0.01em;
+  font: 800 28px/1.2 "Plus Jakarta Sans", -apple-system, BlinkMacSystemFont, "SF Pro Display", "Segoe UI Variable Display", "Segoe UI", system-ui, sans-serif;
+  letter-spacing: -0.02em; --brand-ink: #141a2e;
 }
 @media (prefers-color-scheme: dark) {
-  #splash { background: var(--bg, #161618); color: var(--text, #f5f5f7); }
+  #splash { background: var(--bg, #161618); color: var(--text, #f5f5f7); --brand-ink: #f4f6ff; }
 }
 /* brilho radial azul que respira atrás do símbolo */
 #splash::before {
   content: ""; position: absolute; left: 50%; top: 50%; width: 560px; height: 560px; margin: -320px 0 0 -280px; pointer-events: none;
-  background: radial-gradient(closest-side, rgb(47 123 255 / 0.16), transparent); animation: splash-breathe 1.8s ease-in-out infinite alternate;
+  background: radial-gradient(closest-side, rgb(2 68 230 / 0.14), transparent); animation: splash-breathe 1.8s ease-in-out infinite alternate;
 }
-#splash .brand-mark { position: relative; width: 132px; height: 132px; border-radius: 30px; overflow: hidden; will-change: transform; }
+#splash .brand-mark { position: relative; width: 148px; height: 148px; will-change: transform; }
 #splash .brand-mark svg { overflow: visible; }
 #splash .wordmark { display: inline-flex; white-space: pre; }
 /* tudo parado até a janela aparecer (splash.ts põe .play): o app pronto antes não "atropela" a animação */
 #splash:not(.play), #splash:not(.play) *, #splash:not(.play)::before { animation-play-state: paused !important; }
-
-/* 1. o mini-ícone (a "mesa") sobe com uma mola */
 #splash.full .brand-mark { animation: splash-bed 700ms cubic-bezier(0.34, 1.4, 0.64, 1) both; }
-/* 2. cada camada "escorre" da esquerda para a direita atrás do bico e assenta */
-#splash.full .layer {
-  transform-box: fill-box; transform-origin: 50% 100%;
-  animation: splash-pour 420ms cubic-bezier(0.45, 0, 0.55, 1) both, splash-settle 320ms cubic-bezier(0.34, 1.56, 0.64, 1) both;
-}
-#splash.full .l0 { animation-delay: 560ms, 980ms; }
-#splash.full .l1 { animation-delay: 1060ms, 1480ms; }
-#splash.full .l2 { animation-delay: 1560ms, 1980ms; }
-/* 3. o bico: uma passada por camada, subindo 4,5 (a altura da camada) a cada passada */
-#splash.full .nozzle { animation: splash-nozzle 1560ms linear 500ms both; }
-#splash.full .nozzle-glow { animation: splash-glow 1560ms linear 500ms both; }
-.nozzle-glow { opacity: 0; }
-/* 4. o nome entra letra a letra, com o espaço entre as letras fechando */
-#splash.full .wordmark span { display: inline-block; animation: splash-letter 520ms cubic-bezier(0.22, 1, 0.36, 1) both; animation-delay: calc(1500ms + var(--i) * 45ms); }
-/* 5. reflexo de vidro (Liquid Glass) passa pela peça pronta */
-#splash .sheen {
-  position: absolute; inset: 0; pointer-events: none; opacity: 0; border-radius: inherit;
-  background: linear-gradient(115deg, transparent 38%, rgb(255 255 255 / 0.75) 50%, transparent 62%) no-repeat; background-size: 300% 100%;
-}
-#splash.full .sheen { animation: splash-sheen 620ms cubic-bezier(0.4, 0, 0.2, 1) 2300ms both; }
+/* o nome entra letra a letra, com o espaço entre as letras fechando */
+#splash.full .wordmark span { display: inline-block; animation: splash-letter 520ms cubic-bezier(0.22, 1, 0.36, 1) both; animation-delay: calc(1000ms + var(--i) * 45ms); }
 
-/* 6. abrir o app (splash.ts põe .out.iris): o app se abre num círculo a partir da peça (clip-path no #root), que brilha. */
+/* abrir o app (splash.ts põe .out.iris): o app se abre num círculo a partir do símbolo (clip-path no #root), que brilha. */
 #splash.out { pointer-events: none; }
 #splash.out::before { opacity: 0; transition: opacity 300ms ease; }
 #splash.out .wordmark { opacity: 0; transform: translateY(6px); transition: opacity 220ms ease, transform 220ms ease; }
@@ -55,33 +35,20 @@
 
 @keyframes splash-breathe { from { transform: scale(0.92); } to { transform: scale(1.06); } }
 @keyframes splash-bed { from { opacity: 0; transform: translateY(48px) scale(0.9); } }
-@keyframes splash-pour { from { clip-path: inset(0 100% 0 0); } to { clip-path: inset(0 0 0 0); } }
-@keyframes splash-settle { 0% { transform: translateY(-0.8px); } 100% { transform: none; } }
-@keyframes splash-sheen { 0% { opacity: 1; background-position: 110% 0; } 85% { opacity: 1; } 100% { opacity: 0; background-position: -10% 0; } }
 @keyframes splash-letter { from { opacity: 0; transform: translateX(calc(16px - var(--i) * 1px)); filter: blur(3px); } }
-@keyframes splash-glow { 0% { opacity: 0; } 6%, 94% { opacity: 1; } 100% { opacity: 0; } }
 @keyframes splash-glint { 0% { filter: brightness(1); } 30% { filter: brightness(1.35); transform: scale(1.04); } 100% { filter: brightness(1); transform: scale(0.96); } }
-/* x: -7 → 7 a cada terço; y: de 9 (camada de baixo) até 0 (camada de cima) */
-@keyframes splash-nozzle {
-  0% { opacity: 0; transform: translate(-7px, 9px); }
-  5% { opacity: 1; }
-  33.2% { transform: translate(7px, 9px); }
-  33.3% { transform: translate(-7px, 4.5px); }
-  66.5% { transform: translate(7px, 4.5px); }
-  66.6% { transform: translate(-7px, 0); }
-  92% { opacity: 1; transform: translate(7px, 0); }
-  100% { opacity: 0; transform: translate(7px, -3px); }
-}
 
-/* Sobre: a impressão simples (cada camada cresce de baixo para cima) */
-.brand-mark.printing .bed { animation: print-bed 240ms ease both; }
-.brand-mark.printing .layer { transform-box: fill-box; transform-origin: 50% 100%; animation: print-layer 220ms cubic-bezier(0.22, 1, 0.36, 1) both; }
-.brand-mark.printing .l0 { animation-delay: calc(var(--print-step, 140ms) * 1); }
-.brand-mark.printing .l1 { animation-delay: calc(var(--print-step, 140ms) * 2); }
-.brand-mark.printing .l2 { animation-delay: calc(var(--print-step, 140ms) * 3); }
-@keyframes print-bed { from { opacity: 0; } }
-@keyframes print-layer { from { opacity: 0; transform: scaleY(0.15); } }
+/* símbolo animado (simbolo-animado.svg, ciclo de 4 s): as camadas sobem uma a uma e o filamento se desenha */
+.bm-l { opacity: 0; animation: bm-up 4s infinite; }
+.bm-l1 { animation-delay: 0s; } .bm-l2 { animation-delay: 0.5s; } .bm-l3 { animation-delay: 1s; }
+.bm-f { stroke-dasharray: 240; stroke-dashoffset: 240; animation: bm-draw 4s infinite; }
+@keyframes bm-up { 0% { opacity: 0; transform: translateY(6px); } 8%, 85% { opacity: 1; transform: none; } 100% { opacity: 0; } }
+@keyframes bm-draw { 0%, 35% { stroke-dashoffset: 240; } 75%, 85% { stroke-dashoffset: 0; } 100% { stroke-dashoffset: 0; opacity: 0; } }
+/* carregamento da prévia 3D */
+.busy-mark { width: 40px; height: 40px; }
+/* movimento reduzido: o quadro parado é o símbolo completo, sem ciclo */
 @media (prefers-reduced-motion: reduce) {
-  #splash *, #splash::before, .brand-mark.printing :is(.bed, .layer) { animation: none !important; }
-  #splash .nozzle { display: none; } /* parado, o bico ficaria solto em cima da peça */
+  #splash *, #splash::before { animation: none !important; }
+  .bm-l { opacity: 1; animation: none; }
+  .bm-f { stroke-dashoffset: 0; animation: none; }
 }

@@ -3,7 +3,7 @@ import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { SECTIONS, type PageDef, type SectionDef } from "../pages";
 import { modKey } from "./shortcuts";
-import BrandMark, { Wordmark } from "./BrandMark";
+import BrandMark, { BrandLogo } from "./BrandMark";
 import { toggleTheme, useDarkNow } from "./theme";
 
 /** Dica dos ícones da faixa recolhida (#167): espera um pouco para não piscar quando o mouse só passa por cima. */
@@ -83,9 +83,9 @@ export default function Sidebar({ pages, current, onNavigate, onNews, onSuggest,
     <nav className="sidebar" aria-label="Navegação principal" {...tip.handlers}>
       <div className="drag" data-tauri-drag-region />
       <div className="sidebar-head">
-        <button className="brand" onClick={() => onNavigate("home")}>
+        <button className="brand" aria-label="UpVision Maker" onClick={() => onNavigate("home")}>
           <BrandMark />
-          <Wordmark className="brand-name" />
+          <BrandLogo />
         </button>
         {onToggle && (
           <button type="button" className="ghost icon-only sm sidebar-toggle" onClick={onToggle} aria-label={rail ? "Expandir barra lateral" : "Recolher barra lateral"} title={rail ? undefined : `Recolher (${toggleKeys})`} data-tip={`Expandir (${toggleKeys})`} aria-keyshortcuts="Meta+Alt+S Control+Alt+S">

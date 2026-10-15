@@ -1,18 +1,19 @@
-// Gera os ícones do app a partir de src/assets/brand/mark.svg (#138): `node scripts/brand-icons.mjs`.
+// Gera os ícones do app a partir da marca nova (src/assets/brand/simbolo.svg): `node scripts/brand-icons.mjs`.
 // macOS: squircle contínuo no grid da Apple (824 de 1024), sem sombra desenhada: o sistema põe a dele (HIG). Windows: placa com cantos
-// transparentes (aparece na barra de tarefas escura), e 16/24/32 px com um desenho simplificado.
+// transparentes (aparece na barra de tarefas escura); 16/24/32 px usam o favicon da marca (azul, sem o pórtico), que lê de longe.
 import { execFileSync } from "node:child_process";
-import { copyFileSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
+import { copyFileSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { chromium } from "playwright";
 
-const INK = "#1D1D1F";
+const INK = "#141a2e";
 const ICONS = "src-tauri/icons";
-const mark = readFileSync("src/assets/brand/mark.svg", "utf8")
+const favicon = readFileSync("src/assets/brand/favicon.svg", "utf8");
+const mark = readFileSync("src/assets/brand/simbolo.svg", "utf8")
   .replace(/^[\s\S]*?<svg[^>]*>/, "")
   .replace(/<\/svg>\s*$/, "")
-  .replaceAll("currentColor", INK);
+  .replaceAll("var(--brand-ink,#141a2e)", INK);
 
 /** Superelipse (n = 5) centrada em c com raio r: o "canto contínuo" dos ícones da Apple. */
 function squircle(c, r, n = 5, steps = 256) {
@@ -27,25 +28,15 @@ function squircle(c, r, n = 5, steps = 256) {
   return `M${pts.join("L")}Z`;
 }
 
-const plate = `<linearGradient id="bg" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#FFFFFF"/><stop offset="1" stop-color="#ECEFF4"/></linearGradient>`;
-// o desenho ocupa x 49–463 e y 100–467 do viewBox: centro em (256, 283)
-const placeMark = (size, scale) => `<g transform="translate(${size / 2 - 256 * scale} ${size / 2 - 283 * scale}) scale(${scale})">${mark}</g>`;
+const plate = `<linearGradient id="bg" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#FFFFFF"/><stop offset="1" stop-color="#EEF1F7"/></linearGradient>`;
+// o símbolo ocupa x 14–186 e y 9–191 do viewBox de 200: centro em (100, 100)
+const placeMark = (size, scale) => `<g transform="translate(${size / 2 - 100 * scale} ${size / 2 - 100 * scale}) scale(${scale})">${mark}</g>`;
 
 const macSvg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024"><defs>${plate}</defs>
-  <path d="${squircle(512, 412)}" fill="url(#bg)"/>${placeMark(1024, 1.3)}</svg>`;
+  <path d="${squircle(512, 412)}" fill="url(#bg)"/>${placeMark(1024, 3.1)}</svg>`;
 
 const winSvg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024"><defs>${plate}</defs>
-  <path d="${squircle(512, 500)}" fill="url(#bg)" stroke="#D5DAE2" stroke-width="8"/>${placeMark(1024, 1.7)}</svg>`;
-
-// 16–32 px: sem trilho, bico e LEDs; moldura grossa e 3 camadas para ler de longe
-const smallSvg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32"><defs>${plate}</defs>
-  <path d="${squircle(16, 15.5)}" fill="url(#bg)" stroke="#C9CFD8" stroke-width="0.6"/>
-  <rect x="12" y="6" width="8" height="4" rx="1.5" fill="${INK}"/>
-  <rect x="5.5" y="9.5" width="21" height="16" rx="4.5" fill="none" stroke="${INK}" stroke-width="3"/>
-  <rect x="10" y="12.5" width="12" height="2.6" rx="1" fill="#2F6BFF"/>
-  <rect x="10" y="15.6" width="12" height="2.6" rx="1" fill="#5B4BF0"/>
-  <rect x="10" y="18.7" width="12" height="2.6" rx="1" fill="#FF6A1A"/>
-  <rect x="8.5" y="21.7" width="15" height="1.8" rx="0.9" fill="${INK}"/></svg>`;
+  <path d="${squircle(512, 500)}" fill="url(#bg)" stroke="#D5DAE2" stroke-width="8"/>${placeMark(1024, 4.2)}</svg>`;
 
 const browser = await chromium.launch();
 async function png(svg, size) {
@@ -79,17 +70,39 @@ writeFileSync(`${ICONS}/app-icon.png`, await png(macSvg, 1024));
 execFileSync("npx", ["tauri", "icon", `${ICONS}/app-icon.png`, "-o", ICONS], { stdio: "inherit" });
 for (const extra of ["android", "ios", "64x64.png"]) rmSync(`${ICONS}/${extra}`, { recursive: true, force: true }); // o app é só desktop
 const images = [];
-for (const size of [16, 24, 32]) images.push({ size, data: await png(smallSvg, size) });
+for (const size of [16, 24, 32]) images.push({ size, data: await png(favicon, size) });
 for (const size of [48, 64, 256]) images.push({ size, data: await png(winSvg, size) });
 writeFileSync(`${ICONS}/icon.ico`, ico(images));
 writeFileSync(`${ICONS}/32x32.png`, images[2].data);
 
 // macOS 26+ (#138): camadas no formato do Icon Composer, compiladas para Assets.car (só no Mac, com o Xcode)
 if (process.platform === "darwin") {
-  rmSync(`${ICONS}/AppIcon.icon`, { recursive: true, force: true });
-  execFileSync("python3", ["scripts/brand-mark.py", "--icon", `${ICONS}/AppIcon.icon`], { stdio: "inherit" });
+  const dir = `${ICONS}/AppIcon.icon`;
+  rmSync(dir, { recursive: true, force: true });
+  mkdirSync(`${dir}/Assets`, { recursive: true });
+  const body = (inner) => `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024">${placeMark(1024, 3.1).replace(/>.*<\/g>$/s, `>${inner}</g>`)}</svg>\n`;
+  const BLUE = '<g fill="#0244e6"><path d="M44 146L100 174L156 146V160L100 188L44 160Z"/><path d="M44 126L100 154L156 126V140L100 168L44 140Z"/><path d="M44 106L100 134L156 106V120L100 148L44 120Z"/></g>';
+  const FILAMENT = '<path d="M100 64V78L142 99L100 120L58 99L86 85" fill="none" stroke="#f85a00" stroke-width="10" stroke-linecap="round" stroke-linejoin="round"/>';
+  const FRAME = `<path fill="${INK}" d="M30 170H52L92 190H14ZM148 170H170L186 190H108Z"/><rect x="14" y="18" width="172" height="12" rx="6" fill="${INK}"/><rect x="80" y="8" width="40" height="34" rx="7" fill="${INK}"/><path fill="${INK}" d="M86 46H114L105 62H95Z"/>`;
+  writeFileSync(`${dir}/Assets/frame.svg`, body(FRAME));
+  writeFileSync(`${dir}/Assets/stack.svg`, body(BLUE));
+  writeFileSync(`${dir}/Assets/filament.svg`, body(FILAMENT));
+  const light = "srgb:0.07843,0.10196,0.18039,1.00000"; // #141A2E
+  const dark = "srgb:0.96078,0.96078,0.96863,1.00000"; // #F5F5F7
+  const group = (name, layer, extra = {}) => ({ name, layers: [{ "image-name": `${layer}.svg`, name: layer, ...extra }], shadow: { kind: "neutral", opacity: 0.4 } });
+  const icon = {
+    // a versão escura vai em fill-specializations JUNTO com a base (só "fill" + especialização é ignorado)
+    "fill-specializations": [{ value: { "automatic-gradient": "srgb:0.96863,0.97255,0.98039,1.00000" } }, { appearance: "dark", value: { "automatic-gradient": "srgb:0.07843,0.10196,0.18039,1.00000" } }],
+    groups: [
+      group("Filamento", "filament"),
+      group("Pilha", "stack", { glass: true }),
+      group("Moldura", "frame", { "fill-specializations": [{ value: { solid: light } }, { appearance: "dark", value: { solid: dark } }] }),
+    ],
+    "supported-platforms": { squares: ["macOS"] },
+  };
+  writeFileSync(`${dir}/icon.json`, JSON.stringify(icon, null, 2));
   const out = mkdtempSync(join(tmpdir(), "appicon-"));
-  execFileSync("xcrun", ["actool", `${ICONS}/AppIcon.icon`, "--compile", out, "--platform", "macosx", "--minimum-deployment-target", "11.0", "--app-icon", "AppIcon", "--output-partial-info-plist", join(out, "partial.plist")], { stdio: "ignore" });
+  execFileSync("xcrun", ["actool", dir, "--compile", out, "--platform", "macosx", "--minimum-deployment-target", "11.0", "--app-icon", "AppIcon", "--output-partial-info-plist", join(out, "partial.plist")], { stdio: "ignore" });
   copyFileSync(join(out, "Assets.car"), `${ICONS}/Assets.car`);
 }
 await browser.close();

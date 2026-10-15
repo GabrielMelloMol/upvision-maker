@@ -7,7 +7,7 @@ import Sheet from "../ui/Sheet";
 import { errorText, useToast } from "../ui/Toast";
 import { releaseHighlights, RELEASES_PAGE } from "./releases";
 import { systemName } from "./system";
-import BrandMark, { Wordmark } from "../ui/BrandMark";
+import { BrandLogo } from "../ui/BrandMark";
 import { latestVersion, type UpdatesState } from "./useUpdates";
 
 type Props = UpdatesState & { checkNow: () => Promise<void>; install: () => Promise<void>; onNews: () => void; onClose: () => void };
@@ -78,11 +78,9 @@ export default function AboutSheet(p: Props) {
       }
     >
       <div className="about-head">
-        <BrandMark className="printing" />
+        <BrandLogo />
         <div>
-          <strong>
-            <Wordmark />
-          </strong>
+          <strong>UpVision Maker</strong>
           <span className="about-version">v{p.version ?? "…"}</span>
           <span className="hint">
             Build de {__BUILD_DATE__.split("-").reverse().join("/")} · {system}

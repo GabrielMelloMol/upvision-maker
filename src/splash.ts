@@ -1,13 +1,14 @@
 /**
- * Abertura (#139, #150, #151, #153): o mini-ícone sobe, o bico imprime as 3 camadas do símbolo, o nome entra letra a
- * letra, o reflexo de vidro passa e a tela "abre" para o app (coreografia em styles/splash.css). Toca TODA vez que o
- * app abre, uns 3,6 s (#168: a antiga escolha Curta/Desligada ficava salva e escondia a abertura; não há mais escolha).
- * Com "Reduzir movimento" o símbolo e o nome ficam parados o mesmo tempo e o app entra num fade. O app carrega por baixo. A janela do Tauri nasce escondida e só aparece com a abertura já pintada e no
+ * Abertura (#139, #150, #153): o símbolo animado da marca nova sobe, imprime as 3 camadas e desenha o filamento (ciclo de 4 s,
+ * simbolo-animado.svg), o nome entra letra a letra e a tela "abre" para o app (coreografia em styles/splash.css). Toca TODA
+ * vez que o app abre, uns 3,6 s (#168: a antiga escolha Curta/Desligada ficava salva e escondia a abertura; não há mais escolha).
+ * Com "Reduzir movimento" o símbolo (quadro final) e o nome ficam parados o mesmo tempo e o app entra num fade. O app carrega por baixo. A janela do Tauri nasce escondida e só aparece com a abertura já pintada e no
  * tema certo; a animação só começa (e o tempo conta) depois disso. Clique ou tecla pulam; trava de 7 s.
  */
 import { invoke } from "@tauri-apps/api/core";
 import { getCurrentWindow } from "@tauri-apps/api/window";
-import glyph from "./assets/brand/glyph.svg?raw";
+import animated from "./assets/brand/simbolo-animado.svg?raw";
+import "@fontsource/plus-jakarta-sans/latin-800.css";
 import "./styles/splash.css";
 import { applyTheme, storedTheme } from "./ui/theme";
 
@@ -52,16 +53,10 @@ function showWindow(): Promise<void> {
 const ready = window as unknown as { upvisionSplashDone?: () => void };
 const el = document.createElement("div");
 const letters = [...NAME].map((c, i) => `<span style="--i:${i}">${c === " " ? "&nbsp;" : c}</span>`).join("");
-const glow = `<defs><radialGradient id="splash-glow"><stop offset="0" stop-color="#ffb35c" stop-opacity="0.95"/><stop offset="1" stop-color="#ff6a1a" stop-opacity="0"/></radialGradient></defs>`;
-// o bico (só na abertura): corpo, ponta e o brilho quente onde o filamento sai
-const nozzle = `<g class="nozzle"><circle class="nozzle-glow" cx="16" cy="3.4" r="3.2" fill="url(#splash-glow)"/><rect x="13.6" y="-2.6" width="4.8" height="3.6" rx="1" fill="currentColor"/><path d="M14.6 1h2.8l-1.4 2z" fill="currentColor"/></g>`;
 el.id = "splash";
 el.className = "full";
 el.setAttribute("aria-hidden", "true");
-el.innerHTML = `<span class="brand-mark">${glyph}<span class="sheen"></span></span><span class="wordmark">${letters}</span>`;
-const svg = el.querySelector("svg");
-svg?.insertAdjacentHTML("afterbegin", glow);
-svg?.insertAdjacentHTML("beforeend", nozzle);
+el.innerHTML = `<span class="brand-mark animated">${animated}</span><span class="wordmark">${letters}</span>`;
 document.body.prepend(el);
 
 // a animação fica parada até a janela aparecer; o tempo conta daí

@@ -11,8 +11,8 @@ test("abertura (#139, #153): completa toda vez, com o bico e as 3 camadas; sai d
   await page.goto("/", { waitUntil: "commit" }); // o load espera o main.tsx, que está segurado
   const splash = page.locator("#splash");
   await expect(splash).toHaveClass(/full/);
-  await expect(splash.locator(".brand-mark .layer")).toHaveCount(3);
-  await expect(splash.locator(".nozzle .nozzle-glow")).toHaveCount(1); // o bico que deposita as camadas (#150)
+  await expect(splash.locator(".brand-mark.animated .bm-l")).toHaveCount(3); // o símbolo animado da marca: 3 camadas e o filamento
+  await expect(splash.locator(".brand-mark.animated .bm-f")).toHaveCount(1);
   release();
   await expect(page.getByRole("navigation", { name: "Navegação principal" })).toBeVisible({ timeout: 60_000 }); // Vite frio
   await expect(splash).toHaveCount(0, { timeout: 10_000 }); // app montou e a animação terminou: abriu

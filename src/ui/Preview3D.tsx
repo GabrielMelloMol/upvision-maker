@@ -2,6 +2,7 @@ import { Box, TriangleAlert } from "lucide-react";
 import { useEffect, useId, useRef } from "react";
 import { modelsBounds } from "../geometry/bounds";
 import type { Model } from "../geometry/types";
+import BrandMark from "./BrandMark";
 import { createViewer } from "./viewerScene";
 
 type Props = {
@@ -154,7 +155,7 @@ export default function Preview3D({ models, busy, busyText = "Gerando modelo…"
           <div className="inner">
             {busy ? (
               <>
-                <div className="spinner" />
+                <BrandMark animated className="busy-mark" />
                 <span>{busyText}</span>
               </>
             ) : error ? (

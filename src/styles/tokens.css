@@ -9,7 +9,7 @@
 
   /* Tipografia: SF Pro no Mac, Segoe UI Variable no Windows 11, Segoe UI no 10. Nada é baixado. */
   --font: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI Variable Text", "Segoe UI Variable", "Segoe UI", system-ui, sans-serif;
-  --font-display: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Segoe UI Variable Display", "Segoe UI Variable", "Segoe UI", system-ui, sans-serif;
+  --font-display: "Plus Jakarta Sans", -apple-system, BlinkMacSystemFont, "SF Pro Display", "Segoe UI Variable Display", "Segoe UI Variable", "Segoe UI", system-ui, sans-serif;
   --font-mono: ui-monospace, "SF Mono", "Cascadia Code", Consolas, monospace;
   --text-xs: 11px;
   --text-sm: 12.5px;
@@ -63,8 +63,10 @@
   --accent-soft: rgb(37 99 235 / 0.1);
   --focus-ring: rgb(37 99 235 / 0.35);
 
-  --brand-orange: #f97316; /* decorativo (ícones, destaques) */
-  --brand-blue: #0a5cff; /* o "Up" do nome, como no site da UpVision (#138) */
+  --brand-orange: #f85a00; /* Laranja Filamento: decorativo (ícones, destaques); texto laranja só no tema escuro */
+  --brand-blue: #0244e6; /* Azul UpVision */
+  --brand-ink: #141a2e; /* Grafite: pórtico e mesa do símbolo */
+  --brand-night: #0b1f66; /* Azul Noite */
   /* botão de exportar = o primário (#139): um só acento; laranja fica para a marca e o que tem significado */
   --action: var(--accent);
   --action-hover: var(--accent-hover);
@@ -135,6 +137,7 @@
     --accent-hover: #2f6bea; /* 4,76:1 com texto branco (o #3b75f0 dava 4,2) */
     --accent-text: #6ea2ff;
     --brand-blue: #4d8dff;
+    --brand-ink: #f4f6ff; /* no escuro o grafite some: o pórtico fica claro */
     --mark-bed: #48484a; /* mesa do símbolo: preta no claro, grafite no escuro */
     --mark-bed-top: #636366;
     --accent-soft: rgb(80 140 255 / 0.18);

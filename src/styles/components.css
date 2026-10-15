@@ -138,16 +138,16 @@ ul.changes { margin: 0; padding-left: 18px; display: grid; gap: 6px; }
 }
 .sheet-inner { display: flex; flex-direction: column; min-height: 0; max-height: inherit; }
 .sheet-icon { width: 20px; height: 20px; color: var(--muted); flex: none; }
-/* símbolo num mini-ícone (#151, opção A): squircle como o ícone do app; o tamanho vem de quem usa */
-.brand-mark {
-  display: inline-grid; place-items: center; flex: none; border-radius: 23%;
-  background: linear-gradient(180deg, #fff, #f1f1f4); box-shadow: 0 0 0 0.5px rgb(0 0 0 / 0.14), 0 1px 2px rgb(0 0 0 / 0.1);
-}
-.brand-mark svg { width: 74%; height: 74%; }
+/* símbolo da marca (sem placa): o tamanho vem de quem usa; o pórtico segue --brand-ink (tokens.css) */
+.brand-mark { display: inline-grid; place-items: center; flex: none; }
+.brand-mark svg { width: 100%; height: 100%; }
+.brand-logo { display: inline-block; line-height: 0; }
+.brand-logo img { display: block; width: 100%; height: auto; }
+.brand-logo .logo-dark { display: none; }
 @media (prefers-color-scheme: dark) {
-  .brand-mark { background: linear-gradient(180deg, #3a3a3e, #2a2a2d); box-shadow: 0 0 0 0.5px rgb(255 255 255 / 0.14), 0 1px 2px rgb(0 0 0 / 0.4); }
+  .brand-logo .logo-light { display: none; }
+  .brand-logo .logo-dark { display: block; }
 }
-.wordmark { white-space: nowrap; color: var(--text); }
 .sheet-icon.brand-mark { width: 24px; height: 24px; color: var(--text); }
 .sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
 td.actions { white-space: nowrap; width: 1%; }
@@ -289,9 +289,9 @@ h3.subhead svg { width: 16px; height: 16px; color: var(--muted); }
 .banner button.ghost { color: var(--text); }
 
 /* Sobre (#18) */
-.about-head { display: flex; align-items: center; gap: var(--space-4); }
-.about-head .brand-mark { width: 52px; height: 52px; flex: none; --print-step: 80ms; } /* a mesma impressão da abertura, curta */
-.about-head strong { display: block; font-family: var(--font-display); font-size: var(--title-2); font-weight: 700; }
+.about-head { display: flex; align-items: center; gap: var(--space-5); flex-wrap: wrap; }
+.about-head .brand-logo { width: 188px; flex: none; }
+.about-head strong { display: block; font-family: var(--font-display); font-size: var(--title-2); font-weight: 800; }
 .about-head .about-version { display: inline-block; margin: 2px 8px 2px 0; font-size: var(--text-lg); font-weight: 600; font-variant-numeric: tabular-nums; }
 .about-status { display: flex; align-items: center; gap: 10px; padding: 12px 14px; border-radius: var(--r); background: var(--fill); font-weight: 500; }
 .about-status svg { width: 18px; height: 18px; flex: none; color: var(--muted); }
