@@ -1,19 +1,18 @@
-// Gera os ícones do app a partir da marca nova (src/assets/brand/simbolo.svg): `node scripts/brand-icons.mjs`.
-// macOS: squircle contínuo no grid da Apple (824 de 1024), sem sombra desenhada: o sistema põe a dele (HIG). Windows: placa com cantos
-// transparentes (aparece na barra de tarefas escura); 16/24/32 px usam o favicon da marca (azul, sem o pórtico), que lê de longe.
+// Gera os ícones do app a partir da marca nova (favicon.svg, igual ao ícone do site): `node scripts/brand-icons.mjs`.
+// Ícone azul do site. macOS: squircle contínuo no grid da Apple (824 de 1024), sem sombra desenhada: o sistema põe a dela (HIG). Windows: placa
+// com cantos transparentes; 16/24/32 px usam o favicon da marca (só pilha e fio), que lê de longe.
 import { execFileSync } from "node:child_process";
 import { copyFileSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { chromium } from "playwright";
 
-const INK = "#141a2e";
 const ICONS = "src-tauri/icons";
 const favicon = readFileSync("src/assets/brand/favicon.svg", "utf8");
-const mark = readFileSync("src/assets/brand/simbolo.svg", "utf8")
-  .replace(/^[\s\S]*?<svg[^>]*>/, "")
-  .replace(/<\/svg>\s*$/, "")
-  .replaceAll("var(--brand-ink,#141a2e)", INK);
+const BLUE = "#0244e6", NIGHT = "#0b1f66";
+// o ícone do site (viewBox 32): pilha branca + fio laranja; o fundo azul fica por conta da placa de cada plataforma
+const STACK = '<g fill="#fff"><path d="M5 18.2L16 23.7L27 18.2V21.6L16 27.1L5 21.6Z"/><path d="M5 12.8L16 18.3L27 12.8V16.2L16 21.7L5 16.2Z"/></g>';
+const FILAMENT = '<path d="M16 5.6L25.4 10.3L16 15L6.6 10.3Z" fill="none" stroke="#f85a00" stroke-width="2.6" stroke-linejoin="round"/>';
 
 /** Superelipse (n = 5) centrada em c com raio r: o "canto contínuo" dos ícones da Apple. */
 function squircle(c, r, n = 5, steps = 256) {
@@ -28,15 +27,15 @@ function squircle(c, r, n = 5, steps = 256) {
   return `M${pts.join("L")}Z`;
 }
 
-const plate = `<linearGradient id="bg" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#FFFFFF"/><stop offset="1" stop-color="#EEF1F7"/></linearGradient>`;
-// o símbolo ocupa x 14–186 e y 9–191 do viewBox de 200: centro em (100, 100)
-const placeMark = (size, scale) => `<g transform="translate(${size / 2 - 100 * scale} ${size / 2 - 100 * scale}) scale(${scale})">${mark}</g>`;
+const plate = `<linearGradient id="bg" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#1558f2"/><stop offset="1" stop-color="${BLUE}"/></linearGradient>`;
+/** O desenho de 32 unidades ocupando `span` px, centrado em `size`. */
+const place = (size, span, inner) => `<g transform="translate(${(size - span) / 2} ${(size - span) / 2}) scale(${span / 32})">${inner}</g>`;
 
 const macSvg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024"><defs>${plate}</defs>
-  <path d="${squircle(512, 412)}" fill="url(#bg)"/>${placeMark(1024, 3.1)}</svg>`;
+  <path d="${squircle(512, 412)}" fill="url(#bg)"/>${place(1024, 824, STACK + FILAMENT)}</svg>`;
 
 const winSvg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024"><defs>${plate}</defs>
-  <path d="${squircle(512, 500)}" fill="url(#bg)" stroke="#D5DAE2" stroke-width="8"/>${placeMark(1024, 4.2)}</svg>`;
+  <path d="${squircle(512, 500)}" fill="url(#bg)"/>${place(1024, 1000, STACK + FILAMENT)}</svg>`;
 
 const browser = await chromium.launch();
 async function png(svg, size) {
@@ -80,24 +79,14 @@ if (process.platform === "darwin") {
   const dir = `${ICONS}/AppIcon.icon`;
   rmSync(dir, { recursive: true, force: true });
   mkdirSync(`${dir}/Assets`, { recursive: true });
-  const body = (inner) => `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024">${placeMark(1024, 3.1).replace(/>.*<\/g>$/s, `>${inner}</g>`)}</svg>\n`;
-  const BLUE = '<g fill="#0244e6"><path d="M44 146L100 174L156 146V160L100 188L44 160Z"/><path d="M44 126L100 154L156 126V140L100 168L44 140Z"/><path d="M44 106L100 134L156 106V120L100 148L44 120Z"/></g>';
-  const FILAMENT = '<path d="M100 64V78L142 99L100 120L58 99L86 85" fill="none" stroke="#f85a00" stroke-width="10" stroke-linecap="round" stroke-linejoin="round"/>';
-  const FRAME = `<path fill="${INK}" d="M30 170H52L92 190H14ZM148 170H170L186 190H108Z"/><rect x="14" y="18" width="172" height="12" rx="6" fill="${INK}"/><rect x="80" y="8" width="40" height="34" rx="7" fill="${INK}"/><path fill="${INK}" d="M86 46H114L105 62H95Z"/>`;
-  writeFileSync(`${dir}/Assets/frame.svg`, body(FRAME));
-  writeFileSync(`${dir}/Assets/stack.svg`, body(BLUE));
+  const body = (inner) => `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024">${place(1024, 824, inner)}</svg>\n`;
+  writeFileSync(`${dir}/Assets/stack.svg`, body(STACK));
   writeFileSync(`${dir}/Assets/filament.svg`, body(FILAMENT));
-  const light = "srgb:0.07843,0.10196,0.18039,1.00000"; // #141A2E
-  const dark = "srgb:0.96078,0.96078,0.96863,1.00000"; // #F5F5F7
   const group = (name, layer, extra = {}) => ({ name, layers: [{ "image-name": `${layer}.svg`, name: layer, ...extra }], shadow: { kind: "neutral", opacity: 0.4 } });
   const icon = {
-    // a versão escura vai em fill-specializations JUNTO com a base (só "fill" + especialização é ignorado)
-    "fill-specializations": [{ value: { "automatic-gradient": "srgb:0.96863,0.97255,0.98039,1.00000" } }, { appearance: "dark", value: { "automatic-gradient": "srgb:0.07843,0.10196,0.18039,1.00000" } }],
-    groups: [
-      group("Filamento", "filament"),
-      group("Pilha", "stack", { glass: true }),
-      group("Moldura", "frame", { "fill-specializations": [{ value: { solid: light } }, { appearance: "dark", value: { solid: dark } }] }),
-    ],
+    // o fundo muda com a aparência do sistema (claro/escuro; a tinted o sistema tinge a partir das camadas); a escura vai JUNTO com a base
+    "fill-specializations": [{ value: { "automatic-gradient": "srgb:0.00784,0.26667,0.90196,1.00000" } }, { appearance: "dark", value: { "automatic-gradient": "srgb:0.04314,0.12157,0.40000,1.00000" } }],
+    groups: [group("Filamento", "filament"), group("Pilha", "stack", { glass: true })],
     "supported-platforms": { squares: ["macOS"] },
   };
   writeFileSync(`${dir}/icon.json`, JSON.stringify(icon, null, 2));

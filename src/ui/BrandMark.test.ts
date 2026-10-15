@@ -22,7 +22,10 @@ test("logo horizontal: versão para fundo claro e para fundo escuro, em vetor", 
   for (const f of ["logo-horizontal-cor", "logo-horizontal-escuro"]) expect(readFileSync(`src/assets/brand/${f}.svg`, "utf8")).toMatch(/viewBox="0 0 724 222"/);
 });
 
-test("ícone do macOS 26: camadas do Icon Composer da marca nova (moldura, pilha, filamento)", () => {
+test("ícone do macOS 26: azul do site, pilha e filamento, com aparência escura (azul-noite) e sem a moldura/placa branca", () => {
   const icon = JSON.parse(readFileSync("src-tauri/icons/AppIcon.icon/icon.json", "utf8"));
-  expect(icon.groups.map((g: { name: string }) => g.name).sort()).toEqual(["Filamento", "Moldura", "Pilha"]);
+  expect(icon.groups.map((g: { name: string }) => g.name).sort()).toEqual(["Filamento", "Pilha"]);
+  const dark = icon["fill-specializations"].find((f: { appearance?: string }) => f.appearance === "dark");
+  expect(dark.value["automatic-gradient"]).toBe("srgb:0.04314,0.12157,0.40000,1.00000"); // #0B1F66
+  expect(icon["fill-specializations"][0].value["automatic-gradient"]).toBe("srgb:0.00784,0.26667,0.90196,1.00000"); // #0244E6
 });
