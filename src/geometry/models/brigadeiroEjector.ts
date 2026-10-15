@@ -1,3 +1,4 @@
+import type { CS } from "../manifold";
 import { outerOnly, fitInto, scoped } from "../shape2d";
 import { moveMesh, requireArt, solidMesh, type ModelCtx, type ModelOutput } from "./common";
 import { dome, hasSharpFeatures, roundEdge, type EjectorBottom } from "./ejectorBottom";
@@ -31,7 +32,17 @@ const GAP = 8;
  * Ejetor de brigadeiro: forma no contorno do desenho (tubo com aba) e êmbolo que desliza dentro dela,
  * com haste e botão. A forma imprime com a aba na mesa; o êmbolo com a placa na mesa.
  */
-export function buildEjector({ M, art }: ModelCtx, p: EjectorParams): ModelOutput {
+export type EjectorOptions = {
+  /** Marca (desenho ou texto) gravada no rosto do êmbolo: o doce sai com ela em relevo. Sem espelhar: o app espelha. */
+  stamp?: CS | null;
+  stampDepth?: number;
+};
+
+const STAMP_FRACTION = 0.7; // quanto do êmbolo a marca ocupa
+const STAMP_MARGIN = 1.5; // borda que a marca deixa livre no êmbolo
+const STAMP_DEPTH = 0.8;
+
+export function buildEjector({ M, art }: ModelCtx, p: EjectorParams, opts: EjectorOptions = {}): ModelOutput {
   const src = requireArt(art);
   return scoped((k) => {
     const shape = k(outerOnly(M, k(fitInto(src, p.size, p.size, 0))));
@@ -49,6 +60,17 @@ export function buildEjector({ M, art }: ModelCtx, p: EjectorParams): ModelOutpu
     const handle = k(k(M.Manifold.union([stem, flare, knob])).translate([c[0], c[1], PLATE_H]));
     let ejector = k(k(plate.extrude(PLATE_H)).add(handle));
     const warnings: string[] = [];
+    if (opts.stamp && !opts.stamp.isEmpty()) {
+      // marca no rosto do êmbolo (a face que encosta no doce, de z = 0): rebaixo, espelhado para ler certo no doce
+      const room = k(plate.offset(-STAMP_MARGIN, "Round"));
+      if (!room.isEmpty()) {
+        const rb = room.bounds();
+        const fitted = k(fitInto(opts.stamp, (rb.max[0] - rb.min[0]) * STAMP_FRACTION, (rb.max[1] - rb.min[1]) * STAMP_FRACTION, 0));
+        const mirrored = k(k(fitted.mirror([1, 0])).translate([c[0], c[1]]));
+        const mark = k(mirrored.intersect(room));
+        if (!mark.isEmpty()) ejector = k(ejector.subtract(k(mark.extrude(opts.stampDepth ?? STAMP_DEPTH))));
+      }
+    }
     const bottom = p.bottom ?? "flat";
     if (bottom !== "flat") {
       const face = bottom === "round" ? roundEdge(M, plate, p.radius ?? 3) : dome(M, plate, p.domeHeight ?? 4, p.smooth ?? 0.7);
