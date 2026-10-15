@@ -29,7 +29,7 @@ const Z_TOL = 0.21; // mm: pausa no G-code até uma camada de distância do Z pe
 
 const wanted = (id: string, group: string, owner: string) => (!IDS || IDS.includes(id)) && (!GROUPS || GROUPS.includes(group)) && (!OWNERS || OWNERS.includes(owner));
 
-type Built = { c: QaCase; row: QaRow; file?: string; colors: string[]; pauses: number[]; notes: string[]; bedWarned: boolean; colorWarned: boolean };
+type Built = { c: QaCase; row: QaRow; file?: string; colors: string[]; pauses: number[]; notes: string[]; bedWarned: boolean; colorWarned: boolean; lotsWarned?: boolean };
 
 async function build(c: QaCase): Promise<Built> {
   const M = await getManifold();
@@ -49,6 +49,8 @@ async function build(c: QaCase): Promise<Built> {
   const isBed = (msg: string) => /não cabe na mesa|passa da mesa/.test(msg);
   const fails = problems.filter((p) => p.kind === "fail" && !(bedWarned && isBed(p.msg))).map((p) => p.msg);
   const warns = problems.filter((p) => p.kind === "warn" || (bedWarned && isBed(p.msg))).map((p) => p.msg);
+  // o app avisa que são mais mesas que o fatiador aceita num projeto (36): as peças que sobram ficam fora da mesa no CLI
+  const lotsWarned = out.warnings.some((w) => /imprima em lotes/.test(w));
   const notes = out.warnings.map((w) => `app: ${w}`); // o que o app já mostra na tela: vai no relatório, não muda o resultado
   const bytes = write3mf(out.models, { pauses: out.pauses, profile: c.profile });
   const colors = new Set(modelColors(out.models));
@@ -60,7 +62,7 @@ async function build(c: QaCase): Promise<Built> {
   mkdirSync(dir, { recursive: true });
   const file = join(dir, "modelo.3mf");
   writeFileSync(file, bytes);
-  return { c, row: { ...row, status: statusOf(fails, warns), reasons: [...fails, ...warns, ...notes] }, file, colors: [...colors], pauses: [...out.pauses].sort((a, b) => a - b), notes, bedWarned, colorWarned };
+  return { c, row: { ...row, status: statusOf(fails, warns), reasons: [...fails, ...warns, ...notes] }, file, colors: [...colors], pauses: [...out.pauses].sort((a, b) => a - b), notes, bedWarned, colorWarned, lotsWarned };
 }
 
 type Slices = { bambu?: SliceResult; orca?: SliceResult; project?: SliceResult };
@@ -70,6 +72,8 @@ const z = (n: number) => n.toFixed(2).replace(".", ",");
 function judge(label: string, s: SliceResult, b: Built): { fails: string[]; warns: string[] } {
   if (!s.ok) {
     const error = s.error ?? "não fatiou";
+    // mais mesas que o limite do projeto (36) e o app já avisou para imprimir em lotes: limite do fatiador, não da peça
+    if (b.lotsWarned && /over the boundary of the heated bed/i.test(error)) return { fails: [], warns: [`${label} recusa: mais mesas que o limite de um projeto (o app avisa e sugere lotes)`] };
     // peça maior que a mesa do A1 e o app já avisou na tela: aviso
     if (b.bedWarned && /no object fully inside|plate is empty/i.test(error)) return { fails: [], warns: [`${label} recusa na mesa de 256 mm do A1 (o app avisa)`] };
     // torre de purga (2+ cores) no CLI: o --arrange só reserva a torre para STL (--load-filament-ids), então com a mesa

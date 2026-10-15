@@ -1,6 +1,6 @@
 import { beforeAll, expect, test } from "vitest";
 import { meshBounds, modelsBounds } from "./bounds";
-import { fitSetOnBed } from "./bedLayout";
+import { fitSetOnBed, MAX_PLATES, platesLimitWarning, platesNeeded } from "./bedLayout";
 import { getManifold, type ManifoldToplevel } from "./manifold";
 import { toMesh } from "./mesh";
 import type { Model } from "./types";
@@ -36,4 +36,13 @@ test("já cabe ou peça sozinha maior que a mesa: não mexe", () => {
   expect(fitSetOnBed(ok)).toBe(ok);
   const big = [box("Enorme", 300, 50), box("B", 50, 50, 310, 0)];
   expect(fitSetOnBed(big)).toBe(big);
+});
+
+test("mesas necessárias: soma das caixas sobre a área útil; passando do limite do fatiador avisa", () => {
+  const few = Array.from({ length: 3 }, (_, i) => box(`P${i}`, 120, 120));
+  expect(platesNeeded(few)).toBe(1);
+  expect(platesLimitWarning(few)).toBeNull();
+  const many = Array.from({ length: 60 }, (_, i) => box(`P${i}`, 230, 245));
+  expect(platesNeeded(many)).toBeGreaterThan(MAX_PLATES);
+  expect(platesLimitWarning(many)).toMatch(/60 peças.*mais que as 36/);
 });
