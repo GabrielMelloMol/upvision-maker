@@ -39,6 +39,15 @@ test("docinho pelo peso: mais gramas, forma maior; a conta aparece escrita; dens
   await expect(page.getByText(/densidade = gramas ÷ 10/)).toBeVisible();
 });
 
+test("docinho pelo peso: o docinho fantasma não conta na medida do chip", async ({ page }) => {
+  await open(page);
+  const depth = async () => Number(/× ([\d.]+) × /.exec((await page.locator(".viewer .hud").first().textContent()) ?? "")![1]);
+  const withGhost = await depth();
+  await page.getByRole("switch", { name: /docinho pronto/ }).uncheck();
+  await idle(page);
+  expect(await depth()).toBeCloseTo(withGhost, 1);
+});
+
 test("docinho pelo peso: acessibilidade (axe), claro e escuro", async ({ page }) => {
   await open(page);
   for (const scheme of ["light", "dark"] as const) {

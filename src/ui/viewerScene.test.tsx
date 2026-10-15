@@ -224,6 +224,13 @@ describe("Preview3D", () => {
     expect(screen.queryByText("A prévia aparece aqui.")).not.toBeInTheDocument();
   });
 
+  test("a medida do chip ignora partes fantasma (copo da prévia, plano do corte)", () => {
+    const base = model(40);
+    const ghost = { ...model(40), parts: model(40).parts.map((p) => ({ ...p, ghost: true, mesh: { ...p.mesh, positions: p.mesh.positions.map((v, i) => (i % 3 === 2 ? v * 5 : v)) } })) };
+    render(<Preview3D models={[base, ghost]} />);
+    expect(screen.getByText("40.0 × 40.0 × 20.0 mm")).toBeInTheDocument();
+  });
+
   test("estados: vazio, carregando e erro", () => {
     const { rerender, container } = render(<Preview3D models={[]} emptyText="Envie algo." />);
     expect(screen.getByText("Envie algo.")).toBeInTheDocument();
