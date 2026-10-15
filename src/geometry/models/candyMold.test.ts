@@ -100,4 +100,26 @@ describe("docinho pelo peso: a cavidade tem o volume que o peso pede (#220)", { 
     expect(candy({ weight: 5, depth: 30 }).warnings!.join(" ")).toMatch(/ficou pequena/);
     expect(candy({ weight: 80, depth: 8, density: 0.8 }).warnings!.join(" ")).toMatch(/ficou grande/);
   });
+
+  test("docinho fantasma: translúcido e só na prévia, na altura do docinho, com a marca em relevo no topo; sem marca fica liso", () => {
+    const withMark = candy({ stampText: "Ana" });
+    const ghost = withMark.models.find((m) => m.previewOnly)!;
+    expect(ghost.parts[0].ghost).toBe(true);
+    expect(ghost.parts[0].name).toBe("");
+    const gb = meshBounds([ghost.parts[0].mesh])!;
+    expect(gb.min[2]).toBeCloseTo(0, 2);
+    expect(gb.max[2]).toBeCloseTo(14 + 0.8, 1); // altura do docinho + relevo da marca
+    const smooth = meshBounds([candy().models.find((m) => m.previewOnly)!.parts[0].mesh])!;
+    expect(smooth.max[2]).toBeCloseTo(14, 1);
+    // à frente da forma, sem sobrepor
+    const fb = meshBounds([model(withMark, "Forma").parts[0].mesh])!;
+    expect(gb.max[1]).toBeLessThan(fb.min[1]);
+    // o volume do doce fantasma é o do peso (cavidade cheia)
+    const body = solid(candy().models.find((m) => m.previewOnly)!.parts[0].mesh);
+    expect(body.volume() / ((25 / 1.2) * 1000)).toBeGreaterThan(0.97);
+    body.delete();
+    expect(candy({ showCandy: false }).models.some((m) => m.previewOnly)).toBe(false);
+    expect(candy({ print: "test" }).models.some((m) => m.previewOnly)).toBe(false);
+    expect(withMark.models.filter((m) => !m.previewOnly).map((m) => m.name)).toEqual(["Forma", "Ejetor"]);
+  });
 });

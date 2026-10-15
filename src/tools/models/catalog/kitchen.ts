@@ -79,6 +79,7 @@ export const KITCHEN_MODELS: ModelDef[] = [
           num("wall", "Parede", 1.2, 3),
           num("clearance", "Folga do êmbolo", 0.2, 1, { step: 0.05, hint: "0,4 costuma deslizar bem." }),
           text("stampText", "Texto da marca no êmbolo (sem desenho)", 12),
+          bool("showCandy", "Mostrar o docinho pronto na prévia (translúcido, só para ver a marca)"),
           choice("print", "Imprimir", [["candy", "Forma e êmbolo do docinho"], ["test", "Só a forma de teste (10 cm³)"]]),
           color("frameColor", "Forma"),
           color("ejectorColor", "Êmbolo"),

@@ -2,7 +2,8 @@ import type { CS, ManifoldToplevel } from "../manifold";
 import { medalOutline } from "../medal";
 import { outerOnly, scoped } from "../shape2d";
 import { roundedRect, type ModelCtx, type ModelOutput } from "./common";
-import { buildEjector } from "./brigadeiroEjector";
+import { buildEjector, fitStamp } from "./brigadeiroEjector";
+import { solidMesh } from "./common";
 
 export type CandyShape = "round" | "heart" | "star" | "flower" | "bar" | "art";
 
@@ -20,6 +21,8 @@ export type CandyMoldParams = {
   stampText: string;
   /** "test": a forma de teste de 10 cm³ para pesar e calibrar a densidade. */
   print: "candy" | "test";
+  /** O docinho pronto, translúcido, ao lado na prévia (mostra a marca em relevo; não vai para o arquivo). */
+  showCandy: boolean;
   frameColor: string;
   ejectorColor: string;
 };
@@ -33,10 +36,14 @@ export const DEFAULT_CANDY_MOLD: CandyMoldParams = {
   clearance: 0.4,
   stampText: "",
   print: "candy",
+  showCandy: true,
   frameColor: "#f472b6",
   ejectorColor: "#f8f8f6",
 };
 
+const CANDY_COLOR = "#9a5a2b";
+const CANDY_GAP = 14; // distância do docinho fantasma à forma
+const CANDY_RELIEF = 0.8; // relevo da marca no docinho
 const PLATE_H = 2.5; // a espessura do êmbolo (como no Ejetor de brigadeiro)
 const TEST_CM3 = 10; // volume da forma de teste
 const TEST_DEPTH = 20;
@@ -104,10 +111,21 @@ export function buildCandyMold(ctx: ModelCtx, p: CandyMoldParams): ModelOutput {
       { size: Math.max(w, h), height: depth + PLATE_H, wall: p.wall, clearance: p.clearance, bottom: "flat", frameColor: p.frameColor, ejectorColor: p.ejectorColor },
       { stamp },
     );
+    const models = [...out.models];
+    if (p.showCandy && !test) {
+      // docinho pronto (fantasma), à frente da forma: o formato, a altura e a marca em relevo como o êmbolo deixa
+      const centered = k(scaled.translate([-(b.min[0] + b.max[0]) / 2, -(b.min[1] + b.max[1]) / 2]));
+      const plate = k(centered.offset(-p.clearance, "Round"));
+      const pb = plate.bounds();
+      const mark = stamp && !plate.isEmpty() ? fitStamp(plate, [(pb.min[0] + pb.max[0]) / 2, (pb.min[1] + pb.max[1]) / 2], stamp, false, k) : null;
+      const body = k(centered.extrude(depth));
+      const candy = mark ? k(k(body.add(k(k(mark.extrude(CANDY_RELIEF)).translate([0, 0, depth])))).translate([0, -(h + CANDY_GAP), 0])) : k(body.translate([0, -(h + CANDY_GAP), 0]));
+      models.push({ name: "Docinho (só na prévia)", previewOnly: true, parts: [{ name: "", color: CANDY_COLOR, ghost: true, mesh: solidMesh(candy) }] });
+    }
     const grams = (volume / MM3_PER_CM3) * p.density;
     const info = test
       ? `Forma de teste: cabe ${TEST_CM3} cm³. Encha até a borda, sem apertar, e pese: densidade = gramas ÷ ${TEST_CM3}. Digite o resultado em "Densidade do doce".`
       : `Cavidade de ${br(w)} × ${br(h)} mm e ${br(depth, 0)} mm de altura = ${br(volume / MM3_PER_CM3)} cm³: cabe ${br(grams, 0)} g de doce a ${br(p.density, 2)} g/cm³.`;
-    return { models: out.models, warnings: [info, ...(out.warnings ?? []), ...warnings] };
+    return { models, warnings: [info, ...(out.warnings ?? []), ...warnings] };
   });
 }
