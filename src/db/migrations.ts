@@ -132,6 +132,8 @@ export const MIGRATIONS: string[][] = [
   ],
   // Bico da impressora (mm): o mapa estelar e os avisos de parte fina usam o da impressora das ferramentas. As que já existem ficam com 0,4.
   ["ALTER TABLE printers ADD COLUMN nozzle REAL NOT NULL DEFAULT 0.4"],
+  // Taxas do canal e imposto gravados no pedido no dia da venda (A5): o Financeiro e o Painel descontam do lucro. Pedidos antigos ficam com 0.
+  ["ALTER TABLE orders ADD COLUMN fees REAL NOT NULL DEFAULT 0"],
 ];
 
 export const SCHEMA_VERSION = MIGRATIONS.length;

@@ -246,6 +246,89 @@ describe("Calculator", () => {
     expect(screen.getAllByText("preço estimado: confira")).toHaveLength(1);
   });
 
+  test("M1: o título do resultado diz que os valores são da mesa inteira e mostra as peças (#243)", async () => {
+    const user = userEvent.setup();
+    renderWithApp(<Calculator go={() => {}} />);
+    await user.type(await screen.findByLabelText("Gramas"), "200");
+    expect(screen.getByRole("heading", { name: "Custo da peça" })).toBeInTheDocument(); // 1 peça: não há mesa para dividir
+    await user.clear(screen.getByLabelText("Peças na mesa"));
+    await user.type(screen.getByLabelText("Peças na mesa"), "4");
+    expect(screen.getByRole("heading", { name: "Custo da mesa (4 peças)" })).toBeInTheDocument();
+    expect(screen.queryByRole("heading", { name: "Resultado por peça" })).not.toBeInTheDocument();
+  });
+
+  test("M2: margem e peças na mesa com texto ilegível mostram erro; a margem ilegível vale a das Preferências (#243)", async () => {
+    const user = userEvent.setup();
+    renderWithApp(<Calculator go={() => {}} />);
+    await user.type(await screen.findByLabelText("Gramas"), "200");
+    const before = within(screen.getByRole("row", { name: /^Shopee/ })).getAllByRole("cell")[1].textContent;
+    await user.type(screen.getByLabelText("Margem em marketplace (%)"), "trinta");
+    await user.tab();
+    expect(await screen.findByText(/Digite a margem, ex\.: 30/)).toBeInTheDocument();
+    expect(within(screen.getByRole("row", { name: /^Shopee/ })).getAllByRole("cell")[1].textContent).toBe(before); // antes virava 0% e o preço despencava
+    await user.clear(screen.getByLabelText("Peças na mesa"));
+    await user.type(screen.getByLabelText("Peças na mesa"), "abc");
+    await user.tab();
+    expect(await screen.findByText("Digite um número inteiro de peças, ex.: 4.")).toBeInTheDocument();
+    await user.clear(screen.getByLabelText("Peças na mesa"));
+    await user.type(screen.getByLabelText("Peças na mesa"), "2,5");
+    await user.tab();
+    expect(screen.getByText("Digite um número inteiro de peças, ex.: 4.")).toBeInTheDocument();
+  });
+
+  test("M3: tempo solto acima de 24 h avisa ('90 horas? Se eram minutos, escreva 90 min'); com unidade não avisa (#243)", async () => {
+    const user = userEvent.setup();
+    renderWithApp(<Calculator go={() => {}} />);
+    const time = await screen.findByLabelText("Tempo de impressão");
+    await user.type(time, "90");
+    expect(screen.getByText(/90 horas\? Se eram minutos, escreva 90 min\./)).toBeInTheDocument();
+    await user.clear(time);
+    await user.type(time, "90 min");
+    expect(screen.queryByText(/90 horas\?/)).not.toBeInTheDocument();
+    await user.clear(time);
+    await user.type(time, "3");
+    expect(screen.queryByText(/horas\? Se eram/)).not.toBeInTheDocument();
+  });
+
+  test("A3: o modo Rápido sem impressora pede a potência e lista o que o Completo guardou e continua valendo (#243)", async () => {
+    const user = userEvent.setup();
+    renderWithApp(<Calculator go={() => {}} />);
+    await user.type(await screen.findByLabelText("Gramas"), "50");
+    await user.type(screen.getByLabelText("Tempo de impressão"), "3h");
+    await user.type(screen.getByLabelText("Mão de obra"), "30");
+    await user.type(screen.getByLabelText("Trocas de cor"), "10");
+    await user.type(screen.getByLabelText("Frete absorvido por peça"), "5");
+    await user.click(screen.getByRole("button", { name: "Rápido" }));
+    expect(screen.getByLabelText("Potência (W)")).toBeInTheDocument(); // sem impressora escolhida a energia ficava em R$ 0
+    expect(screen.getByText(/Também entram na conta \(modo Completo\): frete de R\$\s5,00 por peça, mão de obra de 30 min, 10 trocas de cor\./)).toBeInTheDocument();
+  });
+
+  test("B2: o arredondamento escolhido fica guardado nas preferências e volta ao reabrir (#243)", async () => {
+    const user = userEvent.setup();
+    const first = renderWithApp(<Calculator go={() => {}} />);
+    await user.type(await screen.findByLabelText("Gramas"), "200");
+    await user.click(screen.getByRole("button", { name: "Inteiro" }));
+    await waitFor(async () => expect(JSON.parse(((await t.db.select("SELECT data FROM settings")) as { data: string }[])[0].data).rounding).toBe("int"));
+    first.unmount();
+    renderWithApp(<Calculator go={() => {}} />);
+    await waitFor(() => expect(screen.getByRole("button", { name: "Inteiro" })).toHaveAttribute("aria-pressed", "true"));
+  });
+
+  test("M9: importar o arquivo do fatiador zera as trocas de cor digitadas (a purga já vem nas gramas) (#243)", async () => {
+    await t.db.execute("INSERT INTO printers (name, watts) VALUES ('A1', 110)");
+    await t.db.execute("INSERT INTO filaments (material, color, brand, pricePerKg) VALUES ('PLA', 'Azul', 'Bambu', 120), ('PLA', 'Branco', 'Bambu', 110)");
+    const name = "bambu-a1-2cores-fatiado.3mf";
+    const file = new File([readFileSync(resolve(__dirname, "../../tests/fixtures/slicer", name))], name);
+    const user = userEvent.setup();
+    renderWithApp(<Calculator go={() => {}} />);
+    await screen.findByRole("option", { name: "A1" });
+    await user.type(screen.getByLabelText("Trocas de cor"), "60");
+    await user.upload(document.querySelector<HTMLInputElement>('input[type="file"]')!, file);
+    await waitFor(() => expect(screen.getByLabelText("Peças na mesa")).toHaveValue("3"));
+    expect(screen.getByLabelText("Trocas de cor")).toHaveValue("");
+    expect(await screen.findByText(/trocas de cor digitadas foram zeradas/)).toBeInTheDocument();
+  });
+
   test("arquivo do fatiador preenche filamentos, impressora, tempo e peças", async () => {
     await t.db.execute("INSERT INTO printers (name, watts) VALUES ('A1', 110)");
     await t.db.execute("INSERT INTO filaments (material, color, brand, pricePerKg) VALUES ('PLA', 'Azul', 'Bambu', 120), ('PLA', 'Branco', 'Bambu', 110)");
@@ -346,6 +429,26 @@ describe("Calculadora (#22)", () => {
     renderWithApp(<Calculator go={() => {}} />);
     await user.click(screen.getByRole("button", { name: "Completo" }));
     await waitFor(() => expect(screen.getByRole("row", { name: /^Materiais extras/ })).toHaveTextContent(brl("2,00")));
+  });
+
+  test("A4: a embalagem padrão acompanha as peças na mesa; digitar outra quantidade solta a linha (#243)", async () => {
+    await t.db.execute("INSERT INTO materials (name, unit, unitPrice) VALUES ('Caixinha', 'un', 2)");
+    await t.db.execute(`INSERT INTO settings (id, data) VALUES (1, '{"packagingMaterialId":1}')`);
+    const user = userEvent.setup();
+    renderWithApp(<Calculator go={() => {}} />);
+    await user.click(screen.getByRole("button", { name: "Completo" }));
+    const qty = async () => ((await screen.findAllByLabelText("Quantidade"))[0] as HTMLInputElement).value;
+    await waitFor(async () => expect(await qty()).toBe("1"));
+    await user.clear(screen.getByLabelText("Peças na mesa"));
+    await user.type(screen.getByLabelText("Peças na mesa"), "4");
+    expect(await qty()).toBe("4"); // antes ficava 1 caixa para 4 peças e a embalagem por peça caía para um quarto
+    expect(screen.getByRole("row", { name: /^Materiais extras/ })).toHaveTextContent(brl("8,00")); // 4 × R$ 2,00 na mesa
+    const field = (await screen.findAllByLabelText("Quantidade"))[0];
+    await user.clear(field);
+    await user.type(field, "1");
+    await user.clear(screen.getByLabelText("Peças na mesa"));
+    await user.type(screen.getByLabelText("Peças na mesa"), "6");
+    expect(await qty()).toBe("1"); // quantidade digitada à mão não é mais derivada
   });
 });
 
@@ -496,7 +599,7 @@ test("canais com faixas de preço mostram a data da regra na tabela (#242)", asy
   await screen.findByLabelText("Gramas");
   await user.type(screen.getByLabelText("Gramas"), "200");
   expect(await within(await screen.findByRole("row", { name: /^Shopee/ })).findByText(/Taxas por faixa de preço, conferidas em 15\/10\/2026/)).toBeInTheDocument();
-  expect(screen.getByRole("row", { name: /^TikTok Shop/ })).not.toHaveTextContent(/faixa de preço/);
+  expect(screen.getByRole("row", { name: /^TikTok Shop/ })).toHaveTextContent(/Taxas por faixa de preço/); // também por faixa (M7)
 });
 
 test("taxas conferidas há mais de 90 dias (#34): a linha do canal avisa", async () => {

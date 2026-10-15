@@ -290,10 +290,32 @@ describe("Pedidos: novo pedido", () => {
     await user.click(within(sheet).getByRole("button", { name: "Criar pedido" }));
     await screen.findByText("Pedido #1 criado.");
     expect(t.raw.prepare("SELECT channel FROM orders").get()).toEqual({ channel: "Shopee" });
+    // A5: as taxas do canal (20% + R$ 4 por unidade sobre 20,00 e 2,50) ficam gravadas no pedido, no dia da venda
+    expect((t.raw.prepare("SELECT fees FROM orders").get() as { fees: number }).fees).toBeGreaterThan(5);
     expect(t.raw.prepare("SELECT productId, description, unitPrice, unitCost FROM order_items ORDER BY position").all()).toEqual([
       { productId: 1, description: "Chaveiro", unitPrice: 20, unitCost: expect.any(Number) },
       { productId: null, description: "Embrulho", unitPrice: 2.5, unitCost: 0 },
     ]);
+  });
+
+  test("A1: canal que não fecha a conta deixa o preço em branco e avisa, em vez de usar o da venda direta (#243)", { timeout: 30_000 }, async () => {
+    seed();
+    t.raw.prepare("INSERT OR REPLACE INTO settings (id, data) VALUES (1, ?)").run(JSON.stringify({ marketplaceMarginPct: 85, channels: [{ name: "Shopee", feePct: 20, feeFixed: 4, checkedAt: "2999-01-01" }] }));
+    const user = userEvent.setup();
+    renderWithApp(<Orders />);
+    await user.click((await screen.findAllByRole("button", { name: /Novo pedido/ }))[0]);
+    const sheet = await screen.findByRole("dialog", { name: "Novo pedido" });
+    await user.type(within(sheet).getByLabelText(/^Nome do cliente/), "Caio");
+    await user.selectOptions(within(sheet).getByLabelText("Canal"), "Shopee");
+    await user.click(within(sheet).getByRole("button", { name: "Adicionar item" }));
+    await within(sheet).findByRole("option", { name: "Chaveiro" });
+    await user.selectOptions(within(sheet).getByLabelText("Produto"), "Chaveiro");
+    expect(within(sheet).getByLabelText("Preço un.")).toHaveValue(""); // antes vinha o da venda direta (prejuízo na Shopee)
+    expect(within(sheet).getByText(/Este canal não fecha a conta com a margem de marketplace \(Chaveiro\)/)).toBeInTheDocument();
+    // trocar para um canal que fecha preenche o preço e some o aviso
+    await user.selectOptions(within(sheet).getByLabelText("Canal"), "Consumidor final");
+    expect(within(sheet).getByLabelText("Preço un.")).not.toHaveValue("");
+    expect(within(sheet).queryByText(/não fecha a conta/)).not.toBeInTheDocument();
   });
 
   test("validação: cliente obrigatório, pelo menos um item e item sem descrição", async () => {

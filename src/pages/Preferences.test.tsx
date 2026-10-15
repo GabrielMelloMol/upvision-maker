@@ -147,10 +147,11 @@ describe("Preferences", () => {
     renderWithApp(<Preferences />);
     await screen.findByLabelText("Adicionar canal pronto");
     await open(user, "Canais de venda");
-    await user.selectOptions(screen.getByLabelText("Adicionar canal pronto"), "Shein");
-    expect(screen.getByDisplayValue("Shein")).toBeInTheDocument();
-    expect(screen.getAllByText("Taxas ainda não conferidas por você.").length).toBeGreaterThan(1);
-    await user.click(screen.getByRole("button", { name: "Conferi hoje (TikTok Shop)" }));
+    await user.selectOptions(screen.getByLabelText("Adicionar canal pronto"), "Instagram/WhatsApp (maquininha)");
+    expect(screen.getByDisplayValue("Instagram/WhatsApp (maquininha)")).toBeInTheDocument();
+    expect(screen.getAllByText("Taxas ainda não conferidas por você.")).toHaveLength(1); // os de fábrica trazem a data da regra de 2026
+    expect(screen.getAllByText(/Conferido em 15\/10\/2026/).length).toBeGreaterThan(1);
+    await user.click(screen.getByRole("button", { name: "Conferi hoje (Instagram/WhatsApp (maquininha))" }));
     const shopeeRow = screen.getByDisplayValue("Shopee").closest(".row")! as HTMLElement;
     await user.clear(within(shopeeRow).getByLabelText("Comissão (%)"));
     await user.type(within(shopeeRow).getByLabelText("Comissão (%)"), "19");
@@ -158,10 +159,10 @@ describe("Preferences", () => {
     expect(await screen.findByText("Preferências salvas.")).toBeInTheDocument();
     const byName = Object.fromEntries((await settings()).channels.map((c: { name: string }) => [c.name, c]));
     const today = todayIso();
-    expect(byName["TikTok Shop"].checkedAt).toBe(today);
+    expect(byName["Instagram/WhatsApp (maquininha)"]).toEqual({ name: "Instagram/WhatsApp (maquininha)", feePct: 4, feeFixed: 0, checkedAt: today });
     expect(byName.Shopee).toMatchObject({ feePct: 19, checkedAt: today });
-    expect(byName.Shein).toEqual({ name: "Shein", feePct: 16, feeFixed: 0 });
     expect(byName["Mercado Livre (clássico)"].checkedAt).toBe("2026-10-15"); // a data da regra de fábrica (2026)
+    expect(byName["TikTok Shop"].checkedAt).toBe("2026-10-15");
   });
 
   test("falha por material (#35): só os preenchidos são gravados", async () => {

@@ -1,6 +1,6 @@
 import { describe, expect, test } from "vitest";
 import { calculate, channelFees, channelPrice, type CalcInput } from "./calc";
-import { migrateChannels, ML_CLASSIC_2026, ML_PREMIUM_2026, SHOPEE_2026 } from "./channelDefaults";
+import { migrateChannels, ML_CLASSIC_2026, ML_PREMIUM_2026, SHOPEE_2026, TIKTOK_2026 } from "./channelDefaults";
 import { CHANNEL_PRESETS } from "./channels";
 import { DEFAULT_SETTINGS, SettingsSchema } from "./settings";
 
@@ -113,11 +113,11 @@ describe("preferências salvas com o canal de fábrica antigo", () => {
     { name: "TikTok Shop", feePct: 12, feeFixed: 4 },
   ];
 
-  test("o que a pessoa nunca mexeu passa para as regras de 2026; TikTok e o resto ficam como estão", () => {
+  test("o que a pessoa nunca mexeu passa para as regras de 2026 (Shopee, Mercado Livre e TikTok); canais dela ficam como estão", () => {
     const out = migrateChannels(old);
     expect(out[0]).toBe(SHOPEE_2026);
     expect(out[1]).toBe(ML_CLASSIC_2026);
-    expect(out[2]).toEqual(old[2]);
+    expect(out[2]).toBe(TIKTOK_2026);
   });
 
   test("quem mudou a taxa, conferiu a data ou ajustou faixas não perde o que fez", () => {
@@ -128,5 +128,23 @@ describe("preferências salvas com o canal de fábrica antigo", () => {
     expect(migrateChannels(mine)).toEqual(mine);
     const tuned = [{ name: "Shopee", feePct: 20, feeFixed: 4, fixedBelow: 79 }];
     expect(migrateChannels(tuned)).toEqual(tuned);
+  });
+});
+
+describe("TikTok Shop e canais prontos de 2026 (#243, M7)", () => {
+  test("TikTok Shop: 10% + R$ 4 abaixo de R$ 50 e 6% + R$ 6 a partir dele (custo R$ 60 sugeria R$ 110,35: agora R$ 103,13)", () => {
+    expect(channelFees(TIKTOK_2026, 49.99, 0)).toBe(9); // 10% + 4
+    expect(channelFees(TIKTOK_2026, 50, 0)).toBe(9); // 6% + 6
+    expect(channelPrice(TIKTOK_2026, 60, 30, 0)).toBeCloseTo(103.13, 1);
+    expect(channelPrice(TIKTOK_2026, 1, 30, 0)).toBeCloseTo(8.34, 1);
+    expect(channelPrice(TIKTOK_2026, 250, 30, 0)).toBeCloseTo(400, 1);
+  });
+
+  test("Shein 18% sem taxa fixa; Amazon 15% + R$ 2 do plano individual, com a nota da categoria; Elo7 não é mais oferecido", () => {
+    const by = Object.fromEntries(CHANNEL_PRESETS.map((c) => [c.name, c]));
+    expect(by["Shein"]).toMatchObject({ feePct: 18, feeFixed: 0 });
+    expect(by["Amazon"]).toMatchObject({ feePct: 15, feeFixed: 2 });
+    expect(by["Amazon"].rulesNote).toMatch(/categoria/);
+    expect(by["Elo7"]).toBeUndefined();
   });
 });

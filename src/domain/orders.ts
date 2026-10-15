@@ -1,6 +1,8 @@
 import { z } from "zod";
-import type { CalcResult } from "./calc";
+import { channelFees, type CalcResult } from "./calc";
 import { round2 } from "./format";
+import { roundForChannel, roundPrice, type Rounding } from "./pricing";
+import type { Settings } from "./settings";
 import { planConsumption, type ConsumptionPlan, type Product, type ProductCtx } from "./products";
 
 export const STATUSES = ["pending", "production", "done", "delivered", "canceled"] as const;
@@ -39,6 +41,8 @@ export const OrderInput = z.object({
   paymentMethod: z.string().trim().max(60),
   notes: z.string().trim().max(2000),
   freight: nonNeg,
+  /** Taxas do canal e imposto da venda, gravados no pedido (A5); 0 em pedidos antigos e no orçamento. */
+  fees: nonNeg.optional(), // ausente em dados antigos e no orçamento
   /** Impressora em que o pedido vai (#188); null = ainda sem definir. */
   printerId: z.number().int().positive().nullable().optional(), // ausente em dados antigos
   items: z.array(OrderItem).min(1, "Adicione pelo menos um item"),
@@ -57,6 +61,12 @@ export type Order = Omit<OrderInput, "items"> & {
   paidAmount: number;
   items: (OrderItem & { id: number })[];
 };
+
+/** Taxas do canal e imposto de um pedido: por unidade, no preço depois do desconto do item, com as regras de hoje do canal. */
+export function orderFees(items: Pick<OrderItem, "qty" | "unitPrice" | "discountPct">[], channel: string, settings: Settings): number {
+  const cfg = settings.channels.find((c) => c.name === channel) ?? { name: channel, feePct: 0, feeFixed: 0 }; // venda direta e revenda: só o imposto
+  return round2(items.reduce((t, i) => t + i.qty * channelFees(cfg, round2(i.unitPrice * (1 - i.discountPct / 100)), settings.taxPct), 0));
+}
 
 export const lineTotal = (i: Pick<OrderItem, "qty" | "unitPrice" | "discountPct">) => round2(i.qty * i.unitPrice * (1 - i.discountPct / 100));
 
@@ -84,11 +94,19 @@ export function planForOrder(items: Pick<OrderItem, "productId" | "qty">[], ctx:
   return plan;
 }
 
-/** Preço sugerido do produto no canal do pedido. */
-export function priceForChannel(p: Product, r: CalcResult, channel: string): number {
-  if (channel === CONSUMER) return p.manualPrice ?? r.consumer;
-  if (channel === RESALE) return r.resale;
-  return r.channels.find((c) => c.name === channel)?.price ?? p.manualPrice ?? r.consumer;
+/**
+ * Preço sugerido do produto no canal do pedido, com o mesmo arredondamento da calculadora e do orçamento (M4).
+ * null = o canal não fecha a conta com a margem pedida (taxa + margem passam de 100%): o pedido fica sem preço e avisa,
+ * em vez de usar o da venda direta com prejuízo (A1). Canal que não existe mais usa o da venda direta.
+ */
+export function priceForChannel(p: Product, r: CalcResult, channel: string, rounding: Rounding = "none", settings?: Settings): number | null {
+  if (channel === CONSUMER) return p.manualPrice ?? roundPrice(r.consumer, rounding);
+  if (channel === RESALE) return roundPrice(r.resale, rounding);
+  const row = r.channels.find((c) => c.name === channel);
+  if (!row) return p.manualPrice ?? roundPrice(r.consumer, rounding);
+  if (row.price === null) return null;
+  const cfg = settings?.channels.find((c) => c.name === channel);
+  return cfg && settings ? roundForChannel(row.price, rounding, cfg, settings.taxPct, r.unitCost, 0).price : roundPrice(row.price, rounding);
 }
 
 /** Atrasado: tem prazo, já passou e ainda não foi entregue/cancelado. */

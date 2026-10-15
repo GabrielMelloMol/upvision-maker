@@ -2,7 +2,7 @@ import { Columns2 } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { getDb } from "../db";
 import { costsRepo } from "../db/costsRepo";
-import { filaments, loadSettings, materials, printers } from "../db/repo";
+import { filaments, loadSettings, materials, printers, saveSettings } from "../db/repo";
 import type { Db } from "../db/types";
 import { calculate, failureFor, machineHourCost } from "../domain/calc";
 import { findCatalogPrinter, printerLabel } from "../domain/catalog/printers";
@@ -10,13 +10,14 @@ import { staleChannelText } from "../domain/channels";
 import { looksLikePsuWatts } from "../domain/energy";
 import { sanityWarnings } from "../domain/sanity";
 import { fixedCostPerHour } from "../domain/finance";
-import { parseDecimal } from "../domain/format";
+import { money, parseDecimal } from "../domain/format";
 import { todayIso } from "../domain/orders";
 import { DEFAULT_SETTINGS } from "../domain/settings";
 import { compareChannels, roundPrice, type Rounding } from "../domain/pricing";
 import Segmented from "../ui/Segmented";
 import { useData } from "../ui/useData";
-import { formatDuration, formatMoneyInput, parseDuration, parseMoney } from "../ui/parse";
+import { bareHoursNote, formatDuration, formatMoneyInput, parseDuration, parseMoney } from "../ui/parse";
+import SmartField from "../ui/SmartField";
 import TimeField from "../ui/TimeField";
 import { takePendingEstimate } from "./calculator/pendingFile";
 import { type SlicerApply } from "./SlicerImport";
@@ -85,7 +86,8 @@ export default function Calculator({ go }: { go: Go }) {
     setFil([{ ref: "", price: "120,00", qty: "48" }]);
     setF({ ...EMPTY_FORM, name: "Chaveiro de exemplo", time: "3h", quantity: "4", watts: "95" });
   });
-  const [rounding, setRounding] = useState<Rounding>("none");
+  // o arredondamento é do app inteiro (Preferências): a escolha aqui fica guardada e vale também nos pedidos (B2, M4)
+  const [roundingPick, setRoundingPick] = useState<Rounding | null>(null);
   const [competitor, setCompetitor] = useState("");
   const [plugOpen, setPlugOpen] = useState(false);
   const [dismissed, setDismissed] = useState<string[]>([]); // avisos de valor fora do normal marcados "está certo"
@@ -106,7 +108,7 @@ export default function Calculator({ go }: { go: Go }) {
     const a = takePendingEstimate();
     if (!a) return;
     setMode("full");
-    applySlicer(a);
+    applySlicer(a, false); // estimativa da ferramenta 3D: não é arquivo do fatiador
     toast(
       a.filaments.some((x) => x.estimated)
         ? "Estimativa trazida da ferramenta 3D. Cores sem filamento cadastrado usam o preço médio do seu estoque (ou R$ 100/kg): confira. Pode errar ±20%."
@@ -121,24 +123,30 @@ export default function Calculator({ go }: { go: Go }) {
   if (!loading && !packed) {
     setPacked(true);
     const m = data.materials.find((x) => x.id === data.settings.packagingMaterialId);
-    if (m) setExt([{ ref: String(m.id), price: formatMoneyInput(String(m.price)), qty: f.quantity || "1" }]);
+    if (m) setExt([{ ref: String(m.id), price: formatMoneyInput(String(m.price)), qty: f.quantity || "1", perPiece: true }]); // acompanha as peças na mesa (A4)
   }
 
+  // a embalagem padrão acompanha "Peças na mesa" (A4): a quantidade da linha é derivada, até a pessoa digitar outra
+  const pieces = Math.max(1, Math.floor(parseDecimal(f.quantity) || 1));
+  const extLines = ext.map((l) => (l.perPiece ? { ...l, qty: String(pieces) } : l));
   const failure = failureFor(
     fil.flatMap((l) => data.stock.find((x) => String(x.id) === l.ref)?.material ?? []),
     data.settings,
   );
+  // margem em branco ou que não deu para ler (M2): vale a das Preferências, e o campo avisa
+  const marginRead = parseDecimal(f.margin);
+  const marginPct = f.margin.trim() === "" || !Number.isFinite(marginRead) ? data.settings.marketplaceMarginPct : marginRead;
   const r = calculate(
     {
       filaments: fil.map((l) => ({ pricePerKg: price(l.price), grams: num(l.qty) })),
       purgeGrams: num(f.swaps) * num(f.perSwap),
-      extras: ext.map((l) => ({ unitPrice: price(l.price), qty: num(l.qty) })),
+      extras: extLines.map((l) => ({ unitPrice: price(l.price), qty: num(l.qty) })),
       printerWatts: num(f.watts),
       printHours: printMin / 60,
       laborHours: laborMin / 60,
       quantity: num(f.quantity),
       freight: price(f.freight),
-      marketplaceMarginPct: f.margin === "" ? data.settings.marketplaceMarginPct : num(f.margin),
+      marketplaceMarginPct: marginPct,
       machinePerHour,
       fixedPerHour: data.fixedPerHour,
       energyKwh: num(f.kwh),
@@ -165,7 +173,7 @@ export default function Calculator({ go }: { go: Go }) {
   }));
   const dateBr = (iso: string) => iso.split("-").reverse().join("/");
   const ruleNotes = Object.fromEntries(data.settings.channels.filter((c) => c.tiers?.length).map((c) => [c.name, `Taxas por faixa de preço${c.checkedAt ? `, conferidas em ${dateBr(c.checkedAt)}` : ""}: confira em Preferências.`]));
-  const snapshot: Saved = { mode, fil, ext, printerId, f };
+  const snapshot: Saved = { mode, fil, ext: extLines, printerId, f };
   const grams = fil.reduce((t, l) => t + num(l.qty), 0);
   const history = useCalcHistory(snapshot, { name: f.name.trim(), grams, hours: printMin / 60, price: r.consumer }, r.unitCost > 0);
   function loadSnapshot(s: Saved) {
@@ -181,14 +189,23 @@ export default function Calculator({ go }: { go: Go }) {
     loadSnapshot(s);
     window.scrollTo({ top: 0, behavior: "smooth" });
   }
+  const rounding: Rounding = roundingPick ?? data.settings.rounding;
+  async function chooseRounding(m: Rounding) {
+    setRoundingPick(m);
+    try {
+      const db = await getDb();
+      await saveSettings(db, { ...(await loadSettings(db)), rounding: m });
+    } catch (e) {
+      toast(`Não consegui guardar o arredondamento: ${errorText(e)}`, "error");
+    }
+  }
   const rows = compareChannels(r, data.settings, price(f.freight), { rounding, competitor: price(competitor), hours: printMin / 60, qty: num(f.quantity) });
-  const marginPct = f.margin === "" ? data.settings.marketplaceMarginPct : num(f.margin);
   const current = scenarioSummary(f.name.trim(), r, rows, grams, printMin / 60);
 
   /** Preenche a calculadora com o que o arquivo do fatiador informou. */
   // nome que veio do último arquivo: um arquivo novo só troca o nome se a pessoa não digitou outro
   const autoName = useRef("");
-  function applySlicer(a: SlicerApply) {
+  function applySlicer(a: SlicerApply, fromFile = true) {
     const brl = (n: number) => formatMoneyInput(String(n));
     setFil(
       a.filaments.map((x) => ({ ref: x.filamentId ? String(x.filamentId) : "", price: x.pricePerKg !== null ? brl(x.pricePerKg) : "", qty: str(x.grams), ...(x.estimated ? { estimated: true } : {}) })),
@@ -202,6 +219,11 @@ export default function Calculator({ go }: { go: Go }) {
       name: a.name && (!cur.name.trim() || cur.name === autoName.current) ? a.name : cur.name,
     }));
     if (a.name) autoName.current = a.name;
+    // a purga já vem somada nas gramas do arquivo: as trocas de cor digitadas antes contariam duas vezes (M9)
+    if (fromFile && num(f.swaps) > 0) {
+      setF((cur) => ({ ...cur, swaps: "" }));
+      toast("As trocas de cor digitadas foram zeradas: a purga já vem nas gramas do arquivo do fatiador.");
+    }
   }
 
   /** Leva a composição atual para um produto novo. Itens digitados sem cadastro: pergunta antes de cadastrar (C1). */
@@ -295,8 +317,20 @@ export default function Calculator({ go }: { go: Go }) {
       }}
     />
   );
-  const timeField = <TimeField label="Tempo de impressão" value={f.time} onChange={setText("time")} />;
-  const piecesField = <label>Peças na mesa<input inputMode="numeric" value={f.quantity} onChange={set("quantity")} /></label>;
+  // "90" solto são 90 horas (M3): avisa quando passa de 24 h
+  /** O que o modo Completo guardou e continua valendo no Rápido, sem aparecer (A3). */
+  const hiddenInQuick = [
+    price(f.freight) > 0 && `frete de ${money(price(f.freight))} por peça`,
+    laborMin > 0 && `mão de obra de ${formatDuration(laborMin)}`,
+    extLines.filter((l) => num(l.qty) > 0 && price(l.price) > 0).length > 0 && `${extLines.filter((l) => num(l.qty) > 0 && price(l.price) > 0).length} material(is) extra(s)`,
+    num(f.swaps) > 0 && `${num(f.swaps)} trocas de cor`,
+    num(f.kwh) > 0 && `kWh medido de ${num(f.kwh)}`,
+    f.margin.trim() !== "" && Number.isFinite(parseDecimal(f.margin)) && `margem de ${f.margin}%`,
+  ].filter((x): x is string => !!x);
+  const timeField = <TimeField label="Tempo de impressão" value={f.time} onChange={setText("time")} warn={bareHoursNote(f.time)} />;
+  const piecesField = (
+    <SmartField label="Peças na mesa" inputMode="numeric" parse={(t: string) => { const n = parseDecimal(t); return Number.isInteger(n) && n >= 1 ? n : NaN; }} invalidText="Digite um número inteiro de peças, ex.: 4." value={f.quantity} onChange={setText("quantity")} />
+  );
   const fillLine = (
     <Lines
       single
@@ -335,20 +369,22 @@ export default function Calculator({ go }: { go: Go }) {
               {fil.length > 1 && <p className="hint">+{fil.length - 1} filamento(s) no modo Completo.</p>}
               <div className="grid">
                 {printerSelect}
+                {/* sem impressora escolhida a energia seria R$ 0 sem aviso (A3): pede a potência aqui */}
+                {!printerId && <SmartField label="Potência (W)" inputMode="decimal" parse={parseDecimal} invalidText="Digite os watts, ex.: 95." value={f.watts} placeholder="Ex.: 95" hint="Sem ela a energia não entra na conta." onChange={setText("watts")} />}
                 {timeField}
                 {piecesField}
               </div>
+              {hiddenInQuick.length > 0 && <p className="hint">Também entram na conta (modo Completo): {hiddenInQuick.join(", ")}.</p>}
             </section>
           ) : (
             <FullForm
               data={data}
               fil={fil}
               setFil={setFil}
-              ext={ext}
+              ext={extLines}
               setExt={setExt}
               f={f}
               setText={setText}
-              set={set}
               printerSelect={printerSelect}
               timeField={timeField}
               piecesField={piecesField}
@@ -392,7 +428,7 @@ export default function Calculator({ go }: { go: Go }) {
             onAdded={setDraftCount}
             onOpen={() => go("quotes")}
           />
-          {mode === "full" && <CostBreakdown r={r} s={data.settings} machinePerHour={machinePerHour} fixedPerHour={data.fixedPerHour} failure={failure} purge={{ swaps: num(f.swaps), grams: num(f.swaps) * num(f.perSwap), filamentGrams: grams }} />}
+          {mode === "full" && <CostBreakdown pieces={pieces} r={r} s={data.settings} machinePerHour={machinePerHour} fixedPerHour={data.fixedPerHour} failure={failure} purge={{ swaps: num(f.swaps), grams: num(f.swaps) * num(f.perSwap), filamentGrams: grams }} />}
           {mode === "full" && <PriceSplit r={r} rows={rows} freight={price(f.freight)} />}
         </aside>
       </div>
@@ -409,7 +445,7 @@ export default function Calculator({ go }: { go: Go }) {
       )}
       {mode === "full" && (
         <ChannelTable rows={rows} minMarginPct={data.settings.minMarginPct} target={data.settings.targetProfitPerHour} stale={staleFees} notes={ruleNotes}>
-          <PriceControls rounding={rounding} onRounding={setRounding} competitor={competitor} onCompetitor={setCompetitor} ours={roundPrice(r.consumer, rounding)} />
+          <PriceControls rounding={rounding} onRounding={chooseRounding} competitor={competitor} onCompetitor={setCompetitor} ours={roundPrice(r.consumer, rounding)} />
         </ChannelTable>
       )}
       {mode === "full" && <AdsCard r={r} s={data.settings} rows={rows} freight={price(f.freight)} marginPct={marginPct} />}
