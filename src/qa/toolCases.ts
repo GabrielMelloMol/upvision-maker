@@ -20,8 +20,10 @@ import { fitAspect } from "../geometry/lithophaneShapes";
 import type { CS, ManifoldToplevel } from "../geometry/manifold";
 import { buildMedalDesign, DEFAULT_MEDAL_DESIGN, type MedalDesign } from "../geometry/medalDesign";
 import { cutModels, DEFAULT_CUT } from "../geometry/planeCut";
-import { COLOR_LITHO_PROFILE, CUTTER_PROFILE, DEFAULT_PROFILE, LAYERED_PROFILE, LITHO_PROFILE, RELIEF_PROFILE, type PrintProfile } from "../geometry/printProfile";
+import { COLOR_LITHO_PROFILE, CUTTER_PROFILE, DEFAULT_PROFILE, STAMP_HINGE_PROFILE, STAMP_PROFILE, LAYERED_PROFILE, LITHO_PROFILE, RELIEF_PROFILE, type PrintProfile } from "../geometry/printProfile";
 import { qrModel, type QrStyle } from "../geometry/qr3d";
+import { buildStamp, DEFAULT_STAMP, type StampParams } from "../geometry/stamp";
+import { buildStampArt, DEFAULT_ART, fixThinStrokes, type StampArtInput } from "../geometry/stampArt";
 import { buildSpoolTag, spoolTagsThatFit } from "../geometry/spoolTag";
 import { arcTextToCrossSection, textToCrossSection } from "../geometry/text";
 import { read3mf } from "../geometry/threemfRead";
@@ -137,6 +139,16 @@ export function toolCases(M: ManifoldToplevel): QaCase[] {
     const ctx = { M, art: null, artLayers: null, warn: (m: string) => void warnings.push(m), text: (s: string, h: number) => textToCrossSection(M, f, s, h), arc: (s: string, h: number, r: number, side: "top" | "bottom") => arcTextToCrossSection(M, f, s, h, r, side) };
     return { models: buildMedalDesign(ctx, { ...DEFAULT_MEDAL_DESIGN, ...patch }), warnings };
   };
+  // como a tela do Carimbo seco: arte com texto (e logo de teste), traço fino engrossado, só as placas vão para o arquivo
+  const stamp = async (patch: Partial<StampParams>, art: Partial<StampArtInput> = {}, logo = false): Promise<Out> => {
+    const font = await loadFont("pacifico");
+    const p = { ...DEFAULT_STAMP, ...patch };
+    const made = buildStampArt(M, { shape: p.shape, w: p.w, h: p.shape === "round" ? p.w : p.h, logo: logo ? artAt(M, 30) : null, lines: ["Ana & Bruno"], font, ...DEFAULT_ART, ...art });
+    const thin = fixThinStrokes(M, made.art, true);
+    const out = buildStamp(M, thin.cs, p);
+    const models = out.models.filter((m) => !m.previewOnly);
+    return { models, warnings: [...made.warnings, ...out.warnings, ...bedWarnings(models, out.warnings)] };
+  };
   const medalSizes = (v: number) => ({ topSize: v, centerSize: v, rankSize: v, dateSize: v, bottomSize: v });
 
   // como a tela: grade e recorte por formato, peça mais base de LED e tampas, aviso de mesa junto
@@ -214,6 +226,16 @@ export function toolCases(M: ManifoldToplevel): QaCase[] {
       ["padrão", () => medal({})],
       ["mínimo", () => medal({ diameter: 25, thickness: 1.5, rim: 0, relief: 0.4, arcInset: 0, backSize: 2, ...medalSizes(2) })],
       ["máximo", () => medal({ diameter: 150, thickness: 10, rim: 12, relief: 5, arcInset: 10, backSize: 20, ...medalSizes(24) })],
+    ]),
+    ...cases("stamp", "Carimbo seco", [
+      ["padrão", () => stamp({}), STAMP_PROFILE],
+      ["mínimo", () => stamp({ w: 15, h: 10, edge: 6, plate: 3, relief: 0.4, draft: 0, paper: 0.2 }, { lines: ["A"] }), STAMP_PROFILE],
+      ["máximo", () => stamp({ w: 100, h: 100, plate: 8, relief: 3, draft: 20, paper: 2 }), STAMP_PROFILE],
+      ["selo com texto em volta", () => stamp({ shape: "round", w: 45, h: 45 }, { frame: "seal", arcTop: "ANA & BRUNO", arcBottom: "12.10.2027", lines: ["A & B"] }), STAMP_PROFILE],
+      ["ímãs (2)", () => stamp({ align: "magnets" }, { frame: "line" }), STAMP_PROFILE],
+      ["ímãs (4) no redondo", () => stamp({ align: "magnets", magCount: 4, shape: "round", w: 40, h: 40 }), STAMP_PROFILE],
+      ["dobradiça", () => stamp({ align: "hinge", w: 50, h: 60 }, { frame: "line", lines: ["EX LIBRIS", "Maria"] }), STAMP_HINGE_PROFILE],
+      ["logo e texto", () => stamp({ w: 60, h: 60 }, { layout: "stack" }, true), STAMP_PROFILE],
     ]),
     ...cases("lithophane", "Litofania", [
       ["padrão", () => litho(100, 0.3, {}), LITHO_PROFILE],
