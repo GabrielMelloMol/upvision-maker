@@ -105,7 +105,8 @@ export function screenRegions(M: ManifoldToplevel, sil: CS, design: CS | null, p
   const mesh = clean.isEmpty() ? field : k(field.subtract(clean));
   const border = k(sil.subtract(inner));
   return {
-    border: ear ? M.CrossSection.union([border, ear]) : border.translate([0, 0]),
+    // a orelha não entra na área da malha (senão o sólido da orelha sobrepõe os fios): só o que está fora do miolo
+    border: ear ? M.CrossSection.union([border, k(ear.subtract(inner))]) : border.translate([0, 0]),
     mesh: mesh.translate([0, 0]),
     design: (d ?? k(M.CrossSection.square([0.001, 0.001]))).translate([0, 0]),
   };

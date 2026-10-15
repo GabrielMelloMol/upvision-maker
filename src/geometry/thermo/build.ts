@@ -60,6 +60,7 @@ const DESIGN_LOSS_WARN = 0.05;
 const COMP_MIN = 0.6;
 const COMP_SAMPLES = 8;
 const MIN_DOME = 6;
+const NECK_MM = 5; // pontas do miolo mais estreitas que 2 × isto não viram domo
 
 const meshOf = (cs: CS, height: number, dx: number, dy: number, k: K) => (cs.isEmpty() ? null : toMesh(k(k(cs.extrude(height)).translate([dx, dy, 0]))));
 const part = (name: string, color: string, cs: CS, height: number, dx: number, dy: number, k: K): Part[] => {
@@ -82,7 +83,9 @@ const scaled = (cs: CS, s: number, k: K) => (s === 1 ? cs : k(cs.scale(s)));
 export function buildThermo(M: ManifoldToplevel, sil: CS, design: CS | null, p: ThermoParams): ThermoOut {
   return scoped((k) => {
     const warnings: string[] = [];
-    const base = k(sil.offset(-p.screen.border, "Round")); // o domo nasce no limite interno da borda sólida
+    const inner = k(sil.offset(-p.screen.border, "Round")); // o miolo em malha: dentro da borda sólida
+    // o domo nasce no limite interno da borda, sem as pontas finas do miolo (o pescoço da bola de Natal): elas ficam planas
+    const base = k(k(inner.offset(-NECK_MM, "Round")).offset(NECK_MM, "Round"));
     const L = inradius(base);
     const H = Math.max(MIN_DOME, p.domeH);
     const g: DomeGeo = { L, H, q: p.curve };
@@ -135,9 +138,8 @@ export function buildThermo(M: ManifoldToplevel, sil: CS, design: CS | null, p: 
     const moldModel: Model = { name: "Molde", parts: [{ name: "Molde", color: c.mold, mesh: toMesh(mold) }] };
 
     // caixa montada: a tela plana deformada sobre o domo (como a termoformagem faz), uma metade de cabeça para baixo sobre a outra
-    const inner = k(sil.offset(-p.screen.border, "Round"));
     const formed = (r: { border: CS; mesh: CS; design: CS }) => {
-      const warp = (cs: CS) => (cs.isEmpty() ? null : warpOntoDome(k(cs.extrude(t)), inner, g, k));
+      const warp = (cs: CS) => (cs.isEmpty() ? null : warpOntoDome(k(cs.extrude(t)), base, g, k));
       return { border: warp(r.border), mesh: warp(r.mesh), design: warp(r.design) };
     };
     const top = formed(reg);

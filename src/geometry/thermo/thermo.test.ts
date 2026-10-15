@@ -143,6 +143,15 @@ describe("tela em malha", () => {
       expect(k(M.CrossSection.union([reg.mesh, reg.design])).decompose().length).toBeLessThanOrEqual(2);
     }));
 
+  test("a orelha não invade o miolo: a borda (com orelha) não sobrepõe a malha, nem no coração", () =>
+    scoped((k) => {
+      const heart = k(presetSilhouette(M, "heart", 70));
+      const ear = earOf(M, heart, DEFAULT_SCREEN, k);
+      const reg = screenRegions(M, heart, null, DEFAULT_SCREEN, k, ear);
+      k(reg.border); k(reg.mesh); k(reg.design);
+      expect(k(reg.border.intersect(reg.mesh)).area()).toBeLessThan(1e-6);
+    }));
+
   test("furos da malha ficam a um fio do desenho e da borda", () =>
     scoped((k) => {
       const s = sil(k);
@@ -265,6 +274,16 @@ describe("caixinha completa", () => {
       };
       expect(widthAt(DEFAULT_MOLD.flangeT + 0.5)).toBeCloseTo(70 - 2 * DEFAULT_SCREEN.border, 0);
       expect(widthAt(-1)).toBeCloseTo(70 + 2 * DEFAULT_MOLD.flange, 0);
+    }));
+
+  test("bola de Natal: o pescoço da alça não vira domo (fica plano, onde a orelha sai)", () =>
+    scoped((k) => {
+      const out = buildThermo(M, k(presetSilhouette(M, "ball", 70)), null, P());
+      const m = out.mold.parts[0].mesh.positions;
+      let yDome = -1e9;
+      for (let i = 0; i < m.length; i += 3) if (m[i + 2] > DEFAULT_MOLD.flangeT + 0.5) yDome = Math.max(yDome, m[i + 1]);
+      // o domo acompanha o círculo (raio 35 − borda 3 = 32), não o pescoço que sobe até 50
+      expect(yDome).toBeLessThan(33);
     }));
 
   test("traço fino no desenho: avisa e engrossa (ou só avisa, se pedir)", () =>
