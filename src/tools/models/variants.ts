@@ -181,6 +181,22 @@ export const VARIANTS: Record<string, Variant[]> = {
     { label: "Formatura", patch: { baseText: "FORMATURA 2026", baseText2: "Turma de Direito" }, collections: ["formatura"] },
     { label: "Campeonato", patch: { baseText: "CAMPEONATO 2026", baseText2: "1º LUGAR" } },
   ],
+  discBox: [
+    { label: "10 CDs", patch: { kind: "jewel", count: 10, text: "CDS" } },
+    { label: "12 DVDs", patch: { kind: "dvd", count: 12, text: "DVDS", bodyColor: BLACK, lidColor: RED } },
+    { label: "Blu-rays", patch: { kind: "bluray", count: 10, text: "BLU-RAY", bodyColor: BLUE, lidColor: BLACK } },
+    { label: "Discos soltos", patch: { kind: "disc", count: 30, text: "DISCOS" } },
+  ],
+  pegboard: [
+    { label: "Pequeno", patch: { width: 125, height: 100 } },
+    { label: "Médio", patch: { width: 250, height: 200 } },
+    { label: "Grande (ladrilhos)", patch: { width: 500, height: 400 } },
+  ],
+  pegHooks: [
+    { label: "Em J", patch: { kind: "j", count: 6 } },
+    { label: "Duplo", patch: { kind: "double", count: 4, length: 55 } },
+    { label: "Hastes", patch: { kind: "rod", count: 6, length: 60 } },
+  ],
   lamp: [
     { label: "LOVE", patch: { text: "LOVE" }, collections: ["casamento"] },
     { label: "MÃE", patch: { text: "MÃE" }, collections: ["maes"] },

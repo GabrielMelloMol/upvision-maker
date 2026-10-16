@@ -614,6 +614,58 @@
   "plates": 1
  },
  {
+  "key": "discBox:máximo",
+  "owner": "Forja",
+  "group": "organize",
+  "label": "Caixa de discos (discBox)",
+  "variant": "máximo",
+  "status": "aviso",
+  "reasons": [
+   "o conjunto arrumado ocupa 1081,3 × 153,7 mm: passa da mesa de 256 mm",
+   "\"Caixa\" não cabe na mesa de 256 mm (530,8 × 149,0 × 77,0 mm)",
+   "\"Tampa\" não cabe na mesa de 256 mm (535,5 × 153,7 × 63,2 mm)",
+   "Bambu recusa na mesa de 256 mm do A1 (o app avisa)",
+   "Orca recusa na mesa de 256 mm do A1 (o app avisa)",
+   "Projeto Bambu recusa na mesa de 256 mm do A1 (o app avisa)",
+   "app: \"Caixa\" tem 531 × 149 × 77 mm e passa da mesa de 256 mm: diminua o tamanho.",
+   "app: \"Tampa\" tem 536 × 154 × 63 mm e passa da mesa de 256 mm: diminua o tamanho."
+  ],
+  "date": "2026-10-16",
+  "slicers": "Bambu ✓ · Orca ✓ · Projeto Bambu ✓"
+ },
+ {
+  "key": "discBox:mínimo",
+  "owner": "Forja",
+  "group": "organize",
+  "label": "Caixa de discos (discBox)",
+  "variant": "mínimo",
+  "status": "ok",
+  "reasons": [],
+  "date": "2026-10-16",
+  "slicers": "Bambu ✓ · Orca ✓ · Projeto Bambu ✓",
+  "minutes": 637,
+  "grams": 238.6,
+  "plates": 1
+ },
+ {
+  "key": "discBox:padrão",
+  "owner": "Forja",
+  "group": "organize",
+  "label": "Caixa de discos (discBox)",
+  "variant": "padrão",
+  "status": "aviso",
+  "reasons": [
+   "o conjunto arrumado ocupa 289,3 × 153,7 mm: passa da mesa de 256 mm",
+   "não coube numa placa: 2 placas",
+   "app: As 2 peças não cabem juntas na mesa de 256 mm: o fatiador vai usar mais de uma mesa (ou imprima uma de cada vez)."
+  ],
+  "date": "2026-10-16",
+  "slicers": "Bambu ✓ · Orca ✓ · Projeto Bambu ✓",
+  "minutes": 398,
+  "grams": 375.6,
+  "plates": 2
+ },
+ {
   "key": "adaptiveMedal:máximo",
   "owner": "Forja",
   "group": "party",
@@ -2748,9 +2800,10 @@
    "Orca: torre de purga em cima de uma peça depois do --arrange do CLI (na tela, arraste a torre ou use Arrumar)",
    "Projeto Bambu: torre de purga em cima de uma peça depois do --arrange do CLI (na tela, arraste a torre ou use Arrumar)",
    "app: A bandeja desliza para o fundo nos trilhos: empurre para chegar nas caixinhas da frente.",
-   "app: Gaveta alta: a bandeja fica a 200 mm do fundo (trilhos de até 200 mm cabem na mesa) e sobra 152 mm em cima dela."
+   "app: Gaveta alta: a bandeja fica a 200 mm do fundo (trilhos de até 200 mm cabem na mesa) e sobra 152 mm em cima dela.",
+   "app: Sobram 1215 casa(s) sem caixinha no mapa."
   ],
-  "date": "2026-10-02",
+  "date": "2026-10-16",
   "slicers": "Bambu ✓ · Orca ✓ · Projeto Bambu ✓"
  },
  {
@@ -2766,7 +2819,7 @@
    "app: Gaveta estreita: as 4 divisões de talheres ficam apertadas (137 mm para 265 mm ideais).",
    "app: A gaveta não tem fundo para a bandeja deslizar (precisaria de 450 mm): ela fica apoiada nos trilhos e levanta pelas alças para chegar embaixo."
   ],
-  "date": "2026-10-02",
+  "date": "2026-10-16",
   "slicers": "Bambu ✓ · Orca ✓ · Projeto Bambu ✓",
   "minutes": 716,
   "grams": 576,
@@ -2783,9 +2836,65 @@
    "o conjunto arrumado ocupa 495,0 × 563,5 mm: passa da mesa de 256 mm",
    "Bambu: torre de purga em cima de uma peça depois do --arrange do CLI (na tela, arraste a torre ou use Arrumar)",
    "Projeto Bambu: torre de purga em cima de uma peça depois do --arrange do CLI (na tela, arraste a torre ou use Arrumar)",
-   "app: A bandeja desliza para o fundo nos trilhos: empurre para chegar nas caixinhas da frente."
+   "app: A bandeja desliza para o fundo nos trilhos: empurre para chegar nas caixinhas da frente.",
+   "app: Sobram 111 casa(s) sem caixinha no mapa."
   ],
-  "date": "2026-10-02",
+  "date": "2026-10-16",
+  "slicers": "Bambu ✓ · Orca ✓ · Projeto Bambu ✓"
+ },
+ {
+  "key": "cutleryAnatomic:máximo",
+  "owner": "Torno",
+  "group": "home",
+  "label": "Talheres anatômicos (ferramenta)",
+  "variant": "máximo",
+  "status": "aviso",
+  "reasons": [
+   "o conjunto arrumado ocupa 1535,0 × 3391,5 mm: passa da mesa de 256 mm",
+   "Bambu: torre de purga em cima de uma peça depois do --arrange do CLI (na tela, arraste a torre ou use Arrumar)",
+   "Orca: torre de purga em cima de uma peça depois do --arrange do CLI (na tela, arraste a torre ou use Arrumar)",
+   "Projeto Bambu: torre de purga em cima de uma peça depois do --arrange do CLI (na tela, arraste a torre ou use Arrumar)",
+   "app: A bandeja desliza para o fundo nos trilhos: empurre para chegar nas caixinhas da frente.",
+   "app: Gaveta alta: a bandeja fica a 200 mm do fundo (trilhos de até 200 mm cabem na mesa) e sobra 152 mm em cima dela.",
+   "app: Sobram 1215 casa(s) sem caixinha no mapa."
+  ],
+  "date": "2026-10-16",
+  "slicers": "Bambu ✓ · Orca ✓ · Projeto Bambu ✓"
+ },
+ {
+  "key": "cutleryAnatomic:mínimo",
+  "owner": "Torno",
+  "group": "home",
+  "label": "Talheres anatômicos (ferramenta)",
+  "variant": "mínimo",
+  "status": "aviso",
+  "reasons": [
+   "o conjunto arrumado ocupa 285,0 × 389,5 mm: passa da mesa de 256 mm",
+   "não coube numa placa: 6 placas",
+   "app: Gaveta estreita: as 4 divisões de talheres ficam apertadas (137 mm para 265 mm ideais).",
+   "app: A gaveta não tem fundo para a bandeja deslizar (precisaria de 450 mm): ela fica apoiada nos trilhos e levanta pelas alças para chegar embaixo."
+  ],
+  "date": "2026-10-16",
+  "slicers": "Bambu ✓ · Orca ✓ · Projeto Bambu ✓",
+  "minutes": 836,
+  "grams": 671.1,
+  "plates": 6
+ },
+ {
+  "key": "cutleryAnatomic:padrão",
+  "owner": "Torno",
+  "group": "home",
+  "label": "Talheres anatômicos (ferramenta)",
+  "variant": "padrão",
+  "status": "aviso",
+  "reasons": [
+   "o conjunto arrumado ocupa 495,0 × 563,5 mm: passa da mesa de 256 mm",
+   "Bambu: torre de purga em cima de uma peça depois do --arrange do CLI (na tela, arraste a torre ou use Arrumar)",
+   "Projeto Bambu: torre de purga em cima de uma peça depois do --arrange do CLI (na tela, arraste a torre ou use Arrumar)",
+   "app: A bandeja desliza para o fundo nos trilhos: empurre para chegar nas caixinhas da frente.",
+   "app: Sobram 111 casa(s) sem caixinha no mapa."
+  ],
+  "date": "2026-10-16",
   "slicers": "Bambu ✓ · Orca ✓ · Projeto Bambu ✓"
  },
  {
@@ -3609,6 +3718,97 @@
   "slicers": "Bambu ✓ · Orca ✓ · Projeto Bambu ✓",
   "minutes": 54,
   "grams": 33.8,
+  "plates": 1
+ },
+ {
+  "key": "pegboard:máximo",
+  "owner": "Torno",
+  "group": "home",
+  "label": "Painel perfurado (pegboard)",
+  "variant": "máximo",
+  "status": "aviso",
+  "reasons": [
+   "o conjunto arrumado ocupa 1024,0 × 1024,0 mm: passa da mesa de 256 mm",
+   "mais de 24 h de impressão",
+   "não coube numa placa: 16 placas",
+   "app: O painel passa da mesa e sai em 16 ladrilhos cortados entre as colunas de furos. Parafuse todos na parede encostados uns nos outros."
+  ],
+  "date": "2026-10-16",
+  "slicers": "Bambu ✓ · Orca ✓",
+  "minutes": 7411,
+  "grams": 4338,
+  "plates": 16
+ },
+ {
+  "key": "pegboard:mínimo",
+  "owner": "Torno",
+  "group": "home",
+  "label": "Painel perfurado (pegboard)",
+  "variant": "mínimo",
+  "status": "ok",
+  "reasons": [],
+  "date": "2026-10-16",
+  "slicers": "Bambu ✓ · Orca ✓",
+  "minutes": 11,
+  "grams": 6.2,
+  "plates": 1
+ },
+ {
+  "key": "pegboard:padrão",
+  "owner": "Torno",
+  "group": "home",
+  "label": "Painel perfurado (pegboard)",
+  "variant": "padrão",
+  "status": "ok",
+  "reasons": [],
+  "date": "2026-10-16",
+  "slicers": "Bambu ✓ · Orca ✓",
+  "minutes": 223,
+  "grams": 149.4,
+  "plates": 1
+ },
+ {
+  "key": "pegHooks:máximo",
+  "owner": "Torno",
+  "group": "home",
+  "label": "Ganchos do painel (pegHooks)",
+  "variant": "máximo",
+  "status": "aviso",
+  "reasons": [
+   "\"Ganchos\" não cabe na mesa de 256 mm (135,0 × 1653,0 × 9,6 mm)",
+   "Bambu recusa na mesa de 256 mm do A1 (o app avisa)",
+   "Orca recusa na mesa de 256 mm do A1 (o app avisa)",
+   "app: \"Ganchos\" tem 135 × 1653 × 10 mm e passa da mesa de 256 mm: diminua o tamanho."
+  ],
+  "date": "2026-10-16",
+  "slicers": "Bambu ✓ · Orca ✓"
+ },
+ {
+  "key": "pegHooks:mínimo",
+  "owner": "Torno",
+  "group": "home",
+  "label": "Ganchos do painel (pegHooks)",
+  "variant": "mínimo",
+  "status": "ok",
+  "reasons": [],
+  "date": "2026-10-16",
+  "slicers": "Bambu ✓ · Orca ✓",
+  "minutes": 4,
+  "grams": 1,
+  "plates": 1
+ },
+ {
+  "key": "pegHooks:padrão",
+  "owner": "Torno",
+  "group": "home",
+  "label": "Ganchos do painel (pegHooks)",
+  "variant": "padrão",
+  "status": "ok",
+  "reasons": [],
+  "date": "2026-10-16",
+  "slicers": "Bambu ✓ · Orca ✓",
+  "minutes": 29,
+  "grams": 15.5,
   "plates": 1
  },
  {

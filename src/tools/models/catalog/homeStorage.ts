@@ -1,11 +1,58 @@
-import { Grid2x2, Grid3x3, Package, Ruler, RulerDimensionLine, TestTube } from "lucide-react";
+import { Disc3, Grid2x2, Grid3x3, LayoutGrid, Package, Ruler, RulerDimensionLine, TestTube, Wrench } from "lucide-react";
+import { buildDiscBox, DEFAULT_DISC_BOX, DISC_ITEMS } from "../../../geometry/models/discBox";
 import { buildGridBase, buildGridBin, buildGridTest, DEFAULT_GRID_BASE, DEFAULT_GRID_BIN } from "../../../geometry/models/gridfinity";
 import { buildLidBox, DEFAULT_LID_BOX } from "../../../geometry/models/lidBox";
+import { buildPegboard, buildPegHooks, DEFAULT_PEG_HOOKS, DEFAULT_PEGBOARD } from "../../../geometry/models/pegboard";
 import { buildRuler3d, DEFAULT_RULER } from "../../../geometry/models/ruler3d";
 import { as, bool, choice, color, num, text, type ModelDef } from "../fields";
 
 /** Casa, organização: caixa com tampa e o sistema Gridfinity (caixinhas e base). */
 export const HOME_STORAGE_MODELS: ModelDef[] = [
+  {
+    id: "discBox",
+    category: "organize",
+    label: "Caixa de discos",
+    blurb: "CDs, DVDs ou Blu-rays em pé, cada um no seu vão, com entalhe para pegar e tampa com o nome em 2 cores. A tampa imprime de cabeça para baixo, sem ponte.",
+    icon: Disc3,
+    font: true,
+    defaults: DEFAULT_DISC_BOX,
+    sections: [
+      { title: "O que guarda", fields: [choice("kind", "Tipo", Object.entries(DISC_ITEMS).map(([id, i]) => [id, i.label] as const)), num("count", "Quantos", 1, 24, { step: 1, unit: "", hint: "Uma caixa comum de CD ocupa 12 mm de largura; a caixa e a tampa juntas cabem na mesa da A1 até uns 6 (com mais, saem em duas mesas)." })] },
+      { title: "Tampa", fields: [text("text", "Nome na tampa", 16)] },
+      { title: "Cores", fields: [color("bodyColor", "Caixa"), color("lidColor", "Tampa"), color("textColor", "Nome")] },
+      { title: "Prévia", fields: [choice("layout", "Prévia", [["print", "Mesa (o que imprime)"], ["assembled", "Mesa e fechada ao lado (o 3MF leva só a mesa)"]])] },
+    ],
+    build: (ctx, p) => buildDiscBox(ctx, as(p)),
+  },
+  {
+    id: "pegboard",
+    category: "home",
+    label: "Painel perfurado",
+    blurb: "Painel de furos para pendurar ferramentas, com parafusos de cabeça chata e espaçadores atrás. Se passa da mesa, sai em ladrilhos cortados entre os furos.",
+    icon: LayoutGrid,
+    defaults: DEFAULT_PEGBOARD,
+    sections: [
+      { title: "Tamanho", fields: [num("width", "Largura", 50, 1000, { step: 1, cm: true, hint: "Vira um número inteiro de colunas de furos." }), num("height", "Altura", 50, 1000, { step: 1, cm: true }), num("thickness", "Espessura", 3, 10, { step: 0.5 })] },
+      { title: "Furos", fields: [choice("pitch", "Distância entre furos", [["25", "25 mm (painel comum)"], ["20", "20 mm"]]), num("hole", "Diâmetro do furo", 4, 10, { step: 0.5 })] },
+      { title: "Parede", fields: [bool("screws", "Furos de parafuso nos cantos"), num("standoff", "Espaçador atrás", 0, 25, { step: 1, hint: "Afasta o painel da parede para o pino do gancho passar." })] },
+      { title: "Cor", fields: [color("color", "Painel")] },
+    ],
+    build: (ctx, p) => buildPegboard(ctx, as({ ...p, pitch: Number(p.pitch) })),
+  },
+  {
+    id: "pegHooks",
+    category: "home",
+    label: "Ganchos do painel",
+    blurb: "Ganchos em J, duplos ou hastes retas com pino redondo no diâmetro do furo do painel (folga de 0,4 mm). Várias cópias por mesa.",
+    icon: Wrench,
+    defaults: DEFAULT_PEG_HOOKS,
+    sections: [
+      { title: "Gancho", fields: [choice("kind", "Tipo", [["j", "Em J"], ["double", "Em J duplo (dois pinos)"], ["rod", "Haste reta"]]), num("count", "Quantos", 1, 24, { step: 1, unit: "" }), num("length", "Comprimento do braço", 15, 120, { step: 1 }), num("lip", "Ponta para cima", 6, 40, { step: 1 })] },
+      { title: "Painel", fields: [num("hole", "Diâmetro do furo", 4, 10, { step: 0.5 }), choice("pitch", "Distância entre furos", [["25", "25 mm"], ["20", "20 mm"]]), num("thickness", "Espessura do painel", 3, 10, { step: 0.5 })] },
+      { title: "Cor", fields: [color("color", "Ganchos")] },
+    ],
+    build: (ctx, p) => buildPegHooks(ctx, as({ ...p, pitch: Number(p.pitch) })),
+  },
   {
     id: "lidBox",
     category: "home",

@@ -128,3 +128,17 @@ test("caixinha sem grade: medida exata em mm, sem pés, e o mapa avisa a sobra",
   expect(out.warnings.join(" ")).toMatch(/Sobram \d+(,5)? casa\(s\) sem caixinha/);
   expect(out.warnings.join(" ")).not.toMatch(/sem pés/);
 });
+
+test("bandeja anatômica (#214): cápsulas no lugar das caixas, nomes numa segunda cor, e os projetos antigos seguem com caixas retas", () => {
+  const p = { ...project(), width: 500, depth: 500, height: 110, cutlery: true, layout: { cols: 11, rows: 11, modules: [] } };
+  const boxes = buildDrawer(ctx(), p);
+  const anat = buildDrawer(ctx(), { ...p, trayStyle: "anatomic" });
+  const tray = (o: ReturnType<typeof buildDrawer>) => o.extras.find((m) => m.name === "Bandeja de talheres")!;
+  expect(tray(boxes).parts.map((x) => x.name)).toEqual(["Bandeja"]);
+  expect(tray(anat).parts.map((x) => x.name)).toEqual(["Bandeja", "Nomes"]);
+  // mesma medida externa e na mesma posição montada, bem menos material (só as paredes das cápsulas)
+  const bb = meshBounds([tray(boxes).parts[0].mesh])!;
+  const ba = meshBounds([tray(anat).parts[0].mesh])!;
+  expect(ba.max[0] - ba.min[0]).toBeCloseTo(bb.max[0] - bb.min[0], 1);
+  expect(anat.trays[0].parts.some((x) => x.name === "Nomes")).toBe(true);
+});
