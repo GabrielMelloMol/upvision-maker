@@ -34,6 +34,8 @@ export type ModelOutput = {
   warnings?: string[];
   /** Elementos internos móveis (textos, QR, ícone) para o gizmo (#79). */
   elements?: ElementBox[];
+  /** A peça principal sai virada na mesa: a Vista de cima mostra a peça como fica montada (texto legível), não como vai impressa. */
+  mirrorFace?: boolean;
 };
 
 export type AlignX = "left" | "center" | "right";

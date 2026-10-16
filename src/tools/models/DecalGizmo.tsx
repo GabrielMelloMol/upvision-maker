@@ -42,7 +42,8 @@ export default function DecalGizmo({ face, layers, shapes, selected, onSelect, o
   // o que o leitor de tela ouve depois de uma seta ou de soltar o arraste (#144): o readout do SVG é só desenho
   const [said, setSaid] = useState("");
   const { min, max } = face.bounds;
-  const vb = { x: min[0] - PAD_MM, y: -(max[1] + PAD_MM), w: max[0] - min[0] + 2 * PAD_MM, h: max[1] - min[1] + 2 * PAD_MM };
+  const flip = !!face.mirrorX; // vista por baixo da peça impressa = a peça fechada, como a pessoa vê
+  const vb = { x: flip ? -(max[0] + PAD_MM) : min[0] - PAD_MM, y: -(max[1] + PAD_MM), w: max[0] - min[0] + 2 * PAD_MM, h: max[1] - min[1] + 2 * PAD_MM };
 
   useEffect(() => {
     const el = svg.current;
@@ -163,7 +164,7 @@ export default function DecalGizmo({ face, layers, shapes, selected, onSelect, o
       }}
       onKeyDown={onKey}
     >
-      <g ref={world} transform="scale(1 -1)">
+      <g ref={world} transform={flip ? "scale(-1 -1)" : "scale(1 -1)"}>
         <path className="gizmo-face" d={pathOf(face.outline)} fillRule="evenodd" />
         {face.others.length > 0 && <path className="gizmo-others" d={pathOf(face.others)} fillRule="nonzero" />}
         {elements.map((el) => {

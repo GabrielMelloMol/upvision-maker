@@ -22,6 +22,7 @@ import { duplicate, pasteModules, removeModules, resizeGrid, resizeModule, setFr
 import ModulePanel from "./drawer/ModulePanel";
 import PrintPlanCard from "./drawer/PrintPlanCard";
 import { drawerPrint, type DrawerPrint } from "./drawer/printPlan";
+import { applyPreset, DRAWER_PRESETS, type DrawerPreset } from "./drawer/presets";
 import ToolSessionBar from "./ToolSessionBar";
 import { useToolState } from "./useToolState";
 import { modKey } from "../ui/shortcuts";
@@ -72,6 +73,13 @@ export default function DrawerOrganizer({ embedded = false }: { embedded?: boole
       const pl = planOf(next);
       return { ...next, layout: resizeGrid(s.layout, pl.nx, pl.ny) };
     }, k);
+  };
+  const [skipExamples, setSkipExamples] = useState(false);
+  const pickExample = (preset: DrawerPreset) => {
+    setLayout(applyPreset(p.layout, preset, plan.uMax));
+    setSelected([]);
+    setView("grid");
+    setNotice(`Exemplo "${preset.label}" colocado: arraste, mude de tamanho ou apague as caixinhas até ficar do seu jeito (${modKey()}Z desfaz).`);
   };
   const [clipboard, setClipboard] = useState<DrawerModule[]>([]);
   const [notice, setNotice] = useState("");
@@ -158,7 +166,23 @@ export default function DrawerOrganizer({ embedded = false }: { embedded?: boole
           ) : (
             <div className="card stack">
               <h3>Caixinhas</h3>
-              <span className="hint">Arraste na grade para criar uma caixinha. Toque numa para ajustar; Shift ou {modKey()} junta várias.</span>
+              {p.layout.modules.length === 0 && !skipExamples && plan.nx > 0 && plan.ny > 0 ? (
+                <>
+                  <span className="hint">Comece por um exemplo: ele enche a sua gaveta e você ajusta depois.</span>
+                  <div className="chips" role="group" aria-label="Exemplos de gaveta">
+                    {DRAWER_PRESETS.map((x) => (
+                      <button key={x.id} type="button" title={x.blurb} onClick={() => pickExample(x)}>
+                        {x.label}
+                      </button>
+                    ))}
+                    <button type="button" onClick={() => { setSkipExamples(true); setView("grid"); }}>
+                      Começar vazio
+                    </button>
+                  </div>
+                </>
+              ) : (
+                <span className="hint">Arraste na grade para criar uma caixinha. Toque numa para ajustar; Shift ou {modKey()} junta várias.</span>
+              )}
             </div>
           )}
           <RulerCard />
@@ -182,13 +206,13 @@ export default function DrawerOrganizer({ embedded = false }: { embedded?: boole
           ) : view === "grid" ? (
             <div className="card">
               {plan.nx > 0 && plan.ny > 0 ? (
-                <DrawerEditor layout={p.layout} plan={plan} selected={selected} onChange={setLayout} onSelect={setSelected} onCopy={copy} onPaste={paste} />
+                <DrawerEditor layout={p.layout} plan={plan} selected={selected} onChange={setLayout} onSelect={setSelected} onCopy={copy} onPaste={paste} onNotice={setNotice} />
               ) : (
                 <span className="muted">A gaveta precisa ter pelo menos 43 × 43 mm.</span>
               )}
             </div>
           ) : (
-            <Preview3D models={models} busy={busy} busyText="Montando a gaveta…" error={error} emptyText={!valid ? "Corrija os campos em vermelho." : "Meça a gaveta para ver a base."} />
+            <Preview3D models={models.length ? exportModels : models} busy={busy} busyText="Montando a gaveta…" error={error} emptyText={!valid ? "Corrija os campos em vermelho." : "Meça a gaveta para ver a base."} />
           )}
           {warnings.filter((w) => w !== cutleryBlocked(p)).map((w) => (
             <Alert key={w} kind="warn">

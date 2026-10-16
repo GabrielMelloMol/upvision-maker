@@ -175,7 +175,7 @@ g:hover > .viz-hit { fill: var(--fill); }
 .decal-gizmo { display: block; width: 100%; max-height: 380px; border-radius: var(--r); background: var(--surface-2); touch-action: none; user-select: none; }
 .decal-gizmo:focus-visible { outline: 2px solid var(--focus-ring); outline-offset: 2px; }
 .gizmo-face { fill: var(--surface); stroke: var(--border-strong); stroke-width: 1; vector-effect: non-scaling-stroke; }
-.gizmo-others { fill: var(--fill-strong); pointer-events: none; }
+.gizmo-others { fill: color-mix(in srgb, var(--text) 40%, var(--surface)); pointer-events: none; }
 .gizmo-layer { cursor: move; }
 .gizmo-layer[data-mode="engraved"] path { fill: var(--muted); opacity: 0.55; }
 .gizmo-layer[data-mode="cut"] path { fill: var(--surface-2); stroke: var(--muted); stroke-width: 1; stroke-dasharray: 3 2; vector-effect: non-scaling-stroke; }

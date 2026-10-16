@@ -11,6 +11,8 @@ type Props = {
   onSelect: (ids: string[]) => void;
   onCopy?: (ids: string[]) => void;
   onPaste?: () => void;
+  /** Aviso curto para a tela (ex.: o retângulo desenhado pegou caixinhas e só selecionou). */
+  onNotice?: (text: string) => void;
 };
 
 const HANDLE_PX = 8;
@@ -33,7 +35,7 @@ const label = (m: DrawerModule) => `Caixinha ${m.freeW === undefined ? `${casas(
  * retângulo pega módulos, seleciona. Clique seleciona (Shift/⌘ junta), arrastar move, alças redimensionam.
  * Teclado: setas movem, Shift+setas redimensionam, Delete apaga, ⌘D duplica, Esc limpa a seleção.
  */
-export default function DrawerEditor({ layout, plan, selected, onChange, onSelect, onCopy, onPaste }: Props) {
+export default function DrawerEditor({ layout, plan, selected, onChange, onSelect, onCopy, onPaste, onNotice }: Props) {
   const svg = useRef<SVGSVGElement>(null);
   const [drag, setDrag] = useState<Drag | null>(null);
   const [pxPerMm, setPxPerMm] = useState(1);
@@ -121,8 +123,10 @@ export default function DrawerEditor({ layout, plan, selected, onChange, onSelec
     if (drag?.kind === "draw") {
       const r = rectOf(drag.from, drag.to);
       const caught = layout.modules.filter((m) => hits(m, r)).map((m) => m.id);
-      if (caught.length) onSelect(caught);
-      else {
+      if (caught.length) {
+        onSelect(caught);
+        onNotice?.(`Aí já tem ${caught.length === 1 ? "uma caixinha" : `${caught.length} caixinhas`}: selecionei ${caught.length === 1 ? "ela" : "elas"}, nada foi criado. Para criar outra, arraste num espaço vazio.`);
+      } else {
         const next = addModule(layout, r, plan.uMax);
         if (next) {
           onChange(next);
@@ -162,6 +166,7 @@ export default function DrawerEditor({ layout, plan, selected, onChange, onSelec
   }
 
   const drawRect = drag?.kind === "draw" ? rectOf(drag.from, drag.to) : null;
+  const blocked = drawRect ? layout.modules.some((m) => hits(m, drawRect)) : false; // pegaria uma caixinha: fica vermelho e só seleciona
   const seamsX = plan.piecesX.slice(0, -1).map((_, i) => plan.piecesX.slice(0, i + 1).reduce((a, b) => a + b, 0));
   const seamsY = plan.piecesY.slice(0, -1).map((_, i) => plan.piecesY.slice(0, i + 1).reduce((a, b) => a + b, 0));
   const h = HANDLE_PX / pxPerMm, t = TOUCH_PX / pxPerMm;
@@ -229,7 +234,7 @@ export default function DrawerEditor({ layout, plan, selected, onChange, onSelec
           </g>
         );
       })}
-      {drawRect && <rect className="drawer-draw" x={sx(drawRect.x)} y={sy(drawRect.y + drawRect.h)} width={drawRect.w * GRID} height={drawRect.h * GRID} rx={3} />}
+      {drawRect && <rect className="drawer-draw" data-blocked={blocked || undefined} x={sx(drawRect.x)} y={sy(drawRect.y + drawRect.h)} width={drawRect.w * GRID} height={drawRect.h * GRID} rx={3} />}
     </svg>
   );
 }

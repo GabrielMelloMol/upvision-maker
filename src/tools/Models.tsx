@@ -281,7 +281,7 @@ export default function Models({ only, embedded }: { only?: string; embedded?: {
       setMissing(null);
       // camadas livres (#26) vão por cima do modelo pronto, na peça principal
       const layered = await applyLayers(M, out.models, lay.layers.filter(layerValid));
-      lay.setView({ face: layered.face, shapes: layered.shapes, byLayer: layered.byLayer, elements: out.elements ?? [] });
+      lay.setView({ face: layered.face && out.mirrorFace ? { ...layered.face, mirrorX: true } : layered.face, shapes: layered.shapes, byLayer: layered.byLayer, elements: out.elements ?? [] });
       return { models: layered.models, warnings: [...(textWarn ?? []), ...(out.warnings ?? []), ...layered.warnings], pauses: out.pauses };
     } finally {
       design?.cs.delete();
@@ -449,6 +449,7 @@ export default function Models({ only, embedded }: { only?: string; embedded?: {
                 elements={elements}
                 onMoveElement={lay.moveElement}
               />
+              {lay.view.face.mirrorX && <p className="hint">Mostra a caixa fechada, como você vai ver. Na mesa a tampa sai virada e o texto aparece espelhado: está certo.</p>}
               <p className="hint">
                 Arraste para mover (gruda no centro e nas bordas; Alt solta; setas movem 1 mm).
                 {lay.layers.length > 0 && " Nos seus desenhos e textos, a alça do canto muda o tamanho e a de cima gira (Shift: 15°)."}

@@ -195,11 +195,13 @@ export function buildLidBox(ctx: ModelCtx, p: LidBoxParams): ModelOutput {
     const elements = d?.elements.map((e) => ({ ...e, box: [e.box[0] + dx, e.box[1], e.box[2] + dx, e.box[3]] as ElementBox["box"] }));
     return {
       models: [
-        { name: "Caixa", parts: [{ name: "Caixa", color: p.boxColor, mesh: solidMesh(box) }] },
+        // a tampa vem primeiro: texto e desenho vão nela, então a Vista de cima e as camadas livres usam a face dela
         { name: "Tampa", parts: lidParts },
+        { name: "Caixa", parts: [{ name: "Caixa", color: p.boxColor, mesh: solidMesh(box) }] },
       ],
       warnings,
       elements,
+      mirrorFace: snap,
     };
   });
 }
