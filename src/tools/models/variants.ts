@@ -60,6 +60,21 @@ export const MODEL_COLLECTIONS: Record<string, Collection[]> = {
 const PINK = "#f472b6", GOLD = "#f5c542", WHITE = "#f8f8f6", BLACK = "#1c1c1e", RED = "#d6262e", GREEN = "#22a04b", BLUE = "#2563eb", LILAC = "#7e3fd6", SKY = "#7cc4f5";
 
 export const VARIANTS: Record<string, Variant[]> = {
+  drillJig: [
+    { label: "Prateleira 32 mm (broca 5)", patch: { holes: 4, drillD: 5, pitch: 32, edgeDist: 37 } },
+    { label: "Dobradiça (broca 3, 2 furos)", patch: { holes: 2, drillD: 3, pitch: 32, edgeDist: 20 } },
+    { label: "Puxador 96 mm (broca 4)", patch: { holes: 2, drillD: 4, pitch: 96, edgeDist: 25 } },
+  ],
+  radiusGauge: [
+    { label: "Quinas pequenas", patch: { radii: "0.5, 1, 1.5, 2, 2.5, 3" } },
+    { label: "Quinas e filetes", patch: { radii: "1, 1.5, 2, 3, 4, 5, 6, 8, 10" } },
+    { label: "Raios grandes", patch: { radii: "10, 12, 15, 20, 25, 30" } },
+  ],
+  labelJig: [
+    { label: "Etiqueta 50 × 30", patch: { labelW: 50, labelH: 30 } },
+    { label: "Etiqueta 100 × 50", patch: { labelW: 100, labelH: 50 } },
+    { label: "Etiqueta de rolo 50 × 30", patch: { labelW: 50, labelH: 30, rim: 10 } },
+  ],
   kitBicho: [
     { label: "Cachorro", patch: { head: "dog", tail: "up", profile: "oval" } },
     { label: "Gato", patch: { head: "cat", tail: "long", profile: "oval" } },

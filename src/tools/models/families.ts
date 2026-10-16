@@ -65,6 +65,7 @@ export const FAMILIES: Family[] = [
   { id: "sweetsTable", label: "Mesa de doces", category: "kitchen", variants: [{ id: "cakeStand", label: "Boleira" }, { id: "stickStand", label: "Palitos" }] },
   { id: "stamps", label: "Carimbos e texturas", category: "kitchen", variants: [{ id: "stamp", label: "Carimbo" }, { id: "stampMold", label: "Molde de EVA" }, { id: "textureRoller", label: "Rolo textura" }] },
   { id: "cutters", label: "Cortadores e formas", category: "kitchen", variants: [{ id: "cutterStamp", label: "Com carimbo" }, { id: "gridCutter", label: "Em grade" }, { id: "ejector", label: "Ejetor" }], tools: [{ page: "cutter", label: "Biscoito" }] },
+  { id: "jigs", label: "Gabaritos de oficina", category: "organize", variants: [{ id: "drillJig", label: "Furação" }, { id: "radiusGauge", label: "Raios" }, { id: "labelJig", label: "Etiqueta" }] },
   { id: "bagClip", label: "Clipe de saco", category: "kitchen", variants: [{ id: "bagClip", label: "Clipe de saco" }] },
 ];
 
