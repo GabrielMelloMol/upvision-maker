@@ -1,9 +1,10 @@
-import { Cable, CircleDot, Cog, Sprout, Wind } from "lucide-react";
+import { Cable, CircleDot, Cog, Disc, Filter, Sprout, Wind, Droplets } from "lucide-react";
 import { buildCableComb, DEFAULT_CABLE_COMB } from "../../../geometry/models/cableComb";
 import { buildHoseAdapter, DEFAULT_HOSE_ADAPTER } from "../../../geometry/models/hoseAdapter";
 import { buildKnob, DEFAULT_KNOB } from "../../../geometry/models/knob";
 import { buildPlantMarker, DEFAULT_PLANT_MARKER } from "../../../geometry/models/plantMarker";
 import { buildSpacer, DEFAULT_SPACER } from "../../../geometry/models/spacer";
+import { buildDrainCover, buildFunnel, buildORing, buildSeal, DEFAULT_DRAIN_COVER, DEFAULT_FUNNEL, DEFAULT_ORING, DEFAULT_SEAL } from "../../../geometry/models/workshop";
 import { as, bool, choice, color, num, text, type ModelDef } from "../fields";
 
 /** Casa, utilitários paramétricos rápidos (#121): arruela, marcador de planta, pente de cabos, botão e adaptador de mangueira. */
@@ -139,5 +140,100 @@ export const HOME_UTILITY_MODELS: ModelDef[] = [
       },
     ],
     build: (ctx, p) => buildHoseAdapter(ctx, as(p)),
+  },
+  {
+    id: "drainCover",
+    category: "kitchen",
+    label: "Tampa de ralo",
+    blurb: "Tampa para pia, tanque ou chuveiro: com pino que entra no ralo, só a aba que cobre, ou com furos para escoar. Você mede o ralo.",
+    icon: Droplets,
+    defaults: DEFAULT_DRAIN_COVER,
+    sections: [
+      {
+        title: "O ralo",
+        fields: [
+          num("drainD", "Diâmetro do ralo", 20, 170, { step: 0.5, hint: "Meça a abertura por dentro com paquímetro ou régua. Pia: 40 a 90 mm; chuveiro e tanque: 50 a 100 mm." }),
+          choice("style", "Tipo", [["plug", "Com pino"], ["cover", "Só cobre"], ["strainer", "Com furos"]]),
+          num("overhang", "Aba para fora do ralo", 3, 30, { step: 1, hint: "Quanto a tampa passa da borda do ralo em cada lado." }),
+          num("plugDepth", "Profundidade do pino", 4, 40, { step: 1, hint: "Só no tipo com pino." }),
+          num("clearance", "Folga do pino", 0.1, 1, { step: 0.05, hint: "0,4 costuma entrar com leve pressão; ralo de plástico varia, teste." }),
+        ],
+      },
+      {
+        title: "Tampa",
+        fields: [
+          num("thickness", "Espessura da aba", 2, 8, { step: 0.5 }),
+          bool("knob", "Botão para puxar"),
+          num("holeD", "Furo da água", 2, 8, { step: 0.5, hint: "Só no tipo com furos." }),
+          color("color", "Cor"),
+        ],
+      },
+    ],
+    build: (ctx, p) => buildDrainCover(ctx, as(p)),
+  },
+  {
+    id: "funnel",
+    category: "kitchen",
+    label: "Funil",
+    blurb: "Boca larga, cone e bico com os diâmetros que você precisa. Imprime com a boca na mesa, sem suporte.",
+    icon: Filter,
+    defaults: DEFAULT_FUNNEL,
+    sections: [
+      {
+        title: "Medidas (de fora)",
+        fields: [
+          num("topD", "Diâmetro da boca", 20, 220, { step: 1 }),
+          num("neckD", "Diâmetro do bico", 8, 80, { step: 0.5, hint: "O bico entra no gargalo: use um pouco menos que o furo dele. Garrafa PET: 20 mm; óleo de motor: 25 mm." }),
+          num("coneH", "Altura do cone", 15, 100, { step: 1, hint: "Quanto mais alto, mais suave: cone de mais de 45° precisa de suporte." }),
+          num("neckLen", "Comprimento do bico", 5, 100, { step: 1 }),
+          num("wall", "Parede", 1, 4, { step: 0.2 }),
+          bool("bead", "Borda reforçada na boca"),
+          color("color", "Cor"),
+        ],
+      },
+    ],
+    build: (ctx, p) => buildFunnel(ctx, as(p)),
+  },
+  {
+    id: "oring",
+    category: "home",
+    label: "O-ring",
+    blurb: "Anel de borracha pelo diâmetro interno e pela seção, em TPU, com várias na mesma mesa. Serve para reposição leve e poeira.",
+    icon: Disc,
+    defaults: DEFAULT_ORING,
+    sections: [
+      {
+        title: "Medidas",
+        fields: [
+          num("innerD", "Diâmetro interno", 3, 100, { step: 0.5, hint: "O furo do anel, como na etiqueta: 20 × 3 é 20 mm de furo e 3 mm de seção." }),
+          num("cord", "Seção (espessura do fio)", 1, 8, { step: 0.5 }),
+          num("quantity", "Quantidade", 1, 30, { step: 1, unit: "" }),
+          bool("flat", "Achatar um pouco o fundo e o topo (assenta na mesa)"),
+          color("color", "Cor"),
+        ],
+      },
+    ],
+    build: (ctx, p) => buildORing(ctx, as(p)),
+  },
+  {
+    id: "seal",
+    category: "home",
+    label: "Retentor",
+    blurb: "Anel de TPU com lábio que encosta no eixo, pelas medidas do eixo, do alojamento e da largura. Para graxa e poeira em eixo lento.",
+    icon: CircleDot,
+    defaults: DEFAULT_SEAL,
+    sections: [
+      {
+        title: "Medidas",
+        fields: [
+          num("shaftD", "Diâmetro do eixo", 4, 100, { step: 0.5 }),
+          num("housingD", "Diâmetro do alojamento", 10, 140, { step: 0.5, hint: "O furo onde o retentor entra. A peça sai 0,2 mm maior para prender." }),
+          num("width", "Largura", 3, 20, { step: 0.5 }),
+          num("interference", "Aperto do lábio no eixo", 0.1, 1.5, { step: 0.1, hint: "0,4 vedando sem prender o eixo; aumente se vazar graxa, diminua se esquentar." }),
+          color("color", "Cor"),
+        ],
+      },
+    ],
+    build: (ctx, p) => buildSeal(ctx, as(p)),
   },
 ];

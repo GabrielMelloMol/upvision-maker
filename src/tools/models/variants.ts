@@ -80,6 +80,30 @@ export const VARIANTS: Record<string, Variant[]> = {
     { label: "Barrinha 40 g", patch: { weight: 40, density: 1.2, shape: "bar", depth: 12 } },
     { label: "Coração do Dia das Mães 25 g", patch: { weight: 25, density: 1.2, shape: "heart", depth: 14, stampText: "Mãe" }, collections: ["maes"] },
   ],
+  drainCover: [
+    { label: "Ralo de pia 50 mm", patch: { drainD: 50, style: "plug", overhang: 8, plugDepth: 12 } },
+    { label: "Ralo de pia 90 mm", patch: { drainD: 90, style: "plug", overhang: 10, plugDepth: 15 } },
+    { label: "Ralo de chuveiro 100 mm", patch: { drainD: 100, style: "strainer", overhang: 10, holeD: 4, knob: false } },
+    { label: "Ralo de tanque 40 mm", patch: { drainD: 40, style: "cover", overhang: 8, knob: true } },
+  ],
+  funnel: [
+    { label: "Garrafa PET (bico 20 mm)", patch: { topD: 90, neckD: 20, coneH: 60, neckLen: 30 } },
+    { label: "Óleo de motor", patch: { topD: 110, neckD: 25, coneH: 70, neckLen: 50 } },
+    { label: "Frasco pequeno (bico 8 mm)", patch: { topD: 50, neckD: 8, coneH: 40, neckLen: 20, wall: 1.2 } },
+    { label: "Tinta e solvente", patch: { topD: 150, neckD: 30, coneH: 90, neckLen: 40, wall: 2 } },
+  ],
+  oring: [
+    { label: "10 × 2 mm", patch: { innerD: 10, cord: 2, quantity: 6 } },
+    { label: "20 × 3 mm", patch: { innerD: 20, cord: 3, quantity: 4 } },
+    { label: "32 × 3 mm", patch: { innerD: 32, cord: 3, quantity: 4 } },
+    { label: "50 × 4 mm", patch: { innerD: 50, cord: 4, quantity: 2 } },
+  ],
+  seal: [
+    { label: "Eixo 12 × 22 × 7", patch: { shaftD: 12, housingD: 22, width: 7 } },
+    { label: "Eixo 20 × 35 × 7", patch: { shaftD: 20, housingD: 35, width: 7 } },
+    { label: "Eixo 25 × 40 × 7", patch: { shaftD: 25, housingD: 40, width: 7 } },
+    { label: "Eixo 30 × 42 × 7", patch: { shaftD: 30, housingD: 42, width: 7 } },
+  ],
   kitBicho: [
     { label: "Cachorro", patch: { head: "dog", tail: "up", profile: "oval" } },
     { label: "Gato", patch: { head: "cat", tail: "long", profile: "oval" } },

@@ -4339,6 +4339,72 @@
   "pauses": "2,00"
  },
  {
+  "key": "oring:máximo",
+  "owner": "Torno",
+  "group": "home",
+  "label": "O-ring (oring)",
+  "variant": "máximo",
+  "status": "aviso",
+  "reasons": [
+   "\"O-rings\" não cabe na mesa de 256 mm (1356,0 × 1356,0 × 6,1 mm)",
+   "Bambu recusa na mesa de 256 mm do A1 (o app avisa)",
+   "Orca recusa na mesa de 256 mm do A1 (o app avisa)",
+   "app: As 60 peças ocupam 1356 mm: passam da mesa de 256 mm.",
+   "app: Peça impressa em TPU serve para poeira, respingo e reposição leve; não garante vedação para pressão, óleo quente ou gás."
+  ],
+  "date": "2026-10-15",
+  "slicers": "Bambu ✓ · Orca ✓"
+ },
+ {
+  "key": "oring:mínimo",
+  "owner": "Torno",
+  "group": "home",
+  "label": "O-ring (oring)",
+  "variant": "mínimo",
+  "status": "ok",
+  "reasons": [
+   "app: Seção abaixo de 1,2 mm: o bico de 0,4 mm não faz bem. Imprima com bico menor ou compre o anel.",
+   "app: Peça impressa em TPU serve para poeira, respingo e reposição leve; não garante vedação para pressão, óleo quente ou gás."
+  ],
+  "date": "2026-10-15",
+  "slicers": "Bambu ✓ · Orca ✓",
+  "minutes": 1,
+  "grams": 0.1,
+  "plates": 1
+ },
+ {
+  "key": "oring:padrão",
+  "owner": "Torno",
+  "group": "home",
+  "label": "O-ring (oring)",
+  "variant": "padrão",
+  "status": "ok",
+  "reasons": [
+   "app: Peça impressa em TPU serve para poeira, respingo e reposição leve; não garante vedação para pressão, óleo quente ou gás."
+  ],
+  "date": "2026-10-15",
+  "slicers": "Bambu ✓ · Orca ✓",
+  "minutes": 5,
+  "grams": 2.2,
+  "plates": 1
+ },
+ {
+  "key": "oring:sem achatar",
+  "owner": "Torno",
+  "group": "home",
+  "label": "O-ring (oring)",
+  "variant": "sem achatar",
+  "status": "ok",
+  "reasons": [
+   "app: Peça impressa em TPU serve para poeira, respingo e reposição leve; não garante vedação para pressão, óleo quente ou gás."
+  ],
+  "date": "2026-10-15",
+  "slicers": "Bambu ✓ · Orca ✓",
+  "minutes": 6,
+  "grams": 2.6,
+  "plates": 1
+ },
+ {
   "key": "outlineBowl:máximo",
   "owner": "Torno",
   "group": "home",
@@ -4865,6 +4931,54 @@
   "slicers": "Bambu ✓ · Orca ✓ · Projeto Bambu ✓",
   "minutes": 471,
   "grams": 140.6,
+  "plates": 1
+ },
+ {
+  "key": "seal:máximo",
+  "owner": "Torno",
+  "group": "home",
+  "label": "Retentor (seal)",
+  "variant": "máximo",
+  "status": "ok",
+  "reasons": [
+   "app: Retentor de TPU serve para graxa, poeira e respingo em eixo lento; não segura pressão nem óleo quente."
+  ],
+  "date": "2026-10-15",
+  "slicers": "Bambu ✓ · Orca ✓",
+  "minutes": 191,
+  "grams": 160.9,
+  "plates": 1
+ },
+ {
+  "key": "seal:mínimo",
+  "owner": "Torno",
+  "group": "home",
+  "label": "Retentor (seal)",
+  "variant": "mínimo",
+  "status": "ok",
+  "reasons": [
+   "app: Retentor de TPU serve para graxa, poeira e respingo em eixo lento; não segura pressão nem óleo quente."
+  ],
+  "date": "2026-10-15",
+  "slicers": "Bambu ✓ · Orca ✓",
+  "minutes": 2,
+  "grams": 0.3,
+  "plates": 1
+ },
+ {
+  "key": "seal:padrão",
+  "owner": "Torno",
+  "group": "home",
+  "label": "Retentor (seal)",
+  "variant": "padrão",
+  "status": "ok",
+  "reasons": [
+   "app: Retentor de TPU serve para graxa, poeira e respingo em eixo lento; não segura pressão nem óleo quente."
+  ],
+  "date": "2026-10-15",
+  "slicers": "Bambu ✓ · Orca ✓",
+  "minutes": 10,
+  "grams": 5.2,
   "plates": 1
  },
  {
@@ -5594,6 +5708,78 @@
   "plates": 1
  },
  {
+  "key": "drainCover:com furos",
+  "owner": "Torno",
+  "group": "kitchen",
+  "label": "Tampa de ralo (drainCover)",
+  "variant": "com furos",
+  "status": "ok",
+  "reasons": [],
+  "date": "2026-10-15",
+  "slicers": "Bambu ✓ · Orca ✓",
+  "minutes": 29,
+  "grams": 10.9,
+  "plates": 1
+ },
+ {
+  "key": "drainCover:máximo",
+  "owner": "Torno",
+  "group": "kitchen",
+  "label": "Tampa de ralo (drainCover)",
+  "variant": "máximo",
+  "status": "ok",
+  "reasons": [],
+  "date": "2026-10-15",
+  "slicers": "Bambu ✓ · Orca ✓",
+  "minutes": 779,
+  "grams": 924.6,
+  "plates": 1
+ },
+ {
+  "key": "drainCover:mínimo",
+  "owner": "Torno",
+  "group": "kitchen",
+  "label": "Tampa de ralo (drainCover)",
+  "variant": "mínimo",
+  "status": "ok",
+  "reasons": [
+   "app: Folga pequena: o pino pode não entrar no ralo (ralo de plástico varia). Teste num pedaço do pino antes."
+  ],
+  "date": "2026-10-15",
+  "slicers": "Bambu ✓ · Orca ✓",
+  "minutes": 14,
+  "grams": 4.5,
+  "plates": 1
+ },
+ {
+  "key": "drainCover:padrão",
+  "owner": "Torno",
+  "group": "kitchen",
+  "label": "Tampa de ralo (drainCover)",
+  "variant": "padrão",
+  "status": "ok",
+  "reasons": [],
+  "date": "2026-10-15",
+  "slicers": "Bambu ✓ · Orca ✓",
+  "minutes": 41,
+  "grams": 31.3,
+  "plates": 1
+ },
+ {
+  "key": "drainCover:só cobre",
+  "owner": "Torno",
+  "group": "kitchen",
+  "label": "Tampa de ralo (drainCover)",
+  "variant": "só cobre",
+  "status": "ok",
+  "reasons": [],
+  "date": "2026-10-15",
+  "slicers": "Bambu ✓ · Orca ✓",
+  "minutes": 19,
+  "grams": 11.1,
+  "plates": 1
+ },
+ {
   "key": "ejector:máximo",
   "owner": "Torno",
   "group": "kitchen",
@@ -5633,6 +5819,62 @@
   "slicers": "Bambu ✓ · Orca ✓ · Projeto Bambu ✓",
   "minutes": 169,
   "grams": 41.8,
+  "plates": 1
+ },
+ {
+  "key": "funnel:máximo",
+  "owner": "Torno",
+  "group": "kitchen",
+  "label": "Funil (funnel)",
+  "variant": "máximo",
+  "status": "ok",
+  "reasons": [],
+  "date": "2026-10-15",
+  "slicers": "Bambu ✓ · Orca ✓",
+  "minutes": 448,
+  "grams": 314.7,
+  "plates": 1
+ },
+ {
+  "key": "funnel:mínimo",
+  "owner": "Torno",
+  "group": "kitchen",
+  "label": "Funil (funnel)",
+  "variant": "mínimo",
+  "status": "ok",
+  "reasons": [],
+  "date": "2026-10-15",
+  "slicers": "Bambu ✓ · Orca ✓",
+  "minutes": 10,
+  "grams": 2,
+  "plates": 1
+ },
+ {
+  "key": "funnel:padrão",
+  "owner": "Torno",
+  "group": "kitchen",
+  "label": "Funil (funnel)",
+  "variant": "padrão",
+  "status": "ok",
+  "reasons": [],
+  "date": "2026-10-15",
+  "slicers": "Bambu ✓ · Orca ✓",
+  "minutes": 62,
+  "grams": 39,
+  "plates": 1
+ },
+ {
+  "key": "funnel:sem borda reforçada",
+  "owner": "Torno",
+  "group": "kitchen",
+  "label": "Funil (funnel)",
+  "variant": "sem borda reforçada",
+  "status": "ok",
+  "reasons": [],
+  "date": "2026-10-15",
+  "slicers": "Bambu ✓ · Orca ✓",
+  "minutes": 52,
+  "grams": 24.3,
   "plates": 1
  },
  {
