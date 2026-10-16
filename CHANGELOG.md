@@ -3,7 +3,7 @@
 Cada versão aparece para a usuária na tela "O que há de novo" depois da atualização.
 Formato: `## <versão> — <data>` e itens `- …` em linguagem simples.
 
-## Próxima versão (ainda não lançada)
+## 0.13.0 — 2026-10-16
 - **Caixa organizadora nunca passa da mesa (#204)**: no tamanho máximo (300 × 300 mm) a caixa passava da mesa de 256 mm e o fatiador recusava a peça. Agora as medidas são limitadas à mesa da impressora escolhida (a dobradiça, que sai 10 mm atrás, entra na conta) e o aviso diz o que mudou: "Você pediu 300 × 300 mm… Reduzi para 252 × 242 mm", e o que fazer para uma caixa maior.
 - **As ferramentas passam a usar a folga que você validou no Kit de testes (#247)**: a folga que você escolhe em Ajustes › Kit de testes agora vira o padrão da alça de copo, da caixa de placa, da capa de celular, da rosca (Estojo e aromatizador), do docinho, das engrenagens e do redutor planetário, da dobradiça e da trava da caixa organizadora (com campos novos de folga do pino e profundidade do gancho) e do clipe da caixinha termoformada. Projetos já começados mantêm o valor que tinham.
 - **Ferramentas de arquivo sem travar a tela (#248)**: Nome ou logo, Separar cores, Cortar para a mesa, Molde, Miolo leve, Corte parcial e Textura agora leem o arquivo e calculam fora da tela principal, com barra de progresso por etapa e botão Cancelar (e "Calcular de novo" depois de cancelar). Com o presépio de 1,2 milhão de triângulos, a tela deixa de congelar por vários segundos: os controles continuam respondendo enquanto a peça é calculada. Mudar qualquer opção cancela o cálculo em andamento. No Corte parcial, "região na parte clicada" e a troca de forma da região também calculam fora da tela principal.
