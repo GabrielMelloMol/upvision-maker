@@ -179,9 +179,12 @@ export default function Models({ only, embedded }: { only?: string; embedded?: {
     try {
       if (def.cutout) {
         setCutting(true);
-        const r = await fileToCutSvg(f, { cutout: cut });
+        const r = await fileToCutSvg(f, { cutout: cut, keepDetail: def.cutoutDetail });
         set({ svg: r.svg, name: f.name });
         setCutInfo((c) => ({ ...c, [which]: r.cutout }));
+        // as cores da imagem vão para a base e o relevo (a pessoa troca depois)
+        const auto = def.autoColors;
+        if (auto && r.colors && which === "art") patchParams({ [auto.base]: r.colors.base, [auto.relief]: r.colors.relief, ...(auto.rim ? { [auto.rim]: r.colors.relief } : {}) });
       } else set({ svg: await fileToSvg(f), name: f.name });
     } catch (e) {
       setArtError(errorText(e));
@@ -447,7 +450,7 @@ export default function Models({ only, embedded }: { only?: string; embedded?: {
         <div className="preview-col">
           {shownViews && activeView && <ViewTabs views={shownViews} value={activeView.id} onChange={setViewId} />}
           {def.assembledInfo && <ViewToggle value={show} onChange={setShow} info={def.assembledInfo} />}
-          <Preview3D models={activeView?.models ?? (def.assembledInfo ? models.filter((m) => !!m.previewOnly === (show === "assembled")) : models)} busy={busy} busyText={`Gerando ${def.label.toLowerCase()}…`} error={error} emptyText={!valid ? "Corrija os campos em vermelho." : (missing ?? undefined)} />
+          <Preview3D cm={def.showCm} models={activeView?.models ?? (def.assembledInfo ? models.filter((m) => !!m.previewOnly === (show === "assembled")) : models)} busy={busy} busyText={`Gerando ${def.label.toLowerCase()}…`} error={error} emptyText={!valid ? "Corrija os campos em vermelho." : (missing ?? undefined)} />
           {lay.view.face && (lay.layers.length > 0 || elements.length > 0) && !copies && (
             <section className="card stack gizmo-card">
               <h3>Vista de cima · {lay.view.face.part}</h3>

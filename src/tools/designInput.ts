@@ -4,7 +4,8 @@ import { svgToColorRegions, svgToCrossSection, type ColorRegion } from "../geome
 import { loadRaster, trace } from "../vectorize/client";
 import { cutout, type CutoutResult } from "../vectorize/cutout";
 import { DEFAULT_TRACE } from "../vectorize/pipeline";
-import { scaleFactor } from "../vectorize/raster";
+import { floodBackground, scaleFactor } from "../vectorize/raster";
+import { suggestColors, type SuggestedColors } from "../vectorize/suggestColors";
 import { buildSvg } from "../vectorize/svgOut";
 
 export const DESIGN_ACCEPT = ".svg,image/svg+xml,image/png,image/jpeg,image/webp,image/bmp,image/gif,image/avif";
@@ -26,27 +27,43 @@ const isSvgFile = (file: File) => file.type === "image/svg+xml" || file.name.toL
 /** O que o recorte do fundo diz sobre o resultado (sem a máscara): a interface mostra o aviso quando `uncertain`. */
 export type CutoutInfo = Pick<CutoutResult, "method" | "confidence" | "uncertain" | "warning">;
 
+/** Cores sugeridas pela imagem, só para quem pede o recorte com detalhes (abridor pela imagem). */
+const suggested = (opts: { keepDetail?: boolean }, r: { rgba: Uint8ClampedArray; w: number; h: number }, object: Uint8Array | null) => {
+  if (!opts.keepDetail) return {};
+  const bg = object ? null : floodBackground(r.rgba, r.w, r.h);
+  return { colors: suggestColors(r.rgba, r.w, r.h, object ?? (bg ? Uint8Array.from(bg, (v) => 1 - v) : null)) };
+};
+
 const CUTOUT_FAILED: CutoutInfo = { method: "color", confidence: 0, uncertain: true, warning: "Não consegui recortar o fundo desta foto; usei a imagem inteira. Tente uma foto com fundo liso." };
 
 /**
  * Como `fileToSvg`, mas com o fundo da foto recortado antes de vetorizar (#193): o objeto principal vira uma silhueta cheia.
- * SVG enviado passa direto (já é um desenho). `cutout: false` é o mesmo que `fileToSvg`. Se o recorte falhar de vez, vetoriza a
+ * SVG enviado passa direto (já é um desenho). `cutout: false` é o mesmo que `fileToSvg`. Com `keepDetail` o recorte só tira o fundo (os
+ * detalhes ficam) e vêm também as cores sugeridas. Se o recorte falhar de vez, vetoriza a
  * foto como está e avisa.
  */
-export async function fileToCutSvg(file: File, opts: { cutout: boolean }): Promise<{ svg: string; cutout: CutoutInfo | null }> {
-  if (isSvgFile(file) || !opts.cutout) return { svg: await fileToSvg(file), cutout: null };
+export async function fileToCutSvg(file: File, opts: { cutout: boolean; keepDetail?: boolean }): Promise<{ svg: string; cutout: CutoutInfo | null; colors?: SuggestedColors | null }> {
+  if (isSvgFile(file)) return { svg: await file.text(), cutout: null, ...(opts.keepDetail ? { colors: null } : {}) };
   const r = await loadRaster(file, scaleFactor);
   try {
+    // sem recorte (ou o recorte falhou): vetoriza a imagem como está; o fundo liso sai pela própria vetorização
+    const plain = async (info: CutoutInfo | null, object: Uint8Array | null = null) => {
+      const t = await trace(r, DEFAULT_TRACE, null).result;
+      return { svg: buildSvg(t.d, r.w, r.h, 80), cutout: info, ...suggested(opts, r, object) };
+    };
+    if (!opts.cutout) return plain(null);
     let cut: CutoutResult;
     try {
       cut = await cutout(r.rgba, r.w, r.h);
     } catch (e) {
       console.warn("Recorte do fundo falhou:", e);
-      const t = await trace(r, DEFAULT_TRACE, null).result;
-      return { svg: buildSvg(t.d, r.w, r.h, 80), cutout: CUTOUT_FAILED };
+      return plain(CUTOUT_FAILED);
     }
-    const t = await trace(r, { ...DEFAULT_TRACE, mode: "silhouette" }, cut.mask).result;
-    return { svg: buildSvg(t.d, r.w, r.h, 80), cutout: { method: cut.method, confidence: cut.confidence, uncertain: cut.uncertain, warning: cut.warning } };
+    const info = { method: cut.method, confidence: cut.confidence, uncertain: cut.uncertain, warning: cut.warning };
+    // com detalhes: fundo liso já sai na vetorização (o recorte por cor guardaria só a maior parte da imagem); só o modelo de imagem (fundo complexo) entra
+    if (opts.keepDetail && cut.method === "color") return plain(info, cut.mask);
+    const t = await trace(r, opts.keepDetail ? { ...DEFAULT_TRACE, keepDetail: true } : { ...DEFAULT_TRACE, mode: "silhouette" }, cut.mask).result;
+    return { svg: buildSvg(t.d, r.w, r.h, 80), cutout: info, ...suggested(opts, r, cut.mask) };
   } finally {
     URL.revokeObjectURL(r.url);
   }

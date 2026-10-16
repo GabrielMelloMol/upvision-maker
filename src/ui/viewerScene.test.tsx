@@ -225,6 +225,14 @@ describe("Preview3D", () => {
     expect(screen.queryByText("A prévia aparece aqui.")).not.toBeInTheDocument();
   });
 
+  test("com `cm`, mostra também a peça pronta em cm (e sem `cm` só o chip em mm)", () => {
+    const { container, rerender } = render(<Preview3D models={[model(40)]} cm />);
+    expect(container.querySelector(".hud-cm")?.textContent).toBe("Peça pronta: 4.0 × 4.0 cm");
+    expect(container.querySelector(".hud")?.textContent).toBe("40.0 × 40.0 × 20.0 mm"); // o primeiro chip segue igual
+    rerender(<Preview3D models={[model(40)]} />);
+    expect(container.querySelector(".hud-cm")).toBeNull();
+  });
+
   test("estados: vazio, carregando e erro", () => {
     const { rerender, container } = render(<Preview3D models={[]} emptyText="Envie algo." />);
     expect(screen.getByText("Envie algo.")).toBeInTheDocument();
