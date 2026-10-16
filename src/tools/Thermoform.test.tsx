@@ -27,23 +27,68 @@ const saveButtons = () => screen.getAllByRole("button", { name: /Salvar 3MF/ });
 const ready = () => waitFor(() => expect(saveButtons()[0]).toBeEnabled(), BUILD);
 
 describe("Caixinha termoformada", () => {
-  test("padrão: telas e clipe num arquivo, molde em outro; peso e tempo de cada peça e o passo a passo", async () => {
+  test("padrão: telas e bases num arquivo, clipe em outro e os moldes macho e fêmea num terceiro; peso e tempo de cada peça e o passo a passo", async () => {
     const user = userEvent.setup();
     renderWithApp(<Thermoform />);
     await ready();
     expect(screen.getByRole("heading", { name: "Passo a passo da termoformagem" })).toBeInTheDocument();
     const summary = await screen.findByRole("region", { name: "Resumo da termoformagem" }, BUILD);
     expect(within(summary).getByText(/Tela 1: ≈/)).toBeInTheDocument();
-    expect(within(summary).getByText(/Molde de PETG: ≈/)).toBeInTheDocument();
+    expect(within(summary).getByText(/Base 2: ≈/)).toBeInTheDocument();
+    expect(within(summary).getByText(/Clipe: ≈/)).toBeInTheDocument();
+    expect(within(summary).getByText(/Molde macho \(PETG\): ≈/)).toBeInTheDocument();
+    expect(within(summary).getByText(/Molde fêmea \(PETG\): ≈/)).toBeInTheDocument();
     expect(within(summary).getByText(/A tela estica cerca de/)).toBeInTheDocument();
+    expect(within(summary).getByText(/Folga do molde fêmea/)).toBeInTheDocument();
     await user.click(saveButtons()[0]);
     await waitFor(() => expect([...t.files.keys()].some((f) => /caixinha-telas.*\.3mf$/.test(f))).toBe(true));
-    const tela = [...t.files.keys()].find((f) => /caixinha-telas.*\.3mf$/.test(f))!;
-    expect(objects(t.files.get(tela)!)).toBe(3); // Tela 1, Tela 2 e o clipe
+    expect(objects(t.files.get([...t.files.keys()].find((f) => /caixinha-telas.*\.3mf$/.test(f))!)!)).toBe(4); // Tela 1 e 2, Base 1 e 2
     await user.click(saveButtons()[1]);
+    await waitFor(() => expect([...t.files.keys()].some((f) => /caixinha-fecho.*\.3mf$/.test(f))).toBe(true));
+    expect(objects(t.files.get([...t.files.keys()].find((f) => /caixinha-fecho.*\.3mf$/.test(f))!)!)).toBe(1);
+    await user.click(saveButtons()[2]);
     await waitFor(() => expect([...t.files.keys()].some((f) => /caixinha-molde.*\.3mf$/.test(f))).toBe(true));
-    expect(objects(t.files.get([...t.files.keys()].find((f) => /caixinha-molde.*\.3mf$/.test(f))!)!)).toBe(1);
-  }, 60_000);
+    expect(objects(t.files.get([...t.files.keys()].find((f) => /caixinha-molde.*\.3mf$/.test(f))!)!)).toBe(2);
+  }, 90_000);
+
+  test("tampa rosqueada: o arquivo do fecho vira a tampa e as bases das duas metades ficam ligadas", async () => {
+    const user = userEvent.setup();
+    renderWithApp(<Thermoform />);
+    await ready();
+    await user.click(screen.getByRole("button", { name: "Tampa rosqueada" }));
+    expect(await screen.findByRole("heading", { name: /Tampa rosqueada \(PLA, 0,16 mm\)/ }, BUILD)).toBeInTheDocument();
+    expect(screen.getByText(/Cada base leva metade de um pino rosqueado/)).toBeInTheDocument();
+    expect(screen.queryByText(/Onde fica a dobradiça/)).not.toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Nas duas metades" })).toHaveAttribute("aria-pressed", "true");
+    await ready();
+  }, 90_000);
+
+  test("texto pronto para a IA: copia a descrição da silhueta simétrica", async () => {
+    const user = userEvent.setup();
+    renderWithApp(<Thermoform />);
+    await user.click(screen.getByText(/Não tem a silhueta\? Peça a uma IA de imagem/));
+    const field = screen.getByLabelText("O que desenhar");
+    await user.clear(field);
+    await user.type(field, "uma estrela do mar");
+    expect((screen.getByLabelText("Texto para a IA de imagem") as HTMLTextAreaElement).value).toContain("silhueta de uma estrela do mar");
+    await user.click(screen.getByRole("button", { name: /Copiar texto/ }));
+    const copied = await navigator.clipboard.readText();
+    expect(copied).toMatch(/perfeitamente simétrica/);
+    expect(copied).toMatch(/preto sólido sobre fundo branco/);
+    expect(copied).toMatch(/sem pontas finas/);
+  }, 30_000);
+
+  test("passo a passo: soprador por padrão e água quente com a temperatura aproximada", async () => {
+    const user = userEvent.setup();
+    renderWithApp(<Thermoform />);
+    const steps = screen.getByRole("region", { name: "Passo a passo da termoformagem" });
+    expect(within(steps).getByText(/soprador de ar quente/)).toBeInTheDocument();
+    await user.click(within(steps).getByRole("button", { name: "Água quente" }));
+    expect(within(steps).getByText(/70 a 80 °C/)).toBeInTheDocument();
+    expect(within(steps).queryByText(/soprador de ar quente/)).not.toBeInTheDocument();
+    expect(within(steps).getByText(/Temperaturas e tempos são de referência/)).toBeInTheDocument();
+    expect(within(steps).getByText(/inov3d|Inov3D/i)).toBeInTheDocument();
+  }, 30_000);
 
   test("modelo pronto Páscoa: ovo, texto e cores", async () => {
     const user = userEvent.setup();
@@ -81,10 +126,13 @@ describe("Caixinha termoformada", () => {
     expect(screen.queryByText(/Prévia da caixinha já prensada/)).not.toBeInTheDocument();
     await user.click(screen.getByRole("button", { name: "Montada (não imprime)" }));
     expect(screen.getByText(/Ela não vai para o arquivo/)).toBeInTheDocument();
-    // salvar continua salvando só as peças de imprimir (telas + clipe)
+    await ready(); // a prévia montada só é calculada quando se pede: salvar espera ela terminar
+    // salvar continua salvando só as peças de imprimir (telas + bases)
     await user.click(saveButtons()[0]);
     await waitFor(() => expect([...t.files.keys()].some((f) => /caixinha-telas.*\.3mf$/.test(f))).toBe(true));
-    expect(objects(t.files.get([...t.files.keys()].find((f) => /caixinha-telas.*\.3mf$/.test(f))!)!)).toBe(3);
+    expect(objects(t.files.get([...t.files.keys()].find((f) => /caixinha-telas.*\.3mf$/.test(f))!)!)).toBe(4);
+    await user.click(screen.getByRole("button", { name: "Casca prensada (não imprime)" }));
+    expect(screen.getByText(/Uma casca já prensada, de perto/)).toBeInTheDocument();
     await user.click(screen.getByRole("button", { name: "Mesa (o que imprime)" }));
     expect(screen.queryByText(/Prévia da caixinha já prensada/)).not.toBeInTheDocument();
   }, 60_000);

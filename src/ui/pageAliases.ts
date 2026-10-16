@@ -8,6 +8,7 @@ export const PAGE_ALIASES: Record<string, string> = {
   stamp: "carimbo seco relevo sem tinta selo lacre gravar papel convite casamento cartão de visita ex-libris embossing emboss",
   invite: "convite envelope rendado renda tule borboleta xv anos quinze debutante casamento chá de bebê batizado madrinhas padrinhos damas cartão transparente convite de luxo clutch",
   thermoform: "caixinha termoformada termoformado termoform thermoform tela malha favo molde petg domo coração estrela flor bola de natal presente bombom lembrancinha",
+  thermoware: "pote cesto pulseira termoformado termoformagem molde macho fêmea femea positivo negativo mandril tigela bracelete disco tira petg",
   mosaic: "mosaico tabuleiro peças pote divisórias cartões inspiração jogo infantil escola criança quebra-cabeça montar desenho",
   extrude: "extrusão relevo desenho svg peça 3d stl transformar em 3d",
   qr: "qr code pix pagamento wifi link",

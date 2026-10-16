@@ -39,6 +39,7 @@ Este guia vale para título, subtítulo, botão, aviso, erro, dica e ajuda.
 | Carimbo seco | Duas placas que gravam o desenho em relevo, sem tinta. |
 | Mosaico | Tabuleiro, peças e pote para montar desenhos. |
 | Caixinha termoformada | Tela de PLA em malha, prensada a quente num molde. |
+| Pote, cesto e pulseira termoformados | Disco ou tira de PLA formados a quente num molde macho ou fêmea de PETG. |
 | Convite envelope | Renda sobre tule, abas de envelope e cartão transparente. |
 | Extrusão 3D | Dá altura a qualquer desenho, com base se quiser. |
 | QR Code e Pix | Pix, link ou Wi-Fi em SVG ou 3MF de 2 cores. |

@@ -1,4 +1,4 @@
-import { Award, Bot, Gift, Stamp as StampIcon, Calculator as CalcIcon, Cookie, Cylinder, KeyRound, Layers, House, ImageUp, Package, Palette, Printer, Settings, ShoppingBag, Users, Building2, ClipboardList, FileText, LayoutDashboard, LineChart, Receipt, QrCode as QrIcon, Scissors, Split, Puzzle, MailOpen, SquareSplitHorizontal, Brush, BookOpenText } from "lucide-react";
+import { Award, Bot, Container, Gift, Stamp as StampIcon, Calculator as CalcIcon, Cookie, Cylinder, KeyRound, Layers, House, ImageUp, Package, Palette, Printer, Settings, ShoppingBag, Users, Building2, ClipboardList, FileText, LayoutDashboard, LineChart, Receipt, QrCode as QrIcon, Scissors, Split, Puzzle, MailOpen, SquareSplitHorizontal, Brush, BookOpenText } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import { ShieldCheck, Boxes, Braces, FolderOpen, ChartNoAxesColumn, Globe, Grid3x3, LayoutGrid, Shapes, Sparkle, Sun, Tag, Sticker, Wallet, Feather, Ruler } from "lucide-react";
 import { lazy, type ReactNode } from "react";
@@ -28,6 +28,7 @@ const Keychain = lazy(() => import("./tools/Keychain"));
 const Medal = lazy(() => import("./tools/Medal"));
 const Stamp = lazy(() => import("./tools/Stamp"));
 const Thermoform = lazy(() => import("./tools/Thermoform"));
+const ThermoWare = lazy(() => import("./tools/ThermoWare"));
 const Invite = lazy(() => import("./tools/Invite"));
 const ImageToSvg = lazy(() => import("./tools/ImageToSvg"));
 const QrCode = lazy(() => import("./tools/QrCode"));
@@ -87,6 +88,7 @@ const ALL: PageDef[] = [
   { id: "stamp", section: "create", label: "Carimbo seco", group: "Ferramentas", icon: StampIcon, blurb: "Duas placas que gravam o desenho em relevo no papel, sem tinta.", render: () => <Stamp /> },
   { id: "invite", section: "create", label: "Convite envelope", group: "Ferramentas", icon: MailOpen, blurb: "Renda vazada sobre tule, abas de envelope, borboleta em relevo e cartão transparente.", render: () => <Invite /> },
   { id: "thermoform", section: "create", label: "Caixinha termoformada", group: "Ferramentas", icon: Gift, blurb: "Tela de PLA em malha prensada a quente num molde: caixinha de presente.", render: () => <Thermoform /> },
+  { id: "thermoware", section: "create", label: "Pote, cesto e pulseira termoformados", group: "Ferramentas", icon: Container, blurb: "Disco ou tira de PLA formados a quente num molde macho ou fêmea de PETG.", render: () => <ThermoWare /> },
   { id: "extrude", section: "create", label: "Desenho em 3D", group: "Ferramentas", icon: Layers, blurb: "Seu desenho (SVG) vira uma peça 3D, com base opcional.", render: () => <Extrude /> },
   { id: "qr", section: "create", label: "QR Code e Pix", group: "Ferramentas", icon: QrIcon, blurb: "Pix com valor, link ou Wi-Fi; SVG e 3MF em 2 cores.", render: () => <QrCode /> },
   { id: "models", section: "create", label: "Modelos prontos", group: "Ferramentas", icon: Shapes, blurb: "Placa Pix, topo de bolo, carimbo, troféu, chaveiro NFC…", render: () => <Models /> },

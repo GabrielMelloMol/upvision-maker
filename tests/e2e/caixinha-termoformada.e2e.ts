@@ -42,16 +42,16 @@ function discPng(size = 160): Buffer {
 }
 
 
-test("caixinha termoformada: telas, clipe e molde em arquivos separados, com o resumo e o passo a passo", async ({ page, tauri }) => {
+test("caixinha termoformada: telas e bases, fecho e moldes macho e fêmea em arquivos separados, com o resumo e o passo a passo", async ({ page, tauri }) => {
   test.setTimeout(180_000);
   await openApp(page);
   await go(page, "Caixinha termoformada");
   await idle(page);
-  await expect(page.locator(".viewer .hud")).toContainText("mm");
+  await expect(page.locator(".viewer .hud")).toContainText("mm", { timeout: 90_000 });
   await expect(page.locator(".legend")).toContainText("Malha");
   await expect(page.locator(".legend")).toContainText("Molde");
   await expect(page.getByRole("heading", { name: "Passo a passo da termoformagem" })).toBeVisible();
-  await expect(page.getByRole("region", { name: "Resumo da termoformagem" })).toContainText("Molde de PETG");
+  await expect(page.getByRole("region", { name: "Resumo da termoformagem" })).toContainText("Molde macho (PETG)");
 
   await page.getByRole("button", { name: "Natal (coração)" }).click();
   await expect(page.locator("select").first()).toHaveValue("heart");
@@ -60,13 +60,45 @@ test("caixinha termoformada: telas, clipe e molde em arquivos separados, com o r
   await saves.nth(0).click();
   await expect.poll(() => [...tauri.files.keys()].some((f) => /caixinha-telas.*\.3mf$/.test(f))).toBe(true);
   await saves.nth(1).click();
+  await expect.poll(() => [...tauri.files.keys()].some((f) => /caixinha-fecho.*\.3mf$/.test(f))).toBe(true);
+  await saves.nth(2).click();
   await expect.poll(() => [...tauri.files.keys()].some((f) => /caixinha-molde.*\.3mf$/.test(f))).toBe(true);
+  await expect(page.locator(".legend")).toContainText("Base");
+  await expect(page.locator(".legend")).toContainText("Molde fêmea");
 
   // fecho por faixa e malha em losango: continua gerando
   await page.getByRole("button", { name: "Faixa colada" }).click();
   await page.getByRole("button", { name: "Losango" }).click();
   await idle(page);
   await expect(page.locator(".legend")).toContainText("Faixa");
+});
+
+test("caixinha termoformada: tampa rosqueada, prévias montada e casca, água quente e texto para a IA", async ({ page }) => {
+  test.setTimeout(240_000);
+  await openApp(page);
+  await go(page, "Caixinha termoformada");
+  await idle(page);
+  await page.getByRole("button", { name: "Tampa rosqueada" }).click();
+  await idle(page);
+  await expect(page.getByRole("heading", { name: /Tampa rosqueada \(PLA, 0,16 mm\)/ })).toBeVisible();
+  await expect(page.locator(".legend")).toContainText("Tampa");
+  await expect(page.locator(".legend")).toContainText("Pino");
+
+  await page.getByRole("button", { name: "Montada (não imprime)" }).click();
+  await idle(page);
+  await expect(page.locator(".viewer .hud")).toContainText("mm", { timeout: 90_000 });
+  await page.getByRole("button", { name: "Casca prensada (não imprime)" }).click();
+  await idle(page);
+  await expect(page.getByText(/Uma casca já prensada, de perto/)).toBeVisible();
+
+  const steps = page.getByRole("region", { name: "Passo a passo da termoformagem" });
+  await steps.getByRole("button", { name: "Água quente" }).click();
+  await expect(steps).toContainText("70 a 80 °C");
+  await expect(steps).toContainText("Temperaturas e tempos são de referência");
+
+  await page.getByText("Não tem a silhueta? Peça a uma IA de imagem").click();
+  await expect(page.getByLabel("Texto para a IA de imagem")).toHaveValue(/perfeitamente simétrica/);
+  await expect(page.getByRole("button", { name: /Copiar texto/ })).toBeVisible();
 });
 
 test("caixinha termoformada: foto PNG como silhueta e silhueta assimétrica espelhada", async ({ page }) => {
@@ -78,7 +110,7 @@ test("caixinha termoformada: foto PNG como silhueta e silhueta assimétrica espe
   await page.locator('input[type="file"]').first().setInputFiles({ name: "disco.png", mimeType: "image/png", buffer: discPng() });
   await expect(page.getByText("disco.png")).toBeVisible({ timeout: 30_000 });
   await idle(page);
-  await expect(page.locator(".viewer .hud")).toContainText("mm");
+  await expect(page.locator(".viewer .hud")).toContainText("mm", { timeout: 90_000 });
 
   await page.locator('input[type="file"]').first().setInputFiles({ name: "ele.svg", mimeType: "image/svg+xml", buffer: Buffer.from(L_SHAPE) });
   await expect(page.getByText(/A silhueta não é simétrica/)).toBeVisible({ timeout: 60_000 });

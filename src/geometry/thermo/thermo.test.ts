@@ -1,14 +1,19 @@
-import { beforeAll, describe, expect, test } from "vitest";
+import { beforeAll, describe, expect, test, vi } from "vitest";
 import { estimateModels } from "../../domain/estimate";
 import { getManifold, type ManifoldToplevel } from "../manifold";
 import { scoped } from "../shape2d";
+import type { Model } from "../types";
 import { fixThinStrokes } from "../stampArt";
 import { modelSize, modelVolume } from "../testUtil";
 import { buildThermo, DEFAULT_THERMO, type ThermoParams } from "./build";
 import { domeStack, inradius, insetAt, stretchOf } from "./dome";
-import { buildMoldSolid, DEFAULT_MOLD } from "./mold";
+import { buildFemaleSolid, buildMoldSolid, DEFAULT_MOLD, moldGap } from "./mold";
+import { DEFAULT_CAP } from "./thread";
 import { clipRegion, DEFAULT_SCREEN, earOf, meshHoles, screenRegions } from "./screen";
 import { asymmetry, fitSilhouette, presetSilhouette, SHAPE_LABELS, symmetrize, type ThermoShape } from "./shapes";
+
+// o domo e a prévia pesam: com a máquina ocupada (vários agentes e E2E ao mesmo tempo) o padrão de 60 s não chega
+vi.setConfig({ testTimeout: 180_000 });
 
 let M: ManifoldToplevel;
 beforeAll(async () => {
@@ -215,132 +220,278 @@ describe("fecho", () => {
 
 describe("caixinha completa", () => {
   const sil = (k: K, shape: ThermoShape = "heart") => k(presetSilhouette(M, shape, 70));
+  const named = (list: Model[], name: string) => list.find((m) => m.name === name)!;
+  const quick = (m: ManifoldToplevel, a: Parameters<typeof buildThermo>[1], b: Parameters<typeof buildThermo>[2], c: ThermoParams) => buildThermo(m, a, b, c, { preview: false });
 
-  test("duas telas, clipe, molde e prévia; cores separadas; só a prévia fica fora do arquivo", () =>
+  test("telas, bases, fecho e moldes em grupos por material; cores separadas; só a prévia fica fora do arquivo", () =>
     scoped((k) => {
-      const out = buildThermo(M, sil(k), dot(k, 10), P({ colors: { sheet: "#112233", border: "#223344", design: "#334455", mold: "#445566", clip: "#556677" } }));
-      expect(out.screens.map((m) => m.name)).toEqual(["Tela 1", "Tela 2", "Clipe"]);
-      for (const m of out.screens.slice(0, 2)) expect(m.parts.map((x) => x.name)).toEqual(["Borda", "Malha", "Design"]);
-      expect(new Set(out.screens[0].parts.map((x) => x.color)).size).toBe(3);
-      expect(out.mold.previewOnly).toBeFalsy();
+      const out = buildThermo(M, sil(k), dot(k, 10), P({ colors: { sheet: "#112233", border: "#223344", design: "#334455", mold: "#445566", clip: "#556677", base: "#667788" } }));
+      expect(out.screens.map((m) => m.name)).toEqual(["Tela 1", "Tela 2", "Base 1", "Base 2"]);
+      expect(out.closure.map((m) => m.name)).toEqual(["Clipe"]);
+      expect(out.molds.map((m) => m.name)).toEqual(["Molde macho", "Molde fêmea"]);
+      for (const n of ["Tela 1", "Tela 2"]) expect(named(out.screens, n).parts.map((x) => x.name)).toEqual(["Borda", "Malha", "Design"]);
+      expect(new Set(named(out.screens, "Tela 1").parts.map((x) => x.color)).size).toBe(3);
+      expect(named(out.screens, "Base 1").parts.map((x) => x.name)).toEqual(["Base", "Arte"]);
+      for (const m of [...out.screens, ...out.closure, ...out.molds]) expect(m.previewOnly, m.name).toBeFalsy();
       expect(out.assembled.previewOnly).toBe(true);
-      // telas planas na mesa, com a espessura pedida
-      for (const m of out.screens.slice(0, 2)) expect(modelSize(m)[2]).toBeCloseTo(DEFAULT_SCREEN.t, 3);
-      expect(modelSize(out.screens[2])[2]).toBeCloseTo(DEFAULT_SCREEN.clipT, 3);
-      // a caixa montada tem duas cascas: altura ≈ 2 × (domo + tela)
-      expect(modelSize(out.assembled)[2]).toBeCloseTo(2 * (DEFAULT_THERMO.domeH + DEFAULT_SCREEN.t), 0);
+      expect(out.shell.previewOnly).toBe(true);
+      // telas e bases planas na mesa, com a espessura pedida
+      for (const n of ["Tela 1", "Tela 2"]) expect(modelSize(named(out.screens, n))[2]).toBeCloseTo(DEFAULT_SCREEN.t, 3);
+      for (const n of ["Base 1", "Base 2"]) expect(modelSize(named(out.screens, n))[2]).toBeCloseTo(DEFAULT_THERMO.baseT, 3);
+      expect(modelSize(out.closure[0])[2]).toBeCloseTo(DEFAULT_SCREEN.clipT, 3);
+      // a caixa montada tem duas cascas e duas bases: altura ≈ 2 × (domo + tela + base)
+      expect(modelSize(out.assembled)[2]).toBeCloseTo(2 * (DEFAULT_THERMO.domeH + DEFAULT_SCREEN.t + DEFAULT_THERMO.baseT), 0);
       expect(out.info.stretch).toBeGreaterThan(1);
       // o domo padrão não passa do limite de esticamento em nenhum formato pronto
-      for (const shape of SHAPES) expect(buildThermo(M, k(presetSilhouette(M, shape, 70)), null, P()).warnings.join(" "), shape).not.toMatch(/estica/);
+      for (const shape of SHAPES) expect(quick(M, k(presetSilhouette(M, shape, 70)), null, P()).warnings.join(" "), shape).not.toMatch(/estica/);
     }));
 
-  test("molde padrão (coração de 70 mm) pesa até 120 g e menos que o maciço; o 3MF do molde é uma peça", () =>
+  test("o clipe vai nas bases quando elas existem (a orelha sai da placa, não da tela) e na tela quando não há base", () =>
     scoped((k) => {
-      const out = buildThermo(M, sil(k), null, P());
-      const est = estimateModels([out.mold], { layerHeight: 0.2, walls: 3, infill: 8, support: false })!;
+      const withBase = quick(M, sil(k, "circle"), null, P());
+      expect(modelSize(named(withBase.screens, "Tela 1"))[1]).toBeCloseTo(70, 0);
+      expect(modelSize(named(withBase.screens, "Base 1"))[1]).toBeGreaterThan(75);
+      const none = quick(M, sil(k, "circle"), null, P({ bases: "none" }));
+      expect(none.screens.map((m) => m.name)).toEqual(["Tela 1", "Tela 2"]);
+      expect(modelSize(named(none.screens, "Tela 1"))[1]).toBeGreaterThan(75);
+    }));
+
+  test("bases: nenhuma, uma só (a outra metade fica com a orelha) ou as duas", () =>
+    scoped((k) => {
+      const one = buildThermo(M, sil(k, "circle"), null, P({ bases: "one" }));
+      expect(one.screens.map((m) => m.name)).toEqual(["Tela 1", "Tela 2", "Base 1"]);
+      expect(modelSize(named(one.screens, "Tela 1"))[1]).toBeCloseTo(70, 0);
+      expect(modelSize(named(one.screens, "Tela 2"))[1]).toBeGreaterThan(75);
+      expect(one.info.bases).toBe("one");
+      // a caixa montada com uma base só: altura = domo + tela + base + domo + tela
+      expect(modelSize(one.assembled)[2]).toBeCloseTo(2 * (DEFAULT_THERMO.domeH + DEFAULT_SCREEN.t) + DEFAULT_THERMO.baseT, 0);
+    }));
+
+  test("o desenho também vai na base (outra cor, nivelado) e some quando se desliga", () =>
+    scoped((k) => {
+      const on = quick(M, sil(k), dot(k, 10), P());
+      const off = quick(M, sil(k), dot(k, 10), P({ baseArt: false }));
+      expect(named(on.screens, "Base 1").parts.map((x) => x.name)).toEqual(["Base", "Arte"]);
+      expect(named(off.screens, "Base 1").parts.map((x) => x.name)).toEqual(["Base"]);
+      const art = modelVolume({ name: "", parts: named(on.screens, "Base 1").parts.filter((x) => x.name === "Arte") });
+      expect(art).toBeGreaterThan(Math.PI * 9 ** 2 * DEFAULT_THERMO.baseT * 0.8);
+    }));
+
+  test("tampa rosqueada: pino nas duas bases, tampa com furo da fita e as bases ligadas à força", () =>
+    scoped((k) => {
+      const out = buildThermo(M, sil(k), null, P({ bases: "none", screen: { ...DEFAULT_SCREEN, closure: "cap" } }));
+      expect(out.warnings.join(" ")).toMatch(/tampa rosqueada precisa das bases/);
+      expect(out.info.bases).toBe("both");
+      expect(out.closure.map((m) => m.name)).toEqual(["Tampa"]);
+      for (const n of ["Base 1", "Base 2"]) expect(named(out.screens, n).parts.map((x) => x.name)).toContain("Pino");
+      // o meio-pino sobe até o raio do pino acima da face da mesa
+      expect(modelSize(named(out.screens, "Base 1"))[2]).toBeCloseTo(DEFAULT_CAP.thread.major, 0);
+      // o pino sai além do ponto mais alto do coração e a tampa cobre a ponta dele
+      const ys = named(out.screens, "Base 1").parts.flatMap((q) => [...q.mesh.positions].filter((_, i) => i % 3 === 1));
+      const heartH = sil(k).bounds().max[1] - sil(k).bounds().min[1];
+      expect(Math.max(...ys) - Math.min(...ys)).toBeGreaterThan(heartH + DEFAULT_CAP.thread.length * 0.9);
+      expect(out.assembled.parts.map((x) => x.name)).toContain("Tampa");
+      expect(buildThermo(M, sil(k), null, P({ screen: { ...DEFAULT_SCREEN, closure: "cap" } })).warnings.join(" ")).not.toMatch(/tampa rosqueada precisa/);
+    }));
+
+  test("tampa e pino: o pino de uma base e o da outra formam um cilindro inteiro na emenda", () =>
+    scoped((k) => {
+      const out = buildThermo(M, sil(k, "circle"), null, P({ screen: { ...DEFAULT_SCREEN, closure: "cap" } }));
+      const pin = out.assembled.parts.find((x) => x.name === "Pino")!;
+      const zs = [...pin.mesh.positions].filter((_, i) => i % 3 === 2);
+      expect(Math.max(...zs)).toBeCloseTo(DEFAULT_CAP.thread.major, 1);
+      expect(Math.min(...zs)).toBeCloseTo(-DEFAULT_CAP.thread.major, 1);
+    }));
+
+  test("molde padrão (coração de 70 mm): o macho pesa até 120 g e menos que o maciço; macho e fêmea são peças separadas", () =>
+    scoped((k) => {
+      const out = quick(M, sil(k), null, P());
+      const est = estimateModels([named(out.molds, "Molde macho")], { layerHeight: 0.24, walls: 3, infill: 8, support: false })!;
       expect(est.grams).toBeLessThanOrEqual(120);
       expect(est.grams).toBeGreaterThan(5);
-      const solid = buildThermo(M, sil(k), null, P({ mold: { ...DEFAULT_MOLD, hollow: false } }));
-      expect(modelVolume(out.mold)).toBeLessThan(modelVolume(solid.mold));
+      const solid = quick(M, sil(k), null, P({ mold: { ...DEFAULT_MOLD, hollow: false } }));
+      expect(modelVolume(named(out.molds, "Molde macho"))).toBeLessThan(modelVolume(named(solid.molds, "Molde macho")));
+      expect(modelVolume(named(out.molds, "Molde fêmea"))).toBeGreaterThan(1000);
     }));
 
   test("tela de PLA da caixinha gasta menos de 20 g", () =>
     scoped((k) => {
-      const out = buildThermo(M, sil(k), dot(k, 10), P());
-      const est = estimateModels(out.screens.slice(0, 2), { layerHeight: 0.2, walls: 2, infill: 100, support: false })!;
+      const out = quick(M, sil(k), dot(k, 10), P());
+      const est = estimateModels(out.screens.filter((m) => m.name.startsWith("Tela")), { layerHeight: 0.2, walls: 2, infill: 100, support: false })!;
       expect(est.grams / 2).toBeLessThan(20);
     }));
 
   test("compensar o esticamento encolhe o desenho; sem compensar, não", () =>
     scoped((k) => {
       const d = dot(k, 12);
-      const on = buildThermo(M, sil(k), d, P({ compensate: true }));
-      const off = buildThermo(M, sil(k), d, P({ compensate: false }));
+      const on = quick(M, sil(k), d, P({ compensate: true }));
+      const off = quick(M, sil(k), d, P({ compensate: false }));
       expect(on.info.designScale).toBeLessThan(1);
       expect(on.info.designScale).toBeGreaterThanOrEqual(0.6);
       expect(off.info.designScale).toBe(1);
-      const area = (m: (typeof on.screens)[number]) => modelVolume({ ...m, parts: m.parts.filter((x) => x.name === "Design") });
-      expect(area(on.screens[0])).toBeLessThan(area(off.screens[0]));
+      const area = (o: typeof on) => modelVolume({ name: "", parts: named(o.screens, "Tela 1").parts.filter((x) => x.name === "Design") });
+      expect(area(on)).toBeLessThan(area(off));
     }));
 
   test("o domo nasce no limite interno da borda sólida e o apoio vai além da silhueta", () =>
     scoped((k) => {
-      const out = buildThermo(M, k(presetSilhouette(M, "circle", 70)), null, P());
-      const mb = out.mold.parts[0].mesh.positions;
+      const out = quick(M, k(presetSilhouette(M, "circle", 70)), null, P());
+      const mb = named(out.molds, "Molde macho").parts[0].mesh.positions;
       const widthAt = (zMin: number) => {
         const xs: number[] = [];
         for (let i = 0; i < mb.length; i += 3) if (mb[i + 2] > zMin) xs.push(mb[i]);
         return Math.max(...xs) - Math.min(...xs);
       };
-      expect(widthAt(DEFAULT_MOLD.flangeT + 0.5)).toBeCloseTo(70 - 2 * DEFAULT_SCREEN.border, 0);
+      expect(widthAt(DEFAULT_MOLD.flangeT + DEFAULT_SCREEN.t + 0.5)).toBeCloseTo(70 - 2 * DEFAULT_SCREEN.border, 0);
       expect(widthAt(-1)).toBeCloseTo(70 + 2 * DEFAULT_MOLD.flange, 0);
     }));
 
   test("bola de Natal: o pescoço da alça não vira domo (fica plano, onde a orelha sai)", () =>
     scoped((k) => {
-      const out = buildThermo(M, k(presetSilhouette(M, "ball", 70)), null, P());
-      const m = out.mold.parts[0].mesh.positions;
-      let yDome = -1e9;
-      for (let i = 0; i < m.length; i += 3) if (m[i + 2] > DEFAULT_MOLD.flangeT + 0.5) yDome = Math.max(yDome, m[i + 1]);
-      // o domo acompanha o círculo (raio 35 − borda 3 = 32), não o pescoço que sobe até 50
-      expect(yDome).toBeLessThan(33);
+      const out = quick(M, k(presetSilhouette(M, "ball", 70)), null, P());
+      const m = named(out.molds, "Molde macho").parts[0].mesh.positions;
+      let hi = -1e9, lo = 1e9;
+      for (let i = 0; i < m.length; i += 3) {
+        if (m[i + 2] <= DEFAULT_MOLD.flangeT + DEFAULT_SCREEN.t + 0.5) continue;
+        hi = Math.max(hi, m[i + 1]);
+        lo = Math.min(lo, m[i + 1]);
+      }
+      // o domo acompanha o círculo (raio 35 − borda 3 = 32, ou seja, 64 de ponta a ponta), não o pescoço que sobe até 50
+      expect(hi - lo).toBeLessThan(66);
     }));
 
   test("traço fino no desenho: avisa e engrossa (ou só avisa, se pedir)", () =>
     scoped((k) => {
       const hair = k(M.CrossSection.square([30, 0.12], true));
-      const on = buildThermo(M, sil(k), hair, P({ compensate: false, thickenDesign: true }));
+      const on = quick(M, sil(k), hair, P({ compensate: false, thickenDesign: true }));
       expect(on.warnings.join(" ")).toMatch(/engrossei/);
-      const off = buildThermo(M, sil(k), hair, P({ compensate: false, thickenDesign: false }));
+      const off = quick(M, sil(k), hair, P({ compensate: false, thickenDesign: false }));
       expect(off.warnings.join(" ")).toMatch(/mais finos que o bico/);
-      const vol = (o: typeof on) => modelVolume({ ...o.screens[0], parts: o.screens[0].parts.filter((x) => x.name === "Design") });
+      const vol = (o: typeof on) => modelVolume({ name: "", parts: named(o.screens, "Tela 1").parts.filter((x) => x.name === "Design") });
       expect(vol(on)).toBeGreaterThan(vol(off) * 2);
     }));
 
   test("domo alto demais avisa do esticamento", () =>
     scoped((k) => {
-      const out = buildThermo(M, sil(k, "circle"), null, P({ domeH: 40 }));
+      const out = quick(M, sil(k, "circle"), null, P({ domeH: 40 }));
       expect(out.warnings.join(" ")).toMatch(/estica/);
-      expect(buildThermo(M, sil(k, "circle"), null, P({ domeH: 8 })).warnings.join(" ")).not.toMatch(/estica/);
+      expect(quick(M, sil(k, "circle"), null, P({ domeH: 8 })).warnings.join(" ")).not.toMatch(/estica/);
     }));
 
-  test("faixa externa: um modelo em pé, mais alto que a tela, em volta da silhueta", () =>
+  test("faixa externa (aro): um modelo em pé, mais alto que a tela, em volta da silhueta, junto das telas e bases", () =>
     scoped((k) => {
-      const out = buildThermo(M, sil(k, "circle"), null, P({ screen: { ...DEFAULT_SCREEN, closure: "ring" } }));
-      const ring = out.screens.find((m) => m.name === "Faixa externa")!;
+      const out = quick(M, sil(k, "circle"), null, P({ screen: { ...DEFAULT_SCREEN, closure: "ring" } }));
+      const ring = named(out.screens, "Faixa externa");
       expect(modelSize(ring)[2]).toBeCloseTo(DEFAULT_SCREEN.ringH, 3);
       expect(modelSize(ring)[0]).toBeCloseTo(70 + 2 * (DEFAULT_SCREEN.ringGap + DEFAULT_SCREEN.ringT), 0);
-      expect(out.screens.find((m) => m.name === "Clipe")).toBeUndefined();
+      expect(out.closure).toHaveLength(0);
     }));
 
-  test("sem fecho: só as duas telas, sem orelha", () =>
+  test("sem fecho: só as telas e as bases, sem orelha", () =>
     scoped((k) => {
-      const out = buildThermo(M, sil(k, "circle"), null, P({ screen: { ...DEFAULT_SCREEN, closure: "none" } }));
-      expect(out.screens.map((m) => m.name)).toEqual(["Tela 1", "Tela 2"]);
-      expect(modelSize(out.screens[0])[1]).toBeCloseTo(70, 0);
+      const out = quick(M, sil(k, "circle"), null, P({ screen: { ...DEFAULT_SCREEN, closure: "none" } }));
+      expect(out.screens.map((m) => m.name)).toEqual(["Tela 1", "Tela 2", "Base 1", "Base 2"]);
+      expect(modelSize(named(out.screens, "Base 1"))[1]).toBeCloseTo(70, 0);
+      expect(out.closure).toHaveLength(0);
     }));
 
   test("desenho só numa metade: a outra fica toda em malha", () =>
     scoped((k) => {
-      const out = buildThermo(M, sil(k), dot(k, 10), P({ designOnBoth: false }));
-      expect(out.screens[0].parts.map((x) => x.name)).toContain("Design");
-      expect(out.screens[1].parts.map((x) => x.name)).not.toContain("Design");
+      const out = quick(M, sil(k), dot(k, 10), P({ designOnBoth: false }));
+      expect(named(out.screens, "Tela 1").parts.map((x) => x.name)).toContain("Design");
+      expect(named(out.screens, "Tela 2").parts.map((x) => x.name)).not.toContain("Design");
+      expect(named(out.screens, "Base 2").parts.map((x) => x.name)).not.toContain("Arte");
     }));
 
   test("desenho maior que a tela é cortado na borda e avisa", () =>
     scoped((k) => {
-      const out = buildThermo(M, sil(k, "circle"), dot(k, 40), P({ compensate: false }));
+      const out = quick(M, sil(k, "circle"), dot(k, 40), P({ compensate: false }));
       expect(out.warnings.join(" ")).toMatch(/passa da área/);
     }));
 
   test("cada formato pronto gera caixinha completa sem erro", () => {
     for (const shape of SHAPES) {
       scoped((k) => {
-        const out = buildThermo(M, k(presetSilhouette(M, shape, 60)), null, P({ domeH: 10 }));
-        expect(out.screens.length).toBe(3);
-        expect(modelVolume(out.mold)).toBeGreaterThan(1000);
+        const out = quick(M, k(presetSilhouette(M, shape, 60)), null, P({ domeH: 10 }));
+        expect(out.screens.length).toBe(4);
+        expect(out.molds.length).toBe(2);
+        expect(modelVolume(named(out.molds, "Molde macho"))).toBeGreaterThan(1000);
       });
     }
   });
 });
 
+describe("molde fêmea", () => {
+  const circle = (k: K) => k(presetSilhouette(M, "circle", 70));
+  const parts = (k: K, patch: Partial<typeof DEFAULT_MOLD> = {}, t = 1, H = 10) => {
+    const s = circle(k);
+    const inner = k(s.offset(-3, "Round"));
+    const g = { L: inradius(inner), H, q: 2.2 };
+    const m = { ...DEFAULT_MOLD, ...patch };
+    const male = buildMoldSolid(M, inner, g, m, k, s, t);
+    const female = buildFemaleSolid(M, inner, g, m, k, s, t, true);
+    return { male, female, g, m, t };
+  };
+  const column = (k: K, z0: number, z1: number) => k(k(M.Manifold.cylinder(z1 - z0, 0.4, 0.4, 12)).translate([0, 0, z0]));
+
+  test("a fêmea não toca o macho: não há material em comum", () =>
+    scoped((k) => {
+      const { male, female } = parts(k);
+      expect(k(male.intersect(female)).volume()).toBeLessThan(1);
+    }));
+
+  test("a folga no topo é a espessura da tela + a folga pedida", () =>
+    scoped((k) => {
+      for (const clearance of [0.2, 0.3, 0.4]) {
+        const { male, female, m, t, g } = parts(k, { clearance });
+        const e = moldGap(t, m);
+        const maleTop = k(column(k, 0, 40).intersect(male)).boundingBox().max[2];
+        // do apoio da fêmea até logo abaixo do teto: o que não é fêmea é a cavidade
+        const probe = column(k, m.flangeT + t + 0.5, m.flangeT + g.H + e + m.top - 0.01);
+        const cavityTop = k(probe.subtract(female)).boundingBox().max[2];
+        // o teto da cavidade fecha no degrau seguinte: nunca menos que a folga, no máximo um degrau (0,4 mm) a mais
+        expect(cavityTop - maleTop).toBeGreaterThanOrEqual(e - 1e-6);
+        expect(cavityTop - maleTop).toBeLessThan(e + 0.45);
+      }
+    }));
+
+  test("a folga também vale nas laterais: a cavidade é mais larga que o domo em 2 × (tela + folga)", () =>
+    scoped((k) => {
+      const { male, female, m, t, g } = parts(k);
+      const zMid = m.flangeT + g.H * 0.2;
+      const row = k(k(M.Manifold.cube([76, 0.4, 0.2], true)).translate([0, 0, zMid]));
+      const widthOf = (s: ReturnType<typeof parts>["male"]) => {
+        const b = s.boundingBox();
+        return b.max[0] - b.min[0];
+      };
+      const maleW = widthOf(k(row.intersect(male)));
+      const cavityW = widthOf(k(row.subtract(female)));
+      expect(maleW).toBeGreaterThan(40);
+      expect(cavityW - maleW).toBeCloseTo(2 * moldGap(t, m), 1);
+    }));
+
+  test("na posição de impressão a abertura da cavidade fica para cima, na face de cima do bloco", () =>
+    scoped((k) => {
+      const s = circle(k);
+      const inner = k(s.offset(-3, "Round"));
+      const g = { L: inradius(inner), H: 10, q: 2.2 };
+      const female = buildFemaleSolid(M, inner, g, DEFAULT_MOLD, k, s, 1);
+      const b = female.boundingBox();
+      expect(b.min[2]).toBeCloseTo(0, 6);
+      // o fundo da cavidade tem o teto de `top` mm; na boca (z máximo) o furo é o mais largo
+      const slice = (z: number) => k(female.intersect(k(k(M.Manifold.cube([300, 300, 0.05], true)).translate([0, 0, z]))));
+      expect(slice(b.max[2] - 0.05).volume()).toBeLessThan(slice(0.2).volume());
+    }));
+
+  test("a parede de centralização cerca a tela e tem a altura dela", () =>
+    scoped((k) => {
+      const { male, m } = parts(k);
+      const ring = k(male.intersect(k(k(M.Manifold.cube([300, 300, 0.2], true)).translate([0, 0, m.flangeT + 0.5]))));
+      // à altura da tela o apoio tem a cavidade da tela dentro da parede: a seção ocupada é um anel em volta do contorno + o domo
+      const b = ring.boundingBox();
+      expect(b.max[0] - b.min[0]).toBeCloseTo(70 + 2 * (0.3 + m.centerWall), 0);
+      const none = parts(k, { centerWall: 0 });
+      const b0 = k(none.male.intersect(k(k(M.Manifold.cube([300, 300, 0.2], true)).translate([0, 0, none.m.flangeT + 0.5])))).boundingBox();
+      expect(b0.max[0] - b0.min[0]).toBeLessThan(70 - 4);
+    }));
+});
