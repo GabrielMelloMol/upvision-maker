@@ -73,6 +73,8 @@ describe("polia e correia (#230)", () => {
   });
 });
 
+const ONE_COLOR_CHAIN = { ...DEFAULT_CHAIN, twoColors: false };
+
 describe("roda dentada e corrente (#230)", () => {
   test("diâmetro primitivo = passo ÷ sen(π/z)", () => {
     const { warnings } = buildSprocket(ctx(), DEFAULT_SPROCKET);
@@ -86,10 +88,39 @@ describe("roda dentada e corrente (#230)", () => {
     expect(solid(mesh).decompose()).toHaveLength(1);
   });
 
-  test("corrente: os elos ficam soltos entre si (um corpo por elo) graças à folga", () => {
-    const mesh = buildChain(ctx(), DEFAULT_CHAIN).models[0].parts[0].mesh;
+  test("corrente: cada elo é uma peça solta, os vizinhos não se tocam e há folga em volta do pino", () => {
+    const mesh = buildChain(ctx(), ONE_COLOR_CHAIN).models[0].parts[0].mesh;
     valid(mesh);
-    expect(solid(mesh).decompose()).toHaveLength(DEFAULT_CHAIN.links);
+    const links = solid(mesh).decompose().sort((a, b) => a.boundingBox().min[0] - b.boundingBox().min[0]);
+    expect(links).toHaveLength(DEFAULT_CHAIN.links);
+    links.forEach((l) => expect(l.volume()).toBeGreaterThan(50));
+    for (let i = 1; i < links.length; i++) expect(links[i - 1].intersect(links[i]).volume()).toBe(0);
+    // folga: mover um elo 90% da folga (para cima, para baixo ou de lado) ainda não encosta no vizinho
+    const d = DEFAULT_CHAIN.gap * 0.9;
+    for (const v of [[0, 0, d], [0, 0, -d], [d, 0, 0], [0, d, 0]] as const) expect(links[0].translate([...v]).intersect(links[1]).volume(), `deslocamento ${v}`).toBe(0);
+  });
+
+  test("corrente: placas alternadas (larga e estreita) e cintura mais estreita que os terminais", () => {
+    const links = solid(buildChain(ctx(), ONE_COLOR_CHAIN).models[0].parts[0].mesh).decompose().sort((a, b) => a.boundingBox().min[0] - b.boundingBox().min[0]);
+    const width = (l: Solid) => l.boundingBox().max[1] - l.boundingBox().min[1];
+    expect(width(links[0])).toBeCloseTo(DEFAULT_CHAIN.width, 1);
+    expect(width(links[1])).toBeLessThan(width(links[0]) - 1);
+    expect(width(links[2])).toBeCloseTo(width(links[0]), 1);
+    // no meio do elo largo (entre os pinos) a placa é mais fina que no terminal
+    const mid = links[2].boundingBox();
+    const cx = (mid.min[0] + mid.max[0]) / 2;
+    const slice = links[2].intersect(M.Manifold.cube([0.2, 40, 40], true).translate([cx, 0, 0])).boundingBox();
+    expect(slice.max[1] - slice.min[1]).toBeLessThan(width(links[2]) * 0.7);
+  });
+
+  test("corrente em duas cores: elos largos e estreitos em partes separadas, cada uma com metade dos elos", () => {
+    const parts = buildChain(ctx(), DEFAULT_CHAIN).models[0].parts;
+    expect(parts.map((x) => x.name)).toEqual(["Elos largos", "Elos estreitos"]);
+    expect(parts[0].color).not.toBe(parts[1].color);
+    parts.forEach((x) => valid(x.mesh));
+    expect(solid(parts[0].mesh).decompose()).toHaveLength(4);
+    expect(solid(parts[1].mesh).decompose()).toHaveLength(4);
+    expect(solid(parts[0].mesh).intersect(solid(parts[1].mesh)).volume()).toBe(0);
   });
 
   test("folga curta na corrente gera aviso", () => {

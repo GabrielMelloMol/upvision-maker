@@ -43,7 +43,7 @@ test("Peças mecânicas: engrenagem com par, planetário, polia, roda dentada e 
   await idle(page);
   await expect(hud(page)).toContainText("×", { timeout: 90_000 });
   await page.getByLabel(/^Folga entre os elos/).fill("0.2");
-  await page.getByLabel(/^Elos/).fill("30");
+  await page.getByLabel("Elos", { exact: true }).fill("30");
   await idle(page);
   await expect(page.getByText(/passa da mesa/)).toBeVisible();
 });

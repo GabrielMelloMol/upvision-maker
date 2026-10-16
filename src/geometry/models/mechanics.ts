@@ -186,8 +186,8 @@ export function buildSprocket(ctx: ModelCtx, p: SprocketParams): ModelOutput {
   });
 }
 
-export type ChainParams = { links: number; pitch: number; width: number; thickness: number; gap: number; color: string };
-export const DEFAULT_CHAIN: ChainParams = { links: 8, pitch: 18, width: 10, thickness: 4, gap: 0.3, color: "#6366f1" };
+export type ChainParams = { links: number; pitch: number; width: number; thickness: number; gap: number; color: string; twoColors: boolean; color2: string };
+export const DEFAULT_CHAIN: ChainParams = { links: 8, pitch: 18, width: 10, thickness: 4, gap: 0.3, color: "#6366f1", twoColors: true, color2: "#f59e0b" };
 
 /**
  * Corrente articulada impressa já montada (#230): elos chatos em meia-sobreposição, cada pino atravessa o furo do vizinho com a
@@ -198,21 +198,30 @@ export function buildChain(ctx: ModelCtx, p: ChainParams): ModelOutput {
   return scoped((k) => {
     const warnings: string[] = [];
     const T = p.thickness, W = p.width, g = p.gap;
-    const pinR = Math.max(1.2, W / 2 - 2.2);
+    // placas alternadas: elo largo, elo estreito, elo largo...; o estreito limita o pino e a cabeça
+    const small = 0.42 * W;
+    const pinR = Math.max(1.2, small - 1.8);
     const holeR = pinR + g;
+    const endR = (i: number) => (i % 2 === 0 ? W / 2 : small);
     if (T < 2.4 * 1) warnings.push("Elo fino: abaixo de 2,4 mm ele quebra no pino.");
     if (g < 0.2) warnings.push("Folga menor que 0,2 mm: os elos podem fundir. Use 0,3 mm ou mais.");
     if (p.pitch < W + 2) warnings.push("O passo é curto para a largura: os elos se encostam.");
+    if (pinR + 1 > small) warnings.push("Elo estreito demais para a cabeça do pino: aumente a largura do elo.");
     const links: Solid[] = [];
     for (let i = 0; i < p.links; i++) {
       const x0 = i * p.pitch; // furo (esquerda) deste elo; o pino (direita) fica em x0 + passo
       const last = i === p.links - 1, first = i === 0;
-      const stadium = k(M.CrossSection.hull([k(k(M.CrossSection.circle(W / 2, 48)).translate([x0, 0])), k(k(M.CrossSection.circle(W / 2, 48)).translate([x0 + p.pitch, 0]))]));
-      let body: Solid = k(stadium.extrude(T));
-      const disk = (x: number, z0: number, h: number) => k(k(M.Manifold.cylinder(h, W / 2 + 0.01, W / 2 + 0.01, 48)).translate([x, 0, z0]));
+      const r = endR(i);
+      const end = (x: number) => k(k(M.CrossSection.circle(r, 48)).translate([x, 0]));
+      // cintura: entre os dois terminais a placa afina para 45% da largura do terminal
+      const waist = k(k(M.CrossSection.square([p.pitch, r * 0.9], true)).translate([x0 + p.pitch / 2, 0]));
+      const plate = k(M.CrossSection.union([end(x0), end(x0 + p.pitch), waist]));
+      let body: Solid = k(plate.extrude(T));
+      // o recorte cobre o maior dos dois terminais que se encontram, mais a folga, senão a cintura de um toca o disco do outro
+      const disk = (x: number, z0: number, h: number, other: number) => k(k(M.Manifold.cylinder(h, Math.max(r, other) + g, Math.max(r, other) + g, 48)).translate([x, 0, z0]));
       // meia-sobreposição: a ponta do furo fica só com a metade de cima, a do pino só com a de baixo
-      if (!first) body = k(body.subtract(disk(x0, -0.01, T / 2 + g / 2 + 0.01)));
-      if (!last) body = k(body.subtract(disk(x0 + p.pitch, T / 2 - g / 2, T / 2 + g / 2 + 0.01)));
+      if (!first) body = k(body.subtract(disk(x0, -0.01, T / 2 + g / 2 + 0.01, endR(i - 1))));
+      if (!last) body = k(body.subtract(disk(x0 + p.pitch, T / 2 - g / 2, T / 2 + g / 2 + 0.01, endR(i + 1))));
       if (!first) body = k(body.subtract(k(k(M.Manifold.cylinder(T + 2, holeR, holeR, 40)).translate([x0, 0, -1]))));
       if (!last) {
         const pin = k(k(M.Manifold.cylinder(T + g + 1, pinR, pinR, 40)).translate([x0 + p.pitch, 0, 0]));
@@ -221,10 +230,16 @@ export function buildChain(ctx: ModelCtx, p: ChainParams): ModelOutput {
       }
       links.push(body);
     }
-    const all = k(M.Manifold.union(links));
     const length = (p.links - 1) * p.pitch + W;
     if (length > bedMm()) warnings.push(`A corrente tem ${Math.round(length)} mm: passa da mesa de ${bedMm()} mm. Use menos elos.`);
     warnings.push("Imprima sem suporte e sem brim nos pinos. Se os elos grudarem, aumente a folga de 0,05 em 0,05 mm; depois de esfriar, dobre cada junta.");
+    if (p.twoColors && p.links > 1) {
+      warnings.push("Duas cores: o fatiador troca de filamento a cada camada onde os dois tipos de elo aparecem (gasta mais filamento na torre). Desligue para imprimir em uma cor só.");
+      const wide = k(M.Manifold.union(links.filter((_, i) => i % 2 === 0)));
+      const narrow = k(M.Manifold.union(links.filter((_, i) => i % 2 === 1)));
+      return { models: [{ name: "Corrente", parts: [col("Elos largos", p.color, wide), col("Elos estreitos", p.color2, narrow)] }], warnings };
+    }
+    const all = k(M.Manifold.union(links));
     return { models: [{ name: "Corrente", parts: [col("Corrente", p.color, all)] }], warnings };
   });
 }

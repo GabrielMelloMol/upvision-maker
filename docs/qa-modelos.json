@@ -621,14 +621,16 @@
   "variant": "máximo",
   "status": "aviso",
   "reasons": [
-   "\"Corrente\" não cabe na mesa de 256 mm (1224,0 × 24,0 × 9,6 mm)",
+   "\"Corrente\" não cabe na mesa de 256 mm (1222,1 × 24,0 × 9,6 mm)",
    "Bambu recusa na mesa de 256 mm do A1 (o app avisa)",
    "Orca recusa na mesa de 256 mm do A1 (o app avisa)",
+   "Projeto Bambu recusa na mesa de 256 mm do A1 (o app avisa)",
    "app: A corrente tem 1184 mm: passa da mesa de 256 mm. Use menos elos.",
-   "app: Imprima sem suporte e sem brim nos pinos. Se os elos grudarem, aumente a folga de 0,05 em 0,05 mm; depois de esfriar, dobre cada junta."
+   "app: Imprima sem suporte e sem brim nos pinos. Se os elos grudarem, aumente a folga de 0,05 em 0,05 mm; depois de esfriar, dobre cada junta.",
+   "app: Duas cores: o fatiador troca de filamento a cada camada onde os dois tipos de elo aparecem (gasta mais filamento na torre). Desligue para imprimir em uma cor só."
   ],
   "date": "2026-10-16",
-  "slicers": "Bambu ✓ · Orca ✓"
+  "slicers": "Bambu ✓ · Orca ✓ · Projeto Bambu ✓"
  },
  {
   "key": "chain:mínimo",
@@ -638,12 +640,13 @@
   "variant": "mínimo",
   "status": "ok",
   "reasons": [
-   "app: Imprima sem suporte e sem brim nos pinos. Se os elos grudarem, aumente a folga de 0,05 em 0,05 mm; depois de esfriar, dobre cada junta."
+   "app: Imprima sem suporte e sem brim nos pinos. Se os elos grudarem, aumente a folga de 0,05 em 0,05 mm; depois de esfriar, dobre cada junta.",
+   "app: Duas cores: o fatiador troca de filamento a cada camada onde os dois tipos de elo aparecem (gasta mais filamento na torre). Desligue para imprimir em uma cor só."
   ],
   "date": "2026-10-16",
-  "slicers": "Bambu ✓ · Orca ✓",
-  "minutes": 4,
-  "grams": 0.7,
+  "slicers": "Bambu ✓ · Orca ✓ · Projeto Bambu ✓",
+  "minutes": 42,
+  "grams": 10.7,
   "plates": 1
  },
  {
@@ -654,12 +657,13 @@
   "variant": "padrão",
   "status": "ok",
   "reasons": [
-   "app: Imprima sem suporte e sem brim nos pinos. Se os elos grudarem, aumente a folga de 0,05 em 0,05 mm; depois de esfriar, dobre cada junta."
+   "app: Imprima sem suporte e sem brim nos pinos. Se os elos grudarem, aumente a folga de 0,05 em 0,05 mm; depois de esfriar, dobre cada junta.",
+   "app: Duas cores: o fatiador troca de filamento a cada camada onde os dois tipos de elo aparecem (gasta mais filamento na torre). Desligue para imprimir em uma cor só."
   ],
   "date": "2026-10-16",
-  "slicers": "Bambu ✓ · Orca ✓",
-  "minutes": 24,
-  "grams": 7.8,
+  "slicers": "Bambu ✓ · Orca ✓ · Projeto Bambu ✓",
+  "minutes": 78,
+  "grams": 19.9,
   "plates": 1
  },
  {
