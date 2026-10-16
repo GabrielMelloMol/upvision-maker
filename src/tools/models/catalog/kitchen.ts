@@ -1,6 +1,7 @@
-import { CakeSlice, Candy, Cookie, CupSoda, Cylinder, Grid3x3, Lollipop, Paperclip, Stamp } from "lucide-react";
+import { CakeSlice, Candy, Scale, Cookie, CupSoda, Cylinder, Grid3x3, Lollipop, Paperclip, Stamp } from "lucide-react";
 import { buildBagClip, DEFAULT_BAG_CLIP } from "../../../geometry/models/bagClip";
 import { buildEjector, DEFAULT_EJECTOR } from "../../../geometry/models/brigadeiroEjector";
+import { buildCandyMold, DEFAULT_CANDY_MOLD } from "../../../geometry/models/candyMold";
 import { buildCakeStand, buildStickStand, DEFAULT_CAKE_STAND, DEFAULT_STICK_STAND } from "../../../geometry/models/confectionery";
 import { buildCutterStamp, DEFAULT_CUTTER_STAMP } from "../../../geometry/models/cutterStamp";
 import { buildCupHandle, DEFAULT_CUP_HANDLE } from "../../../geometry/models/cupHandle";
@@ -52,6 +53,41 @@ export const KITCHEN_MODELS: ModelDef[] = [
       },
     ],
     build: (ctx, p) => buildEjector(ctx, as(p)),
+  },
+  {
+    id: "candyMold",
+    category: "kitchen",
+    label: "Forma de docinho pelo peso",
+    blurb: "Diga quantas gramas tem o docinho e a forma (coração, estrela, flor, barrinha, bolinha ou o seu desenho) já sai no tamanho certo, com êmbolo e a sua marca no doce.",
+    icon: Scale,
+    font: true,
+    art: "Desenho da forma (opcional: vale no formato \"Meu desenho\")",
+    art2: "Marca para o êmbolo (opcional: o doce sai com ela em relevo)",
+    defaults: DEFAULT_CANDY_MOLD,
+    sections: [
+      {
+        title: "Peso e formato",
+        fields: [
+          num("weight", "Peso do docinho", 5, 80, { step: 1, unit: "g", hint: "Brigadeiro de festa: 18 a 25 g. A cavidade é calculada pelo peso e pela densidade." }),
+          num("density", "Densidade do doce", 0.8, 1.6, { step: 0.05, unit: "g/cm³", hint: "Brigadeiro: perto de 1,2. Para achar a do seu doce, imprima a forma de teste (10 cm³), encha, pese e divida por 10." }),
+          choice("shape", "Formato", [["heart", "Coração"], ["star", "Estrela"], ["flower", "Flor"], ["bar", "Barrinha"], ["round", "Bolinha"], ["art", "Meu desenho"]]),
+          num("depth", "Altura do docinho", 8, 30, { step: 1, hint: "Mais alto deixa a forma mais estreita; mais baixo, mais larga. O peso não muda." }),
+        ],
+      },
+      {
+        title: "Forma e êmbolo",
+        fields: [
+          num("wall", "Parede", 1.2, 3),
+          num("clearance", "Folga do êmbolo", 0.2, 1, { step: 0.05, hint: "0,4 costuma deslizar bem." }),
+          text("stampText", "Texto da marca no êmbolo (sem desenho)", 12),
+          bool("showCandy", "Mostrar o docinho pronto na prévia (translúcido, só para ver a marca)"),
+          choice("print", "Imprimir", [["candy", "Forma e êmbolo do docinho"], ["test", "Só a forma de teste (10 cm³)"]]),
+          color("frameColor", "Forma"),
+          color("ejectorColor", "Êmbolo"),
+        ],
+      },
+    ],
+    build: (ctx, p) => buildCandyMold(ctx, as(p)),
   },
   {
     id: "bagClip",

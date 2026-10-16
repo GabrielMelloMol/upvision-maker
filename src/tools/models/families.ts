@@ -66,7 +66,7 @@ export const FAMILIES: Family[] = [
   { id: "utilities", label: "Utilitários", category: "organize", variants: [{ id: "spacer", label: "Arruela" }, { id: "plantMarker", label: "Marcador" }, { id: "cableComb", label: "Pente de cabos" }, { id: "knob", label: "Botão" }, { id: "hoseAdapter", label: "Mangueira" }] },
   { id: "sweetsTable", label: "Mesa de doces", category: "kitchen", variants: [{ id: "cakeStand", label: "Boleira" }, { id: "stickStand", label: "Palitos" }] },
   { id: "stamps", label: "Carimbos e texturas", category: "kitchen", variants: [{ id: "stamp", label: "Carimbo" }, { id: "stampMold", label: "Molde de EVA" }, { id: "textureRoller", label: "Rolo textura" }] },
-  { id: "cutters", label: "Cortadores e formas", category: "kitchen", variants: [{ id: "cutterStamp", label: "Com carimbo" }, { id: "gridCutter", label: "Em grade" }, { id: "ejector", label: "Ejetor" }], tools: [{ page: "cutter", label: "Biscoito" }] },
+  { id: "cutters", label: "Cortadores e formas", category: "kitchen", variants: [{ id: "cutterStamp", label: "Com carimbo" }, { id: "gridCutter", label: "Em grade" }, { id: "ejector", label: "Ejetor" }, { id: "candyMold", label: "Pelo peso" }], tools: [{ page: "cutter", label: "Biscoito" }] },
   { id: "cupHandle", label: "Alça de copo", category: "kitchen", variants: [{ id: "cupHandle", label: "Alça de copo" }] },
   { id: "bagClip", label: "Clipe de saco", category: "kitchen", variants: [{ id: "bagClip", label: "Clipe de saco" }] },
 ];

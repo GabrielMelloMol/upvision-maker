@@ -25,6 +25,7 @@ impressoras de mesa maior); sem o aviso do app, é **falha**.
 
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 **Total:** 338 casos · 242 ok · 96 com aviso · 0 com falha · 0 n/a
 =======
 **Total:** 337 casos · 241 ok · 96 com aviso · 0 com falha · 0 n/a
@@ -32,6 +33,9 @@ impressoras de mesa maior); sem o aviso do app, é **falha**.
 =======
 **Total:** 338 casos · 249 ok · 89 com aviso · 0 com falha · 0 n/a
 >>>>>>> origin/feat/alca-copo
+=======
+**Total:** 336 casos · 248 ok · 88 com aviso · 0 com falha · 0 n/a
+>>>>>>> origin/feat/docinho
 
 ## Forja
 
@@ -347,6 +351,7 @@ impressoras de mesa maior); sem o aviso do app, é **falha**.
 | Boleira (cakeStand) | máximo | ⚠️ aviso | Bambu ✓ · Orca ✓ · Projeto Bambu ✓ | – | – | – | – | "Boleira" não cabe na mesa de 256 mm (270,0 × 270,0 × 200,0 mm); Bambu recusa na mesa de 256 mm do A1 (o app avisa); Orca recusa na mesa de 256 mm do A1 (o app avisa); Projeto Bambu recusa na mesa de 256 mm do A1 (o app avisa); app: O prato tem 270 mm: passa da mesa de 256 mm. Diminua o diâmetro. |
 | Boleira (cakeStand) | mínimo | ✅ ok | Bambu ✓ · Orca ✓ · Projeto Bambu ✓ | 36 | 16,6 | 1 | – | – |
 | Boleira (cakeStand) | padrão | ✅ ok | Bambu ✓ · Orca ✓ · Projeto Bambu ✓ | 157 | 108,2 | 1 | – | – |
+<<<<<<< HEAD
 | Alça de copo térmico (cupHandle) | anel de teste | ✅ ok | Bambu ✓ · Orca ✓ | 14 | 14,5 | 1 | – | app: Anel de teste: ele tem que passar pelo copo de baixo para cima e parar rente à marca de 70 mm da base. Se apertar, aumente a folga; se ficar folgado, diminua. |
 | Alça de copo térmico (cupHandle) | copo pequeno | ✅ ok | Bambu ✓ · Orca ✓ · Projeto Bambu ✓ | 383 | 129,1 | 1 | – | – |
 | Alça de copo térmico (cupHandle) | luva com faixas | ✅ ok | Bambu ✓ · Orca ✓ · Projeto Bambu ✓ | 417 | 152,8 | 1 | – | – |
@@ -356,6 +361,15 @@ impressoras de mesa maior); sem o aviso do app, é **falha**.
 | Alça de copo térmico (cupHandle) | nome gravado | ✅ ok | Bambu ✓ · Orca ✓ | 169 | 79,5 | 1 | – | – |
 | Alça de copo térmico (cupHandle) | padrão | ✅ ok | Bambu ✓ · Orca ✓ · Projeto Bambu ✓ | 486 | 169,4 | 1 | – | – |
 | Alça de copo térmico (cupHandle) | sem marcas de dedo, sem fantasma | ✅ ok | Bambu ✓ · Orca ✓ · Projeto Bambu ✓ | 492 | 169,9 | 1 | – | – |
+=======
+| Forma de docinho pelo peso (candyMold) | barrinha | ✅ ok | Bambu ✓ · Orca ✓ · Projeto Bambu ✓ | 147 | 42,1 | 1 | – | app: Cavidade de 84,1 × 35,0 mm e 12 mm de altura = 33,3 cm³: cabe 40 g de doce a 1,20 g/cm³. |
+| Forma de docinho pelo peso (candyMold) | estrela | ✅ ok | Bambu ✓ · Orca ✓ · Projeto Bambu ✓ | 162 | 42,3 | 1 | – | app: Cavidade de 54,1 × 51,6 mm e 14 mm de altura = 20,8 cm³: cabe 25 g de doce a 1,20 g/cm³. |
+| Forma de docinho pelo peso (candyMold) | flor | ✅ ok | Bambu ✓ · Orca ✓ · Projeto Bambu ✓ | 163 | 41,1 | 1 | – | app: Cavidade de 46,6 × 42,9 mm e 14 mm de altura = 20,8 cm³: cabe 25 g de doce a 1,20 g/cm³. |
+| Forma de docinho pelo peso (candyMold) | forma de teste | ✅ ok | Bambu ✓ · Orca ✓ · Projeto Bambu ✓ | 199 | 48,1 | 1 | – | app: Forma de teste: cabe 10 cm³. Encha até a borda, sem apertar, e pese: densidade = gramas ÷ 10. Digite o resultado em "Densidade do doce". |
+| Forma de docinho pelo peso (candyMold) | máximo | ✅ ok | Bambu ✓ · Orca ✓ · Projeto Bambu ✓ | 312 | 87,1 | 1 | – | app: Cavidade de 55,0 × 49,7 mm e 30 mm de altura = 50,0 cm³: cabe 80 g de doce a 1,60 g/cm³. |
+| Forma de docinho pelo peso (candyMold) | mínimo | ✅ ok | Bambu ✓ · Orca ✓ · Projeto Bambu ✓ | 102 | 25,2 | 1 | – | app: Cavidade de 37,6 × 34,0 mm e 8 mm de altura = 6,3 cm³: cabe 5 g de doce a 0,80 g/cm³. |
+| Forma de docinho pelo peso (candyMold) | padrão | ✅ ok | Bambu ✓ · Orca ✓ · Projeto Bambu ✓ | 160 | 41,6 | 1 | – | app: Cavidade de 51,9 × 47,0 mm e 14 mm de altura = 20,8 cm³: cabe 25 g de doce a 1,20 g/cm³. |
+>>>>>>> origin/feat/docinho
 | Cortador + carimbo (cutterStamp) | máximo | ✅ ok | Bambu ✓ · Orca ✓ | 62 | 51,5 | 1 | – | app: Sem desenho interno para marcar: sai só o cortador. |
 | Cortador + carimbo (cutterStamp) | mínimo | ✅ ok | Bambu ✓ · Orca ✓ | 7 | 1,8 | 1 | – | app: Sem desenho interno para marcar: sai só o cortador. |
 | Cortador + carimbo (cutterStamp) | padrão | ✅ ok | Bambu ✓ · Orca ✓ | 13 | 5,9 | 1 | – | app: Sem desenho interno para marcar: sai só o cortador. |

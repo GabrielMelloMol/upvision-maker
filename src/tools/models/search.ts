@@ -64,6 +64,7 @@ export const MODEL_ALIASES: Record<string, string> = {
   nfc: "nfc cartão tag aproximação chaveiro",
   aroma: "aromatizador carro perfume cheiro difusor essência óleo feltro cápsula rosca chaveiro",
   cupHandle: "alça copo térmico stanley quencher caneca garrafa tumbler cônico removível suporte pegar nome",
+  candyMold: "docinho brigadeiro beijinho trufa forma peso gramas doce confeitaria êmbolo ejetor calculadora densidade",
   opener: "abridor garrafa lata chaveiro",
   openerImage: "abridor garrafa lata chaveiro imagem foto desenho contorno recorte silhueta gato logo personalizado argola",
   spinner: "giratório gira chaveiro fidget",

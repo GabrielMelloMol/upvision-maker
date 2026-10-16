@@ -41,6 +41,7 @@ export const MODEL_COLLECTIONS: Record<string, Collection[]> = {
   stamp: ["pascoa", "natal"],
   cutterStamp: ["pascoa", "natal"],
   ejector: ["pascoa"],
+  candyMold: ["pascoa", "aniversario", "maes"],
   adaptiveMedal: ["formatura"],
   trophyElegant: ["formatura", "profissoes"],
   lamp: ["casamento", "maes"],
@@ -71,6 +72,13 @@ export const VARIANTS: Record<string, Variant[]> = {
     { label: "Copo 1,2 L tipo Stanley (aprox.)", patch: { baseDiameter: 85, topDiameter: 105, bodyHeight: 270, gripZ: 80, sleeveHeight: 40 } },
     { label: "Copo 900 ml tipo Stanley (aprox.)", patch: { baseDiameter: 78, topDiameter: 95, bodyHeight: 235, gripZ: 70, sleeveHeight: 40 } },
     { label: "Copo 500 ml cônico (aprox.)", patch: { baseDiameter: 62, topDiameter: 78, bodyHeight: 165, gripZ: 45, sleeveHeight: 35 } },
+  ],
+  candyMold: [
+    { label: "Brigadeiro 18 g", patch: { weight: 18, density: 1.2, shape: "round", depth: 14 }, collections: ["aniversario"] },
+    { label: "Docinho de festa 25 g", patch: { weight: 25, density: 1.2, shape: "heart", depth: 14 }, collections: ["aniversario", "casamento"] },
+    { label: "Trufa 30 g", patch: { weight: 30, density: 1.3, shape: "round", depth: 20 }, collections: ["pascoa"] },
+    { label: "Barrinha 40 g", patch: { weight: 40, density: 1.2, shape: "bar", depth: 12 } },
+    { label: "Coração do Dia das Mães 25 g", patch: { weight: 25, density: 1.2, shape: "heart", depth: 14, stampText: "Mãe" }, collections: ["maes"] },
   ],
   kitBicho: [
     { label: "Cachorro", patch: { head: "dog", tail: "up", profile: "oval" } },
