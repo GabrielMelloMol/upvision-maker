@@ -1,6 +1,6 @@
 import { Award, Bot, Gift, Stamp as StampIcon, Calculator as CalcIcon, Cookie, Cylinder, KeyRound, Layers, House, ImageUp, Package, Palette, Printer, Settings, ShoppingBag, Users, Building2, ClipboardList, FileText, LayoutDashboard, LineChart, Receipt, QrCode as QrIcon, Scissors, Split, Puzzle, MailOpen, SquareSplitHorizontal, Brush } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
-import { ShieldCheck, Boxes, Braces, FolderOpen, ChartNoAxesColumn, Globe, Grid3x3, LayoutGrid, Shapes, Sparkle, Sun, Tag, Sticker, Wallet } from "lucide-react";
+import { ShieldCheck, Boxes, Braces, FolderOpen, ChartNoAxesColumn, Globe, Grid3x3, LayoutGrid, Shapes, Sparkle, Sun, Tag, Sticker, Wallet, Feather } from "lucide-react";
 import { lazy, type ReactNode } from "react";
 import Home from "./pages/Home";
 
@@ -40,6 +40,7 @@ const PartialCut = lazy(() => import("./tools/PartialCut"));
 const Mold = lazy(() => import("./tools/Mold"));
 const BedCut = lazy(() => import("./tools/BedCut"));
 const Texturize = lazy(() => import("./tools/Texturize"));
+const Lighten = lazy(() => import("./tools/Lighten"));
 const ModelSearch = lazy(() => import("./tools/ModelSearch"));
 const ScadCustomizer = lazy(() => import("./tools/ScadCustomizer"));
 const MyProjects = lazy(() => import("./tools/projects/MyProjects"));
@@ -99,6 +100,7 @@ const ALL: PageDef[] = [
   { id: "mold", section: "create", label: "Molde a partir de STL", group: "Ferramentas", icon: SquareSplitHorizontal, blurb: "Seu STL vira um molde de duas metades, com pinos, canal de vazamento e respiros.", render: () => <Mold /> },
   { id: "bedcut", section: "create", label: "Cortar para caber na mesa", group: "Ferramentas", icon: Scissors, blurb: "STL grande vira pedaços com encaixe, numerados.", render: () => <BedCut /> },
   { id: "texturize", section: "create", label: "Textura no seu modelo", group: "Ferramentas", icon: Brush, blurb: "Carbono, couro, madeira e mais no seu STL.", render: () => <Texturize /> },
+  { id: "lighten", section: "create", label: "Miolo leve", group: "Ferramentas", icon: Feather, blurb: "Troca o miolo do STL ou 3MF por giroide, voronoi ou treliça e compara as 3; também faz bloco de treliça.", render: () => <Lighten /> },
   { id: "scad", section: "create", label: "Modelo personalizável (OpenSCAD)", group: "Ferramentas", icon: Braces, blurb: "Arquivo .scad do Customizer vira formulário e 3MF.", render: () => <ScadCustomizer /> },
   { id: "search3d", section: "create", label: "Buscar modelos na internet", group: "Ferramentas", icon: Globe, blurb: "Printables, MakerWorld, Thingiverse, Cults3D e Thangs; licenças.", render: (go) => <ModelSearch go={go} /> },
   { id: "ai", section: "create", label: "Pedir à IA", group: "Ferramentas", icon: Bot, blurb: "Descreva a peça e o Claude modela (pago por uso).", render: (go) => <AskAI go={go} /> },
