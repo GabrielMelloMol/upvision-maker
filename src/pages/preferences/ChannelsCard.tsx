@@ -1,7 +1,7 @@
 import { Plus } from "lucide-react";
 import { Fragment } from "react";
 import { CHANNEL_PRESETS, newRulesFor, ruleText, staleChannelText, withNewRules } from "../../domain/channels";
-import { RULES_DATE } from "../../domain/channelDefaults";
+import { OTHER_CATEGORY, RULES_DATE } from "../../domain/channelDefaults";
 import { parseDecimal } from "../../domain/format";
 import { todayIso } from "../../domain/orders";
 import type { Channel } from "../../domain/settings";
@@ -64,6 +64,9 @@ export default function ChannelsCard({ channels, setChannels, error }: Props) {
   const keepMine = (i: number) => setChannel(i, "checkedAt", RULES_DATE); // "manter as minhas": conferido, o aviso some
   const adopt = (i: number, fresh: Channel) => setChannels(channels.map((c, j) => (j === i ? toChannelForm(withNewRules(fromChannelForm(c) as Channel, { ...fresh, checkedAt: RULES_DATE })) : c)));
   const setCategories = (i: number, categories: CategoryForm[]) => setChannels(channels.map((c, j) => (j === i ? { ...c, categories, checkedAt: today } : c)));
+  /** Escolher "Outra" cria a linha dela (com a comissão do canal) para a pessoa digitar a %. */
+  const pickCategory = (i: number, value: string) =>
+    setChannels(channels.map((c, j) => (j !== i ? c : { ...c, category: value, checkedAt: today, categories: value === OTHER_CATEGORY && !c.categories.some((x) => x.name === OTHER_CATEGORY) ? [...c.categories, { name: OTHER_CATEGORY, feePct: c.feePct }] : c.categories })));
   const presets = CHANNEL_PRESETS.filter((p) => !channels.some((c) => c.name.trim().toLowerCase() === p.name.toLowerCase()));
 
   return (
@@ -111,18 +114,27 @@ export default function ChannelsCard({ channels, setChannels, error }: Props) {
             )}
             {c.rulesNote && <p className="hint">{c.rulesNote}</p>}
             {c.categories.length > 0 && (
-              <label>
-                Categoria do anúncio ({c.name || "canal"})
-                <select value={c.category} onChange={(e) => setChannel(i, "category", e.target.value)}>
-                  <option value="">Sem categoria (comissão do canal)</option>
-                  {c.categories.filter((x) => x.name.trim()).map((x) => (
-                    <option key={x.name} value={x.name.trim()}>
-                      {x.name.includes("%") ? x.name : `${x.name} — ${x.feePct}%`}
-                    </option>
-                  ))}
-                </select>
+              <div className="category-pick">
+                <label>
+                  Categoria do anúncio ({c.name || "canal"})
+                  <select value={c.category} onChange={(e) => pickCategory(i, e.target.value)}>
+                    <option value="">Sem categoria (comissão do canal)</option>
+                    {c.categories.filter((x) => x.name.trim() && x.name.trim() !== OTHER_CATEGORY).map((x) => (
+                      <option key={x.name} value={x.name.trim()}>
+                        {x.name} — {x.feePct}%
+                      </option>
+                    ))}
+                    <option value={OTHER_CATEGORY}>Outra (digitar %)</option>
+                  </select>
+                </label>
+                {c.category === OTHER_CATEGORY && (
+                  <label>
+                    Comissão (%) da outra categoria ({c.name || "canal"})
+                    <input inputMode="decimal" value={c.categories.find((x) => x.name === OTHER_CATEGORY)?.feePct ?? c.feePct} onChange={(e) => setCategories(i, c.categories.map((x) => (x.name === OTHER_CATEGORY ? { ...x, feePct: e.target.value } : x)))} />
+                  </label>
+                )}
                 <span className="hint">A comissão da categoria vale no lugar da do canal. Confira a sua na central do canal.</span>
-              </label>
+              </div>
             )}
             <details style={{ marginBottom: "var(--space-3)" }} open={c.tiers.length > 0}>
               <summary>Faixas de preço e categorias{BANDS.some(([k]) => c[k].trim()) || c.tiers.length > 0 || c.categories.length > 0 ? " (em uso)" : ""}</summary>

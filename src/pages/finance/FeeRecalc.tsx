@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { getDb } from "../../db";
 import { ordersRepo } from "../../db/ordersRepo";
-import { totalFees, type FeeFix } from "../../domain/feeRecalc";
+import { byChannel, totalFees, totalSales, type FeeFix } from "../../domain/feeRecalc";
 import { money } from "../../domain/format";
 import type { Order } from "../../domain/orders";
 import Button from "../../ui/Button";
@@ -18,7 +18,8 @@ export default function FeeRecalc({ fixes, orders, onDone }: Props) {
   const [busy, setBusy] = useState(false);
   const toast = useToast();
   if (!fixes.length) return null;
-  const byChannel = [...fixes.reduce((m, f) => m.set(f.channel, (m.get(f.channel) ?? 0) + f.fees), new Map<string, number>())];
+  const rows = byChannel(fixes);
+  const pctOf = (fees: number, sales: number) => (sales > 0 ? ` (${Math.round((fees / sales) * 100)}% do vendido)` : "");
   const apply = async () => {
     setBusy(true);
     try {
@@ -45,13 +46,14 @@ export default function FeeRecalc({ fixes, orders, onDone }: Props) {
       ) : (
         <>
           <ul className="fee-recalc-list">
-            {byChannel.map(([channel, fees]) => (
-              <li key={channel}>
-                {channel}: {money(fees)} em {fixes.filter((f) => f.channel === channel).length} {fixes.filter((f) => f.channel === channel).length === 1 ? "pedido" : "pedidos"}
+            {rows.map((r) => (
+              <li key={r.channel}>
+                {r.channel}: {r.orders} {r.orders === 1 ? "pedido" : "pedidos"}, {money(r.sales)} vendidos → taxas de {money(r.fees)}
+                {pctOf(r.fees, r.sales)}
               </li>
             ))}
           </ul>
-          <p className="hint">Total: {money(totalFees(fixes))} em taxas e imposto, que sairão do lucro. São as regras de hoje, não as da data da venda: confira os canais nas Preferências antes. Pedidos que já têm taxa não mudam.</p>
+          <p className="hint">Total: {money(totalSales(fixes))} vendidos → {money(totalFees(fixes))} em taxas e imposto, que sairão do lucro. A taxa fixa vale por unidade vendida. São as regras de hoje, não as da data da venda: confira os canais nas Preferências antes. Pedidos que já têm taxa não mudam.</p>
           <div className="row">
             <Button variant="primary" disabled={busy} onClick={apply}>
               Recalcular {fixes.length} {fixes.length === 1 ? "pedido" : "pedidos"}

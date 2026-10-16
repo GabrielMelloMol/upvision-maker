@@ -1,5 +1,5 @@
 import { describe, expect, test } from "vitest";
-import { feesToRecalc, totalFees } from "./feeRecalc";
+import { byChannel, feesToRecalc, totalFees, totalSales } from "./feeRecalc";
 import { SHOPEE_2026 } from "./channelDefaults";
 import type { Order } from "./orders";
 import { DEFAULT_SETTINGS } from "./settings";
@@ -23,6 +23,19 @@ describe("recalcular taxas dos pedidos antigos (#246)", () => {
   test("venda direta (sem canal cadastrado) só paga o imposto; sem imposto não há o que recalcular", () => {
     expect(feesToRecalc([order({ channel: "WhatsApp" })], settings)[0].fees).toBe(2.4); // 4% de R$ 60
     expect(feesToRecalc([order({ channel: "WhatsApp" })], { ...settings, taxPct: 0 })).toEqual([]);
+  });
+
+  test("o quadro separa o vendido das taxas: 2 un. de R$ 30 = R$ 60 vendidos → R$ 23,40 de taxas (39%)", () => {
+    const fixes = feesToRecalc([order({})], settings);
+    expect(totalSales(fixes)).toBe(60);
+    expect(byChannel(fixes)).toEqual([{ channel: "Shopee", orders: 1, sales: 60, fees: 23.4 }]);
+  });
+
+  test("um pedido de R$ 75 (1 un.) na Shopee: 20% + R$ 4,50 + 4% = R$ 22,50, não R$ 75", () => {
+    const one = order({ items: [{ id: 1, productId: null, description: "Placa", qty: 1, unitPrice: 75, discountPct: 0, unitCost: 20, printMinutes: 0, custom: "" }] });
+    const [fix] = feesToRecalc([one], settings);
+    expect(fix.sales).toBe(75);
+    expect(fix.fees).toBe(22.5);
   });
 
   test("total soma os pedidos", () => {

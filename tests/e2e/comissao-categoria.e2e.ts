@@ -74,6 +74,27 @@ test("categoria do anúncio: escolher outra categoria muda a taxa e o preço do 
   expect(value(after)).toBeLessThan(value(before)); // comissão de 10% pede preço menor que a de 14%
 });
 
+test("categorias de fábrica do Mercado Livre têm nome e %, e Outra deixa digitar a comissão", async ({ page }) => {
+  await openApp(page);
+  await go(page, "Preferências");
+  await prefsSection(page, "Canais de venda");
+  const select = page.getByLabel("Categoria do anúncio (Mercado Livre (clássico))");
+  await expect(select).toHaveValue("Casa, móveis e decoração");
+  await expect(select.locator("option")).toHaveText(["Sem categoria (comissão do canal)", "Casa, móveis e decoração — 14%", "Brinquedos — 13%", "Outra (digitar %)"]);
+  await select.selectOption("Outra");
+  const other = page.getByLabel("Comissão (%) da outra categoria (Mercado Livre (clássico))");
+  await expect(other).toHaveValue("14");
+  await other.fill("9");
+  await shot(page, "04-categoria-outra", select);
+  await page.getByRole("button", { name: "Salvar preferências" }).click();
+  await expect(toastWith(page, "Preferências salvas")).toBeVisible();
+  await page.reload();
+  await go(page, "Preferências");
+  await prefsSection(page, "Canais de venda");
+  await expect(page.getByLabel("Categoria do anúncio (Mercado Livre (clássico))")).toHaveValue("Outra");
+  await expect(page.getByLabel("Comissão (%) da outra categoria (Mercado Livre (clássico))")).toHaveValue("9");
+});
+
 for (const scheme of ["light", "dark"] as const)
   test(`Financeiro: recalcular as taxas dos pedidos antigos (${scheme})`, async ({ page, tauri }) => {
     await page.emulateMedia({ colorScheme: scheme, reducedMotion: "reduce" });
@@ -88,7 +109,7 @@ for (const scheme of ["light", "dark"] as const)
     await expect(box).toContainText("1 pedido entregue está sem a taxa do canal");
     await box.getByRole("button", { name: "Recalcular taxas dos pedidos antigos" }).click();
     // 10 un. de R$ 15: 20% (3,00) + R$ 4,50 = 7,50 por unidade = R$ 75,00
-    await expect(box).toContainText("Shopee: R$ 75,00 em 1 pedido");
+    await expect(box).toContainText("Shopee: 1 pedido, R$ 150,00 vendidos → taxas de R$ 75,00 (50% do vendido)");
     await shot(page, `03-recalcular-taxas-${scheme}`, box);
     const axe = await new AxeBuilder({ page }).include(".fee-recalc").withTags(["wcag2a", "wcag2aa", "wcag22aa"]).analyze();
     expect(axe.violations.map((v) => `${v.id}: ${v.nodes.map((n) => n.target.join(" ")).join(" | ")}`)).toEqual([]);
