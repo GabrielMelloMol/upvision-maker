@@ -32,7 +32,10 @@ describe("Como calculamos o preço (#216)", () => {
   it("sem banco a página funciona só com o exemplo; os botões levam às telas certas", async () => {
     const go = vi.fn();
     render(<PricingHow go={go} />);
-    expect(screen.queryByTestId("pricing-mine")).toBeNull();
+    const cmp = screen.getByTestId("pricing-compare");
+    expect(within(cmp).getByRole("row", { name: /Valor da sua hora/ }).textContent).toMatch(/R\$\s?20,00/);
+    expect(within(cmp).getByRole("row", { name: /Canal de venda/ }).textContent).toContain("Shopee: 20% + R$\u00a04,50 (regra de 15/10/2026)");
+    expect(within(cmp).getAllByText("—").length).toBeGreaterThan(0); // sem banco, a coluna "os seus" fica vazia
     await userEvent.click(screen.getByRole("button", { name: "Abrir a Calculadora" }));
     expect(go).toHaveBeenCalledWith("calculator");
   });

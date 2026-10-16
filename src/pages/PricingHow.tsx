@@ -2,7 +2,8 @@ import { useEffect, useState } from "react";
 import { getDb } from "../db";
 import { loadSettings } from "../db/repo";
 import { money } from "../domain/format";
-import { EXAMPLE, exampleResult, priceSteps } from "../domain/priceExample";
+import { EXAMPLE, EXAMPLE_SETTINGS, exampleResult, priceSteps } from "../domain/priceExample";
+import type { Channel } from "../domain/settings";
 import type { Go } from "../pages";
 
 /**
@@ -12,17 +13,27 @@ import type { Go } from "../pages";
 export default function PricingHow({ go }: { go: Go }) {
   const steps = priceSteps();
   const r = exampleResult();
-  const [mine, setMine] = useState<{ kwh: number; labor: number; failure: number; resale: number; consumer: number } | null>(null);
+  const [mine, setMine] = useState<{ kwh: number; labor: number; failure: number; tax: number; resale: number; consumer: number; channel?: Channel } | null>(null);
   useEffect(() => {
     let alive = true;
     getDb()
       .then((db) => loadSettings(db))
-      .then((s) => alive && setMine({ kwh: s.kwhPrice, labor: s.laborHourCost, failure: s.failurePct, resale: s.multResale, consumer: s.multConsumer }))
+      .then((s) => alive && setMine({ kwh: s.kwhPrice, labor: s.laborHourCost, failure: s.failurePct, tax: s.taxPct, resale: s.multResale, consumer: s.multConsumer, channel: s.channels.find((c) => c.name === EXAMPLE.channel.name) ?? s.channels[0] }))
       .catch(() => {}); // sem banco (ou na primeira abertura) a página funciona só com o exemplo
     return () => {
       alive = false;
     };
   }, []);
+  const x = EXAMPLE_SETTINGS;
+  const rate = (c: Channel) => `${c.name}: ${c.feePct}% + ${money(c.feeFixed)}${c.checkedAt ? ` (regra de ${c.checkedAt.split("-").reverse().join("/")})` : ""}`;
+  const rows: [string, string, string | null][] = [
+    ["Preço do kWh", money(x.kwhPrice), mine && money(mine.kwh)],
+    ["Valor da sua hora", money(x.laborHourCost), mine && money(mine.labor)],
+    ["Taxa de falha", `${x.failurePct}%`, mine && `${mine.failure}%`],
+    ["Imposto", `${x.taxPct}%`, mine && `${mine.tax}%`],
+    ["Multiplicadores", `×${x.multResale} e ×${x.multConsumer}`, mine && `×${mine.resale} e ×${mine.consumer}`],
+    ["Canal de venda", rate(EXAMPLE.channel), mine?.channel ? rate(mine.channel) : null],
+  ];
   return (
     <div className="page pricing-how">
       <h1>Como calculamos o preço</h1>
@@ -33,14 +44,29 @@ export default function PricingHow({ go }: { go: Go }) {
         <p>
           Uma mesa com <b>{EXAMPLE.pieces} chaveiros</b>: {EXAMPLE.grams} g de filamento a {money(EXAMPLE.pricePerKg)} o quilo, {EXAMPLE.hours} h de impressão numa impressora de {EXAMPLE.watts} W, {EXAMPLE.laborHours.toLocaleString("pt-BR")} h do seu trabalho e uma argola em cada. O resultado: custo de <b>{money(r.unitCost)}</b> por peça.
         </p>
-        {mine && (
-          <p className="hint" data-testid="pricing-mine">
-            Seus valores hoje: kWh {money(mine.kwh)} · sua hora {money(mine.labor)} · falhas {mine.failure}% · multiplicadores ×{mine.resale} e ×{mine.consumer}.{" "}
-            <button type="button" className="link" onClick={() => go("preferences")}>
-              Ajustar nas Preferências
-            </button>
-          </p>
-        )}
+        <h3>Valores do exemplo e os seus</h3>
+        <p className="hint">O exemplo usa valores fixos, para a conta fechar igual para todo mundo. Os seus valores ficam nas Preferências e mudam o resultado na Calculadora.</p>
+        <table className="ph-compare" data-testid="pricing-compare">
+          <thead>
+            <tr>
+              <th scope="col">Valor</th>
+              <th scope="col">No exemplo (fixo)</th>
+              <th scope="col">Os seus hoje</th>
+            </tr>
+          </thead>
+          <tbody>
+            {rows.map(([label, fixed, own]) => (
+              <tr key={label}>
+                <th scope="row">{label}</th>
+                <td>{fixed}</td>
+                <td>{own ?? "—"}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+        <button type="button" className="link" onClick={() => go("preferences")}>
+          Ajustar nas Preferências
+        </button>
       </section>
 
       <ol className="ph-steps" aria-label="Passo a passo da conta">

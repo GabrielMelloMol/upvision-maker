@@ -14,7 +14,8 @@ test("Calculadora → Como calculamos o preço → volta à Calculadora", async 
   await expect(page.getByRole("heading", { level: 1, name: "Como calculamos o preço" })).toBeVisible();
   await expect(page.getByRole("list", { name: "Passo a passo da conta" }).getByRole("listitem")).toHaveCount(10);
   await expect(page.locator("#ph-filament")).toContainText("72 g");
-  await expect(page.getByTestId("pricing-mine")).toContainText("kWh");
+  await expect(page.getByTestId("pricing-compare")).toContainText("Valor da sua hora");
+  await expect(page.locator("#ph-channel")).toContainText("R$ 4,50");
   await page.getByRole("button", { name: "Abrir a Calculadora" }).click();
   await expect(page.getByRole("heading", { level: 1, name: "Calculadora" })).toBeVisible();
 });

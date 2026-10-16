@@ -35,6 +35,12 @@ describe("exemplo da página Como calculamos o preço (#216)", () => {
     expect(c.marginPct).toBeCloseTo(30, 0);
   });
 
+  it("o canal do exemplo é a regra de fábrica atual (20% + R$ 4,50 até R$ 79,99), com a data", () => {
+    const c = priceSteps().find((s) => s.id === "channel")!;
+    expect(c.sum).toMatch(/R\$\s?4,50\) ÷ \(1 − 20% − 4% − 30%\)/);
+    expect(c.note).toContain("15/10/2026");
+  });
+
   it("usa os mesmos multiplicadores do exemplo nas duas frases", () => {
     const m = priceSteps().find((s) => s.id === "multiplier")!;
     expect(m.sum).toContain(`× ${EXAMPLE_SETTINGS.multResale}`);
