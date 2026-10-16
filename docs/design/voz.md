@@ -37,6 +37,7 @@ Este guia vale para título, subtítulo, botão, aviso, erro, dica e ajuda.
 | Chaveiros | Nome e logo em 2 cores, pronto para o AMS. |
 | Medalhas | Formato, textos em arco, imagem e alça, em cores. |
 | Carimbo seco | Duas placas que gravam o desenho em relevo, sem tinta. |
+| Mosaico | Tabuleiro, peças e pote para montar desenhos. |
 | Caixinha termoformada | Tela de PLA em malha, prensada a quente num molde. |
 | Extrusão 3D | Dá altura a qualquer desenho, com base se quiser. |
 | QR Code e Pix | Pix, link ou Wi-Fi em SVG ou 3MF de 2 cores. |

@@ -69,6 +69,13 @@ export const ARTICLES: HelpArticle[] = [
     tips: ["As duas metades usam o mesmo molde, por isso a silhueta precisa ser simétrica pelo eixo vertical. Se a imagem não for, use Espelhar a esquerda ou a direita.", "A malha é desenhada na peça (favo ou losango), então o 3MF fatia igual no Bambu Studio e no OrcaSlicer, sem mexer em nada no fatiador.", "O molde é oco com nervuras: pesa a metade de um molde maciço a 100% e aguenta a prensagem sem depender do preenchimento do fatiador."],
   },
   {
+    id: "mosaic",
+    title: "Mosaico",
+    intro: "Um kit de mosaico para escola, presente ou festa: um tabuleiro com casas rebaixadas, peças de vários formatos que encaixam nelas, um pote com uma divisória para cada cor e cartões de inspiração para imprimir em papel.",
+    steps: ["Na aba Tabuleiro, escolha quantas casas (por exemplo 8 × 8), o tamanho de cada uma e a folga da peça. Para um painel maior, ligue o encaixe de cauda de andorinha e imprima vários tabuleiros.", "Na aba Peças, ligue as cores do kit, escolha quantas peças de cada formato (quadrado, meio-círculo, quarto de círculo, triângulo, círculo e olho) e se cada mesa tem uma cor só ou várias cores com AMS.", "Na aba Pote, escolha redondo ou retangular: o pote ganha uma divisória por cor, e a tampa cobre a boca por fora.", "Na aba Desenho, escolha um cartão pronto, pinte a grade ou envie uma foto: o app converte em mosaico com as cores do kit e mostra a lista de peças. Em Peças, \"Só as do desenho\" imprime apenas as peças daquele desenho.", "Na aba Cartões, salve o PDF com os desenhos em tamanho real (1:1 com o tabuleiro) e a lista de peças de cada um."],
+    tips: ["As peças saem planas, sem suporte, com o canto de cima chanfrado: dá para tirar do tabuleiro com a unha.", "Quando uma peça some, é só imprimir outra: a aba Peças aceita a quantidade que você quiser.", "Se as peças prenderem nas casas, aumente a folga da peça no tabuleiro ou ligue a compensação do pé de elefante no fatiador."],
+  },
+  {
     id: "extrude",
     title: "Desenho em 3D",
     intro: "Dá altura a qualquer desenho: placas, letreiros, apliques e topos.",
