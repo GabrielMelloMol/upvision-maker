@@ -23,7 +23,7 @@ Peça maior que a mesa de 256 mm do A1 conta como **aviso** quando o app avisa n
 impressoras de mesa maior); sem o aviso do app, é **falha**.
 
 
-**Total:** 340 casos · 247 ok · 93 com aviso · 0 com falha · 0 n/a
+**Total:** 340 casos · 248 ok · 92 com aviso · 0 com falha · 0 n/a
 
 ## Forja
 
@@ -290,10 +290,10 @@ impressoras de mesa maior); sem o aviso do app, é **falha**.
 | Quebra-cabeça (puzzle) | máximo | ⚠️ aviso | Bambu ✓ · Orca ✓ · Projeto Bambu ✓ | – | – | – | – | o conjunto arrumado ocupa 373,0 × 373,0 mm: passa da mesa de 256 mm; Bambu: torre de purga em cima de uma peça depois do --arrange do CLI (na tela, arraste a torre ou use Arrumar); Orca: torre de purga em cima de uma peça depois do --arrange do CLI (na tela, arraste a torre ou use Arrumar); Projeto Bambu: torre de purga em cima de uma peça depois do --arrange do CLI (na tela, arraste a torre ou use Arrumar); app: Peças pequenas: não é brinquedo para menores de 3 anos (risco de engasgo).; app: Pescoço do encaixe fino demais: aumente o tamanho da orelha ou das peças.; app: As 256 peças não cabem juntas na mesa de 256 mm: o fatiador vai usar mais de uma mesa (ou imprima uma de cada vez). |
 | Quebra-cabeça (puzzle) | mínimo | ✅ ok | Bambu ✓ · Orca ✓ · Projeto Bambu ✓ | 14 | 5,0 | 1 | – | app: Peças pequenas: não é brinquedo para menores de 3 anos (risco de engasgo).; app: Pescoço do encaixe fino demais: aumente o tamanho da orelha ou das peças. |
 | Quebra-cabeça (puzzle) | padrão | ✅ ok | Bambu ✓ · Orca ✓ · Projeto Bambu ✓ | 101 | 46,7 | 1 | – | app: Peças pequenas: não é brinquedo para menores de 3 anos (risco de engasgo). |
-| Gabarito de raios (radiusGauge) | máximo | ⚠️ aviso | Bambu ✓ · Orca ✓ | 49 | 24,7 | 1 | – | "Gabarito de raios": parede/traço < 0,4 mm em Z 0,5, 1,5, 2,5, 3,5, 4,5 mm |
-| Gabarito de raios (radiusGauge) | mínimo | ⚠️ aviso | Bambu ✓ · Orca ✓ | 15 | 6,3 | 1 | – | "Gabarito de raios": parede/traço < 0,4 mm em Z 0,1, 0,4, 0,6, 0,8, 1,1 mm |
-| Gabarito de raios (radiusGauge) | padrão | ✅ ok | Bambu ✓ · Orca ✓ | 22 | 10,2 | 1 | – | – |
-| Gabarito de raios (radiusGauge) | raios grandes | ⚠️ aviso | Bambu ✓ · Orca ✓ | 33 | 22,5 | 1 | – | "Gabarito de raios" não cabe na mesa de 256 mm (60,0 × 279,5 × 2,0 mm); app: O gabarito tem 281 mm de comprimento: passa da mesa de 256 mm. Use menos raios. |
+| Gabarito de raios (radiusGauge) | máximo | ✅ ok | Bambu ✓ · Orca ✓ | 45 | 25,6 | 1 | – | – |
+| Gabarito de raios (radiusGauge) | mínimo | ⚠️ aviso | Bambu ✓ · Orca ✓ | 15 | 6,3 | 1 | – | "Gabarito de raios": parede/traço < 0,4 mm em Z 0,6, 0,8, 1,1 mm |
+| Gabarito de raios (radiusGauge) | padrão | ✅ ok | Bambu ✓ · Orca ✓ | 22 | 10,3 | 1 | – | – |
+| Gabarito de raios (radiusGauge) | raios grandes | ⚠️ aviso | Bambu ✓ · Orca ✓ | 32 | 22,6 | 1 | – | "Gabarito de raios" não cabe na mesa de 256 mm (60,0 × 279,5 × 2,0 mm); app: O gabarito tem 281 mm de comprimento: passa da mesa de 256 mm. Use menos raios. |
 | Azulejo em relevo e molde de gesso (reliefTile) | máximo | ⚠️ aviso | Bambu ✓ · Orca ✓ · Projeto Bambu ✓ | 414 | 340,2 | 1 | – | o conjunto arrumado ocupa 550,0 × 290,0 mm: passa da mesa de 256 mm; "Molde" não cabe na mesa de 256 mm (290,0 × 290,0 × 29,0 mm); Bambu: a cor 2 (#0ea5e9) não saiu no G-code (o app avisa); Orca: a cor 2 (#0ea5e9) não saiu no G-code (o app avisa); Projeto Bambu: a cor 2 (#0ea5e9) não saiu no G-code (o app avisa); app: A peça tem 290 mm de lado: passa da mesa de 256 mm. Diminua o azulejo. |
 | Azulejo em relevo e molde de gesso (reliefTile) | mínimo | ⚠️ aviso | Bambu ✓ · Orca ✓ · Projeto Bambu ✓ | 45 | 16,1 | 1 | – | "Azulejo": parede/traço < 0,4 mm em Z 2,3 mm |
 | Azulejo em relevo e molde de gesso (reliefTile) | padrão | ✅ ok | Bambu ✓ · Orca ✓ · Projeto Bambu ✓ | 233 | 116,4 | 1 | – | – |

@@ -177,7 +177,7 @@ export const HOME_UTILITY_MODELS: ModelDef[] = [
       {
         title: "Raios",
         fields: [
-          text("radii", "Raios (mm, separados por vírgula)", 80, "Com ponto nos decimais, de 0.5 a 40: 1, 1.5, 2, 3, 5."),
+          text("radii", "Raios (mm, separados por espaço ou ;)", 80, "Escreva como no Brasil: 1; 1,5; 2; 3; 5 (a vírgula é o decimal). De 0,1 a 40 mm."),
           num("thickness", "Espessura", 1.2, 5, { step: 0.2 }),
           num("font", "Altura do número", 3, 8, { step: 0.5 }),
           color("color", "Cor"),

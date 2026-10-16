@@ -4011,14 +4011,12 @@
   "group": "home",
   "label": "Gabarito de raios (radiusGauge)",
   "variant": "máximo",
-  "status": "aviso",
-  "reasons": [
-   "\"Gabarito de raios\": parede/traço < 0,4 mm em Z 0,5, 1,5, 2,5, 3,5, 4,5 mm"
-  ],
+  "status": "ok",
+  "reasons": [],
   "date": "2026-10-16",
   "slicers": "Bambu ✓ · Orca ✓",
-  "minutes": 49,
-  "grams": 24.7,
+  "minutes": 45,
+  "grams": 25.6,
   "plates": 1
  },
  {
@@ -4029,7 +4027,7 @@
   "variant": "mínimo",
   "status": "aviso",
   "reasons": [
-   "\"Gabarito de raios\": parede/traço < 0,4 mm em Z 0,1, 0,4, 0,6, 0,8, 1,1 mm"
+   "\"Gabarito de raios\": parede/traço < 0,4 mm em Z 0,6, 0,8, 1,1 mm"
   ],
   "date": "2026-10-16",
   "slicers": "Bambu ✓ · Orca ✓",
@@ -4048,7 +4046,7 @@
   "date": "2026-10-16",
   "slicers": "Bambu ✓ · Orca ✓",
   "minutes": 22,
-  "grams": 10.2,
+  "grams": 10.3,
   "plates": 1
  },
  {
@@ -4064,8 +4062,8 @@
   ],
   "date": "2026-10-16",
   "slicers": "Bambu ✓ · Orca ✓",
-  "minutes": 33,
-  "grams": 22.5,
+  "minutes": 32,
+  "grams": 22.6,
   "plates": 1
  },
  {

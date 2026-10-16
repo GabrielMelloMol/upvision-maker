@@ -4,7 +4,6 @@ import { fitInto, scoped } from "../shape2d";
 import { roundedRect, solidMesh, type ModelCtx, type ModelOutput } from "./common";
 
 const SEG = 64;
-const num = (s: string) => Number(s.trim().replace(",", "."));
 const br = (n: number, d = 1) => n.toFixed(d).replace(".", ",");
 
 // ---------------------------------------------------------------- furação
@@ -46,15 +45,20 @@ export function buildDrillJig(ctx: ModelCtx, p: DrillJigParams): ModelOutput {
 // ---------------------------------------------------------------- raios
 
 export type RadiusGaugeParams = { radii: string; thickness: number; font: number; color: string };
-export const DEFAULT_RADIUS_GAUGE: RadiusGaugeParams = { radii: "1, 1.5, 2, 3, 4, 5, 6, 8, 10", thickness: 2, font: 5, color: "#f59e0b" };
+export const DEFAULT_RADIUS_GAUGE: RadiusGaugeParams = { radii: "1; 1,5; 2; 3; 4; 5; 6; 8; 10", thickness: 2, font: 5, color: "#f59e0b" };
 
 const TAB_W = 26, TAB_GAP = 1.5, SPINE = 7;
 
-/** "1, 1.5, 2" → raios em mm (ponto nos decimais); o que não é número volta em `bad`. */
+/**
+ * Lista de raios em mm. Separe por espaço ou ponto e vírgula; a vírgula é o decimal ("1,5"), como se escreve no Brasil.
+ * Listas antigas ("1, 1.5, 2", com vírgula e espaço) também valem: vírgula no fim da palavra separa. O que não é número volta em `bad`.
+ */
 export function parseRadii(s: string): { radii: number[]; bad: string[] } {
   const radii: number[] = [], bad: string[] = [];
-  for (const t of s.split(/[;,\s]+/).filter(Boolean)) {
-    const v = num(t);
+  for (const raw of s.split(/[;\s]+/).filter(Boolean)) {
+    const t = raw.replace(/,+$/, "");
+    if (!t) continue;
+    const v = Number(t.replace(",", "."));
     if (Number.isFinite(v) && v > 0 && v <= 40) radii.push(v);
     else bad.push(t);
   }
@@ -70,10 +74,11 @@ export function buildRadiusGauge(ctx: ModelCtx, p: RadiusGaugeParams): ModelOutp
   return scoped((k) => {
     const warnings: string[] = [];
     const { radii, bad } = parseRadii(p.radii);
-    if (bad.length) warnings.push(`Raio ignorado (use mm, com ponto nos decimais, até 40): ${bad.join(", ")}`);
+    if (bad.length) warnings.push(`Raio ignorado (use mm, de 0,1 a 40; separe por espaço ou ponto e vírgula): ${bad.join(", ")}`);
     if (!radii.length) throw new Error("Escreva pelo menos um raio, em mm (ex.: 2, 3, 5).");
     // cada lâmina: retângulo com o entalhe de raio R na ponta de cima e a ponta redonda de raio R embaixo
     const blades: CS[] = [];
+    const marks: CS[] = []; // números: gravados só em parte da espessura, para os miolos do 0, 6, 8 não caírem
     let y = 0;
     for (const r of radii) {
       const h = r + 8;
@@ -81,10 +86,12 @@ export function buildRadiusGauge(ctx: ModelCtx, p: RadiusGaugeParams): ModelOutp
       const notch = k(k(M.CrossSection.circle(r, SEG)).translate([TAB_W / 2, h]));
       const bump = k(k(M.CrossSection.circle(r, SEG)).translate([TAB_W / 2, 0])); // meio círculo para baixo
       let blade = k(k(rect.subtract(notch)).add(bump));
+      // o número fica no trecho livre, abaixo do entalhe (o entalhe desce r a partir do topo): centrado entre a base e o fundo do entalhe
+      const free = h - r;
       const txt = ctx.text(`${br(r, r % 1 ? 1 : 0)}`, p.font);
-      if (txt) {
-        const t = k(fitInto(k(txt), TAB_W - 8, Math.min(p.font, h - 4), 0));
-        blade = k(blade.subtract(k(t.translate([TAB_W / 2, h / 2 - 1]))));
+      if (txt && free >= 5) {
+        const t = k(fitInto(k(txt), TAB_W - 8, Math.min(p.font, free - 3), 0));
+        marks.push(k(t.translate([SPINE + TAB_W / 2, y + r + free / 2])));
       }
       blades.push(k(blade.translate([SPINE, y + r])));
       y += h + r + TAB_GAP;
@@ -92,7 +99,12 @@ export function buildRadiusGauge(ctx: ModelCtx, p: RadiusGaugeParams): ModelOutp
     const spine = k(k(roundedRect(M, SPINE + 2, y - TAB_GAP, 1)).translate([(SPINE + 2) / 2, (y - TAB_GAP) / 2]));
     const plate = k(M.CrossSection.union([spine, ...blades]));
     if (y > bedMm()) warnings.push(`O gabarito tem ${Math.round(y)} mm de comprimento: passa da mesa de ${bedMm()} mm. Use menos raios.`);
-    return { models: [{ name: "Gabarito de raios", parts: [{ name: "Gabarito", color: p.color, mesh: solidMesh(k(plate.extrude(p.thickness))) }] }], warnings };
+    let solid: Solid = k(plate.extrude(p.thickness));
+    if (marks.length) {
+      const depth = Math.min(0.8, p.thickness / 2);
+      solid = k(solid.subtract(k(k(M.CrossSection.union(marks)).extrude(depth + 0.01).translate([0, 0, p.thickness - depth]))));
+    }
+    return { models: [{ name: "Gabarito de raios", parts: [{ name: "Gabarito", color: p.color, mesh: solidMesh(solid) }] }], warnings };
   });
 }
 

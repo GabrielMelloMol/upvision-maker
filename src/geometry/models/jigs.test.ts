@@ -52,8 +52,10 @@ describe("gabarito de furação (#235)", { timeout: 60_000 }, () => {
 });
 
 describe("gabarito de raios (#235)", { timeout: 60_000 }, () => {
-  test("lista de raios: ponto nos decimais, ordena, tira repetidos e marca o que não é número", () => {
-    expect(parseRadii("5, 1.5; 2 2 abc 0 99")).toEqual({ radii: [1.5, 2, 5], bad: ["abc", "0", "99"] });
+  test("lista de raios: vírgula decimal, espaço ou ponto e vírgula separam, ordena, tira repetidos e marca o que não é número", () => {
+    expect(parseRadii("5; 1,5 2 2 abc 0 99")).toEqual({ radii: [1.5, 2, 5], bad: ["abc", "0", "99"] });
+    expect(parseRadii("1, 1.5, 2")).toEqual({ radii: [1, 1.5, 2], bad: [] }); // lista antiga, com vírgula e espaço
+    expect(parseRadii("0,5; 2,5\n3")).toEqual({ radii: [0.5, 2.5, 3], bad: [] });
   });
 
   test("cada lâmina tem o entalhe de raio R (a ponta redonda de raio R encaixa nele) e a peça é uma só", () => {
@@ -69,10 +71,27 @@ describe("gabarito de raios (#235)", { timeout: 60_000 }, () => {
     [s, probe, free].forEach((o) => o.delete());
   });
 
+  test("o número gravado fica no trecho livre: não toca o entalhe e fica inteiro (gravado em parte da espessura: nenhum pedaço solto)", () => {
+    for (const r of ["2", "5", "10"]) {
+      const out = radius({ radii: r });
+      const s = solid(mesh(out));
+      expect(s.decompose().length, `raio ${r}`).toBe(1);
+      s.delete();
+    }
+    // com o número: tira material do trecho livre e não do entalhe (o centro do entalhe segue vazio)
+    const plain = solid(mesh(buildRadiusGauge({ ...ctx(), text: () => null }, { ...DEFAULT_RADIUS_GAUGE, radii: "5" })));
+    const withNum = solid(mesh(radius({ radii: "5" })));
+    expect(withNum.volume()).toBeLessThan(plain.volume() - 0.5);
+    // o número está abaixo do fundo do entalhe: a faixa de cima (do fundo do entalhe até o topo) é igual com e sem número
+    const band = M.Manifold.cube([30, 8, 4], false).translate([7, 5 + 13 - 5 + 0.2, -1]); // entre o fundo do entalhe e o topo
+    expect(plain.intersect(band).volume()).toBeCloseTo(withNum.intersect(band).volume(), 2);
+    [plain, withNum, band].forEach((o) => o.delete());
+  });
+
   test("mais raios, gabarito mais comprido; o valor fica gravado (tira material); avisos de raio ruim e de tamanho", () => {
     const few = meshBounds([mesh(radius({ radii: "2, 3" }))])!, many = meshBounds([mesh(radius({ radii: "2, 3, 5, 8" }))])!;
     expect(many.max[1] - many.min[1]).toBeGreaterThan(few.max[1] - few.min[1] + 30);
-    expect(radius({ radii: "2, x" }).warnings?.join(" ")).toMatch(/Raio ignorado/);
+    expect(radius({ radii: "2; x" }).warnings?.join(" ")).toMatch(/Raio ignorado/);
     expect(radius({ radii: "20, 25, 30, 35, 40, 38, 36, 34, 32, 30.5, 29, 27, 26, 24, 22" }).warnings?.join(" ")).toMatch(/passa da mesa/);
     expect(() => radius({ radii: "x" })).toThrow(/pelo menos um raio/);
   });

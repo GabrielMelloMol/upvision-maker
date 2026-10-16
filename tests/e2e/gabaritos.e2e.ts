@@ -25,9 +25,12 @@ test("gabaritos: furação, raios e etiqueta mudam com as medidas e as sugestõe
   await page.getByRole("button", { name: "Quinas pequenas" }).click();
   await idle(page);
   expect((await size(page))[1]).toBeLessThan(h9);
-  await page.getByLabel(/^Raios/).fill("2, x");
+  await page.getByLabel(/^Raios/).fill("2; x");
   await idle(page);
   await expect(page.getByText(/Raio ignorado/)).toBeVisible();
+  await page.getByLabel(/^Raios/).fill("1,5 2,5; 4");
+  await idle(page);
+  await expect(page.getByText(/Raio ignorado/)).toHaveCount(0);
   await pick(page, "gabarito de etiqueta", "Gabarito de etiqueta");
   const [wl] = await size(page);
   await page.getByRole("button", { name: "Etiqueta 100 × 50" }).click();
