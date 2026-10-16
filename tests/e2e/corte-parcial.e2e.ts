@@ -16,7 +16,9 @@ async function handlesAt(page: Page, id: string): Promise<[number, number]> {
   let last = "";
   for (let i = 0; i < 40; i++) {
     const now = (await page.locator(".viewer").getAttribute("data-handles")) ?? "";
-    if (now && now === last) return (JSON.parse(now) as Record<string, [number, number]>)[id];
+    // assentou E a alça pedida já existe: com a máquina em carga a caixa ainda estava recalculando e a alça "max2" não tinha aparecido
+    const at = now ? (JSON.parse(now) as Record<string, [number, number]>)[id] : undefined;
+    if (now && now === last && at) return at;
     last = now;
     await page.waitForTimeout(300);
   }
