@@ -1,6 +1,6 @@
 import { Award, Bot, Gift, Stamp as StampIcon, Calculator as CalcIcon, Cookie, Cylinder, KeyRound, Layers, House, ImageUp, Package, Palette, Printer, Settings, ShoppingBag, Users, Building2, ClipboardList, FileText, LayoutDashboard, LineChart, Receipt, QrCode as QrIcon, Scissors, Split, Puzzle, MailOpen } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
-import { Boxes, Braces, FolderOpen, ChartNoAxesColumn, Globe, Grid3x3, LayoutGrid, Shapes, Sparkle, Sun, Tag, Sticker, Wallet } from "lucide-react";
+import { ShieldCheck, Boxes, Braces, FolderOpen, ChartNoAxesColumn, Globe, Grid3x3, LayoutGrid, Shapes, Sparkle, Sun, Tag, Sticker, Wallet } from "lucide-react";
 import { lazy, type ReactNode } from "react";
 import Home from "./pages/Home";
 
@@ -32,6 +32,7 @@ const ImageToSvg = lazy(() => import("./tools/ImageToSvg"));
 const QrCode = lazy(() => import("./tools/QrCode"));
 const Models = lazy(() => import("./tools/Models"));
 const SpoolLabels = lazy(() => import("./tools/SpoolLabels"));
+const Protect = lazy(() => import("./tools/Protect"));
 const Lithophane = lazy(() => import("./tools/Lithophane"));
 const ColorSplit = lazy(() => import("./tools/ColorSplit"));
 const OwnDecal = lazy(() => import("./tools/OwnDecal"));
@@ -88,6 +89,7 @@ const ALL: PageDef[] = [
   { id: "pixel", section: "create", label: "Pixel art", group: "Ferramentas", icon: Grid3x3, blurb: "Imagem em pixels nas cores dos filamentos: mosaico, quebra-cabeça ou ímã.", render: () => <PixelArt /> },
   { id: "organizers", section: "create", label: "Organizadores", group: "Ferramentas", icon: LayoutGrid, blurb: "Organize uma gaveta: pela medida dela, pela foto das ferramentas ou com caixinhas avulsas.", render: () => <Organizers /> },
   { id: "mosaic", section: "create", label: "Mosaico", group: "Ferramentas", icon: Puzzle, blurb: "Tabuleiro, peças e pote para montar desenhos, com cartões de inspiração.", render: () => <Mosaic /> },
+  { id: "protect", section: "create", label: "Proteger arquivo", group: "Ferramentas", icon: ShieldCheck, blurb: "Certificado em PDF com hash e QR; confere o arquivo offline.", render: () => <Protect /> },
   { id: "colorsplit", section: "create", label: "Separar cores de um 3MF", group: "Ferramentas", icon: Split, blurb: "3MF pintado vira uma peça por cor.", render: () => <ColorSplit /> },
   { id: "owndecal", section: "create", label: "Nome ou logo no seu modelo", group: "Ferramentas", icon: Sticker, blurb: "Nome ou logo numa face plana do STL ou 3MF, em outra cor.", render: () => <OwnDecal /> },
   { id: "partialcut", section: "create", label: "Corte parcial", group: "Ferramentas", icon: Scissors, blurb: "Corta só um pedaço do STL ou 3MF, dentro de uma caixa, com pino de encaixe.", render: () => <PartialCut /> },

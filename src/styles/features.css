@@ -419,3 +419,7 @@ td.best-name { max-width: 0; width: 100%; overflow: hidden; text-overflow: ellip
 .strip-step { display: inline-flex; align-items: center; gap: 4px; }
 .strip-step output { min-width: 5.5em; text-align: center; font-size: var(--text-sm); }
 .strip-editor button.sm { min-width: 28px; min-height: 28px; }
+/* Proteger arquivo (#228): o hash em grupos de 8, fácil de ler e copiar */
+.hash-box { display: grid; gap: var(--space-2); justify-items: start; padding: var(--space-3) var(--space-4); border-radius: var(--r-lg); background: var(--fill); }
+.hash-box code { display: grid; gap: 2px; font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace; font-size: var(--text-md); font-weight: 600; user-select: all; }
+.hash-line { display: block; }
