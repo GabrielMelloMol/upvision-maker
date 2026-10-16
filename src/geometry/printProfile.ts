@@ -45,6 +45,12 @@ export const THERMO_MOLD_PROFILE: PrintProfile = { layerHeight: 0.2, walls: 3, i
 export const MOSAIC_BOARD_PROFILE: PrintProfile = { layerHeight: 0.2, walls: 3, infill: 15, support: false, brim: false, notes: ["Imprima como está no arquivo, com as casas para cima, sem suporte."] };
 export const MOSAIC_PIECES_PROFILE: PrintProfile = { layerHeight: 0.2, walls: 2, infill: 100, support: false, brim: false, notes: ["Peças chatas, sem suporte. Se elas prenderem nas casas, ligue a compensação do pé de elefante no fatiador (0,1 a 0,2 mm).", "Imprima uma cor por vez (Mesa por cor) ou com AMS; o pote guarda uma cor em cada divisória."] };
 export const MOSAIC_POT_PROFILE: PrintProfile = { layerHeight: 0.2, walls: 3, infill: 15, support: false, brim: false, notes: ["O pote sai em pé e a tampa sai virada, com a saia para cima: sem suporte."] };
+/** Envelope rendado: placa fina de 1,2 mm, 2 paredes, maciça. Com tule há uma pausa na 3ª camada (o arquivo já traz). */
+export const INVITE_LACE_PROFILE: PrintProfile = { layerHeight: 0.2, walls: 2, infill: 100, support: false, brim: false, notes: ["Imprima o envelope deitado, em PLA, como está no arquivo, sem suporte. Os fios da renda têm 2 filetes: deixe ligado \"Detectar paredes finas\".", "Com tule, o arquivo pausa numa camada: quando a impressora parar, estique o tule sobre a impressão e retome. Ative a elevação do bico nas viagens (Z hop) para ele não enroscar no tecido."] };
+/** Cartão transparente: placa com o texto em relevo de 3 camadas. */
+export const INVITE_CARD_PROFILE: PrintProfile = { layerHeight: 0.2, walls: 2, infill: 100, support: false, brim: false, notes: ["Imprima o cartão em PETG transparente (ou corte em acrílico), deitado, com as letras para cima. Filamento transparente fica mais claro com 100% de preenchimento."] };
+/** Borboleta e flores em relevo: peças pequenas para colar. */
+export const INVITE_PIECES_PROFILE: PrintProfile = { layerHeight: 0.2, walls: 2, infill: 100, support: false, brim: false, notes: ["Imprima as peças deitadas, sem suporte, e cole sobre a renda com cola instantânea em gel ou cola quente."] };
 
 const BRIM_MM = 5;
 const r2 = (n: number) => String(Math.round(n * 100) / 100);
