@@ -192,7 +192,7 @@ export default function Create({ go }: { go: Go }) {
       </div>
       <div className="create-tabs chips" role="group" aria-label="Categoria">
         {TABS.map(([t, label]) => (
-          <button key={t} type="button" className={t === "file" ? "tab-split" : undefined} aria-pressed={!searching && !occasion && tab === t} onClick={() => (setQ(""), setOccasion(null), setTab(t))}>
+          <button key={t} type="button" aria-pressed={!searching && !occasion && tab === t} onClick={() => (setQ(""), setOccasion(null), setTab(t))}>
             {label}
           </button>
         ))}
