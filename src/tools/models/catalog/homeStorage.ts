@@ -181,6 +181,7 @@ export const HOME_STORAGE_MODELS: ModelDef[] = [
     font: true,
     defaults: DEFAULT_PHONE_CASE,
     sections: [
+      { title: "Nome", fields: [text("name", "Nome nas costas", 16)] },
       {
         title: "O aparelho (meça o seu)",
         fields: [
@@ -209,7 +210,6 @@ export const HOME_STORAGE_MODELS: ModelDef[] = [
           num("floor", "Fundo", 1, 2.5, { step: 0.2 }),
           num("lip", "Borda sobre a tela", 0.8, 3, { step: 0.2 }),
           choice("pattern", "Costas", [["hex", "Hexágonos"], ["cross", "X"], ["smooth", "Lisa"]]),
-          text("name", "Nome nas costas", 16),
           choice("print", "Imprimir", [["case", "Capa inteira"], ["test", "Só a peça de teste (25 mm)"]]),
           color("color", "Cor"),
         ],

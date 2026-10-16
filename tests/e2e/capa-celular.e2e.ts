@@ -9,6 +9,11 @@ test("capa de celular: modelos aproximados, aviso de conferir no aparelho, peça
   await page.getByRole("group", { name: "Modelo" }).getByRole("button", { name: "Capa de celular (TPU)", exact: true }).click();
   await idle(page);
   await expect(page.getByText(/Confira as medidas no seu aparelho/)).toBeVisible();
+  // a prévia da fonte mostra o nome, não o texto dos recortes dos botões
+  await expect(page.getByText("direita, 40, 22 esquerda")).toHaveCount(0);
+  await expect(page.getByText("Ana", { exact: true }).first()).toBeVisible();
+  await page.getByLabel(/^Nome nas costas/).fill("Bia");
+  await idle(page);
   const size = async () => { const m = /([\d.]+) × ([\d.]+) × /.exec((await page.locator(".viewer .hud").first().textContent()) ?? ""); return [Number(m![1]), Number(m![2])]; };
   const [, l16] = await size();
   await page.getByRole("button", { name: "iPhone 16 Pro Max (aprox.)" }).click();

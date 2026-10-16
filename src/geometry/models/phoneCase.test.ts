@@ -15,6 +15,7 @@ const solid = (m: Mesh) => M.Manifold.ofMesh(new M.Mesh({ numProp: 3, vertProper
 const mesh = (o: ReturnType<typeof cas>) => o.models[0].parts[0].mesh;
 const vol = (m: Mesh) => { const s = solid(m); const v = s.volume(); s.delete(); return v; };
 const P = DEFAULT_PHONE_CASE;
+const GROOVE_PROBE = 0.4; // dentro da profundidade das ranhuras (0,6)
 /** O aparelho: bloco de cantos arredondados, com o centro na origem e as costas em z = floor (como no bolso). */
 function phone(p: PhoneCaseParams, thick: number) {
   const cs = M.CrossSection.square([p.phoneW, p.phoneL], true).offset(-p.cornerR, "Round").offset(p.cornerR, "Round");
@@ -78,13 +79,20 @@ describe("capa de celular em TPU (#232)", { timeout: 60_000 }, () => {
   });
 
   test("desenho e nome gravados nas costas pela mesa, rasos (o fundo não fura); liso não tem", () => {
-    const smooth = vol(mesh(cas({ pattern: "smooth" })));
-    expect(vol(mesh(cas({ pattern: "hex" })))).toBeLessThan(smooth - 20);
-    expect(vol(mesh(cas({ pattern: "cross" })))).toBeLessThan(smooth - 10);
+    const smooth = vol(mesh(cas({ pattern: "smooth", name: "" })));
+    expect(vol(mesh(cas({ pattern: "hex", name: "" })))).toBeLessThan(smooth - 20);
+    expect(vol(mesh(cas({ pattern: "cross", name: "" })))).toBeLessThan(smooth - 10);
     expect(vol(mesh(cas({ pattern: "smooth", name: "Ana" })))).toBeLessThan(smooth - 3);
-    const s = solid(mesh(cas({ pattern: "hex" })));
+    // o padrão abre espaço em volta do nome: na faixa de 1,5 mm ao lado das letras não há ranhura de hexágono (o fundo está inteiro)
+    const withName = solid(mesh(cas({ pattern: "hex", name: "Ana" })));
+    const y = -(P.phoneL + 2 * P.clearance) * 0.28;
+    const halfName = ((0.6 * 8 * 3) * Math.min(((P.phoneW + 2 * P.clearance) * 0.6) / (0.6 * 8 * 3), 12 / 8)) / 2; // o "texto" de teste é um bloco 0,6 × altura × letras, ampliado para caber em 60% da largura e 12 mm
+    const probe = M.Manifold.cube([1, 1, GROOVE_PROBE], true).translate([halfName + 1.8, y, GROOVE_PROBE / 2]);
+    expect(withName.intersect(probe).volume()).toBeGreaterThan(0.9 * probe.volume());
+    [withName, probe].forEach((o) => o.delete());
+    const s = solid(mesh(cas({ pattern: "hex", name: "" })));
     const slice = s.slice(P.floor - 0.3); // acima do rebaixo: o fundo está inteiro (menos a câmera)
-    const full = solid(mesh(cas({ pattern: "smooth" })));
+    const full = solid(mesh(cas({ pattern: "smooth", name: "" })));
     const slice2 = full.slice(P.floor - 0.3);
     expect(slice.area()).toBeCloseTo(slice2.area(), 0);
     [s, slice, full, slice2].forEach((o) => o.delete());

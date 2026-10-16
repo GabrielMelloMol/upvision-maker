@@ -46,7 +46,7 @@ export const DEFAULT_PHONE_CASE: PhoneCaseParams = {
   camR: 9,
   buttons: "direita, 40, 22\nesquerda, 28, 28",
   pattern: "hex",
-  name: "",
+  name: "Ana",
   print: "case",
   color: "#111827",
 };
@@ -139,8 +139,11 @@ export function buildPhoneCase(ctx: ModelCtx, p: PhoneCaseParams): ModelOutput {
       const raw = ctx.text(p.name, 8);
       if (raw) {
         const t = k(fitInto(k(raw), pw * 0.6, 12, 0));
-        const mirrored = k(t.mirror([1, 0])); // gravado de fora: espelhado para ler certo olhando as costas
-        groove2d = k(M.CrossSection.union([...(groove2d ? [groove2d] : []), k(mirrored.translate([0, -pl * 0.28]))]));
+        const mirrored = k(k(t.mirror([1, 0])).translate([0, -pl * 0.28])); // gravado de fora: espelhado para ler certo olhando as costas
+        // o padrão abre espaço em volta do nome (uma faixa 3 mm maior que ele), para as letras não se perderem nas ranhuras
+        const nb = mirrored.bounds();
+        const clear = k(k(roundedRect(M, nb.max[0] - nb.min[0] + 6, nb.max[1] - nb.min[1] + 6, 2)).translate([(nb.min[0] + nb.max[0]) / 2, (nb.min[1] + nb.max[1]) / 2]));
+        groove2d = k(M.CrossSection.union([...(groove2d ? [k(groove2d.subtract(clear))] : []), mirrored]));
       }
     }
     if (groove2d && !groove2d.isEmpty()) body = k(body.subtract(k(k(groove2d.extrude(GROOVE_D + 0.01)).translate([0, 0, -0.01]))));
