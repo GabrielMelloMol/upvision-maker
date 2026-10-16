@@ -57,7 +57,7 @@ test("onde fica: Presentes, Casa e decoração e Organização e utilidades sepa
   await expect(tabs.getByRole("button")).toHaveText(["Tudo", "Chaveiros", "Placas", "Presentes e lembrancinhas", "Festa e esporte", "Casa e decoração", "Organização e utilidades", "Cozinha", "Do seu arquivo", "Não achou?"]);
 
   await tabs.getByRole("button", { name: "Presentes e lembrancinhas" }).click();
-  await expect(cards).toHaveText(["Mapa estelar", "Cartão de música", "Lembrancinhas", "Kits de montar", "Porta-copos", "Marca-página", "Caixinha termoformada", "Pixel art e mosaico"]);
+  await expect(cards).toHaveText(["Mapa estelar", "Cartão de música", "Lembrancinhas", "Kits de montar", "Porta-copos", "Marca-página", "Caixinha termoformada", "Pote, cesto e pulseira termoformados", "Pixel art e mosaico"]);
   await page.locator(".create-products a", { hasText: "Lembrancinhas" }).click();
   await expect(page.getByRole("group", { name: "Variação" }).getByRole("button", { name: "Cumbuca" })).toBeVisible();
 
