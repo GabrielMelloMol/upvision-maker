@@ -1,9 +1,10 @@
-import { beforeAll, describe, expect, test } from "vitest";
-import { meshBounds } from "../bounds";
+import { afterEach, beforeAll, describe, expect, test } from "vitest";
+import { meshBounds, modelsBounds } from "../bounds";
+import { setBed } from "../bed";
 import { getManifold, type ManifoldToplevel } from "../manifold";
 import { volume } from "../testUtil";
 import type { ModelCtx } from "./common";
-import { buildOrganizerBox } from "./organizerBox";
+import { buildOrganizerBox, fitToBed } from "./organizerBox";
 import { DEFAULT_ORGANIZER, type OrganizerParams } from "./organizer/params";
 
 let M: ManifoldToplevel;
@@ -179,5 +180,44 @@ describe("peças na mesa: o que não cabe junto vai para a mesa seguinte (#204)"
     const out = run(ORGANIZER_PRESETS.find((p) => p.id === "small")!.patch as Partial<OrganizerParams>);
     expect(out.warnings!.some((w) => /não cabem juntas/.test(w))).toBe(false);
     expect(x(out, "Tampa").max[0]).toBeLessThanOrEqual(128 + 0.01 + 200);
+  });
+});
+
+describe("caixa organizadora: nunca passa da mesa (#204)", { timeout: 180_000 }, () => {
+  afterEach(() => setBed(null));
+  const footprint = (out: ReturnType<typeof build>) => Math.max(...out.models.map((m) => { const b = modelsBounds([m])!; return Math.max(b.max[0] - b.min[0], b.max[1] - b.min[1]); }));
+
+  for (const lid of ["hinge", "snap", "slide", "none"] as const)
+    test(`${lid}: no tamanho máximo (300 × 300) a peça cabe na mesa de 256 e o aviso diz o que mudou`, () => {
+      const out = build({ lid, outerW: 300, outerD: 300 });
+      expect(footprint(out)).toBeLessThanOrEqual(256);
+      const note = out.warnings!.find((w) => w.startsWith("Você pediu uma caixa de 300 × 300 mm"));
+      expect(note, out.warnings!.join(" | ")).toContain("Reduzi para");
+      expect(note).toContain("impressora de mesa maior");
+    });
+
+  test("a dobradiça entra na conta: a profundidade perde os mm que ela sai atrás", () => {
+    const hinge = fitToBed({ ...DEFAULT_ORGANIZER, lid: "hinge", outerW: 300, outerD: 300 }, 256);
+    const snap = fitToBed({ ...DEFAULT_ORGANIZER, lid: "snap", outerW: 300, outerD: 300 }, 256);
+    expect([hinge.p.outerW, hinge.p.outerD, snap.p.outerW, snap.p.outerD]).toEqual([252, 242, 252, 252]);
+  });
+
+  test("medida que já cabe não muda e não avisa", () => {
+    const out = fitToBed({ ...DEFAULT_ORGANIZER, outerW: 200, outerD: 200 }, 256);
+    expect(out.warning).toBeUndefined();
+    expect(out.p.outerW).toBe(200);
+  });
+
+  test("medindo por dentro o corte vale para a caixa de fora", () => {
+    const out = fitToBed({ ...DEFAULT_ORGANIZER, lid: "snap", measure: "inner", outerW: 300, outerD: 100 }, 256);
+    expect(dimsOf(out.p).outerW).toBe(252);
+    expect(out.p.outerD).toBe(100);
+  });
+
+  test("segue a impressora escolhida: numa mesa de 180 a caixa de 200 é reduzida", () => {
+    setBed({ x: 180, y: 180, z: 180 });
+    const out = build({ lid: "none", outerW: 200, outerD: 100 });
+    expect(footprint(out)).toBeLessThanOrEqual(180);
+    expect(out.warnings!.join(" ")).toContain("mesa de 180 mm");
   });
 });

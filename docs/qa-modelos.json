@@ -1127,21 +1127,16 @@
   "group": "organize",
   "label": "Caixa organizadora (organizerBox)",
   "variant": "máximo",
-  "status": "falha",
+  "status": "aviso",
   "reasons": [
-   "Orca: OrcaSlicer: Some objects are located over the boundary of the heated bed. (código -52)",
-   "o conjunto arrumado ocupa 610,0 × 309,6 mm: passa da mesa de 256 mm",
-   "\"Tampa\" não cabe na mesa de 256 mm (300,0 × 307,4 × 6,8 mm)",
-   "\"Caixa\" não cabe na mesa de 256 mm (300,0 × 309,6 × 126,5 mm)",
-   "Bambu: a cor 2 (#f8f8f6) não saiu no G-code (o app avisa)",
-   "Projeto Bambu: a cor 2 (#f8f8f6) não saiu no G-code (o app avisa)",
-   "app: A caixa tem 300 mm e passa da mesa de 256 mm: diminua ou imprima numa impressora maior."
+   "o conjunto arrumado ocupa 514,0 × 251,6 mm: passa da mesa de 256 mm",
+   "Bambu: torre de purga em cima de uma peça depois do --arrange do CLI (na tela, arraste a torre ou use Arrumar)",
+   "Orca: torre de purga em cima de uma peça depois do --arrange do CLI (na tela, arraste a torre ou use Arrumar)",
+   "Projeto Bambu: torre de purga em cima de uma peça depois do --arrange do CLI (na tela, arraste a torre ou use Arrumar)",
+   "app: Você pediu uma caixa de 300 × 300 mm, que passa da mesa de 256 mm (a dobradiça sai 10 mm atrás da caixa). Reduzi para 252 × 242 mm para caber. Para uma caixa maior, use uma impressora de mesa maior (Preferências → Impressora das ferramentas) ou faça duas caixas menores."
   ],
   "date": "2026-10-16",
-  "slicers": "Bambu ✓ · Orca ✗ · Projeto Bambu ✓",
-  "minutes": 3,
-  "grams": 0.4,
-  "plates": 1
+  "slicers": "Bambu ✓ · Orca ✓ · Projeto Bambu ✓"
  },
  {
   "key": "organizerBox:mínimo",

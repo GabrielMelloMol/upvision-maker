@@ -127,13 +127,36 @@ function decorLid(ctx: ModelCtx, k: K, p: OrganizerParams, d: Dims, lid: Solid, 
   return { lid: out, extra, elements: dec.elements };
 }
 
-export function buildOrganizerBox(ctx: ModelCtx, p: OrganizerParams): ModelOutput {
+/** Folga que o fatiador pede entre a peça e a borda da mesa (somando os dois lados) e quanto a dobradiça sai atrás da caixa (medido: 9,6 mm). */
+const BED_MARGIN = 4;
+const HINGE_OVERHANG = 10;
+
+/**
+ * A caixa nunca passa da mesa da impressora escolhida (#204): o Orca recusa a peça maior que a mesa. Se a medida pedida
+ * não cabe, a caixa sai no maior tamanho que cabe (a dobradiça sai atrás e entra na conta) e o aviso diz o que mudou.
+ */
+export function fitToBed(p: OrganizerParams, bed: number): { p: OrganizerParams; warning?: string } {
+  const room = bed - BED_MARGIN;
+  const maxW = room, maxD = room - (p.lid === "hinge" ? HINGE_OVERHANG : 0);
+  const d = dimsOf(p);
+  if (d.outerW <= maxW && d.outerD <= maxD) return { p };
+  // `outerW/D` são as medidas de fora ou as de dentro, conforme "Medir": o corte vale para a caixa de fora
+  const trim = p.measure === "inner" ? 2 * p.wall : 0;
+  const fitted = { ...p, ...(d.outerW > maxW ? { outerW: Math.floor(maxW) - trim } : {}), ...(d.outerD > maxD ? { outerD: Math.floor(maxD) - trim } : {}) };
+  const now = dimsOf(fitted);
+  const size = (w: number, h: number) => `${Math.round(w)} × ${Math.round(h)} mm`;
+  const why = p.lid === "hinge" ? ` (a dobradiça sai ${HINGE_OVERHANG} mm atrás da caixa)` : "";
+  return { p: fitted, warning: `Você pediu uma caixa de ${size(d.outerW, d.outerD)}, que passa da mesa de ${bed} mm${why}. Reduzi para ${size(now.outerW, now.outerD)} para caber. Para uma caixa maior, use uma impressora de mesa maior (Preferências → Impressora das ferramentas) ou faça duas caixas menores.` };
+}
+
+export function buildOrganizerBox(ctx: ModelCtx, requested: OrganizerParams): ModelOutput {
+  const fit = fitToBed(requested, bedMm());
+  const p = fit.p;
   const d = dimsOf(p);
   const problem = layoutProblem(p, d.innerW, d.innerD, p.divider);
   if (problem) throw new MissingInput(problem);
   if (p.lid === "hinge" && d.bodyH < latchMinBody(p.lidT, p.floor)) throw new MissingInput(`Para a dobradiça com trava a caixa precisa de pelo menos ${Math.ceil(latchMinBody(p.lidT, p.floor) + p.lidT)} mm de altura total.`);
-  const warnings: string[] = [];
-  if (Math.max(d.outerW, d.outerD) > bedMm()) warnings.push(`A caixa tem ${Math.round(Math.max(d.outerW, d.outerD))} mm e passa da mesa de ${bedMm()} mm: diminua ou imprima numa impressora maior.`);
+  const warnings: string[] = fit.warning ? [fit.warning] : [];
   if (p.wall < 1.6) warnings.push("Parede abaixo de 1,6 mm: a caixa fica frágil e a tampa pode quebrar.");
   if (p.stackable && p.lid === "snap") warnings.push("Empilhável não vale para a tampa de encaixe (ela imprime de cara para baixo): use dobradiça, deslizante ou sem tampa.");
   const built = scoped((k) => (p.lid === "snap" || p.lid === "slide" ? viaLidBox(ctx, k, p, d, warnings) : own(ctx, k, p, d, warnings)));

@@ -1,3 +1,4 @@
+import { mkdirSync } from "node:fs";
 import AxeBuilder from "@axe-core/playwright";
 import type { Page } from "@playwright/test";
 import { strFromU8, unzipSync } from "fflate";
@@ -126,4 +127,19 @@ test("Imagem para divulgar: PNG da caixa fechada com fundo claro, pelo diálogo 
   expect([...png.subarray(0, 4)]).toEqual([0x89, 0x50, 0x4e, 0x47]);
   expect(png.length).toBeGreaterThan(20_000);
   if (process.env.SHOTS_DIR) (await import("node:fs")).writeFileSync(`${process.env.SHOTS_DIR}/imagem-para-divulgar.png`, png);
+});
+
+test("Caixa organizadora: no tamanho máximo a caixa é reduzida para a mesa e o aviso diz o que mudou (#204)", async ({ page }) => {
+  await open(page);
+  await page.getByLabel(/^Largura \(mm\)/).fill("300");
+  await page.getByLabel(/^Profundidade \(mm\)/).fill("300");
+  const note = page.getByText("Você pediu uma caixa de 300 × 300 mm", { exact: false });
+  await expect(note).toBeVisible({ timeout: 120_000 });
+  await expect(note).toContainText("Reduzi para 252 × 242 mm");
+  await expect(note).toContainText("impressora de mesa maior");
+  if (process.env.SHOTS_DIR) {
+    mkdirSync(process.env.SHOTS_DIR, { recursive: true });
+    await note.scrollIntoViewIfNeeded();
+    await page.screenshot({ path: `${process.env.SHOTS_DIR}/aviso-caixa-maximo.png` });
+  }
 });
