@@ -3,6 +3,9 @@ import AxeBuilder from "@axe-core/playwright";
 import type { Page } from "@playwright/test";
 import { expect as baseExpect, go, openApp, settleColors, test, toastWith } from "./tauri";
 
+// cada teste abre o app, calcula o corte no worker (WASM próprio) e, às vezes, espera a câmera: com a máquina em carga passa dos 60 s padrão
+test.describe.configure({ timeout: 180_000 });
+
 // o corte roda em worker com WASM próprio: com muitos testes em paralelo o cálculo demora mais que os 5 s padrão
 const expect = baseExpect.configure({ timeout: 30_000 });
 
@@ -11,16 +14,20 @@ const idle = async (page: Page) => {
   await expect(page.locator(".viewer .overlay.busy")).toHaveCount(0, { timeout: 60_000 });
   await expect(page.locator(".viewer .busy-chip")).toHaveCount(0, { timeout: 60_000 });
 };
-/** Espera as alças pararem na tela (a câmera termina de pousar) antes de arrastar. */
+/**
+ * Espera a alça `id` aparecer e parar na tela (a câmera termina de pousar) antes de arrastar. As alças só existem depois
+ * que o corte calcula (e `idle` pode passar antes de o cálculo começar, no debounce): `{}` não vale como "parada".
+ */
 async function handlesAt(page: Page, id: string): Promise<[number, number]> {
   let last = "";
-  for (let i = 0; i < 40; i++) {
+  for (let i = 0; i < 100; i++) {
     const now = (await page.locator(".viewer").getAttribute("data-handles")) ?? "";
-    if (now && now === last) return (JSON.parse(now) as Record<string, [number, number]>)[id];
+    const at = now ? (JSON.parse(now) as Record<string, [number, number]>)[id] : undefined;
+    if (at && now === last) return at;
     last = now;
     await page.waitForTimeout(300);
   }
-  throw new Error("as alças não assentaram");
+  throw new Error(`a alça ${id} não apareceu e assentou`);
 }
 const STL = resolve("tests/fixtures/stl/personagem-arvore.stl");
 const set = (page: Page, label: RegExp, v: number) => page.getByLabel(label).fill(String(v));
