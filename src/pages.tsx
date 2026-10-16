@@ -38,6 +38,7 @@ const ColorSplit = lazy(() => import("./tools/ColorSplit"));
 const OwnDecal = lazy(() => import("./tools/OwnDecal"));
 const PartialCut = lazy(() => import("./tools/PartialCut"));
 const Mold = lazy(() => import("./tools/Mold"));
+const BedCut = lazy(() => import("./tools/BedCut"));
 const ModelSearch = lazy(() => import("./tools/ModelSearch"));
 const ScadCustomizer = lazy(() => import("./tools/ScadCustomizer"));
 const MyProjects = lazy(() => import("./tools/projects/MyProjects"));
@@ -95,6 +96,7 @@ const ALL: PageDef[] = [
   { id: "owndecal", section: "create", label: "Nome ou logo no seu modelo", group: "Ferramentas", icon: Sticker, blurb: "Nome ou logo em qualquer superfície, curva ou plana.", render: () => <OwnDecal /> },
   { id: "partialcut", section: "create", label: "Corte parcial", group: "Ferramentas", icon: Scissors, blurb: "Corta só um pedaço do STL ou 3MF, dentro de uma caixa, com pino de encaixe.", render: () => <PartialCut /> },
   { id: "mold", section: "create", label: "Molde a partir de STL", group: "Ferramentas", icon: SquareSplitHorizontal, blurb: "Seu STL vira um molde de duas metades, com pinos, canal de vazamento e respiros.", render: () => <Mold /> },
+  { id: "bedcut", section: "create", label: "Cortar para caber na mesa", group: "Ferramentas", icon: Scissors, blurb: "STL grande vira pedaços com encaixe, numerados.", render: () => <BedCut /> },
   { id: "scad", section: "create", label: "Modelo personalizável (OpenSCAD)", group: "Ferramentas", icon: Braces, blurb: "Arquivo .scad do Customizer vira formulário e 3MF.", render: () => <ScadCustomizer /> },
   { id: "search3d", section: "create", label: "Buscar modelos na internet", group: "Ferramentas", icon: Globe, blurb: "Printables, MakerWorld, Thingiverse, Cults3D e Thangs; licenças.", render: (go) => <ModelSearch go={go} /> },
   { id: "ai", section: "create", label: "Pedir à IA", group: "Ferramentas", icon: Bot, blurb: "Descreva a peça e o Claude modela (pago por uso).", render: (go) => <AskAI go={go} /> },

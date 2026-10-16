@@ -2,6 +2,7 @@ import { readFileSync } from "node:fs";
 import { join } from "node:path";
 import { qrMatrix } from "../domain/qr";
 import { nearestTriangle } from "../geometry/colorRegions";
+import { bedCut, DEFAULT_BEDCUT, type BedCutOptions } from "../geometry/bedCut";
 import { splitByColor } from "../geometry/colorSplit";
 import { cutInParts } from "../geometry/planeCut";
 import { colorMesh3mf } from "../test/colorCube";
@@ -291,6 +292,14 @@ export function toolCases(M: ManifoldToplevel): QaCase[] {
     return { models: c.models, warnings: [...out.warnings, ...c.warnings] };
   };
 
+  // peça grande cortada para a mesa (#218): blocos maiores que a mesa de 256, com cada encaixe e os números das juntas
+  const bedCutCase = async (x: number, y: number, z: number, o: Partial<BedCutOptions> = {}): Promise<Out> => {
+    const f = await loadFont("hanken");
+    const block: Model = { name: "Peça grande", parts: [{ name: "Peça", color: "#d4d4d8", mesh: toMesh(M.Manifold.cube([x, y, z], false)) }] };
+    const out = bedCut(M, block, { ...DEFAULT_BEDCUT, ...o }, f);
+    return { models: out.models, warnings: out.warnings };
+  };
+
   // corte parcial: "personagem + árvore" (dois blocos separados), corta só o topo do primeiro
   const partial = (patch: Partial<PartialCutOptions>): Out => {
     const scene: Model = { name: "Cena", parts: [{ name: "Peça", color: "#d4d4d8", mesh: toMesh(M.Manifold.union([M.Manifold.cube([20, 20, 40]), M.Manifold.cube([20, 20, 40]).translate([40, 0, 0])])) }] };
@@ -359,6 +368,12 @@ export function toolCases(M: ManifoldToplevel): QaCase[] {
       ["copo: relevo curvo", () => curved("copo", "raised")],
       ["copo: gravado curvo", () => curved("copo", "engraved")],
       ["esfera: embutido curvo", () => curved("esfera", "inlay")],
+    ]),
+    ...cases("bedcut", "Cortar para caber na mesa", [
+      ["pino redondo (2 pedaços)", () => bedCutCase(300, 150, 60)],
+      ["ímã", () => bedCutCase(300, 150, 60, { joint: "magnet" })],
+      ["rabo de andorinha", () => bedCutCase(300, 150, 60, { joint: "dovetail" })],
+      ["3 eixos com números", () => bedCutCase(520, 300, 90, { joint: "square" })],
     ]),
     ...cases("medal", "Medalha", [
       ["padrão", () => medal({})],
