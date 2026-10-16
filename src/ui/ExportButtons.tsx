@@ -3,8 +3,9 @@ import { open } from "@tauri-apps/plugin-dialog";
 import { writeFile } from "@tauri-apps/plugin-fs";
 import { openUrl } from "@tauri-apps/plugin-opener";
 import { Download, ExternalLink } from "lucide-react";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { AMS_LABEL, amsNeed, platesByColor } from "../geometry/amsNeed";
+import { MAX_PLATES, platesNeeded, splitIntoLots } from "../geometry/bedLayout";
 import { bambuProject } from "../geometry/bambuProject";
 import { mergeClosest } from "../geometry/colorMatch";
 import { printPlan, type PrintMode } from "../geometry/printPlan";
@@ -30,6 +31,7 @@ const loadSlicer = async (db: Db): Promise<InstalledSlicer | null> => pickSlicer
 
 /** "plates" (#118): cada cor numa mesa própria, para montar ou colar depois (sem AMS e sem pausas). */
 export type Mode = PrintMode | "plates";
+const MANY_STL = 4; // acima disso os STL por peça ficam numa lista recolhida
 const MODES: [Mode, string][] = [
   ["ams", "Multicor"],
   ["manual", "Com pausas"],
@@ -100,6 +102,35 @@ export default function ExportButtons({ models: input, name, busy, pauses: input
       const plates = platesByColor(input);
       for (const [i, p] of plates.entries()) await writeFile(await join(dir, `${slug(name)}-cor-${i + 1}.3mf`), write3mf(p.models, { profile }));
       toast(`${plates.length} mesas salvas em ${dir} (uma por cor).`);
+      onSaved?.(name);
+    } catch (e) {
+      toast(`Não foi possível salvar: ${errorText(e)}`, "error");
+    }
+  }
+
+  /** Passou de 36 mesas (limite do Bambu Studio e do Orca): vários 3MF, cada um com até 36 (#225). */
+  const overLimit = useMemo(() => platesNeeded(input) > MAX_PLATES, [input]);
+  const lots = overLimit ? splitIntoLots(models) : [models];
+  const manyLots = lots.length > 1;
+  async function saveLots() {
+    try {
+      const dir = await open({ directory: true, multiple: false, title: `Pasta para os ${lots.length} lotes` });
+      if (typeof dir !== "string") return;
+      for (const [i, lot] of lots.entries()) await writeFile(await join(dir, `${slug(name)}-lote-${i + 1}-de-${lots.length}.3mf`), write3mf(lot, { pauses, profile, slots }));
+      toast(`${lots.length} lotes salvos em ${dir}.`);
+      onSaved?.(name);
+    } catch (e) {
+      toast(`Não foi possível salvar: ${errorText(e)}`, "error");
+    }
+  }
+
+  /** Muitas peças: um STL de cada, todos numa pasta só (em vez de dezenas de botões). */
+  async function saveAllStl() {
+    try {
+      const dir = await open({ directory: true, multiple: false, title: `Pasta para os ${models.length} STL` });
+      if (typeof dir !== "string") return;
+      for (const m of models) await writeFile(await join(dir, `${slug(`${name}-${m.name}`)}.stl`), writeStl([m]));
+      toast(`${models.length} STL salvos em ${dir}.`);
       onSaved?.(name);
     } catch (e) {
       toast(`Não foi possível salvar: ${errorText(e)}`, "error");
@@ -192,21 +223,29 @@ export default function ExportButtons({ models: input, name, busy, pauses: input
           ))}
         </ul>
       )}
+      {!perColor && manyLots && !busy && (
+        <>
+          <Alert kind="warn">Este projeto tem mais mesas do que o Bambu Studio e o OrcaSlicer aceitam ({MAX_PLATES}): um 3MF só não abre direito no fatiador. Salve em {lots.length} arquivos e imprima um de cada vez.</Alert>
+          <button className={secondary ? undefined : "action"} disabled={disabled} onClick={() => void saveLots()}>
+            <Download aria-hidden /> Salvar em lotes ({lots.length} arquivos)
+          </button>
+        </>
+      )}
       {perColor ? (
         <button className={secondary ? undefined : "action"} disabled={busy || input.length === 0} onClick={() => void savePlates()}>
           <Download aria-hidden /> Salvar uma mesa por cor ({colorCount} arquivos)
         </button>
       ) : (
-        <button className={secondary ? undefined : "action"} disabled={disabled} onClick={() => save(`${slug(name)}.3mf`, async () => write3mf(models, { pauses, profile, slots }), "3mf", "3MF")}>
-          <Download aria-hidden /> Salvar 3MF{hasPauses ? " (Orca / Prusa)" : ""}
+        <button className={secondary || manyLots ? undefined : "action"} disabled={disabled} onClick={() => save(`${slug(name)}.3mf`, async () => write3mf(models, { pauses, profile, slots }), "3mf", "3MF")}>
+          <Download aria-hidden /> Salvar 3MF{manyLots ? " único (passa do limite)" : hasPauses ? " (Orca / Prusa)" : ""}
         </button>
       )}
-      {!perColor && slicer && (
+      {!perColor && !manyLots && slicer && (
         <button disabled={disabled || opening} onClick={() => void openSlicer()}>
           <ExternalLink aria-hidden /> {opening ? `Abrindo no ${slicer.name}…` : `Abrir no ${slicer.name}`}
         </button>
       )}
-      {!perColor && !slicer && !slicerLoading && (
+      {!perColor && !manyLots && !slicer && !slicerLoading && (
         <span className="hint">
           Para abrir direto no fatiador, instale o{" "}
           {Object.values(SLICER_DOWNLOADS).map((d, i, all) => (
@@ -252,6 +291,20 @@ export default function ExportButtons({ models: input, name, busy, pauses: input
           <button className="link" disabled={disabled} onClick={() => save(`${slug(name)}.stl`, async () => writeStl(models), "stl", "STL")}>
             Salvar STL
           </button>
+        ) : models.length > MANY_STL ? (
+          <>
+            <button className="link" disabled={disabled} onClick={() => void saveAllStl()}>
+              Salvar todos os STL em uma pasta ({models.length} arquivos)
+            </button>
+            <details className="stl-list">
+              <summary>ver todos</summary>
+              {models.map((m) => (
+                <button key={m.name} className="link" disabled={disabled} onClick={() => save(`${slug(`${name}-${m.name}`)}.stl`, async () => writeStl([m]), "stl", "STL")}>
+                  STL {m.name.toLowerCase()}
+                </button>
+              ))}
+            </details>
+          </>
         ) : (
           models.map((m) => (
             <button key={m.name} className="link" disabled={disabled} onClick={() => save(`${slug(`${name}-${m.name}`)}.stl`, async () => writeStl([m]), "stl", "STL")}>

@@ -51,7 +51,7 @@ async function build(c: QaCase): Promise<Built> {
   const fails = problems.filter((p) => p.kind === "fail" && !(bedWarned && isBed(p.msg))).map((p) => p.msg);
   const warns = problems.filter((p) => p.kind === "warn" || (bedWarned && isBed(p.msg))).map((p) => p.msg);
   // o app avisa que são mais mesas que o fatiador aceita num projeto (36): as peças que sobram ficam fora da mesa no CLI
-  const lotsWarned = out.warnings.some((w) => /imprima em lotes/.test(w));
+  const lotsWarned = out.warnings.some((w) => /Salvar em lotes/.test(w));
   const notes = out.warnings.map((w) => `app: ${w}`); // o que o app já mostra na tela: vai no relatório, não muda o resultado
   const bytes = write3mf(out.models, { pauses: out.pauses, profile: c.profile });
   const colors = new Set(modelColors(out.models));

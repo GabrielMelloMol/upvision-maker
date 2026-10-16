@@ -34,19 +34,42 @@ export function setOnBedWarning(models: Model[]): string | null {
 export const MAX_PLATES = 36;
 const PACK_EFFICIENCY = 0.7; // aproveitamento da mesa ao arrumar caixas (peça que sobra de lado não encaixa)
 
+/** Área da caixa de uma peça (para estimar as mesas). */
+const footprint = (m: Model) => {
+  const b = meshBounds(m.parts.map((p) => p.mesh));
+  return b ? (b.max[0] - b.min[0]) * (b.max[1] - b.min[1]) : 0;
+};
+const platesOf = (area: number) => Math.ceil(area / (bedMm() ** 2 * PACK_EFFICIENCY));
+
 /** Mesas (estimativa) para imprimir todas as peças: soma das caixas de cada uma sobre a área útil da mesa. */
 export function platesNeeded(models: Model[]): number {
-  const bed = bedMm();
-  let area = 0;
-  for (const m of models) {
-    const b = meshBounds(m.parts.map((p) => p.mesh));
-    if (b) area += (b.max[0] - b.min[0]) * (b.max[1] - b.min[1]);
-  }
-  return Math.ceil(area / (bed * bed * PACK_EFFICIENCY));
+  return platesOf(models.reduce((a, m) => a + footprint(m), 0));
 }
 
 /** Aviso quando as peças pedem mais mesas que o fatiador aceita num projeto: imprimir por lotes. */
 export function platesLimitWarning(models: Model[]): string | null {
   const n = platesNeeded(models);
-  return n > MAX_PLATES ? `São ${models.length} peças, umas ${n} mesas de ${bedMm()} mm: mais que as ${MAX_PLATES} que o Bambu Studio e o OrcaSlicer aceitam num projeto. Salve e imprima em lotes (por exemplo, uma ou duas letras de cada vez) ou diminua a altura ou o texto.` : null;
+  return n > MAX_PLATES ? `São ${models.length} peças, umas ${n} mesas de ${bedMm()} mm: mais que as ${MAX_PLATES} que o Bambu Studio e o OrcaSlicer aceitam num projeto. Use "Salvar em lotes" para dividir em vários arquivos de até ${MAX_PLATES} mesas, ou diminua a altura ou o texto.` : null;
+}
+
+/**
+ * Divide as peças em lotes de até `MAX_PLATES` mesas cada (estimativa de `platesNeeded`), na ordem em que vêm: cada
+ * lote vira um 3MF que o fatiador aceita. Uma peça que sozinha passa do limite fica num lote só dela.
+ */
+export function splitIntoLots(models: Model[], maxPlates = MAX_PLATES): Model[][] {
+  const lots: Model[][] = [];
+  let cur: Model[] = [];
+  let area = 0;
+  for (const m of models) {
+    const a = footprint(m);
+    if (cur.length && platesOf(area + a) > maxPlates) {
+      lots.push(cur);
+      cur = [];
+      area = 0;
+    }
+    cur.push(m);
+    area += a;
+  }
+  if (cur.length) lots.push(cur);
+  return lots;
 }

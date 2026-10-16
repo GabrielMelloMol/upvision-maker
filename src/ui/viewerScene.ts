@@ -38,6 +38,12 @@ const MIN_TILT = 0.08;
  * Distância para a esfera de raio `r` caber inteira na tela, pelo menor campo de visão (vertical ou horizontal).
  * Modelos largos e baixos (etiquetas, placas) dependem do horizontal quando a prévia é estreita.
  */
+/** Planos de corte da câmera para uma cena de alcance `reach` (mm): nunca abaixo do padrão; cenas gigantes alargam os dois. */
+export function clipPlanes(reach: number): { near: number; far: number } {
+  const far = Math.max(5000, reach * 2);
+  return { near: Math.max(0.1, far / 50000), far };
+}
+
 export function fitDistance(r: number, vfovDeg: number, aspect: number): number {
   const v = (vfovDeg * Math.PI) / 180;
   const h = 2 * Math.atan(Math.tan(v / 2) * Math.max(aspect, 0.01));
@@ -212,6 +218,15 @@ export function createViewer(el: HTMLElement) {
     return line;
   }
 
+  /** Cenas enormes (dezenas de mesas lado a lado) passam do plano de corte padrão e a prévia ficava em branco. */
+  function clipFor(box: THREE.Box3, to: THREE.Vector3) {
+    const reach = to.distanceTo(box.getCenter(new THREE.Vector3())) + box.getSize(new THREE.Vector3()).length();
+    const { near, far } = clipPlanes(reach);
+    camera.near = near;
+    camera.far = far;
+    camera.updateProjectionMatrix();
+  }
+
   function frame(wasEmpty: boolean) {
     const box = new THREE.Box3().setFromObject(group);
     if (box.isEmpty()) return;
@@ -223,6 +238,7 @@ export function createViewer(el: HTMLElement) {
     lastSize = size;
     lastCenter.copy(center);
         const to = center.clone().add(VIEW_DIR.clone().multiplyScalar(Math.max(fitDistance(MIN_RADIUS, camera.fov, camera.aspect), fitBoxDistance(box, camera.fov, camera.aspect))));
+    clipFor(box, to);
     if (reducedMotion()) {
       camera.position.copy(to);
       controls.target.copy(center);
@@ -313,6 +329,7 @@ export function createViewer(el: HTMLElement) {
       const to = center.clone().add(dir.clone().multiplyScalar(Math.max(fitDistance(MIN_RADIUS, camera.fov, camera.aspect), fitBoxDistance(box, camera.fov, camera.aspect, dir))));
       lastCenter.copy(center);
       lastSize = box.getSize(new THREE.Vector3()).length();
+      clipFor(box, to);
       if (reducedMotion()) {
         camera.position.copy(to);
         controls.target.copy(center);

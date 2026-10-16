@@ -4,7 +4,7 @@ import * as THREE from "three";
 import { afterEach, beforeEach, describe, expect, test, vi } from "vitest";
 import type { Mesh, Model } from "../geometry/types";
 import Preview3D from "./Preview3D";
-import { createViewer, fitBoxDistance, fitDistance, VIEWS } from "./viewerScene";
+import { createViewer, fitBoxDistance, clipPlanes, fitDistance, VIEWS } from "./viewerScene";
 
 // happy-dom não tem WebGL: renderer falso que registra onde a câmera estava a cada quadro.
 const gl = vi.hoisted(() => ({ renders: [] as { x: number; y: number; z: number }[], sizes: [] as [number, number][], disposed: 0, contextLost: 0 }));
@@ -318,5 +318,15 @@ describe("botões de vista: nenhuma câmera degenerada (#244)", () => {
   test("a vista de cima não é exatamente vertical (o 'up' Z nunca fica paralelo à direção)", () => {
     const top = VIEWS.top.clone().normalize();
     expect(Math.abs(top.dot(new THREE.Vector3(0, 0, 1)))).toBeLessThan(0.99999);
+  });
+});
+
+describe("planos de corte da câmera", () => {
+  test("cena normal fica no padrão; cena de dezenas de mesas alarga, senão a prévia fica em branco (#225)", () => {
+    expect(clipPlanes(300)).toEqual({ near: 0.1, far: 5000 });
+    const huge = clipPlanes(40_000); // 16 m de largura, câmera longe
+    expect(huge.far).toBeGreaterThanOrEqual(80_000);
+    expect(huge.near).toBeGreaterThan(0.1);
+    expect(huge.far / huge.near).toBeLessThanOrEqual(50_000); // a precisão da profundidade não se perde
   });
 });
