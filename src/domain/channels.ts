@@ -1,3 +1,4 @@
+import { AMAZON_2026, ML_PREMIUM_2026, SHEIN_2026 } from "./channelDefaults";
 import type { Channel } from "./settings";
 
 /**
@@ -5,10 +6,10 @@ import type { Channel } from "./settings";
  * plataforma (a comissão varia por categoria e tipo de anúncio): são ponto de partida, a pessoa confere e ajusta.
  */
 export const CHANNEL_PRESETS: Channel[] = [
-  { name: "Mercado Livre (premium)", feePct: 17, feeFixed: 6.75, fixedBelow: 79 }, // premium 15–19%; custo fixo só abaixo de R$ 79
-  { name: "Amazon", feePct: 15, feeFixed: 0 }, // 8–15% conforme a categoria
-  { name: "Elo7", feePct: 18, feeFixed: 0 },
-  { name: "Shein", feePct: 16, feeFixed: 0 },
+  ML_PREMIUM_2026, // premium 15–19%; custo por unidade por faixa abaixo de R$ 79 e frete a partir dele
+  AMAZON_2026, // 10–15% conforme a categoria
+  SHEIN_2026, // o Elo7 encerrou as operações em 11/05/2026 e saiu dos canais prontos
+
   { name: "Instagram/WhatsApp (maquininha)", feePct: 4, feeFixed: 0 }, // taxa do cartão de crédito à vista
 ];
 

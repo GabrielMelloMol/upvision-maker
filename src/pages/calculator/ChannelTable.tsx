@@ -12,7 +12,7 @@ const pct = (n: number) => `${n.toLocaleString("pt-BR", { maximumFractionDigits:
 
 /** Preço em cada canal lado a lado, com lucro líquido depois das taxas e alertas (nunca só por cor). */
 /** `stale`: aviso de taxas não conferidas há mais de 90 dias, por nome de canal (#34). */
-export default function ChannelTable({ rows, minMarginPct, target, stale = {}, children }: { rows: ChannelRow[]; minMarginPct: number; target: number; stale?: Record<string, string>; children: React.ReactNode }) {
+export default function ChannelTable({ rows, minMarginPct, target, stale = {}, notes = {}, children }: { rows: ChannelRow[]; minMarginPct: number; target: number; stale?: Record<string, string>; /** Data e origem das taxas por faixa de preço, por nome de canal (#242). */ notes?: Record<string, string>; children: React.ReactNode }) {
   const comp = rows.some((x) => x.atCompetitor);
   const perHour = rows.some((x) => x.profitPerHour !== null);
   const byTarget = rows.some((x) => x.targetPrice !== null);
@@ -46,7 +46,9 @@ export default function ChannelTable({ rows, minMarginPct, target, stale = {}, c
                 {c.name} {c.best && <span className="badge ok"><Trophy aria-hidden size={12} /> melhor lucro</span>}
                 {stale[c.name] && <span className="badge warn"><TriangleAlert aria-hidden size={12} /> {stale[c.name]}</span>}
                 {c.shippingIncluded && <span className="badge warn" title="Neste preço o frete fica por sua conta (faixas de preço do canal, Preferências)"><TriangleAlert aria-hidden size={12} /> frete obrigatório neste preço</span>}
+                {c.roundedBelow !== null && <span className="badge ok" title="O arredondamento para cima cairia numa faixa em que o canal cobra mais"><TriangleAlert aria-hidden size={12} /> arredondado para baixo: a {money(c.roundedBelow)} as taxas do canal mudam</span>}
                 {c.belowMin && <span className="badge warn" title={`Margem mínima: ${pct(minMarginPct)} (Preferências)`}><TriangleAlert aria-hidden size={12} /> abaixo da margem mínima</span>}
+                {notes[c.name] && <small className="hint channel-note">{notes[c.name]}</small>}
               </td>
               {c.price === null ? (
                 <td className="num" colSpan={perHour ? 5 : 4}>Taxa + margem passam de 100%</td>

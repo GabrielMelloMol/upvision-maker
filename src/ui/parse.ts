@@ -23,6 +23,18 @@ export function numberNote(text: string): string | undefined {
   return undefined;
 }
 
+/**
+ * Número solto como tempo de impressão passa de 24 h (M3): "90" vale 90 horas, mas quase sempre eram minutos. Devolve o aviso
+ * ("90 horas? Se eram minutos, escreva 90 min.") ou undefined. Com unidade ("90 min", "3h", "1:30") não há dúvida.
+ */
+export function bareHoursNote(text: string): string | undefined {
+  const s = text.trim();
+  if (!/^\d+([.,]\d+)?$/.test(s)) return undefined;
+  const hours = readNumber(s).value;
+  if (!(hours > 24)) return undefined;
+  return `${s} horas? Se eram minutos, escreva ${s} min.`;
+}
+
 /** Minutos. Número solto vale `bare` (padrão horas: "3" = 3 h; mão de obra usa "min"). */
 export function parseDuration(raw: string, bare: "h" | "min" = "h"): number {
   const s = raw.trim().toLowerCase().replace(/\s+/g, "");

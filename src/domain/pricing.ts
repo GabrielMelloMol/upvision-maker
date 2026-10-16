@@ -1,4 +1,4 @@
-import { channelFees, channelPrice, type CalcResult } from "./calc";
+import { channelFees, channelPrice, feeCuts, type CalcResult } from "./calc";
 import { money, round2 } from "./format";
 import type { Channel, Settings } from "./settings";
 
@@ -19,6 +19,29 @@ export function roundPrice(p: number, mode: Rounding): number {
   const end = mode === "90" ? 0.9 : 0.99;
   const k = Math.floor(p);
   return round2(k + end >= p - EPS ? k + end : k + 1 + end);
+}
+
+/** O maior preço terminado no final escolhido que fica abaixo de `cut` (78,90 / 78,99 / 78 para o limite de R$ 79). */
+function largestBelow(cut: number, mode: Rounding): number {
+  if (mode === "int") return Math.ceil(cut - EPS) - 1;
+  const end = mode === "90" ? 0.9 : 0.99;
+  const k = Math.floor(cut);
+  return round2(k + end < cut - EPS ? k + end : k - 1 + end);
+}
+
+/**
+ * Arredondamento que não joga o preço numa faixa pior (A2): se subir ao final escolhido cruza um limite do canal (o frete
+ * por conta de quem vende a partir de R$ 79, outra faixa de taxa) e o lucro cai, fica no final logo abaixo do limite.
+ * `below` = o limite que o preço evitou (para avisar), ou null.
+ */
+export function roundForChannel(suggested: number, mode: Rounding, c: Channel, taxPct: number, cost: number, freight: number): { price: number; below: number | null } {
+  const rounded = roundPrice(suggested, mode);
+  if (mode === "none" || rounded <= suggested + EPS) return { price: rounded, below: null };
+  const cut = feeCuts(c).find((x) => x > suggested + EPS && x <= rounded + EPS);
+  if (cut === undefined) return { price: rounded, below: null };
+  const profit = (p: number) => p - channelFees(c, p, taxPct) - cost - freight;
+  const under = largestBelow(cut, mode);
+  return under > 0 && profit(under) > profit(rounded) ? { price: under, below: cut } : { price: rounded, below: null };
 }
 
 /** Os dois preços do multiplicador, com nomes e explicação que a usuária entende (feedback real, #22). */
@@ -47,6 +70,8 @@ export type ChannelRow = {
   targetPrice: number | null;
   /** Neste preço entra o frete obrigatório do canal (faixas de preço, #31). */
   shippingIncluded: boolean;
+  /** O arredondamento ficou abaixo deste limite do canal para não cair numa faixa pior (A2); null = arredondou normal. */
+  roundedBelow: number | null;
 };
 
 /** Taxas, lucro líquido e margem de um preço num canal. */
@@ -84,10 +109,10 @@ export function compareChannels(r: CalcResult, s: Settings, freight: number, opt
     const tp = target > 0 ? channelPrice(b.cfg, r.unitCost + target + freight, 0, s.taxPct) : null;
     const targetPrice = tp === null ? null : roundPrice(tp, opts.rounding);
     if (b.suggested === null)
-      return { name: b.name, price: null, fees: 0, profit: 0, marginPct: 0, loss: false, profitPerHour: null, belowMin: false, best: false, atCompetitor: atComp, targetPrice, shippingIncluded: false };
-    const price = roundPrice(b.suggested, opts.rounding);
+      return { name: b.name, price: null, fees: 0, profit: 0, marginPct: 0, loss: false, profitPerHour: null, belowMin: false, best: false, atCompetitor: atComp, targetPrice, shippingIncluded: false, roundedBelow: null };
+    const { price, below } = roundForChannel(b.suggested, opts.rounding, b.cfg, s.taxPct, r.unitCost, freight);
     const m = at(price, b.cfg, s.taxPct, r.unitCost, freight, hoursPerUnit);
-    return { name: b.name, ...m, belowMin: !m.loss && m.marginPct < s.minMarginPct, best: false, atCompetitor: atComp, targetPrice, shippingIncluded: ships(b.cfg, price) };
+    return { name: b.name, ...m, belowMin: !m.loss && m.marginPct < s.minMarginPct, best: false, atCompetitor: atComp, targetPrice, shippingIncluded: ships(b.cfg, price), roundedBelow: below };
   });
   const priced = rows.filter((x) => x.price !== null);
   const top = priced.reduce<ChannelRow | null>((a, b) => (!a || b.profit > a.profit ? b : a), null);
@@ -134,7 +159,7 @@ export function quantityTable(r: CalcResult, s: Settings, o: { channel: string; 
   const rows = QUANTITIES.map((qty) => {
     const extra = o.prep / qty;
     const raw = priceAt(extra);
-    const price = raw === null ? null : roundPrice(raw, o.rounding);
+    const price = raw === null ? null : cfg ? roundForChannel(raw, o.rounding, cfg, s.taxPct, r.unitCost + extra, o.freight).price : roundPrice(raw, o.rounding);
     const unitCost = round2(r.unitCost + extra);
     const m = price === null ? null : at(price, fees, s.taxPct, unitCost, o.freight, 0);
     return { qty, unitCost, price, marginPct: m?.marginPct ?? 0, belowMin: !!m && !m.loss && m.marginPct < s.minMarginPct, loss: !!m?.loss };

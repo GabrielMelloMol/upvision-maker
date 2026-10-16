@@ -17,7 +17,8 @@ const BANDS = [
 /** Campos opcionais do canal: vazio = não se aplica. */
 const OPTIONAL = [["extraPerSale", "Custo extra por venda"], ...BANDS] as const;
 type OptionalKey = (typeof OPTIONAL)[number][0];
-export type ChannelForm = { name: string; feePct: string; feeFixed: string; checkedAt: string } & Record<OptionalKey, string>;
+export type TierForm = { from: string; feePct: string; feeFixed: string };
+export type ChannelForm = { name: string; feePct: string; feeFixed: string; checkedAt: string; rulesNote: string; tiers: TierForm[] } & Record<OptionalKey, string>;
 
 const str = (n: number) => String(n).replace(".", ",");
 const dateBr = (iso: string) => iso.split("-").reverse().join("/");
@@ -28,6 +29,8 @@ export const toChannelForm = (c: Channel): ChannelForm =>
     feePct: str(c.feePct),
     feeFixed: formatMoneyInput(String(c.feeFixed)),
     checkedAt: c.checkedAt ?? "",
+    rulesNote: c.rulesNote ?? "",
+    tiers: (c.tiers ?? []).map((t) => ({ from: formatMoneyInput(String(t.from)), feePct: str(t.feePct), feeFixed: formatMoneyInput(String(t.feeFixed)) })),
     ...Object.fromEntries(OPTIONAL.map(([k]) => [k, c[k] === undefined ? "" : formatMoneyInput(String(c[k]))])),
   }) as ChannelForm;
 
@@ -37,6 +40,9 @@ export const fromChannelForm = (c: ChannelForm) => ({
   feeFixed: parseMoney(c.feeFixed),
   ...Object.fromEntries(OPTIONAL.flatMap(([k]) => (c[k].trim() === "" ? [] : [[k, parseMoney(c[k])]]))), // vazio = não se aplica
   ...(c.checkedAt ? { checkedAt: c.checkedAt } : {}),
+  ...(c.rulesNote.trim() ? { rulesNote: c.rulesNote.trim() } : {}),
+  // faixa sem "a partir de" é linha em branco: não entra
+  ...(c.tiers.some((t) => t.from.trim()) ? { tiers: c.tiers.filter((t) => t.from.trim()).map((t) => ({ from: parseMoney(t.from), feePct: parseDecimal(t.feePct), feeFixed: parseMoney(t.feeFixed) })) } : {}),
 });
 
 type Props = { channels: ChannelForm[]; setChannels: (c: ChannelForm[]) => void; error?: string };
@@ -47,6 +53,7 @@ export default function ChannelsCard({ channels, setChannels, error }: Props) {
   // mexer numa taxa conta como conferir o canal hoje
   const setChannel = (i: number, k: keyof ChannelForm, v: string) =>
     setChannels(channels.map((c, j) => (j === i ? { ...c, [k]: v, ...(k === "name" ? {} : { checkedAt: today }) } : c)));
+  const setTiers = (i: number, tiers: TierForm[]) => setChannels(channels.map((c, j) => (j === i ? { ...c, tiers, checkedAt: today } : c)));
   const presets = CHANNEL_PRESETS.filter((p) => !channels.some((c) => c.name.trim().toLowerCase() === p.name.toLowerCase()));
 
   return (
@@ -73,8 +80,21 @@ export default function ChannelsCard({ channels, setChannels, error }: Props) {
                 </button>
               )}
             </p>
-            <details style={{ marginBottom: "var(--space-3)" }}>
-              <summary>Faixas de preço{BANDS.some(([k]) => c[k].trim()) ? " (em uso)" : ""}</summary>
+            {c.rulesNote && <p className="hint">{c.rulesNote}</p>}
+            <details style={{ marginBottom: "var(--space-3)" }} open={c.tiers.length > 0}>
+              <summary>Faixas de preço{BANDS.some(([k]) => c[k].trim()) || c.tiers.length > 0 ? " (em uso)" : ""}</summary>
+              <p className="hint">Taxas por faixa: a comissão e a taxa fixa acima valem até a primeira faixa; a partir do preço de cada linha valem as dela.</p>
+              {c.tiers.map((t, k) => (
+                <div key={k} className="row line tier-line">
+                  <MoneyField label={`A partir de (faixa ${k + 1}, ${c.name || "canal"})`} value={t.from} onChange={(v) => setTiers(i, c.tiers.map((x, j) => (j === k ? { ...x, from: v } : x)))} />
+                  <label>Comissão (%) da faixa {k + 1} ({c.name || "canal"})<input inputMode="decimal" value={t.feePct} onChange={(e) => setTiers(i, c.tiers.map((x, j) => (j === k ? { ...x, feePct: e.target.value } : x)))} /></label>
+                  <MoneyField label={`Taxa fixa da faixa ${k + 1} (${c.name || "canal"})`} value={t.feeFixed} onChange={(v) => setTiers(i, c.tiers.map((x, j) => (j === k ? { ...x, feeFixed: v } : x)))} />
+                  <button type="button" className="link danger" onClick={() => setTiers(i, c.tiers.filter((_, j) => j !== k))}>Remover faixa {k + 1} ({c.name || "canal"})</button>
+                </div>
+              ))}
+              <button type="button" className="sm" onClick={() => setTiers(i, [...c.tiers, { from: "", feePct: c.feePct, feeFixed: c.feeFixed }])}>
+                <Plus aria-hidden /> Adicionar faixa de preço ({c.name || "canal"})
+              </button>
               <p className="hint">Quando as taxas mudam com o preço: por exemplo, a taxa fixa só vale abaixo de um valor e, acima dele, o frete fica por sua conta. Deixe em branco o que não se aplica.</p>
               <div className="grid">
                 {BANDS.map(([k, label]) => (

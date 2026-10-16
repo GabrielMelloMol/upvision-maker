@@ -47,11 +47,11 @@ function ctx(products: Product[], fil = [filament(1, 85)]): ProductCtx {
 const luminaria = product(1, { composition: { filaments: [{ filamentId: 1, grams: 120 }], materials: [{ materialId: 1, qty: 1 }], items: [] } });
 
 describe("preço do produto", () => {
-  test("mesmo resultado da calculadora (exemplo da home: R$ 15,96 / 47,88 / 79,80)", () => {
+  test("mesmo resultado da calculadora (exemplo da home: R$ 15,71 / 47,13 / 78,55)", () => {
     const { result } = productPricing(luminaria, ctx([luminaria]));
-    expect(result.unitCost).toBe(15.96);
-    expect(result.resale).toBe(47.88);
-    expect(result.consumer).toBe(79.8);
+    expect(result.unitCost).toBe(15.71);
+    expect(result.resale).toBe(47.13);
+    expect(result.consumer).toBe(78.55);
   });
 
   test("impressora com preço: máquina por hora e custos fixos rateados entram no custo", () => {
@@ -76,13 +76,13 @@ describe("preço do produto", () => {
 
   test("recalcula quando o preço do filamento muda", () => {
     const { result } = productPricing(luminaria, ctx([luminaria], [filament(1, 100)]));
-    // (0,1 × 120 + 5) × 1,05 = 17,85
-    expect(result.unitCost).toBe(17.85);
+    // 0,1 × 120 × 1,05 + 5 = 17,60 (a manutenção incide só sobre o filamento, M6)
+    expect(result.unitCost).toBe(17.6);
   });
 
   test("insumo excluído vira aviso e sai do custo", () => {
     const { result, warnings } = productPricing(luminaria, ctx([luminaria], []));
-    expect(result.unitCost).toBe(5.25);
+    expect(result.unitCost).toBe(5); // sem filamento, sem manutenção
     expect(warnings.join()).toMatch(/filamento/i);
   });
 
@@ -90,8 +90,8 @@ describe("preço do produto", () => {
     const a = product(2, { composition: { filaments: [{ filamentId: 1, grams: 100 }], materials: [], items: [] } }); // 8,93
     const kit = product(3, { kind: "kit", composition: { filaments: [], materials: [{ materialId: 1, qty: 1 }], items: [{ productId: 2, qty: 2 }] } });
     const { result } = productPricing(kit, ctx([a, kit]));
-    // componentes entram pelo custo exibido (8,93): (2 × 8,93 + 5) × 1,05 = 24,00 (manutenção incide também sobre o kit)
-    expect(result.unitCost).toBe(24);
+    // componentes entram pelo custo exibido (8,93, que já tem a manutenção deles): 2 × 8,93 + 5 = 22,86; o kit não paga manutenção de novo (B4)
+    expect(result.unitCost).toBe(22.86);
   });
 
   test("kit que contém a si mesmo (direta ou indiretamente) dá erro", () => {

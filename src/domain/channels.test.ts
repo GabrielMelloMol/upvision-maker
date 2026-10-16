@@ -2,13 +2,11 @@ import { expect, test } from "vitest";
 import { CHANNEL_PRESETS, staleChannelText } from "./channels";
 import { ChannelSchema } from "./settings";
 
-test("canais prontos: válidos, sem data de conferência (são ponto de partida)", () => {
-  expect(CHANNEL_PRESETS.map((c) => c.name)).toEqual(
-    expect.arrayContaining(["Mercado Livre (premium)", "Amazon", "Elo7", "Shein", "Instagram/WhatsApp (maquininha)"]),
-  );
+test("canais prontos: válidos e com a data da regra de 2026 (exceto a maquininha, que é ponto de partida); o Elo7 encerrou e saiu (M7)", () => {
+  expect(CHANNEL_PRESETS.map((c) => c.name)).toEqual(["Mercado Livre (premium)", "Amazon", "Shein", "Instagram/WhatsApp (maquininha)"]);
   for (const c of CHANNEL_PRESETS) {
     expect(ChannelSchema.parse(c)).toEqual(c);
-    expect(c.checkedAt).toBeUndefined();
+    expect(c.checkedAt).toBe(c.name.startsWith("Instagram") ? undefined : "2026-10-15");
   }
 });
 

@@ -4,6 +4,7 @@ import { getDb } from "../db";
 import { filaments as filamentsRepo } from "../db/repo";
 import type { Filament } from "../domain/entities";
 import { densityOfMaterial, ESTIMATE_ERROR_PCT, estimateModels } from "../domain/estimate";
+import { fallbackPricePerKg } from "../domain/estimateDefaults";
 import { money } from "../domain/format";
 import type { PrintProfile } from "../geometry/printProfile";
 import type { Model } from "../geometry/types";
@@ -40,12 +41,16 @@ export default function EstimateCard({ models, profile, name, busy }: { models: 
   if (!est || busy) return null;
 
   const avgPrice = stock.length ? stock.reduce((s, f) => s + f.pricePerKg, 0) / stock.length : null;
+  const fallback = fallbackPricePerKg(stock); // cor sem filamento: a média do estoque, ou o padrão sem estoque nenhum
   const lines = est.byColor.map((c) => ({ ...c, filament: filamentForColor(stock, c.color) }));
   const cost = avgPrice === null ? null : lines.reduce((s, l) => s + (l.grams / 1000) * (l.filament?.pricePerKg ?? avgPrice), 0);
+  // objetos na mesa (C4): o custo da estimativa é da mesa toda, então a calculadora divide por este número
+  const pieces = Math.max(1, models.filter((m) => !m.previewOnly && m.parts.length > 0).length);
 
   function toCalculator() {
     setPendingEstimate({
-      filaments: lines.map((l) => ({ filamentId: l.filament?.id ?? null, pricePerKg: l.filament?.pricePerKg ?? null, grams: l.grams })),
+      filaments: lines.map((l) => ({ filamentId: l.filament?.id ?? null, pricePerKg: l.filament?.pricePerKg ?? fallback, grams: l.grams, ...(l.filament ? {} : { estimated: true }) })),
+      pieces,
       printerWatts: null, // mantém a impressora e a potência já escolhidas na calculadora
       seconds: est!.seconds,
       name,

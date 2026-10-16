@@ -68,10 +68,10 @@ const Row = ({ label, hint, value }: { label: string; hint?: string; value: numb
 );
 
 /** Parcelas do custo da mesa, com o parâmetro de cada uma em cinza. */
-export function CostBreakdown({ r, s, machinePerHour, fixedPerHour, failure, purge }: { r: CalcResult; s: Settings; machinePerHour: number; fixedPerHour: number; failure: { pct: number; source?: string }; purge?: { swaps: number; grams: number; filamentGrams: number } }) {
+export function CostBreakdown({ r, s, machinePerHour, fixedPerHour, failure, purge, pieces = 1 }: { /** Peças na mesa: o título diz que os valores são da mesa (M1). */ pieces?: number; r: CalcResult; s: Settings; machinePerHour: number; fixedPerHour: number; failure: { pct: number; source?: string }; purge?: { swaps: number; grams: number; filamentGrams: number } }) {
   return (
     <section className="card">
-      <h2 className="card-title">Resultado por peça</h2>
+      <h2 className="card-title">{pieces > 1 ? `Custo da mesa (${pieces} peças)` : "Custo da peça"}</h2>
       <table>
         <tbody>
           <Row label="Filamento" value={r.filament} />
@@ -93,6 +93,7 @@ export function CostBreakdown({ r, s, machinePerHour, fixedPerHour, failure, pur
           <tr><td>Custo por hora de impressão</td><td className="num">{r.perHour === null ? "—" : money(r.perHour)}</td></tr>
         </tbody>
       </table>
+      <p className="hint">A taxa de falha vem do material ou das Preferências. Um produto salvo usa a taxa própria dele ou a medida nas fichas de impressão, se tiver: o preço do produto pode diferir deste.</p>
     </section>
   );
 }

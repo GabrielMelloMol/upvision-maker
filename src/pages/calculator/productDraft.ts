@@ -23,6 +23,33 @@ export function typedItems(fil: Line[], ext: Line[], printerId: string, watts: s
   };
 }
 
+/**
+ * A purga digitada ("Trocas de cor × Purga por troca") vira gramas somadas às linhas de filamento, repartidas na proporção
+ * delas: o custo é o mesmo da calculadora (a purga conta ao preço médio dos filamentos) e o produto não perde nada (C3).
+ */
+export function withPurge(c: Composition, purgeGrams: number): Composition {
+  const total = c.filaments.reduce((t, f) => t + f.grams, 0);
+  if (!(purgeGrams > 0) || !(total > 0)) return c;
+  return { ...c, filaments: c.filaments.map((f) => ({ ...f, grams: f.grams + (purgeGrams * f.grams) / total })) };
+}
+
+/** Potência (W) que dá o mesmo consumo que o kWh medido na tomada para esta mesa; null sem tempo de impressão. */
+export const equivalentWatts = (kwh: number, hours: number): number | null => (kwh > 0 && hours > 0 ? Math.round(((kwh * 1000) / hours) * 100) / 100 : null);
+
+/**
+ * O produto calcula a energia por W × tempo da impressora. Com kWh medido, grava (ou reaproveita) uma cópia da impressora
+ * com a potência equivalente, que mantém depreciação e desgaste; sem impressora, uma só com a potência (C3).
+ */
+export async function kwhPrinterId(db: Db, base: { id: number; name: string; watts: number; price: number; lifeHours: number; upkeepPerHour: number; nozzle: number } | undefined, watts: number): Promise<number> {
+  const name = `${base?.name ?? "Impressora da calculadora"} (kWh medido)`.slice(0, 80);
+  const all = await printers.list(db);
+  const same = all.find((p) => p.name === name && Math.abs(p.watts - watts) < 0.01 && (!base || (p.price === base.price && p.lifeHours === base.lifeHours && p.upkeepPerHour === base.upkeepPerHour)));
+  if (same) return same.id;
+  const { id: _id, ...rest } = base ?? { id: 0, price: 0, lifeHours: 5000, upkeepPerHour: 0, nozzle: 0.4 };
+  void _id;
+  return printers.insert(db, { ...rest, name, watts });
+}
+
 export const hasTyped = (t: Typed) => t.filaments.length > 0 || t.materials.length > 0 || t.watts !== null;
 
 /** Cadastra o que foi digitado e devolve os ids na ordem das linhas. `name` identifica de onde veio (o nome da peça). */

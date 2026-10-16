@@ -47,6 +47,36 @@ describe("estimativa ao vivo (#99)", { timeout: 30_000 }, () => {
     ]);
     expect(sent.filaments[1].grams).toBeGreaterThan(sent.filaments[0].grams); // PETG mais denso
     expect(sent.seconds).toBeGreaterThan(0);
+    expect(sent.pieces).toBe(1); // C4: a estimativa é de 1 objeto: a calculadora troca o "Peças na mesa"
+    expect(sent.filaments.every((f) => !f.estimated)).toBe(true);
+  });
+
+  test("lote de objetos manda a quantidade de peças; a prévia montada (só prévia) não conta (C4)", async () => {
+    const [one] = await twoColors();
+    const batch: Model[] = [{ ...one, name: "a" }, { ...one, name: "b" }, { ...one, name: "c" }, { ...one, name: "montado", previewOnly: true }];
+    const user = userEvent.setup();
+    renderWithApp(<EstimateCard models={batch} name="Lote" />);
+    await user.click(await screen.findByRole("button", { name: "Levar para a Calculadora" }));
+    expect(takePendingEstimate()!.pieces).toBe(3);
+  });
+
+  test("cor sem filamento cadastrado leva o preço médio do estoque, marcado como estimado; sem estoque nenhum, R$ 100/kg (C5)", async () => {
+    await t.db.execute("INSERT INTO filaments (material, color, brand, pricePerKg, spoolG, stockG, minG) VALUES ('PLA', 'Branco', '', 80, 1000, 1000, 0), ('PETG', 'Preto', '', 120, 1000, 1000, 0)");
+    const user = userEvent.setup();
+    const first = renderWithApp(<EstimateCard models={await twoColors()} name="x" />);
+    await user.click(await screen.findByRole("button", { name: "Levar para a Calculadora" }));
+    const sent = takePendingEstimate()!;
+    const white = sent.filaments.find((f) => f.filamentId !== null)!;
+    const blue = sent.filaments.find((f) => f.filamentId === null)!;
+    expect(white).toMatchObject({ pricePerKg: 80 });
+    expect(white.estimated).toBeUndefined();
+    expect(blue).toMatchObject({ pricePerKg: 100, estimated: true }); // média de 80 e 120, a mesma do cartão
+    first.unmount();
+
+    await t.db.execute("DELETE FROM filaments");
+    renderWithApp(<EstimateCard models={await twoColors()} name="y" />);
+    await user.click(await screen.findByRole("button", { name: "Levar para a Calculadora" }));
+    expect(takePendingEstimate()!.filaments.map((f) => [f.pricePerKg, f.estimated])).toEqual([[100, true], [100, true]]);
   });
 
   test("sem filamento cadastrado: estima em PLA e sem R$; some enquanto gera", async () => {

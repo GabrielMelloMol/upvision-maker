@@ -1,5 +1,5 @@
 import { Clock, Cylinder, Package, Store, Zap } from "lucide-react";
-import type { ChangeEvent, ReactNode } from "react";
+import type { ReactNode } from "react";
 import type { Printer } from "../../domain/entities";
 import { parseDecimal } from "../../domain/format";
 import type { Settings } from "../../domain/settings";
@@ -21,7 +21,6 @@ type Props = {
   setExt: (l: Line[]) => void;
   f: CalcForm;
   setText: (k: keyof CalcForm) => (v: string) => void;
-  set: (k: keyof CalcForm) => (e: ChangeEvent<HTMLInputElement>) => void;
   printerSelect: ReactNode;
   timeField: ReactNode;
   piecesField: ReactNode;
@@ -34,7 +33,7 @@ type Props = {
 };
 
 /** Modo Completo da calculadora: fatiador, filamentos, impressão e mão de obra, materiais extras e venda. */
-export default function FullForm({ data, fil, setFil, ext, setExt, f, setText, set, printerSelect, timeField, piecesField, wattsHint, onWatts, onApplySlicer, onStockAdded, onOpenPlug }: Props) {
+export default function FullForm({ data, fil, setFil, ext, setExt, f, setText, printerSelect, timeField, piecesField, wattsHint, onWatts, onApplySlicer, onStockAdded, onOpenPlug }: Props) {
   return (
     <>
       <SlicerImport stock={data.stock} printers={data.printers} onApply={onApplySlicer} onStockAdded={onStockAdded} />
@@ -100,7 +99,7 @@ export default function FullForm({ data, fil, setFil, ext, setExt, f, setText, s
         </h2>
         <div className="grid">
           <MoneyField label="Frete absorvido por peça" value={f.freight} onChange={setText("freight")} />
-          <label>Margem em marketplace (%)<input inputMode="decimal" placeholder={String(data.settings.marketplaceMarginPct)} value={f.margin} onChange={set("margin")} /></label>
+          <SmartField label="Margem em marketplace (%)" inputMode="decimal" parse={(t: string) => parseDecimal(t)} invalidText="Digite a margem, ex.: 30. Sem entender, vale a das Preferências." placeholder={String(data.settings.marketplaceMarginPct)} value={f.margin} onChange={setText("margin")} />
         </div>
       </section>
     </>

@@ -140,3 +140,25 @@ describe("amostras e erros no resumo (#189)", () => {
     expect(monthlySeries(delivered, [], "2026-03-01", "2026-03-31", waste)[0]).toMatchObject({ profit: withWaste.profit, costs: without.cogs + 12 });
   });
 });
+
+describe("taxas do canal e imposto no lucro (#243, A5)", () => {
+  test("o lucro desconta as taxas gravadas nos pedidos; sem taxa gravada (pedido antigo) nada muda", () => {
+    const sem = financeSummary([order({})], [], "2026-03-01", "2026-03-31");
+    expect(sem.fees).toBe(0);
+    expect(sem.profit).toBe(110); // 150 de receita − 40 de custo
+    const com = financeSummary([order({ channel: "Shopee", fees: 36 })], [], "2026-03-01", "2026-03-31");
+    expect(com.fees).toBe(36);
+    expect(com.profit).toBe(74); // 150 − 40 − 36: uma venda de R$ 150 na Shopee não deixa R$ 110
+  });
+
+  test("a série mensal e a quebra por canal também descontam as taxas, repartidas pela receita de cada linha", () => {
+    const o = order({ channel: "Shopee", fees: 36, items: [
+      { id: 1, productId: 1, description: "A", qty: 10, unitPrice: 10, discountPct: 0, unitCost: 4, printMinutes: 12, custom: "" },
+      { id: 2, productId: 2, description: "B", qty: 5, unitPrice: 10, discountPct: 0, unitCost: 2, printMinutes: 12, custom: "" },
+    ] });
+    const rows = breakdown([o], "2026-03-01", "2026-03-31", (_, i) => i.description);
+    expect(rows.find((r) => r.key === "A")!.grossProfit).toBe(36); // 100 − 40 − 24 (2/3 de 36)
+    expect(rows.find((r) => r.key === "B")!.grossProfit).toBe(28); // 50 − 10 − 12 (1/3 de 36)
+    expect(monthlySeries([o], [], "2026-03-01", "2026-03-31")[0]).toMatchObject({ revenue: 150, costs: 86, profit: 64 }); // 50 de custo + 36 de taxas
+  });
+});
