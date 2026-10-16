@@ -70,6 +70,7 @@ export const MODEL_ALIASES: Record<string, string> = {
   oring: "oring o-ring anel vedação borracha tpu junta vedante",
   seal: "retentor vedação eixo graxa vedador anel lábio rolamento reparo",
   boardBox: "caixa placa eletrônica arduino esp32 raspberry pi pico nano uno case gabinete projeto microcontrolador pcb",
+  spoolHolder: "suporte carretel filamento rolo eixo porta bobina impressora 3d",
   opener: "abridor garrafa lata chaveiro",
   openerImage: "abridor garrafa lata chaveiro imagem foto desenho contorno recorte silhueta gato logo personalizado argola",
   spinner: "giratório gira chaveiro fidget",

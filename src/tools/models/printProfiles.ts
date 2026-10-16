@@ -34,6 +34,7 @@ export const MODEL_PROFILES: Record<string, PrintProfile> = {
   oring: { walls: 2, infill: 100, notes: ["TPU 95A, devagar (20 a 30 mm/s), sem retração. Serve para poeira e respingo; não para pressão, óleo quente ou gás."] },
   seal: { walls: 2, infill: 100, notes: ["TPU 95A, devagar e sem retração. Serve para graxa, poeira e respingo em eixo lento; não para pressão ou óleo quente."] },
   boardBox: { walls: 3, infill: 15, notes: ["Imprima antes a bandeja de teste: confira se a placa assenta nos pinos e os furos batem. PETG ou ABS aguentam o calor de placas que esquentam; PLA amolece perto de reguladores quentes."] },
+  spoolHolder: { walls: 4, infill: 25, notes: ["O eixo imprime em pé, com a cabeça na mesa. Antes de gastar a base inteira, imprima só o eixo e confira no furo do seu carretel."] },
   opener: { walls: 4, infill: 40, notes: ["Faz força: PETG aguenta mais que PLA."] },
   openerImage: { walls: 4, infill: 40, notes: ["Faz força: PETG aguenta mais que PLA. Base, relevo e borda têm cores diferentes: troque o filamento na camada em que o relevo começa."] },
   clicker: { walls: 3, infill: 30 },
