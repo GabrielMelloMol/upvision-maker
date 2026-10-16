@@ -169,6 +169,13 @@ export const ARTICLES: HelpArticle[] = [
     tips: ["Célula maior deixa a estrutura mais aberta e leve; parede de estrutura fina demais (abaixo de 0,8 mm) pode não imprimir inteira.", "A comparação mostra só a menor seção de material em cada direção: serve para comparar as opções, não é uma simulação de carga. Em peça que segura peso, imprima um teste e force.", "Em peça com muitas cores do arquivo, as cores viram uma só.", "Use só modelos que são seus ou cuja licença permite alterar."],
   },
   {
+    id: "testkit",
+    title: "Kit de testes",
+    intro: "Um arquivo com as peças pequenas de conferência de tudo que depende de medida ou folga: imprima uma vez, experimente e lance o resultado para o app usar a sua folga como padrão.",
+    steps: ["Marque as peças que você vai usar e digite as suas medidas (copo, placa, celular).", "Salve a folha de conferência (PDF) e imprima o 3MF; a capa pede TPU e a trava, PETG.", "Experimente cada peça como diz a folha: o número em relevo é a posição na varredura de folgas.", "Em \"Lançar o resultado\", escolha o número da peça que serviu: a folga dela vira o padrão."],
+    tips: ["Mudou de filamento, de bico ou de impressora? Repita o teste: a folga ideal muda.", "Escolher \"Ainda não testei\" volta ao padrão de fábrica.", "Hoje a folga da rosca já vale no Estojo com tampa de rosca; as outras ficam guardadas e passam a valer quando as ferramentas entrarem no app."],
+  },
+  {
     id: "owndecal",
     title: "Nome ou logo no seu modelo",
     intro: "Ponha seu nome ou logo em qualquer superfície de um STL ou 3MF que você já tem, plana ou curva (copo, esfera, tampa abaulada), em outra cor, para imprimir em duas cores.",

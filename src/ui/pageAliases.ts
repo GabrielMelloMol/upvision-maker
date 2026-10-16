@@ -24,6 +24,7 @@ export const PAGE_ALIASES: Record<string, string> = {
   mold: "molde bipartido duas metades stl 3mf resina silicone sabonete vela gesso chocolate vazar fundição funil respiro canal pino cavidade desmoldar",
   owndecal: "decal adesivo nome logo stl 3mf face plana curva copo caneca esfera superficie colar",
   lighten: "miolo leve alivianar aliviar otimizar regenerar stl 3mf infill preenchimento giroide gyroid voronoi lattice treliça favo economizar filamento gastar menos leve peso oco",
+  testkit: "kit de testes físicos folga conferir validar imprimir teste anel rosca dobradiça trava engrenagem calibrar encaixe medida paquímetro",
   scad: "openscad customizer scad parâmetros personalizar",
   search3d: "buscar modelos 3d internet thingiverse printables makerworld baixar stl",
   ai: "ia claude inteligência artificial descrever peça",

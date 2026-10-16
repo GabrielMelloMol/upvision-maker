@@ -29,6 +29,8 @@ import { suggestCuts } from "../geometry/cutSuggest";
 import { buildMold, DEFAULT_MOLD, mergedMesh, modelSolid, type MoldParams } from "../geometry/mold";
 import { partialCut, DEFAULT_PARTIAL_CUT, type PartialCutOptions } from "../geometry/partialCut";
 import { DEFAULT_LIGHTEN, latticeBlock, lightenModel, type LightenOpts } from "../geometry/lighten";
+import { COUPONS } from "../geometry/testKit/catalog";
+import { couponModels, DEFAULT_KIT } from "../geometry/testKit/kit";
 import { cutModels, DEFAULT_CUT } from "../geometry/planeCut";
 import { COLOR_LITHO_PROFILE, CUTTER_PROFILE, DEFAULT_PROFILE, MOSAIC_BOARD_PROFILE, MOSAIC_PIECES_PROFILE, MOSAIC_POT_PROFILE, STAMP_HINGE_PROFILE, STAMP_PROFILE, THERMO_MOLD_PROFILE, THERMO_SCREEN_PROFILE, LAYERED_PROFILE, LITHO_PROFILE, RELIEF_PROFILE, type PrintProfile, INVITE_CARD_PROFILE, INVITE_LACE_PROFILE, INVITE_PIECES_PROFILE } from "../geometry/printProfile";
 import { qrModel, type QrStyle } from "../geometry/qr3d";
@@ -347,7 +349,14 @@ export function toolCases(M: ManifoldToplevel): QaCase[] {
   };
   const lattice = (patch: Partial<LightenOpts>): Out => ({ models: [latticeBlock(M, [60, 40, 30], { ...DEFAULT_LIGHTEN, wall: 0, ...patch }).model], warnings: [] });
 
+  // kit de testes físicos (#247): um caso por grupo de peças, com as medidas de exemplo
+  const kitCoupon = (id: (typeof COUPONS)[number]["id"]): Out => {
+    const ctx = { M, art: null, artLayers: null, text: () => null };
+    return { models: layoutOnPlate(couponModels(M, ctx, id, DEFAULT_KIT.inputs), PLATE_MM - 2 * GAP_MM, GAP_MM), warnings: [] };
+  };
+
   return [
+    ...cases("testkit", "Kit de testes", COUPONS.map((c): Variant => [c.title.toLowerCase(), () => kitCoupon(c.id)])),
     ...cases("mold", "Molde a partir de STL", (() => {
       const mold = (model: Model, over: Partial<MoldParams> = {}): Out => {
         const { solid } = modelSolid(M, model);

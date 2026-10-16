@@ -1,6 +1,6 @@
 import { Award, Bot, Gift, Stamp as StampIcon, Calculator as CalcIcon, Cookie, Cylinder, KeyRound, Layers, House, ImageUp, Package, Palette, Printer, Settings, ShoppingBag, Users, Building2, ClipboardList, FileText, LayoutDashboard, LineChart, Receipt, QrCode as QrIcon, Scissors, Split, Puzzle, MailOpen, SquareSplitHorizontal, Brush, BookOpenText } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
-import { ShieldCheck, Boxes, Braces, FolderOpen, ChartNoAxesColumn, Globe, Grid3x3, LayoutGrid, Shapes, Sparkle, Sun, Tag, Sticker, Wallet, Feather } from "lucide-react";
+import { ShieldCheck, Boxes, Braces, FolderOpen, ChartNoAxesColumn, Globe, Grid3x3, LayoutGrid, Shapes, Sparkle, Sun, Tag, Sticker, Wallet, Feather, Ruler } from "lucide-react";
 import { lazy, type ReactNode } from "react";
 import Home from "./pages/Home";
 
@@ -42,6 +42,7 @@ const Mold = lazy(() => import("./tools/Mold"));
 const BedCut = lazy(() => import("./tools/BedCut"));
 const Texturize = lazy(() => import("./tools/Texturize"));
 const Lighten = lazy(() => import("./tools/Lighten"));
+const TestKit = lazy(() => import("./tools/TestKit"));
 const ModelSearch = lazy(() => import("./tools/ModelSearch"));
 const ScadCustomizer = lazy(() => import("./tools/ScadCustomizer"));
 const MyProjects = lazy(() => import("./tools/projects/MyProjects"));
@@ -119,6 +120,7 @@ const ALL: PageDef[] = [
   { id: "printers", section: "stock", label: "Impressoras", group: "Gestão", icon: Printer, blurb: "Potência para o custo de energia.", render: () => <Printers /> },
   { id: "company", section: "settings", label: "Dados da empresa", group: "Preferências", icon: Building2, render: () => <Company /> },
   { id: "preferences", section: "settings", label: "Preferências", group: "Preferências", icon: Settings, render: () => <Preferences /> },
+  { id: "testkit", section: "settings", label: "Kit de testes", group: "Preferências", icon: Ruler, blurb: "Peças pequenas para imprimir uma vez e validar as folgas de tudo.", render: () => <TestKit /> },
   { id: "design", section: "settings", label: "Design (interno)", group: "Preferências", icon: Palette, devOnly: true, render: () => <DesignCatalog /> },
 ];
 
