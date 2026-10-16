@@ -1,9 +1,7 @@
-import { useMemo, useState } from "react";
-import { meshBounds } from "../geometry/bounds";
-import { getManifold } from "../geometry/manifold";
-import { bestPlane, bestSetup, buildMold, DEFAULT_MOLD, mergedMesh, modelSolid, type MoldAxis, type MoldParams, type MoldReport, type MoldSide } from "../geometry/mold";
-import { readOwnFile } from "../geometry/ownModel";
-import type { Model } from "../geometry/types";
+import { useEffect, useMemo, useState } from "react";
+import type { Bounds } from "../geometry/bounds";
+import { fileKey } from "../geometry/jobs";
+import { DEFAULT_MOLD, type MoldAxis, type MoldParams, type MoldReport, type MoldSide } from "../geometry/mold";
 import Alert from "../ui/Alert";
 import Dropzone from "../ui/Dropzone";
 import ExportButtons from "../ui/ExportButtons";
@@ -12,8 +10,11 @@ import Preview3D from "../ui/Preview3D";
 import Segmented from "../ui/Segmented";
 import Slider from "../ui/Slider";
 import { errorText } from "../ui/Toast";
+import { useJobControl } from "../ui/useJobControl";
 import { useModelBuilder } from "../ui/useModelBuilder";
+import WorkProgress from "../ui/WorkProgress";
 import ColorPick from "./ColorPick";
+import { buildMoldAsync, openMoldAsync, planeAsync } from "./moldClient";
 import { restoreBytes, storeBytes } from "./storedFile";
 import ToolSessionBar from "./ToolSessionBar";
 import { useToolState } from "./useToolState";
@@ -58,17 +59,23 @@ export default function Mold() {
   const { file, params: p } = tool.state;
   const [fileError, setFileError] = useState<string | null>(null);
 
-  const parsed = useMemo<{ model: Model; mesh: ReturnType<typeof mergedMesh> } | { error: string } | null>(() => {
-    if (!file) return null;
-    try {
-      const model = readOwnFile(file.bytes, file.name);
-      return { model, mesh: mergedMesh(model) };
-    } catch (e) {
-      return { error: errorText(e) };
-    }
-  }, [file]);
-  const loaded = parsed && "model" in parsed ? parsed : null;
-  const bounds = useMemo(() => (loaded ? meshBounds(loaded.model.parts.map((x) => x.mesh)) : null), [loaded]);
+  const key = useMemo(() => (file ? fileKey(file.name, file.bytes) : ""), [file]);
+  const [opened, setOpened] = useState<{ key: string; bounds: Bounds | null } | { key: string; error: string } | null>(null);
+  useEffect(() => {
+    if (!file || opened?.key === key) return;
+    let alive = true;
+    openMoldAsync(key, file.bytes, file.name).then(
+      (r) => alive && setOpened({ key, bounds: r.bounds }),
+      (e) => alive && setOpened({ key, error: errorText(e) }),
+    );
+    return () => {
+      alive = false;
+    };
+  }, [key]); // eslint-disable-line react-hooks/exhaustive-deps
+  const current = opened?.key === key && file ? opened : null;
+  const bounds = current && "bounds" in current ? current.bounds : null;
+  const loaded = bounds !== null;
+  const openError = current && "error" in current ? current.error : null;
   const baseName = file?.name.replace(/\.[^.]+$/, "") ?? "peça";
   const set = <K extends keyof MoldParams>(k: K) => (v: MoldParams[K]) => tool.set((s) => ({ ...s, params: { ...s.params, [k]: v } }), k);
 
@@ -77,10 +84,11 @@ export default function Mold() {
     if (!/\.(stl|3mf)$/i.test(f.name)) return setFileError("Envie um arquivo .stl ou .3mf.");
     if (f.size > MAX_BYTES) return setFileError("Arquivo maior que 200 MB.");
     const bytes = new Uint8Array(await f.arrayBuffer());
+    const next = fileKey(f.name, bytes);
     try {
-      const model = readOwnFile(bytes, f.name);
-      const auto = bestSetup(mergedMesh(model)); // já abre no eixo e no plano que menos prendem a peça
-      tool.set((cur) => ({ ...cur, file: { name: f.name, bytes }, params: { ...cur.params, axis: auto.axis, offset: auto.offset } }), "file");
+      const r = await openMoldAsync(next, bytes, f.name); // já abre no eixo e no plano que menos prendem a peça
+      setOpened({ key: next, bounds: r.bounds });
+      tool.set((cur) => ({ ...cur, file: { name: f.name, bytes }, params: { ...cur.params, axis: r.axis, offset: r.offset } }), "file");
     } catch (e) {
       setFileError(errorText(e));
     }
@@ -94,22 +102,26 @@ export default function Mold() {
   const valid = inRange(p.wall, 5, 40) && inRange(p.pinR, 1.5, 6) && inRange(p.clearance, 0, 1) && inRange(p.sprueR, 2, 10) && inRange(p.ventR, 0.4, 3) && inRange(p.shrink, 0, 20) && inRange(p.vents, 0, 3);
   const paramKey = JSON.stringify(params);
 
+  const ctl = useJobControl([key, paramKey, valid]);
   const { models, warnings, busy, error, view } = useModelBuilder<{ report: MoldReport }>(async () => {
-    if (!loaded || !valid) return null;
-    const M = await getManifold();
-    const { solid, holes } = modelSolid(M, loaded.model);
-    try {
-      const out = buildMold(M, solid, loaded.mesh, JSON.parse(paramKey) as MoldParams);
-      const fixed = holes > 0 ? [`A malha tinha ${holes} furo(s) pequeno(s) e o app os fechou sozinho. Confira se a cavidade ficou como você espera.`] : [];
-      return { models: out.models, warnings: [...fixed, ...out.warnings], view: { report: out.report } };
-    } finally {
-      solid.delete();
-    }
-  }, [loaded, paramKey, valid]);
+    if (!file || !loaded || !valid) return null;
+    const { out, holes } = await ctl.run((onProgress) => buildMoldAsync(key, file.bytes, file.name, JSON.parse(paramKey) as MoldParams, onProgress));
+    const fixed = holes > 0 ? [`A malha tinha ${holes} furo(s) pequeno(s) e o app os fechou sozinho. Confira se a cavidade ficou como você espera.`] : [];
+    return { models: out.models, warnings: [...fixed, ...out.warnings], view: { report: out.report } };
+  }, [key, loaded, paramKey, valid, ctl.rev]);
 
   const report = view?.report;
   const range: [number, number] = [lo, hi];
-  const suggest = () => loaded && tool.set((s) => ({ ...s, params: { ...s.params, offset: bestPlane(loaded.mesh, s.params.axis) } }), "suggest");
+  const suggestFor = async (axis: MoldAxis, field: string) => {
+    if (!file) return;
+    try {
+      const offset = await planeAsync(key, file.bytes, file.name, axis);
+      tool.set((s) => ({ ...s, params: { ...s.params, offset } }), field);
+    } catch (e) {
+      setFileError(errorText(e));
+    }
+  };
+  const suggest = () => void suggestFor(p.axis, "suggest");
 
   return (
     <div className="page">
@@ -122,7 +134,7 @@ export default function Mold() {
             <h3>Peça</h3>
             <Dropzone accept=".stl,.3mf" label={file ? file.name : "Arraste o .stl ou .3mf"} hint="Um sólido fechado (sem furos na malha)." onFile={onFile} />
             {fileError && <Alert kind="error">{fileError}</Alert>}
-            {parsed && "error" in parsed && <Alert kind="error">{parsed.error}</Alert>}
+            {openError && <Alert kind="error">{openError}</Alert>}
             <Alert kind="warn">Use só peças que são suas ou cuja licença permite copiar. O app não confere a licença do arquivo.</Alert>
           </div>
           {loaded && bounds && (
@@ -131,7 +143,10 @@ export default function Mold() {
                 <h3>Onde o molde abre</h3>
                 <div>
                   <span className="field-label">Direção do plano</span>
-                  <Segmented label="Direção do plano" value={p.axis} options={AXES} onChange={(v) => tool.set((s) => ({ ...s, params: { ...s.params, axis: v, offset: bestPlane(loaded.mesh, v) } }), "axis")} full />
+                  <Segmented label="Direção do plano" value={p.axis} options={AXES} onChange={(v) => {
+                      set("axis")(v);
+                      void suggestFor(v, "axis");
+                    }} full />
                 </div>
                 <Slider label="Posição do plano" min={range[0]} max={range[1]} step={STEP} value={offset} display={mm} onChange={set("offset")} />
                 <button type="button" className="ghost sm" onClick={suggest}>Sugerir o plano que menos prende</button>
@@ -180,6 +195,7 @@ export default function Mold() {
           <ExportButtons models={models} name={`${baseName}-molde`} busy={busy} onSaved={tool.exported} />
         </div>
         <div className="preview-col">
+          <WorkProgress control={ctl} busy={busy} error={error} title="Montando o molde" />
           <Preview3D models={models} quietBusy busy={busy} busyText="Montando o molde…" error={error} emptyText={!valid ? "Corrija os campos em vermelho." : "Envie um STL ou 3MF para fazer o molde."} views />
           {warnings.map((w) => (
             <Alert key={w} kind="warn">{w}</Alert>

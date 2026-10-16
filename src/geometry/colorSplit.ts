@@ -3,6 +3,7 @@ import { toMesh } from "./mesh";
 import { decodePaint, type Tri, type Vec3 } from "./paint";
 import { scoped } from "./shape2d";
 import { nozzleText } from "./bed";
+import { JobCancelled, type Hooks } from "./jobs";
 import { colorName } from "./colorName";
 import { autoSelections, colorClusters, DEFAULT_TOLERANCE, hasMaterialColors, regionTriangles, triOf, type ColorSelection } from "./colorRegions";
 import { minStrokeMm } from "./textCheck";
@@ -23,6 +24,8 @@ export type SplitOptions = {
   tolerance?: number;
   /** Objetos separados: deixa cada um onde estava no arquivo, em vez de afastar e apoiar na mesa. */
   keepPosition?: boolean;
+  /** Progresso por parte e por cor, e cancelamento (a tela mostra a barra e o botão Cancelar). */
+  hooks?: Hooks;
 };
 export type ColorInfo = { filament: number; color: string; volume: number };
 
@@ -194,15 +197,25 @@ export function splitByColor(M: ManifoldToplevel, file: Read3mf, o: SplitOptions
   let thinSide = false;
   const dropped = { n: 0 };
   const models: Model[] = [];
+  const totalParts = file.objects.reduce((n, x) => n + x.parts.length, 0) || 1;
+  let partsDone = 0;
+  const at = (frac: number, stage: string) => {
+    if (o.hooks?.cancelled?.()) throw new JobCancelled();
+    o.hooks?.progress?.(Math.min(1, (partsDone + frac) / totalParts), stage);
+  };
   file.objects.forEach((obj, objIndex) => {
     const parts: Part[] = scoped((k) => {
       const out: Part[] = [];
       obj.parts.forEach((part, partIndex) => {
+        at(0, "Conferindo a malha");
         const solid = k(partSolid(M, part));
+        at(0.2, "Achando as cores");
         const leaves = part.triColors && !part.paint ? materialLeaves(part, selections.map((sel, i) => ({ sel, filament: firstNew + i, obj: objIndex, partIndex })), tol) : paintedLeaves(part);
         let rest = solid;
         const pieces: [number, Solid][] = [];
-        for (const f of [...leaves.keys()].sort((a, b) => a - b)) {
+        const keys = [...leaves.keys()].sort((a, b) => a - b);
+        for (const [n, f] of keys.entries()) {
+          at(0.25 + (0.5 * n) / (keys.length || 1), "Separando as cores");
           const vol = k(shellOf(M, k, leaves.get(f)!, o.depth).intersect(rest));
           if (vol.isEmpty()) continue;
           thinSide ||= o.depth < minStrokeMm() && leaves.get(f)!.some((t) => Math.abs(normal(t)?.[2] ?? 1) < SIDE_NZ);
@@ -210,6 +223,7 @@ export function splitByColor(M: ManifoldToplevel, file: Read3mf, o: SplitOptions
           pieces.push([f, vol]);
         }
         pieces.unshift([part.extruder, rest]);
+        at(0.75, "Limpando as peças");
         for (const [f, raw] of pieces) {
           if (raw.isEmpty()) continue;
           const s = withoutShards(M, k, raw, dropped);
@@ -218,6 +232,7 @@ export function splitByColor(M: ManifoldToplevel, file: Read3mf, o: SplitOptions
           const isBase = f === part.extruder;
           out.push({ name: isBase ? part.name : `${part.name} · ${extraColor.has(f) ? `cor ${colorName(extraColor.get(f)!)}` : `filamento ${f}`}`, color: colorOf(file.filamentColors, f, extraColor), mesh: toMesh(s) });
         }
+        partsDone += 1;
       });
       return out;
     });

@@ -5,13 +5,15 @@ import type { Filament } from "../domain/entities";
 import { densityOfMaterial } from "../domain/estimate";
 import { money } from "../domain/format";
 import { capitalized, colorName } from "../geometry/colorName";
+import { JobCancelled } from "../geometry/jobs";
 import { colorSwatch } from "../ui/ColorDots";
 import { filamentLabel, suggestFilament } from "./filamentSuggest";
-import { autoSelections, colorClusters, colorPreview, DEFAULT_TOLERANCE, hasMaterialColors, nearestTriangle, sameColor, type ColorSelection } from "../geometry/colorRegions";
-import { splitByColor, type SplitMode } from "../geometry/colorSplit";
-import { getManifold } from "../geometry/manifold";
-import { cutInParts, cutModels, DEFAULT_CUT, MAX_CUT_PARTS, type CutAxis, type CutOptions, type PinMode, type PinShape } from "../geometry/planeCut";
-import { read3mf, type Read3mf } from "../geometry/threemfRead";
+import { autoSelections, DEFAULT_TOLERANCE, sameColor, type ColorCluster, type ColorSelection } from "../geometry/colorRegions";
+import type { SplitMode } from "../geometry/colorSplit";
+import { analyzeAsync, pickAsync, previewAsync, splitAsync } from "../geometry/colorSplitClient";
+import { fileKey } from "../geometry/jobs";
+import { DEFAULT_CUT, MAX_CUT_PARTS, type CutAxis, type CutOptions, type PinMode, type PinShape } from "../geometry/planeCut";
+import type { Model } from "../geometry/types";
 import Alert from "../ui/Alert";
 import Dropzone from "../ui/Dropzone";
 import ExportButtons from "../ui/ExportButtons";
@@ -23,7 +25,9 @@ import Toggle from "../ui/Toggle";
 import { restoreBytes, storeBytes } from "./storedFile";
 import ToolSessionBar from "./ToolSessionBar";
 import { useToolState } from "./useToolState";
+import { useJobControl } from "../ui/useJobControl";
 import { useModelBuilder } from "../ui/useModelBuilder";
+import WorkProgress from "../ui/WorkProgress";
 import GeneratorHelp from "./models/guide/GeneratorHelp";
 import { TOOL_HELP } from "./models/help/toolHelp";
 
@@ -110,28 +114,40 @@ export default function ColorSplit() {
     setFile({ name: f.name.replace(/\.3mf$/i, ""), bytes: new Uint8Array(await f.arrayBuffer()) });
   }
 
-  // o arquivo lido (só muda quando troca o arquivo) e, se pinta por material, os grupos de cor dele
-  const parsed = useMemo<{ read: Read3mf } | { error: string }>(() => {
-    if (!file) return { error: "" };
-    try {
-      return { read: read3mf(file.bytes) };
-    } catch (e) {
-      return { error: e instanceof Error ? e.message : String(e) };
-    }
-  }, [file]);
-  const read = "read" in parsed ? parsed.read : null;
-  const byMaterial = !!read && hasMaterialColors(read);
-  const clusters = useMemo(() => (read && byMaterial ? colorClusters(read, tolerance) : []), [read, byMaterial, tolerance]);
+  // o arquivo é aberto no worker (um 3MF grande não trava a tela): aqui só chegam o resumo e os grupos de cor
+  const key = useMemo(() => (file ? fileKey(file.name, file.bytes) : ""), [file]);
+  const [analysis, setAnalysis] = useState<{ key: string; byMaterial: boolean; clusters: ColorCluster[] } | { key: string; error: string } | null>(null);
+  useEffect(() => {
+    if (!file) return;
+    let alive = true;
+    analyzeAsync(key, file.bytes, tolerance).then(
+      (r) => alive && setAnalysis({ key, byMaterial: r.byMaterial, clusters: r.clusters }),
+      (e) => alive && !(e instanceof JobCancelled) && setAnalysis({ key, error: e instanceof Error ? e.message : String(e) }),
+    );
+    return () => {
+      alive = false;
+    };
+  }, [file, key, tolerance]);
+  const current = analysis && analysis.key === key ? analysis : null;
+  const ready = !!current && !("error" in current);
+  const reading = !!file && !current;
+  const byMaterial = !!current && "byMaterial" in current && current.byMaterial;
+  const clusters = useMemo(() => (current && "clusters" in current ? current.clusters : []), [current]);
   const selected = byMaterial ? (picks ?? autoSelections(clusters)) : [];
   const isSelected = (color: string) => selected.some((s) => sameColor(s.color, color, tolerance));
 
   const toggleCluster = (color: string) =>
     setPicks(isSelected(color) ? selected.filter((s) => !sameColor(s.color, color, tolerance)) : [...selected, { color, scope: "all" }]);
 
-  function onPick(hit: { point: [number, number, number] }) {
-    if (!read) return;
+  async function onPick(hit: { point: [number, number, number] }) {
+    if (!file) return;
     setPickNote(null);
-    const t = nearestTriangle(read, hit.point);
+    let t;
+    try {
+      t = (await pickAsync(key, file.bytes, hit.point)).hit;
+    } catch {
+      return; // clique novo cancelou este
+    }
     const cluster = t?.color ? clusters.find((c) => sameColor(c.color, t.color!, tolerance)) : null;
     if (!t || !cluster) return setPickNote("Esse trecho não tem cor de material: clique numa área colorida.");
     if (isSelected(cluster.color) && selected.some((s) => s.scope === "all" && sameColor(s.color, cluster.color, tolerance))) return toggleCluster(cluster.color);
@@ -139,18 +155,29 @@ export default function ColorSplit() {
   }
 
   const valid = inRange(depth, 0.2, 10) && (!cutOn || (inRange(cut.clearance, 0, 1) && (cut.size === 0 || inRange(cut.size, 2, 30)) && inRange(cutParts, 2, MAX_CUT_PARTS)));
+  const inputs = [file, depth, mode, cutOn, cut, cutParts, keepPosition, tolerance, picks, byMaterial, ready];
+  const ctl = useJobControl(inputs);
   const { models, warnings, busy, error } = useModelBuilder(async () => {
-    if (!read || !valid) return null;
-    const M = await getManifold();
-    const out = splitByColor(M, read, { depth, mode, selections: byMaterial ? selected : undefined, tolerance, keepPosition });
+    if (!file || !ready || !valid) return null;
+    const out = await ctl.run((onProgress) => splitAsync(key, file.bytes, { depth, mode, selections: byMaterial ? selected : undefined, tolerance, keepPosition }, { on: cutOn, parts: cutParts, opts: cut }, onProgress));
     setColors(out.colors);
     // com filamento cadastrado a peça sai na cor dele: o arquivo, o peso e o custo usam o filamento escolhido
-    const recolor = (list: typeof out.models) => list.map((m) => ({ ...m, parts: m.parts.map((p) => ({ ...p, color: chosenFor(p.color)?.swatch ?? p.color })) }));
-    if (!cutOn) return { models: recolor(out.models), warnings: out.warnings };
-    const c = cutParts === 2 ? cutModels(M, out.models, cut) : cutInParts(M, out.models, cut, cutParts);
-    return { models: recolor(c.models), warnings: [...out.warnings, ...c.warnings] };
-  }, [read, depth, mode, valid, cutOn, cut, cutParts, keepPosition, tolerance, picks, byMaterial, stock, assign]);
-  const original = useMemo(() => (read && byMaterial ? colorPreview(read, tolerance, selected) : []), [read, byMaterial, tolerance, picks, clusters]); // eslint-disable-line react-hooks/exhaustive-deps
+    const recolor = (list: Model[]) => list.map((m) => ({ ...m, parts: m.parts.map((p) => ({ ...p, color: chosenFor(p.color)?.swatch ?? p.color })) }));
+    return { models: recolor(out.models), warnings: out.warnings };
+  }, [...inputs, valid, stock, assign, ctl.rev]);
+  const [original, setOriginal] = useState<Model[]>([]);
+  useEffect(() => {
+    if (!file || !byMaterial || view !== "original") return;
+    let alive = true;
+    previewAsync(key, file.bytes, tolerance, selected).then(
+      (r) => alive && setOriginal(r.models),
+      () => undefined,
+    );
+    return () => {
+      alive = false;
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [file, key, byMaterial, view, tolerance, picks, clusters]);
   const showOriginal = byMaterial && view === "original";
 
   return (
@@ -164,7 +191,12 @@ export default function ColorSplit() {
             <h3>Arquivo</h3>
             <Dropzone accept=".3mf" label={file ? `${file.name}.3mf` : "Arraste o .3mf pintado"} hint="Pintura por cor (pincel) ou partes de cores diferentes." onFile={onFile} />
             {fileError && <Alert kind="error">{fileError}</Alert>}
-            {"error" in parsed && parsed.error && <Alert kind="error">{parsed.error}</Alert>}
+            {reading && (
+              <span className="hint" role="status">
+                Lendo o arquivo…
+              </span>
+            )}
+            {current && "error" in current && <Alert kind="error">{current.error}</Alert>}
           </div>
           {byMaterial && (
             <div className="card stack" aria-label="Cores do arquivo">
@@ -300,6 +332,7 @@ export default function ColorSplit() {
             />
           )}
           {pickNote && <Alert kind="warn">{pickNote}</Alert>}
+          <WorkProgress control={ctl} busy={busy} error={error} title="Separando as cores" />
           <Preview3D
             models={showOriginal ? original : models}
             busy={busy && !showOriginal}

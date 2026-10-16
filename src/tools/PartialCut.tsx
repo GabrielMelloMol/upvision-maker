@@ -1,11 +1,11 @@
 import { useEffect, useMemo, useState } from "react";
 import { meshBounds, type Bounds } from "../geometry/bounds";
+import { fileKey } from "../geometry/jobs";
 import { getManifold } from "../geometry/manifold";
-import { readOwnFile } from "../geometry/ownModel";
 import { applyHandle, regionHandles } from "../geometry/cutHandles";
 import { fitRegionToPart } from "../geometry/cutFit";
 import { centerRegionAt, regionBox as regionBoxOf, regionCenter, regionOfKind, type Region, type RegionKind } from "../geometry/cutRegion";
-import { cutAsync } from "../geometry/cutClient";
+import { cutAsync, readModelAsync } from "../geometry/cutClient";
 import type { PinIssue } from "../geometry/cutSequence";
 import { cutOverlay, planeNormal, type CutReport, type Vec3 } from "../geometry/partialCut";
 import type { CutAxis, PinMode, PinShape } from "../geometry/planeCut";
@@ -19,7 +19,9 @@ import Segmented from "../ui/Segmented";
 import Slider from "../ui/Slider";
 import Toggle from "../ui/Toggle";
 import { errorText } from "../ui/Toast";
+import { useJobControl } from "../ui/useJobControl";
 import { useModelBuilder } from "../ui/useModelBuilder";
+import WorkProgress from "../ui/WorkProgress";
 import { restoreBytes, storeBytes } from "./storedFile";
 import ColorsCard from "./partialcut/ColorsCard";
 import PinIssues from "./partialcut/PinIssues";
@@ -86,15 +88,23 @@ export default function PartialCut() {
   const setExplode = (v: number) => tool.set((s) => ({ ...s, cuts: s.cuts.map((c) => ({ ...c, explode: v })) }), "explode");
   const [fileError, setFileError] = useState<string | null>(null);
 
-  const parsed = useMemo<{ model: Model; bounds: Bounds } | { error: string } | null>(() => {
-    if (!file) return null;
-    try {
-      const model = readOwnFile(file.bytes, file.name);
-      return { model, bounds: meshBounds(model.parts.map((p) => p.mesh))! };
-    } catch (e) {
-      return { error: errorText(e) };
-    }
-  }, [file]);
+  const key = useMemo(() => (file ? fileKey(file.name, file.bytes) : ""), [file]);
+  const [read, setRead] = useState<{ key: string; model: Model; bounds: Bounds } | { key: string; error: string } | null>(null);
+  useEffect(() => {
+    if (!file || read?.key === key) return;
+    let alive = true;
+    readModelAsync(file.bytes, file.name).then(
+      (m) => {
+        const b = meshBounds(m.parts.map((p) => p.mesh));
+        if (alive) setRead(b ? { key, model: m, bounds: b } : { key, error: "O arquivo está vazio." });
+      },
+      (e) => alive && setRead({ key, error: errorText(e) }),
+    );
+    return () => {
+      alive = false;
+    };
+  }, [key]); // eslint-disable-line react-hooks/exhaustive-deps
+  const parsed = read?.key === key && file ? read : null;
   const model = parsed && "model" in parsed ? parsed.model : null;
   const bounds = parsed && "bounds" in parsed ? parsed.bounds : null;
   const baseName = file?.name.replace(/\.[^.]+$/, "") ?? "modelo";
@@ -111,7 +121,10 @@ export default function PartialCut() {
     if (f.size > MAX_BYTES) return setFileError("Arquivo maior que 200 MB.");
     const bytes = new Uint8Array(await f.arrayBuffer());
     try {
-      const b = meshBounds(readOwnFile(bytes, f.name).parts.map((p) => p.mesh))!;
+      const m = await readModelAsync(bytes, f.name);
+      const b = meshBounds(m.parts.map((p) => p.mesh));
+      if (!b) return setFileError("O arquivo está vazio.");
+      setRead({ key: fileKey(f.name, bytes), model: m, bounds: b });
       tool.set((cur) => ({ ...cur, file: { name: f.name, bytes }, active: 0, cuts: [{ ...freshCut(b), pin: cur.cuts[0].pin, mode: cur.cuts[0].mode, size: cur.cuts[0].size, clearance: cur.cuts[0].clearance }] }), "file");
     } catch (e) {
       setFileError(errorText(e));
@@ -152,11 +165,12 @@ export default function PartialCut() {
   }, [bounds, cutKey]);
 
   const valid = cuts.every((c) => inRange(c.clearance, 0, 1) && (c.size === 0 || inRange(c.size, 2, 30)));
+  const ctl = useJobControl([model, cutKey, restColor, valid]);
   const { models, warnings, busy, error, view } = useModelBuilder<{ preview: Model[]; report: CutReport; pinIssues: PinIssue[] }>(async () => {
     if (!model || !bounds || !valid) return null;
-    const out = await cutAsync(model, { cuts: cuts.map((c) => cutForEngine(c, bounds)), restColor });
+    const out = await ctl.run((onProgress) => cutAsync(model, { cuts: cuts.map((c) => cutForEngine(c, bounds)), restColor }, onProgress));
     return { models: out.models, warnings: out.warnings, view: { preview: out.preview, report: out.report, pinIssues: out.pinIssues } };
-  }, [model, cutKey, restColor, valid]);
+  }, [model, cutKey, restColor, valid, ctl.rev]);
 
   const shown = useMemo(() => (view?.preview ? [...view.preview.filter((m) => m.name !== "Região" && m.name !== "Plano de corte"), ...overlay] : []), [view, overlay]);
 
@@ -266,6 +280,7 @@ export default function PartialCut() {
           <GeneratorHelp help={TOOL_HELP.partialcut} />
         </div>
         <div className="preview-col">
+          <WorkProgress control={ctl} busy={busy} error={error} title="Cortando" />
           <Preview3D
             models={shown}
             quietBusy

@@ -44,7 +44,7 @@ test("peça grande: a tela não trava, mostra o progresso, cancela e calcula de 
   await openApp(page);
   await go(page, "Textura no seu modelo");
   await page.locator('input[type="file"]').first().setInputFiles({ name: "grande.stl", mimeType: "model/stl", buffer: Buffer.from(boxStl(260, 260, 260)) });
-  const bar = page.getByRole("progressbar", { name: "Progresso da textura" });
+  const bar = page.getByRole("progressbar", { name: /Progresso/ });
   await expect(bar).toBeVisible({ timeout: 60_000 });
   // a tela segue respondendo durante o cálculo: dá para escolher outra textura e ver a escolha marcada na hora
   await page.getByRole("button", { name: /Couro/ }).click();

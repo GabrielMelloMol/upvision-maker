@@ -1,4 +1,5 @@
 import { fitSetOnBed, setOnBedWarning } from "./bedLayout";
+import { JobCancelled, type Hooks } from "./jobs";
 import type { ManifoldToplevel } from "./manifold";
 import { partialCut, type CutReport, type PartialCutOptions } from "./partialCut";
 import { spread } from "./planeCut";
@@ -24,7 +25,7 @@ const paint = (parts: Part[], color: string | null): Part[] => (color ? parts.ma
 export type PinIssue = { cut: number; fixSize: number | null };
 export type CutsResult = { models: Model[]; preview: Model[]; warnings: string[]; report: CutReport; pinIssues: PinIssue[] };
 
-export function runCuts(M: ManifoldToplevel, model: Model, plan: CutPlan): CutsResult {
+export function runCuts(M: ManifoldToplevel, model: Model, plan: CutPlan, hooks: Hooks = {}): CutsResult {
   const many = plan.cuts.length > 1;
   const warnings: string[] = [];
   const pinIssues: PinIssue[] = [];
@@ -35,6 +36,8 @@ export function runCuts(M: ManifoldToplevel, model: Model, plan: CutPlan): CutsR
   let rest: Model | null = null;
   let report: CutReport = { original: 0, sum: 0, ok: true };
   plan.cuts.forEach((cut, i) => {
+    if (hooks.cancelled?.()) throw new JobCancelled();
+    hooks.progress?.(0.1 + (0.75 * i) / plan.cuts.length, many ? `Cortando (${i + 1} de ${plan.cuts.length})` : "Cortando");
     const tag = many ? ` ${i + 1}` : "";
     let r;
     try {
@@ -55,6 +58,7 @@ export function runCuts(M: ManifoldToplevel, model: Model, plan: CutPlan): CutsR
     warnings.push(...r.warnings.filter((w) => !w.includes(BED_WARNING)).map((w) => (many ? `Corte ${i + 1}: ${w}` : w)));
     report = i === 0 ? r.report : { original: report.original, sum: report.sum + (r.report.sum - r.report.original), ok: report.ok && r.report.ok };
   });
+  hooks.progress?.(0.9, "Arrumando na mesa");
   const restModel = { ...rest!, name: `${model.name} · resto`, parts: paint(rest!.parts, plan.restColor) };
   preview.unshift({ name: "Resto", parts: paint(cur.parts, plan.restColor).map((p) => ({ ...p, name: "Resto" })) });
   const placed = fitSetOnBed(spread([restModel, ...pieces, ...pins]));

@@ -57,7 +57,27 @@ export type DecalEngine = {
 };
 const FLAT: DecalEngine = { face: decalFace, apply: applyDecals };
 
+/** Formas das camadas já resolvidas em polígonos (mm, antes de posicionar): é o que vai para o worker, que não tem DOM para ler SVG nem as fontes. */
+export type PreparedLayer = { id: string; regions: { color: string | null; polys: [number, number][][] }[] };
+
+/** Na tela principal: lê o SVG e as fontes de cada camada e guarda só os contornos. */
+export async function prepareLayers(M: ManifoldToplevel, layers: Layer[]): Promise<PreparedLayer[]> {
+  const out: PreparedLayer[] = [];
+  for (const layer of layers) {
+    const regions = await regionsOf(M, layer);
+    out.push({ id: layer.id, regions: regions.map((r) => ({ color: r.color, polys: r.cs.toPolygons() as [number, number][][] })) });
+    regions.forEach((r) => r.cs.delete());
+  }
+  return out;
+}
+
 export async function applyLayers(M: ManifoldToplevel, models: Model[], layers: Layer[], engine: DecalEngine = FLAT): Promise<LayersResult> {
+  if (!models.length) return { models, warnings: [], byLayer: {}, face: null, shapes: {} };
+  return applyPrepared(M, models, layers, layers.length ? await prepareLayers(M, layers) : [], engine);
+}
+
+/** O motor, sem DOM nem fontes (roda no worker): as camadas chegam como contornos. */
+export function applyPrepared(M: ManifoldToplevel, models: Model[], layers: Layer[], prepared: PreparedLayer[], engine: DecalEngine = FLAT): LayersResult {
   if (!models.length) return { models, warnings: [], byLayer: {}, face: null, shapes: {} };
   const f = engine.face(M, models);
   const face: FaceInfo = { outline: f.outline, bounds: f.bounds as Bounds, part: f.part, others: otherParts(M, models[0], f.part) };
@@ -66,7 +86,7 @@ export async function applyLayers(M: ManifoldToplevel, models: Model[], layers: 
   const owned: CS[] = [];
   try {
     for (const layer of layers) {
-      const regions = await regionsOf(M, layer);
+      const regions: DecalRegions = (prepared.find((p) => p.id === layer.id)?.regions ?? []).map((r) => ({ color: r.color, cs: new M.CrossSection(r.polys, "NonZero") }));
       regions.forEach((r) => owned.push(r.cs));
       built.push({ layer, regions });
     }
