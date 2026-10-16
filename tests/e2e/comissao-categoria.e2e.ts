@@ -84,7 +84,7 @@ for (const scheme of ["light", "dark"] as const)
     tauri.db.exec(`INSERT INTO orders (customerName, channel, status, deliveredAt, createdAt, fees) VALUES ('Ana', 'Shopee', 'delivered', '${day}', '${day} 09:00:00', 0), ('Bia', 'Shopee', 'delivered', '${day}', '${day} 09:00:00', 3);
       INSERT INTO order_items (orderId, position, description, qty, unitPrice, discountPct, unitCost, printMinutes) VALUES (1, 0, 'Chaveiro', 10, 15, 0, 4, 12), (2, 0, 'Chaveiro', 1, 15, 0, 4, 12);`);
     await go(page, "Financeiro");
-    const box = page.getByRole("region", { name: "Pedidos antigos sem taxa do canal" });
+    const box = page.getByRole("region", { name: "Taxas faltando nos pedidos antigos" });
     await expect(box).toContainText("1 pedido entregue está sem a taxa do canal");
     await box.getByRole("button", { name: "Recalcular taxas dos pedidos antigos" }).click();
     // 10 un. de R$ 15: 20% (3,00) + R$ 4,50 = 7,50 por unidade = R$ 75,00

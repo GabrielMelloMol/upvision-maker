@@ -34,7 +34,7 @@ export default function FeeRecalc({ fixes, orders, onDone }: Props) {
     }
   };
   return (
-    <section className="card fee-recalc" aria-label="Pedidos antigos sem taxa do canal">
+    <section className="card fee-recalc" aria-label="Taxas faltando nos pedidos antigos">
       <p>
         <b>{fixes.length} {fixes.length === 1 ? "pedido entregue está" : "pedidos entregues estão"} sem a taxa do canal</b>, então o lucro deles aparece maior do que foi. Dá para recalcular pelas regras de hoje de cada canal.
       </p>
