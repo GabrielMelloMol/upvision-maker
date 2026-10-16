@@ -1,4 +1,5 @@
 import { nozzleMm } from "./bed";
+import { buildOccluder } from "./occlusion";
 import { solidFromMesh } from "./cutSolid";
 import type { ManifoldToplevel } from "./manifold";
 import { toMesh } from "./mesh";
@@ -32,6 +33,8 @@ export type TexturizeOptions = {
   brush: Brush[] | null;
   protectOverhang: boolean;
   flatBase: boolean;
+  /** Texturizar também o lado de dentro (interior de copo, caneca, vaso). Padrão: só o lado de fora. */
+  interior: boolean;
 };
 export const DEFAULT_TEXTURIZE: TexturizeOptions = {
   source: { kind: "pattern", id: "carbono" },
@@ -43,6 +46,7 @@ export const DEFAULT_TEXTURIZE: TexturizeOptions = {
   brush: null,
   protectOverhang: true,
   flatBase: true,
+  interior: false,
 };
 export type TexturizeInfo = { triangles: number; textured: number };
 export type TexturizeResult = { model: Model; warnings: string[]; info: TexturizeInfo };
@@ -53,6 +57,9 @@ const MAX_EDGE_MM = 1.5;
 const MAX_TRIANGLES = 800_000; // no total da peça: a prévia e o fatiador seguram bem
 const TRI_PER_AREA = 2.3; // triângulos por (aresta²) depois de dividir
 const FLAT_BASE_MM = 0.3;
+const OCCLUSION_CELL_MM = 2.5; // pontos da superfície a menos disso (e de mesma direção) dividem a mesma medida de oclusão
+const INTERIOR_FROM = 0.4; // fração de raios bloqueados a partir da qual o ponto já conta como lado de dentro
+const INTERIOR_FULL = 0.65;
 const SEAM_POWER = 4; // quanto a projeção em caixa prefere o eixo mais de frente
 
 const smooth = (a: number, b: number, v: number) => {
@@ -91,11 +98,11 @@ function vertexNormals(pos: Float32Array, tri: Uint32Array): Float32Array {
 }
 
 /** Peso 0..1 de cada vértice: onde a textura vale (área, pincel, base lisa e balanço). */
-function weights(pos: Float32Array, nor: Float32Array, minZ: number, o: TexturizeOptions): Float32Array {
+function weights(pos: Float32Array, nor: Float32Array, minZ: number, o: TexturizeOptions, inner: Float32Array | null): Float32Array {
   const w = new Float32Array(pos.length / 3).fill(1);
   for (let i = 0; i < w.length; i++) {
     const nz = nor[i * 3 + 2];
-    let v = 1;
+    let v = inner ? 1 - smooth(INTERIOR_FROM, INTERIOR_FULL, inner[i]) : 1;
     if (o.faces === "sides") v *= 1 - smooth(0.5, 0.7, Math.abs(nz));
     else if (o.faces === "top") v *= smooth(0.3, 0.6, nz);
     if (o.brush) {
@@ -111,6 +118,24 @@ function weights(pos: Float32Array, nor: Float32Array, minZ: number, o: Texturiz
     w[i] = v;
   }
   return w;
+}
+
+/** Oclusão de cada vértice (0 = livre, 1 = fechado): medida por balde de posição e direção, não vértice a vértice. */
+function innerMeasure(pos: Float32Array, nor: Float32Array, tri: Uint32Array, source: { pos: Float32Array; tri: Uint32Array }): Float32Array {
+  const occ = buildOccluder(source.pos, source.tri);
+  const out = new Float32Array(pos.length / 3);
+  const cache = new Map<string, number>();
+  for (let i = 0; i < out.length; i++) {
+    const key = `${Math.floor(pos[i * 3] / OCCLUSION_CELL_MM)},${Math.floor(pos[i * 3 + 1] / OCCLUSION_CELL_MM)},${Math.floor(pos[i * 3 + 2] / OCCLUSION_CELL_MM)},${Math.round(nor[i * 3] * 2)},${Math.round(nor[i * 3 + 1] * 2)},${Math.round(nor[i * 3 + 2] * 2)}`;
+    let f = cache.get(key);
+    if (f === undefined) {
+      f = occ.fraction([pos[i * 3], pos[i * 3 + 1], pos[i * 3 + 2]], [nor[i * 3], nor[i * 3 + 1], nor[i * 3 + 2]]);
+      cache.set(key, f);
+    }
+    out[i] = f;
+  }
+  void tri;
+  return out;
 }
 
 function displacement(pos: Float32Array, nor: Float32Array, w: Float32Array, bb: { min: number[]; max: number[] }, o: TexturizeOptions): Float32Array {
@@ -147,7 +172,19 @@ function direction(n: Vec3, heightAboveBase: number, o: TexturizeOptions): Vec3 
   return l < 1e-6 ? [0, 0, 0] : [n[0] / l, n[1] / l, 0];
 }
 
-export function texturize(M: ManifoldToplevel, model: Model, o: TexturizeOptions): TexturizeResult {
+/** Progresso e cancelamento do cálculo (a tela mostra a barra e o botão Cancelar; o worker usa os dois). */
+export type Hooks = { progress?: (fraction: number, stage: string) => void; cancelled?: () => boolean };
+export class TexturizeCancelled extends Error {
+  constructor() {
+    super("Cálculo cancelado.");
+  }
+}
+
+export function texturize(M: ManifoldToplevel, model: Model, o: TexturizeOptions, hooks: Hooks = {}, span: [number, number] = [0, 1]): TexturizeResult {
+  const at = (f: number, stage: string) => {
+    if (hooks.cancelled?.()) throw new TexturizeCancelled();
+    hooks.progress?.(span[0] + (span[1] - span[0]) * f, stage);
+  };
   const warnings: string[] = [];
   if (o.scale < 2 * nozzleMm()) warnings.push(`A textura é menor que ${(2 * nozzleMm()).toString().replace(".", ",")} mm (duas linhas do bico): o detalhe se perde na impressão. Aumente o tamanho.`);
   if (o.depth < 0.15) warnings.push("Relevo menor que 0,15 mm: mal aparece depois de impresso.");
@@ -158,6 +195,7 @@ export function texturize(M: ManifoldToplevel, model: Model, o: TexturizeOptions
   let total = 0;
   const parts = scoped((k) => {
     const out: Part[] = [];
+    at(0.02, "Conferindo a malha");
     const solids = model.parts.map((part) => {
       const r = solidFromMesh(M, part.mesh);
       if (r.holes) warnings.push(`A malha de "${part.name}" tinha ${r.holes} furo${r.holes > 1 ? "s" : ""} e foi consertada antes de texturizar.`);
@@ -165,19 +203,33 @@ export function texturize(M: ManifoldToplevel, model: Model, o: TexturizeOptions
       return { part, solid, area: solid.surfaceArea(), tris: part.mesh.indices.length / 3 };
     });
     const totalArea = solids.reduce((s, x) => s + x.area, 0) || 1;
+    const work = solids.reduce((s, x) => s + x.tris + 1, 0);
+    let done = 0;
     for (const { part, solid, area, tris } of solids) {
+      const share0 = (tris + 1) / work;
+      // fração do trabalho todo: o que já foi das partes anteriores + a etapa desta parte
+      const step = (f: number, stage: string) => at(0.05 + 0.95 * (done + share0 * f), stage);
       const bb = solid.boundingBox();
       const share = (MAX_TRIANGLES * area) / totalArea; // a cota de triângulos desta parte
       const edgeByTexture = Math.min(MAX_EDGE_MM, Math.max(MIN_EDGE_MM, o.scale / SAMPLES_PER_TILE));
       const edge = Math.max(edgeByTexture, Math.sqrt((area * TRI_PER_AREA) / share));
       reduced ||= edge > edgeByTexture * 1.01;
+      step(0.05, "Subdividindo a malha");
       // a malha já tem mais triângulos que a cota: não subdivide (o detalhe do arquivo já basta)
       const fine = tris >= share ? solid : k(solid.refineToLength(edge));
       const mesh = fine.getMesh();
       const pos = new Float32Array(mesh.numProp === 3 ? mesh.vertProperties : mesh.vertProperties.filter((_, i) => i % mesh.numProp < 3));
       const tri = new Uint32Array(mesh.triVerts);
+      step(0.25, "Calculando as normais");
       const nor = vertexNormals(pos, tri);
-      const w = weights(pos, nor, bb.min[2], o);
+      let inner: Float32Array | null = null;
+      if (!o.interior) {
+        step(0.35, "Separando o lado de fora do de dentro");
+        const src = solid.getMesh();
+        inner = innerMeasure(pos, nor, tri, { pos: new Float32Array(src.numProp === 3 ? src.vertProperties : src.vertProperties.filter((_, i) => i % src.numProp < 3)), tri: new Uint32Array(src.triVerts) });
+      }
+      step(0.65, "Aplicando o relevo");
+      const w = weights(pos, nor, bb.min[2], o, inner);
       const d = displacement(pos, nor, w, bb, o);
       const moved = new Float32Array(pos.length);
       for (let i = 0; i < w.length; i++) {
@@ -187,6 +239,7 @@ export function texturize(M: ManifoldToplevel, model: Model, o: TexturizeOptions
       total += w.length;
       textured += w.reduce((s, v) => s + (v > 0.05 ? 1 : 0), 0);
       triangles += tri.length / 3;
+      step(0.85, "Montando a peça");
       let result;
       try {
         result = k(M.Manifold.ofMesh(new M.Mesh({ numProp: 3, vertProperties: moved, triVerts: tri })));
@@ -195,10 +248,32 @@ export function texturize(M: ManifoldToplevel, model: Model, o: TexturizeOptions
       }
       if (result.isEmpty() || result.volume() <= 0) throw new Error("O relevo deixou a peça sem volume: diminua a altura do relevo.");
       out.push({ ...part, mesh: toMesh(result) });
+      done += share0;
     }
+    at(1, "Pronto");
     return out;
   });
   if (reduced) warnings.push("A peça é grande para o tamanho da textura: reduzi o detalhe para manter o arquivo leve.");
   if (o.brush && o.brush.length === 0) warnings.push("Nada pintado ainda: clique na peça para pintar a área que recebe a textura.");
   return { model: { ...model, parts }, warnings, info: { triangles, textured: total ? textured / total : 0 } };
+}
+
+export type TexturizeAll = { models: Model[]; warnings: string[]; info: TexturizeInfo };
+
+/** Vários objetos de um arquivo, um de cada vez (continuam objetos separados), com o progresso somado. */
+export function texturizeAll(M: ManifoldToplevel, models: Model[], o: TexturizeOptions, hooks: Hooks = {}): TexturizeAll {
+  const weight = models.map((m) => m.parts.reduce((s, p) => s + p.mesh.indices.length / 3 + 1, 0));
+  const sum = weight.reduce((a, b) => a + b, 0) || 1;
+  let from = 0;
+  const done = models.map((m, i) => {
+    const to = from + weight[i] / sum;
+    const r = texturize(M, m, o, hooks, [from, to]);
+    from = to;
+    return r;
+  });
+  return {
+    models: done.map((r) => r.model),
+    warnings: [...new Set(done.flatMap((r) => r.warnings))],
+    info: { triangles: done.reduce((a, r) => a + r.info.triangles, 0), textured: done.reduce((a, r) => a + r.info.textured, 0) / (done.length || 1) },
+  };
 }

@@ -38,6 +38,24 @@ test("textura no seu modelo: escolhe a textura, pinta com o pincel na prévia e 
   expect([...tauri.files.keys()].some((p) => p.endsWith("caixa-textura.3mf"))).toBe(true);
 });
 
+test("peça grande: a tela não trava, mostra o progresso, cancela e calcula de novo (#222)", async ({ page }) => {
+  test.setTimeout(180_000);
+  await page.setViewportSize({ width: 1440, height: 1250 });
+  await openApp(page);
+  await go(page, "Textura no seu modelo");
+  await page.locator('input[type="file"]').first().setInputFiles({ name: "grande.stl", mimeType: "model/stl", buffer: Buffer.from(boxStl(260, 260, 260)) });
+  const bar = page.getByRole("progressbar", { name: "Progresso da textura" });
+  await expect(bar).toBeVisible({ timeout: 60_000 });
+  // a tela segue respondendo durante o cálculo: dá para escolher outra textura e ver a escolha marcada na hora
+  await page.getByRole("button", { name: /Couro/ }).click();
+  await expect(page.getByRole("button", { name: /Couro/ })).toHaveAttribute("aria-pressed", "true");
+  await expect(bar).toBeVisible({ timeout: 60_000 });
+  await page.getByRole("button", { name: "Cancelar" }).click();
+  await expect(page.getByText(/Cálculo cancelado/)).toBeVisible({ timeout: 30_000 });
+  await page.getByRole("button", { name: "Calcular de novo" }).click();
+  await expect(page.getByLabel("Resultado da textura")).toContainText("triângulos", { timeout: 150_000 });
+});
+
 for (const scheme of ["light", "dark"] as const) {
   test(`textura no seu modelo: tela com o arquivo aberto passa no axe (${scheme})`, async ({ page }) => {
     await page.emulateMedia({ colorScheme: scheme });

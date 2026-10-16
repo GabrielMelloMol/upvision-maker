@@ -3,10 +3,10 @@ import { meshBounds } from "../geometry/bounds";
 import { loadFont } from "../geometry/fonts";
 import { lumaGrid } from "../geometry/heightfield";
 import { getManifold } from "../geometry/manifold";
-import { readOwnObjects } from "../geometry/ownModel";
+import { readObjectsAsync, texturizeAsync, TexturizeCancelled } from "../geometry/textureClient";
 import { imageGrid, textGrid } from "../geometry/textureGrid";
 import { TEXTURES, textureById, thumbnail, type TextureId } from "../geometry/textureLib";
-import { DEFAULT_TEXTURIZE, texturize, type Direction, type Faces, type Mapping, type TextureSource, type TexturizeInfo, type TexturizeOptions } from "../geometry/texturize";
+import { DEFAULT_TEXTURIZE, type Direction, type Faces, type Mapping, type TextureSource, type TexturizeInfo, type TexturizeOptions } from "../geometry/texturize";
 import type { Model } from "../geometry/types";
 import Alert from "../ui/Alert";
 import Dropzone from "../ui/Dropzone";
@@ -64,6 +64,7 @@ const initialState = () => ({
   mapping: "box" as Mapping,
   flatBase: true,
   protectOverhang: true,
+  interior: false,
 });
 type State = ReturnType<typeof initialState>;
 
@@ -100,16 +101,29 @@ export default function Texturize() {
   const set = <K extends keyof State>(key: K) => tool.field(key) as (v: State[K] | ((cur: State[K]) => State[K])) => void;
   const [fileError, setFileError] = useState<string | null>(null);
   const [info, setInfo] = useState<TexturizeInfo | null>(null);
+  const [progress, setProgress] = useState<{ fraction: number; stage: string } | null>(null);
+  const [rev, setRev] = useState(0); // "Calcular de novo" depois de cancelar
+  const job = useRef<{ cancel: () => void } | null>(null);
+  const halt = useRef(false); // "Cancelar" tocado antes de o cálculo começar (durante a espera de 0,2 s depois de mudar uma opção)
+  const run = useRef(0);
 
-  const parsed = useMemo<Model[] | { error: string } | null>(() => {
-    if (!s.file) return null;
-    try {
-      return readOwnObjects(s.file.bytes, s.file.name);
-    } catch (e) {
-      return { error: errorText(e) };
-    }
+  // o arquivo é lido num worker: um 3MF grande não trava a tela
+  const [parsed, setParsed] = useState<{ file: object; models: Model[] } | { file: object; error: string } | null>(null);
+  useEffect(() => {
+    if (!s.file) return;
+    let alive = true;
+    const key = s.file;
+    readObjectsAsync(s.file.bytes, s.file.name).then(
+      (models) => alive && setParsed({ file: key, models }),
+      (e) => alive && setParsed({ file: key, error: errorText(e) }),
+    );
+    return () => {
+      alive = false;
+    };
   }, [s.file]);
-  const source = parsed && !("error" in parsed) ? parsed : null;
+  const current = s.file && parsed && parsed.file === s.file ? parsed : null;
+  const source = current && "models" in current ? current.models : null;
+  const reading = !!s.file && !current;
   const size = useMemo(() => {
     const b = source && meshBounds(source.flatMap((m) => m.parts.map((p) => p.mesh)));
     return b ? ([b.max[0] - b.min[0], b.max[1] - b.min[1], b.max[2] - b.min[2]] as const) : null;
@@ -155,9 +169,27 @@ export default function Texturize() {
       brush: s.area === "brush" ? s.brush : null,
       protectOverhang: s.protectOverhang,
       flatBase: s.flatBase,
+      interior: s.interior,
     };
-    const done = source.map((m) => texturize(M, m, o)); // um objeto de cada vez: continuam objetos separados no arquivo
-    const out = { models: done.map((r) => r.model), warnings: [...new Set(done.flatMap((r) => r.warnings))], info: { triangles: done.reduce((a, r) => a + r.info.triangles, 0), textured: done.reduce((a, r) => a + r.info.textured, 0) / done.length } };
+    if (halt.current) {
+      halt.current = false;
+      throw new Error("Cálculo cancelado. Mude uma opção ou toque em Calcular de novo.");
+    }
+    // o cálculo roda num worker: a tela não trava, mostra o progresso e dá para cancelar
+    const mine = ++run.current;
+    setProgress({ fraction: 0, stage: "Começando" });
+    const running = texturizeAsync(source, o, (fraction, stage) => run.current === mine && setProgress({ fraction, stage }));
+    job.current = running;
+    let out;
+    try {
+      out = await running.promise;
+    } catch (e) {
+      if (e instanceof TexturizeCancelled) throw new Error("Cálculo cancelado. Mude uma opção ou toque em Calcular de novo.", { cause: e });
+      throw e;
+    } finally {
+      if (run.current === mine) setProgress(null);
+      if (job.current === running) job.current = null;
+    }
     setInfo(out.info);
     // pinceladas: bolinhas só da prévia, no tamanho da pincelada
     const marks: Model[] =
@@ -170,7 +202,13 @@ export default function Texturize() {
           })
         : [];
     return { models: [...out.models, ...marks], warnings: out.warnings };
-  }, [source, valid, s.source, s.pattern, s.text, s.font, s.image, s.invert, s.scale, s.depth, s.direction, s.area, s.brush, s.mapping, s.flatBase, s.protectOverhang]);
+  }, [source, valid, s.source, s.pattern, s.text, s.font, s.image, s.invert, s.scale, s.depth, s.direction, s.area, s.brush, s.mapping, s.flatBase, s.protectOverhang, s.interior, rev]);
+  // mudou uma opção: o cálculo que estava rodando já não vale, para na hora (poupa o processador)
+  useEffect(() => {
+    job.current?.cancel();
+    job.current = null;
+    halt.current = false;
+  }, [source, valid, s.source, s.pattern, s.text, s.font, s.image, s.invert, s.scale, s.depth, s.direction, s.area, s.brush, s.mapping, s.flatBase, s.protectOverhang, s.interior, rev]);
   const printable = useMemo(() => all.filter((m) => !m.previewOnly), [all]);
   const baseName = s.file?.name.replace(/\.[^.]+$/, "") ?? "peca";
   const groups = useMemo(() => [...new Set(TEXTURES.map((t) => t.group))], []);
@@ -186,7 +224,8 @@ export default function Texturize() {
             <h3>Arquivo</h3>
             <Dropzone accept=".stl,.3mf" label={s.file ? s.file.name : "Arraste o .stl ou .3mf"} hint="Um sólido fechado (furos pequenos na malha o app conserta)." onFile={onFile} />
             {fileError && <Alert kind="error">{fileError}</Alert>}
-            {parsed && "error" in parsed && <Alert kind="error">{parsed.error}</Alert>}
+            {reading && <span className="hint" role="status">Lendo o arquivo…</span>}
+            {current && "error" in current && <Alert kind="error">{current.error}</Alert>}
             {size && <span className="hint">Peça: {mm(size[0])} × {mm(size[1])} × {mm(size[2])} mm</span>}
             <p className="hint">Quando usar: dar acabamento a uma peça que você já tem (alça, caixa, vaso, brinde) sem desenhar nada: o relevo é feito na malha, não é só desenho na tela.</p>
             <Alert kind="warn">Use só modelos que são seus ou cuja licença permite alterar e imprimir. O app não confere a licença do arquivo.</Alert>
@@ -249,6 +288,8 @@ export default function Texturize() {
             <Segmented label="Projeção" value={s.mapping} options={MAPPINGS} onChange={set("mapping")} full />
             <span className="hint">{s.mapping === "box" ? "A textura é projetada pelos três eixos: serve para quase qualquer forma." : "A textura dá a volta na peça em torno do eixo vertical: serve para copo, vaso e tubo."}</span>
             <Toggle label="Base lisa (não texturiza a face que assenta na mesa)" checked={s.flatBase} onChange={set("flatBase")} />
+            <Toggle label="Texturizar por dentro também (interior de copo, caneca, vaso)" checked={s.interior} onChange={set("interior")} />
+            <span className="hint">{s.interior ? "O lado de dentro também ganha textura: fica áspero por dentro." : "Só o lado de fora: o interior de copo, caneca e vaso continua liso."}</span>
             <Toggle label="Sem balanço novo (não põe relevo para fora nas partes viradas para baixo)" checked={s.protectOverhang} onChange={set("protectOverhang")} />
           </div>
           {info && source && (
@@ -262,6 +303,31 @@ export default function Texturize() {
           <ExportButtons models={printable} name={`${baseName}-textura`} busy={busy} onSaved={tool.exported} />
         </div>
         <div className="preview-col">
+          {busy && progress && (
+            <div className="card stack" role="status" aria-live="polite">
+              <label className="stack">
+                <span>
+                  Aplicando a textura: {progress.stage} ({Math.round(progress.fraction * 100)}%)
+                </span>
+                <progress value={progress.fraction} max={1} aria-label="Progresso da textura" />
+              </label>
+              <button
+                type="button"
+                className="sm"
+                onClick={() => {
+                  if (job.current) job.current.cancel();
+                  else halt.current = true;
+                }}
+              >
+                Cancelar
+              </button>
+            </div>
+          )}
+          {error && /cancelado/i.test(error) && (
+            <button type="button" className="sm primary" onClick={() => setRev((n) => n + 1)}>
+              Calcular de novo
+            </button>
+          )}
           <Preview3D
             models={all}
             busy={busy}

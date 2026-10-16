@@ -2,7 +2,7 @@ import { beforeAll, describe, expect, test } from "vitest";
 import { meshBounds } from "./bounds";
 import { getManifold, type ManifoldToplevel } from "./manifold";
 import { toMesh } from "./mesh";
-import { DEFAULT_TEXTURIZE, texturize, type TexturizeOptions } from "./texturize";
+import { DEFAULT_TEXTURIZE, texturize, texturizeAll, TexturizeCancelled, type TexturizeOptions } from "./texturize";
 import { volume } from "./testUtil";
 import type { Model } from "./types";
 
@@ -100,5 +100,60 @@ describe("texturizador de arquivo do cliente (#222)", { timeout: 120_000 }, () =
     const r = texturize(M, grande, opts({ scale: 3 }));
     expect(r.info.triangles).toBeLessThanOrEqual(1_600_000);
     expect(r.warnings.join(" ")).toMatch(/reduzi o detalhe/);
+  });
+
+  describe("só o lado de fora por padrão (copo, caneca, vaso)", () => {
+    const cup = () => model(M.Manifold.cylinder(60, 35, 35, 96).subtract(M.Manifold.cylinder(60, 32.6, 32.6, 96).translate([0, 0, 3])));
+    /** Raio de cada vértice da peça texturizada, só dos que ficam na parede de dentro (raio original 32,6) ou de fora (35). */
+    const radii = (m: Model) => {
+      const inner: number[] = [], outer: number[] = [];
+      for (const p of m.parts) for (let i = 0; i < p.mesh.positions.length; i += 3) {
+        const [x, y, z] = [p.mesh.positions[i], p.mesh.positions[i + 1], p.mesh.positions[i + 2]];
+        const r = Math.hypot(x, y);
+        if (z > 8 && z < 55 && r > 31.5 && r < 34) inner.push(r);
+        else if (z > 8 && z < 55 && r >= 34) outer.push(r);
+      }
+      return { inner, outer };
+    };
+
+    test("padrão: o relevo vai só por fora; a parede de dentro continua lisa em 32,6 mm", () => {
+      const { inner, outer } = radii(texturize(M, cup(), opts({ scale: 6, depth: 0.7 })).model);
+      expect(Math.max(...outer)).toBeGreaterThan(35.3); // por fora tem relevo
+      expect(Math.max(...inner.map((r) => Math.abs(r - 32.6)))).toBeLessThan(0.05); // por dentro nada
+    });
+
+    test("com 'texturizar por dentro também' a parede de dentro ganha relevo", () => {
+      const { inner } = radii(texturize(M, cup(), opts({ scale: 6, depth: 0.7, interior: true })).model);
+      expect(Math.max(...inner.map((r) => Math.abs(r - 32.6)))).toBeGreaterThan(0.3);
+    });
+
+    test("peça maciça não muda: o lado de fora é a superfície toda", () => {
+      const a = texturize(M, cube(), opts({ interior: false }));
+      const b = texturize(M, cube(), opts({ interior: true }));
+      expect(vol(a.model)).toBeCloseTo(vol(b.model), 0);
+    });
+  });
+
+  describe("progresso e cancelamento", () => {
+    test("o progresso só cresce, passa pelas etapas e termina em 1", () => {
+      const seen: [number, string][] = [];
+      texturizeAll(M, [cube()], opts(), { progress: (f, st) => seen.push([f, st]) });
+      expect(seen.length).toBeGreaterThan(5);
+      for (let i = 1; i < seen.length; i++) expect(seen[i][0]).toBeGreaterThanOrEqual(seen[i - 1][0] - 1e-9);
+      expect(seen[seen.length - 1]).toEqual([1, "Pronto"]);
+      expect(seen.map((x) => x[1])).toEqual(expect.arrayContaining(["Subdividindo a malha", "Separando o lado de fora do de dentro", "Aplicando o relevo"]));
+    });
+
+    test("cancelar no meio interrompe com TexturizeCancelled", () => {
+      let calls = 0;
+      expect(() => texturizeAll(M, [cube()], opts(), { cancelled: () => ++calls > 3 })).toThrow(TexturizeCancelled);
+    });
+
+    test("vários objetos: o progresso cobre todos (de 0 a 1)", () => {
+      const seen: number[] = [];
+      texturizeAll(M, [cube(), ball()], opts(), { progress: (f) => seen.push(f) });
+      expect(Math.max(...seen)).toBeCloseTo(1, 5);
+      expect(Math.min(...seen)).toBeLessThan(0.1);
+    });
   });
 });

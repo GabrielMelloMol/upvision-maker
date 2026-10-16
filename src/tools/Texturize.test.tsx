@@ -78,4 +78,15 @@ describe("Textura no seu modelo (#222)", { timeout: 180_000 }, () => {
     await user.upload(container.querySelector<HTMLInputElement>('input[type="file"]')!, new File(["x"], "foto.png", { type: "image/png" }));
     expect(await screen.findByText("Envie um arquivo .stl ou .3mf.")).toBeInTheDocument();
   });
+
+  test("interior: por padrão só o lado de fora (o interruptor vem desligado) e a explicação muda ao ligar", async () => {
+    const user = userEvent.setup();
+    renderWithApp(<Texturize />);
+    const toggle = screen.getByLabelText(/Texturizar por dentro também/);
+    expect(toggle).not.toBeChecked();
+    expect(screen.getByText(/o interior de copo, caneca e vaso continua liso/)).toBeInTheDocument();
+    await user.click(toggle);
+    expect(toggle).toBeChecked();
+    expect(screen.getByText(/fica áspero por dentro/)).toBeInTheDocument();
+  });
 });
