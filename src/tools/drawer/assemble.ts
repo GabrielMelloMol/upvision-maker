@@ -1,5 +1,6 @@
 import { moveMesh, solidMesh, type ModelCtx } from "../../geometry/models/common";
 import { buildRails, buildRailTest, buildTray, railUpright } from "../../geometry/models/cutlery";
+import { buildAnatomicTray } from "../../geometry/models/cutleryAnatomic";
 import { cutleryPlan, twoLevelsShortfall, type CutleryPlan } from "../../geometry/models/cutleryPlan";
 import { drawerPlan, GRID, type DrawerAlign, type DrawerPlan } from "../../geometry/models/gridDrawer";
 import { buildGridBase, buildGridBin, DEFAULT_GRID_BIN } from "../../geometry/models/gridfinity";
@@ -21,12 +22,15 @@ export type DrawerProject = {
   /** Trilho metálico ou parafuso saindo de cada lateral (mm): tira da largura útil. */
   sideObstacle?: number;
   trayColor?: string;
+  /** Divisões da bandeja: caixas retas (padrão dos projetos antigos) ou cápsulas no contorno de cada talher, com o nome no fundo (#214). */
+  trayStyle?: "boxes" | "anatomic";
 };
 
 export const LABEL_COLOR = "#f8f8f6";
 export const LABEL_TEXT = "#1c1c1e";
 
 export const TRAY_COLOR = "#2563eb";
+export const TRAY_NAME_COLOR = "#f8f8f6";
 
 /** Plano dos talheres, só quando ligado e a gaveta comporta 2 andares. */
 export function cutleryOf(p: DrawerProject): CutleryPlan | null {
@@ -139,7 +143,8 @@ function cutleryPieces(ctx: ModelCtx, p: DrawerProject, c: CutleryPlan, preview:
     preview.push({ name: side < 0 ? "Trilho esquerdo" : "Trilho direito", parts: [{ name: "Trilho", color: p.baseColor, mesh: solidMesh(placed) }] });
     for (const x of new Set([up, turned, placed])) x.delete();
   }
-  const built = c.trays.map((t, i) => ({ t, m: { ...buildTray(M, t, c.trayDepth, c.trayHeight, color), name: i === 0 ? "Bandeja de talheres" : `Bandeja ${i + 1}` } }));
+  const make = (t: (typeof c.trays)[number]) => (p.trayStyle === "anatomic" ? buildAnatomicTray(ctx, t, c.trayDepth, c.trayHeight, color, TRAY_NAME_COLOR) : buildTray(M, t, c.trayDepth, c.trayHeight, color));
+  const built = c.trays.map((t, i) => ({ t, m: { ...make(t), name: i === 0 ? "Bandeja de talheres" : `Bandeja ${i + 1}` } }));
   const total = c.trays.reduce((a, t) => a + t.width, 0);
   let x = -total / 2;
   const trays = built.map(({ t, m }) => {

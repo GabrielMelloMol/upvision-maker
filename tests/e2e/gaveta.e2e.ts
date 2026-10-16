@@ -128,6 +128,25 @@ test("talheres em 2 andares: bandeja nos trilhos em cima, base e caixinhas embai
   await expect(page.getByText(/levanta pelas alças/)).toBeVisible({ timeout: 90_000 });
 });
 
+test("talheres: bandeja anatômica é a padrão (cada talher no seu contorno, com o nome) e dá para voltar às caixas retas (#214)", async ({ page }) => {
+  test.slow();
+  await page.setViewportSize({ width: 1024, height: 900 });
+  await openApp(page);
+  await go(page, "Organizador de gaveta");
+  for (const [label, v] of [["Largura", "500"], ["Profundidade", "500"], ["Altura livre", "110"]] as const) await page.getByLabel(new RegExp(`^${label}`)).fill(v);
+  await expect(page.getByRole("group", { name: "Divisões da bandeja" })).toHaveCount(0); // só aparece com os dois andares
+  await page.getByRole("switch", { name: "Dois andares: talheres em cima" }).check();
+  const style = page.getByRole("group", { name: "Divisões da bandeja" });
+  await expect(style.getByRole("button", { name: /Anatômicas/ })).toHaveAttribute("aria-pressed", "true");
+  await expect(page.getByRole("group", { name: /bandeja de talheres em cima, deslizando nos trilhos/ })).toBeVisible({ timeout: 90_000 });
+  const prints = process.env.TALHERES_PRINTS;
+  if (prints) await page.screenshot({ path: `${prints}/talheres-anatomica.png`, fullPage: true });
+  await style.getByRole("button", { name: "Caixas retas" }).click();
+  await expect(style.getByRole("button", { name: "Caixas retas" })).toHaveAttribute("aria-pressed", "true");
+  await expect(page.getByRole("group", { name: /bandeja de talheres em cima, deslizando nos trilhos/ })).toBeVisible({ timeout: 90_000 });
+  if (prints) await page.screenshot({ path: `${prints}/talheres-caixas-retas.png`, fullPage: true });
+});
+
 /** Sugestão real (#194): gaveta de "35 × 25" digitada em centímetros num campo em milímetros. */
 test("gaveta 35 × 25 digitada em cm: avisa a faixa em mm e cm, sugere 350 × 250 mm e gera com um clique", async ({ page }) => {
   test.slow();

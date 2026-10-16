@@ -29,6 +29,11 @@ import { modKey } from "../ui/shortcuts";
 import GeneratorHelp from "./models/guide/GeneratorHelp";
 import { TOOL_HELP } from "./models/help/toolHelp";
 
+const TRAY_STYLES = [
+  ["anatomic", "Anatômicas (cada talher no seu contorno)"],
+  ["boxes", "Caixas retas"],
+] as const;
+
 const ALIGNS = [
   ["center", "Centralizar"],
   ["corner", "Encostar no canto"],
@@ -43,7 +48,7 @@ const FONT = "hanken";
 const NO_MODELS: Model[] = [];
 
 function initialState(): DrawerProject {
-  const p: DrawerProject = { width: 500, depth: 420, height: 80, align: "center", baseMagnets: false, baseColor: "#1c1c1e", bedMargin: 4, layout: { cols: 0, rows: 0, modules: [] } };
+  const p: DrawerProject = { width: 500, depth: 420, height: 80, align: "center", baseMagnets: false, baseColor: "#1c1c1e", bedMargin: 4, layout: { cols: 0, rows: 0, modules: [] }, trayStyle: "anatomic" };
   const plan = planOf(p);
   return { ...p, layout: { cols: plan.nx, rows: plan.ny, modules: [] } };
 }
@@ -98,7 +103,7 @@ export default function DrawerOrganizer({ embedded = false }: { embedded?: boole
   const [trays, setTrays] = useState<Model[]>([]);
   const [slide, setSlide] = useState(false);
   const setAlign = (align: DrawerProject["align"]) => tool.set((s) => ({ ...s, align }), "align");
-  const set = <K extends "baseMagnets" | "baseColor" | "bedMargin" | "trayColor">(k: K) => tool.field(k);
+  const set = <K extends "baseMagnets" | "baseColor" | "bedMargin" | "trayColor" | "trayStyle">(k: K) => tool.field(k);
   const valid = inRange(p.width, 50, 1500) && inRange(p.depth, 50, 1500) && inRange(p.height, 15, 400) && inRange(p.bedMargin, 0, 20) && inRange(p.sideObstacle ?? 0, 0, 40);
   const chosen = p.layout.modules.filter((m) => selected.includes(m.id));
 
@@ -146,6 +151,7 @@ export default function DrawerOrganizer({ embedded = false }: { embedded?: boole
             <Toggle label="Dois andares: talheres em cima" checked={!!p.cutlery} onChange={setGrid("cutlery")} />
             {cutleryBlocked(p) && <Alert kind="warn">{cutleryBlocked(p)}</Alert>}
             {p.cutlery && !cutleryBlocked(p) && <span className="hint">Bandeja dos talheres nos trilhos; embaixo, a base e as caixinhas. Imprima em PETG: aguenta água quente e detergente.</span>}
+            {p.cutlery && !cutleryBlocked(p) && <Segmented label="Divisões da bandeja" value={p.trayStyle ?? "boxes"} options={TRAY_STYLES} onChange={set("trayStyle")} full />}
             {plan.nx > 0 && plan.ny > 0 && <span className="hint" aria-live="polite">{planSummary(plan, true, p.baseMagnets ? 3.2 : 0)}</span>}
           </div>
           {notice && <Alert kind="info">{notice}</Alert>}

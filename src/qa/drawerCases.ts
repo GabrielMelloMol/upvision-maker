@@ -11,8 +11,8 @@ import type { QaCase } from "./cases";
  */
 const text = () => null;
 
-function project(width: number, depth: number, height: number, mods: Rect[], cutlery = false): DrawerProject {
-  const p: DrawerProject = { width, depth, height, align: "center", baseMagnets: false, baseColor: "#1c1c1e", bedMargin: 4, layout: { cols: 0, rows: 0, modules: [] }, cutlery };
+function project(width: number, depth: number, height: number, mods: Rect[], cutlery = false, trayStyle: DrawerProject["trayStyle"] = "boxes"): DrawerProject {
+  const p: DrawerProject = { width, depth, height, align: "center", baseMagnets: false, baseColor: "#1c1c1e", bedMargin: 4, layout: { cols: 0, rows: 0, modules: [] }, cutlery, trayStyle };
   const plan = planOf(p);
   let layout: DrawerLayout = { cols: plan.nx, rows: plan.ny, modules: [] };
   for (const r of mods) layout = addModule(layout, r, plan.uMax) ?? layout;
@@ -38,6 +38,9 @@ export function drawerCases(M: ManifoldToplevel): QaCase[] {
     ["cutlery", "Talheres em 2 andares", "padrão", run(project(500, 500, 110, SOME, true))],
     ["cutlery", "Talheres em 2 andares", "mínimo", run(project(300, 280, 80, [], true))],
     ["cutlery", "Talheres em 2 andares", "máximo", run(project(1500, 1500, 400, SOME, true))],
+    ["cutleryAnatomic", "Talheres anatômicos", "padrão", run(project(500, 500, 110, SOME, true, "anatomic"))],
+    ["cutleryAnatomic", "Talheres anatômicos", "mínimo", run(project(300, 280, 80, [], true, "anatomic"))],
+    ["cutleryAnatomic", "Talheres anatômicos", "máximo", run(project(1500, 1500, 400, SOME, true, "anatomic"))],
   ];
   return list.map(([id, label, variant, build]) => ({ key: `${id}:${variant}`, owner: "Torno", group: "home", label: `${label} (ferramenta)`, variant, profile: DEFAULT_PROFILE, build }));
 }
