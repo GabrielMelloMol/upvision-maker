@@ -4,7 +4,7 @@ import * as THREE from "three";
 import { afterEach, beforeEach, describe, expect, test, vi } from "vitest";
 import type { Mesh, Model } from "../geometry/types";
 import Preview3D from "./Preview3D";
-import { createViewer, fitBoxDistance, fitDistance } from "./viewerScene";
+import { createViewer, fitBoxDistance, fitDistance, VIEWS } from "./viewerScene";
 
 // happy-dom não tem WebGL: renderer falso que registra onde a câmera estava a cada quadro.
 const gl = vi.hoisted(() => ({ renders: [] as { x: number; y: number; z: number }[], sizes: [] as [number, number][], disposed: 0, contextLost: 0 }));
@@ -266,5 +266,42 @@ describe("lineParam (alças da vista)", () => {
     expect(t).toBeCloseTo(3, 6);
     // paralelos: não explode
     expect(lineParam(new THREE.Vector3(0, 1, 0), new THREE.Vector3(1, 0, 0), new THREE.Vector3(0, 0, 0), new THREE.Vector3(1, 0, 0))).toBe(0);
+  });
+});
+
+
+describe("botões de vista: nenhuma câmera degenerada (#244)", () => {
+  const boxes = {
+    cubo: new THREE.Box3(new THREE.Vector3(-20, -20, 0), new THREE.Vector3(20, 20, 40)),
+    placa: new THREE.Box3(new THREE.Vector3(-90, -60, 0), new THREE.Vector3(90, 60, 3)),
+    alto: new THREE.Box3(new THREE.Vector3(-5, -5, 0), new THREE.Vector3(5, 5, 200)),
+    deslocado: new THREE.Box3(new THREE.Vector3(300, -500, 10), new THREE.Vector3(360, -440, 12)),
+  };
+  for (const [name, dir] of Object.entries(VIEWS))
+    for (const [bname, box] of Object.entries(boxes))
+      for (const aspect of [0.5, 1.5, 3]) {
+        test(`${name} · ${bname} · aspecto ${aspect}: a câmera olha para o modelo com a matriz finita e todos os cantos na tela`, () => {
+          const center = box.getCenter(new THREE.Vector3());
+          const d = Math.max(fitDistance(10, 40, aspect), fitBoxDistance(box, 40, aspect, dir));
+          const cam = new THREE.PerspectiveCamera(40, aspect, 0.1, 100000);
+          cam.up.set(0, 0, 1);
+          cam.position.copy(center).add(dir.clone().multiplyScalar(d));
+          cam.lookAt(center);
+          cam.updateMatrixWorld();
+          cam.updateProjectionMatrix();
+          expect(cam.matrixWorld.elements.every(Number.isFinite), "matriz finita").toBe(true);
+          expect(Number.isFinite(d) && d > 0).toBe(true);
+          for (let i = 0; i < 8; i++) {
+            const p = new THREE.Vector3(i & 1 ? box.max.x : box.min.x, i & 2 ? box.max.y : box.min.y, i & 4 ? box.max.z : box.min.z).project(cam);
+            expect(Math.abs(p.x), `x ${p.x}`).toBeLessThanOrEqual(1.001);
+            expect(Math.abs(p.y), `y ${p.y}`).toBeLessThanOrEqual(1.001);
+            expect(p.z).toBeLessThan(1);
+          }
+        });
+      }
+
+  test("a vista de cima não é exatamente vertical (o 'up' Z nunca fica paralelo à direção)", () => {
+    const top = VIEWS.top.clone().normalize();
+    expect(Math.abs(top.dot(new THREE.Vector3(0, 0, 1)))).toBeLessThan(0.99999);
   });
 });

@@ -22,7 +22,7 @@ const VIEW_DIR = new THREE.Vector3(0, -1.6, 1.4).normalize();
 const FIT_MARGIN = 1.08;
 export type ViewName = "front" | "side" | "top" | "iso";
 /** Direções das vistas (do centro para a câmera); a de cima fica um fio inclinada para não travar o eixo Z. */
-const VIEWS: Record<ViewName, THREE.Vector3> = {
+export const VIEWS: Record<ViewName, THREE.Vector3> = {
   front: new THREE.Vector3(0, -1, 0),
   side: new THREE.Vector3(1, 0, 0),
   top: new THREE.Vector3(0, -0.02, 1).normalize(),
