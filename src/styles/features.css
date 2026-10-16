@@ -383,3 +383,39 @@ td.best-name { max-width: 0; width: 100%; overflow: hidden; text-overflow: ellip
 .org-tabs [role="tab"] > svg { width: 16px; height: 16px; }
 .org-tabs [role="tab"][aria-selected="true"] { color: var(--text); border-bottom-color: var(--accent); font-weight: 600; }
 .org-tabs [role="tab"]:hover { color: var(--text); background: var(--fill); }
+
+/* Gerador guiado (#204): deslizante com número, "Comece pelo uso", abas de vista, "Como usar", mapa e faixas */
+.num-slider { margin: 2px 0 0; }
+.preset-bar { display: grid; gap: var(--space-2); }
+.preset-title { margin: 0; font-size: var(--text-sm); color: var(--muted); font-weight: 600; }
+.preset-blurb { margin: 0; min-height: 1.4em; }
+.view-tabs { display: grid; gap: var(--space-1); margin-bottom: var(--space-2); }
+.view-tabs .hint { margin: 0; }
+.gen-help { border: 1px solid var(--border-strong); border-radius: var(--r); padding: var(--space-2) var(--space-3); background: var(--surface); }
+.gen-help > summary { cursor: pointer; font-weight: 600; min-height: 24px; }
+.gen-help-body { display: grid; gap: var(--space-3); margin-top: var(--space-2); font-size: var(--text-sm); }
+.gen-help h4 { margin: 0 0 4px; font-size: var(--text-sm); }
+.gen-help ul { margin: 0; padding-left: 1.2em; }
+.gen-help-body > * { min-width: 0; }
+.gen-help-scroll { overflow-x: auto; max-width: 100%; }
+.gen-help table { width: 100%; border-collapse: collapse; }
+.gen-help td:last-child { overflow-wrap: anywhere; }
+.gen-help :is(th, td) { text-align: left; vertical-align: top; padding: 4px 8px; border-bottom: 1px solid var(--border-strong); }
+.gen-help thead th { color: var(--muted); font-weight: 600; }
+.gen-faq { padding: 2px 0; }
+.gen-faq > summary { cursor: pointer; min-height: 24px; }
+.gen-faq p { margin: 4px 0 0; color: var(--muted); }
+.divider-map { display: grid; gap: var(--space-1); }
+.divider-map-svg { display: block; width: 100%; height: auto; max-height: 320px; }
+.divider-map-wall { fill: color-mix(in srgb, var(--accent) 45%, var(--surface-2)); stroke: var(--border-strong); stroke-width: 1; vector-effect: non-scaling-stroke; }
+.divider-map-cell { fill: var(--surface); stroke: none; cursor: default; }
+.divider-map-cell[data-active] { fill: var(--accent-soft); }
+.divider-map-cell[data-small] { fill: color-mix(in srgb, var(--danger) 30%, var(--surface)); stroke: var(--danger); stroke-width: 1.5; vector-effect: non-scaling-stroke; }
+.divider-map-cell:focus-visible { outline: 2px solid var(--focus-ring); outline-offset: 1px; }
+.divider-map-read { margin: 0; min-height: 1.4em; }
+.strip-editor { display: grid; gap: var(--space-2); }
+.strip-editor ol { list-style: none; margin: 0; padding: 0; display: grid; gap: var(--space-2); }
+.strip-editor li { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-2); }
+.strip-step { display: inline-flex; align-items: center; gap: 4px; }
+.strip-step output { min-width: 5.5em; text-align: center; font-size: var(--text-sm); }
+.strip-editor button.sm { min-width: 28px; min-height: 28px; }

@@ -38,6 +38,7 @@ export const BATCH_FIELDS: Record<string, string[]> = {
   windowFrame: ["name"],
   gridBin: ["label"],
   lidBox: ["text"],
+  organizerBox: ["text"],
   alphabetCube: ["kit"],
   rpgDice: ["labels"],
   coaster: ["text"],

@@ -42,3 +42,11 @@ test("withBedCheck acrescenta o aviso à saída do modelo", () => {
   const out = withBedCheck(def).build({} as never, {});
   expect(out.warnings).toHaveLength(2);
 });
+
+test("a vista Peças na mesa segue a arrumação final do arquivo, não a de antes da checagem", () => {
+  const a = model("A", box(100, 100, 5)), b = model("B", box(100, 100, 5));
+  const def = { id: "x", build: () => ({ models: [a, b], warnings: [], views: [{ id: "pieces", label: "Peças", models: [] }, { id: "closed", label: "Fechada", models: [a] }] }) } as unknown as ModelDef;
+  const out = withBedCheck(def).build({} as never, {});
+  expect(out.views!.find((v) => v.id === "pieces")!.models).toBe(out.models);
+  expect(out.views!.find((v) => v.id === "closed")!.models).toEqual([a]);
+});

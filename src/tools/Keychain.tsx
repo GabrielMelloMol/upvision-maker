@@ -30,6 +30,8 @@ import { DESIGN_ACCEPT, designFromSvg, fileToSvg, svgFillColors } from "./design
 import ToolSessionBar from "./ToolSessionBar";
 import { useToolState } from "./useToolState";
 import { errorText } from "../ui/Toast";
+import GeneratorHelp from "./models/guide/GeneratorHelp";
+import { TOOL_HELP } from "./models/help/toolHelp";
 
 const GAP_MM = 5;
 const LOGO_ID = "logo";
@@ -255,7 +257,8 @@ export default function Keychain() {
               </div>
             </details>
           </div>
-          <ExportButtons models={models} name={batch ? "chaveiros" : `chaveiro-${splitLines(text).join(" ") || "logo"}`} busy={busy} profile={DEFAULT_PROFILE} onSaved={tool.exported} />
+          <ExportButtons models={models} name={batch ? "chaveiros" : `chaveiro-${splitLines(text).join(" ") || "logo"}`} busy={busy} profile={DEFAULT_PROFILE} onSaved={tool.exported} tips={TOOL_HELP.keychain.tips} />
+          <GeneratorHelp help={TOOL_HELP.keychain} />
         </div>
         <div className="preview-col">
           <Preview3D models={models} busy={busy} busyText="Gerando chaveiros…" error={error} emptyText={!valid ? "Corrija os campos em vermelho." : silhouette && !logo ? "Envie a silhueta (SVG ou imagem) para ver o chaveiro." : "Digite um nome para ver o chaveiro."} />

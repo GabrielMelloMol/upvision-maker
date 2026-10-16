@@ -23,6 +23,8 @@ import { useExample } from "../help/helpStore";
 import ToolSessionBar from "./ToolSessionBar";
 import { useToolState } from "./useToolState";
 import { EMPTY_QR_FORM, qrContent, type QrForm, type QrMode } from "./qrContent";
+import GeneratorHelp from "./models/guide/GeneratorHelp";
+import { TOOL_HELP } from "./models/help/toolHelp";
 
 const MODES = [
   ["pix", "Pix"],
@@ -223,7 +225,8 @@ export default function QrCode() {
               </button>
             )}
           </div>
-          <ExportButtons models={models} name={name} busy={busy} profile={DEFAULT_PROFILE} onSaved={tool.exported} />
+          <ExportButtons models={models} name={name} busy={busy} profile={DEFAULT_PROFILE} onSaved={tool.exported} tips={TOOL_HELP.qr.tips} />
+          <GeneratorHelp help={TOOL_HELP.qr} />
         </div>
 
         <div className="preview-col">
@@ -237,7 +240,7 @@ export default function QrCode() {
             ]}
           />
           {view === "2d" ? (
-            <div className="viewer qr-preview" role="img" aria-label="Prévia do QR Code">
+            <div className="viewer qr-preview" data-ready={svgUrl ? "" : undefined} role="img" aria-label="Prévia do QR Code">
               {svgUrl ? (
                 <img src={svgUrl} alt="" />
               ) : (

@@ -125,10 +125,12 @@ function flipMesh(m: Mesh, top: number): Mesh {
   return { positions: q, indices: m.indices };
 }
 
-type Decor = { all: CS; text: CS | null; art: CS | null; elements: ElementBox[] };
+/** O que o texto e o desenho da tampa precisam saber da caixa (a caixa organizadora reaproveita). */
+export type DecorParams = Pick<LidBoxParams, "innerW" | "innerD" | "text" | "textSize" | "artSize">;
+export type Decor = { all: CS; text: CS | null; art: CS | null; elements: ElementBox[] };
 
 /** Texto e desenho centrados na face de cima da tampa (coordenadas de uso). Quem chama dá delete() nas regiões. */
-function decor(ctx: ModelCtx, p: LidBoxParams, mirrored: boolean): Decor | null {
+export function lidDecor(ctx: ModelCtx, p: DecorParams, mirrored: boolean): Decor | null {
   const { M } = ctx;
   return scoped((k) => {
     const areaW = p.innerW - 2 * MARGIN, areaH = p.innerD - 2 * MARGIN;
@@ -154,11 +156,42 @@ function decor(ctx: ModelCtx, p: LidBoxParams, mirrored: boolean): Decor | null 
   });
 }
 
+/** Pose de impressão da tampa e a volta para a pose fechada (a de uso): a de encaixe vira de cara para baixo, a deslizante só desce. */
+export function lidPose(p: LidBoxParams) {
+  const snap = p.lid === "snap";
+  const [W] = outer(p);
+  const H = p.floor + p.innerH;
+  const top = topZ(p);
+  const dx = W + GAP;
+  return {
+    dx,
+    toPrint(m: Mesh): Mesh {
+      const q = snap ? flipMesh(m, top) : m;
+      const out = q.positions.slice();
+      for (let i = 0; i < out.length; i += 3) {
+        out[i] += dx;
+        if (!snap) out[i + 2] -= H;
+      }
+      return { positions: out, indices: q.indices };
+    },
+    toClosed(m: Mesh): Mesh {
+      const out = m.positions.slice();
+      for (let i = 0; i < out.length; i += 3) {
+        out[i] -= dx;
+        if (!snap) out[i + 2] += H;
+      }
+      return snap ? flipMesh({ positions: out, indices: m.indices }, top) : { positions: out, indices: m.indices };
+    },
+  };
+}
+
+/** Altura (mm, do fundo) das divisórias: a de encaixe deixa o lábio da tampa entrar por cima. */
+export const dividerHeight = (p: LidBoxParams): number => (p.lid === "snap" ? p.innerH - lipH(p) - p.clearance : p.innerH);
+
 export function buildLidBox(ctx: ModelCtx, p: LidBoxParams): ModelOutput {
   const { M } = ctx;
   const snap = p.lid === "snap";
   const [W, D] = outer(p);
-  const H = p.floor + p.innerH;
   const top = topZ(p);
   const mode = snap && p.textMode === "raised" ? "inlay" : p.textMode;
   const warnings: string[] = [];
@@ -169,7 +202,7 @@ export function buildLidBox(ctx: ModelCtx, p: LidBoxParams): ModelOutput {
     const { box, lid: rawLid } = lidBoxSolids(M, p);
     k(box);
     let lid = k(rawLid);
-    const d = decor(ctx, p, snap);
+    const d = lidDecor(ctx, p, snap);
     const extra: Part[] = [];
     if (d) {
       for (const cs of [d.all, d.text, d.art]) if (cs) k(cs);
@@ -182,15 +215,7 @@ export function buildLidBox(ctx: ModelCtx, p: LidBoxParams): ModelOutput {
     }
     const dx = W + GAP;
     // deslizante: base da tampa na mesa; encaixe: virada, face de fora na mesa
-    const place = (m: Mesh): Mesh => {
-      const q = snap ? flipMesh(m, top) : m;
-      const out = q.positions.slice();
-      for (let i = 0; i < out.length; i += 3) {
-        out[i] += dx;
-        if (!snap) out[i + 2] -= H;
-      }
-      return { positions: out, indices: q.indices };
-    };
+    const place = lidPose(p).toPrint;
     const lidParts: Part[] = [{ name: "Tampa", color: p.lidColor, mesh: place(solidMesh(lid)) }, ...extra.map((x) => ({ ...x, mesh: place(x.mesh) }))];
     const elements = d?.elements.map((e) => ({ ...e, box: [e.box[0] + dx, e.box[1], e.box[2] + dx, e.box[3]] as ElementBox["box"] }));
     return {

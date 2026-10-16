@@ -27,6 +27,11 @@ import { profileFor } from "./models/printProfiles";
 import { EMOJI_FIELDS } from "./models/emoji";
 import { BATCH_FIELDS, layoutCopies, MAX_COPIES, parseBatch } from "./models/batch";
 import type { Model } from "../geometry/types";
+import type { ModelView } from "../geometry/models/common";
+import GeneratorHelp from "./models/guide/GeneratorHelp";
+import { guideFor } from "./models/help/resolve";
+import PresetBar from "./models/guide/PresetBar";
+import ViewTabs from "./models/guide/ViewTabs";
 import { applyLayers } from "./models/applyLayers";
 import DecalGizmo from "./models/DecalGizmo";
 import IconPicker from "./models/IconPicker";
@@ -93,7 +98,7 @@ export default function Models({ only, embedded }: { only?: string; embedded?: {
   });
   const { id, all, font, art, art2, cutout, batchOn, batchText } = tool.state;
   const { adopt } = tool;
-  const [setId, setAll, setFont, setArt, setArt2, setCutout, setBatchOn, setBatchText] = [tool.field("id"), tool.field("all"), tool.field("font"), tool.field("art"), tool.field("art2"), tool.field("cutout"), tool.field("batchOn"), tool.field("batchText")];
+  const [setId, setFont, setArt, setArt2, setCutout, setBatchOn, setBatchText] = [tool.field("id"), tool.field("font"), tool.field("art"), tool.field("art2"), tool.field("cutout"), tool.field("batchOn"), tool.field("batchText")];
   const [artError, setArtError] = useState<string | null>(null);
   // aberto pela galeria Criar (#139): já vem com o modelo escolhido, sem virar passo de desfazer
   // ou pelo pedido (#164, "Preparar impressão"): com a personalização do item no lote
@@ -140,10 +145,17 @@ export default function Models({ only, embedded }: { only?: string; embedded?: {
   }
   // variações do modelo; com uma ocasião escolhida, as dela vêm primeiro
   const variants = [...(VARIANTS[id] ?? [])].sort((a, b) => Number(!!occasion && occasion !== "favorites" && !!b.collections?.includes(occasion)) - Number(!!occasion && occasion !== "favorites" && !!a.collections?.includes(occasion)));
-  const applyVariant = (patch: Params) => setAll((a) => ({ ...a, [id]: { ...baseParams(def), ...patch } }));
+  const guide = guideFor(def, variants); // sugestões por uso e ajuda (#209): o do modelo ou as variações e a ajuda da família
   const p = all[id];
   const patchParams = (next: Params) => tool.set((cur) => ({ ...cur, all: { ...cur.all, [id]: { ...cur.all[id], ...next } } }), `${id}.lugar`);
-  const set = (k: string) => (v: string | number | boolean) => tool.set((cur) => ({ ...cur, all: { ...cur.all, [id]: { ...cur.all[id], [k]: v } } }), `${id}.${k}`);
+  // o campo muda junto com o que acompanha (def.derive), num passo só do desfazer
+  const set = (k: string) => (v: string | number | boolean) =>
+    tool.set((cur) => {
+      const next = { ...cur.all[id], [k]: v };
+      return { ...cur, all: { ...cur.all, [id]: { ...next, ...def.derive?.(k, v, next, cur.all[id]) } } };
+    }, `${id}.${k}`);
+  // vista da prévia escolhida (gerador guiado): "closed" se existir, senão a primeira
+  const [viewId, setViewId] = useState<string | null>(null);
 
   // Placa Pix já vem com os dados da empresa (Preferências → Dados da empresa).
   useEffect(() => {
@@ -209,7 +221,7 @@ export default function Models({ only, embedded }: { only?: string; embedded?: {
   const copies = batchOn && batchKeys ? parseBatch(batchValue, batchKeys) : null;
   const useArt = def.art ? art : null;
   const useArt2 = def.art2 ? art2 : null;
-  const { models, warnings, pauses, busy, error } = useModelBuilder(async () => {
+  const { models, warnings, pauses, busy, error, view: views } = useModelBuilder<ModelView[]>(async () => {
     if (!valid) return null;
     const M = await getManifold();
     const f = await loadFont(font);
@@ -267,7 +279,7 @@ export default function Models({ only, embedded }: { only?: string; embedded?: {
         if (!laid.fits) warn.add(`As cópias não cabem numa mesa de ${bedMm()} mm: divida o lote em mais arquivos.`);
         if (copies.length > MAX_COPIES) warn.add(`Só as primeiras ${MAX_COPIES} cópias foram geradas.`);
         setMissing(null);
-        return { models: laid.models, warnings: [...(textWarn ?? []), ...warn], pauses: [...pauses].sort((a, b) => a - b) };
+        return { models: laid.models, warnings: [...(textWarn ?? []), ...warn], pauses: [...pauses].sort((a, b) => a - b) }; // em lote não há vistas
       }
       let out;
       try {
@@ -282,7 +294,7 @@ export default function Models({ only, embedded }: { only?: string; embedded?: {
       // camadas livres (#26) vão por cima do modelo pronto, na peça principal
       const layered = await applyLayers(M, out.models, lay.layers.filter(layerValid));
       lay.setView({ face: layered.face && out.mirrorFace ? { ...layered.face, mirrorX: true } : layered.face, shapes: layered.shapes, byLayer: layered.byLayer, elements: out.elements ?? [] });
-      return { models: layered.models, warnings: [...(textWarn ?? []), ...(out.warnings ?? []), ...layered.warnings], pauses: out.pauses };
+      return { models: layered.models, warnings: [...(textWarn ?? []), ...(out.warnings ?? []), ...layered.warnings], pauses: out.pauses, view: out.views };
     } finally {
       design?.cs.delete();
       design?.layers?.forEach((l) => l.cs.delete());
@@ -304,6 +316,9 @@ export default function Models({ only, embedded }: { only?: string; embedded?: {
     arrange(Object.fromEntries(keys.map((k) => [k, def.defaults[k]])));
   }
   const elements = copies ? [] : lay.view.elements;
+  // vistas só fora do lote; a prévia mostra as peças da vista, o arquivo continua com `models`
+  const shownViews = copies || !views?.length ? undefined : views;
+  const activeView = shownViews?.find((v) => v.id === viewId) ?? shownViews?.find((v) => v.id === "closed") ?? shownViews?.[0];
 
   // escolhendo na galeria, os campos do modelo ficam na metade de baixo da tela: leva a tela até eles (UX B3)
   const layoutRef = useRef<HTMLDivElement>(null);
@@ -340,15 +355,7 @@ export default function Models({ only, embedded }: { only?: string; embedded?: {
           </div>
           <p className="hint">{def.blurb}</p>
           {!only && family.id !== "assembleKits" && <VariantPicker id={id} onPick={pickVariant} only={embeddedIds} />}
-          {variants.length > 0 && (
-            <div className="chips" role="group" aria-label="Variações prontas">
-              {variants.map((v) => (
-                <button key={v.label} type="button" onClick={() => applyVariant(v.patch)}>
-                  {v.label}
-                </button>
-              ))}
-            </div>
-          )}
+          {guide.presets.length > 0 && <PresetBar presets={guide.presets} params={p} label={guide.presetsLabel} groupLabel={def.guide ? undefined : "Variações prontas"} onPick={(pr) => tool.set((cur) => ({ ...cur, all: { ...cur.all, [id]: { ...baseParams(def), ...pr.patch } } }), `${id}.preset`)} />}
           <UserVariants
             modelId={id}
             params={p}
@@ -380,7 +387,7 @@ export default function Models({ only, embedded }: { only?: string; embedded?: {
               {s === def.sections[def.fontSection ?? 0] && def.font && (
                 <FontPicker value={font} onChange={setFont} sample={firstText(def.sections, p)} />
               )}
-              {s === def.sections[0] && def.art && (
+              {s === def.sections[def.artSection ?? 0] && def.art && (
                 <>
                   <Dropzone accept={DESIGN_ACCEPT} label={art ? art.name : def.art} hint="SVG ou imagem (vira vetor sozinha)." onFile={onArt} />
                   {artError && <Alert kind="error">{artError}</Alert>}
@@ -432,10 +439,12 @@ export default function Models({ only, embedded }: { only?: string; embedded?: {
             history={{ undo: tool.undo, redo: tool.redo, canUndo: tool.canUndo, canRedo: tool.canRedo }}
             disabled={copies ? "No lote, os desenhos e textos livres ficam de fora: desligue o lote para usá-los." : undefined}
           />
-          <ExportButtons models={models.filter((m) => !m.previewOnly)} name={copies ? `${def.label}-lote` : `${def.label}-${String(p.text ?? p.line1 ?? p.title ?? p.base ?? "")}`} busy={busy} pauses={pauses} profile={profileFor(id, p)} onSaved={tool.exported} />
+          <ExportButtons models={models.filter((m) => !m.previewOnly)} name={copies ? `${def.label}-lote` : `${def.label}-${String(p.text ?? p.line1 ?? p.title ?? p.base ?? "")}`} busy={busy} pauses={pauses} profile={profileFor(id, p)} tips={guide.help.tips} onSaved={tool.exported} />
+          <GeneratorHelp def={def} help={guide.help} />
         </div>
         <div className="preview-col">
-          <Preview3D models={models} busy={busy} busyText={`Gerando ${def.label.toLowerCase()}…`} error={error} emptyText={!valid ? "Corrija os campos em vermelho." : (missing ?? undefined)} />
+          {shownViews && activeView && <ViewTabs views={shownViews} value={activeView.id} onChange={setViewId} />}
+          <Preview3D models={activeView?.models ?? models} busy={busy} busyText={`Gerando ${def.label.toLowerCase()}…`} error={error} emptyText={!valid ? "Corrija os campos em vermelho." : (missing ?? undefined)} />
           {lay.view.face && (lay.layers.length > 0 || elements.length > 0) && !copies && (
             <section className="card stack gizmo-card">
               <h3>Vista de cima · {lay.view.face.part}</h3>

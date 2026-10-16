@@ -15,6 +15,8 @@ import { useModelLayers, type ModelEdits } from "./models/useModelLayers";
 import { restoreBytes, storeBytes } from "./storedFile";
 import ToolSessionBar from "./ToolSessionBar";
 import { useToolState } from "./useToolState";
+import GeneratorHelp from "./models/guide/GeneratorHelp";
+import { TOOL_HELP } from "./models/help/toolHelp";
 
 const MAX_BYTES = 200 * 1024 * 1024;
 const OWN = "own";
@@ -147,7 +149,8 @@ export default function OwnDecal() {
               disabled={face ? undefined : "Escolha uma face primeiro."}
             />
           )}
-          <ExportButtons models={models} name={`${baseName}-decal`} busy={busy} onSaved={tool.exported} />
+          <ExportButtons models={models} name={`${baseName}-decal`} busy={busy} onSaved={tool.exported} tips={TOOL_HELP.owndecal.tips} />
+          <GeneratorHelp help={TOOL_HELP.owndecal} />
         </div>
         <div className="preview-col">
           <Preview3D

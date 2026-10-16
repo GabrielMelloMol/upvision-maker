@@ -15,6 +15,8 @@ import { restoreBytes, storeBytes } from "./storedFile";
 import ToolSessionBar from "./ToolSessionBar";
 import { useToolState } from "./useToolState";
 import { useModelBuilder } from "../ui/useModelBuilder";
+import GeneratorHelp from "./models/guide/GeneratorHelp";
+import { TOOL_HELP } from "./models/help/toolHelp";
 
 const MODES: [SplitMode, string][] = [
   ["parts", "Partes (multicor)"],
@@ -150,7 +152,8 @@ export default function ColorSplit() {
               </ul>
             </div>
           )}
-          <ExportButtons models={models} name={`${file?.name ?? "separado"}-cores`} busy={busy} onSaved={tool.exported} />
+          <ExportButtons models={models} name={`${file?.name ?? "separado"}-cores`} busy={busy} onSaved={tool.exported} tips={TOOL_HELP.colorsplit.tips} />
+          <GeneratorHelp help={TOOL_HELP.colorsplit} />
         </div>
         <div className="preview-col">
           <Preview3D models={models} busy={busy} busyText="Separando as cores…" error={error} emptyText={!valid ? "Corrija os campos em vermelho." : "Envie um 3MF pintado para separar as cores."} />

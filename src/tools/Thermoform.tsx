@@ -16,6 +16,8 @@ import LinesField from "../ui/LinesField";
 import Alert from "../ui/Alert";
 import Dropzone from "../ui/Dropzone";
 import ExportButtons from "../ui/ExportButtons";
+import GeneratorHelp from "./models/guide/GeneratorHelp";
+import { TOOL_HELP } from "./models/help/toolHelp";
 import NumField, { inRange } from "../ui/NumField";
 import Preview3D from "../ui/Preview3D";
 import Segmented from "../ui/Segmented";
@@ -323,8 +325,9 @@ export default function Thermoform() {
           </div>
           <div className="card stack">
             <h3>Molde (PETG, outro arquivo)</h3>
-            <ExportButtons models={view ? [view.mold] : []} name={`caixinha-molde-${s.source === "shape" ? s.shape : "silhueta"}`} busy={busy} profile={THERMO_MOLD_PROFILE} onSaved={tool.exported} />
+            <ExportButtons models={view ? [view.mold] : []} name={`caixinha-molde-${s.source === "shape" ? s.shape : "silhueta"}`} busy={busy} profile={THERMO_MOLD_PROFILE} onSaved={tool.exported} tips={TOOL_HELP.thermoform.tips} />
           </div>
+          <GeneratorHelp help={TOOL_HELP.thermoform} />
         </div>
         <div className="preview-col">
           <Segmented label="O que mostrar" value={show} options={SHOWS} onChange={setShow} full />

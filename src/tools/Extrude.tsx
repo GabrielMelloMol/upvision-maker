@@ -13,6 +13,8 @@ import { exampleFile, useExample } from "../help/helpStore";
 import ToolSessionBar from "./ToolSessionBar";
 import { initialDesign, useDesignInput } from "./useDesignInput";
 import { useToolState } from "./useToolState";
+import GeneratorHelp from "./models/guide/GeneratorHelp";
+import { TOOL_HELP } from "./models/help/toolHelp";
 
 export default function Extrude() {
   // estado de trabalho: desfazer, rascunho guardado e últimos projetos (#85)
@@ -82,7 +84,8 @@ export default function Extrude() {
               </div>
             </details>
           )}
-          <ExportButtons models={models} name={svg?.name ?? "extrusao"} busy={busy} profile={DEFAULT_PROFILE} onSaved={tool.exported} />
+          <ExportButtons models={models} name={svg?.name ?? "extrusao"} busy={busy} profile={DEFAULT_PROFILE} onSaved={tool.exported} tips={TOOL_HELP.extrude.tips} />
+          <GeneratorHelp help={TOOL_HELP.extrude} />
         </div>
         <div className="preview-col">
           <Preview3D models={models} busy={busy || loading} error={error} emptyText={svg && !valid ? "Corrija os campos em vermelho." : "Envie um desenho para extrudar."} />

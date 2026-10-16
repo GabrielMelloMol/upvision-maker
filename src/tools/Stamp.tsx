@@ -26,6 +26,8 @@ import { bedWarnings } from "./models/bedCheck";
 import { STAMP_PRESETS, type StampPreset } from "./stampPresets";
 import ToolSessionBar from "./ToolSessionBar";
 import { useToolState } from "./useToolState";
+import GeneratorHelp from "./models/guide/GeneratorHelp";
+import { TOOL_HELP } from "./models/help/toolHelp";
 
 const SHAPES = [["rect", "Retângulo"], ["round", "Redondo (selo)"]] as const;
 const ALIGNS = [["pins", "Pinos"], ["magnets", "Ímãs"], ["hinge", "Dobradiça"]] as const;
@@ -240,7 +242,8 @@ export default function Stamp() {
               </div>
             </details>
           </div>
-          <ExportButtons models={models.filter((m) => !m.previewOnly)} name={`carimbo-${lines[0] ?? s.logo?.name ?? "seco"}`} busy={busy} profile={profile} onSaved={tool.exported} />
+          <ExportButtons models={models.filter((m) => !m.previewOnly)} name={`carimbo-${lines[0] ?? s.logo?.name ?? "seco"}`} busy={busy} profile={profile} onSaved={tool.exported} tips={TOOL_HELP.stamp.tips} />
+          <GeneratorHelp help={TOOL_HELP.stamp} />
         </div>
         <div className="preview-col">
           <Preview3D models={models} busy={busy} busyText="Gerando as placas…" error={error} emptyText={!valid ? "Corrija os campos em vermelho para ver o carimbo." : "Digite um texto ou envie um logo para ver o carimbo."} />

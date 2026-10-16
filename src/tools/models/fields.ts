@@ -5,12 +5,25 @@ import type { ModelCtx, ModelOutput } from "../../geometry/models/common";
 export type Params = Record<string, string | number | boolean>;
 
 export type FieldDef =
-  | { k: string; kind: "num"; label: string; min: number; max: number; step?: number; unit?: string; hint?: string; cm?: boolean }
+  | {
+      k: string;
+      kind: "num";
+      label: string;
+      min: number;
+      max: number;
+      step?: number;
+      unit?: string;
+      /** Frase de ajuda embaixo do campo; função = muda com os outros valores (ex.: "por dentro: 175,2 mm"). */
+      hint?: string | ((p: Params) => string);
+      cm?: boolean;
+      /** Controle deslizante junto da caixa de número (padrão dos geradores guiados, #204). */
+      slider?: boolean;
+    }
   | { k: string; kind: "text"; label: string; max?: number; hint?: string }
   | { k: string; kind: "money"; label: string; hint?: string }
   | { k: string; kind: "color"; label: string }
   | { k: string; kind: "bool"; label: string }
-  | { k: string; kind: "choice"; label: string; options: readonly (readonly [string, string])[] }
+  | { k: string; kind: "choice"; label: string; options: readonly (readonly [string, string])[]; /** Sempre como pílulas (opções com rótulo comprido não cabem no controle segmentado). */ chips?: boolean }
   /** Fonte própria de uma parte do modelo (a letra, uma linha); `sample` = campo de texto da prévia. */
   | { k: string; kind: "font"; label: string; sample?: string }
   /** Perfil por pontos de controle (raios de baixo para cima, "40, 55, 48"), com editor de arrastar (#92). */
@@ -19,6 +32,10 @@ export type FieldDef =
   | { k: string; kind: "place"; label: string }
   /** Prévia "como vai sair impresso" do mapa estelar: só mostra, não guarda valor. */
   | { k: string; kind: "starPrint"; label: string }
+  /** Mapa 2D das divisórias da caixa organizadora (#204): só mostra, lê os campos da caixa. */
+  | { k: string; kind: "dividerMap"; label: string }
+  /** Editor das faixas ("6:1, 3:1.5": nichos e proporção, + e − por faixa); guarda o texto em `k` (#204). */
+  | { k: string; kind: "strips"; label: string }
   /** Código para chegar à música (Cartão de música): QR com o link ou código do Spotify; usa os campos code, codeLink, spotifySvg, spotifyUri e spotifyLogo. */
   | { k: string; kind: "musicCode"; label: string };
 
@@ -37,6 +54,12 @@ export const CATEGORIES = [
 /** Nomes curtos para as abas da galeria (os completos aparecem nos títulos da Criar). */
 export const CATEGORY_TAB: Partial<Record<(typeof CATEGORIES)[number][0], string>> = { gifts: "Presentes", organize: "Organização" };
 export type Category = (typeof CATEGORIES)[number][0];
+
+/** Sugestão pronta por uso ("Comece pelo uso"): um clique preenche os campos (#204). */
+export type Preset = { id: string; label: string; blurb: string; patch: Params };
+/** Explicação na tela, igual para os geradores guiados: quando usar, quando não, tabela de faixas (sai dos campos), dicas e perguntas frequentes. */
+export type GuideHelp = { use: string[]; avoid: string[]; tips: string[]; faq: { q: string; a: string }[] };
+export type GuideDef = { presetsLabel?: string; presets: Preset[]; help: GuideHelp };
 
 export type ModelDef = {
   id: string;
@@ -61,8 +84,14 @@ export type ModelDef = {
   /** Tem texto: mostra o seletor de fonte (na seção `fontSection`, padrão 0). */
   font?: boolean;
   fontSection?: number;
+  /** Seção que leva o envio de desenho (padrão 0). */
+  artSection?: number;
   /** Mostra a grade de ícones junto do envio de desenho (#115). */
   iconPicker?: boolean;
+  /** Gerador guiado (#204): sugestões por uso e explicação na tela. */
+  guide?: GuideDef;
+  /** Ao mudar um campo, outros campos que acompanham (ex.: o material muda a folga da trava); devolve só o que muda. */
+  derive?: (changed: string, value: string | number | boolean, p: Params, prev: Params) => Params | undefined;
   build: (ctx: ModelCtx, p: Params) => ModelOutput;
 };
 
@@ -77,7 +106,7 @@ export const text = (k: string, label: string, max = 30, hint?: string): FieldDe
 export const place = (k: string, label: string): FieldDef => ({ k, kind: "place", label });
 export const starPrint = (k: string, label: string): FieldDef => ({ k, kind: "starPrint", label });
 export const bool = (k: string, label: string): FieldDef => ({ k, kind: "bool", label });
-export const choice = (k: string, label: string, options: readonly (readonly [string, string])[]): FieldDef => ({ k, kind: "choice", label, options });
+export const choice = (k: string, label: string, options: readonly (readonly [string, string])[], chips = false): FieldDef => ({ k, kind: "choice", label, options, ...(chips ? { chips } : {}) });
 /** Textura rebaixada no fundo de placas e letreiros (#50). */
 /** Cavidade para resina epóxi (#53). */
 export const resinFields: FieldDef[] = [

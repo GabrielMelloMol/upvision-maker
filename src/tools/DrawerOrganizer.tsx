@@ -26,6 +26,8 @@ import { applyPreset, DRAWER_PRESETS, type DrawerPreset } from "./drawer/presets
 import ToolSessionBar from "./ToolSessionBar";
 import { useToolState } from "./useToolState";
 import { modKey } from "../ui/shortcuts";
+import GeneratorHelp from "./models/guide/GeneratorHelp";
+import { TOOL_HELP } from "./models/help/toolHelp";
 
 const ALIGNS = [
   ["center", "Centralizar"],
@@ -196,7 +198,8 @@ export default function DrawerOrganizer({ embedded = false }: { embedded?: boole
               <ColorPick label="Cor da base" value={p.baseColor} onChange={set("baseColor")} />
             </div>
           </details>
-          <ExportButtons models={models.length ? exportModels : []} name="gaveta" busy={busy} onSaved={tool.exported} />
+          <ExportButtons models={models.length ? exportModels : []} name="gaveta" busy={busy} onSaved={tool.exported} tips={TOOL_HELP.organizers.tips} />
+          <GeneratorHelp help={TOOL_HELP.organizers} />
           {print && models.length > 0 && !busy && <PrintPlanCard plan={print} name="gaveta" onSaved={() => tool.exported("gaveta")} />}
         </div>
         <div className="preview-col">

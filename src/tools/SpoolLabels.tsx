@@ -28,6 +28,8 @@ import { errorText, useToast } from "../ui/Toast";
 import { useData } from "../ui/useData";
 import { useModelBuilder } from "../ui/useModelBuilder";
 import QrScanner from "./QrScanner";
+import GeneratorHelp from "./models/guide/GeneratorHelp";
+import { TOOL_HELP } from "./models/help/toolHelp";
 
 const load = (db: Db) => filamentsRepo.list(db);
 const LAYOUTS: [LabelLayout, string][] = [
@@ -162,7 +164,8 @@ export default function SpoolLabels() {
             )}
           </div>
           {/* um só botão cheio por tarefa (#139): o PDF é o principal das etiquetas; a plaquinha 3D é extra */}
-          <ExportButtons models={models} name="plaquinhas-de-rolo" busy={busy} profile={DEFAULT_PROFILE} secondary />
+          <ExportButtons models={models} name="plaquinhas-de-rolo" busy={busy} profile={DEFAULT_PROFILE} secondary tips={TOOL_HELP.spools.tips} />
+          <GeneratorHelp help={TOOL_HELP.spools} />
         </div>
         <div className="preview-col">
           <Preview3D models={models} busy={busy} busyText="Gerando plaquinhas…" error={error} emptyText="Escolha filamentos para ver as plaquinhas 3D com QR." />

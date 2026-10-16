@@ -3,9 +3,11 @@ import { buildGridBase, buildGridBin, buildGridTest, DEFAULT_GRID_BASE, DEFAULT_
 import { buildLidBox, DEFAULT_LID_BOX } from "../../../geometry/models/lidBox";
 import { buildRuler3d, DEFAULT_RULER } from "../../../geometry/models/ruler3d";
 import { as, bool, choice, color, num, text, type ModelDef } from "../fields";
+import { ORGANIZER_BOX_MODEL } from "./organizerBox";
 
 /** Casa, organização: caixa com tampa e o sistema Gridfinity (caixinhas e base). */
 export const HOME_STORAGE_MODELS: ModelDef[] = [
+  ORGANIZER_BOX_MODEL,
   {
     id: "lidBox",
     category: "home",
