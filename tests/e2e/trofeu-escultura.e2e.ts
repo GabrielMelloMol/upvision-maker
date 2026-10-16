@@ -86,6 +86,21 @@ test("troféu: com a prévia montada o 3MF salvo é o mesmo da mesa (sempre na p
   await expect.poll(() => threeMf()[0]).toBe(fromAssembled[0]);
 });
 
+test("troféu atleta: 58 esportes, em ordem alfabética, e os novos saem na mesa e montados", async ({ page }) => {
+  await open(page, "Troféu atleta");
+  const sport = page.getByLabel("Esporte", { exact: true });
+  const labels = await sport.locator("option").allTextContents();
+  expect(labels).toHaveLength(58);
+  expect([...labels].sort((a, b) => a.localeCompare(b, "pt-BR"))).toEqual(labels);
+  await assembled(page);
+  for (const [label, file] of [["Salto em altura", "14-atleta-salto-em-altura"], ["Judô", "15-atleta-judo"], ["Hipismo", "16-atleta-hipismo"], ["Surfe", "17-atleta-surfe"]] as const) {
+    await sport.selectOption({ label });
+    await idle(page);
+    await expect(page.locator(".viewer .legend")).toContainText("Atleta");
+    await shot(page, file);
+  }
+});
+
 test("troféu escultura montada: fita, estrela e cruz em pé na base", async ({ page }) => {
   await open(page, "Troféu escultura");
   await assembled(page);

@@ -86,7 +86,7 @@ impressoras de mesa maior); sem o aviso do app, é **falha**.
 | Troféu (trophy) | mínimo | ⚠️ aviso | Bambu ✓ · Orca ✓ · Projeto Bambu ✓ | 48 | 18,1 | 1 | – | "Placa": parede/traço < 0,4 mm em Z 2,6 mm; app: "1º LUGAR" ficou com 2,2 mm de altura: os traços ficam com menos de 0,4 mm e somem na impressão. Aumente o texto ou a peça, encurte a linha ou use uma fonte mais grossa. |
 | Troféu (trophy) | padrão | ✅ ok | Bambu ✓ · Orca ✓ · Projeto Bambu ✓ | 84 | 37,5 | 1 | – | – |
 | Troféu atleta (trophyAthlete) | máximo | ✅ ok | Bambu ✓ · Orca ✓ · Projeto Bambu ✓ | 216 | 96,1 | 1 | – | – |
-| Troféu atleta (trophyAthlete) | mínimo | ✅ ok | Bambu ✓ · Orca ✓ · Projeto Bambu ✓ | 124 | 52,3 | 1 | – | – |
+| Troféu atleta (trophyAthlete) | mínimo | ✅ ok | Bambu ✓ · Orca ✓ · Projeto Bambu ✓ | 127 | 54,6 | 1 | – | – |
 | Troféu atleta (trophyAthlete) | padrão | ✅ ok | Bambu ✓ · Orca ✓ · Projeto Bambu ✓ | 156 | 66,7 | 1 | – | – |
 | Troféu elegante (trophyElegant) | máximo | ✅ ok | Bambu ✓ · Orca ✓ · Projeto Bambu ✓ | 273 | 140,6 | 1 | – | app: "1º LUGAR" ficou com 3,2 mm de altura: os traços ficam com menos de 0,4 mm e somem na impressão. Aumente o texto ou a peça, encurte a linha ou use uma fonte mais grossa. |
 | Troféu elegante (trophyElegant) | mínimo | ✅ ok | Bambu ✓ · Orca ✓ · Projeto Bambu ✓ | 88 | 29,1 | 1 | – | app: "CAMPEONATO 2026" ficou com 1,9 mm de altura: os traços ficam com menos de 0,4 mm e somem na impressão. Aumente o texto ou a peça, encurte a linha ou use uma fonte mais grossa.; app: "1º LUGAR" ficou com 3,2 mm de altura: os traços ficam com menos de 0,4 mm e somem na impressão. Aumente o texto ou a peça, encurte a linha ou use uma fonte mais grossa. |

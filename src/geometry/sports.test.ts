@@ -28,14 +28,15 @@ describe("silhuetas de esportes (#223)", () => {
     cs.delete();
   });
 
-  test("todo esporte tem nome e são 15", () => {
-    expect(SPORT_IDS).toHaveLength(15);
+  test("todo esporte tem nome e são 58", () => {
+    expect(SPORT_IDS).toHaveLength(58);
+    expect(new Set(Object.values(SPORT_LABELS)).size).toBe(58); // nomes sem repetir
     for (const id of SPORT_IDS) expect(SPORT_LABELS[id].length).toBeGreaterThan(2);
   });
 
   test.skipIf(!process.env.SPORTS_SHEET)("folha de contato (SVG) para conferir os desenhos", () => {
     const cell = 150;
-    const cols = 5;
+    const cols = 8;
     const paths = SPORT_IDS.map((id, i) => {
       const cs = sportSilhouette(M, id, 110);
       const d = cs.toPolygons().map((poly) => "M" + poly.map(([x, y]) => `${x.toFixed(2)},${(-y).toFixed(2)}`).join("L") + "Z").join("");
