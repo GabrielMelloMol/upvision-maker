@@ -104,6 +104,13 @@ export const VARIANTS: Record<string, Variant[]> = {
     { label: "Eixo 25 × 40 × 7", patch: { shaftD: 25, housingD: 40, width: 7 } },
     { label: "Eixo 30 × 42 × 7", patch: { shaftD: 30, housingD: 42, width: 7 } },
   ],
+  boardBox: [
+    { label: "Arduino Uno R3 (aprox.)", patch: { boardL: 68.6, boardW: 53.3, boardT: 1.6, holes: "14, 2.5; 15.3, 50.7; 66.1, 7.6; 66.1, 35.5", holeD: 3.2, mount: "pegs", connectors: "left, 38, 13, 12, 0\nleft, 7.5, 10, 12, 0", headroom: 20, label: "Arduino" } },
+    { label: "Raspberry Pi 4B (aprox.)", patch: { boardL: 85, boardW: 56, boardT: 1.4, holes: "3.5, 3.5; 61.5, 3.5; 3.5, 52.5; 61.5, 52.5", holeD: 2.7, mount: "pegs", connectors: "right, 10.25, 16.5, 14, 0\nright, 29, 15, 16, 0\nright, 47, 15, 16, 0\nbottom, 11.2, 9.5, 4, 0\nbottom, 26, 8, 4, 0\nbottom, 39.5, 8, 4, 0\nbottom, 53.5, 7, 7, 0", headroom: 20, label: "Raspberry" } },
+    { label: "ESP32 DevKit (aprox.)", patch: { boardL: 51.5, boardW: 28.3, boardT: 1.6, holes: "", holeD: 3, mount: "pads", connectors: "left, 14.2, 9, 4.5, 0", headroom: 14, label: "ESP32" } },
+    { label: "Raspberry Pi Pico (aprox.)", patch: { boardL: 51, boardW: 21, boardT: 1.0, holes: "", holeD: 2.1, mount: "pads", connectors: "left, 10.5, 9, 4.5, 0", headroom: 12, label: "Pico" } },
+    { label: "Arduino Nano (aprox.)", patch: { boardL: 45, boardW: 18, boardT: 1.6, holes: "", holeD: 2, mount: "pads", connectors: "left, 9, 9, 5, 0", headroom: 12, label: "Nano" } },
+  ],
   kitBicho: [
     { label: "Cachorro", patch: { head: "dog", tail: "up", profile: "oval" } },
     { label: "Gato", patch: { head: "cat", tail: "long", profile: "oval" } },
