@@ -30,8 +30,8 @@ export const DEFAULT_BAND: BandParams = {
   opening: 25,
   border: 2.4,
   mesh: "solid",
-  aperture: 3,
-  wire: 1.2,
+  aperture: 2.5,
+  wire: 1,
   mandrelEase: 0,
   colors: { strip: "#c0392b", border: "#c0392b", design: "#f4f4f2", mandrel: "#3b82f6" },
 };

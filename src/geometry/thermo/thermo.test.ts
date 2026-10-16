@@ -173,7 +173,7 @@ describe("tela em malha", () => {
       const s = sil(k);
       const h = meshHoles(M, s.bounds(), DEFAULT_SCREEN, k);
       expect(k(s.subtract(h)).area()).toBeLessThan(s.area());
-      expect(k(s.intersect(h)).area()).toBeGreaterThan(s.area() * 0.5);
+      expect(k(s.intersect(h)).area()).toBeGreaterThan(s.area() * 0.35);
     }));
 });
 

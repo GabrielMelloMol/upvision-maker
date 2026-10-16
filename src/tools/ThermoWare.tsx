@@ -69,8 +69,8 @@ export default function ThermoWare() {
   const lines = splitLines(s.text);
 
   const valid = vessel
-    ? inRange(v.mouthD, 50, 200) && inRange(v.height, 20, 150) && inRange(v.draft, 3, 20) && inRange(v.cornerR, 0, 40) && inRange(v.t, 0.8, 2) && inRange(v.rim, 3, 12) && inRange(v.margin, 2, 20) && inRange(v.aperture, 2, 10) && inRange(v.wire, 0.8, 3) && inRange(v.flange, 4, 15)
-    : inRange(b.wrist, BAND_LIMITS.wrist[0], BAND_LIMITS.wrist[1]) && inRange(b.width, BAND_LIMITS.width[0], BAND_LIMITS.width[1]) && inRange(b.t, BAND_LIMITS.t[0], BAND_LIMITS.t[1]) && inRange(b.opening, BAND_LIMITS.opening[0], BAND_LIMITS.opening[1]) && inRange(b.border, 1.6, 6) && inRange(b.aperture, 2, 8) && inRange(b.wire, 0.8, 3) && inRange(b.mandrelEase, 0, 10);
+    ? inRange(v.mouthD, 50, 200) && inRange(v.height, 20, 150) && inRange(v.draft, 3, 20) && inRange(v.cornerR, 0, 40) && inRange(v.t, 0.8, 2) && inRange(v.rim, 3, 12) && inRange(v.margin, 2, 20) && inRange(v.aperture, 1.6, 10) && inRange(v.wire, 0.8, 3) && inRange(v.flange, 4, 15)
+    : inRange(b.wrist, BAND_LIMITS.wrist[0], BAND_LIMITS.wrist[1]) && inRange(b.width, BAND_LIMITS.width[0], BAND_LIMITS.width[1]) && inRange(b.t, BAND_LIMITS.t[0], BAND_LIMITS.t[1]) && inRange(b.opening, BAND_LIMITS.opening[0], BAND_LIMITS.opening[1]) && inRange(b.border, 1.6, 6) && inRange(b.aperture, 1.6, 8) && inRange(b.wire, 0.8, 3) && inRange(b.mandrelEase, 0, 10);
 
   const { models, warnings, view, busy, error } = useModelBuilder<View>(async () => {
     if (!valid) return null;
@@ -141,7 +141,7 @@ export default function ThermoWare() {
                     <span className="field-label">Malha</span>
                     <Segmented label="Malha" value={v.mesh} options={MESHES} onChange={setV("mesh")} full />
                     <div className="grid two">
-                      <NumField label="Abertura do furo" value={v.aperture} onChange={setV("aperture")} min={2} max={10} step={0.5} />
+                      <NumField label="Abertura do furo" value={v.aperture} onChange={setV("aperture")} min={1.6} max={10} step={0.1} />
                       <NumField label="Espessura do fio" value={v.wire} onChange={setV("wire")} min={0.8} max={3} step={0.1} />
                     </div>
                     <label className="check">
@@ -194,7 +194,7 @@ export default function ThermoWare() {
                 <Segmented label="Tira" value={b.mesh} options={BAND_MESHES} onChange={setB("mesh")} full />
                 {b.mesh !== "solid" && (
                   <div className="grid two">
-                    <NumField label="Abertura do furo" value={b.aperture} onChange={setB("aperture")} min={2} max={8} step={0.5} />
+                    <NumField label="Abertura do furo" value={b.aperture} onChange={setB("aperture")} min={1.6} max={8} step={0.1} />
                     <NumField label="Espessura do fio" value={b.wire} onChange={setB("wire")} min={0.8} max={3} step={0.1} />
                   </div>
                 )}
