@@ -172,7 +172,6 @@ export const HOME_UTILITY_MODELS: ModelDef[] = [
     blurb: "Uma lâmina por raio, com entalhe e ponta redondos, para conferir quinas arredondadas e cantos de dentro. O valor vem gravado.",
     icon: Ruler,
     font: true,
-    views: true,
     defaults: DEFAULT_RADIUS_GAUGE,
     sections: [
       {

@@ -54,8 +54,6 @@ export type ModelDef = {
   art2?: string;
   /** Foto enviada: oferece "Recortar o fundo da foto" (ligado) antes de vetorizar (#193). */
   cutout?: boolean;
-  /** A prévia mostra os botões de vista (frente, lado, cima, 3/4): peças planas com texto gravado, que se leem melhor de cima. */
-  views?: boolean;
   /** Mostra o quadro "Que imagem funciona", os exemplos prontos e a silhueta entendida com avisos (kit card). */
   artGuide?: boolean;
   /** O modelo usa as cores do desenho (uma camada por cor): QA e miniatura usam um desenho de exemplo colorido. */

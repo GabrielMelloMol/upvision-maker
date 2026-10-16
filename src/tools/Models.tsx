@@ -435,7 +435,7 @@ export default function Models({ only, embedded }: { only?: string; embedded?: {
           <ExportButtons models={models.filter((m) => !m.previewOnly)} name={copies ? `${def.label}-lote` : `${def.label}-${String(p.text ?? p.line1 ?? p.title ?? p.base ?? "")}`} busy={busy} pauses={pauses} profile={profileFor(id, p)} onSaved={tool.exported} />
         </div>
         <div className="preview-col">
-          <Preview3D views={def.views} models={models} busy={busy} busyText={`Gerando ${def.label.toLowerCase()}…`} error={error} emptyText={!valid ? "Corrija os campos em vermelho." : (missing ?? undefined)} />
+          <Preview3D models={models} busy={busy} busyText={`Gerando ${def.label.toLowerCase()}…`} error={error} emptyText={!valid ? "Corrija os campos em vermelho." : (missing ?? undefined)} />
           {lay.view.face && (lay.layers.length > 0 || elements.length > 0) && !copies && (
             <section className="card stack gizmo-card">
               <h3>Vista de cima · {lay.view.face.part}</h3>
