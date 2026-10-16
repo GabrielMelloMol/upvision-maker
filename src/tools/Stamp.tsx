@@ -167,8 +167,8 @@ export default function Stamp() {
             <h3>Formato</h3>
             <Segmented label="Formato" value={p.shape} options={SHAPES} onChange={(v: StampShape) => setP("shape")(v)} full />
             <div className="grid two">
-              <NumField label={round ? "Diâmetro" : "Largura"} value={p.w} onChange={setP("w")} min={15} max={140} step={1} />
-              {!round && <NumField label="Altura" value={p.h} onChange={setP("h")} min={10} max={140} step={1} />}
+              <NumField label={round ? "Diâmetro" : "Largura"} value={p.w} onChange={setP("w")} min={15} max={140} step={1} hint="Largura do carimbo, de um lado ao outro." />
+              {!round && <NumField label="Altura" value={p.h} onChange={setP("h")} min={10} max={140} step={1} hint="Altura do carimbo, de cima a baixo." />}
             </div>
             <span className="field-label">Moldura</span>
             <Segmented label="Moldura" value={round || s.frame !== "seal" ? s.frame : "line"} options={round ? FRAMES : FRAMES.filter(([v]) => v !== "seal")} onChange={(v: StampFrame) => field("frame")(v)} full />

@@ -67,7 +67,7 @@ export default function CookieCutter() {
           </div>
           <div className="card stack">
             <h3>Cortador</h3>
-            <NumField label="Largura" value={width} onChange={setWidth} min={LIMITS.width[0]} max={LIMITS.width[1]} step={1} />
+            <NumField label="Largura" value={width} onChange={setWidth} min={LIMITS.width[0]} max={LIMITS.width[1]} step={1} hint="Largura do cortador de um lado ao outro; a altura segue a proporção do desenho." />
           </div>
           <div className="card stack">
             <h3>Carimbo</h3>
@@ -92,7 +92,7 @@ export default function CookieCutter() {
             <summary>Opções avançadas</summary>
             <div className="stack">
               <div className="grid two">
-                <NumField label="Altura" value={p.height} onChange={set("height")} min={LIMITS.height[0]} max={LIMITS.height[1]} step={1} />
+                <NumField label="Altura" value={p.height} onChange={set("height")} min={LIMITS.height[0]} max={LIMITS.height[1]} step={1} hint="Altura da lâmina: o quanto ela entra na massa. De 12 a 18 mm serve para a maioria." />
                 <NumField label="Lâmina" value={p.blade} onChange={set("blade")} min={LIMITS.blade[0]} max={LIMITS.blade[1]} />
                 <NumField label="Borda de apoio" value={p.rimWidth} onChange={set("rimWidth")} min={LIMITS.rimWidth[0]} max={LIMITS.rimWidth[1]} step={0.5} />
                 <NumField label="Altura da borda" value={p.rimHeight} onChange={set("rimHeight")} min={LIMITS.rimHeight[0]} max={LIMITS.rimHeight[1]} />
@@ -102,8 +102,8 @@ export default function CookieCutter() {
               </label>
               {p.stamp && (
                 <div className="grid two">
-                  <NumField label="Relevo" value={p.relief} onChange={set("relief")} min={LIMITS.relief[0]} max={LIMITS.relief[1]} />
-                  <NumField label="Placa" value={p.plate} onChange={set("plate")} min={LIMITS.plate[0]} max={LIMITS.plate[1]} />
+                  <NumField label="Relevo" value={p.relief} onChange={set("relief")} min={LIMITS.relief[0]} max={LIMITS.relief[1]} hint="Quanto o desenho do carimbo sobe acima da placa." />
+                  <NumField label="Placa" value={p.plate} onChange={set("plate")} min={LIMITS.plate[0]} max={LIMITS.plate[1]} hint="Espessura da placa do carimbo." />
                   <NumField label="Folga no cortador" value={p.clearance} onChange={set("clearance")} min={LIMITS.clearance[0]} max={LIMITS.clearance[1]} />
                   <NumField label="Margem da borda" value={p.edgeMargin} onChange={set("edgeMargin")} min={LIMITS.edgeMargin[0]} max={LIMITS.edgeMargin[1]} />
                 </div>

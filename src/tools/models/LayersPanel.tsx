@@ -150,15 +150,15 @@ function LayerEditor({ l, warnings, onChange }: { l: Layer; warnings: string[]; 
       <div className="grid two">
         <NumField label="X" value={l.x} onChange={(x) => onChange({ x })} step={0.5} />
         <NumField label="Y" value={l.y} onChange={(y) => onChange({ y })} step={0.5} />
-        <NumField label="Largura" value={l.width} onChange={(width) => onChange({ width })} min={LAYER_LIMITS.width[0]} max={LAYER_LIMITS.width[1]} step={0.5} />
-        <NumField label="Giro" unit="°" value={l.rotation} onChange={(rotation) => onChange({ rotation })} min={LAYER_LIMITS.rotation[0]} max={LAYER_LIMITS.rotation[1]} step={1} />
+        <NumField label="Largura" value={l.width} onChange={(width) => onChange({ width })} min={LAYER_LIMITS.width[0]} max={LAYER_LIMITS.width[1]} step={0.5} hint="Largura desta camada; a altura segue a proporção." />
+        <NumField label="Giro" unit="°" value={l.rotation} onChange={(rotation) => onChange({ rotation })} min={LAYER_LIMITS.rotation[0]} max={LAYER_LIMITS.rotation[1]} step={1} hint="Gira esta camada, em graus." />
       </div>
       <div className="span-2">
         <span className="field-label">Aplicação</span>
         <Segmented label="Aplicação" value={l.mode} options={MODES} onChange={(mode) => onChange({ mode })} full />
       </div>
       <div className="grid two">
-        {l.mode !== "cut" && <NumField label={l.mode === "raised" ? "Altura do relevo" : l.mode === "inlay" ? "Profundidade da cor" : "Profundidade"} value={l.depth} onChange={(depth) => onChange({ depth })} min={LAYER_LIMITS.depth[0]} max={LAYER_LIMITS.depth[1]} />}
+        {l.mode !== "cut" && <NumField label={l.mode === "raised" ? "Altura do relevo" : l.mode === "inlay" ? "Profundidade da cor" : "Profundidade"} value={l.depth} onChange={(depth) => onChange({ depth })} min={LAYER_LIMITS.depth[0]} max={LAYER_LIMITS.depth[1]} hint="Quanto a camada sobe, afunda ou muda de cor, conforme a aplicação escolhida." />}
         {(l.mode === "raised" || l.mode === "inlay") && (
           <ColorPick label="Cor" value={l.color} onChange={(color) => onChange({ color })} />
         )}

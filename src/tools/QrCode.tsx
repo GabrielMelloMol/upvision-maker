@@ -188,7 +188,7 @@ export default function QrCode() {
 
           <div className="card stack">
             <h3>Peça 3D</h3>
-            <NumField label="Lado" value={p.size} onChange={setNum("size")} min={LIMITS.size[0]} max={LIMITS.size[1]} step={1} />
+            <NumField label="Lado" value={p.size} onChange={setNum("size")} min={LIMITS.size[0]} max={LIMITS.size[1]} step={1} hint="Lado do QR: abaixo de 25 mm alguns celulares não leem; 50 mm lê fácil." />
             <div className="row">
               <ColorPick label="Cor da base" value={colors[0]} onChange={(c) => setColors([c, colors[1]])} />
               <ColorPick label="Cor do código" value={colors[1]} onChange={(c) => setColors([colors[0], c])} />
@@ -207,8 +207,8 @@ export default function QrCode() {
           <details className="advanced">
             <summary>Opções avançadas</summary>
             <div className="grid two">
-              <NumField label="Cantos" value={p.corner} onChange={setNum("corner")} min={LIMITS.corner[0]} max={LIMITS.corner[1]} step={0.5} />
-              <NumField label="Base" value={p.base} onChange={setNum("base")} min={LIMITS.base[0]} max={LIMITS.base[1]} />
+              <NumField label="Cantos" value={p.corner} onChange={setNum("corner")} min={LIMITS.corner[0]} max={LIMITS.corner[1]} step={0.5} hint="Arredondamento dos cantos da placa do QR." />
+              <NumField label="Base" value={p.base} onChange={setNum("base")} min={LIMITS.base[0]} max={LIMITS.base[1]} hint="Espessura da placa atrás do código." />
               <NumField label="Relevo do código" value={p.relief} onChange={setNum("relief")} min={LIMITS.relief[0]} max={LIMITS.relief[1]} />
               <NumField label="Margem" unit="módulos" value={p.quiet} onChange={setNum("quiet")} min={LIMITS.quiet[0]} max={LIMITS.quiet[1]} step={1} hint="2 lê bem em peça impressa." />
             </div>

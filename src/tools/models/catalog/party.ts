@@ -145,7 +145,7 @@ export const PARTY_MODELS: ModelDef[] = [
     defaults: DEFAULT_SNOWFLAKE,
     sections: [
       { title: "Nome", fields: [text("name", "Nome", 12)] },
-      { title: "Floco e cores", fields: [num("seed", "Desenho nº", 1, 999, { step: 1, hint: "Troque o número para ver outro floco." }), num("arms", "Braços", 5, 8, { step: 1 }), num("diameter", "Diâmetro", 50, 150, { step: 1 }), num("thickness", "Espessura", 1.6, 5), num("relief", "Relevo do nome", 0.4, 2), color("flakeColor", "Floco"), color("nameColor", "Nome")] },
+      { title: "Floco e cores", fields: [num("seed", "Desenho nº", 1, 999, { step: 1, hint: "Troque o número para ver outro floco." }), num("arms", "Braços", 5, 8, { step: 1, unit: "" }), num("diameter", "Diâmetro", 50, 150, { step: 1 }), num("thickness", "Espessura", 1.6, 5), num("relief", "Relevo do nome", 0.4, 2), color("flakeColor", "Floco"), color("nameColor", "Nome")] },
     ],
     build: (ctx, p) => buildSnowflake(ctx, as(p)),
   },
@@ -279,7 +279,7 @@ export const PARTY_MODELS: ModelDef[] = [
         title: "Aro e enfeites",
         fields: [
           choice("trim", "Enfeite do aro", [["star", "Estrelas"], ["dot", "Bolinhas"], ["bell", "Sinos"], ["none", "Sem enfeites"]]),
-          num("trimCount", "Quantidade", 3, 12, { step: 1 }),
+          num("trimCount", "Quantidade", 3, 12, { step: 1, unit: "" }),
           num("trimSize", "Tamanho do enfeite", 4, 12, { step: 1 }),
         ],
       },

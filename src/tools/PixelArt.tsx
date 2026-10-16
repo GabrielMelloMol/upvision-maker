@@ -143,7 +143,7 @@ export default function PixelArt() {
           <div className="card stack">
             <h3>Peça</h3>
             <Segmented label="Saída" value={opts.output} options={OUTPUTS} onChange={setO("output")} full />
-            <NumField label="Pixel" value={opts.pixel} onChange={setO("pixel")} min={3} max={20} step={0.5} />
+            <NumField label="Pixel" value={opts.pixel} onChange={setO("pixel")} min={3} max={20} step={0.5} hint="Lado de cada pixel: maior imprime mais rápido; menor dá mais detalhe." />
             <span className="hint">
               {opts.output === "puzzle"
                 ? "A bandeja sai numa peça e os pixels de cada cor num objeto próprio: dá para imprimir uma cor de cada vez, sem AMS."
@@ -164,9 +164,9 @@ export default function PixelArt() {
                   </>
                 ) : (
                   <>
-                    <NumField label="Fundo" value={opts.base} onChange={setO("base")} min={0} max={5} />
-                    <NumField label="Relevo" value={opts.relief} onChange={setO("relief")} min={0.4} max={4} />
-                    <NumField label="Borda" value={opts.border} onChange={setO("border")} min={0} max={10} step={0.5} />
+                    <NumField label="Fundo" value={opts.base} onChange={setO("base")} min={0} max={5} hint="Espessura da placa de fundo atrás dos pixels; 0 deixa só os pixels." />
+                    <NumField label="Relevo" value={opts.relief} onChange={setO("relief")} min={0.4} max={4} hint="Quanto os pixels sobem acima do fundo." />
+                    <NumField label="Borda" value={opts.border} onChange={setO("border")} min={0} max={10} step={0.5} hint="Largura da borda em volta da imagem; 0 deixa sem borda." />
                   </>
                 )}
                 {opts.output === "magnet" && (

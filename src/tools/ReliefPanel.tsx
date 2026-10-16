@@ -28,7 +28,7 @@ export default function ReliefPanel({ relief, setRelief }: Props) {
         <NumField label="Suavização" value={relief.smooth} onChange={set("smooth")} min={0} max={3} step={0.1} hint="Tira o serrilhado da foto." />
         <NumField label="Gama" value={relief.gamma} onChange={set("gamma")} min={0.4} max={2.5} step={0.1} unit="" hint="Acima de 1 baixa os tons médios." />
         <NumField label="Realce de bordas" value={Math.round(relief.edge * 100)} onChange={(v) => set("edge")(v / 100)} min={0} max={100} step={5} unit="%" hint="Marca contornos como olhos e pelos." />
-        <NumField label="Moldura" value={relief.border} onChange={set("border")} min={0} max={15} step={0.5} />
+        <NumField label="Moldura" value={relief.border} onChange={set("border")} min={0} max={15} step={0.5} hint="Largura da moldura em volta do relevo; 0 deixa sem moldura." />
       </div>
       <Toggle label="Claro = baixo" checked={relief.invert} onChange={set("invert")} hint="Para fundo claro com sujeito escuro." />
       <Segmented label="Fundo plano" value={relief.subject} options={SUBJECTS} onChange={set("subject")} full />

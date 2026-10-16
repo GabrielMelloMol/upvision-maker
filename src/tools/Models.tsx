@@ -381,7 +381,7 @@ export default function Models({ only, embedded }: { only?: string; embedded?: {
               <h3>{s.title}</h3>
               <div className="grid two">
                 {s.fields.map((f) => (
-                  <ParamField key={f.k} f={f} value={p[f.k]} onChange={set(f.k)} params={p} patch={patchParams} sample={f.kind === "font" && f.sample ? String(p[f.sample] ?? "") : ""} emoji={!!EMOJI_FIELDS[id]?.includes(f.k)} />
+                  <ParamField key={f.k} f={f} value={p[f.k]} onChange={set(f.k)} params={p} patch={patchParams} section={s.title} sample={f.kind === "font" && f.sample ? String(p[f.sample] ?? "") : ""} emoji={!!EMOJI_FIELDS[id]?.includes(f.k)} />
                 ))}
               </div>
               {s === def.sections[def.fontSection ?? 0] && def.font && (
