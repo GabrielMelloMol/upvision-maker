@@ -74,6 +74,7 @@ export const MODEL_ALIASES: Record<string, string> = {
   drillJig: "gabarito furação furar broca guia furadeira marcenaria prateleira dobradiça",
   radiusGauge: "gabarito raios raio quina filete concordância medir calibre",
   labelJig: "gabarito etiqueta moldura colar posição adesivo rótulo",
+  slingshot: "estilingue bodoque atiradeira funda forquilha brinquedo nome",
   opener: "abridor garrafa lata chaveiro",
   openerImage: "abridor garrafa lata chaveiro imagem foto desenho contorno recorte silhueta gato logo personalizado argola",
   spinner: "giratório gira chaveiro fidget",

@@ -38,6 +38,7 @@ export const MODEL_PROFILES: Record<string, PrintProfile> = {
   drillJig: { walls: 4, infill: 40, notes: ["O gabarito sai de ponta-cabeça (o batente para cima). Fure devagar e com a broca afiada: o plástico esquenta."] },
   radiusGauge: { walls: 2, infill: 100 },
   labelJig: { walls: 2, infill: 100 },
+  slingshot: { walls: 5, infill: 100, notes: ["Imprima deitado, em PETG ou ABS. Para segurar o elástico, amarre pelos furos das pontas. Troque a peça se aparecer trinca."] },
   opener: { walls: 4, infill: 40, notes: ["Faz força: PETG aguenta mais que PLA."] },
   openerImage: { walls: 4, infill: 40, notes: ["Faz força: PETG aguenta mais que PLA. Base, relevo e borda têm cores diferentes: troque o filamento na camada em que o relevo começa."] },
   clicker: { walls: 3, infill: 30 },
