@@ -69,6 +69,7 @@ export const FAMILIES: Family[] = [
   { id: "cutters", label: "Cortadores e formas", category: "kitchen", variants: [{ id: "cutterStamp", label: "Com carimbo" }, { id: "gridCutter", label: "Em grade" }, { id: "ejector", label: "Ejetor" }, { id: "candyMold", label: "Pelo peso" }], tools: [{ page: "cutter", label: "Biscoito" }] },
   { id: "cupHandle", label: "Alça de copo", category: "kitchen", variants: [{ id: "cupHandle", label: "Alça de copo" }] },
   { id: "sinkFunnel", label: "Ralo e funil", category: "kitchen", variants: [{ id: "drainCover", label: "Tampa de ralo" }, { id: "funnel", label: "Funil" }] },
+  { id: "jigs", label: "Gabaritos de oficina", category: "organize", variants: [{ id: "drillJig", label: "Furação" }, { id: "radiusGauge", label: "Raios" }, { id: "labelJig", label: "Etiqueta" }] },
   { id: "bagClip", label: "Clipe de saco", category: "kitchen", variants: [{ id: "bagClip", label: "Clipe de saco" }] },
 ];
 

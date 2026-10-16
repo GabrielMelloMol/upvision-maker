@@ -3752,6 +3752,66 @@
   "slicers": "Bambu ✓ · Orca ✓ · Projeto Bambu ✓"
  },
  {
+  "key": "drillJig:máximo",
+  "owner": "Torno",
+  "group": "home",
+  "label": "Gabarito de furação (drillJig)",
+  "variant": "máximo",
+  "status": "aviso",
+  "reasons": [
+   "\"Gabarito de furação\" não cabe na mesa de 256 mm (940,8 × 80,4 × 36,0 mm)",
+   "Bambu recusa na mesa de 256 mm do A1 (o app avisa)",
+   "Orca recusa na mesa de 256 mm do A1 (o app avisa)",
+   "app: O gabarito tem 941 mm: passa da mesa de 256 mm."
+  ],
+  "date": "2026-10-16",
+  "slicers": "Bambu ✓ · Orca ✓"
+ },
+ {
+  "key": "drillJig:mínimo",
+  "owner": "Torno",
+  "group": "home",
+  "label": "Gabarito de furação (drillJig)",
+  "variant": "mínimo",
+  "status": "ok",
+  "reasons": [
+   "app: O furo fica perto demais da borda do gabarito: aumente a distância da borda."
+  ],
+  "date": "2026-10-16",
+  "slicers": "Bambu ✓ · Orca ✓",
+  "minutes": 7,
+  "grams": 1.9,
+  "plates": 1
+ },
+ {
+  "key": "drillJig:padrão",
+  "owner": "Torno",
+  "group": "home",
+  "label": "Gabarito de furação (drillJig)",
+  "variant": "padrão",
+  "status": "ok",
+  "reasons": [],
+  "date": "2026-10-16",
+  "slicers": "Bambu ✓ · Orca ✓",
+  "minutes": 46,
+  "grams": 36.3,
+  "plates": 1
+ },
+ {
+  "key": "drillJig:sem batente",
+  "owner": "Torno",
+  "group": "home",
+  "label": "Gabarito de furação (drillJig)",
+  "variant": "sem batente",
+  "status": "ok",
+  "reasons": [],
+  "date": "2026-10-16",
+  "slicers": "Bambu ✓ · Orca ✓",
+  "minutes": 41,
+  "grams": 32.9,
+  "plates": 1
+ },
+ {
   "key": "goalBoard:máximo",
   "owner": "Torno",
   "group": "home",
@@ -4184,6 +4244,50 @@
   "slicers": "Bambu ✓ · Orca ✓",
   "minutes": 19,
   "grams": 6.4,
+  "plates": 1
+ },
+ {
+  "key": "labelJig:máximo",
+  "owner": "Torno",
+  "group": "home",
+  "label": "Gabarito de etiqueta (labelJig)",
+  "variant": "máximo",
+  "status": "aviso",
+  "reasons": [
+   "\"Gabarito de etiqueta\" não cabe na mesa de 256 mm (260,4 × 210,4 × 5,0 mm)",
+   "Bambu recusa na mesa de 256 mm do A1 (o app avisa)",
+   "Orca recusa na mesa de 256 mm do A1 (o app avisa)",
+   "app: O gabarito passa da mesa."
+  ],
+  "date": "2026-10-16",
+  "slicers": "Bambu ✓ · Orca ✓"
+ },
+ {
+  "key": "labelJig:mínimo",
+  "owner": "Torno",
+  "group": "home",
+  "label": "Gabarito de etiqueta (labelJig)",
+  "variant": "mínimo",
+  "status": "ok",
+  "reasons": [],
+  "date": "2026-10-16",
+  "slicers": "Bambu ✓ · Orca ✓",
+  "minutes": 2,
+  "grams": 0.4,
+  "plates": 1
+ },
+ {
+  "key": "labelJig:padrão",
+  "owner": "Torno",
+  "group": "home",
+  "label": "Gabarito de etiqueta (labelJig)",
+  "variant": "padrão",
+  "status": "ok",
+  "reasons": [],
+  "date": "2026-10-16",
+  "slicers": "Bambu ✓ · Orca ✓",
+  "minutes": 12,
+  "grams": 6.9,
   "plates": 1
  },
  {
@@ -4838,6 +4942,67 @@
   "slicers": "Bambu ✓ · Orca ✓ · Projeto Bambu ✓",
   "minutes": 101,
   "grams": 46.7,
+  "plates": 1
+ },
+ {
+  "key": "radiusGauge:máximo",
+  "owner": "Torno",
+  "group": "home",
+  "label": "Gabarito de raios (radiusGauge)",
+  "variant": "máximo",
+  "status": "ok",
+  "reasons": [],
+  "date": "2026-10-16",
+  "slicers": "Bambu ✓ · Orca ✓",
+  "minutes": 45,
+  "grams": 25.6,
+  "plates": 1
+ },
+ {
+  "key": "radiusGauge:mínimo",
+  "owner": "Torno",
+  "group": "home",
+  "label": "Gabarito de raios (radiusGauge)",
+  "variant": "mínimo",
+  "status": "aviso",
+  "reasons": [
+   "\"Gabarito de raios\": parede/traço < 0,4 mm em Z 0,6, 0,8, 1,1 mm"
+  ],
+  "date": "2026-10-16",
+  "slicers": "Bambu ✓ · Orca ✓",
+  "minutes": 15,
+  "grams": 6.3,
+  "plates": 1
+ },
+ {
+  "key": "radiusGauge:padrão",
+  "owner": "Torno",
+  "group": "home",
+  "label": "Gabarito de raios (radiusGauge)",
+  "variant": "padrão",
+  "status": "ok",
+  "reasons": [],
+  "date": "2026-10-16",
+  "slicers": "Bambu ✓ · Orca ✓",
+  "minutes": 22,
+  "grams": 10.3,
+  "plates": 1
+ },
+ {
+  "key": "radiusGauge:raios grandes",
+  "owner": "Torno",
+  "group": "home",
+  "label": "Gabarito de raios (radiusGauge)",
+  "variant": "raios grandes",
+  "status": "aviso",
+  "reasons": [
+   "\"Gabarito de raios\" não cabe na mesa de 256 mm (60,0 × 279,5 × 2,0 mm)",
+   "app: O gabarito tem 281 mm de comprimento: passa da mesa de 256 mm. Use menos raios."
+  ],
+  "date": "2026-10-16",
+  "slicers": "Bambu ✓ · Orca ✓",
+  "minutes": 32,
+  "grams": 22.6,
   "plates": 1
  },
  {
