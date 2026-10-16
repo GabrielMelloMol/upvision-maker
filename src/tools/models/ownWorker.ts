@@ -8,7 +8,7 @@ import { applyOwnCurved, applyOwnDecals, partAtPoint, type SurfaceSpot } from ".
 import type { Layer } from "./layers";
 import type { LayersResult, PreparedLayer } from "./applyLayers";
 
-/** Nome ou logo no seu modelo fora da tela principal (#248): ler o arquivo, achar as faces, clicar na peça e aplicar o desenho. */
+/** Nome ou logo na peça fora da tela principal (#248): ler o arquivo, achar as faces, clicar na peça e aplicar o desenho. */
 export type FaceLite = Omit<PlanarFace, "triangles"> & { size: [number, number] };
 export type OwnRequest =
   | { kind: "open"; key: string; bytes: Uint8Array; name: string }

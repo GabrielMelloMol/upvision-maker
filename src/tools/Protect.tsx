@@ -23,7 +23,7 @@ async function hashFile(file: File): Promise<Hashed> {
   return { name: file.name, size: file.size, sha256: await sha256Hex(await file.arrayBuffer()) };
 }
 
-/** Proteger arquivo (#228): hash SHA-256, certificado em PDF com data e QR, e conferência offline de um arquivo contra o certificado. */
+/** Certificado de autoria (#228): hash SHA-256, certificado em PDF com data e QR, e conferência offline de um arquivo contra o certificado. */
 export default function Protect() {
   const toast = useToast();
   const [file, setFile] = useState<Hashed | null>(null);
@@ -106,7 +106,7 @@ export default function Protect() {
 
   return (
     <div className="page">
-      <h1>Proteger arquivo</h1>
+      <h1>Certificado de autoria</h1>
       <p className="lead">Hash SHA-256 e certificado em PDF do seu arquivo.</p>
       <div className="controls stack">
         <div className="card stack">

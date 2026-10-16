@@ -12,8 +12,8 @@ const box = () => ({ name: "caixa.stl", mimeType: "model/stl", buffer: Buffer.fr
 test("textura no seu modelo: escolhe a textura, pinta com o pincel na prévia e salva o 3MF (#222)", async ({ page, tauri }) => {
   await page.setViewportSize({ width: 1440, height: 1250 });
   await openApp(page);
-  await go(page, "Textura no seu modelo");
-  await expect(page.getByRole("heading", { name: "Textura no seu modelo" })).toBeVisible();
+  await go(page, "Textura na peça");
+  await expect(page.getByRole("heading", { name: "Textura na peça" })).toBeVisible();
   await page.locator('input[type="file"]').first().setInputFiles(box());
   await expect(page.getByText(/Peça: 60,0 × 60,0 × 40,0 mm/)).toBeVisible();
   const result = page.getByLabel("Resultado da textura");
@@ -42,7 +42,7 @@ test("peça grande: a tela não trava, mostra o progresso, cancela e calcula de 
   test.setTimeout(180_000);
   await page.setViewportSize({ width: 1440, height: 1250 });
   await openApp(page);
-  await go(page, "Textura no seu modelo");
+  await go(page, "Textura na peça");
   await page.locator('input[type="file"]').first().setInputFiles({ name: "grande.stl", mimeType: "model/stl", buffer: Buffer.from(boxStl(260, 260, 260)) });
   const bar = page.getByRole("progressbar", { name: /Progresso/ });
   await expect(bar).toBeVisible({ timeout: 60_000 });
@@ -60,7 +60,7 @@ for (const scheme of ["light", "dark"] as const) {
   test(`textura no seu modelo: tela com o arquivo aberto passa no axe (${scheme})`, async ({ page }) => {
     await page.emulateMedia({ colorScheme: scheme });
     await openApp(page);
-    await go(page, "Textura no seu modelo");
+    await go(page, "Textura na peça");
     await page.locator('input[type="file"]').first().setInputFiles(box());
     await expect(page.getByLabel("Resultado da textura")).toContainText("triângulos", { timeout: 90_000 });
     await idle(page);

@@ -1,5 +1,5 @@
 import type { Page } from "@playwright/test";
-import { expect, go, openApp, test } from "./tauri";
+import { expect, openApp, pickModel, test } from "./tauri";
 
 const hud = (page: Page) => page.locator(".viewer .hud");
 const idle = (page: Page) => expect(page.locator(".viewer .overlay.busy")).toHaveCount(0, { timeout: 90_000 });
@@ -7,9 +7,7 @@ const variant = (page: Page, name: string) => page.getByRole("group", { name: "V
 
 test("Peças mecânicas: engrenagem com par, planetário, polia, roda dentada e corrente (#230)", async ({ page }) => {
   await openApp(page);
-  await go(page, "Modelos prontos");
-  await page.getByRole("searchbox", { name: "Buscar modelo" }).fill("engrenagem");
-  await page.getByRole("group", { name: "Modelo" }).getByRole("button", { name: "Engrenagem (e o par engrenado)", exact: true }).click();
+  await pickModel(page, "engrenagem", "Engrenagem (e o par engrenado)", { exact: true });
   await idle(page);
   await expect(page.getByText(/distância entre os eixos 56,00 mm, redução 1,80 : 1/)).toBeVisible({ timeout: 90_000 });
   await expect(hud(page)).toContainText("×");

@@ -13,7 +13,7 @@ const t = setupTauri();
 const BUILD = { timeout: 60_000 };
 beforeAll(() => void t);
 
-describe("Miolo leve (#236)", { timeout: 120_000 }, () => {
+describe("Deixar a peça mais leve (#236)", { timeout: 120_000 }, () => {
   test("sem arquivo: pede o STL/3MF, avisa da licença e não deixa comparar", () => {
     renderWithApp(<Lighten />);
     expect(screen.getByText("Envie um STL ou 3MF para alivianar.")).toBeInTheDocument();

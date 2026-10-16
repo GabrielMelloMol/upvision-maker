@@ -1,13 +1,11 @@
 import type { Page } from "@playwright/test";
-import { expect, go, openApp, test, toastWith } from "./tauri";
+import { expect, openApp, pickModel, test, toastWith } from "./tauri";
 
 const idle = (page: Page) => expect(page.locator(".viewer .overlay.busy")).toHaveCount(0, { timeout: 60_000 });
 
 test("moldura grande: divide pela mesa em peças com encaixe, garras e gancho, e volta a uma peça só (#108)", async ({ page, tauri }) => {
   await openApp(page);
-  await go(page, "Modelos prontos");
-  await page.getByRole("searchbox", { name: "Buscar modelo" }).fill("moldura grande");
-  await page.getByRole("group", { name: "Modelo" }).getByRole("button", { name: "Moldura grande dividida", exact: true }).click();
+  await pickModel(page, "moldura grande", "Moldura grande dividida", { exact: true });
   await idle(page);
 
   // pôster de 50 × 70 cm: passa da mesa, então sai em várias peças com cauda de andorinha e avisa das mesas

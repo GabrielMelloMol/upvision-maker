@@ -34,12 +34,12 @@ const MIN_WALL_PART = 0.8;
 const fmt = (n: number) => n.toFixed(1).replace(".", ",");
 
 /**
- * Miolo leve (#236): troca o miolo de uma peça por giroide, voronoi ou treliça cúbica, deixando uma casca maciça, e compara as 3
+ * Deixar a peça mais leve (#236): troca o miolo de uma peça por giroide, voronoi ou treliça cúbica, deixando uma casca maciça, e compara as 3
  * estruturas em massa e menor seção. Também gera um bloco de treliça. Tudo em PLA; nada aqui substitui um teste de resistência.
  */
 export default function Lighten() {
   const tool = useToolState("lighten", initialState, {
-    label: "Miolo leve",
+    label: "Deixar a peça mais leve",
     save: (s) => ({ ...s, file: s.file && { name: s.file.name, bytes: storeBytes(s.file.bytes) } }),
     load: (raw) => {
       const r = raw as State & { file: { name: string; bytes: string | null } | null };
@@ -114,7 +114,7 @@ export default function Lighten() {
 
   return (
     <div className="page">
-      <h1>Miolo leve</h1>
+      <h1>Deixar a peça mais leve</h1>
       <p className="lead">Troca o miolo da peça por giroide, voronoi ou treliça.</p>
       <ToolSessionBar tool={tool} />
       <div className="tool-layout">

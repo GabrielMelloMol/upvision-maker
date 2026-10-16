@@ -10,7 +10,13 @@ import { COLLECTIONS, inCollection } from "./variants";
  */
 export const normalize = (s: string) => s.normalize("NFD").replace(/\p{M}/gu, "").toLowerCase();
 const clean = (s: string) => normalize(s).replace(/[-–—/·→]+/g, " ");
-export const queryWords = (q: string): string[] => clean(q).split(/\s+/).filter(Boolean);
+/** Palavras de ligação que a pessoa digita ("chaveiro com nome", "topo de bolo") e que não ajudam a achar nada. */
+const STOP = new Set(["com", "de", "do", "da", "dos", "das", "para", "pra", "um", "uma", "e", "o", "a", "os", "as", "em", "no", "na"]);
+export const queryWords = (q: string): string[] => {
+  const all = clean(q).split(/\s+/).filter(Boolean);
+  const words = all.filter((w) => !STOP.has(w));
+  return words.length ? words : all;
+};
 
 /** Palavras que a pessoa digita e o nome técnico não tem. Por id do modelo. */
 export const MODEL_ALIASES: Record<string, string> = {
@@ -126,6 +132,13 @@ export const searchModels = (q: string): string[] =>
 
 /** Texto de busca de uma ferramenta (nome, descrição e sinônimos). */
 export const toolText = (id: string, label: string, blurb = ""): string => `${label} ${blurb} ${PAGE_ALIASES[id] ?? ""}`;
+
+/** Quanto uma ferramenta combina com a busca: 0 = o nome tem tudo; 2 = com a descrição e os sinônimos; null = não combina. */
+export function toolScore(id: string, label: string, blurb: string, q: string): number | null {
+  if (!queryWords(q).length) return null;
+  if (matchesAll(label, q)) return 0;
+  return matchesAll(toolText(id, label, blurb), q) ? 2 : null;
+}
 
 /** Todas as palavras da busca aparecem no texto? Sem busca, tudo combina. */
 export const matchesAll = (text: string, q: string): boolean => {

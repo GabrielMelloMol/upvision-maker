@@ -1,6 +1,6 @@
 import AxeBuilder from "@axe-core/playwright";
 import type { Page } from "@playwright/test";
-import { expect, openApp, test } from "./tauri";
+import { expect, go, openApp, test } from "./tauri";
 import { SEED_BASE, SEED_ORDERS } from "../visual/seed";
 
 /**
@@ -39,6 +39,14 @@ test("nenhuma tela tem violação estrutural de acessibilidade (axe, sem contras
     await page.waitForTimeout(700);
     const r = await new AxeBuilder({ page }).include("main").exclude("canvas").withTags(["wcag2a", "wcag2aa", "wcag21a", "wcag21aa", "wcag22aa"]).disableRules(["color-contrast"]).analyze();
     for (const v of r.violations) found.push(`${s.id} · ${v.id} (${v.impact}): ${v.nodes.slice(0, 2).map((n) => n.target.join(" ")).join(" | ")}`);
+  }
+  // as ferramentas que moram dentro de um produto da Criar (#250) não têm cartão próprio: abre pela busca (⌘K)
+  for (const label of ["Chaveiros", "Medalhas", "Cortador de biscoito", "QR Code e Pix", "Carimbo seco", "Convite envelope", "Caixinha termoformada", "Litofania", "Pixel art", "Mosaico", "Organizadores"]) {
+    await go(page, label);
+    await expect(page.locator("main h1").first()).toBeVisible();
+    await page.waitForTimeout(700);
+    const r = await new AxeBuilder({ page }).include("main").exclude("canvas").withTags(["wcag2a", "wcag2aa", "wcag21a", "wcag21aa", "wcag22aa"]).disableRules(["color-contrast"]).analyze();
+    for (const v of r.violations) found.push(`${label} · ${v.id} (${v.impact}): ${v.nodes.slice(0, 2).map((n) => n.target.join(" ")).join(" | ")}`);
   }
   expect(found, "violações do axe").toEqual([]);
 });

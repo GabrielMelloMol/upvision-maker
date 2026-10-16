@@ -1,16 +1,14 @@
 import AxeBuilder from "@axe-core/playwright";
 import { resolve } from "node:path";
 import type { Page } from "@playwright/test";
-import { expect, go, openApp, settleColors, test } from "./tauri";
+import { expect, openApp, pickModel, settleColors, test } from "./tauri";
 
 const idle = (page: Page) => expect(page.locator(".viewer .overlay.busy")).toHaveCount(0, { timeout: 90_000 });
 const gato = resolve("tests/fixtures/gato-abridor.png");
 
 async function open(page: Page) {
   await openApp(page);
-  await go(page, "Modelos prontos");
-  await page.getByRole("searchbox", { name: "Buscar modelo" }).fill("abridor com sua arte");
-  await page.getByRole("group", { name: "Modelo" }).getByRole("button", { name: "Chaveiro abridor com sua arte", exact: true }).click();
+  await pickModel(page, "abridor com sua arte", "Chaveiro abridor com sua arte", { exact: true });
   await idle(page);
 }
 

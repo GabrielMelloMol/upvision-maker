@@ -22,7 +22,7 @@ async function open(container: HTMLElement) {
   return user;
 }
 
-describe("Corte parcial", { timeout: 60_000 }, () => {
+describe("Cortar um pedaço com encaixe", { timeout: 60_000 }, () => {
   test("sem arquivo: pede o STL/3MF e mostra o aviso de licença", () => {
     renderWithApp(<PartialCut />);
     expect(screen.getByText("Envie um STL ou 3MF para cortar.")).toBeInTheDocument();

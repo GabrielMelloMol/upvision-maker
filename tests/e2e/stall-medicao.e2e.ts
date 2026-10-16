@@ -85,7 +85,7 @@ const upload = async (p: Page) => p.locator('input[type="file"]').first().setInp
 
 const SCENARIOS: Record<string, Scenario> = {
   "nome-ou-logo": {
-    page: "Nome ou logo no seu modelo",
+    page: "Nome ou logo na peça",
     run: async (p, ph) => {
       await ph("carregar"); await upload(p); await settle(p);
       await ph("ponto");
@@ -99,14 +99,14 @@ const SCENARIOS: Record<string, Scenario> = {
     },
   },
   "separar-cores": {
-    page: "Separar cores de um 3MF",
+    page: "Separar as cores de um arquivo",
     run: async (p, ph) => {
       await ph("carregar"); await upload(p); await settle(p);
       await ph("ajuste"); await p.getByRole("button", { name: "Objetos separados" }).click(); await settle(p);
     },
   },
   "cortar-mesa": {
-    page: "Cortar para caber na mesa",
+    page: "Dividir peça grande",
     run: async (p, ph) => {
       await ph("carregar"); await upload(p); await settle(p);
       await ph("ajuste"); await p.getByRole("button", { name: "Pino quadrado" }).click(); await settle(p);
@@ -120,14 +120,14 @@ const SCENARIOS: Record<string, Scenario> = {
     },
   },
   "miolo-leve": {
-    page: "Miolo leve",
+    page: "Deixar a peça mais leve",
     run: async (p, ph) => {
       await ph("carregar"); await upload(p); await settle(p);
       await ph("ajuste"); await p.getByRole("group", { name: "Tipo de estrutura" }).getByRole("button", { name: /Voronoi/i }).click(); await settle(p);
     },
   },
   "corte-parcial": {
-    page: "Corte parcial",
+    page: "Cortar um pedaço com encaixe",
     run: async (p, ph) => {
       await ph("carregar"); await upload(p); await settle(p);
       await ph("ponto");
@@ -137,7 +137,7 @@ const SCENARIOS: Record<string, Scenario> = {
     },
   },
   textura: {
-    page: "Textura no seu modelo",
+    page: "Textura na peça",
     run: async (p, ph) => {
       await ph("carregar"); await upload(p); await settle(p);
       await ph("ajuste"); await p.getByRole("button", { name: /Couro/ }).click(); await settle(p);

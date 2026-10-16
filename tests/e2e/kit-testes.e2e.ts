@@ -1,5 +1,5 @@
 import type { Page } from "@playwright/test";
-import { expect as baseExpect, go, openApp, test, toastWith } from "./tauri";
+import { expect as baseExpect, go, openApp, pickModel, test, toastWith } from "./tauri";
 
 // o kit monta 41 peças (a rosca usa o gerador do Estojo) e leva alguns segundos
 const expect = baseExpect.configure({ timeout: 60_000 });
@@ -41,8 +41,6 @@ test("kit de testes: monta o kit, salva o PDF e o 3MF, lança a folga da rosca e
   await expect(page.getByText(/em uso: 0,40 mm \(o padrão era 0,35\)/)).toBeVisible();
 
   // o Estojo com tampa de rosca já nasce com a folga validada
-  await go(page, "Modelos prontos");
-  await page.getByRole("searchbox", { name: "Buscar modelo" }).fill("Estojo");
-  await page.getByRole("group", { name: "Modelo" }).getByRole("button", { name: /Estojo com tampa de rosca/ }).click();
+  await pickModel(page, "Estojo", /Estojo com tampa de rosca/);
   await expect(page.getByLabel(/^Folga \(/)).toHaveValue("0.4");
 });

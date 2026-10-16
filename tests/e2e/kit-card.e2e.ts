@@ -2,7 +2,7 @@ import AxeBuilder from "@axe-core/playwright";
 import { strFromU8, unzipSync } from "fflate";
 import type { Page } from "@playwright/test";
 import { crc32, deflateSync } from "node:zlib";
-import { expect, go, openApp, settleColors, test, toastWith } from "./tauri";
+import { expect, openApp, pickModel, settleColors, test, toastWith } from "./tauri";
 
 const hud = (page: Page) => page.locator(".viewer .hud");
 const idle = (page: Page) => expect(page.locator(".viewer .overlay.busy")).toHaveCount(0, { timeout: 90_000 });
@@ -37,9 +37,7 @@ function photoPng(): Buffer {
 
 async function openKit(page: Page) {
   await openApp(page);
-  await go(page, "Modelos prontos");
-  await page.getByRole("searchbox", { name: "Buscar modelo" }).fill("Kit card");
-  await page.getByRole("group", { name: "Modelo" }).getByRole("button", { name: "Kit card (montar)", exact: true }).click();
+  await pickModel(page, "Kit card", "Kit card (montar)", { exact: true });
   await idle(page);
 }
 

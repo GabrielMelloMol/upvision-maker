@@ -1,6 +1,6 @@
 import { mkdirSync } from "node:fs";
 import type { Locator, Page } from "@playwright/test";
-import { expect, go, openApp, prefsSection, test, toastWith } from "./tauri";
+import { expect, go, openApp, pickModel, prefsSection, test, toastWith } from "./tauri";
 
 /** Com CALC_PRINTS=<pasta>, guarda os prints "depois" (só da página do app). */
 const PRINTS = process.env.CALC_PRINTS;
@@ -64,9 +64,7 @@ test("C4 e C5: 'Levar para a Calculadora' troca as peças na mesa e põe preço 
   await go(page, "Impressoras");
   tauri.db.exec("INSERT INTO filaments (material, color, brand, pricePerKg, spoolG, stockG, minG) VALUES ('PLA', 'Branco', 'Voolt', 120, 1000, 1000, 0)");
   await page.evaluate(() => localStorage.setItem("upvision:calculadora", JSON.stringify({ mode: "full", fil: [{ ref: "", price: "", qty: "" }], ext: [], printerId: "", f: { quantity: "10" } })));
-  await go(page, "Modelos prontos");
-  await page.getByRole("searchbox", { name: "Buscar modelo" }).fill("Chaveiro giratório");
-  await page.getByRole("group", { name: "Modelo" }).getByRole("button", { name: "Chaveiro giratório", exact: true }).click();
+  await pickModel(page, "Chaveiro giratório", "Chaveiro giratório", { exact: true });
   await expect(page.locator(".viewer .hud")).toContainText("mm", { timeout: 60_000 });
   const est = page.getByRole("group", { name: "Estimativa sem fatiar" });
   await shot(page, "05-depois-estimativa-ferramenta");

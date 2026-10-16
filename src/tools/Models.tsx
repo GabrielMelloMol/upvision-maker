@@ -22,8 +22,8 @@ import { errorText } from "../ui/Toast";
 import { useModelBuilder } from "../ui/useModelBuilder";
 import { DESIGN_ACCEPT, designFromSvg, fileToCutSvg, fileToSvg, type CutoutInfo } from "./designInput";
 import { ART_MISSING, MissingInput } from "../geometry/models/common";
-import { MODELS, validParams, type Category, type Params } from "./models/defs";
-import { inCollection, VARIANTS, type Collection } from "./models/variants";
+import { MODELS, validParams, type Params } from "./models/defs";
+import { VARIANTS } from "./models/variants";
 import { profileFor } from "./models/printProfiles";
 import { EMOJI_FIELDS } from "./models/emoji";
 import { BATCH_FIELDS, layoutCopies, MAX_COPIES, parseBatch } from "./models/batch";
@@ -43,25 +43,18 @@ import ToolSessionBar from "./ToolSessionBar";
 import { useToolState } from "./useToolState";
 import { useTakenIntent } from "./intent";
 import ParamField, { firstText } from "./models/ParamField";
-import ModelGallery, { type Occasion } from "./models/ModelGallery";
+import { FAVORITES_KEY, loadFavorites } from "./models/favorites";
+import { getCreateView } from "./models/createView";
+import { requestNavigate } from "../ui/navigate";
+import { ArrowLeft } from "lucide-react";
 import KitGallery from "./models/KitGallery";
 import VariantPicker from "./models/VariantPicker";
 import { carryFields, familyOf, modelOf } from "./models/families";
 
 const ART_WIDTH_MM = 100; // o desenho é reescalado por cada modelo; aqui só normaliza
-const FAVORITES_KEY = "upvision.favoriteModels";
 /** Seção dos campos de posição (alinhamento, arrumação) que "Restaurar posição" volta ao padrão (#79). */
 const ARRANGE_SECTION = "Arrumação";
 
-
-function loadFavorites(): string[] {
-  try {
-    const v = JSON.parse(localStorage.getItem(FAVORITES_KEY) ?? "[]");
-    return Array.isArray(v) ? v.filter((x) => typeof x === "string") : [];
-  } catch {
-    return [];
-  }
-}
 
 /** Os valores de partida de um modelo: os do catálogo, mais os que dependem do app agora (ex.: o bico da impressora no mapa estelar). */
 const baseParams = (m: { defaults: Params; liveDefaults?: () => Params }): Params => (m.liveDefaults ? { ...m.defaults, ...m.liveDefaults() } : m.defaults);
@@ -83,7 +76,7 @@ type ModelsState = ReturnType<typeof initialState>;
 
 /**
  * Modelos paramétricos prontos: escolha na galeria, ajuste os campos, veja em 3D e salve o 3MF em cores.
- * `only`: mostra um modelo só, sem galeria nem título (ele vive como aba de outra ferramenta, ex.: Shadowbox em Foto em relevo).
+ * `only`: mostra um modelo só, sem galeria nem título (ele vive como aba de outra ferramenta, ex.: Shadowbox em Litofania).
  * `embedded`: dentro de outra ferramenta (Organizadores), só com estes modelos e as variações deles, sem título nem galeria.
  */
 export default function Models({ only, embedded }: { only?: string; embedded?: { ids: readonly string[] } } = {}) {
@@ -99,24 +92,13 @@ export default function Models({ only, embedded }: { only?: string; embedded?: {
   });
   const { id, all, font, art, art2, cutout, batchOn, batchText } = tool.state;
   const { adopt } = tool;
-  const [setId, setFont, setArt, setArt2, setCutout, setBatchOn, setBatchText] = [tool.field("id"), tool.field("font"), tool.field("art"), tool.field("art2"), tool.field("cutout"), tool.field("batchOn"), tool.field("batchText")];
+  const [, setFont, setArt, setArt2, setCutout, setBatchOn, setBatchText] = [tool.field("id"), tool.field("font"), tool.field("art"), tool.field("art2"), tool.field("cutout"), tool.field("batchOn"), tool.field("batchText")];
   const [artError, setArtError] = useState<string | null>(null);
   // aberto pela galeria Criar (#139): já vem com o modelo escolhido, sem virar passo de desfazer
   // ou pelo pedido (#164, "Preparar impressão"): com a personalização do item no lote
-  const asked = useTakenIntent<{ id?: string; batch?: string; occasion?: Collection }>("models");
-  const [intent] = useState(() => {
-    // vindo do destaque da ocasião (#120): abre no primeiro modelo da coleção
-    return asked?.occasion && !asked.id ? { ...asked, id: MODELS.find((m) => inCollection(m.id, asked.occasion!))?.id } : asked;
-  });
+  const asked = useTakenIntent<{ id?: string; batch?: string }>("models");
+  const [intent] = useState(() => asked);
   const [wanted] = useState(() => MODELS.find((m) => m.id === intent?.id));
-  // a aba segue a família do modelo aberto (a família pode estar noutra categoria que o modelo, #141)
-  const [category, setCategory] = useState<Category>(() => familyOf(wanted?.id ?? tool.state.id).category);
-  // o modelo mudou por fora (continuar rascunho, reabrir projeto, desfazer): a aba vai para a família dele
-  const [shownId, setShownId] = useState(id);
-  if (shownId !== id) {
-    setShownId(id);
-    setCategory(familyOf(id).category);
-  }
   useEffect(() => {
     if (only) adopt((cur) => (cur.id === only ? cur : { ...cur, id: only })); // aba de outra ferramenta: sempre este modelo
   }, [adopt, only]);
@@ -125,11 +107,9 @@ export default function Models({ only, embedded }: { only?: string; embedded?: {
     const batch = intent?.batch?.trim();
     adopt((cur) => (batch && BATCH_FIELDS[wanted.id] ? { ...cur, id: wanted.id, batchOn: true, batchText: { ...cur.batchText, [wanted.id]: batch } } : { ...cur, id: wanted.id }));
   }, [adopt, wanted, intent]);
-  const [query, setQuery] = useState("");
   const [missing, setMissing] = useState<string | null>(null);
   const [show, setShow] = useState<View>("table"); // modelos com peça montada só de prévia: Mesa × Montada
-  // ocasião ou favoritos: filtro que atravessa as categorias (como a busca)
-  const [occasion, setOccasion] = useState<Occasion>(intent?.occasion ?? null);
+  const occasion = getCreateView().occasion; // a ocasião escolhida na Criar põe as variações dela primeiro
   const [favorites, setFavorites] = useState<string[]>(loadFavorites);
   const def = MODELS.find((m) => m.id === id)!;
   const lay = useModelLayers(id, tool.state.edits, (fn) => tool.set((cur) => ({ ...cur, edits: fn(cur.edits) }))); // camadas livres (#26)
@@ -326,12 +306,6 @@ export default function Models({ only, embedded }: { only?: string; embedded?: {
   const activeView = shownViews?.find((v) => v.id === viewId) ?? shownViews?.find((v) => v.id === "closed") ?? shownViews?.[0];
 
   // escolhendo na galeria, os campos do modelo ficam na metade de baixo da tela: leva a tela até eles (UX B3)
-  const layoutRef = useRef<HTMLDivElement>(null);
-  const pickFromGallery = (next: string) => {
-    setId(next);
-    const calm = window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
-    requestAnimationFrame(() => layoutRef.current?.scrollIntoView?.({ behavior: calm ? "auto" : "smooth", block: "start" }));
-  };
   const family = familyOf(id);
   // embutido: o modelo aberto tem de ser um dos da lista (o estado de trabalho é o mesmo dos Modelos prontos)
   const embeddedIds = embedded?.ids;
@@ -342,11 +316,15 @@ export default function Models({ only, embedded }: { only?: string; embedded?: {
   return (
     <div className={only || embedded ? "embedded" : "page"}>
       {!only && !embedded && <h1>Modelos prontos</h1>}
-      {!only && !embedded && <p className="lead">Escolha, ajuste o texto e salve o 3MF em cores.</p>}
+      {!only && !embedded && <p className="lead">Ajuste o texto e as cores e salve o 3MF.</p>}
       <ToolSessionBar tool={tool} />
-      {!only && !embedded && <ModelGallery id={id} onPick={pickFromGallery} category={category} onCategory={setCategory} query={query} onQuery={setQuery} occasion={occasion} onOccasion={setOccasion} favorites={favorites} />}
+      {!only && !embedded && (
+        <button type="button" className="link back-to-create" onClick={() => requestNavigate("create")}>
+          <ArrowLeft aria-hidden size={16} /> Todos os produtos
+        </button>
+      )}
       {!only && !embedded && family.id === "assembleKits" && <KitGallery id={id} onPick={pickVariant} />}
-      <div className="tool-layout" ref={layoutRef} data-model={id}>
+      <div className="tool-layout" data-model={id}>
         <div className="controls">
           <div className="row model-head">
             {/* o card da galeria é a família; o painel mostra de qual veio (Brinquedos › Quebra-cabeça), UX B2 */}

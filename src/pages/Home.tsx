@@ -1,4 +1,7 @@
-import { Calculator, ChevronRight, ClipboardList, FileText, KeyRound, Shapes } from "lucide-react";
+import { Award, Cake, Calculator, ChevronRight, ClipboardList, Cookie, FileText, KeyRound, QrCode, Search, Sun } from "lucide-react";
+import { useState, type FormEvent } from "react";
+import { openWith } from "../tools/intent";
+import { openModel } from "../tools/modelPlaces";
 import { ordersRepo } from "../db/ordersRepo";
 import { toolProjects, toolState } from "../db/toolStateRepo";
 import { openProjectIn } from "../tools/intent";
@@ -11,15 +14,22 @@ import { PAGES, type Go } from "../pages";
 import { setPendingOpen } from "../ui/search";
 import { useData } from "../ui/useData";
 import OccasionCard from "../ui/OccasionCard";
-import PrinterPanel from "../ui/PrinterPanel";
 import StartHere, { type StartSteps } from "../help/StartHere";
 
-const ACTIONS = [
-  { page: "keychain", label: "Chaveiro", icon: KeyRound },
-  { page: "models", label: "Modelo pronto", icon: Shapes },
-  { page: "calculator", label: "Calcular preço", icon: Calculator },
-  { page: "quotes", label: "Orçamento", icon: FileText },
-  { page: "orders", label: "Pedidos", icon: ClipboardList },
+/** Atalhos do Início (#250): cada um abre direto a ferramenta ou o modelo, sem passar pela Criar. `model` abre o Modelo pronto. */
+type Shortcut = { label: string; icon: typeof KeyRound; page?: string; model?: string };
+const CREATE: Shortcut[] = [
+  { label: "Chaveiro com nome", icon: KeyRound, page: "keychain" },
+  { label: "Placa Pix", icon: QrCode, model: "pix" },
+  { label: "Topo de bolo", icon: Cake, model: "cake" },
+  { label: "Medalha", icon: Award, page: "medal" },
+  { label: "Cortador de biscoito", icon: Cookie, page: "cutter" },
+  { label: "Litofania", icon: Sun, page: "lithophane" },
+];
+const SELL: Shortcut[] = [
+  { label: "Calcular preço", icon: Calculator, page: "calculator" },
+  { label: "Orçamento", icon: FileText, page: "quotes" },
+  { label: "Pedidos", icon: ClipboardList, page: "orders" },
 ];
 const OPEN = new Set(["pending", "production", "done"]);
 const dateBr = (iso: string) => iso.split("-").reverse().slice(0, 2).join("/");
@@ -64,6 +74,25 @@ export default function Home({ go }: { go: Go }) {
     })
     .sort((a, b) => b.it.at.localeCompare(a.it.at))
     .slice(0, RECENT);
+  const [find, setFind] = useState("");
+  const run = (a: Shortcut) => go(a.model ? openModel(a.model) : a.page!);
+  const search = (e: FormEvent) => {
+    e.preventDefault();
+    openWith("create", { q: find.trim() });
+    go("create");
+  };
+  const list = (label: string, items: Shortcut[]) => (
+    <ul className="home-actions" aria-label={label}>
+      {items.map((a) => (
+        <li key={a.label}>
+          <button onClick={() => run(a)}>
+            <a.icon aria-hidden />
+            {a.label}
+          </button>
+        </li>
+      ))}
+    </ul>
+  );
   const open = (it: LibraryItem) => {
     openProjectIn(it.toolId, it.kind === "draft" ? { resume: true } : { projectId: it.project.id });
     go(it.toolId);
@@ -72,20 +101,25 @@ export default function Home({ go }: { go: Go }) {
   return (
     <div className="page home">
       <div className="home-hero">
-        <div className="home-hero-main">
-          <h1>{greeting()}</h1>
-          <ul className="home-actions" aria-label="Começar">
-            {ACTIONS.map((a) => (
-              <li key={a.page}>
-                <button onClick={() => go(a.page)}>
-                  <a.icon aria-hidden />
-                  {a.label}
-                </button>
-              </li>
-            ))}
-          </ul>
+        <h1>{greeting()}</h1>
+        <form className="home-search" role="search" onSubmit={search}>
+          <label className="affix has-prefix">
+            <Search aria-hidden className="prefix" />
+            <input type="search" aria-label="O que você quer criar?" placeholder="O que você quer criar? Ex.: chaveiro com nome, placa Pix, topo de bolo" value={find} onChange={(e) => setFind(e.target.value)} />
+          </label>
+          <button type="submit" className="primary">
+            Procurar
+          </button>
+        </form>
+        <div className="home-head">
+          <h2 id="home-create">Criar</h2>
+          <button className="link" onClick={() => go("create")}>
+            Ver todos os produtos
+          </button>
         </div>
-        <PrinterPanel />
+        {list("Criar", CREATE)}
+        <h2 id="home-sell">Vender</h2>
+        {list("Vender", SELL)}
       </div>
       <OccasionCard go={go} />
       {!loading && <StartHere go={go} done={data.steps} />}

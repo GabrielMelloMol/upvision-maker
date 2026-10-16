@@ -6,7 +6,7 @@ const idle = (page: Page) => expect(page.locator(".viewer .overlay.busy")).toHav
 test("separar 3MF que pinta por material: lista os grupos de cor, escolhe uma região clicando na peça e salva (#229)", async ({ page, tauri }) => {
   await page.setViewportSize({ width: 1440, height: 1250 }); // as posições do clique dependem do tamanho da prévia
   await openApp(page);
-  await go(page, "Separar cores de um 3MF");
+  await go(page, "Separar as cores de um arquivo");
   await page.locator('input[type="file"]').setInputFiles("tests/fixtures/3mf/personagem-colorido-material.3mf");
   const card = page.getByLabel("Cores do arquivo");
   await expect(card).toBeVisible({ timeout: 60_000 });

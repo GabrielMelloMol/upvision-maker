@@ -1,14 +1,12 @@
 import type { Page } from "@playwright/test";
-import { expect, go, openApp, test, toastWith } from "./tauri";
+import { expect, openApp, pickModel, test, toastWith } from "./tauri";
 
 const hud = (page: Page) => page.locator(".viewer .hud");
 const idle = (page: Page) => expect(page.locator(".viewer .overlay.busy")).toHaveCount(0, { timeout: 60_000 });
 
 test("estampa de camisa: camada fina de 0,3 mm, instruções na tela, fundo contínuo e 3MF (#187)", async ({ page, tauri }) => {
   await openApp(page);
-  await go(page, "Modelos prontos");
-  await page.getByRole("searchbox", { name: "Buscar modelo" }).fill("Estampa de camisa");
-  await page.getByRole("group", { name: "Modelo" }).getByRole("button", { name: "Estampa de camisa", exact: true }).click();
+  await pickModel(page, "Estampa de camisa", "Estampa de camisa", { exact: true });
   await idle(page);
   await expect(hud(page)).toContainText("× 0.3 mm");
   await expect(page.getByText(/A estampa sai espelhada/)).toBeVisible();

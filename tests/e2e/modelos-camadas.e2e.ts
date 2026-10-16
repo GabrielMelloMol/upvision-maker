@@ -1,19 +1,17 @@
 import type { Page } from "@playwright/test";
 import { strFromU8, unzipSync } from "fflate";
-import { expect, go, openApp, test, toastWith } from "./tauri";
+import { expect, openApp, pickModel as pickModelBy, test, toastWith } from "./tauri";
 
 const SHOTS = process.env.SHOTS_DIR;
 const STAR = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"><path d="M10 0 L13 7 L20 7 L14 12 L16 20 L10 15 L4 20 L6 12 L0 7 L7 7 Z"/></svg>';
 const idle = (page: Page) => expect(page.locator(".viewer")).not.toHaveAttribute("aria-busy", "true", { timeout: 60_000 });
 
 async function pickModel(page: Page, name: string) {
-  await page.getByRole("searchbox", { name: "Buscar modelo" }).fill(name);
-  await page.getByRole("group", { name: "Modelo" }).getByRole("button", { name, exact: true }).click();
+  await pickModelBy(page, name, name, { exact: true });
 }
 
 test("camadas livres: desenho e texto na placa, arrastar com encaixe, campos, desfazer, variação e 3MF (#26)", async ({ page, tauri }) => {
   await openApp(page);
-  await go(page, "Modelos prontos");
   await pickModel(page, "Placa de sinalização");
   await expect(page.locator(".viewer .hud")).toContainText("mm", { timeout: 60_000 });
   const panel = page.getByRole("region", { name: "Camadas livres" });

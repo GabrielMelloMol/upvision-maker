@@ -1,11 +1,10 @@
 import type { Page } from "@playwright/test";
 import { strFromU8, strToU8, unzipSync, zipSync } from "fflate";
-import { expect, go, openApp, test, toastWith, type TauriMock } from "./tauri";
+import { expect, go, openApp, pickModel as pickModelBy, test, toastWith } from "./tauri";
 
 /** Acha o modelo pela busca (a galeria mostra uma categoria por vez). */
 async function pickModel(page: Page, name: string) {
-  await page.getByRole("searchbox", { name: "Buscar modelo" }).fill(name);
-  await page.getByRole("group", { name: "Modelo" }).getByRole("button", { name, exact: true }).click();
+  await pickModelBy(page, name, name, { exact: true });
 }
 
 
@@ -48,7 +47,7 @@ async function save3mf(page: Page, tauri: TauriMock) {
 test("Imagem→SVG colorido: paleta dos filamentos, troca de cor e SVG salvo com as cores escolhidas", async ({ page, tauri }) => {
   await openApp(page);
   await seedFilaments(page, tauri);
-  await go(page, "Imagem em desenho (SVG)");
+  await go(page, "Imagem em vetor");
   await page.locator('input[type="file"]').setInputFiles(`${FIX}/logo.jpg`);
   await expect(page.getByRole("img", { name: "Imagem original" })).toBeVisible();
 
@@ -89,7 +88,7 @@ test("Imagem→SVG colorido: paleta dos filamentos, troca de cor e SVG salvo com
 test("Imagem→SVG colorido sem a paleta dos filamentos usa as cores da imagem", async ({ page, tauri }) => {
   await openApp(page);
   await seedFilaments(page, tauri);
-  await go(page, "Imagem em desenho (SVG)");
+  await go(page, "Imagem em vetor");
   await page.locator('input[type="file"]').setInputFiles(`${FIX}/desenho.jpg`);
   await expect(page.getByRole("img", { name: "Imagem original" })).toBeVisible();
   await page.getByRole("group", { name: "Cores" }).getByRole("button", { name: "2", exact: true }).click();
@@ -112,7 +111,7 @@ test("Imagem→SVG colorido sem a paleta dos filamentos usa as cores da imagem",
 test("Sem filamentos com cor, a opção de paleta fica desativada com dica", async ({ page, tauri }) => {
   void tauri;
   await openApp(page);
-  await go(page, "Imagem em desenho (SVG)");
+  await go(page, "Imagem em vetor");
   await page.locator('input[type="file"]').setInputFiles(`${FIX}/logo.jpg`);
   await page.getByRole("group", { name: "Cores" }).getByRole("button", { name: "2", exact: true }).click();
   await expect(page.getByLabel("Usar as cores dos filamentos cadastrados")).toBeDisabled();
@@ -121,7 +120,7 @@ test("Sem filamentos com cor, a opção de paleta fica desativada com dica", asy
 
 test("Extrusão: SVG de 2 cores mostra a dica e sai com uma extrusora por cor", async ({ page, tauri }) => {
   await openApp(page);
-  await go(page, "Desenho em 3D");
+  await go(page, "Imagem em relevo 3D");
   await page.locator('input[type="file"]').setInputFiles(svgFile);
   await expect(page.getByText("Desenho com 2 cores: cada uma sai como uma parte com o próprio filamento no 3MF.")).toBeVisible();
   await expect(page.getByLabel("Cor", { exact: true })).toHaveCount(0); // cores vêm do desenho
@@ -165,7 +164,6 @@ test("Chaveiro NFC: Projeto do Bambu Studio manda o 3MF com a pausa e grava as c
     };
   }, fakeProject);
   await openApp(page);
-  await go(page, "Modelos prontos");
   await pickModel(page, "Chaveiro NFC");
   await expect(page.getByText(/Pausa em Z = 2,00 mm/)).toBeVisible({ timeout: 60_000 });
   await expect(page.getByRole("button", { name: /Salvar 3MF \(Orca \/ Prusa\)/ })).toBeVisible();
@@ -190,7 +188,6 @@ test("Chaveiro NFC: Projeto do Bambu Studio manda o 3MF com a pausa e grava as c
 test("Modelos sem pausa não mostram o botão do Bambu Studio", async ({ page, tauri }) => {
   void tauri;
   await openApp(page);
-  await go(page, "Modelos prontos");
   await pickModel(page, "Topo de bolo");
   await waitModel(page);
   await expect(page.getByRole("button", { name: /^Salvar 3MF$/ })).toBeVisible();
@@ -200,10 +197,10 @@ test("Modelos sem pausa não mostram o botão do Bambu Studio", async ({ page, t
 const NEW_MODELS = ["Chaveiro de logo", "Placa adaptável", "Topo de lápis", "Placa de sinalização", "Decoração de palavras", "Ejetor de brigadeiro", "Clipe de saco", "Cortador + carimbo"];
 
 test("Modelos prontos (#9): cada modelo novo gera prévia 3D sem erro", async ({ page, tauri }) => {
+  test.slow();
   void tauri;
   await openApp(page);
   await go(page, "Modelos prontos");
-  const gallery = page.getByRole("group", { name: "Modelo" });
   // os modelos com desenho abrem com o desenho de exemplo (já têm prévia); o desenho enviado troca o exemplo e vale para todos eles
   await pickModel(page, NEW_MODELS[0]);
   await expect(page.getByText("exemplo-coracao.svg")).toBeVisible({ timeout: 60_000 });
@@ -212,7 +209,7 @@ test("Modelos prontos (#9): cada modelo novo gera prévia 3D sem erro", async ({
   await page.locator('input[type="file"]').first() /* o do modelo; o das camadas livres (#26) vem depois */.setInputFiles(svgFile);
   for (const name of NEW_MODELS) {
     await pickModel(page, name);
-    await expect(gallery.getByRole("button", { name, exact: true })).toHaveAttribute("aria-pressed", "true");
+    await expect(page.getByRole("heading", { name, level: 2, exact: true })).toBeVisible();
     await waitModel(page);
     await expect(page.locator(".viewer .overlay")).toHaveCount(0);
   }
@@ -220,7 +217,6 @@ test("Modelos prontos (#9): cada modelo novo gera prévia 3D sem erro", async ({
 
 test("Chaveiro de logo: logo de 2 cores vira uma parte por cor no 3MF", async ({ page, tauri }) => {
   await openApp(page);
-  await go(page, "Modelos prontos");
   await pickModel(page, "Chaveiro de logo");
   await page.locator('input[type="file"]').first() /* o do modelo; o das camadas livres (#26) vem depois */.setInputFiles(svgFile);
   await expect(page.getByText("duas-cores.svg")).toBeVisible();

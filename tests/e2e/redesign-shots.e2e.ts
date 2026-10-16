@@ -28,7 +28,7 @@ for (const scheme of ["light", "dark"] as const)
     else await go(page, "Criar");
     await shot("criar");
     if (PHASE === "antes") await go(page, "Chaveiros");
-    else await page.getByRole("link", { name: /^Chaveiros/ }).click();
+    else await go(page, "Chaveiros");
     await page.waitForTimeout(2500);
     await shot("ferramenta");
     await go(page, "Calculadora");

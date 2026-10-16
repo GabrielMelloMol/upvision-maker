@@ -1,14 +1,12 @@
 import type { Page } from "@playwright/test";
-import { expect, go, openApp, test, toastWith } from "./tauri";
+import { expect, openApp, pickModel, test, toastWith } from "./tauri";
 
 const hud = (page: Page) => page.locator(".viewer .hud");
 const idle = (page: Page) => expect(page.locator(".viewer .overlay.busy")).toHaveCount(0, { timeout: 60_000 });
 
 test("lote nos modelos prontos: tags de pet, uma por linha, na mesma mesa (#76)", async ({ page, tauri }) => {
   await openApp(page);
-  await go(page, "Modelos prontos");
-  await page.getByRole("searchbox", { name: "Buscar modelo" }).fill("Tag de pet");
-  await page.getByRole("group", { name: "Modelo" }).getByRole("button", { name: "Tag de pet", exact: true }).click();
+  await pickModel(page, "Tag de pet", "Tag de pet", { exact: true });
   await idle(page);
   await expect(hud(page)).toContainText("mm", { timeout: 60_000 });
   const one = parseFloat((await hud(page).textContent()) ?? "0");

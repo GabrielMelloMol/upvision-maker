@@ -139,7 +139,7 @@ export default function BedCut() {
 
   return (
     <div className="page">
-      <h1>Cortar para caber na mesa</h1>
+      <h1>Dividir peça grande</h1>
       <p className="lead">Divide o STL grande em pedaços com encaixe.</p>
       <ToolSessionBar tool={tool} />
       <div className="tool-layout">

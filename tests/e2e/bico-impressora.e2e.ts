@@ -1,4 +1,4 @@
-import { expect, go, openApp, prefsSection, test } from "./tauri";
+import { expect, go, openApp, pickModel, prefsSection, test } from "./tauri";
 
 async function addPrinter(page: Parameters<typeof go>[0], name: string, watts: string, nozzle?: string) {
   await page.getByRole("button", { name: "Adicionar impressora" }).click();
@@ -30,9 +30,7 @@ test("bico da impressora: cadastro com 0,4 padrão e atalhos; a impressora das f
   await expect(page.getByText("0,2 mm", { exact: true })).toBeVisible();
 
   // Mapa estelar: abre com o bico 0,2 da impressora, estrela mínima de 0,3 mm e linhas de 0,4 mm
-  await go(page, "Modelos prontos");
-  await page.getByRole("searchbox", { name: "Buscar modelo" }).fill("estelar");
-  await page.getByRole("group", { name: "Modelo" }).getByRole("button", { name: /Mapa estelar de uma data/ }).first().click();
+  await pickModel(page, "estelar", /Mapa estelar de uma data/);
   const bico = page.getByRole("group", { name: "Bico da impressora" });
   await expect(bico.getByRole("button", { name: "0,2 mm" })).toHaveAttribute("aria-pressed", "true");
   const facts = page.locator(".star-print-facts");

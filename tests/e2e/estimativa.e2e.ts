@@ -1,12 +1,10 @@
-import { expect, go, openApp, test, toastWith } from "./tauri";
+import { expect, go, openApp, pickModel, test, toastWith } from "./tauri";
 
 test("estimativa sem fatiar no modelo 3D e 'Levar para a Calculadora' preenche gramas e tempo (#99)", async ({ page, tauri }) => {
   await openApp(page);
   await go(page, "Impressoras"); // cria o banco
   tauri.db.exec("INSERT INTO filaments (material, color, brand, pricePerKg, spoolG, stockG, minG) VALUES ('PLA', 'Branco', 'Voolt', 120, 1000, 1000, 0)");
-  await go(page, "Modelos prontos");
-  await page.getByRole("searchbox", { name: "Buscar modelo" }).fill("Chaveiro giratório");
-  await page.getByRole("group", { name: "Modelo" }).getByRole("button", { name: "Chaveiro giratório", exact: true }).click();
+  await pickModel(page, "Chaveiro giratório", "Chaveiro giratório", { exact: true });
   await expect(page.locator(".viewer .hud")).toContainText("mm", { timeout: 60_000 });
 
   const est = page.getByRole("group", { name: "Estimativa sem fatiar" });

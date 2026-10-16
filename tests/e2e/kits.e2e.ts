@@ -1,15 +1,13 @@
 import AxeBuilder from "@axe-core/playwright";
 import { strFromU8, unzipSync } from "fflate";
 import type { Page } from "@playwright/test";
-import { expect, go, openApp, test, toastWith } from "./tauri";
+import { expect, openApp, pickModel, test, toastWith } from "./tauri";
 
 const idle = (page: Page) => expect(page.locator(".viewer .overlay.busy")).toHaveCount(0, { timeout: 90_000 });
 
 async function openKit(page: Page, search: string, name: string) {
   await openApp(page);
-  await go(page, "Modelos prontos");
-  await page.getByRole("searchbox", { name: "Buscar modelo" }).fill(search);
-  await page.getByRole("group", { name: "Modelo" }).getByRole("button", { name, exact: true }).click();
+  await pickModel(page, search, name, { exact: true });
   await idle(page);
 }
 

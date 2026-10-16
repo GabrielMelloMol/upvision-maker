@@ -1,11 +1,13 @@
 // @vitest-environment happy-dom
-import { fireEvent, screen, waitFor, within } from "@testing-library/react";
+import { fireEvent, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
 import { beforeAll, describe, expect, test, vi } from "vitest";
 import { renderWithApp, setupTauri } from "../test/harness";
 import Models from "./Models";
+import { openWith } from "./intent";
+import { MODELS } from "./models/defs";
 
 vi.mock("../ui/viewerScene", () => ({ createViewer: () => ({ setModels() {}, dispose() {} }) }));
 
@@ -21,9 +23,8 @@ const BUILD = { timeout: 30_000 };
 
 async function open(name: string) {
   const user = userEvent.setup();
+  openWith("models", { id: MODELS.find((m) => m.label === name)!.id }); // a Criar abre o modelo assim
   const r = renderWithApp(<Models />);
-  await user.type(screen.getByRole("searchbox", { name: "Buscar modelo" }), name);
-  await user.click(within(screen.getByRole("group", { name: "Modelo" })).getByRole("button", { name }));
   return { user, ...r };
 }
 

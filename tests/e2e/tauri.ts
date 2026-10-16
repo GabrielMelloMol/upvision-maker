@@ -334,3 +334,25 @@ export async function go(page: Page, label: string | RegExp) {
   await palette.getByRole("combobox").fill(typeof label === "string" ? label : label.source.replace(/[\\^$]/g, ""));
   await palette.getByRole("option", { name: label }).first().click();
 }
+
+/**
+ * Abre um modelo pronto pela Criar (#250): busca, e clica no cartão cujo título combina com `name`.
+ * Sem a busca à vista (está num editor ou noutra tela), volta para a Criar antes.
+ */
+export async function pickModel(page: Page, search: string, name: string | RegExp, { exact = false } = {}) {
+  const box = page.getByRole("searchbox", { name: "O que você quer criar?" });
+  if (!(await page.getByRole("heading", { name: "Criar", level: 1 }).isVisible())) await go(page, "Criar"); // o Início também tem uma busca com o mesmo nome
+  await box.fill(search);
+  const title = typeof name === "string" ? (exact ? new RegExp(`^${name.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}$`) : name) : name;
+  await page.locator(".create-products a").filter({ has: page.locator("strong").filter({ hasText: title }) }).first().click();
+  // o editor (um chunk à parte) montou: o modelo, ou a ferramenta onde o modelo virou aba (Shadowbox → Litofania)
+  await page.locator("[data-model]").or(page.locator("main h1").filter({ hasNotText: /^(Criar|Modelos prontos)$/ })).first().waitFor();
+}
+
+/** Abre um produto (cartão de família ou ferramenta) da Criar pelo nome; volta para a Criar se ela não está à vista. */
+export async function openProduct(page: Page, name: string | RegExp) {
+  const title = typeof name === "string" ? new RegExp(`^${name.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}$`) : name;
+  const card = page.locator(".create-products a").filter({ has: page.locator("strong").filter({ hasText: title }) }).first();
+  if (!(await card.isVisible())) await go(page, "Criar");
+  await card.click();
+}

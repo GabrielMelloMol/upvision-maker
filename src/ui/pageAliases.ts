@@ -27,6 +27,9 @@ export const PAGE_ALIASES: Record<string, string> = {
   testkit: "kit de testes físicos folga conferir validar imprimir teste anel rosca dobradiça trava engrenagem calibrar encaixe medida paquímetro",
   scad: "openscad customizer scad parâmetros personalizar",
   search3d: "buscar modelos 3d internet thingiverse printables makerworld baixar stl",
+  calculator: "calcular preço preco custo quanto cobrar precificar valor de venda margem lucro taxa canal",
+  quotes: "orçamento orcamento proposta cotação cliente pdf",
+  orders: "pedido pedidos encomenda entrega prazo",
   ai: "ia claude inteligência artificial descrever peça",
 };
 

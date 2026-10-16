@@ -1,6 +1,6 @@
 import { mkdirSync, writeFileSync } from "node:fs";
 import type { Page } from "@playwright/test";
-import { expect, go, openApp, test, toastWith } from "./tauri";
+import { expect, go, openApp, pickModel, test, toastWith } from "./tauri";
 
 // Prints dos kits para conferir (SHOTS=1, saída em SHOTS_OUT): cartão, montado ¾, frente, lado, baú aberto, galeria e os 3MF.
 // Tudo no navegador de teste (sem mouse nem tela do Mac).
@@ -27,8 +27,7 @@ test("prints dos kits Bicho e Baú", async ({ page, tauri }) => {
   await openApp(page);
   await go(page, "Modelos prontos");
   for (const kit of KITS) {
-    await page.getByRole("searchbox", { name: "Buscar modelo" }).fill(kit.id === "kitBau" ? "Baú" : "Bicho");
-    await page.getByRole("group", { name: "Modelo" }).getByRole("button", { name: kit.name, exact: true }).click();
+    await pickModel(page, kit.id === "kitBau" ? "Baú" : "Bicho", kit.name, { exact: true });
     await expect(page.locator(".viewer .overlay.busy")).toHaveCount(0, { timeout: 90_000 });
     await page.getByRole("group", { name: "Variações prontas" }).getByRole("button", { name: kit.variant, exact: true }).click();
     await expect(page.locator(".viewer .overlay.busy")).toHaveCount(0, { timeout: 90_000 });

@@ -1,133 +1,120 @@
 // @vitest-environment happy-dom
 import { screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { expect, test, vi } from "vitest";
+import { beforeEach, expect, test, vi } from "vitest";
 import { takeIntent } from "../tools/intent";
 import { worksWithoutAms } from "../tools/models/amsTable";
-import { FAMILIES } from "../tools/models/families";
+import { setCreateView } from "../tools/models/createView";
+import { FILE_TOOL_GROUPS, PRODUCTS } from "../tools/models/products";
 import { renderWithApp } from "../test/harness";
 import Create from "./Create";
 
-const tools = () => within(screen.getByRole("region", { name: "Ferramentas" })).getAllByRole("link");
+beforeEach(() => setCreateView({ tab: "all", q: "", occasion: null }));
+const searchbox = () => screen.getByRole("searchbox", { name: "O que você quer criar?" });
+const tabs = () => within(screen.getByRole("group", { name: "Categoria" }));
+const fileTools = () => within(screen.getByRole("region", { name: "Mexer num arquivo 3D seu" })).getAllByRole("link");
 
-test("Criar (#139): busca sem acento, filtro por tipo e modelo pronto abre já escolhido", async () => {
+test("Criar (#250): produtos com foto primeiro, ferramentas de arquivo em 3 grupos embaixo", () => {
+  const { container } = renderWithApp(<Create go={vi.fn()} />);
+  const sections = Array.from(container.querySelectorAll("section")).map((s) => s.querySelector("h2")!.textContent);
+  // os produtos vêm antes de qualquer ferramenta
+  expect(sections.slice(0, 7)).toEqual(["Chaveiros", "Placas", "Presentes e lembrancinhas", "Festa e esporte", "Casa e decoração", "Organização e utilidades", "Cozinha"]);
+  expect(sections.slice(7)).toEqual(["Da imagem para a peça", "Mexer num arquivo 3D seu", "Não achou?"]);
+  expect(container.querySelectorAll(".create-tools > li")).toHaveLength(13); // de 24 ferramentas soltas para 13
+  // cada cartão tem o que resolve e quantos tipos
+  const chaveiro = within(screen.getAllByRole("link").find((a) => a.getAttribute("data-product") === "keychain")!);
+  expect(chaveiro.getByText("Chaveiro")).toBeInTheDocument();
+  expect(chaveiro.getByText(/Chaveiro com nome, logo, NFC ou academia/)).toBeInTheDocument();
+  expect(chaveiro.getByText(/13 tipos/)).toBeInTheDocument();
+});
+
+test("Criar: abas por categoria, 'Do seu arquivo' e 'Não achou?'; nenhuma ferramenta fica só em Tudo", async () => {
+  const user = userEvent.setup();
+  renderWithApp(<Create go={vi.fn()} />);
+  expect(tabs().getAllByRole("button").map((b) => b.textContent)).toEqual(["Tudo", "Chaveiros", "Placas", "Presentes e lembrancinhas", "Festa e esporte", "Casa e decoração", "Organização e utilidades", "Cozinha", "Do seu arquivo", "Não achou?"]);
+  await user.click(tabs().getByRole("button", { name: "Do seu arquivo" }));
+  expect(fileTools().map((a) => a.getAttribute("data-page"))).toEqual(FILE_TOOL_GROUPS.filter((g) => g.tab === "file").flatMap((g) => g.pages).slice(2));
+  await user.click(tabs().getByRole("button", { name: "Não achou?" }));
+  expect(within(screen.getByRole("region", { name: "Não achou?" })).getAllByRole("link").map((a) => a.getAttribute("data-page"))).toEqual(["search3d", "ai", "scad"]);
+  await user.click(tabs().getByRole("button", { name: "Cozinha" }));
+  expect(screen.getAllByRole("link").some((a) => a.getAttribute("data-product") === "cutters")).toBe(true);
+  expect(screen.queryByRole("link", { name: /Chaveiro/ })).not.toBeInTheDocument();
+});
+
+test("Criar: busca por sinônimo e pelo que a pessoa quer vender, sem acento, e abre a variação ou ferramenta que combina", async () => {
   const go = vi.fn();
   const user = userEvent.setup();
   renderWithApp(<Create go={go} />);
-  expect(tools().length).toBeGreaterThan(10);
-  // um card por família (#141), não por modelo
-  expect(screen.getAllByRole("link", { name: FAMILIES[0].label }).length).toBeGreaterThan(0);
-  expect(screen.queryByRole("link", { name: "Placa Pix" })).not.toBeInTheDocument();
-
-  await user.click(screen.getByRole("button", { name: "De um desenho ou foto" }));
-  expect(tools().map((a) => a.textContent)).toEqual(expect.arrayContaining([expect.stringMatching(/^Cortador de biscoito/)]));
-  expect(screen.queryByRole("link", { name: FAMILIES[0].label })).not.toBeInTheDocument(); // modelos só em Tudo e Personalizar
-
-  await user.click(screen.getByRole("button", { name: "Tudo" }));
-  await user.type(screen.getByRole("searchbox", { name: "Buscar ferramenta ou modelo" }), "medalha");
-  expect(tools().map((a) => a.textContent)).toEqual([expect.stringMatching(/^Medalhas/)]);
-
-  await user.clear(screen.getByRole("searchbox"));
-  await user.type(screen.getByRole("searchbox"), "zzzz");
-  expect(screen.getByText(/Nada com “zzzz”/)).toBeInTheDocument();
-
-  // o nome antigo acha a família e abre na variação certa
-  await user.clear(screen.getByRole("searchbox"));
-  await user.type(screen.getByRole("searchbox"), "anilha");
-  await user.click(screen.getByRole("link", { name: "Chaveiro" }));
-  expect(go).toHaveBeenLastCalledWith("models");
+  const typed = async (q: string) => {
+    await user.clear(searchbox());
+    await user.type(searchbox(), q);
+  };
+  const first = () => screen.getAllByRole("link").find((a) => a.closest(".create-products"))!;
+  await typed("anilha");
+  await user.click(first());
   expect(takeIntent("models")).toEqual({ id: "gymKeychain" });
-  await user.clear(screen.getByRole("searchbox"));
-  await user.click(screen.getAllByRole("link", { name: "Troféu" })[0]);
-  expect(takeIntent("models")).toEqual({ id: "trophy" });
-  await user.click(tools()[0]);
-  expect(go).toHaveBeenLastCalledWith("svg");
+  await typed("chaveiro com nome"); // "com" não atrapalha: abre a ferramenta de nome em lote
+  await user.click(first());
+  expect(go).toHaveBeenLastCalledWith("keychain");
+  await typed("dividir stl");
+  await user.click(screen.getAllByRole("link").find((a) => a.getAttribute("data-page") === "bedcut")!);
+  expect(go).toHaveBeenLastCalledWith("bedcut");
+  await typed("topo de bolo");
+  await user.click(first());
+  expect(takeIntent("models")).toEqual({ id: "cake" });
+  await typed("camiseta");
+  await user.click(first());
+  expect(takeIntent("models")).toEqual({ id: "shirtPrint" });
+  await typed("zzzz");
+  expect(screen.getByText(/Nada com “zzzz”/)).toBeInTheDocument();
+  expect(screen.getByRole("button", { name: "Pedir à IA" })).toBeInTheDocument();
 });
 
-test("Criar (#118): selo de AMS no card e filtro 'Imprime sem troca automática de cor (AMS)'", async () => {
+test("Criar (#118): selo de AMS no cartão e filtro 'só 1 cor' dentro de Filtros", async () => {
   const user = userEvent.setup();
   renderWithApp(<Create go={vi.fn()} />);
   const cards = () => screen.getAllByRole("link").filter((a) => a.getAttribute("href")?.startsWith("#models/"));
   const all = cards().length;
   const need = (a: HTMLElement) => document.getElementById(a.getAttribute("aria-describedby") ?? "")?.textContent ?? "";
   expect(cards().some((a) => need(a) === "Precisa de AMS (ou uma mesa por cor)")).toBe(true);
-  await user.click(screen.getByRole("switch", { name: "Imprime sem troca automática de cor (AMS)" }));
+  await user.click(screen.getByText("Filtros"));
+  await user.click(screen.getByRole("switch", { name: /Só 1 cor/ }));
   expect(cards().length).toBeGreaterThan(0);
   expect(cards().length).toBeLessThan(all);
   for (const a of cards()) expect(worksWithoutAms(a.getAttribute("href")!.slice("#models/".length))).toBe(true);
 });
 
-test("Criar busca como a vendedora fala: camiseta, porta copos, geladeira, Dia das Mães, foto em relevo (onde fica)", async () => {
-  const go = vi.fn();
+test("Criar: ocasião e favoritos moram aqui, como chips que filtram os produtos", async () => {
   const user = userEvent.setup();
-  renderWithApp(<Create go={go} />);
-  const box = screen.getByRole("searchbox", { name: "Buscar ferramenta ou modelo" });
-  const typed = async (q: string) => {
-    await user.clear(box);
-    await user.type(box, q);
-  };
-  await typed("camiseta");
-  await user.click(screen.getByRole("link", { name: "Lembrancinhas" }));
-  expect(takeIntent("models")).toEqual({ id: "shirtPrint" }); // abre na variação que achou
-
-  await typed("porta copos"); // sem hífen
-  expect(screen.getByRole("link", { name: "Porta-copos" })).toBeInTheDocument();
-
-  await typed("geladeira");
-  await user.click(screen.getByRole("link", { name: "Lembrancinhas" }));
-  expect(takeIntent("models")).toEqual({ id: "fridgeMagnet" });
-
-  await typed("Dia das Mães");
-  expect(screen.getAllByRole("link").length).toBeGreaterThan(3); // as famílias dos modelos da coleção
-
-  await typed("foto em relevo");
-  expect(tools().map((a) => a.textContent)).toEqual([expect.stringMatching(/^Foto em relevo/)]);
-
-  await typed("abajur");
-  expect(screen.getByRole("link", { name: "Luminárias e abajures" })).toBeInTheDocument();
+  renderWithApp(<Create go={vi.fn()} />);
+  await user.click(within(screen.getByRole("group", { name: "Ocasião" })).getByRole("button", { name: "Favoritos" }));
+  expect(screen.getByText("Nenhum favorito ainda")).toBeInTheDocument();
+  await user.click(within(screen.getByRole("group", { name: "Ocasião" })).getByRole("button", { name: /^Mais \(/ }));
+  await user.click(within(screen.getByRole("group", { name: "Ocasião" })).getByRole("button", { name: "Dia das Mães" }));
+  expect(screen.getByRole("heading", { name: "Para Dia das Mães" })).toBeInTheDocument();
+  expect(screen.getAllByRole("link").length).toBeGreaterThan(3);
 });
 
-test("Criar: TODOS os cartões de modelo pronto levam ao modelo do próprio cartão (id do cartão, da família e da tela)", async () => {
+test("Criar: todo cartão de produto abre a entrada que ele mostra (modelo certo ou ferramenta certa)", async () => {
   const go = vi.fn();
   const user = userEvent.setup();
   const { container } = renderWithApp(<Create go={go} />);
   await screen.findByRole("heading", { name: "Criar", level: 1 });
-  const cards = () => Array.from(container.querySelectorAll<HTMLAnchorElement>(".create-models a"));
-  const total = cards().length;
-  expect(total).toBe(FAMILIES.length); // um cartão por família, nenhuma sumiu
+  const cards = Array.from(container.querySelectorAll<HTMLAnchorElement>(".create-products a"));
+  expect(cards.map((c) => c.dataset.product).sort()).toEqual(PRODUCTS.map((p) => p.id).sort()); // nenhum produto sumiu
   const wrong: string[] = [];
-  for (let i = 0; i < total; i++) {
-    const card = cards()[i];
-    const want = card.getAttribute("href")!.replace("#models/", "");
-    const family = FAMILIES.find((f) => f.id === card.dataset.family)!;
-    if (!family.variants.some((v) => v.id === want)) wrong.push(`${family.id}: o cartão aponta para ${want}, que não é da família`);
-    if (family.variants[0].id !== want) wrong.push(`${family.id}: sem busca o cartão devia abrir a 1ª variação (${family.variants[0].id}), abre ${want}`);
+  for (const card of cards) {
+    const product = PRODUCTS.find((p) => p.id === card.dataset.product)!;
     go.mockClear();
-    takeIntent("models");
-    takeIntent("lithophane");
+    for (const page of ["models", "lithophane", "keychain", "medal", "pixel", "invite", "thermoform", "cutter", "stamp", "qr"]) takeIntent(page);
     await user.click(card);
-    const tab = want === "shadowbox"; // virou aba da Foto em relevo
-    const page = tab ? "lithophane" : "models";
-    if (go.mock.lastCall?.[0] !== page) wrong.push(`${family.id}: foi para ${String(go.mock.lastCall?.[0])}, devia ir para ${page}`);
-    const intent = takeIntent<{ id?: string; mode?: string }>(page);
-    if (tab ? intent?.mode !== "shadowbox" : intent?.id !== want) wrong.push(`${family.id}: pedido ${JSON.stringify(intent)} em vez de ${want}`);
+    const href = card.getAttribute("href")!;
+    const toModel = href.startsWith("#models/");
+    const id = href.replace("#models/", "").replace("#", "");
+    if (toModel && !product.entries.some((e) => e.kind === "model" && e.id === id)) wrong.push(`${product.id}: o cartão aponta para ${id}, que não é do produto`);
+    if (!toModel && !product.entries.some((e) => e.kind === "tool" && e.page === id)) wrong.push(`${product.id}: o cartão aponta para a ferramenta ${id}, que não é do produto`);
+    const target = toModel && id === "shadowbox" ? "lithophane" : toModel ? "models" : id;
+    if (go.mock.lastCall?.[0] !== target) wrong.push(`${product.id}: foi para ${String(go.mock.lastCall?.[0])}, devia ir para ${target}`);
   }
-  expect(wrong, "cartões que levam ao lugar errado").toEqual([]);
-});
-
-test("Criar: com busca, o cartão abre a variação que a busca achou (não a 1ª da família)", async () => {
-  const go = vi.fn();
-  const user = userEvent.setup();
-  renderWithApp(<Create go={go} />);
-  const box = screen.getByRole("searchbox", { name: "Buscar ferramenta ou modelo" });
-  const cases: [string, string][] = [["anilha", "gymKeychain"], ["abajur", "tableLamp"], ["camiseta", "shirtPrint"], ["cumbuca", "outlineBowl"], ["dobrável", "phoneStandFold"], ["ejetor", "ejector"]];
-  for (const [q, id] of cases) {
-    await user.clear(box);
-    await user.type(box, q);
-    const link = document.querySelector<HTMLAnchorElement>(`.create-models a[href="#models/${id}"]`);
-    expect(link, q).not.toBeNull();
-    go.mockClear();
-    await user.click(link!);
-    expect(takeIntent("models"), q).toEqual({ id });
-  }
+  expect(wrong).toEqual([]);
 });

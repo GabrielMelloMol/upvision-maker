@@ -1,15 +1,13 @@
 import type { Page } from "@playwright/test";
 import { strFromU8, unzipSync } from "fflate";
-import { expect, go, openApp, test, toastWith } from "./tauri";
+import { expect, openApp, pickModel, test, toastWith } from "./tauri";
 
 const hud = (page: Page) => page.locator(".viewer .hud");
 const idle = (page: Page) => expect(page.locator(".viewer .overlay.busy")).toHaveCount(0, { timeout: 60_000 });
 
 test("letreiro em camadas: linhas coloridas, enfeite e base contornada; 3MF por cor (#48)", async ({ page, tauri }) => {
   await openApp(page);
-  await go(page, "Modelos prontos");
-  await page.getByRole("searchbox", { name: "Buscar modelo" }).fill("Letreiro");
-  await page.getByRole("group", { name: "Modelo" }).getByRole("button", { name: "Letreiro em camadas", exact: true }).click();
+  await pickModel(page, "Letreiro", "Letreiro em camadas", { exact: true });
   await idle(page);
   await expect(hud(page)).toContainText("mm", { timeout: 60_000 });
   await expect(page.locator(".legend")).toContainText("Linha 2");
@@ -27,9 +25,7 @@ test("letreiro em camadas: linhas coloridas, enfeite e base contornada; 3MF por 
 
 test("letreiro: layouts de data prontos (nascimento, casamento, pet) com moldura separada (#117)", async ({ page, tauri }) => {
   await openApp(page);
-  await go(page, "Modelos prontos");
-  await page.getByRole("searchbox", { name: "Buscar modelo" }).fill("Letreiro");
-  await page.getByRole("group", { name: "Modelo" }).getByRole("button", { name: "Letreiro em camadas", exact: true }).click();
+  await pickModel(page, "Letreiro", "Letreiro em camadas", { exact: true });
   await idle(page);
   await expect(hud(page)).toContainText("mm", { timeout: 60_000 });
   const presets = page.getByRole("group", { name: "Variações prontas" });

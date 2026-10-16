@@ -3,7 +3,7 @@ import { openRelief } from "./relief";
 import { expect, go, openApp, test } from "./tauri";
 
 /**
- * Foto em relevo: Litofania + Colorida + Relevo + Quadro por camadas + Shadowbox numa ferramenta só, com uma escolha
+ * Litofania: Litofania + Colorida + Relevo + Quadro por camadas + Shadowbox numa ferramenta só, com uma escolha
  * inicial. Nada se perde: o id da página e os rascunhos são os de sempre e os atalhos antigos levam à aba certa.
  */
 const chooser = (page: import("@playwright/test").Page) => page.getByRole("region", { name: "O que você quer fazer?" });
@@ -12,8 +12,8 @@ const tab = (page: import("@playwright/test").Page, name: string) => page.getByR
 test("começa perguntando o que fazer; escolher abre a aba e dá para trocar entre as cinco", async ({ page }) => {
   test.slow();
   await openApp(page);
-  await go(page, "Foto em relevo");
-  await expect(page.getByRole("heading", { name: "Foto em relevo", level: 1 })).toBeVisible();
+  await go(page, "Litofania");
+  await expect(page.getByRole("heading", { name: "Litofania", level: 1 })).toBeVisible();
   await expect(chooser(page).getByRole("button")).toHaveCount(5);
   await chooser(page).getByRole("button", { name: /^Relevo/ }).click();
   await expect(chooser(page)).toHaveCount(0);
@@ -35,9 +35,9 @@ test("atalho antigo leva à aba certa: a busca ⌘K por shadowbox", async ({ pag
   await go(page, "Início");
   await page.keyboard.press("Control+k");
   await page.getByRole("combobox").fill("shadowbox");
-  // o modelo entra na busca quando o catálogo termina de carregar: espera por ele (a tela "Foto em relevo" também cita o Shadowbox e aparece antes)
+  // o modelo entra na busca quando o catálogo termina de carregar: espera por ele (a tela "Litofania" também cita o Shadowbox e aparece antes)
   await page.locator("#pal-model-shadowbox").click();
-  await expect(page.getByRole("heading", { name: "Foto em relevo", level: 1 })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Litofania", level: 1 })).toBeVisible();
   await expect(tab(page, "Shadowbox")).toHaveAttribute("aria-pressed", "true");
   // o modelo é o mesmo de sempre: salva 3MF pela aba
   await expect(page.getByRole("button", { name: /Salvar 3MF/ })).toBeVisible({ timeout: 60_000 });
@@ -51,7 +51,7 @@ test("rascunho e Meus projetos continuam abrindo a ferramenta (o id da página n
   await expect(page.getByLabel(/^Profundidade/)).toBeVisible();
   await expect.poll(() => (tauri.db.prepare("SELECT data FROM tool_state WHERE id = 'lithophane'").get() as { data?: string } | undefined)?.data ?? "", { timeout: 30_000 }).toContain("\"mode\":\"relief\"");
   await page.reload();
-  await go(page, "Foto em relevo");
+  await go(page, "Litofania");
   // a escolha inicial aparece junto com o rascunho guardado, que continua de onde parou na mesma aba
   await expect(chooser(page)).toBeVisible();
   await page.getByRole("button", { name: "Continuar de onde parou" }).click();
@@ -65,7 +65,7 @@ for (const scheme of ["light", "dark"] as const)
       await page.emulateMedia({ colorScheme: scheme });
       await page.setViewportSize({ width, height: 900 });
       await openApp(page);
-      await go(page, "Foto em relevo");
+      await go(page, "Litofania");
       await expect(chooser(page).getByRole("button")).toHaveCount(5);
       const axe = await new AxeBuilder({ page }).include("main").withTags(["wcag2a", "wcag2aa", "wcag22aa"]).analyze();
       expect(axe.violations.map((v) => `${v.id}: ${v.nodes.map((n) => n.target.join(" ")).join(" | ")}`)).toEqual([]);
