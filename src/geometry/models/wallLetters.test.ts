@@ -66,7 +66,7 @@ describe("letras soltas para parede (#57)", { timeout: 60_000 }, () => {
   test("texto grande demais para um projeto: avisa o número de mesas e sugere lotes", () => {
     const w = (build({ text: "ABCDEFGHIJKLMNOPQRST", height: 1000 }).warnings ?? []).join(" ");
     expect(w).toMatch(/mais que as 36 que o Bambu Studio e o OrcaSlicer aceitam/);
-    expect(w).toMatch(/imprima em lotes/);
+    expect(w).toMatch(/Salvar em lotes/);
   });
 
   test("texto que cabe nas mesas de um projeto não leva esse aviso", () => {

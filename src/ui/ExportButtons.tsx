@@ -3,8 +3,9 @@ import { open } from "@tauri-apps/plugin-dialog";
 import { writeFile } from "@tauri-apps/plugin-fs";
 import { openUrl } from "@tauri-apps/plugin-opener";
 import { Download, ExternalLink } from "lucide-react";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { AMS_LABEL, amsNeed, platesByColor } from "../geometry/amsNeed";
+import { MAX_PLATES, platesNeeded, splitIntoLots } from "../geometry/bedLayout";
 import { bambuProject } from "../geometry/bambuProject";
 import { mergeClosest } from "../geometry/colorMatch";
 import { printPlan, type PrintMode } from "../geometry/printPlan";
@@ -92,6 +93,21 @@ export default function ExportButtons({ models: input, name, busy, pauses: input
       const plates = platesByColor(input);
       for (const [i, p] of plates.entries()) await writeFile(await join(dir, `${slug(name)}-cor-${i + 1}.3mf`), write3mf(p.models, { profile }));
       toast(`${plates.length} mesas salvas em ${dir} (uma por cor).`);
+      onSaved?.(name);
+    } catch (e) {
+      toast(`Não foi possível salvar: ${errorText(e)}`, "error");
+    }
+  }
+
+  /** Passou de 36 mesas (limite do Bambu Studio e do Orca): vários 3MF, cada um com até 36 (#225). */
+  const overLimit = useMemo(() => platesNeeded(input) > MAX_PLATES, [input]);
+  const lots = overLimit ? splitIntoLots(models) : [models];
+  async function saveLots() {
+    try {
+      const dir = await open({ directory: true, multiple: false, title: `Pasta para os ${lots.length} lotes` });
+      if (typeof dir !== "string") return;
+      for (const [i, lot] of lots.entries()) await writeFile(await join(dir, `${slug(name)}-lote-${i + 1}-de-${lots.length}.3mf`), write3mf(lot, { pauses, profile, slots }));
+      toast(`${lots.length} lotes salvos em ${dir}.`);
       onSaved?.(name);
     } catch (e) {
       toast(`Não foi possível salvar: ${errorText(e)}`, "error");
@@ -192,6 +208,14 @@ export default function ExportButtons({ models: input, name, busy, pauses: input
         <button className={secondary ? undefined : "action"} disabled={disabled} onClick={() => save(`${slug(name)}.3mf`, async () => write3mf(models, { pauses, profile, slots }), "3mf", "3MF")}>
           <Download aria-hidden /> Salvar 3MF{hasPauses ? " (Orca / Prusa)" : ""}
         </button>
+      )}
+      {!perColor && lots.length > 1 && !busy && (
+        <>
+          <span className="hint">São mais mesas do que o Bambu Studio e o OrcaSlicer aceitam num projeto ({MAX_PLATES}). Salve em {lots.length} arquivos e imprima um de cada vez.</span>
+          <button disabled={disabled} onClick={() => void saveLots()}>
+            <Download aria-hidden /> Salvar em lotes ({lots.length} arquivos)
+          </button>
+        </>
       )}
       {!perColor && slicer && (
         <button disabled={disabled || opening} onClick={() => void openSlicer()}>

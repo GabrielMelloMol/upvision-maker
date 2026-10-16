@@ -1,6 +1,6 @@
 import { beforeAll, expect, test } from "vitest";
 import { meshBounds, modelsBounds } from "./bounds";
-import { fitSetOnBed, MAX_PLATES, platesLimitWarning, platesNeeded } from "./bedLayout";
+import { fitSetOnBed, MAX_PLATES, platesLimitWarning, platesNeeded, splitIntoLots } from "./bedLayout";
 import { getManifold, type ManifoldToplevel } from "./manifold";
 import { toMesh } from "./mesh";
 import type { Model } from "./types";
@@ -45,4 +45,21 @@ test("mesas necessárias: soma das caixas sobre a área útil; passando do limit
   const many = Array.from({ length: 60 }, (_, i) => box(`P${i}`, 230, 245));
   expect(platesNeeded(many)).toBeGreaterThan(MAX_PLATES);
   expect(platesLimitWarning(many)).toMatch(/60 peças.*mais que as 36/);
+});
+
+test("lotes: cada um com até 36 mesas, na ordem, sem perder nem repetir peça", () => {
+  const many = Array.from({ length: 100 }, (_, i) => box(`P${i}`, 230, 245));
+  const lots = splitIntoLots(many);
+  expect(lots.length).toBeGreaterThan(1);
+  for (const lot of lots) expect(platesNeeded(lot)).toBeLessThanOrEqual(MAX_PLATES);
+  expect(lots.flat().map((m) => m.name)).toEqual(many.map((m) => m.name));
+  // o penúltimo lote já está cheio: não cabe nem mais uma peça sem passar do limite
+  expect(platesNeeded([...lots[0], many[lots[0].length]])).toBeGreaterThan(MAX_PLATES);
+  // pouca coisa: um lote só; vazio: nenhum
+  expect(splitIntoLots(many.slice(0, 3))).toHaveLength(1);
+  expect(splitIntoLots([])).toEqual([]);
+  // uma peça que sozinha passa do limite fica num lote só dela
+  const huge = box("grande", 256, 256);
+  expect(splitIntoLots([huge, huge, huge], 4).map((l) => l.length)).toEqual([2, 1]);
+  expect(splitIntoLots([huge], 0).map((l) => l.length)).toEqual([1]);
 });
