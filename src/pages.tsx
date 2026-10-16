@@ -1,6 +1,6 @@
 import { Award, Bot, Gift, Stamp as StampIcon, Calculator as CalcIcon, Cookie, Cylinder, KeyRound, Layers, House, ImageUp, Package, Palette, Printer, Settings, ShoppingBag, Users, Building2, ClipboardList, FileText, LayoutDashboard, LineChart, Receipt, QrCode as QrIcon, Scissors, Split } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
-import { Boxes, Braces, FolderOpen, ChartNoAxesColumn, Globe, Grid3x3, LayoutGrid, Shapes, Sparkle, Sun, Tag, Sticker, Wallet } from "lucide-react";
+import { Boxes, Braces, Feather, FolderOpen, ChartNoAxesColumn, Globe, Grid3x3, LayoutGrid, Shapes, Sparkle, Sun, Tag, Sticker, Wallet } from "lucide-react";
 import { lazy, type ReactNode } from "react";
 import Home from "./pages/Home";
 
@@ -35,6 +35,7 @@ const Lithophane = lazy(() => import("./tools/Lithophane"));
 const ColorSplit = lazy(() => import("./tools/ColorSplit"));
 const OwnDecal = lazy(() => import("./tools/OwnDecal"));
 const PartialCut = lazy(() => import("./tools/PartialCut"));
+const Lighten = lazy(() => import("./tools/Lighten"));
 const ModelSearch = lazy(() => import("./tools/ModelSearch"));
 const ScadCustomizer = lazy(() => import("./tools/ScadCustomizer"));
 const MyProjects = lazy(() => import("./tools/projects/MyProjects"));
@@ -87,6 +88,7 @@ const ALL: PageDef[] = [
   { id: "colorsplit", section: "create", label: "Separar cores de um 3MF", group: "Ferramentas", icon: Split, blurb: "3MF pintado vira uma peça por cor.", render: () => <ColorSplit /> },
   { id: "owndecal", section: "create", label: "Nome ou logo no seu modelo", group: "Ferramentas", icon: Sticker, blurb: "Nome ou logo numa face plana do STL ou 3MF, em outra cor.", render: () => <OwnDecal /> },
   { id: "partialcut", section: "create", label: "Corte parcial", group: "Ferramentas", icon: Scissors, blurb: "Corta só um pedaço do STL ou 3MF, dentro de uma caixa, com pino de encaixe.", render: () => <PartialCut /> },
+  { id: "lighten", section: "create", label: "Miolo leve", group: "Ferramentas", icon: Feather, blurb: "Troca o miolo do STL ou 3MF por giroide, voronoi ou treliça e compara as 3; também faz bloco de treliça.", render: () => <Lighten /> },
   { id: "scad", section: "create", label: "Modelo personalizável (OpenSCAD)", group: "Ferramentas", icon: Braces, blurb: "Arquivo .scad do Customizer vira formulário e 3MF.", render: () => <ScadCustomizer /> },
   { id: "search3d", section: "create", label: "Buscar modelos na internet", group: "Ferramentas", icon: Globe, blurb: "Printables, MakerWorld, Thingiverse, Cults3D e Thangs; licenças.", render: (go) => <ModelSearch go={go} /> },
   { id: "ai", section: "create", label: "Pedir à IA", group: "Ferramentas", icon: Bot, blurb: "Descreva a peça e o Claude modela (pago por uso).", render: (go) => <AskAI go={go} /> },

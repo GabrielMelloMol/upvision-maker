@@ -22,6 +22,7 @@ import { buildMedalDesign, DEFAULT_MEDAL_DESIGN, type MedalDesign } from "../geo
 import { runCuts, type CutItem } from "../geometry/cutSequence";
 import { suggestCuts } from "../geometry/cutSuggest";
 import { partialCut, DEFAULT_PARTIAL_CUT, type PartialCutOptions } from "../geometry/partialCut";
+import { DEFAULT_LIGHTEN, latticeBlock, lightenModel, type LightenOpts } from "../geometry/lighten";
 import { cutModels, DEFAULT_CUT } from "../geometry/planeCut";
 import { COLOR_LITHO_PROFILE, CUTTER_PROFILE, DEFAULT_PROFILE, STAMP_HINGE_PROFILE, STAMP_PROFILE, THERMO_MOLD_PROFILE, THERMO_SCREEN_PROFILE, LAYERED_PROFILE, LITHO_PROFILE, RELIEF_PROFILE, type PrintProfile } from "../geometry/printProfile";
 import { qrModel, type QrStyle } from "../geometry/qr3d";
@@ -247,7 +248,22 @@ export function toolCases(M: ManifoldToplevel): QaCase[] {
     return { models: o.models, warnings: o.warnings };
   };
 
+  // miolo leve (#236): peça de verdade com cada estrutura, e o bloco de treliça sem casca
+  const lighten = (patch: Partial<LightenOpts>): Out => {
+    const model = readOwnFile(new Uint8Array(readFileSync(ARM)), "boneco-braco.stl");
+    const o = lightenModel(M, model, { ...DEFAULT_LIGHTEN, ...patch });
+    return { models: [o.model], warnings: o.warnings };
+  };
+  const lattice = (patch: Partial<LightenOpts>): Out => ({ models: [latticeBlock(M, [60, 40, 30], { ...DEFAULT_LIGHTEN, wall: 0, ...patch }).model], warnings: [] });
+
   return [
+    ...cases("lighten", "Miolo leve", [
+      ["giroide", () => lighten({ kind: "gyroid" })],
+      ["voronoi", () => lighten({ kind: "voronoi" })],
+      ["treliça cúbica", () => lighten({ kind: "cubic" })],
+      ["bloco de treliça", () => lattice({ kind: "cubic" })],
+      ["bloco de giroide", () => lattice({ kind: "gyroid" })],
+    ]),
     ...cases("partialcut", "Corte parcial", [
       ["sugestão para menos suporte", (): Out => {
         const model = readOwnFile(new Uint8Array(readFileSync(ARM)), "boneco-braco.stl");

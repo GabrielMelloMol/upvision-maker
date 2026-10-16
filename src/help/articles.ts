@@ -127,6 +127,13 @@ export const ARTICLES: HelpArticle[] = [
     tips: ["O app confere que as duas peças fecham e que, somadas, voltam ao volume original.", "Cortes finos demais para o pino saem sem encaixe e avisam.", "Use só modelos que são seus ou cuja licença permite alterar."],
   },
   {
+    id: "lighten",
+    title: "Miolo leve",
+    intro: "Gaste menos filamento numa peça grande: o app deixa uma casca maciça e troca o miolo por uma estrutura (giroide, voronoi ou treliça cúbica). Também faz um bloco de treliça.",
+    steps: ["Arraste o STL ou 3MF (um sólido fechado), ou escolha \"Bloco de treliça\" e digite as medidas.", "Escolha a estrutura, o tamanho da célula, a espessura da parede da estrutura e a casca externa.", "Ligue \"Ver por dentro\" para ver o corte ao meio na prévia.", "Clique em \"Comparar as 3 estruturas\" para ver massa, economia e a menor seção de cada uma; \"Usar esta\" troca na hora.", "Salve o 3MF ou o STL."],
+    tips: ["Célula maior deixa a estrutura mais aberta e leve; parede de estrutura fina demais (abaixo de 0,8 mm) pode não imprimir inteira.", "A comparação mostra só a menor seção de material em cada direção: serve para comparar as opções, não é uma simulação de carga. Em peça que segura peso, imprima um teste e force.", "Em peça com muitas cores do arquivo, as cores viram uma só.", "Use só modelos que são seus ou cuja licença permite alterar."],
+  },
+  {
     id: "owndecal",
     title: "Nome ou logo no seu modelo",
     intro: "Ponha seu nome ou logo numa face plana de um STL ou 3MF que você já tem, em outra cor, para imprimir em duas cores.",

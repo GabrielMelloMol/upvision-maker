@@ -383,3 +383,12 @@ td.best-name { max-width: 0; width: 100%; overflow: hidden; text-overflow: ellip
 .org-tabs [role="tab"] > svg { width: 16px; height: 16px; }
 .org-tabs [role="tab"][aria-selected="true"] { color: var(--text); border-bottom-color: var(--accent); font-weight: 600; }
 .org-tabs [role="tab"]:hover { color: var(--text); background: var(--fill); }
+
+/* Miolo leve: as 3 estruturas comparadas, uma linha por estrutura (#236) */
+.compare-list { display: grid; gap: var(--space-2); list-style: none; padding: 0; margin: 0; }
+.compare-row { display: grid; gap: 6px; justify-items: start; padding: var(--space-3); border: 1px solid var(--border); border-radius: var(--r-sm); background: var(--surface); }
+.compare-row[aria-current="true"] { border-color: var(--accent); background: var(--accent-soft); }
+.compare-row header { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; justify-content: space-between; width: 100%; font-weight: 600; color: var(--text); }
+.compare-row dl { display: grid; grid-template-columns: auto 1fr; gap: 2px 12px; margin: 0; font-size: var(--text-sm); }
+.compare-row dt { color: var(--muted); }
+.compare-row dd { margin: 0; color: var(--text); }
