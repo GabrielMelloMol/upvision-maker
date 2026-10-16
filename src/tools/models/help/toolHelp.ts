@@ -46,6 +46,12 @@ export const TOOL_HELP: Record<string, GuideHelp> = {
     tips: ["Imprima a tela e o molde e confira o encaixe antes de prensar.", "Use luva térmica e trabalhe sobre superfície que aguente o calor."],
     faq: [{ q: "A tela rasgou na prensa.", a: "Está quente demais ou foi puxada rápido. Esquente de leve e pressione devagar." }],
   },
+  thermoware: {
+    use: ["Pote, cesto ou pulseira de PLA formados a quente: o disco ou a tira é impresso plano e ganha forma num molde de PETG.", "Quando você quer a forma positiva (macho), a negativa (fêmea) ou o par que prensa, para qualquer tamanho."],
+    avoid: ["Pote com a parede muito reta: use 5° ou mais de ângulo de saída para tirar do molde.", "Aquecer demais: a tela afina e fura. Aqueça aos poucos e teste primeiro numa sobra."],
+    tips: ["Confira o diâmetro do disco na tela: ele vem da conta da planificação (fundo + parede) e é aproximado; teste e ajuste a sobra.", "A pulseira usa a circunferência interna: meça em volta da parte mais larga da mão e deixe a abertura do C para ela abrir e passar.", "Imprima o molde em PETG e o disco em PLA: o PLA quente não gruda no PETG."],
+    faq: [{ q: "A parede do pote ficou enrugada.", a: "Sobrou material em volta: diminua a sobra do disco ou aqueça menos, e puxe a aba para fora ao formar." }, { q: "A tira da pulseira não fechou redonda.", a: "Aqueça a tira inteira por igual e enrole rápido; segure até esfriar. Se a espessura passar de 1,5 mm, ela volta." }],
+  },
   extrude: {
     use: ["Transformar um desenho (SVG) em uma peça 3D com espessura, com base opcional: carimbo, molde, letreiro ou placa."],
     avoid: ["Desenho com linhas finas demais: precisa de pelo menos 0,8 mm de largura para imprimir."],

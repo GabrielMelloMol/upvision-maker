@@ -54,6 +54,7 @@ export const PRODUCT_BLURB: Record<string, string> = {
   lithophane: "Foto que ganha vida quando a luz passa por trás",
   invite: "Convite envelope com renda, tule e borboleta",
   thermoform: "Caixinha de presente em malha prensada a quente",
+  thermoware: "Pote, cesto e pulseira formados a quente num molde",
   pixelMosaic: "Pixel art e mosaico nas cores dos seus filamentos",
 };
 
@@ -62,6 +63,7 @@ const TOOL_PRODUCTS: Product[] = [
   { id: "lithophane", label: "Litofania (foto que acende)", category: "home", blurb: PRODUCT_BLURB.lithophane, entries: [{ kind: "tool", page: "lithophane", label: "Litofania" }] },
   { id: "invite", label: "Convite envelope", category: "party", blurb: PRODUCT_BLURB.invite, entries: [{ kind: "tool", page: "invite", label: "Convite envelope" }] },
   { id: "thermoform", label: "Caixinha termoformada", category: "gifts", blurb: PRODUCT_BLURB.thermoform, entries: [{ kind: "tool", page: "thermoform", label: "Caixinha termoformada" }] },
+  { id: "thermoware", label: "Pote, cesto e pulseira termoformados", category: "gifts", blurb: PRODUCT_BLURB.thermoware, entries: [{ kind: "tool", page: "thermoware", label: "Pote, cesto e pulseira" }] },
   { id: "pixelMosaic", label: "Pixel art e mosaico", category: "gifts", blurb: PRODUCT_BLURB.pixelMosaic, entries: [{ kind: "tool", page: "pixel", label: "Pixel art" }, { kind: "tool", page: "mosaic", label: "Mosaico" }] },
 ];
 

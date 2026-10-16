@@ -1,12 +1,13 @@
 import { useEffect, useMemo, useState } from "react";
 import { estimateModels } from "../domain/estimate";
-import { bedMm } from "../geometry/bed";
 import { loadEmojiFont, loadFont, type FontId } from "../geometry/fonts";
 import { getManifold, type CS } from "../geometry/manifold";
-import { THERMO_MOLD_PROFILE, THERMO_SCREEN_PROFILE } from "../geometry/printProfile";
+import { THERMO_CLOSURE_PROFILE, THERMO_MOLD_PROFILE, THERMO_SCREEN_PROFILE } from "../geometry/printProfile";
 import { scoped, shrinkToFit } from "../geometry/shape2d";
 import { buildStampArt, DEFAULT_ART, type StampLayout } from "../geometry/stampArt";
-import { buildThermo, thermoDefaults, type ThermoInfo, type ThermoParams } from "../geometry/thermo/build";
+import { buildThermo, thermoDefaults, type BaseMode, type ThermoInfo, type ThermoParams } from "../geometry/thermo/build";
+import { layoutGroups } from "../geometry/thermo/layout";
+import { CLEARANCE_RANGE } from "../geometry/thermo/mold";
 import { ASYMMETRY_WARN, asymmetry, presetSilhouette, SHAPE_LABELS, silhouetteFromDesign, symmetrize, type SymSide, type ThermoShape } from "../geometry/thermo/shapes";
 import { hasEmoji, textToCrossSection } from "../geometry/text";
 import { splitLines, stackLines } from "../geometry/keychain";
@@ -21,7 +22,6 @@ import { TOOL_HELP } from "./models/help/toolHelp";
 import NumField, { inRange } from "../ui/NumField";
 import Preview3D from "../ui/Preview3D";
 import Segmented from "../ui/Segmented";
-import ViewToggle, { type View as Show } from "../ui/ViewToggle";
 import SeeAlso from "../ui/SeeAlso";
 import { formatDuration } from "../ui/parse";
 import { errorText } from "../ui/Toast";
@@ -32,12 +32,17 @@ import { clearHandoff, peekHandoff } from "./handoff";
 import { bedWarnings } from "./models/bedCheck";
 import { THERMO_PRESETS, type ThermoPreset } from "./thermoPresets";
 import ToolSessionBar from "./ToolSessionBar";
+import ThermoPrompt from "./ThermoPrompt";
+import ThermoSteps from "./ThermoSteps";
 import { useToolState } from "./useToolState";
 
 type Source = "shape" | "image" | "text";
 const SOURCES = [["shape", "Formato pronto"], ["image", "Imagem ou SVG"], ["text", "Texto"]] as const;
 const MESHES = [["honeycomb", "Favo"], ["diamond", "Losango"]] as const;
-const CLOSURES = [["clip", "Clipe"], ["ring", "Faixa colada"], ["none", "Sem fecho"]] as const;
+const CLOSURES = [["clip", "Clipe"], ["ring", "Faixa colada"], ["cap", "Tampa rosqueada"], ["none", "Sem fecho"]] as const;
+const BASES = [["both", "Nas duas metades"], ["one", "Numa metade"], ["none", "Sem base"]] as const;
+const SHOWS = [["table", "Mesa (o que imprime)"], ["assembled", "Montada (não imprime)"], ["shell", "Casca prensada (não imprime)"]] as const;
+type Show = (typeof SHOWS)[number][0];
 const SIDES = [["top", "Em cima"], ["bottom", "Embaixo"]] as const;
 const LAYOUTS = [["stack", "Logo em cima"], ["side", "Logo ao lado"]] as const;
 const SYMS = [["keep", "Como está"], ["left", "Espelhar a esquerda"], ["right", "Espelhar a direita"]] as const;
@@ -64,8 +69,8 @@ type State = {
 
 const initial = (): State => ({ source: "shape", shape: "heart", width: 70, sym: "keep", image: null, cutout: true, silText: "Ana", silFont: "pacifico", text: "Feliz\nNatal", font: "great-vibes", logo: peekHandoff(), layout: "stack", textScale: 55, p: thermoDefaults() });
 
-type View = { screens: Model[]; mold: Model; assembled: Model; info: ThermoInfo; asym: number };
-const shiftModel = (m: Model, dx: number, dy: number): Model => ({ ...m, parts: m.parts.map((q) => ({ ...q, mesh: { ...q.mesh, positions: q.mesh.positions.map((v, i) => (i % 3 === 0 ? v + dx : i % 3 === 1 ? v + dy : v)) } })) });
+type View = { screens: Model[]; closure: Model[]; molds: Model[]; assembled: Model; shell: Model; info: ThermoInfo; asym: number };
+const GROUP_GAP = 40;
 
 const g = (n: number) => `${n.toLocaleString("pt-BR", { maximumFractionDigits: 0 })} g`;
 const fmt = (n: number, d = 2) => n.toFixed(d).replace(".", ",");
@@ -95,7 +100,7 @@ async function silhouetteOf(s: State): Promise<CS | null> {
 }
 
 export default function Thermoform() {
-  const tool = useToolState<State>("thermoform", initial, { label: "Caixinha termoformada" });
+  const tool = useToolState<State>("thermoform", initial, { label: "Caixinha termoformada", version: 2 });
   const s = tool.state;
   const { p } = s;
   const field = tool.field;
@@ -113,7 +118,7 @@ export default function Thermoform() {
   const sc = p.screen;
   const valid =
     inRange(s.width, 40, 140) && inRange(p.domeH, 6, 40) && inRange(p.curve, 1.6, 4) && inRange(sc.t, 0.6, 2) && inRange(sc.border, 2, 8) && inRange(sc.aperture, 2, 8) && inRange(sc.wire, 0.6, 2) &&
-    inRange(p.mold.flange, 3, 15) && inRange(s.textScale, 20, 200);
+    inRange(p.mold.flange, 3, 15) && inRange(p.mold.clearance, CLEARANCE_RANGE[0], CLEARANCE_RANGE[1]) && inRange(s.textScale, 20, 200);
   const hasDesign = lines.length > 0 || !!s.logo;
 
   async function onImage(f: File) {
@@ -170,15 +175,12 @@ export default function Thermoform() {
         }
       }
       try {
-        const out = buildThermo(M, sil, design, p);
+        const out = buildThermo(M, sil, design, p, { preview: show !== "table" });
         const warn = [...extra, ...out.warnings];
         if (diff > ASYMMETRY_WARN) warn.unshift(`A silhueta não é simétrica (${Math.round(diff * 100)}% diferente do espelho): o mesmo molde só serve para as duas metades se ela for. Use "Espelhar a esquerda" ou "Espelhar a direita".`);
-        const bed = [...bedWarnings(out.screens, warn), ...bedWarnings([out.mold], warn)];
-        const spread = out.screens.length ? Math.max(...out.screens.map((m) => Math.max(...m.parts.flatMap((q) => [...q.mesh.positions].filter((_, i) => i % 3 === 0).map(Math.abs))))) : 0;
-        if (spread * 2 > bedMm()) warn.push("As duas telas lado a lado passam da largura da mesa: imprima uma de cada vez ou diminua o formato.");
-        const moldOffset = (out.screens.length ? spread : 0) + 70 + p.mold.flange;
-        const table = [...out.screens, shiftModel(out.mold, moldOffset, 0)];
-        return { models: table, warnings: [...warn, ...bed], view: { screens: out.screens, mold: out.mold, assembled: out.assembled, info: out.info, asym: diff } };
+        const bed = [out.screens, out.closure, out.molds].flatMap((g) => bedWarnings(g, warn));
+        const table = layoutGroups([out.screens, out.closure, out.molds], GROUP_GAP);
+        return { models: table, warnings: [...warn, ...bed], view: { screens: out.screens, closure: out.closure, molds: out.molds, assembled: out.assembled, shell: out.shell, info: out.info, asym: diff } };
       } finally {
         design?.delete();
       }
@@ -186,10 +188,12 @@ export default function Thermoform() {
       logo?.cs.delete();
       sil.delete();
     }
-  }, [s, valid, hasDesign]);
+  }, [s, valid, hasDesign, show]);
 
-  const screenEst = useMemo(() => (view ? view.screens.map((m) => ({ name: m.name, est: estimateModels([m], THERMO_SCREEN_PROFILE) })) : []), [view]);
-  const moldEst = useMemo(() => (view ? estimateModels([view.mold], THERMO_MOLD_PROFILE) : null), [view]);
+  const pieceEst = useMemo(
+    () => (view ? [...view.screens.map((m) => [m, THERMO_SCREEN_PROFILE] as const), ...view.closure.map((m) => [m, THERMO_CLOSURE_PROFILE] as const), ...view.molds.map((m) => [m, THERMO_MOLD_PROFILE] as const)].map(([m, prof]) => ({ name: m.name, est: estimateModels([m], prof) })) : []),
+    [view],
+  );
   const info = view?.info;
   const asymPct = view ? Math.round(view.asym * 100) : 0;
 
@@ -250,6 +254,7 @@ export default function Thermoform() {
                 <span className="hint">As duas metades usam o mesmo molde, então a silhueta precisa ser simétrica pelo eixo vertical.{view && s.sym === "keep" ? ` Agora ela difere ${asymPct}% do próprio espelho.` : ""}</span>
               </>
             )}
+            <ThermoPrompt use="uma caixinha termoformada de presente" />
           </div>
           <div className="card stack">
             <h3>Desenho de cima</h3>
@@ -292,19 +297,34 @@ export default function Thermoform() {
                 <span className="hint">O clipe passa pelo furo da orelha das duas telas e funciona como dobradiça. Fica no eixo de simetria para as duas metades se encontrarem.</span>
               </>
             )}
-            {sc.closure === "ring" && <span className="hint">Uma faixa em pé em volta da emenda, para colar por fora das duas metades.</span>}
+            {sc.closure === "ring" && <span className="hint">Uma faixa em pé em volta da emenda, para colar por fora das duas metades (o aro).</span>}
+            {sc.closure === "cap" && (
+              <>
+                <span className="field-label">Onde fica o pendurador</span>
+                <Segmented label="Posição do pino" value={sc.side} options={SIDES} onChange={setScreen("side")} full />
+                <span className="hint">Cada base leva metade de um pino rosqueado no eixo de simetria; as duas metades formam o pino e a tampa enrosca nele. A tampa tem um furo para a fita: ela é o pendurador.</span>
+              </>
+            )}
+            <span className="field-label">Placas de base</span>
+            <Segmented label="Placas de base" value={sc.closure === "cap" ? "both" : p.bases} options={BASES} onChange={(v: BaseMode) => setP("bases")(v)} full />
+            <span className="hint">A base fecha o fundo de cada casca. Nas duas metades vira um enfeite oco; numa só, uma caixinha com tampa de malha. O clipe e o pino saem da base quando ela existe.</span>
+            <label className="check">
+              <input type="checkbox" checked={p.baseArt} onChange={(e) => setP("baseArt")(e.target.checked)} /> Desenho também na base, visto através da malha
+            </label>
             <div className="row">
               <ColorPick label="Cor da malha" value={p.colors.sheet} onChange={setColor("sheet")} />
               <ColorPick label="Cor da borda" value={p.colors.border} onChange={setColor("border")} />
               <ColorPick label="Cor do desenho" value={p.colors.design} onChange={setColor("design")} />
-              <ColorPick label="Cor do clipe/faixa" value={p.colors.clip} onChange={setColor("clip")} />
+              <ColorPick label="Cor da base" value={p.colors.base} onChange={setColor("base")} />
+              <ColorPick label="Cor do clipe/tampa/faixa" value={p.colors.clip} onChange={setColor("clip")} />
             </div>
           </div>
           <div className="card stack">
-            <h3>Molde de PETG</h3>
+            <h3>Moldes de PETG (macho e fêmea)</h3>
             <div className="grid two">
               <NumField label="Altura do domo" value={p.domeH} onChange={setP("domeH")} min={6} max={40} step={1} />
               <NumField label="Curvatura" unit="" value={p.curve} onChange={setP("curve")} min={1.6} max={4} step={0.1} hint="2 = redondo; mais = topo mais reto" />
+              <NumField label="Folga do molde" value={p.mold.clearance} onChange={setMold("clearance")} min={CLEARANCE_RANGE[0]} max={CLEARANCE_RANGE[1]} step={0.05} hint="Folga entre macho e fêmea = espessura da tela + esta folga" />
             </div>
             <label className="check">
               <input type="checkbox" checked={p.mold.hollow} onChange={(e) => setMold("hollow")(e.target.checked)} /> Molde oco com nervuras (metade do peso do maciço)
@@ -314,23 +334,31 @@ export default function Thermoform() {
               <div className="grid two">
                 <NumField label="Borda de apoio" value={p.mold.flange} onChange={setMold("flange")} min={3} max={15} step={1} />
                 <NumField label="Espessura do apoio" value={p.mold.flangeT} onChange={setMold("flangeT")} min={1} max={5} step={0.5} />
+                <NumField label="Parede de centralização" value={p.mold.centerWall} onChange={setMold("centerWall")} min={0} max={3} step={0.2} hint="Cerca a tela no macho; 0 desliga" />
                 <ColorPick label="Cor do molde" value={p.colors.mold} onChange={setColor("mold")} />
               </div>
             </details>
           </div>
           <div className="card stack">
-            <h3>Telas e clipe (PLA)</h3>
+            <h3>Telas, bases e faixa (PLA, 0,20 mm)</h3>
             <ExportButtons models={view?.screens ?? []} name={`caixinha-telas-${lines[0] ?? "termoformada"}`} busy={busy} profile={THERMO_SCREEN_PROFILE} onSaved={tool.exported} />
           </div>
+          {(view?.closure.length ?? 0) > 0 && (
+            <div className="card stack">
+              <h3>{sc.closure === "cap" ? "Tampa rosqueada (PLA, 0,16 mm)" : "Clipe (PLA, 0,16 mm)"}</h3>
+              <ExportButtons models={view?.closure ?? []} name={`caixinha-fecho-${lines[0] ?? "termoformada"}`} busy={busy} profile={THERMO_CLOSURE_PROFILE} onSaved={tool.exported} />
+            </div>
+          )}
           <div className="card stack">
-            <h3>Molde (PETG, outro arquivo)</h3>
-            <ExportButtons models={view ? [view.mold] : []} name={`caixinha-molde-${s.source === "shape" ? s.shape : "silhueta"}`} busy={busy} profile={THERMO_MOLD_PROFILE} onSaved={tool.exported} tips={TOOL_HELP.thermoform.tips} />
+            <h3>Moldes macho e fêmea (PETG, 0,24 mm)</h3>
+            <ExportButtons models={view?.molds ?? []} name={`caixinha-molde-${s.source === "shape" ? s.shape : "silhueta"}`} busy={busy} profile={THERMO_MOLD_PROFILE} onSaved={tool.exported} tips={TOOL_HELP.thermoform.tips} />
           </div>
           <GeneratorHelp help={TOOL_HELP.thermoform} />
         </div>
         <div className="preview-col">
-          <ViewToggle value={show} onChange={setShow} info="Prévia da caixinha já prensada, com a tela curvada sobre o domo. Ela não vai para o arquivo: o que imprime está em Mesa." />
-          <Preview3D models={show === "assembled" && view ? [view.assembled] : models} busy={busy || loading} busyText="Gerando telas e molde…" error={error} emptyText={!valid ? "Corrija os campos em vermelho para ver a caixinha." : s.source === "image" && !s.image ? "Envie a silhueta (SVG ou imagem) para ver a caixinha." : "Escolha um formato para ver a caixinha."} />
+          <Segmented label="O que mostrar" value={show} options={SHOWS} onChange={setShow} full />
+          {show !== "table" && <Alert kind="info">{show === "assembled" ? "Prévia da caixinha já prensada, com a tela curvada sobre o domo. Ela não vai para o arquivo: o que imprime está em Mesa." : "Uma casca já prensada, de perto: a malha curvada sobre o domo, com o desenho e a base. Ela não vai para o arquivo."}</Alert>}
+          <Preview3D models={show === "assembled" && view ? [view.assembled] : show === "shell" && view ? [view.shell] : models} busy={busy || loading} busyText="Gerando telas e molde…" error={error} views emptyText={!valid ? "Corrija os campos em vermelho para ver a caixinha." : s.source === "image" && !s.image ? "Envie a silhueta (SVG ou imagem) para ver a caixinha." : "Escolha um formato para ver a caixinha."} />
           {warnings.map((w) => (
             <Alert key={w} kind="warn">{w}</Alert>
           ))}
@@ -341,27 +369,18 @@ export default function Thermoform() {
                 A tela estica cerca de <strong>{fmt(info.stretch)}×</strong> ao cobrir o domo. O furo de {fmt(sc.aperture, 1)} mm vira uns <strong>{fmt(info.apertureAfter, 1)} mm</strong> no topo.
                 {p.compensate && info.designScale < 0.995 ? ` O desenho da tela plana foi encolhido para ${Math.round(info.designScale * 100)}% e sai do tamanho pedido depois de prensado.` : ""}
               </p>
+              <p>
+                Folga do molde fêmea: <strong>{fmt(info.moldGap)} mm</strong> (tela de {fmt(sc.t, 1)} mm + {fmt(p.mold.clearance)} mm). Depois de esticada, a tela fica com uns <strong>{fmt(info.thinTop)} mm</strong> no topo.
+              </p>
               <h3>Peso e tempo de cada peça</h3>
               <ul className="plain">
-                {screenEst.map((x) => (
-                  <li key={x.name}>{x.name}: {x.est ? `≈ ${g(x.est.grams)} · ≈ ${formatDuration(x.est.seconds / 60)}` : "—"}</li>
+                {pieceEst.map((x) => (
+                  <li key={x.name}>{x.name}{x.name.startsWith("Molde") ? " (PETG)" : ""}: {x.est ? `≈ ${g(x.est.grams)} · ≈ ${formatDuration(x.est.seconds / 60)}` : "—"}</li>
                 ))}
-                <li>Molde de PETG: {moldEst ? `≈ ${g(moldEst.grams)} · ≈ ${formatDuration(moldEst.seconds / 60)}` : "—"}</li>
               </ul>
             </section>
           )}
-          <section className="card stack" aria-label="Passo a passo da termoformagem">
-            <h3>Passo a passo da termoformagem</h3>
-            <ol>
-              <li>Imprima o molde em PETG (o PLA da tela não gruda nele) e as telas em PLA, deitadas.</li>
-              <li>Apoie o molde, com o domo para cima, numa superfície que aguente calor.</li>
-              <li>Aqueça uma tela com soprador de ar quente, a uns 15 a 20 cm, em movimentos circulares, por 20 a 40 segundos, até ficar mole e flexível (o PLA amolece perto de 60 °C). Não encoste o soprador.</li>
-              <li>Com uma luva ou pano, centralize a tela no molde, com a orelha do fecho no lugar certo, e prense de uma vez até a borda encostar no apoio. Segure uns 15 segundos.</li>
-              <li>Deixe esfriar uns 30 segundos e solte: ela mantém a forma. Repita com a outra tela.</li>
-              <li>Feche com o clipe (as pontas passam pelos furos das duas orelhas) ou cole a faixa por fora da emenda.</li>
-            </ol>
-            <span className="hint">Temperaturas e tempos são de referência: teste primeiro numa tela de sobra. Não aqueça o molde (o PETG amolece perto de 75 °C). Se a malha rasgar, diminua a altura do domo.</span>
-          </section>
+          <ThermoSteps kind="box" closure={sc.closure} bases={(info?.bases ?? p.bases) !== "none"} />
         </div>
       </div>
     </div>

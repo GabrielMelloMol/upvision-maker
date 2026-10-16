@@ -5,15 +5,20 @@ import { scoped } from "../shape2d";
 import type { Model, Part } from "../types";
 import { fixThinStrokes } from "../stampArt";
 import { inradius, stretchOf, type DomeGeo } from "./dome";
-import { buildMoldSolid, DEFAULT_MOLD, type MoldParams } from "./mold";
+import { layoutRows } from "./layout";
+import { buildFemaleSolid, buildMoldSolid, DEFAULT_MOLD, moldGap, type MoldParams } from "./mold";
 import { mergeMeshes, warpOntoDome } from "./preview";
-import { clipRegion, DEFAULT_SCREEN, earOf, ringRegion, screenRegions, type ScreenParams } from "./screen";
+import { clipRegion, DEFAULT_SCREEN, earOf, postTabOf, ringRegion, screenRegions, type ScreenParams, type ScreenRegions } from "./screen";
+import { capSolid, DEFAULT_CAP, halfPost, postWidth, type CapSpec } from "./thread";
 import { fitValue } from "../fits";
 
 type K = <D extends { delete(): void }>(o: D) => D;
 
-export type ThermoColors = { sheet: string; border: string; design: string; mold: string; clip: string };
-const DEFAULT_COLORS: ThermoColors = { sheet: "#1f7a4d", border: "#1f7a4d", design: "#f4f4f2", mold: "#3b82f6", clip: "#1f7a4d" };
+export type ThermoColors = { sheet: string; border: string; design: string; mold: string; clip: string; base: string };
+const DEFAULT_COLORS: ThermoColors = { sheet: "#1f7a4d", border: "#1f7a4d", design: "#f4f4f2", mold: "#3b82f6", clip: "#1f7a4d", base: "#f4f4f2" };
+
+/** Placas de base: "one" fecha o fundo de uma casca só (caixinha com tampa); "both" fecha as duas (enfeite oco). */
+export type BaseMode = "none" | "one" | "both";
 
 export type ThermoParams = {
   /** Altura do domo do molde e curvatura (expoente da superelipse). */
@@ -28,12 +33,17 @@ export type ThermoParams = {
   designOnBoth: boolean;
   /** Engrossa os traços do desenho mais finos que o bico (sempre avisa). */
   thickenDesign: boolean;
+  bases: BaseMode;
+  baseT: number;
+  /** O desenho também vai na base, visto através da malha. */
+  baseArt: boolean;
+  cap: CapSpec;
 };
 
-export const DEFAULT_THERMO: ThermoParams = { domeH: 10, curve: 2.2, compensate: true, mold: DEFAULT_MOLD, screen: DEFAULT_SCREEN, colors: DEFAULT_COLORS, designOnBoth: true, thickenDesign: true };
+export const DEFAULT_THERMO: ThermoParams = { domeH: 10, curve: 2.2, compensate: true, mold: DEFAULT_MOLD, screen: DEFAULT_SCREEN, colors: DEFAULT_COLORS, designOnBoth: true, thickenDesign: true, bases: "both", baseT: 1.6, baseArt: false, cap: DEFAULT_CAP };
 
 /** Parâmetros de partida da caixinha: os de fábrica, com o furo da orelha do clipe que a pessoa validou no Kit de testes (#247). */
-export const thermoDefaults = (): ThermoParams => ({ ...DEFAULT_THERMO, screen: { ...DEFAULT_SCREEN, hole: fitValue("clipHole") }, colors: { ...DEFAULT_THERMO.colors } });
+export const thermoDefaults = (): ThermoParams => ({ ...DEFAULT_THERMO, screen: { ...DEFAULT_SCREEN, hole: fitValue("clipHole") }, colors: { ...DEFAULT_THERMO.colors }, mold: { ...DEFAULT_MOLD }, cap: { ...DEFAULT_CAP, thread: { ...DEFAULT_CAP.thread } } });
 
 export type ThermoInfo = {
   /** Quanto a tela estica (comprimento do perfil do domo ÷ distância da borda ao topo). */
@@ -44,33 +54,39 @@ export type ThermoInfo = {
   designScale: number;
   /** Maior recuo do contorno: define até onde o domo sobe. */
   inradius: number;
+  /** Folga do molde fêmea sobre o macho (espessura da tela + folga) e espessura que a tela fica no topo depois de esticar. */
+  moldGap: number;
+  thinTop: number;
+  /** Placas de base que saem de fato (a tampa rosqueada exige as duas). */
+  bases: BaseMode;
 };
 
 export type ThermoOut = {
-  /** As duas telas e o fecho (clipe ou faixa), lado a lado na mesa, em PLA. */
+  /** PLA 0,20: as duas telas, as bases e a faixa (aro) colada, em fileiras na mesa. */
   screens: Model[];
-  /** Molde em PETG, centrado na origem (outro arquivo). */
-  mold: Model;
+  /** PLA 0,16: o fecho (clipe ou tampa rosqueada), para a rosca sair limpa. */
+  closure: Model[];
+  /** PETG 0,24: molde macho e molde fêmea. */
+  molds: Model[];
   /** A caixa montada e curvada (só prévia). */
   assembled: Model;
+  /** Uma casca já prensada, com a base (só prévia). */
+  shell: Model;
   warnings: string[];
   info: ThermoInfo;
 };
 
 const GAP = 10;
-const CLOSURE_GAP = 22;
 const STRETCH_WARN = 1.4;
+const THIN_TOP_WARN = 0.45;
 const DESIGN_LOSS_WARN = 0.05;
 const COMP_MIN = 0.6;
 const COMP_SAMPLES = 8;
 const MIN_DOME = 6;
 const NECK_MM = 5; // pontas do miolo mais estreitas que 2 × isto não viram domo
 
-const meshOf = (cs: CS, height: number, dx: number, dy: number, k: K) => (cs.isEmpty() ? null : toMesh(k(k(cs.extrude(height)).translate([dx, dy, 0]))));
-const part = (name: string, color: string, cs: CS, height: number, dx: number, dy: number, k: K): Part[] => {
-  const mesh = meshOf(cs, height, dx, dy, k);
-  return mesh ? [{ name, color, mesh }] : [];
-};
+const extruded = (cs: CS, height: number, k: K): Solid | null => (cs.isEmpty() ? null : k(cs.extrude(height)));
+const solidPart = (name: string, color: string, s: Solid | null): Part[] => (s ? [{ name, color, mesh: toMesh(s) }] : []);
 
 const maxRadius = (cs: CS) => Math.max(0, ...cs.toPolygons().flat().map(([x, y]) => Math.hypot(x, y)));
 
@@ -83,8 +99,29 @@ function compensation(design: CS, magnification: (r: number) => number): number 
 
 const scaled = (cs: CS, s: number, k: K) => (s === 1 ? cs : k(cs.scale(s)));
 
-/** Duas telas (PLA), o molde (PETG) e a caixa montada, a partir da silhueta simétrica e do desenho de cima (já centrado, em mm). */
-export function buildThermo(M: ManifoldToplevel, sil: CS, design: CS | null, p: ThermoParams): ThermoOut {
+type Plate = { body: Solid | null; art: Solid | null; post: Solid | null };
+
+/** Placa de base: a silhueta (com a orelha do clipe ou a aba do pino), o desenho em outra cor, nivelado, e o meio-pino da tampa. */
+function plateOf(M: ManifoldToplevel, k: K, sil: CS, inner: CS, art: CS | null, hardware: CS | null, post: { y: number; s: 1 | -1 } | null, p: ThermoParams): Plate {
+  const outline = hardware ? k(M.CrossSection.union([sil, hardware])) : sil;
+  const artIn = art ? k(art.intersect(inner)) : null;
+  const solidArt = artIn && !artIn.isEmpty() ? artIn : null;
+  const body = solidArt ? k(outline.subtract(solidArt)) : outline;
+  let pin: Solid | null = null;
+  if (post) {
+    const half = k(halfPost(M, k, p.cap.thread));
+    const turned = post.s > 0 ? half : k(half.rotate([0, 0, 180]));
+    pin = k(turned.translate([0, post.s * post.y, 0]));
+  }
+  return { body: extruded(body, p.baseT, k), art: solidArt ? extruded(solidArt, p.baseT, k) : null, post: pin };
+}
+
+/** Uma metade da caixa: a casca (3 regiões 2D) e, se houver, a base. */
+type Half = { reg: ScreenRegions; plate: Plate | null };
+
+/** Duas telas, as bases, o fecho e os moldes macho e fêmea (PETG), a partir da silhueta simétrica e do desenho de cima (já centrado, em mm). */
+export function buildThermo(M: ManifoldToplevel, sil: CS, design: CS | null, p: ThermoParams, opts: { preview?: boolean } = {}): ThermoOut {
+  const preview = opts.preview ?? true;
   return scoped((k) => {
     const warnings: string[] = [];
     const inner = k(sil.offset(-p.screen.border, "Round")); // o miolo em malha: dentro da borda sólida
@@ -94,75 +131,110 @@ export function buildThermo(M: ManifoldToplevel, sil: CS, design: CS | null, p: 
     const H = Math.max(MIN_DOME, p.domeH);
     const g: DomeGeo = { L, H, q: p.curve };
     const { S, magnification } = stretchOf(g);
+    const t = p.screen.t;
+    const thinTop = t / S;
     if (S > STRETCH_WARN) warnings.push(`A tela estica ${S.toFixed(2).replace(".", ",")}× ao ser prensada: a malha abre demais e pode rasgar. Diminua a altura do domo ou use uma curvatura maior.`);
+    else if (thinTop < THIN_TOP_WARN) warnings.push(`A tela fica com só ${thinTop.toFixed(2).replace(".", ",")} mm no topo depois de esticar: pode furar. Use uma tela mais grossa ou um domo mais baixo.`);
     const dScale = design && p.compensate ? compensation(design, magnification) : 1;
     let flatDesign = design ? scaled(design, dScale, k) : null;
+    let plateDesign: CS | null = null;
     if (flatDesign) {
       // o traço fino conta na tela plana, já no tamanho que vai ser impresso
       const thin = fixThinStrokes(M, flatDesign, p.thickenDesign);
       flatDesign = k(thin.cs);
       if (thin.thin) warnings.push(thin.fixed ? "Havia traços do desenho mais finos que o bico da impressora e eu os engrossei para a tela sair inteira." : "O desenho tem traços mais finos que o bico da impressora: eles falham na tela. Engrosse o desenho ou aumente a caixinha.");
     }
-    const lost = design && flatDesign ? 1 - k(flatDesign.intersect(k(sil.offset(-p.screen.border, "Round")))).area() / Math.max(1e-9, flatDesign.area()) : 0;
+    if (design && p.baseArt) plateDesign = k(fixThinStrokes(M, design, p.thickenDesign).cs);
+    const lost = design && flatDesign ? 1 - k(flatDesign.intersect(inner)).area() / Math.max(1e-9, flatDesign.area()) : 0;
     if (lost > DESIGN_LOSS_WARN) warnings.push("O desenho passa da área da tela e foi cortado na borda: diminua o desenho ou aumente a silhueta.");
 
-    const ear = p.screen.closure === "clip" ? earOf(M, sil, p.screen, k) : null;
-    const reg = screenRegions(M, sil, flatDesign, p.screen, k, ear);
-    k(reg.border); k(reg.mesh); k(reg.design);
-    const sb = ear ? k(M.CrossSection.union([sil, ear])).bounds() : sil.bounds();
-    const W = sb.max[0] - sb.min[0], Hs = sb.max[1] - sb.min[1];
-    const cy = (sb.max[1] + sb.min[1]) / 2;
-    const t = p.screen.t;
+    // a tampa rosqueada precisa do meio-pino nas duas bases; o clipe e a faixa funcionam com ou sem base
+    const cap = p.screen.closure === "cap";
+    const bases: BaseMode = cap ? "both" : p.bases;
+    if (cap && p.bases !== "both") warnings.push("A tampa rosqueada precisa das bases nas duas metades (cada base leva metade do pino): liguei as duas bases.");
+    const hasPlate = [bases !== "none", bases === "both"];
+    const clip = p.screen.closure === "clip";
+    const ear = clip ? earOf(M, sil, p.screen, k) : null;
+    const tab = cap ? postTabOf(M, sil, p.screen, postWidth(p.cap.thread), k) : null;
+    const wantDesign = [true, p.designOnBoth];
+
+    const regs = new Map<string, ScreenRegions>();
+    const regionsFor = (withDesign: boolean, withEar: boolean): ScreenRegions => {
+      const key = `${withDesign}-${withEar}`;
+      let r = regs.get(key);
+      if (!r) {
+        r = screenRegions(M, sil, withDesign ? flatDesign : null, p.screen, k, withEar ? ear : null);
+        k(r.border); k(r.mesh); k(r.design);
+        regs.set(key, r);
+      }
+      return r;
+    };
+    const halves: Half[] = [0, 1].map((i) => ({
+      reg: regionsFor(wantDesign[i], !!ear && !hasPlate[i]),
+      plate: hasPlate[i] ? plateOf(M, k, sil, inner, wantDesign[i] ? plateDesign : null, ear ?? tab?.tab ?? null, tab ? { y: tab.start, s: tab.s } : null, p) : null,
+    }));
+
     const c = p.colors;
-    const screen = (n: number, dx: number, withDesign: boolean): Model => ({
-      name: `Tela ${n}`,
-      parts: [...part("Borda", c.border, reg.border, t, dx, -cy, k), ...part("Malha", c.sheet, reg.mesh, t, dx, -cy, k), ...(withDesign ? part("Design", c.design, reg.design, t, dx, -cy, k) : [])],
-    });
-    const second = p.designOnBoth;
-    // sem desenho numa metade, o espaço do desenho vira malha
-    const plainReg = !second && flatDesign ? screenRegions(M, sil, null, p.screen, k, ear) : null;
-    const dx = W / 2 + GAP / 2;
-    const screens: Model[] = [screen(1, -dx, true)];
-    if (plainReg) {
-      k(plainReg.border); k(plainReg.mesh); k(plainReg.design);
-      screens.push({ name: "Tela 2", parts: [...part("Borda", c.border, plainReg.border, t, dx, -cy, k), ...part("Malha", c.sheet, plainReg.mesh, t, dx, -cy, k)] });
-    } else screens.push(screen(2, dx, true));
+    const shellModel = (n: number, h: Half): Model => {
+      const solid = (cs: CS) => extruded(cs, t, k);
+      return { name: `Tela ${n}`, parts: [...solidPart("Borda", c.border, solid(h.reg.border)), ...solidPart("Malha", c.sheet, solid(h.reg.mesh)), ...(wantDesign[n - 1] ? solidPart("Design", c.design, solid(h.reg.design)) : [])] };
+    };
+    const plateParts = (pl: Plate, flip?: (s: Solid) => Solid): Part[] => {
+      const f = (s: Solid | null) => (s && flip ? flip(s) : s);
+      return [...solidPart("Base", c.base, f(pl.body)), ...solidPart("Arte", c.border, f(pl.art)), ...solidPart("Pino", c.base, f(pl.post))];
+    };
 
-    const below = -(Hs / 2 + CLOSURE_GAP);
-    if (p.screen.closure === "clip") {
-      const clip = clipRegion(M, p.screen, k);
-      screens.push({ name: "Clipe", parts: part("Clipe", c.clip, clip, p.screen.clipT, 0, below, k) });
-    } else if (p.screen.closure === "ring") {
-      const ring = ringRegion(sil, p.screen, k);
-      const rb = ring.bounds();
-      screens.push({ name: "Faixa externa", parts: part("Faixa", c.clip, ring, p.screen.ringH, -(rb.min[0] + rb.max[0]) / 2, below - (rb.min[1] + rb.max[1]) / 2 - (rb.max[1] - rb.min[1]) / 2, k) });
-    }
+    const rows: Model[][] = [halves.map((h, i) => shellModel(i + 1, h)), halves.flatMap((h, i) => (h.plate ? [{ name: `Base ${i + 1}`, parts: plateParts(h.plate) }] : []))];
+    const closure: Model[] = [];
+    if (clip) closure.push({ name: "Clipe", parts: solidPart("Clipe", c.clip, extruded(clipRegion(M, p.screen, k), p.screen.clipT, k)) });
+    if (cap) closure.push({ name: "Tampa", parts: solidPart("Tampa", c.clip, k(capSolid(M, k, p.cap))) });
+    if (p.screen.closure === "ring") rows.push([{ name: "Faixa externa", parts: solidPart("Faixa", c.clip, extruded(ringRegion(sil, p.screen, k), p.screen.ringH, k)) }]);
+    const screens = layoutRows(rows, GAP);
+    const closureOut = layoutRows([closure], GAP);
 
-    const mold = buildMoldSolid(M, base, g, p.mold, k, sil);
-    const moldModel: Model = { name: "Molde", parts: [{ name: "Molde", color: c.mold, mesh: toMesh(mold) }] };
+    // moldes: o macho tem a parede que centraliza a tela (em volta do contorno da tela, com a orelha se ela ficar na casca)
+    const shellOutline = ear && hasPlate.some((x) => !x) ? k(M.CrossSection.union([sil, ear])) : sil;
+    const male = buildMoldSolid(M, base, g, p.mold, k, shellOutline, t);
+    const female = buildFemaleSolid(M, base, g, p.mold, k, shellOutline, t);
+    const molds = layoutRows([[{ name: "Molde macho", parts: [{ name: "Molde macho", color: c.mold, mesh: toMesh(male) }] }, { name: "Molde fêmea", parts: [{ name: "Molde fêmea", color: c.mold, mesh: toMesh(female) }] }]], GAP);
 
     // caixa montada: a tela plana deformada sobre o domo (como a termoformagem faz), uma metade de cabeça para baixo sobre a outra
-    const formed = (r: { border: CS; mesh: CS; design: CS }) => {
-      const warp = (cs: CS) => (cs.isEmpty() ? null : warpOntoDome(k(cs.extrude(t)), base, g, k));
-      return { border: warp(r.border), mesh: warp(r.mesh), design: warp(r.design) };
-    };
-    const top = formed(reg);
-    const bot = plainReg ? formed(plainReg) : top;
-    const flip = (s: Solid) => k(s.mirror([0, 0, 1]));
-    const merged = (name: string, color: string, a: Solid | null, b: Solid | null): Part[] => {
-      const meshes = [a && toMesh(a), b && toMesh(flip(b))].filter((m): m is NonNullable<typeof m> => !!m);
-      return meshes.length ? [{ name, color, mesh: mergeMeshes(meshes) }] : [];
-    };
-    const yBox = Hs + 32;
-    const place = (parts: Part[]): Part[] => parts.map((q) => ({ ...q, mesh: { ...q.mesh, positions: q.mesh.positions.map((v, i) => (i % 3 === 1 ? v + yBox - cy : v)) } }));
-    const assembled: Model = {
-      name: "Caixa montada (não imprime)",
-      previewOnly: true,
-      parts: place([...merged("Borda", c.border, top.border, bot.border), ...merged("Malha", c.sheet, top.mesh, bot.mesh), ...merged("Design", c.design, top.design, bot.design)]),
-    };
+    // (a prévia é a parte mais cara: os testes e o QA do fatiador pedem sem ela)
+    const emptyPreview = (name: string): Model => ({ name, previewOnly: true, parts: [] });
+    let assembled = emptyPreview("Caixa montada (não imprime)");
+    let shell = emptyPreview("Casca prensada (não imprime)");
+    if (preview) {
+      const warp = (cs: CS, lift: number): Solid | null => (cs.isEmpty() ? null : k(warpOntoDome(k(cs.extrude(t)), base, g, k).translate([0, 0, lift])));
+      const mirror = (s: Solid) => k(s.mirror([0, 0, 1]));
+      const warped = new Map<string, [Solid | null, Solid | null, Solid | null]>(); // as duas metades iguais deformam uma vez só
+      const regKey = (h: Half) => [...regs.entries()].find(([, r]) => r === h.reg)![0] + (h.plate ? "-b" : "");
+      const built = halves.map((h, i) => {
+        const lift = h.plate ? p.baseT : 0;
+        const fl = i ? mirror : undefined;
+        const f = (s: Solid | null) => (s && fl ? fl(s) : s);
+        let w = warped.get(regKey(h));
+        if (!w) warped.set(regKey(h), (w = [warp(h.reg.border, lift), warp(h.reg.mesh, lift), warp(h.reg.design, lift)]));
+        return {
+          shell: [...solidPart("Borda", c.border, f(w[0])), ...solidPart("Malha", c.sheet, f(w[1])), ...(wantDesign[i] ? solidPart("Design", c.design, f(w[2])) : [])],
+          plate: h.plate ? plateParts(h.plate, fl) : [],
+        };
+      });
+      const merged = (name: string): Part[] => {
+        const list = built.flatMap((b) => [...b.shell, ...b.plate]).filter((q) => q.name === name);
+        return list.length ? [{ name, color: list[0].color, mesh: mergeMeshes(list.map((q) => q.mesh)) }] : [];
+      };
+      const assembledParts: Part[] = ["Borda", "Malha", "Design", "Base", "Arte", "Pino"].flatMap(merged);
+      if (cap && tab) {
+        // a tampa enroscada no pino: a abertura olha para a caixa e a alça sobe
+        const onPin = k(k(k(capSolid(M, k, p.cap)).rotate([90, 0, 0])).translate([0, tab.start + p.cap.thread.length + p.cap.floor, 0]));
+        assembledParts.push(...solidPart("Tampa", c.clip, tab.s > 0 ? onPin : k(onPin.rotate([0, 0, 180]))));
+      }
+      assembled = { name: "Caixa montada (não imprime)", previewOnly: true, parts: assembledParts };
+      shell = { name: "Casca prensada (não imprime)", previewOnly: true, parts: [...built[0].shell, ...built[0].plate.filter((q) => q.name !== "Arte")] }; // sem a arte da base: vista pela malha ela parece um desenho fantasma
+    }
 
-    const info: ThermoInfo = { stretch: S, apertureAfter: p.screen.aperture * S, designScale: dScale, inradius: L };
+    const info: ThermoInfo = { stretch: S, apertureAfter: p.screen.aperture * S, designScale: dScale, inradius: L, moldGap: moldGap(t, p.mold), thinTop, bases };
     if (p.screen.aperture * S > 2 * p.screen.aperture) warnings.push(`A malha abre até ${(p.screen.aperture * S).toFixed(1).replace(".", ",")} mm depois de prensada (o furo de ${nozzleText(p.screen.aperture)} mm estica junto).`);
-    return { screens, mold: moldModel, assembled, warnings, info };
+    return { screens, closure: closureOut, molds, assembled, shell, warnings, info };
   });
 }

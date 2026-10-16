@@ -37,8 +37,9 @@ export const sliceCount = (zMax: number) => Math.min(MAX_SLICES, Math.max(6, Mat
  */
 export function domeStack(M: ManifoldToplevel, sil: CS, g: DomeGeo, e: number, k: K): Solid {
   const zMax = g.H + e;
-  const n = sliceCount(zMax);
-  const dz = zMax / n;
+  // o degrau é o do domo sem folga: a casca de fora (e > 0) tem os mesmos planos de corte e envolve o macho sem fresta nem invasão
+  const dz = g.H / sliceCount(g.H);
+  const n = Math.max(1, Math.ceil(zMax / dz - 1e-9));
   const parts: Solid[] = [];
   for (let i = 0; i < n; i++) {
     const z0 = i * dz;

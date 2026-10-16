@@ -72,8 +72,15 @@ export const ARTICLES: HelpArticle[] = [
     id: "thermoform",
     title: "Caixinha termoformada",
     intro: "Duas telas planas de PLA, em malha de favo com borda e desenho sólidos, prensadas a quente sobre um molde em domo de PETG viram as metades de uma caixinha de presente.",
-    steps: ["Escolha um modelo pronto (Natal, Dia dos Namorados, Páscoa, brinde) ou um formato: coração, estrela, flor, círculo, quadrado, bola de Natal, ovo, uma imagem, um SVG ou um texto.", "Digite o texto e, se quiser, envie um logo. O desenho é o que fica sólido sobre a malha.", "Ajuste a altura do domo e a malha. O app mostra quanto a tela estica ao cobrir o molde e encolhe o desenho para ele sair do tamanho certo.", "Salve as telas e o clipe (PLA) num arquivo e o molde (PETG) em outro, e siga o passo a passo da termoformagem que aparece na tela."],
+    steps: ["Escolha um modelo pronto (Natal, Dia dos Namorados, Páscoa, brinde) ou um formato: coração, estrela, flor, círculo, quadrado, bola de Natal, ovo, uma imagem, um SVG ou um texto. Sem a silhueta, copie o texto pronto e peça a uma IA de imagem.", "Digite o texto e, se quiser, envie um logo. O desenho é o que fica sólido sobre a malha (e, se quiser, também na base, vista através dela).", "Ajuste a altura do domo e a malha. O app mostra quanto a tela estica ao cobrir o molde, a folga entre o macho e a fêmea e encolhe o desenho para ele sair do tamanho certo.", "Escolha as placas de base e o fecho: clipe-dobradiça, faixa colada (o aro) ou tampa rosqueada, que também é o pendurador, com furo para a fita.", "Salve as telas e as bases (PLA, 0,20 mm), o clipe ou a tampa (PLA, 0,16 mm) e os moldes macho e fêmea (PETG, 0,24 mm), e siga o passo a passo da termoformagem que aparece na tela, com soprador ou água quente."],
     tips: ["As duas metades usam o mesmo molde, por isso a silhueta precisa ser simétrica pelo eixo vertical. Se a imagem não for, use Espelhar a esquerda ou a direita.", "A malha é desenhada na peça (favo ou losango), então o 3MF fatia igual no Bambu Studio e no OrcaSlicer, sem mexer em nada no fatiador.", "O molde é oco com nervuras: pesa a metade de um molde maciço a 100% e aguenta a prensagem sem depender do preenchimento do fatiador."],
+  },
+  {
+    id: "thermoware",
+    title: "Pote, cesto e pulseira termoformados",
+    intro: "Um disco ou uma tira de PLA, impressos planos, ganham forma a quente num molde de PETG: o pote (inteiro) ou o cesto (em malha), com a forma positiva (macho), a negativa (fêmea) ou o par que prensa, e a pulseira em C enrolada num mandril.",
+    steps: ["Escolha Pote, Cesto ou Pulseira.", "No pote e no cesto, defina o diâmetro da boca, a altura, o ângulo de saída (5° ou mais) e o raio do canto. O app calcula o diâmetro do disco plano: fundo + parede + aba.", "Na pulseira, meça a mão (uns 190 a 220 mm em volta), escolha a largura, a abertura do C e, se quiser, um texto.", "Salve o disco (ou a tira) em PLA e o molde (ou o mandril) em PETG, e siga o passo a passo da termoformagem, com soprador ou água quente."],
+    tips: ["A conta do disco é aproximada: a tela afina ao esticar. Teste primeiro numa sobra.", "O molde é de PETG porque o PLA quente não gruda nele.", "Na pulseira, 1 a 1,5 mm de espessura dobra bem; mais que isso, ela volta."],
   },
   {
     id: "mosaic",
