@@ -1,5 +1,5 @@
 import type { Page } from "@playwright/test";
-import { expect, go, openApp, test, toastWith } from "./tauri";
+import { expect, openApp, pickModel, test, toastWith } from "./tauri";
 
 const hud = (page: Page) => page.locator(".viewer .hud");
 const idle = (page: Page) => expect(page.locator(".viewer .overlay.busy")).toHaveCount(0, { timeout: 60_000 });
@@ -7,9 +7,7 @@ const ART = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 10"><rect w
 
 test("quebra-cabeça: arte vira peças com verso, moldura e aviso de peça pequena (#60)", async ({ page, tauri }) => {
   await openApp(page);
-  await go(page, "Modelos prontos");
-  await page.getByRole("searchbox", { name: "Buscar modelo" }).fill("Quebra");
-  await page.getByRole("group", { name: "Modelo" }).getByRole("button", { name: "Quebra-cabeça", exact: true }).click();
+  await pickModel(page, "Quebra", "Quebra-cabeça", { exact: true });
   // desde a #159 o quebra-cabeça já abre com prévia (contorno sem desenho); o desenho enviado vai na face
   await idle(page);
   await expect(hud(page)).toContainText("mm", { timeout: 60_000 });

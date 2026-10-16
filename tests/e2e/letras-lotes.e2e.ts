@@ -1,6 +1,6 @@
 import { mkdirSync } from "node:fs";
 import type { Page } from "@playwright/test";
-import { expect as baseExpect, go, openApp, test, toastWith } from "./tauri";
+import { expect as baseExpect, openApp, pickModel, test, toastWith } from "./tauri";
 
 const expect = baseExpect.configure({ timeout: 30_000 });
 const idle = (page: Page) => expect(page.locator(".viewer .overlay.busy")).toHaveCount(0, { timeout: 90_000 });
@@ -11,9 +11,7 @@ test("letras de parede: passou de 36 mesas, Salvar em lotes grava vários 3MF na
   test.slow();
   await page.setViewportSize({ width: 1280, height: 900 });
   await openApp(page);
-  await go(page, "Modelos prontos");
-  await page.getByRole("searchbox", { name: "Buscar modelo" }).fill("letras para parede");
-  await page.getByRole("group", { name: "Modelo" }).getByRole("button", { name: "Letras para parede", exact: true }).click();
+  await pickModel(page, "letras para parede", "Letras para parede", { exact: true });
   await idle(page);
   await expect(page.getByRole("button", { name: /Salvar em lotes/ })).toHaveCount(0); // texto curto: um arquivo só
   await page.getByLabel(/^Texto/).first().fill("ABCDEFGHIJKLMNOPQRST");

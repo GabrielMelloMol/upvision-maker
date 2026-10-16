@@ -18,7 +18,8 @@ export const TOURS: Tour[] = [
     id: "home",
     steps: [
       { sel: ".sidebar .scroll", text: "Aqui ficam as seções do app: Criar, Vender, Estoque, Resultados e Ajustes." },
-      { sel: ".home-actions", text: "Atalhos para o que você mais faz: um chaveiro, um modelo pronto, um preço, um orçamento." },
+      { sel: ".home-search", text: "Digite o que quer criar (chaveiro com nome, placa Pix, topo de bolo…) e a Criar abre já com o que combina." },
+      { sel: ".home-actions", text: "Atalhos que abrem direto: chaveiro com nome, placa Pix, topo de bolo, medalha… Embaixo, os de vender: preço, orçamento e pedidos." },
       { sel: ".home > .occasion-card", optional: true, text: "A próxima data comemorativa aparece aqui: clique para ver os modelos prontos para ela." },
       { button: "Buscar", text: `A busca acha telas, modelos prontos, produtos e clientes. Atalho: ${modKey()}K.` },
       { sel: ".sidebar .theme-toggle", optional: true, text: "Claro ou escuro, quando quiser (com a barra lateral estreita, o botão fica nas Preferências)." },
@@ -27,20 +28,17 @@ export const TOURS: Tour[] = [
   {
     id: "create",
     steps: [
-      { field: "Buscar ferramenta ou modelo", text: "Digite o que quer fazer, por exemplo “chaveiro”, “geladeira” ou “Dia das Mães”.", wait: "input" },
-      { sel: ".create-filters [role='group']", text: "Ou filtre pelo que você tem em mãos." },
-      { sel: ".create-tools", text: "Ferramentas: clique numa para abrir. Ela aparece embaixo de Criar na barra." },
-      { sel: ".create-models", text: "Modelos prontos, por categoria: Chaveiros, Placas, Festa e esporte, Presentes e lembrancinhas, Casa e decoração, Organização e utilidades e Cozinha." },
+      { field: "O que você quer criar?", text: "Digite o que quer fazer, por exemplo “chaveiro”, “geladeira” ou “Dia das Mães”.", wait: "input" },
+      { sel: ".create-tabs", text: "Ou escolha a categoria do produto. As ferramentas para quem já tem um STL ou uma imagem ficam na aba Do seu arquivo (e no fim de Tudo)." },
+      { sel: ".create-products", text: "Produtos com foto: cada cartão diz o que resolve e quantos tipos tem. Clique para abrir." },
       { sel: ".create-projects", text: "Meus projetos guarda tudo o que você já fez, para abrir de novo." },
     ],
   },
   {
     id: "models",
     steps: [
-      { field: "Buscar modelo", text: "Procure pelo que você vende ou quer dar de presente; a busca entende sinônimos." },
-      { sel: "[role='group'][aria-label='Ocasião']", text: "Ou veja por data: Dia das Mães, Natal, Páscoa, aniversário…" },
-      { sel: "[role='group'][aria-label='Categoria']", text: "As categorias: Chaveiros, Placas, Festa e esporte, Presentes, Casa e decoração, Organização e Cozinha." },
-      { sel: "[role='group'][aria-label='Família']", text: "Cada cartão é uma família de modelos parecidos; dentro dela você escolhe a variação." },
+      { sel: ".back-to-create", text: "Todos os produtos volta para a Criar, na mesma categoria e com a mesma busca." },
+      { sel: ".model-variants", optional: true, text: "Cada produto tem vários tipos: escolha a variação aqui. O que você digitou vai junto." },
       { sel: ".viewer", text: "A prévia 3D muda enquanto você digita: arraste para girar." },
       { button: "Salvar 3MF", text: "Pronto? Salve o 3MF e abra no fatiador." },
     ],

@@ -31,8 +31,16 @@ async function openPage(user: ReturnType<typeof userEvent.setup>, p: (typeof PAG
   if (p.id === section.landing) return;
   if (p.section === "create") {
     await screen.findByRole("heading", { name: "Criar", level: 1 });
-    const links = screen.getAllByRole("link", { name: p.id === "models" ? /./ : new RegExp(`^${p.label.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}`) });
-    await user.click(p.id === "models" ? screen.getAllByRole("link").find((a) => a.getAttribute("href")?.startsWith("#models/"))! : links[0]);
+    if (p.id === "models") {
+      await user.clear(screen.getByRole("searchbox", { name: "O que você quer criar?" })); // a Criar lembra a busca anterior
+      await user.click(screen.getAllByRole("link").find((a) => a.getAttribute("href")?.startsWith("#models/"))!);
+    } else {
+      // ferramenta: pelo nome na busca da Criar (as de produto moram dentro do cartão do produto)
+      const box = screen.getByRole("searchbox", { name: "O que você quer criar?" });
+      await user.clear(box); // a Criar lembra a busca anterior
+      await user.type(box, p.label);
+      await user.click(screen.getAllByRole("link").find((a) => a.getAttribute("data-page") === p.id)!);
+    }
   } else await user.click(within(nav()).getByRole("button", { name: p.label }));
 }
 const fail = (msg: string) => () => {

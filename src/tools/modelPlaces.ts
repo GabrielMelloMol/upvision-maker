@@ -1,7 +1,7 @@
 import { openWith } from "./intent";
 
 /**
- * Modelos prontos que ganharam um lugar próprio como aba de uma ferramenta (Foto em relevo): quem abre o modelo
+ * Modelos prontos que ganharam um lugar próprio como aba de uma ferramenta (Litofania): quem abre o modelo
  * por um atalho antigo (galeria Criar, busca, "Veja também") cai na aba certa. O modelo continua no catálogo,
  * então rascunhos, variações salvas e projetos seguem valendo.
  */

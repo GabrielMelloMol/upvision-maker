@@ -1,13 +1,11 @@
 import AxeBuilder from "@axe-core/playwright";
 import type { Page } from "@playwright/test";
-import { expect, go, openApp, settleColors, test } from "./tauri";
+import { expect, openApp, pickModel, settleColors, test } from "./tauri";
 
 const idle = (page: Page) => expect(page.locator(".viewer .overlay.busy")).toHaveCount(0, { timeout: 90_000 });
 async function open(page: Page) {
   await openApp(page);
-  await go(page, "Modelos prontos");
-  await page.getByRole("searchbox", { name: "Buscar modelo" }).fill("caixa para placa");
-  await page.getByRole("group", { name: "Modelo" }).getByRole("button", { name: "Caixa para placa eletrônica", exact: true }).click();
+  await pickModel(page, "caixa para placa", "Caixa para placa eletrônica", { exact: true });
   await idle(page);
 }
 const size = async (page: Page): Promise<[number, number, number]> => {

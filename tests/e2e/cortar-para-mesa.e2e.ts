@@ -11,8 +11,8 @@ const big = (name: string) => ({ name, mimeType: "model/stl", buffer: Buffer.fro
 
 test("cortar para caber na mesa: STL de 300 mm vira 2 pedaços com junta numerada e salva o 3MF (#218)", async ({ page, tauri }) => {
   await openApp(page);
-  await go(page, "Cortar para caber na mesa");
-  await expect(page.getByRole("heading", { name: "Cortar para caber na mesa" })).toBeVisible();
+  await go(page, "Dividir peça grande");
+  await expect(page.getByRole("heading", { name: "Dividir peça grande" })).toBeVisible();
   await page.locator('input[type="file"]').first().setInputFiles(big("grande.stl"));
   await expect(page.getByText(/Peça: 300,0 × 200,0 × 100,0 mm/)).toBeVisible();
   const result = page.getByLabel("Resultado do corte");
@@ -40,7 +40,7 @@ for (const scheme of ["light", "dark"] as const) {
   test(`cortar para caber na mesa: tela com o arquivo aberto passa no axe (${scheme})`, async ({ page }) => {
     await page.emulateMedia({ colorScheme: scheme });
     await openApp(page);
-    await go(page, "Cortar para caber na mesa");
+    await go(page, "Dividir peça grande");
     await page.locator('input[type="file"]').first().setInputFiles(big("grande.stl"));
     await expect(page.getByLabel("Resultado do corte")).toContainText("2 pedaços", { timeout: 60_000 });
     await idle(page);

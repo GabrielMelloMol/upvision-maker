@@ -35,7 +35,7 @@ function boxStl(): Buffer {
 test("miolo leve: peça com giroide, corte ao meio, comparação das 3 estruturas e 3MF; depois o bloco de treliça (#236)", async ({ page, tauri }) => {
   test.setTimeout(240_000);
   await openApp(page);
-  await go(page, "Miolo leve");
+  await go(page, "Deixar a peça mais leve");
   await expect(page.getByText("Envie um STL ou 3MF para alivianar.")).toBeVisible();
   await expect(page.getByText(/Use só modelos que são seus ou cuja licença permite/)).toBeVisible();
 

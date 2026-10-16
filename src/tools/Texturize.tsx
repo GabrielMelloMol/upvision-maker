@@ -85,13 +85,13 @@ function Thumb({ id }: { id: TextureId }) {
 const mm = (n: number) => n.toFixed(1).replace(".", ",");
 
 /**
- * Textura no seu modelo (#222): fibra de carbono, couro, madeira, serrilhado, colmeia, felpudo… (16 padrões), uma frase ou
+ * Textura na peça (#222): fibra de carbono, couro, madeira, serrilhado, colmeia, felpudo… (16 padrões), uma frase ou
  * uma imagem viram relevo de verdade na superfície de um STL ou 3MF, na peça toda, só nas laterais, só no topo ou onde
  * você pintar, com base lisa e sem balanço novo.
  */
 export default function Texturize() {
   const tool = useToolState("texturize", initialState, {
-    label: "Textura no seu modelo",
+    label: "Textura na peça",
     save: (s) => ({ ...s, file: s.file && { name: s.file.name, bytes: storeBytes(s.file.bytes) }, image: s.image && { name: s.image.name, bytes: storeBytes(s.image.bytes) } }),
     load: (raw) => {
       const r = raw as Omit<State, "file" | "image"> & { file: { name: string; bytes: string | null } | null; image: { name: string; bytes: string | null } | null };
@@ -192,7 +192,7 @@ export default function Texturize() {
 
   return (
     <div className="page">
-      <h1>Textura no seu modelo</h1>
+      <h1>Textura na peça</h1>
       <p className="lead">Textura de verdade na superfície do STL.</p>
       <ToolSessionBar tool={tool} />
       <div className="tool-layout">

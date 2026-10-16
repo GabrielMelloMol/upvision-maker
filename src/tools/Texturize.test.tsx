@@ -21,7 +21,7 @@ const t = setupTauri();
 const BUILD = { timeout: 90_000 };
 const stl = () => new File([boxStl(40, 40, 30)], "caixa.stl", { type: "model/stl" });
 
-describe("Textura no seu modelo (#222)", { timeout: 180_000 }, () => {
+describe("Textura na peça (#222)", { timeout: 180_000 }, () => {
   test("sem arquivo: pede o STL, explica quando usar e mostra as 16 texturas em grupos", () => {
     renderWithApp(<Texturize />);
     expect(screen.getByText("Envie um STL ou 3MF para texturizar.")).toBeInTheDocument();

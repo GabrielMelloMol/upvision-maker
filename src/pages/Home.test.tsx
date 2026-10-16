@@ -37,14 +37,15 @@ describe("Home (#139)", () => {
     expect(screen.getByRole("heading", { name: text, level: 1 })).toBeInTheDocument();
   });
 
-  test("cinco ações; o rascunho aparece em Meus projetos e os prazos da semana abrem o pedido", async () => {
+  test("atalhos de Criar e Vender abrem direto; o rascunho aparece em Meus projetos e os prazos da semana abrem o pedido", async () => {
     vi.useFakeTimers({ toFake: ["Date"], now: new Date(2026, 8, 28, 14) });
     await t.db.execute("INSERT INTO tool_state (id, data, updatedAt) VALUES ('keychain', '{}', ?)", [new Date(2026, 8, 28, 12).toISOString()]);
     await t.db.execute("INSERT INTO orders (customerName, channel, status, dueDate, createdAt) VALUES ('Ana', 'Loja', 'pending', '2026-09-30', '2026-09-20 10:00:00'), ('Bia', 'Loja', 'pending', '2026-12-01', '2026-09-20 10:00:00')");
     const go = vi.fn();
     renderWithApp(<Home go={go} />);
     const user = userEvent.setup();
-    expect(within(screen.getByRole("list", { name: "Começar" })).getAllByRole("button")).toHaveLength(5);
+    expect(within(screen.getByRole("list", { name: "Criar" })).getAllByRole("button").map((b) => b.textContent)).toEqual(["Chaveiro com nome", "Placa Pix", "Topo de bolo", "Medalha", "Cortador de biscoito", "Litofania"]);
+    expect(within(screen.getByRole("list", { name: "Vender" })).getAllByRole("button").map((b) => b.textContent)).toEqual(["Calcular preço", "Orçamento", "Pedidos"]);
     await user.click(screen.getByRole("button", { name: "Calcular preço" }));
     await user.click(await screen.findByRole("button", { name: /Chaveiros · rascunho há 2 horas/ }));
     const week = screen.getByRole("heading", { name: "Esta semana" }).closest("section")!;
@@ -86,7 +87,7 @@ describe("Home (#139)", () => {
       await quote();
       renderWithApp(<Home go={() => {}} />);
       await screen.findByRole("heading", { name: /Bom dia|Boa tarde|Boa noite/, level: 1 });
-      await vi.waitFor(() => expect(screen.getByRole("list", { name: "Começar" })).toBeInTheDocument());
+      await vi.waitFor(() => expect(screen.getByRole("list", { name: "Criar" })).toBeInTheDocument());
       await new Promise((r) => setTimeout(r, 50));
       expect(screen.queryByRole("region", { name: "Comece por aqui" })).not.toBeInTheDocument();
     });

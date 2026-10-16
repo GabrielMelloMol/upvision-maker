@@ -21,7 +21,7 @@ const t = setupTauri();
 const BUILD = { timeout: 60_000 };
 const stl = (x: number, y: number, z: number) => new File([boxStl(x, y, z)], "grande.stl", { type: "model/stl" });
 
-describe("Cortar para caber na mesa (#218)", { timeout: 120_000 }, () => {
+describe("Dividir peça grande (#218)", { timeout: 120_000 }, () => {
   test("sem arquivo: pede o STL e explica quando usar", () => {
     renderWithApp(<BedCut />);
     expect(screen.getByText("Envie um STL ou 3MF grande para cortar.")).toBeInTheDocument();

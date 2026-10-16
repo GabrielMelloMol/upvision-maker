@@ -1,14 +1,12 @@
 import type { Page } from "@playwright/test";
-import { expect, go, openApp, test, toastWith } from "./tauri";
+import { expect, openApp, pickModel, test, toastWith } from "./tauri";
 
 const hud = (page: Page) => page.locator(".viewer .hud");
 const idle = (page: Page) => expect(page.locator(".viewer .overlay.busy")).toHaveCount(0, { timeout: 60_000 });
 
 test("suporte de celular: ângulo, espessura do aparelho, tablet e nome em relevo (#110)", async ({ page, tauri }) => {
   await openApp(page);
-  await go(page, "Modelos prontos");
-  await page.getByRole("searchbox", { name: "Buscar modelo" }).fill("celular");
-  await page.getByRole("group", { name: "Modelo" }).getByRole("button", { name: "Suporte de celular e tablet", exact: true }).click();
+  await pickModel(page, "celular", "Suporte de celular e tablet", { exact: true });
   await idle(page);
   // largura 80, altura do apoio 90 + base 5
   await expect(hud(page)).toContainText("80.0 ×", { timeout: 60_000 });

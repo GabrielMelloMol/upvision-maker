@@ -1,6 +1,6 @@
 import type { Page } from "@playwright/test";
 import { readFileSync } from "node:fs";
-import { expect, go, openApp, test, toastWith } from "./tauri";
+import { expect, go, openApp, pickModel, test, toastWith } from "./tauri";
 
 const FONT_FILE = readFileSync(new URL("../../src/assets/fonts/rubik-mono-one-400.ttf", import.meta.url));
 const SHOTS = process.env.SHOTS_DIR;
@@ -89,9 +89,7 @@ test("importar .ttf: vira 'Minhas', gera o chaveiro, fica salva e pode ser remov
 
 test("modelos prontos usam o mesmo seletor (topo de bolo em Anton) (#20)", async ({ page }) => {
   await openApp(page);
-  await go(page, "Modelos prontos");
-  await page.getByRole("searchbox", { name: "Buscar modelo" }).fill("Topo de bolo");
-  await page.getByRole("group", { name: "Modelo" }).getByRole("button", { name: "Topo de bolo", exact: true }).click();
+  await pickModel(page, "Topo de bolo", "Topo de bolo", { exact: true });
   await idle(page);
   await expect(hud(page)).toContainText("mm", { timeout: 60_000 });
   const before = await hud(page).textContent();

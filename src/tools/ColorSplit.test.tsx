@@ -15,7 +15,7 @@ const t = setupTauri();
 const BUILD = { timeout: 30_000 };
 const fixture = (n: string) => new File([readFileSync(resolve(__dirname, "../../tests/fixtures/3mf", n))], n);
 
-describe("Separar cores de um 3MF", () => {
+describe("Separar as cores de um arquivo", () => {
   test("3MF pintado do Bambu: lista as 3 cores e salva um objeto com uma parte por cor", async () => {
     const user = userEvent.setup();
     const { container } = renderWithApp(<ColorSplit />);

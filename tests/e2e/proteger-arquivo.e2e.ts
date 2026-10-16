@@ -10,7 +10,7 @@ const sha = (p: string) => createHash("sha256").update(readFileSync(p)).digest("
 
 test("proteger arquivo: hash igual ao do sistema, certificado em PDF e .json salvos, conferência certa e errada", async ({ page, tauri }) => {
   await openApp(page);
-  await go(page, "Proteger arquivo");
+  await go(page, "Certificado de autoria");
   await page.locator('input[type="file"]').first().setInputFiles(FILE);
   const want = sha(FILE);
   await expect(page.getByLabel("Hash SHA-256 do arquivo")).toContainText(want.slice(0, 8));
@@ -43,7 +43,7 @@ test("proteger arquivo: Dados da empresa preenchem autor e contato", async ({ pa
   const data = JSON.stringify({ name: "Ana Souza ME", tradeName: "Ana 3D", phone: "(11) 99999-0000", email: "ana@ana3d.com.br", instagram: "ana3d" });
   await openApp(page);
   tauri.db.prepare("INSERT INTO company (id, data) VALUES (1, ?) ON CONFLICT(id) DO UPDATE SET data = excluded.data").run(data);
-  await go(page, "Proteger arquivo");
+  await go(page, "Certificado de autoria");
   await expect(page.getByLabel(/^Autor ou loja/)).toHaveValue("Ana 3D");
   await expect(page.getByLabel(/^Contato/)).toHaveValue(/\(11\) 99999-0000 · ana@ana3d\.com\.br/);
   await page.locator('input[type="file"]').first().setInputFiles(FILE);
@@ -54,7 +54,7 @@ test("proteger arquivo: Dados da empresa preenchem autor e contato", async ({ pa
 
 test("proteger arquivo: acessibilidade (axe), claro e escuro", async ({ page }) => {
   await openApp(page);
-  await go(page, "Proteger arquivo");
+  await go(page, "Certificado de autoria");
   await page.locator('input[type="file"]').first().setInputFiles(FILE);
   await expect(page.getByLabel("Hash SHA-256 do arquivo")).toBeVisible();
   for (const scheme of ["light", "dark"] as const) {

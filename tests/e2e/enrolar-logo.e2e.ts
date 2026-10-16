@@ -10,7 +10,7 @@ const idle = async (page: Page) => {
 test("enrolar o texto na lateral de um copo: na projeção reta não cabe e avisa; enrolado cabe e salva o 3MF (#245)", async ({ page, tauri }) => {
   await page.setViewportSize({ width: 1440, height: 1250 });
   await openApp(page);
-  await go(page, "Nome ou logo no seu modelo");
+  await go(page, "Nome ou logo na peça");
   await page.locator('input[type="file"]').first().setInputFiles({ name: "copo.stl", mimeType: "model/stl", buffer: Buffer.from(cylinderStl(35, 90)) });
   await expect(page.locator(".viewer .hud")).toContainText("70.0 × 70.0 × 90.0 mm", { timeout: 60_000 });
   const limpar = page.getByRole("button", { name: "Limpar ponto" });

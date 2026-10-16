@@ -373,14 +373,14 @@ export function toolCases(M: ManifoldToplevel): QaCase[] {
         ["boneco em outro eixo", () => mold(arm(), { axis: "x", offset: 0 })],
       ] as Variant[];
     })()),
-    ...cases("lighten", "Miolo leve", [
+    ...cases("lighten", "Deixar a peça mais leve", [
       ["giroide", () => lighten({ kind: "gyroid" })],
       ["voronoi", () => lighten({ kind: "voronoi" })],
       ["treliça cúbica", () => lighten({ kind: "cubic" })],
       ["bloco de treliça", () => lattice({ kind: "cubic" })],
       ["bloco de giroide", () => lattice({ kind: "gyroid" })],
     ]),
-    ...cases("partialcut", "Corte parcial", [
+    ...cases("partialcut", "Cortar um pedaço com encaixe", [
       ["sugestão para menos suporte", (): Out => {
         const model = readOwnFile(new Uint8Array(readFileSync(ARM)), "boneco-braco.stl");
         const [s] = suggestCuts(M, model);
@@ -419,13 +419,13 @@ export function toolCases(M: ManifoldToplevel): QaCase[] {
       ["garrafa: enrolar relevo", () => wrapped("garrafa", "raised")],
       ["copo cônico: enrolar embutido", () => wrapped("cone", "inlay")],
     ]),
-    ...cases("bedcut", "Cortar para caber na mesa", [
+    ...cases("bedcut", "Dividir peça grande", [
       ["pino redondo (2 pedaços)", () => bedCutCase(300, 150, 60)],
       ["ímã", () => bedCutCase(300, 150, 60, { joint: "magnet" })],
       ["rabo de andorinha", () => bedCutCase(300, 150, 60, { joint: "dovetail" })],
       ["3 eixos com números", () => bedCutCase(520, 300, 90, { joint: "square" })],
     ]),
-    ...cases("texturize", "Textura no seu modelo", [
+    ...cases("texturize", "Textura na peça", [
       ["carbono para fora", () => textured({ source: { kind: "pattern", id: "carbono" }, scale: 7, depth: 0.5 })],
       ["knurling nas laterais", () => textured({ source: { kind: "pattern", id: "knurling" }, scale: 4, depth: 0.5, faces: "sides" })],
       ["couro para dentro, cilíndrica", () => textured({ source: { kind: "pattern", id: "couro" }, scale: 8, depth: 0.6, direction: "in", mapping: "cylinder" })],
@@ -556,7 +556,7 @@ export function toolCases(M: ManifoldToplevel): QaCase[] {
       ["padrão", () => spool(1)],
       ["máximo", () => spool(spoolTagsThatFit(PLATE_MM - 2 * GAP_MM, GAP_MM))],
     ]),
-    ...cases("colorsplit", "Separar cores de um 3MF", [
+    ...cases("colorsplit", "Separar as cores de um arquivo", [
       ["padrão", () => split(1, false)],
       ["mínimo", () => split(0.2, false)],
       ["máximo", () => split(10, false)],

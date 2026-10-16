@@ -1,16 +1,14 @@
 import AxeBuilder from "@axe-core/playwright";
 import type { Page } from "@playwright/test";
 import { readFileSync } from "node:fs";
-import { expect, go, openApp, test, toastWith } from "./tauri";
+import { expect, openApp, pickModel, test, toastWith } from "./tauri";
 
 const hud = (page: Page) => page.locator(".viewer .hud");
 const idle = (page: Page) => expect(page.locator(".viewer .overlay.busy")).toHaveCount(0, { timeout: 60_000 });
 
 test("cartão de música: placa com player, letra em mais linhas deixa a placa mais alta, ímã e 3MF (#112)", async ({ page, tauri }) => {
   await openApp(page);
-  await go(page, "Modelos prontos");
-  await page.getByRole("searchbox", { name: "Buscar modelo" }).fill("Cartão de música");
-  await page.getByRole("group", { name: "Modelo" }).getByRole("button", { name: "Cartão de música", exact: true }).click();
+  await pickModel(page, "Cartão de música", "Cartão de música", { exact: true });
   await idle(page);
   for (const name of ["Placa", "Texto", "Destaque"]) await expect(page.locator(".legend")).toContainText(name);
   const depth = async () => parseFloat(((await hud(page).textContent()) ?? "").split(" × ")[1]);
@@ -33,9 +31,7 @@ const SCANNABLES = "https://scannables.scdn.co/**";
 
 async function openMusicCard(page: Page) {
   await openApp(page);
-  await go(page, "Modelos prontos");
-  await page.getByRole("searchbox", { name: "Buscar modelo" }).fill("Cartão de música");
-  await page.getByRole("group", { name: "Modelo" }).getByRole("button", { name: "Cartão de música", exact: true }).click();
+  await pickModel(page, "Cartão de música", "Cartão de música", { exact: true });
   await idle(page);
 }
 const codeGroup = (page: Page) => page.getByRole("group", { name: "Código", exact: true });

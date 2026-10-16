@@ -53,8 +53,8 @@ describe("busca do ⌘K acha os Modelos prontos", { timeout: 30_000 }, () => { /
 
   test("as telas continuam aparecendo (litofania acha a ferramenta)", async () => {
     await open("litofania");
-    const hits = await screen.findAllByRole("option", { name: /Foto em relevo/ });
-    expect(hits[0]).toHaveTextContent("Foto em relevo"); // a tela vem primeiro (a ajuda dela vem depois)
+    const hits = await screen.findAllByRole("option", { name: /Litofania/ });
+    expect(hits[0]).toHaveTextContent("Litofania"); // a tela vem primeiro (a ajuda dela vem depois)
   });
 
   test("a ocasião acha os modelos dela (Dia das Mães → Mapa estelar)", async () => {

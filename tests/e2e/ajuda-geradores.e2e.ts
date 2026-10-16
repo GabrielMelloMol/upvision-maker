@@ -1,8 +1,8 @@
 import AxeBuilder from "@axe-core/playwright";
-import { expect, go, openApp, settleColors, test } from "./tauri";
+import { expect, go, openApp, pickModel, settleColors, test } from "./tauri";
 
-// "Foto em relevo" abre numa escolha de tipo; o Como usar aparece na tela do gerador escolhido
-const TOOLS = ["Imagem em desenho (SVG)", "Cortador de biscoito", "Chaveiros", "Medalhas", "Carimbo seco", "Caixinha termoformada", "Desenho em 3D", "QR Code e Pix", "Etiquetas de rolo", "Pixel art", "Separar cores de um 3MF", "Nome ou logo no seu modelo", "Corte parcial"];
+// "Litofania" abre numa escolha de tipo; o Como usar aparece na tela do gerador escolhido
+const TOOLS = ["Imagem em vetor", "Cortador de biscoito", "Chaveiros", "Medalhas", "Carimbo seco", "Caixinha termoformada", "Imagem em relevo 3D", "QR Code e Pix", "Etiquetas de rolo", "Pixel art", "Separar as cores de um arquivo", "Nome ou logo na peça", "Cortar um pedaço com encaixe"];
 
 test("toda ferramenta com tela própria tem o bloco Como usar (quando usar, dicas e perguntas) (#209)", async ({ page }) => {
   test.slow();
@@ -26,9 +26,7 @@ test("toda ferramenta com tela própria tem o bloco Como usar (quando usar, dica
 test("Modelos prontos: as variações viram 'Comece pelo uso' com frase e o Como usar traz a ajuda da família e a tabela dos campos", async ({ page }) => {
   test.slow();
   await openApp(page);
-  await go(page, "Modelos prontos");
-  await page.getByRole("searchbox", { name: "Buscar modelo" }).fill("Topo de bolo");
-  await page.getByRole("group", { name: "Modelo" }).getByRole("button", { name: /Topo de bolo/ }).first().click();
+  await pickModel(page, "Topo de bolo", /Topo de bolo/);
   const bar = page.getByRole("group", { name: "Variações prontas" });
   await expect(bar.getByRole("button", { name: "Casamento" })).toBeVisible();
   await expect(page.getByRole("heading", { name: "Comece pelo uso" })).toBeVisible();
@@ -68,9 +66,7 @@ test("QR no tema escuro: a prévia vazia segue o tema (o branco só aparece atr�
 test("Dicas de impressão aparecem uma vez só e a tabela do Como usar não tem coluna Dica vazia", async ({ page }) => {
   test.slow();
   await openApp(page);
-  await go(page, "Modelos prontos");
-  await page.getByRole("searchbox", { name: "Buscar modelo" }).fill("Topo de bolo");
-  await page.getByRole("group", { name: "Modelo" }).getByRole("button", { name: /Topo de bolo/ }).first().click();
+  await pickModel(page, "Topo de bolo", /Topo de bolo/);
   const help = page.locator("details.gen-help").first();
   await help.locator("summary").first().click();
   await expect(help.getByText("Dicas de impressão")).toHaveCount(0);

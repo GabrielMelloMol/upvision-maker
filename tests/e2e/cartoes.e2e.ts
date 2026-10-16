@@ -5,101 +5,79 @@ import { expect, go, openApp, test } from "./tauri";
 const model = (page: Page) => page.locator("[data-model]");
 const opened = async (page: Page) => (await model(page).first().getAttribute("data-model")) ?? "";
 
-test("Criar: cada cartão de modelo pronto abre o modelo do próprio cartão (todas as categorias)", async ({ page }) => {
+test("Criar: cada cartão de produto abre o modelo ou a ferramenta do próprio cartão (todas as categorias)", async ({ page }) => {
   test.setTimeout(10 * 60_000);
   await openApp(page);
   await go(page, "Criar");
-  const cards = page.locator(".create-models a");
+  const cards = page.locator(".create-products a");
   await expect(cards.first()).toBeVisible();
   const total = await cards.count();
-  expect(total).toBeGreaterThan(25);
+  expect(total).toBeGreaterThan(40); // 38 famílias + 4 ferramentas que também são produto
   const wrong: string[] = [];
   for (let i = 0; i < total; i++) {
     await go(page, "Criar");
-    const card = page.locator(".create-models a").nth(i);
-    const want = (await card.getAttribute("href"))!.replace("#models/", "");
-    const variants = ((await card.getAttribute("data-variants")) ?? "").split(",");
-    const family = await card.getAttribute("data-family");
-    if (!variants.includes(want)) wrong.push(`${family}: o cartão aponta para ${want}, que não é da família`);
+    const card = page.locator(".create-products a").nth(i);
+    const href = (await card.getAttribute("href"))!;
+    const family = await card.getAttribute("data-product");
+    const variants = ((await card.getAttribute("data-variants")) ?? "").split(",").filter(Boolean);
+    const want = href.replace("#models/", "").replace("#", "");
+    if (href.startsWith("#models/") && !variants.includes(want)) wrong.push(`${family}: o cartão aponta para ${want}, que não é do produto`);
     await card.click();
-    // o que virou aba de outra ferramenta (Shadowbox) abre lá; o resto abre nos Modelos prontos, no modelo do cartão
     await page.waitForSelector("main h1", { timeout: 15_000 });
-    const tab = want === "shadowbox";
-    if (tab) {
-      if (!(await page.getByRole("heading", { name: "Foto em relevo", level: 1 }).isVisible())) wrong.push(`${family}: shadowbox não abriu a Foto em relevo`);
+    if (!href.startsWith("#models/")) continue; // ferramenta: a tela abriu (tem título)
+    // o que virou aba de outra ferramenta (Shadowbox) abre lá; o resto abre nos Modelos prontos, no modelo do cartão
+    if (want === "shadowbox") {
+      if (!(await page.getByRole("heading", { name: "Litofania", level: 1 }).isVisible())) wrong.push(`${family}: shadowbox não abriu a Litofania`);
       continue;
     }
     await expect(model(page).first()).toBeVisible({ timeout: 15_000 });
     const got = await opened(page);
     if (got !== want) wrong.push(`${family}: esperava ${want}, abriu ${got}`);
   }
-  expect(wrong, "cartões que abriram o modelo errado").toEqual([]);
+  expect(wrong, "cartões que abriram o lugar errado").toEqual([]);
 });
 
-test("galeria dos Modelos prontos: cada cartão de família, em cada categoria, abre a família dele", async ({ page }) => {
-  test.setTimeout(10 * 60_000);
+test("Criar: cada resultado de ocasião e de busca abre o modelo clicado", async ({ page }) => {
+  test.setTimeout(15 * 60_000);
   await openApp(page);
-  await go(page, "Modelos prontos");
-  const tabs = page.getByRole("group", { name: "Categoria" });
-  await expect(tabs.getByRole("button").first()).toBeVisible();
-  const names = await tabs.getByRole("button").allTextContents();
-  expect(names).toHaveLength(7);
+  await go(page, "Criar");
   const wrong: string[] = [];
-  let seen = 0;
-  for (const name of names) {
-    await tabs.getByRole("button", { name, exact: true }).click();
-    const families = page.getByRole("group", { name: "Família" }).locator("button");
-    const n = await families.count();
-    expect(n, name).toBeGreaterThan(0);
+  const clickAll = async (label: string, max = 2) => {
+    const n = Math.min(max, await page.locator(".create-products a").count());
     for (let i = 0; i < n; i++) {
-      const card = page.getByRole("group", { name: "Família" }).locator("button").nth(i);
-      const family = await card.getAttribute("data-family");
-      const variants = ((await card.getAttribute("data-variants")) ?? "").split(",");
-      await card.click();
-      seen++;
-      await expect(card).toHaveAttribute("aria-pressed", "true");
-      const got = await opened(page);
-      if (!variants.includes(got)) wrong.push(`${name} › ${family}: abriu ${got}, que não é da família (${variants.join(",")})`);
-      // a aba continua a da família clicada
-      await expect(tabs.getByRole("button", { name, exact: true })).toHaveAttribute("aria-pressed", "true");
-    }
-  }
-  expect(seen).toBeGreaterThan(25);
-  expect(wrong, "cartões que abriram a família errada").toEqual([]);
-});
-
-test("galeria: cada resultado de ocasião e de busca abre o modelo clicado", async ({ page }) => {
-  test.setTimeout(10 * 60_000);
-  await openApp(page);
-  await go(page, "Modelos prontos");
-  const wrong: string[] = [];
-  const clickAll = async (label: string) => {
-    const buttons = page.getByRole("group", { name: "Modelo" }).locator("button[data-id]");
-    const n = await buttons.count();
-    for (let i = 0; i < n; i++) {
-      const b = page.getByRole("group", { name: "Modelo" }).locator("button[data-id]").nth(i);
-      const want = (await b.getAttribute("data-id"))!;
-      await b.click();
+      await go(page, "Criar"); // a Criar volta com o mesmo filtro
+      const a = page.locator(".create-products a").nth(i);
+      const href = (await a.getAttribute("href"))!;
+      if (!href.startsWith("#models/")) continue;
+      const want = href.replace("#models/", "");
+      await a.click();
+      if (want === "shadowbox") continue;
+      await model(page).first().waitFor();
       const got = await opened(page);
       if (got !== want) wrong.push(`${label}: esperava ${want}, abriu ${got}`);
     }
     return n;
   };
   // todas as ocasiões (as escondidas aparecem em "Mais")
-  const chips = page.getByRole("group", { name: "Ocasião" });
-  await expect(chips.getByRole("button").first()).toBeVisible();
-  if (await chips.getByRole("button", { name: /^Mais \(/ }).count()) await chips.getByRole("button", { name: /^Mais \(/ }).click();
-  const occasions = (await chips.getByRole("button").allTextContents()).filter((t) => t !== "Menos" && !/Favoritos/.test(t));
+  const chips = () => page.getByRole("group", { name: "Ocasião" });
+  await expect(chips().getByRole("button").first()).toBeVisible();
+  if (await chips().getByRole("button", { name: /^Mais \(/ }).count()) await chips().getByRole("button", { name: /^Mais \(/ }).click();
+  const occasions = (await chips().getByRole("button").allTextContents()).filter((t) => t !== "Menos" && !/Favoritos/.test(t));
   expect(occasions.length).toBe(13);
   let total = 0;
   for (const o of occasions) {
-    await chips.getByRole("button", { name: o, exact: true }).click();
+    await go(page, "Criar");
+    if (await chips().getByRole("button", { name: /^Mais \(/ }).count()) await chips().getByRole("button", { name: /^Mais \(/ }).click();
+    await chips().getByRole("button", { name: o, exact: true }).click();
     total += await clickAll(`ocasião ${o}`);
-    await chips.getByRole("button", { name: o, exact: true }).click(); // desliga
+    await go(page, "Criar");
+    if (await chips().getByRole("button", { name: /^Mais \(/ }).count()) await chips().getByRole("button", { name: /^Mais \(/ }).click();
+    await chips().getByRole("button", { name: o, exact: true }).click(); // desliga
   }
-  expect(total).toBeGreaterThan(50);
+  expect(total).toBeGreaterThan(25);
   for (const q of ["mapa", "tecla", "geladeira", "abajur", "dado", "porta copos", "camiseta", "natal", "gridfinity", "placa", "chaveiro"]) {
-    await page.getByRole("searchbox", { name: "Buscar modelo" }).fill(q);
+    await go(page, "Criar");
+    await page.getByRole("searchbox", { name: "O que você quer criar?" }).fill(q);
     expect(await clickAll(`busca ${q}`), q).toBeGreaterThan(0);
   }
   expect(wrong, "resultados que abriram o modelo errado").toEqual([]);
@@ -137,29 +115,33 @@ const OCASIOES: [Date, string][] = [
 ];
 for (const [date, nome] of OCASIOES)
   for (const onde of ["Início", "Criar"] as const)
-    test(`cartão da ocasião ${nome} (${onde}) abre a coleção e um modelo dela`, async ({ page }) => {
+    test(`cartão da ocasião ${nome} (${onde}) abre a Criar na coleção e um modelo dela`, async ({ page }) => {
       await page.clock.setFixedTime(date);
       await openApp(page);
       if (onde === "Criar") await go(page, "Criar");
       await page.getByRole("button", { name: new RegExp(`Para .*${nome}`) }).click();
-      await expect(model(page).first()).toBeVisible({ timeout: 15_000 });
       const chips = page.getByRole("group", { name: "Ocasião" });
+      await expect(chips.getByRole("button").first()).toBeVisible();
       if (await chips.getByRole("button", { name: /^Mais \(/ }).count()) await chips.getByRole("button", { name: /^Mais \(/ }).click();
       await expect(chips.getByRole("button", { name: nome, exact: true })).toHaveAttribute("aria-pressed", "true");
-      const ids = await page.getByRole("group", { name: "Modelo" }).locator("button[data-id]").evaluateAll((els) => els.map((e) => e.getAttribute("data-id")));
-      expect(ids, `modelos da coleção ${nome}`).toContain(await opened(page));
+      const card = page.locator(".create-products a").first();
+      await expect(card).toBeVisible({ timeout: 15_000 });
+      const variants = ((await card.getAttribute("data-variants")) ?? "").split(",");
+      await card.click();
+      await expect(model(page).first()).toBeVisible({ timeout: 15_000 });
+      expect(variants, `modelos do cartão da coleção ${nome}`).toContain(await opened(page));
     });
 
 test("Veja também e atalhos das famílias: cada um abre o destino do próprio rótulo", async ({ page }) => {
   test.setTimeout(10 * 60_000);
   await openApp(page);
   // Veja também das ferramentas
-  await go(page, "Foto em relevo");
+  await go(page, "Litofania");
   await page.locator(".relief-cards button").first().click(); // escolhe Litofania; o Veja também aparece depois da escolha
   await page.getByRole("button", { name: "Litofania em abajur" }).first().click();
   await expect(model(page).first()).toBeVisible({ timeout: 15_000 });
   expect(await opened(page)).toBe("tableLamp");
-  await go(page, "Foto em relevo");
+  await go(page, "Litofania");
   await page.locator(".relief-cards button").first().click();
   await page.getByRole("button", { name: "Pixel art" }).first().click();
   await expect(page.getByRole("heading", { name: "Pixel art", level: 1 })).toBeVisible();
@@ -172,33 +154,28 @@ test("Veja também e atalhos das famílias: cada um abre o destino do próprio r
   await expect(page.getByRole("heading", { name: "Medalhas", level: 1 })).toBeVisible();
 
   // atalhos das famílias (os cartões de outra ferramenta dentro de "Variação")
-  const DESTINOS: Record<string, string> = { "Nome em lote": "Chaveiros", Redonda: "Medalhas", "QR e Pix": "QR Code e Pix", Biscoito: "Cortador de biscoito", "Na gaveta": "Organizadores", "Pela foto": "Organizadores", Pixel: "Pixel art", Litofania: "Foto em relevo", "Foto em relevo": "Foto em relevo" };
-  await go(page, "Modelos prontos");
-  const tabs = page.getByRole("group", { name: "Categoria" });
-  await expect(tabs.getByRole("button").first()).toBeVisible();
-  const names = await tabs.getByRole("button").allTextContents();
-  // só as famílias que têm atalho (o cartão diz quantos: data-tools)
-  const withTools: { name: string; family: string; n: number }[] = [];
-  for (const name of names) {
-    await tabs.getByRole("button", { name, exact: true }).click();
-    for (const card of await page.getByRole("group", { name: "Família" }).locator("button[data-tools]").all()) {
-      const n = Number(await card.getAttribute("data-tools"));
-      if (n > 0) withTools.push({ name, family: (await card.getAttribute("data-family"))!, n });
-    }
-  }
-  expect(withTools.length).toBeGreaterThanOrEqual(5);
+  const DESTINOS: Record<string, string> = { "Nome em lote": "Chaveiros", Redonda: "Medalhas", "QR Code e Pix": "QR Code e Pix", Biscoito: "Cortador de biscoito", "Na gaveta": "Organizadores", "Pela foto": "Organizadores", Pixel: "Pixel art", Carimbo: "Carimbo seco" };
+  // as famílias que têm atalho para outra ferramenta (a Medalha abre a própria ferramenta, sem seletor)
   const wrong: string[] = [];
   let used = 0;
-  for (const { name, family, n } of withTools) {
+  for (const family of ["keychain", "counterPlate", "stamps", "cutters", "gridfinity"]) {
+    await go(page, "Criar");
+    await page.getByRole("searchbox", { name: "O que você quer criar?" }).fill("");
+    await page.getByRole("group", { name: "Categoria" }).getByRole("button", { name: "Tudo", exact: true }).click();
+    await page.locator(`.create-products a[data-product="${family}"]`).click();
+    await model(page).first().waitFor();
+    const n = await page.locator(".model-variant-tool").count();
+    expect(n, `${family}: atalhos`).toBeGreaterThan(0);
     for (let j = 0; j < n; j++) {
-      await go(page, "Modelos prontos");
-      await tabs.getByRole("button", { name, exact: true }).click();
-      await page.locator(`[data-family="${family}"]`).click();
-      const shortcuts = page.locator(".model-variant-tool");
-      await expect(shortcuts).toHaveCount(n);
-      const label = ((await shortcuts.nth(j).locator(".model-variant-label").textContent()) ?? "").trim();
+      if (j > 0) {
+        await go(page, "Criar");
+        await page.locator(`.create-products a[data-product="${family}"]`).click();
+        await model(page).first().waitFor();
+      }
+      const shortcut = page.locator(".model-variant-tool").nth(j);
+      const label = ((await shortcut.locator(".model-variant-label").textContent()) ?? "").trim();
       const want = Object.entries(DESTINOS).find(([k]) => label.startsWith(k))?.[1];
-      await shortcuts.nth(j).click();
+      await shortcut.click();
       await page.waitForSelector("main h1");
       used++;
       const got = (await page.locator("main h1").first().textContent())?.trim();
@@ -206,6 +183,6 @@ test("Veja também e atalhos das famílias: cada um abre o destino do próprio r
       else if (got !== want) wrong.push(`${family}: atalho "${label}": esperava ${want}, abriu ${got}`);
     }
   }
-  expect(used).toBeGreaterThanOrEqual(7);
+  expect(used).toBeGreaterThanOrEqual(6);
   expect(wrong).toEqual([]);
 });

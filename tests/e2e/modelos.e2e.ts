@@ -1,11 +1,10 @@
 import type { Page } from "@playwright/test";
 import { unzipSync, strFromU8 } from "fflate";
-import { expect, go, openApp, test, toastWith } from "./tauri";
+import { expect, go, openApp, openProduct, pickModel as pickModelBy, test, toastWith } from "./tauri";
 
 /** Acha o modelo pela busca (a galeria mostra uma categoria por vez). */
 async function pickModel(page: Page, name: string) {
-  await page.getByRole("searchbox", { name: "Buscar modelo" }).fill(name);
-  await page.getByRole("group", { name: "Modelo" }).getByRole("button", { name, exact: true }).click();
+  await pickModelBy(page, name, name, { exact: true });
 }
 
 
@@ -15,11 +14,9 @@ test("Modelos prontos: cada modelo gera prévia 3D sem erro", async ({ page, tau
   await openApp(page);
   await go(page, "Impressoras"); // cria o banco
   tauri.db.prepare("INSERT INTO company (id, data) VALUES (1, ?)").run(JSON.stringify({ name: "Ateliê da Ana", pixKey: "fulano@exemplo.com", pixName: "Ana Souza", pixCity: "Niterói" }));
-  await go(page, "Modelos prontos");
-  const gallery = page.getByRole("group", { name: "Modelo" });
   for (const name of MODELS) {
     await pickModel(page, name);
-    await expect(gallery.getByRole("button", { name, exact: true })).toHaveAttribute("aria-pressed", "true");
+    await expect(page.getByRole("heading", { name, level: 2, exact: true })).toBeVisible();
     await expect(page.locator(".viewer .overlay.busy")).toHaveCount(0, { timeout: 60_000 });
     await expect(page.locator(".viewer .hud")).toContainText("mm", { timeout: 60_000 });
     await expect(page.locator(".viewer .overlay")).toHaveCount(0);
@@ -49,7 +46,6 @@ test("Placa Pix usa os dados da empresa; chaveiro NFC salva 3MF com a pausa", as
 
 test("Modelos prontos: campo fora da faixa não gera modelo", async ({ page, tauri }) => {
   await openApp(page);
-  await go(page, "Modelos prontos");
   await pickModel(page, "Porta-caneta");
   await page.getByLabel(/^Altura \(mm\)/).fill("5");
   await expect(page.getByText("Corrija os campos em vermelho.")).toBeVisible();
@@ -75,30 +71,29 @@ const GIFTS_SPORT = [
 const LOGO = { name: "logo.svg", mimeType: "image/svg+xml", buffer: Buffer.from('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"><path fill="#2563eb" d="M0 0H20V20H0Z"/><path fill="#f8f8f6" d="M5 5H15V15H5Z"/></svg>') };
 
 test("Modelos prontos (#10): brindes, esporte e peças funcionais geram prévia 3D", async ({ page, tauri }) => {
+  test.slow(); // cada modelo passa pela Criar (busca e cartão) antes de abrir
   void tauri;
   await openApp(page);
-  await go(page, "Modelos prontos");
   await pickModel(page, "Medalha adaptável");
   await page.locator('input[type="file"]').first() /* o do modelo; o das camadas livres (#26) vem depois */.setInputFiles(LOGO);
-  const gallery = page.getByRole("group", { name: "Modelo" });
   for (const name of GIFTS_SPORT) {
     await pickModel(page, name);
-    await expect(gallery.getByRole("button", { name, exact: true })).toHaveAttribute("aria-pressed", "true");
+    await expect(page.getByRole("heading", { name, level: 2, exact: true })).toBeVisible();
     await expect(page.locator(".viewer .overlay.busy")).toHaveCount(0, { timeout: 60_000 });
     await expect(page.locator(".viewer .hud")).toContainText("mm", { timeout: 60_000 });
     await expect(page.locator(".viewer .overlay")).toHaveCount(0);
   }
 });
 
-test("Modelos prontos: categorias mostram as famílias; a variação escolhe o modelo (#141)", async ({ page, tauri }) => {
+test("Criar: categorias mostram os produtos; a variação escolhe o modelo (#141)", async ({ page, tauri }) => {
   void tauri;
   await openApp(page);
-  await go(page, "Modelos prontos");
+  await go(page, "Criar");
   await page.getByRole("group", { name: "Categoria" }).getByRole("button", { name: "Cozinha" }).click();
-  const families = page.getByRole("group", { name: "Família" });
-  await expect(families.getByRole("button", { name: "Cortadores e formas" })).toBeVisible();
-  await expect(families.getByRole("button", { name: "Placa de balcão" })).toHaveCount(0);
-  await families.getByRole("button", { name: "Cortadores e formas" }).click();
+  const cards = page.locator(".create-products a strong");
+  await expect(cards.filter({ hasText: /^Cortadores e formas$/ })).toBeVisible();
+  await expect(cards.filter({ hasText: /^Placa de balcão$/ })).toHaveCount(0);
+  await openProduct(page, "Cortadores e formas");
   await page.getByRole("group", { name: "Variação" }).getByRole("button", { name: "Ejetor" }).click();
   await expect(page.getByRole("heading", { name: "Ejetor de brigadeiro" })).toBeVisible();
   await expect(page.getByRole("group", { name: "Variação" }).getByRole("button", { name: "Ejetor" })).toHaveAttribute("aria-pressed", "true");
@@ -107,13 +102,12 @@ test("Modelos prontos: categorias mostram as famílias; a variação escolhe o m
 const STUDY = ["Placa QR", "Placa com vários QRs", "Desenho em pé", "Tag de pet", "Placa de profissão", "Cartão de visita", "Chaveiro espelho", "Floco de neve com nome"];
 
 test("Modelos prontos (#23): cada modelo novo já abre com prévia 3D, sem precisar enviar nada", async ({ page, tauri }) => {
+  test.slow(); // cada modelo passa pela Criar (busca e cartão) antes de abrir
   void tauri;
   await openApp(page);
-  await go(page, "Modelos prontos");
-  const gallery = page.getByRole("group", { name: "Modelo" });
   for (const name of STUDY) {
     await pickModel(page, name);
-    await expect(gallery.getByRole("button", { name, exact: true })).toHaveAttribute("aria-pressed", "true");
+    await expect(page.getByRole("heading", { name, level: 2, exact: true })).toBeVisible();
     await expect(page.locator(".viewer .overlay.busy")).toHaveCount(0, { timeout: 60_000 });
     await expect(page.locator(".viewer .hud")).toContainText("mm", { timeout: 60_000 });
     await expect(page.locator(".viewer .overlay")).toHaveCount(0);

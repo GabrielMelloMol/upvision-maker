@@ -34,7 +34,7 @@ const set = (page: Page, label: RegExp, v: number) => page.getByLabel(label).fil
 
 test("corte parcial: corta só a cabeça do personagem e deixa a árvore intacta; salva o 3MF com resto, pedaço e pinos", async ({ page, tauri }) => {
   await openApp(page);
-  await go(page, "Corte parcial");
+  await go(page, "Cortar um pedaço com encaixe");
   await expect(page.getByText(/Use só modelos que são seus ou cuja licença permite/)).toBeVisible();
   await page.locator('input[type="file"]').first().setInputFiles(STL);
   await idle(page);
@@ -57,7 +57,7 @@ test("corte parcial: corta só a cabeça do personagem e deixa a árvore intacta
 
 test("corte parcial: arrastar a alça da face na vista 3D muda a região (e o slider acompanha); botões de vista", async ({ page }) => {
   await openApp(page);
-  await go(page, "Corte parcial");
+  await go(page, "Cortar um pedaço com encaixe");
   await page.locator('input[type="file"]').first().setInputFiles(STL);
   await idle(page);
   await set(page, /^Z de/, 20);
@@ -85,7 +85,7 @@ test("corte parcial: arrastar a alça da face na vista 3D muda a região (e o sl
 
 test("corte parcial: trocar para cilindro ajusta o raio à cabeça (parte + margem) e avisa se a região corta pelo lado", async ({ page }) => {
   await openApp(page);
-  await go(page, "Corte parcial");
+  await go(page, "Cortar um pedaço com encaixe");
   await page.locator('input[type="file"]').first().setInputFiles(STL);
   await idle(page);
   await set(page, /^Posição do plano/, 31);
@@ -102,7 +102,7 @@ test("corte parcial: trocar para cilindro ajusta o raio à cabeça (parte + marg
 
 test("corte parcial: dois cortes, cor por pedaço, peso e tempo por peça e desfazer por corte", async ({ page, tauri }) => {
   await openApp(page);
-  await go(page, "Corte parcial");
+  await go(page, "Cortar um pedaço com encaixe");
   await page.locator('input[type="file"]').first().setInputFiles(STL);
   await idle(page);
   await set(page, /^X de/, -4);
@@ -130,7 +130,7 @@ test("corte parcial: dois cortes, cor por pedaço, peso e tempo por peça e desf
 
 test("corte parcial: analisa as saliências, sugere cortar logo abaixo do braço e aplica o corte (worker no navegador)", async ({ page }) => {
   await openApp(page);
-  await go(page, "Corte parcial");
+  await go(page, "Cortar um pedaço com encaixe");
   await page.locator('input[type="file"]').first().setInputFiles(resolve("tests/fixtures/stl/boneco-braco.stl"));
   await idle(page);
   await page.getByRole("button", { name: "Analisar o modelo" }).click();
@@ -149,7 +149,7 @@ for (const width of [1280, 720]) {
   test(`corte parcial: tela com o arquivo aberto passa no axe, claro e escuro (${width}px)`, async ({ page }) => {
     await page.setViewportSize({ width, height: 1000 });
     await openApp(page);
-    await go(page, "Corte parcial");
+    await go(page, "Cortar um pedaço com encaixe");
     await page.locator('input[type="file"]').first().setInputFiles(STL);
     await idle(page);
     for (const scheme of ["light", "dark"] as const) {

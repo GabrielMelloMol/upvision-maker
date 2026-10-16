@@ -70,23 +70,23 @@ test("memória: parado, em cada ferramenta e depois de voltar para o Início", a
   };
   await at("parado");
 
-  await go(page, "Imagem em desenho (SVG)");
+  await go(page, "Imagem em vetor");
   await page.locator('input[type="file"]').setInputFiles("tests/fixtures/logo.jpg");
   await page.getByRole("button", { name: /^Aplicar/ }).click();
   await expect(page.getByText("Resultado atualizado.")).toBeVisible();
   await at("svg");
   await home("svg");
 
-  await go(page, "Foto em relevo");
+  await go(page, "Litofania");
   await page.getByRole("region", { name: "O que você quer fazer?" }).getByRole("button", { name: /^Litofania/ }).click();
   await page.locator('input[type="file"]').setInputFiles("tests/fixtures/foto-pessoa.jpg");
   await expect(page.getByRole("img", { name: "Simulação da litofania contra a luz" })).toBeVisible();
   await at("litofania");
   await home("litofania");
 
-  await go(page, "Modelos prontos");
-  await page.getByRole("searchbox", { name: "Buscar modelo" }).fill("Chaveiro giratório");
-  await page.getByRole("group", { name: "Modelo" }).getByRole("button", { name: "Chaveiro giratório", exact: true }).click();
+  await go(page, "Criar");
+  await page.getByRole("searchbox", { name: "O que você quer criar?" }).fill("Chaveiro giratório");
+  await page.locator(".create-products a").filter({ has: page.locator("strong", { hasText: /^Chaveiro giratório$/ }) }).first().click();
   await expect(page.locator(".viewer .hud")).toContainText("mm");
   await at("modelos");
   await home("modelos");

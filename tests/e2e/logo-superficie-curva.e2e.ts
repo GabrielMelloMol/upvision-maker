@@ -7,7 +7,7 @@ const idle = (page: Page) => expect(page.locator(".viewer .overlay.busy")).toHav
 test("logo em superfície curva: abre o STL de um personagem, clica na cabeça redonda, põe um texto e salva o 3MF (#212)", async ({ page, tauri }) => {
   await page.setViewportSize({ width: 1440, height: 1250 }); // as posições do clique dependem do tamanho da prévia
   await openApp(page);
-  await go(page, "Nome ou logo no seu modelo");
+  await go(page, "Nome ou logo na peça");
   await page.locator('input[type="file"]').first().setInputFiles({ name: "personagem.stl", mimeType: "model/stl", buffer: readFileSync("tests/fixtures/stl/personagem-arvore.stl") });
   await expect(page.locator(".viewer .hud")).toContainText("65.0 × 30.0 × 53.0 mm", { timeout: 60_000 });
   await idle(page);

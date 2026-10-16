@@ -6,6 +6,8 @@ import { resolve } from "node:path";
 import { beforeAll, describe, expect, test, vi } from "vitest";
 import { renderWithApp, setupTauri } from "../test/harness";
 import Models from "./Models";
+import { openWith } from "./intent";
+import { MODELS } from "./models/defs";
 
 vi.mock("../ui/viewerScene", () => ({ createViewer: () => ({ setModels() {}, dispose() {} }) }));
 
@@ -22,9 +24,8 @@ const hud = (c: HTMLElement) => c.querySelector(".hud")?.textContent ?? "";
 
 async function open(name: string) {
   const user = userEvent.setup();
+  openWith("models", { id: MODELS.find((m) => m.label === name)!.id }); // a Criar abre o modelo assim
   const r = renderWithApp(<Models />);
-  await user.type(screen.getByRole("searchbox", { name: "Buscar modelo" }), name);
-  await user.click(within(screen.getByRole("group", { name: "Modelo" })).getByRole("button", { name }));
   return { user, ...r };
 }
 

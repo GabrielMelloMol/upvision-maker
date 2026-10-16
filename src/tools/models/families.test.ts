@@ -65,7 +65,7 @@ test("categorias dos Modelos prontos (onde fica): Presentes, Casa e decoração 
   expect(names("gifts")).toEqual(["Mapa estelar", "Cartão de música", "Lembrancinhas", "Kits de montar", "Porta-copos", "Marca-página"]);
   expect(familiesIn("gifts").find((f) => f.id === "souvenirs")!.variants.map((v) => v.id)).toEqual(["fridgeMagnet", "shirtPrint", "outlineBowl"]);
   expect(names("home")).toEqual(["Moldura", "Luminárias e abajures", "Quadro e desenho", "Vaso", "Brinquedos", "Suporte de livro"]);
-  expect(names("organize")).toEqual(["Painel perfurado", "Potes e organizadores", "Organizador modular (Gridfinity)", "Suporte de celular e tablet", "Tecla de teclado", "Porta-chave de parede", "Utilitários", "Peças mecânicas", "Gabaritos de oficina"]);
+  expect(names("organize")).toEqual(["Painel perfurado", "Potes e organizadores", "Caixinhas modulares para gaveta", "Suporte de celular e tablet", "Tecla de teclado", "Porta-chave de parede", "Utilitários", "Peças mecânicas", "Gabaritos de oficina"]);
   // nenhuma categoria ficou grande demais para achar as coisas
   for (const [c] of CATEGORIES) expect(familiesIn(c).reduce((n, f) => n + f.variants.length, 0), c).toBeLessThanOrEqual(37); // Organização é a maior: 9 famílias e 37 variações (peças mecânicas, gabaritos e painel entraram na v0.13)
 });

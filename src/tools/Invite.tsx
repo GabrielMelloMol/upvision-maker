@@ -194,7 +194,7 @@ export default function Invite() {
     <div className="page">
       <h1>Convite envelope</h1>
       <p className="lead">Renda sobre tule, abas de envelope e cartão transparente.</p>
-      <SeeAlso items={[{ label: "Imagem em desenho (SVG)", page: "svg" }, { label: "Carimbo seco", page: "stamp" }]} />
+      <SeeAlso items={[{ label: "Imagem em vetor", page: "svg" }, { label: "Carimbo seco", page: "stamp" }]} />
       <ToolSessionBar tool={tool} />
       <div className="tool-layout">
         <div className="controls">
