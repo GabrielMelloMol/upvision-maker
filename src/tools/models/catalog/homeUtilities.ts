@@ -163,6 +163,8 @@ export const HOME_UTILITY_MODELS: ModelDef[] = [
         fields: [
           num("socketGap", "Folga do eixo nos postes", 0.1, 0.6, { step: 0.05, hint: "0,25 entra com leve pressão; se o eixo agarrar, aumente." }),
           num("thickness", "Espessura dos postes", 5, 14, { step: 1 }),
+          num("axleWall", "Parede do eixo (oco)", 2.5, 8, { step: 0.5, hint: "O eixo é um tubo: 3 a 4 mm aguenta o carretel e gasta bem menos filamento. O peso aparece abaixo." }),
+          choice("axleParts", "Eixo", [["one", "Inteiro"], ["two", "Em 2 partes que rosqueiam"]]),
           color("color", "Base"),
           color("axleColor", "Eixo"),
         ],

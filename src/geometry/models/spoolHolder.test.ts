@@ -46,6 +46,60 @@ describe("suporte de carretel (#234)", { timeout: 60_000 }, () => {
     expect(meshBounds([mesh(out, "Eixo")])!.min[2]).toBeCloseTo(0, 3);
     expect(holder({ clearance: 0.2 }).warnings?.join(" ")).toMatch(/Folga pequena/);
     expect(holder({ spoolD: 520 }).warnings?.join(" ")).toMatch(/passa da mesa|mais altos/);
-    expect(out.warnings).toEqual([]);
+    expect(out.warnings!.filter((w) => !/^Eixo oco/.test(w))).toEqual([]);
+  });
+
+  /** Raios (a partir do centro da seção) dos contornos de uma fatia em `z`: [maior raio de fora, menor raio de fora, maior raio do furo, menor raio do furo]. */
+  function ringRadii(m: Mesh, z: number) {
+    const s = solid(m);
+    const cs = s.slice(z);
+    const b = cs.bounds();
+    const cx = (b.min[0] + b.max[0]) / 2, cy = (b.min[1] + b.max[1]) / 2;
+    const area = (poly: number[][]) => poly.reduce((a, q, i) => a + (q[0] * poly[(i + 1) % poly.length][1] - poly[(i + 1) % poly.length][0] * q[1]) / 2, 0);
+    const rs = (poly: number[][]) => poly.map((q) => Math.hypot(q[0] - cx, q[1] - cy));
+    const polys = cs.toPolygons();
+    const outer = polys.filter((q) => area(q) > 0).flatMap(rs), holes = polys.filter((q) => area(q) < 0).flatMap(rs);
+    [s, cs].forEach((o) => o.delete());
+    return { outerMax: Math.max(...outer), outerMin: Math.min(...outer), holeMax: holes.length ? Math.max(...holes) : 0, holeMin: holes.length ? Math.min(...holes) : 0 };
+  }
+
+  test("eixo oco: o tubo tem a parede pedida, pesa uma fração do maciço e o peso aparece escrito", () => {
+    const out = holder();
+    const R = (P.hole - 2 * P.clearance) / 2;
+    const r = ringRadii(mesh(out, "Eixo"), 40);
+    expect(r.outerMax).toBeCloseTo(R, 1);
+    expect(r.holeMax).toBeCloseTo(R - P.axleWall, 1);
+    const axle = solid(mesh(out, "Eixo"));
+    expect(axle.volume()).toBeLessThan(Math.PI * R * R * 102 * 0.45);
+    axle.delete();
+    expect(out.warnings!.join(" ")).toMatch(/Eixo oco inteiro: ≈ \d+ g de PLA \(parede de 3,5 mm; um eixo maciço seria ≈ \d+ g\)/);
+    const wall6 = solid(mesh(holder({ axleWall: 6 }), "Eixo"));
+    const wall35 = solid(mesh(out, "Eixo"));
+    expect(wall6.volume()).toBeGreaterThan(wall35.volume());
+    [wall6, wall35].forEach((o) => o.delete());
+  });
+
+  test("eixo em 2 partes rosqueadas: duas peças que cabem na metade da altura e a rosca do pino entra na luva com folga", () => {
+    const two = holder({ axleParts: "two" });
+    expect(two.models.map((m) => m.name)).toEqual(["Base", "Eixo (parte 1)", "Eixo (parte 2)"]);
+    expect(meshBounds([mesh(two, "Eixo (parte 1)")])!.max[2]).toBeLessThan(80);
+    expect(meshBounds([mesh(two, "Eixo (parte 2)")])!.max[2]).toBeLessThan(80);
+    expect(two.warnings!.join(" ")).toMatch(/em 2 partes que rosqueiam/);
+    const female = ringRadii(mesh(two, "Eixo (parte 1)"), 4 + 59 - 8); // meio da luva roscada
+    const male = ringRadii(mesh(two, "Eixo (parte 2)"), 8); // meio do pino roscado
+    expect(female.holeMax - male.outerMax).toBeGreaterThan(0.25); // folga na raiz dos dentes
+    expect(female.holeMin - male.outerMin).toBeGreaterThan(0.25); // e na ponta
+    // o pino é menor que o furo do tubo: entra
+    expect(male.outerMax).toBeLessThan((P.hole - 2 * P.clearance) / 2 - P.axleWall);
+    // cada parte é uma peça só (o pino está preso ao tubo, nada solto no ar)
+    for (const n of ["Eixo (parte 1)", "Eixo (parte 2)"]) {
+      const sd = solid(mesh(two, n));
+      expect(sd.decompose().length, n).toBe(1);
+      sd.delete();
+    }
+  });
+
+  test("eixo que não cabe em pé avisa e oferece as 2 partes", () => {
+    expect(holder({ spoolW: 300, thickness: 14 }).warnings!.join(" ")).toMatch(/escolha o eixo em 2 partes rosqueadas/);
   });
 });

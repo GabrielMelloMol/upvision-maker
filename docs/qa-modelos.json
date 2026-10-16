@@ -4200,6 +4200,22 @@
   "plates": 1
  },
  {
+  "key": "spoolHolder:eixo em 2 partes",
+  "owner": "Torno",
+  "group": "home",
+  "label": "Suporte de carretel (spoolHolder)",
+  "variant": "eixo em 2 partes",
+  "status": "ok",
+  "reasons": [
+   "app: Eixo oco em 2 partes que rosqueiam: ≈ 129 g de PLA (parede de 3,5 mm; um eixo maciço seria ≈ 258 g)."
+  ],
+  "date": "2026-10-16",
+  "slicers": "Bambu ✓ · Orca ✓ · Projeto Bambu ✓",
+  "minutes": 1013,
+  "grams": 419.4,
+  "plates": 1
+ },
+ {
   "key": "spoolHolder:máximo",
   "owner": "Torno",
   "group": "home",
@@ -4209,12 +4225,13 @@
   "reasons": [
    "o conjunto arrumado ocupa 280,0 × 165,0 mm: passa da mesa de 256 mm",
    "mais de 24 h de impressão",
+   "app: Eixo oco inteiro: ≈ 368 g de PLA (parede de 8,0 mm; um eixo maciço seria ≈ 875 g).",
    "app: As 2 peças não cabem juntas na mesa de 256 mm: o fatiador vai usar mais de uma mesa (ou imprima uma de cada vez)."
   ],
   "date": "2026-10-16",
   "slicers": "Bambu ✓ · Orca ✓ · Projeto Bambu ✓",
-  "minutes": 2174,
-  "grams": 1034.6,
+  "minutes": 2188,
+  "grams": 949,
   "plates": 1
  },
  {
@@ -4224,11 +4241,13 @@
   "label": "Suporte de carretel (spoolHolder)",
   "variant": "mínimo",
   "status": "ok",
-  "reasons": [],
+  "reasons": [
+   "app: Eixo oco inteiro: ≈ 14 g de PLA (parede de 2,5 mm; um eixo maciço seria ≈ 20 g)."
+  ],
   "date": "2026-10-16",
   "slicers": "Bambu ✓ · Orca ✓ · Projeto Bambu ✓",
-  "minutes": 614,
-  "grams": 199.2,
+  "minutes": 612,
+  "grams": 197.9,
   "plates": 1
  },
  {
@@ -4238,11 +4257,29 @@
   "label": "Suporte de carretel (spoolHolder)",
   "variant": "padrão",
   "status": "ok",
-  "reasons": [],
+  "reasons": [
+   "app: Eixo oco inteiro: ≈ 83 g de PLA (parede de 3,5 mm; um eixo maciço seria ≈ 258 g)."
+  ],
   "date": "2026-10-16",
   "slicers": "Bambu ✓ · Orca ✓ · Projeto Bambu ✓",
-  "minutes": 1237,
-  "grams": 490.8,
+  "minutes": 1214,
+  "grams": 465.2,
+  "plates": 1
+ },
+ {
+  "key": "spoolHolder:parede grossa",
+  "owner": "Torno",
+  "group": "home",
+  "label": "Suporte de carretel (spoolHolder)",
+  "variant": "parede grossa",
+  "status": "ok",
+  "reasons": [
+   "app: Eixo oco inteiro: ≈ 154 g de PLA (parede de 8,0 mm; um eixo maciço seria ≈ 258 g)."
+  ],
+  "date": "2026-10-16",
+  "slicers": "Bambu ✓ · Orca ✓ · Projeto Bambu ✓",
+  "minutes": 1245,
+  "grams": 479.6,
   "plates": 1
  },
  {

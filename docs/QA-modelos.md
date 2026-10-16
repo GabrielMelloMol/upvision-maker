@@ -23,7 +23,7 @@ Peça maior que a mesa de 256 mm do A1 conta como **aviso** quando o app avisa n
 impressoras de mesa maior); sem o aviso do app, é **falha**.
 
 
-**Total:** 332 casos · 243 ok · 89 com aviso · 0 com falha · 0 n/a
+**Total:** 334 casos · 245 ok · 89 com aviso · 0 com falha · 0 n/a
 
 ## Forja
 
@@ -301,9 +301,11 @@ impressoras de mesa maior); sem o aviso do app, é **falha**.
 | Espaçador, calço ou arruela (spacer) | máximo | ⚠️ aviso | Bambu ✓ · Orca ✓ | – | – | – | – | "Arruelas" não cabe na mesa de 256 mm (1227,0 × 1227,0 × 30,0 mm); Bambu recusa na mesa de 256 mm do A1 (o app avisa); Orca recusa na mesa de 256 mm do A1 (o app avisa); app: As 100 peças ocupam 1227 mm: passam da mesa de 256 mm. Diminua a quantidade ou imprima em mais de uma vez. |
 | Espaçador, calço ou arruela (spacer) | mínimo | ✅ ok | Bambu ✓ · Orca ✓ | 1 | 0,1 | 1 | – | – |
 | Espaçador, calço ou arruela (spacer) | padrão | ✅ ok | Bambu ✓ · Orca ✓ | 7 | 3,2 | 1 | – | – |
-| Suporte de carretel (spoolHolder) | máximo | ⚠️ aviso | Bambu ✓ · Orca ✓ · Projeto Bambu ✓ | 2174 | 1034,6 | 1 | – | o conjunto arrumado ocupa 280,0 × 165,0 mm: passa da mesa de 256 mm; mais de 24 h de impressão; app: As 2 peças não cabem juntas na mesa de 256 mm: o fatiador vai usar mais de uma mesa (ou imprima uma de cada vez). |
-| Suporte de carretel (spoolHolder) | mínimo | ✅ ok | Bambu ✓ · Orca ✓ · Projeto Bambu ✓ | 614 | 199,2 | 1 | – | – |
-| Suporte de carretel (spoolHolder) | padrão | ✅ ok | Bambu ✓ · Orca ✓ · Projeto Bambu ✓ | 1237 | 490,8 | 1 | – | – |
+| Suporte de carretel (spoolHolder) | eixo em 2 partes | ✅ ok | Bambu ✓ · Orca ✓ · Projeto Bambu ✓ | 1013 | 419,4 | 1 | – | app: Eixo oco em 2 partes que rosqueiam: ≈ 129 g de PLA (parede de 3,5 mm; um eixo maciço seria ≈ 258 g). |
+| Suporte de carretel (spoolHolder) | máximo | ⚠️ aviso | Bambu ✓ · Orca ✓ · Projeto Bambu ✓ | 2188 | 949,0 | 1 | – | o conjunto arrumado ocupa 280,0 × 165,0 mm: passa da mesa de 256 mm; mais de 24 h de impressão; app: Eixo oco inteiro: ≈ 368 g de PLA (parede de 8,0 mm; um eixo maciço seria ≈ 875 g).; app: As 2 peças não cabem juntas na mesa de 256 mm: o fatiador vai usar mais de uma mesa (ou imprima uma de cada vez). |
+| Suporte de carretel (spoolHolder) | mínimo | ✅ ok | Bambu ✓ · Orca ✓ · Projeto Bambu ✓ | 612 | 197,9 | 1 | – | app: Eixo oco inteiro: ≈ 14 g de PLA (parede de 2,5 mm; um eixo maciço seria ≈ 20 g). |
+| Suporte de carretel (spoolHolder) | padrão | ✅ ok | Bambu ✓ · Orca ✓ · Projeto Bambu ✓ | 1214 | 465,2 | 1 | – | app: Eixo oco inteiro: ≈ 83 g de PLA (parede de 3,5 mm; um eixo maciço seria ≈ 258 g). |
+| Suporte de carretel (spoolHolder) | parede grossa | ✅ ok | Bambu ✓ · Orca ✓ · Projeto Bambu ✓ | 1245 | 479,6 | 1 | – | app: Eixo oco inteiro: ≈ 154 g de PLA (parede de 8,0 mm; um eixo maciço seria ≈ 258 g). |
 | Molde para carimbo de EVA (stampMold) | máximo | ⚠️ aviso | Bambu ✓ · Orca ✓ | 15 | 6,3 | 1 | – | o conjunto arrumado ocupa 386,9 × 340,0 mm: passa da mesa de 256 mm; "Molde" não cabe na mesa de 256 mm (331,9 × 340,0 × 10,0 mm); app: O molde tem 340 mm: passa da mesa de 256 mm. |
 | Molde para carimbo de EVA (stampMold) | mínimo | ✅ ok | Bambu ✓ · Orca ✓ | 14 | 5,9 | 1 | – | – |
 | Molde para carimbo de EVA (stampMold) | padrão | ✅ ok | Bambu ✓ · Orca ✓ | 40 | 26,1 | 1 | – | – |

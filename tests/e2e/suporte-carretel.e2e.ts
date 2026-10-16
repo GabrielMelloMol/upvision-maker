@@ -15,6 +15,11 @@ test("suporte de carretel: as medidas do carretel mudam a base; eixo e base saem
   await idle(page);
   expect(await depth()).toBeLessThan(d200);
   await expect(page.getByRole("button", { name: "Salvar 3MF" })).toBeEnabled();
+  await expect(page.getByText(/Eixo oco inteiro: ≈ \d+ g de PLA/)).toBeVisible();
+  await page.getByRole("button", { name: "Em 2 partes que rosqueiam" }).click();
+  await idle(page);
+  await expect(page.getByText(/em 2 partes que rosqueiam/)).toBeVisible();
+  await expect(page.locator(".viewer .legend")).toContainText("Eixo (parte 2)");
   await page.getByLabel(/^Folga do eixo no furo/).fill("0.5");
   await idle(page);
   await expect(page.getByRole("button", { name: "Salvar 3MF" })).toBeEnabled();
