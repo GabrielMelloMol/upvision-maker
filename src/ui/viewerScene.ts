@@ -63,6 +63,9 @@ export function fitBoxDistance(box: THREE.Box3, vfovDeg: number, aspect: number,
   return Math.min(d * FIT_MARGIN, fitDistance(box.getSize(new THREE.Vector3()).length() / 2, vfovDeg, aspect));
 }
 
+const SHADOW_MAP = 2048;
+const SHADOW_OPACITY = 0.32;
+
 const reducedMotion = () => matchMedia("(prefers-reduced-motion: reduce)").matches;
 const cssVar = (name: string) => getComputedStyle(document.documentElement).getPropertyValue(name).trim() || "#999";
 const easeOutCubic = (k: number) => 1 - (1 - k) ** 3;
@@ -74,12 +77,29 @@ const easeOutCubic = (k: number) => 1 - (1 - k) ** 3;
 export function createViewer(el: HTMLElement) {
   const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
   renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+  renderer.shadowMap.enabled = true;
+  renderer.shadowMap.type = THREE.PCFShadowMap;
   el.prepend(renderer.domElement);
   const scene = new THREE.Scene();
-  scene.add(new THREE.HemisphereLight(0xffffff, 0x94a3b8, 1.6));
-  const sun = new THREE.DirectionalLight(0xffffff, 1.6);
+  scene.add(new THREE.HemisphereLight(0xffffff, 0x94a3b8, 1.35));
+  // luz de estúdio (#211): sol alto com sombra suave na mesa + contraluz fraco que desenha o contorno
+  const sun = new THREE.DirectionalLight(0xffffff, 1.7);
   sun.position.set(80, -120, 200);
-  scene.add(sun);
+  sun.castShadow = true;
+  sun.shadow.mapSize.set(SHADOW_MAP, SHADOW_MAP);
+  sun.shadow.radius = 6;
+  sun.shadow.bias = -0.0005;
+  sun.shadow.normalBias = 0.3;
+  sun.shadow.camera.near = 1;
+  sun.shadow.camera.far = 600;
+  const rim = new THREE.DirectionalLight(0xffffff, 0.5);
+  rim.position.set(-120, 140, 80);
+  scene.add(sun, rim);
+  // só a sombra aparece: a mesa fica a cargo da grade
+  const shadowCatcher = new THREE.Mesh(new THREE.PlaneGeometry(1, 1), new THREE.ShadowMaterial({ opacity: SHADOW_OPACITY }));
+  shadowCatcher.position.z = 0.02;
+  shadowCatcher.receiveShadow = true;
+  scene.add(shadowCatcher);
   const group = new THREE.Group();
   scene.add(group);
   const camera = new THREE.PerspectiveCamera(35, 1, 0.1, 5000);
@@ -99,6 +119,10 @@ export function createViewer(el: HTMLElement) {
     grid = new THREE.GridHelper(bedMm(), Math.round(bedMm() / 10), cssVar("--grid-major"), cssVar("--grid-minor"));
     grid.rotation.x = Math.PI / 2;
     scene.add(grid);
+    shadowCatcher.scale.set(bedMm(), bedMm(), 1);
+    const half = bedMm() / 2;
+    Object.assign(sun.shadow.camera, { left: -half, right: half, top: half, bottom: -half });
+    sun.shadow.camera.updateProjectionMatrix();
   }
   buildGrid();
 
@@ -232,6 +256,7 @@ export function createViewer(el: HTMLElement) {
           if (p.mesh.indices.length < BIG_MESH_INDICES) g.computeVertexNormals(); // o sombreado é por face (flatShading): em malha enorme poupa o cálculo, que trava a tela por segundos
           const mat = new THREE.MeshStandardMaterial({ color: p.color, roughness: 0.6, metalness: 0.05, flatShading: true, transparent: !!p.ghost, opacity: p.ghost ? GHOST_OPACITY : 1, depthWrite: !p.ghost });
           const mesh = new THREE.Mesh(g, mat);
+          mesh.castShadow = mesh.receiveShadow = !p.ghost;
           if (p.ghost) {
             mesh.userData.ghost = true;
             mesh.renderOrder = 2;
@@ -324,6 +349,9 @@ export function createViewer(el: HTMLElement) {
       ro.disconnect();
       controls.dispose();
       grid?.dispose();
+      shadowCatcher.geometry.dispose();
+      (shadowCatcher.material as THREE.Material).dispose();
+      sun.shadow.map?.dispose();
       // libera a GPU como o renderThumb: sem isso, trocar muitas vezes de ferramenta estoura os contextos WebGL (B17)
       for (const m of [...group.children] as THREE.Mesh[]) {
         m.geometry.dispose();

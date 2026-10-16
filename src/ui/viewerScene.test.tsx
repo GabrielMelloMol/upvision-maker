@@ -12,6 +12,7 @@ vi.mock("three", async (orig) => {
   const mod = await orig<typeof import("three")>();
   class FakeRenderer {
     domElement = document.createElement("canvas");
+    shadowMap = { enabled: false, type: 0 };
     setPixelRatio() {}
     setSize(w: number, h: number) {
       gl.sizes.push([w, h]);

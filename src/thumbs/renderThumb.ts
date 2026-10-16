@@ -21,10 +21,11 @@ const CREASE = (35 * Math.PI) / 180; // quinas vivas acima disso; curvas suaves 
 const ENV_INTENSITY = 0.35; // reflexo suave do estúdio; mais que isso o preto vira cinza
 const EDGE_DEG = 40; // contorno só nas quinas
 const EDGE_OPACITY = 0.2; // traço fino e translúcido: peça branca não some no card claro
+const STUDIO_SHADOW = 0.42; // sombra de contato da vitrine: bem visível no fundo claro
 const MIN_LIGHTNESS = 0.06; // preto vira grafite escuro (continua preto); o rim separa do card escuro
 
 /** Entradas que alguns modelos exigem para não abrir vazios. */
-const INPUTS: Record<string, Params> = { pix: { key: "loja@upvision.app", name: "Minha Loja", city: "Sao Paulo" }, coaster: { faceDown: false, text: "Café", borderWidth: 2 }, musicCard: { code: "qr", codeLink: "https://open.spotify.com/track/11dFghVXANMlKmJXsNCbNl", codeSize: 40 }, phoneStandFold: { layout: "assembled", text: "Ana", bodyColor: "#7c8ea6" }, bigFrame: { artW: 150, artH: 190, width: 22, claws: false, back: "none", bodyColor: "#8b5a2b" } }; // a miniatura mostra a moldura inteira (uma peça), não as peças soltas // o porta-copos imprime com o desenho na mesa: na miniatura ele aparece em cima
+const INPUTS: Record<string, Params> = { organizerBox: { boxColor: "#0f9d8a", lidColor: "#fbf3df", decorColor: "#0f9d8a" },  pix: { key: "loja@upvision.app", name: "Minha Loja", city: "Sao Paulo" }, coaster: { faceDown: false, text: "Café", borderWidth: 2 }, musicCard: { code: "qr", codeLink: "https://open.spotify.com/track/11dFghVXANMlKmJXsNCbNl", codeSize: 40 }, phoneStandFold: { layout: "assembled", text: "Ana", bodyColor: "#7c8ea6" }, bigFrame: { artW: 150, artH: 190, width: 22, claws: false, back: "none", bodyColor: "#8b5a2b" } }; // a miniatura mostra a moldura inteira (uma peça), não as peças soltas // o porta-copos imprime com o desenho na mesa: na miniatura ele aparece em cima
 
 export async function buildModels(id: string, patch: Params = {}): Promise<Model[]> {
   const def = MODELS.find((m) => m.id === id);
@@ -48,6 +49,40 @@ export async function buildModels(id: string, patch: Params = {}): Promise<Model
   return out.views?.find((v) => v.id === "closed")?.models ?? out.models;
 }
 
+/*
+ * Cores da galeria (#211): quase todo modelo sai preto e branco; na vitrine, cada um ganha um par de cores de uma paleta
+ * (escuro → cor principal, claro → tom suave), sempre o mesmo para o mesmo id. Modelo que já tem cor própria (azul,
+ * vermelho, dourado...) fica como está. A peça real continua com a cor que a pessoa escolher.
+ */
+const PALETTES: { main: string; soft: string }[] = [
+  { main: "#0f9d8a", soft: "#fbf3df" },
+  { main: "#e8613c", soft: "#fff6ea" },
+  { main: "#4f46e5", soft: "#eef0ff" },
+  { main: "#3f9b5f", soft: "#f6f1de" },
+  { main: "#c9317a", soft: "#fff0f6" },
+  { main: "#2f9bd8", soft: "#ffffff" },
+  { main: "#8b5cf6", soft: "#f4f0ff" },
+  { main: "#e0a21c", soft: "#fffbea" },
+];
+const NEUTRAL_DARK = new Set(["#1c1c1e"]);
+const NEUTRAL_LIGHT = new Set(["#f8f8f6", "#ffffff", "#f4f4f2"]);
+export function showcaseColors(id: string, models: Model[]): Model[] {
+  const colors = new Set(models.flatMap((m) => m.parts.map((p) => p.color.toLowerCase())));
+  const hasDark = [...colors].some((c) => NEUTRAL_DARK.has(c));
+  const hasLight = [...colors].some((c) => NEUTRAL_LIGHT.has(c));
+  if (!hasDark && !hasLight) return models;
+  let h = 0;
+  for (const ch of id) h = (h * 31 + ch.charCodeAt(0)) >>> 0;
+  const pal = PALETTES[h % PALETTES.length];
+  const swap = (c: string) => {
+    const k = c.toLowerCase();
+    if (NEUTRAL_DARK.has(k)) return pal.main;
+    if (NEUTRAL_LIGHT.has(k)) return hasDark ? pal.soft : pal.main; // peça de uma cor só: a principal
+    return c;
+  };
+  return models.map((m) => ({ ...m, parts: m.parts.map((p) => ({ ...p, color: swap(p.color) })) }));
+}
+
 function material(color: string): THREE.MeshPhysicalMaterial {
   // PLA: plástico fosco com um brilho leve, sem metal. Só na miniatura, o preto clareia até um grafite.
   const c = new THREE.Color(color);
@@ -57,7 +92,23 @@ function material(color: string): THREE.MeshPhysicalMaterial {
 }
 
 /** Desenha os modelos e devolve a imagem (WebP com transparência, data URL). */
-export type ShotOpts = { dir?: THREE.Vector3; fov?: number; margin?: number; /** cor opaca do fundo (padrão: transparente) */ background?: number; png?: boolean };
+export type ShotOpts = { dir?: THREE.Vector3; fov?: number; margin?: number; /** cor opaca do fundo (padrão: transparente) */ background?: number; /** fundo de estúdio: degradê claro com a sombra da peça mais marcada */ studio?: boolean; png?: boolean };
+
+/** Fundo de estúdio: claro no centro, um pouco mais fechado nas bordas (vinheta suave). */
+function studioBackdrop(w: number, h: number): THREE.CanvasTexture {
+  const c = document.createElement("canvas");
+  c.width = w;
+  c.height = h;
+  const g = c.getContext("2d")!;
+  const grad = g.createRadialGradient(w / 2, h * 0.45, 0, w / 2, h * 0.45, Math.hypot(w, h) / 1.6);
+  grad.addColorStop(0, "#fafbfc");
+  grad.addColorStop(1, "#d9dde4");
+  g.fillStyle = grad;
+  g.fillRect(0, 0, w, h);
+  const t = new THREE.CanvasTexture(c);
+  t.colorSpace = THREE.SRGBColorSpace;
+  return t;
+}
 
 export function renderModels(models: Model[], w = THUMB_W, h = THUMB_H, opts: ShotOpts = {}): string {
   const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true, preserveDrawingBuffer: true });
@@ -70,6 +121,8 @@ export function renderModels(models: Model[], w = THUMB_W, h = THUMB_H, opts: Sh
   renderer.shadowMap.enabled = true;
   renderer.shadowMap.type = THREE.PCFShadowMap;
   const scene = new THREE.Scene();
+  const backdrop = opts.studio ? studioBackdrop(w, h) : null;
+  if (backdrop) scene.background = backdrop;
   const pmrem = new THREE.PMREMGenerator(renderer);
   scene.environment = pmrem.fromScene(new RoomEnvironment(), 0.04).texture;
   // com scene.environment, quem vale é a intensidade da cena (a do material só serve para material.envMap)
@@ -94,7 +147,7 @@ export function renderModels(models: Model[], w = THUMB_W, h = THUMB_H, opts: Sh
   // luz de estúdio: key (sombra), fill do outro lado e rim de trás para destacar o contorno
   const key = new THREE.DirectionalLight(0xffffff, 1.25);
   // key alta: sombra curta, embaixo da peça (sombra de contato, não uma mancha comprida)
-  key.position.copy(center).add(new THREE.Vector3(-0.6, -0.9, 1.7).multiplyScalar(span * 2));
+  key.position.copy(center).add((opts.studio ? new THREE.Vector3(-0.9, -0.7, 1.2) : new THREE.Vector3(-0.6, -0.9, 1.7)).multiplyScalar(span * 2));
   key.target.position.copy(center);
   key.castShadow = true;
   key.shadow.mapSize.set(2048, 2048);
@@ -115,7 +168,7 @@ export function renderModels(models: Model[], w = THUMB_W, h = THUMB_H, opts: Sh
   rim2.position.copy(center).add(new THREE.Vector3(-1.2, 1.0, 0.15).multiplyScalar(span * 2));
   scene.add(key, key.target, fill, rim, rim2, new THREE.HemisphereLight(0xffffff, 0xd8dce4, 0.2));
   // sombra de contato: só a sombra aparece, o chão some (fundo transparente)
-  const floor = new THREE.Mesh(new THREE.PlaneGeometry(span * 6, span * 6), new THREE.ShadowMaterial({ opacity: 0.14 }));
+  const floor = new THREE.Mesh(new THREE.PlaneGeometry(span * 6, span * 6), new THREE.ShadowMaterial({ opacity: opts.studio ? STUDIO_SHADOW : 0.14 }));
   floor.position.set(center.x, center.y, box.min.z - 0.01);
   floor.receiveShadow = true;
   scene.add(floor);
@@ -132,6 +185,7 @@ export function renderModels(models: Model[], w = THUMB_W, h = THUMB_H, opts: Sh
   floor.geometry.dispose();
   (floor.material as THREE.Material).dispose();
   scene.environment?.dispose();
+  backdrop?.dispose();
   pmrem.dispose();
   renderer.dispose();
   renderer.forceContextLoss();
@@ -140,7 +194,7 @@ export function renderModels(models: Model[], w = THUMB_W, h = THUMB_H, opts: Sh
 
 /** Miniatura de um modelo pelo id (valores padrão). */
 export async function renderThumb(id: string): Promise<string> {
-  return renderModels(await buildModels(id));
+  return renderModels(showcaseColors(id, await buildModels(id)), THUMB_W, THUMB_H, { studio: true });
 }
 
 export const thumbIds = () => MODELS.map((m) => m.id);
