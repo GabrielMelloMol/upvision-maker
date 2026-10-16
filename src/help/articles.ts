@@ -120,6 +120,13 @@ export const ARTICLES: HelpArticle[] = [
     steps: ["Arraste o 3MF pintado (Bambu Studio, OrcaSlicer ou PrusaSlicer).", "Confira as cores encontradas.", "Se quiser, corte pelo plano com pino de encaixe.", "Salve as peças e cole ou encaixe depois de imprimir."],
   },
   {
+    id: "texturize",
+    title: "Textura no seu modelo",
+    intro: "Dê acabamento a um STL ou 3MF que você já tem: fibra de carbono, couro, madeira, serrilhado, colmeia, felpudo… viram relevo de verdade na malha.",
+    steps: ["Arraste o STL ou 3MF.", "Escolha uma textura (16 padrões), uma frase ou uma imagem.", "Ajuste o tamanho e a altura do relevo e se ele cresce para fora, para dentro ou centrado.", "Escolha onde: peça toda, só laterais, só o topo ou pinte com o pincel clicando na peça.", "Salve o STL ou 3MF: a prévia é igual ao arquivo."],
+    tips: ["Base lisa e Sem balanço novo vêm ligados: a face que assenta na mesa e as partes viradas para baixo ficam como estavam.", "Para copo e vaso use a projeção Cilíndrica; para formas quebradas, Em caixa.", "Textura menor que duas linhas do bico (0,8 mm) se perde na impressão: o app avisa."],
+  },
+  {
     id: "partialcut",
     title: "Corte parcial",
     intro: "Corte só um pedaço de um STL ou 3MF (a cabeça de um personagem, sem cortar a árvore ao lado): o plano de corte só vale dentro de uma caixa.",

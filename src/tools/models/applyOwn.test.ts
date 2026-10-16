@@ -3,7 +3,8 @@ import { beforeAll, describe, expect, test } from "vitest";
 import { meshBounds } from "../../geometry/bounds";
 import { getManifold, type ManifoldToplevel } from "../../geometry/manifold";
 import { toMesh } from "../../geometry/mesh";
-import { faceAtPoint, fromFaceFrame, planarFaces, readAsciiStl, toFaceFrame } from "../../geometry/ownModel";
+import { faceAtPoint, fromFaceFrame, planarFaces, readAsciiStl, readOwnFile, readOwnObjects, toFaceFrame } from "../../geometry/ownModel";
+import { write3mf } from "../../geometry/threemf";
 import { volume } from "../../geometry/testUtil";
 import type { Model } from "../../geometry/types";
 import { applyOwnDecals, OWN_MODEL_ERRORS } from "./applyOwn";
@@ -93,5 +94,12 @@ describe("faces planas e decal em modelo próprio (#113)", { timeout: 60_000 }, 
     expect(m.indices.length).toBe(3);
     expect(m.positions.length).toBe(9);
     expect(() => readAsciiStl("solid vazio\nendsolid")).toThrow(/vazio/);
+  });
+
+  test("3MF com dois objetos soltos: readOwnObjects devolve os dois (readOwnFile junta tudo num só)", async () => {
+    const mk = (name: string, x: number): Model => ({ name, parts: [{ name, color: "#d4d4d8", mesh: toMesh(M.Manifold.cube([10, 10, 10], false).translate([x, 0, 0])) }] });
+    const bytes = await write3mf([mk("A", 0), mk("B", 100)]);
+    expect(readOwnObjects(bytes, "dois.3mf").map((m) => m.name)).toEqual(["A", "B"]);
+    expect(readOwnFile(bytes, "dois.3mf").parts).toHaveLength(2);
   });
 });

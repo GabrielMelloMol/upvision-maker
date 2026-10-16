@@ -383,3 +383,10 @@ td.best-name { max-width: 0; width: 100%; overflow: hidden; text-overflow: ellip
 .org-tabs [role="tab"] > svg { width: 16px; height: 16px; }
 .org-tabs [role="tab"][aria-selected="true"] { color: var(--text); border-bottom-color: var(--accent); font-weight: 600; }
 .org-tabs [role="tab"]:hover { color: var(--text); background: var(--fill); }
+
+/* Texturizador (#222): galeria de texturas com miniatura */
+.texture-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(92px, 1fr)); gap: 8px; }
+.texture-chip { display: flex; flex-direction: column; align-items: center; gap: 4px; padding: 6px; min-height: 44px; border-radius: 10px; background: var(--fill); box-shadow: none; color: var(--text); font-size: var(--text-sm); font-weight: 500; text-align: center; }
+.texture-chip canvas { width: 56px; height: 56px; border-radius: 6px; background: var(--fill-strong); }
+.texture-chip:hover:not(:disabled) { background: var(--fill-strong); }
+.texture-chip[aria-pressed="true"] { box-shadow: 0 0 0 2px var(--accent); font-weight: 600; }

@@ -2,6 +2,7 @@ import { readFileSync } from "node:fs";
 import { join } from "node:path";
 import { qrMatrix } from "../domain/qr";
 import { splitByColor } from "../geometry/colorSplit";
+import { DEFAULT_TEXTURIZE, texturize, type TexturizeOptions } from "../geometry/texturize";
 import { buildCutter, DEFAULT_CUTTER, type CutterParams } from "../geometry/cutter";
 import { extrudeDesign } from "../geometry/extrude";
 import { loadFont } from "../geometry/fonts";
@@ -232,6 +233,13 @@ export function toolCases(M: ManifoldToplevel): QaCase[] {
     return { models: c.models, warnings: [...out.warnings, ...c.warnings] };
   };
 
+  // textura no arquivo do cliente (#222): um copo oco texturizado, em cada projeção e direção
+  const textured = (patch: Partial<TexturizeOptions>): Out => {
+    const cup: Model = { name: "Copo", parts: [{ name: "Copo", color: "#d4d4d8", mesh: toMesh(M.Manifold.cylinder(70, 32, 32, 128).subtract(M.Manifold.cylinder(70, 29.6, 29.6, 128).translate([0, 0, 3]))) }] };
+    const r = texturize(M, cup, { ...DEFAULT_TEXTURIZE, ...patch });
+    return { models: [r.model], warnings: r.warnings };
+  };
+
   // corte parcial: "personagem + árvore" (dois blocos separados), corta só o topo do primeiro
   const partial = (patch: Partial<PartialCutOptions>): Out => {
     const scene: Model = { name: "Cena", parts: [{ name: "Peça", color: "#d4d4d8", mesh: toMesh(M.Manifold.union([M.Manifold.cube([20, 20, 40]), M.Manifold.cube([20, 20, 40]).translate([40, 0, 0])])) }] };
@@ -281,6 +289,12 @@ export function toolCases(M: ManifoldToplevel): QaCase[] {
     ...cases("ownDecal", "Decal em modelo próprio", [
       ["embutido", () => ownDecal("inlay")],
       ["relevo", () => ownDecal("raised")],
+    ]),
+    ...cases("texturize", "Textura no seu modelo", [
+      ["carbono para fora", () => textured({ source: { kind: "pattern", id: "carbono" }, scale: 7, depth: 0.5 })],
+      ["knurling nas laterais", () => textured({ source: { kind: "pattern", id: "knurling" }, scale: 4, depth: 0.5, faces: "sides" })],
+      ["couro para dentro, cilíndrica", () => textured({ source: { kind: "pattern", id: "couro" }, scale: 8, depth: 0.6, direction: "in", mapping: "cylinder" })],
+      ["pincel numa faixa", () => textured({ source: { kind: "pattern", id: "colmeia" }, scale: 8, depth: 0.6, brush: [{ p: [32, 0, 35], r: 18 }, { p: [0, 32, 35], r: 18 }] })],
     ]),
     ...cases("medal", "Medalha", [
       ["padrão", () => medal({})],
