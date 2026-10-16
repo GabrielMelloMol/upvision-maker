@@ -1,6 +1,6 @@
 import AxeBuilder from "@axe-core/playwright";
 import type { Page } from "@playwright/test";
-import { expect, go, openApp, test } from "./tauri";
+import { expect, go, openApp, settleColors, test } from "./tauri";
 
 /** Cartão da ocasião ("Para o Dia das Crianças, faltam 3 dias") com espaço do que vem antes e depois, na Início e na Criar. */
 const gap = (page: Page, above: string, below: string) =>
@@ -24,6 +24,7 @@ for (const scheme of ["light", "dark"] as const)
         return el ? el.getBoundingClientRect().top - document.querySelector(".home > .occasion-card")!.getBoundingClientRect().bottom : 99;
       });
       expect(next).toBeGreaterThanOrEqual(12);
+      await settleColors(page);
       const axeHome = await new AxeBuilder({ page }).include(".home > .occasion-card").withTags(["wcag2a", "wcag2aa", "wcag22aa"]).analyze();
       expect(axeHome.violations.map((v) => `${v.id}: ${v.nodes.map((n) => n.target.join(" ")).join(" | ")}`)).toEqual([]);
 
