@@ -4156,6 +4156,88 @@
   "slicers": "Bambu ✓ · Orca ✓ · Projeto Bambu ✓"
  },
  {
+  "key": "slingshot:máximo",
+  "owner": "Torno",
+  "group": "home",
+  "label": "Estilingue personalizado (slingshot)",
+  "variant": "máximo",
+  "status": "aviso",
+  "reasons": [
+   "Orca: torre de purga em cima de uma peça depois do --arrange do CLI (na tela, arraste a torre ou use Arrumar)",
+   "app: Brinquedo e hobby, sem garantia de resistência: imprima deitado, como no arquivo (as camadas ficam no plano da forquilha, que é como ela é puxada), em PETG ou ABS, com 5 paredes e 100% de preenchimento. Use óculos, não aponte para pessoas ou animais e não deixe com criança sem um adulto."
+  ],
+  "date": "2026-10-16",
+  "slicers": "Bambu ✓ · Orca ✓ · Projeto Bambu ✓",
+  "minutes": 321,
+  "grams": 309,
+  "plates": 1
+ },
+ {
+  "key": "slingshot:mínimo",
+  "owner": "Torno",
+  "group": "home",
+  "label": "Estilingue personalizado (slingshot)",
+  "variant": "mínimo",
+  "status": "ok",
+  "reasons": [
+   "app: Braço fino (12 mm): a forquilha pode quebrar na primeira esticada. Use 14 mm ou mais.",
+   "app: Brinquedo e hobby, sem garantia de resistência: imprima deitado, como no arquivo (as camadas ficam no plano da forquilha, que é como ela é puxada), em PETG ou ABS, com 5 paredes e 100% de preenchimento. Use óculos, não aponte para pessoas ou animais e não deixe com criança sem um adulto."
+  ],
+  "date": "2026-10-16",
+  "slicers": "Bambu ✓ · Orca ✓ · Projeto Bambu ✓",
+  "minutes": 38,
+  "grams": 25.2,
+  "plates": 1
+ },
+ {
+  "key": "slingshot:nome gravado",
+  "owner": "Torno",
+  "group": "home",
+  "label": "Estilingue personalizado (slingshot)",
+  "variant": "nome gravado",
+  "status": "ok",
+  "reasons": [
+   "app: Brinquedo e hobby, sem garantia de resistência: imprima deitado, como no arquivo (as camadas ficam no plano da forquilha, que é como ela é puxada), em PETG ou ABS, com 5 paredes e 100% de preenchimento. Use óculos, não aponte para pessoas ou animais e não deixe com criança sem um adulto."
+  ],
+  "date": "2026-10-16",
+  "slicers": "Bambu ✓ · Orca ✓",
+  "minutes": 117,
+  "grams": 93.7,
+  "plates": 1
+ },
+ {
+  "key": "slingshot:padrão",
+  "owner": "Torno",
+  "group": "home",
+  "label": "Estilingue personalizado (slingshot)",
+  "variant": "padrão",
+  "status": "ok",
+  "reasons": [
+   "app: Brinquedo e hobby, sem garantia de resistência: imprima deitado, como no arquivo (as camadas ficam no plano da forquilha, que é como ela é puxada), em PETG ou ABS, com 5 paredes e 100% de preenchimento. Use óculos, não aponte para pessoas ou animais e não deixe com criança sem um adulto."
+  ],
+  "date": "2026-10-16",
+  "slicers": "Bambu ✓ · Orca ✓ · Projeto Bambu ✓",
+  "minutes": 122,
+  "grams": 96.8,
+  "plates": 1
+ },
+ {
+  "key": "slingshot:sem nome",
+  "owner": "Torno",
+  "group": "home",
+  "label": "Estilingue personalizado (slingshot)",
+  "variant": "sem nome",
+  "status": "ok",
+  "reasons": [
+   "app: Brinquedo e hobby, sem garantia de resistência: imprima deitado, como no arquivo (as camadas ficam no plano da forquilha, que é como ela é puxada), em PETG ou ABS, com 5 paredes e 100% de preenchimento. Use óculos, não aponte para pessoas ou animais e não deixe com criança sem um adulto."
+  ],
+  "date": "2026-10-16",
+  "slicers": "Bambu ✓ · Orca ✓",
+  "minutes": 115,
+  "grams": 94.1,
+  "plates": 1
+ },
+ {
   "key": "spacer:máximo",
   "owner": "Torno",
   "group": "home",

@@ -61,6 +61,7 @@ export const MODEL_ALIASES: Record<string, string> = {
   stamp: "carimbo brigadeiro biscoito sabonete",
   cutterStamp: "cortador de biscoito bolacha carimbo",
   nfc: "nfc cartão tag aproximação chaveiro",
+  slingshot: "estilingue bodoque atiradeira funda forquilha brinquedo nome",
   opener: "abridor garrafa lata chaveiro",
   spinner: "giratório gira chaveiro fidget",
   ornamentSpinner: "enfeite árvore de natal bola giratório pendurar",

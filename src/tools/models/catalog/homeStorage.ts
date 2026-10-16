@@ -1,4 +1,5 @@
-import { Grid2x2, Grid3x3, Package, Ruler, RulerDimensionLine, TestTube } from "lucide-react";
+import { Grid2x2, Grid3x3, Package, Ruler, RulerDimensionLine, TestTube, Target } from "lucide-react";
+import { buildSlingshot, DEFAULT_SLINGSHOT } from "../../../geometry/models/slingshot";
 import { buildGridBase, buildGridBin, buildGridTest, DEFAULT_GRID_BASE, DEFAULT_GRID_BIN } from "../../../geometry/models/gridfinity";
 import { buildLidBox, DEFAULT_LID_BOX } from "../../../geometry/models/lidBox";
 import { buildRuler3d, DEFAULT_RULER } from "../../../geometry/models/ruler3d";
@@ -170,5 +171,38 @@ export const HOME_STORAGE_MODELS: ModelDef[] = [
       },
     ],
     build: (ctx, p) => buildRuler3d(ctx, as(p)),
+  },
+  {
+    id: "slingshot",
+    category: "home",
+    label: "Estilingue personalizado",
+    blurb: "Estilingue plano em Y, com o nome na empunhadura e furos para amarrar o elástico. Brinquedo e hobby: leia os cuidados antes de imprimir.",
+    icon: Target,
+    font: true,
+    defaults: DEFAULT_SLINGSHOT,
+    sections: [
+      {
+        title: "Nome",
+        fields: [
+          text("name", "Nome na empunhadura", 12),
+          choice("nameMode", "Nome", [["raised", "Em relevo (outra cor)"], ["engraved", "Gravado"], ["none", "Sem nome"]]),
+          num("depth", "Profundidade ou relevo", 0.5, 2, { step: 0.1 }),
+        ],
+      },
+      {
+        title: "Formato",
+        fields: [
+          num("handleLen", "Comprimento do cabo", 60, 140, { step: 1 }),
+          num("handleW", "Largura do cabo", 22, 45, { step: 1, hint: "Confortável na mão: 28 a 34 mm." }),
+          num("forkLen", "Comprimento da forquilha", 35, 90, { step: 1 }),
+          num("spread", "Abertura entre as pontas", 25, 100, { step: 1, hint: "De centro a centro dos furos do elástico." }),
+          num("armW", "Largura dos braços", 12, 26, { step: 0.5, hint: "Menos de 14 mm quebra com facilidade." }),
+          num("thickness", "Espessura", 8, 20, { step: 1 }),
+          color("color", "Estilingue"),
+          color("nameColor", "Nome (em relevo)"),
+        ],
+      },
+    ],
+    build: (ctx, p) => buildSlingshot(ctx, as(p)),
   },
 ];
