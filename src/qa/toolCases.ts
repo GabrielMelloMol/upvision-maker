@@ -21,6 +21,7 @@ import type { CS, ManifoldToplevel } from "../geometry/manifold";
 import { buildMedalDesign, DEFAULT_MEDAL_DESIGN, type MedalDesign } from "../geometry/medalDesign";
 import { runCuts, type CutItem } from "../geometry/cutSequence";
 import { suggestCuts } from "../geometry/cutSuggest";
+import { buildMold, DEFAULT_MOLD, mergedMesh, modelSolid, type MoldParams } from "../geometry/mold";
 import { partialCut, DEFAULT_PARTIAL_CUT, type PartialCutOptions } from "../geometry/partialCut";
 import { cutModels, DEFAULT_CUT } from "../geometry/planeCut";
 import { COLOR_LITHO_PROFILE, CUTTER_PROFILE, DEFAULT_PROFILE, STAMP_HINGE_PROFILE, STAMP_PROFILE, THERMO_MOLD_PROFILE, THERMO_SCREEN_PROFILE, LAYERED_PROFILE, LITHO_PROFILE, RELIEF_PROFILE, type PrintProfile } from "../geometry/printProfile";
@@ -248,6 +249,22 @@ export function toolCases(M: ManifoldToplevel): QaCase[] {
   };
 
   return [
+    ...cases("mold", "Molde a partir de STL", (() => {
+      const mold = (model: Model, over: Partial<MoldParams> = {}): Out => {
+        const { solid } = modelSolid(M, model);
+        const o = buildMold(M, solid, mergedMesh(model), { ...DEFAULT_MOLD, ...over });
+        solid.delete();
+        return { models: o.models, warnings: o.warnings };
+      };
+      const ball: Model = { name: "Esfera", parts: [{ name: "Peça", color: "#d4d4d8", mesh: toMesh(M.Manifold.sphere(20, 48)) }] };
+      const arm = () => readOwnFile(new Uint8Array(readFileSync(ARM)), "boneco-braco.stl");
+      return [
+        ["esfera (padrão)", () => mold(ball)],
+        ["esfera sem canal", () => mold(ball, { sprue: "none", vents: 0 })],
+        ["esfera com encolhimento e 3 respiros", () => mold(ball, { shrink: 3, vents: 3, wall: 14 })],
+        ["boneco em outro eixo", () => mold(arm(), { axis: "x", offset: 0 })],
+      ] as Variant[];
+    })()),
     ...cases("partialcut", "Corte parcial", [
       ["sugestão para menos suporte", (): Out => {
         const model = readOwnFile(new Uint8Array(readFileSync(ARM)), "boneco-braco.stl");

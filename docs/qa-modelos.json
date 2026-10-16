@@ -2221,6 +2221,69 @@
   "plates": 1
  },
  {
+  "key": "mold:boneco em outro eixo",
+  "owner": "Forja",
+  "group": "tools",
+  "label": "Molde a partir de STL (ferramenta)",
+  "variant": "boneco em outro eixo",
+  "status": "ok",
+  "reasons": [
+   "app: A parede subiu para 10,6 mm para caber o pino de alinhamento.",
+   "app: Parte da peça prende na desmoldagem (16% da superfície de uma das metades): mude a posição do plano ou use silicone flexível."
+  ],
+  "date": "2026-10-16",
+  "slicers": "Bambu ✓ · Orca ✓ · Projeto Bambu ✓",
+  "minutes": 244,
+  "grams": 91.3,
+  "plates": 1
+ },
+ {
+  "key": "mold:esfera (padrão)",
+  "owner": "Forja",
+  "group": "tools",
+  "label": "Molde a partir de STL (ferramenta)",
+  "variant": "esfera (padrão)",
+  "status": "ok",
+  "reasons": [
+   "app: A parede subiu para 10,6 mm para caber o pino de alinhamento."
+  ],
+  "date": "2026-10-16",
+  "slicers": "Bambu ✓ · Orca ✓ · Projeto Bambu ✓",
+  "minutes": 324,
+  "grams": 110,
+  "plates": 1
+ },
+ {
+  "key": "mold:esfera com encolhimento e 3 respiros",
+  "owner": "Forja",
+  "group": "tools",
+  "label": "Molde a partir de STL (ferramenta)",
+  "variant": "esfera com encolhimento e 3 respiros",
+  "status": "ok",
+  "reasons": [],
+  "date": "2026-10-16",
+  "slicers": "Bambu ✓ · Orca ✓ · Projeto Bambu ✓",
+  "minutes": 380,
+  "grams": 142.8,
+  "plates": 1
+ },
+ {
+  "key": "mold:esfera sem canal",
+  "owner": "Forja",
+  "group": "tools",
+  "label": "Molde a partir de STL (ferramenta)",
+  "variant": "esfera sem canal",
+  "status": "ok",
+  "reasons": [
+   "app: A parede subiu para 10,6 mm para caber o pino de alinhamento."
+  ],
+  "date": "2026-10-16",
+  "slicers": "Bambu ✓ · Orca ✓ · Projeto Bambu ✓",
+  "minutes": 323,
+  "grams": 110.3,
+  "plates": 1
+ },
+ {
   "key": "partialcut:cilindro",
   "owner": "Forja",
   "group": "tools",
