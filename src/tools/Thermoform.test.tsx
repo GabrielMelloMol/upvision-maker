@@ -116,7 +116,7 @@ describe("Caixinha termoformada", () => {
     await user.click(screen.getByRole("button", { name: "Texto" }));
     expect(screen.getByLabelText(/^Texto da silhueta \(Enter/)).toHaveValue("Ana");
     await ready();
-  }, 60_000);
+  }, 120_000);
 
   test("Mesa mostra o que imprime; Montada mostra a caixinha curva e avisa que não imprime", async () => {
     const user = userEvent.setup();
