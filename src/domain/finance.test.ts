@@ -1,5 +1,5 @@
 import { describe, expect, test } from "vitest";
-import { breakdown, costOccurrences, financeSummary, monthlySeries, monthsBetween, recommendedStock, stockHealth, type OperationalCost } from "./finance";
+import { bestOf, breakdown, indicators, costOccurrences, financeSummary, monthlySeries, monthsBetween, recommendedStock, stockHealth, type OperationalCost } from "./finance";
 import type { Order } from "./orders";
 
 const cost = (c: Partial<OperationalCost>): OperationalCost => ({ id: 1, description: "Aluguel", category: "Fixo", amount: 100, frequency: "monthly", startDate: "2026-01-10", endDate: null, printerId: null, notes: "", ...c });
@@ -71,8 +71,8 @@ describe("resumo financeiro", () => {
 
   test("quebra por canal e por produto (receita, lucro bruto e quantidade), maior primeiro", () => {
     expect(breakdown(orders, "2026-03-01", "2026-04-30", (_o, i) => i.description)).toEqual([
-      { key: "Chaveiro", revenue: 150, grossProfit: 110, qty: 10 },
-      { key: "Topo de bolo", revenue: 45, grossProfit: 37, qty: 1 },
+      { key: "Chaveiro", revenue: 150, grossProfit: 110, qty: 10, hours: 2 },
+      { key: "Topo de bolo", revenue: 45, grossProfit: 37, qty: 1, hours: 1 },
     ]);
     expect(breakdown(orders, "2026-03-01", "2026-04-30", (o) => o.channel).map((b) => b.key)).toEqual(["Consumidor final", "Shopee"]);
   });
@@ -160,5 +160,31 @@ describe("taxas do canal e imposto no lucro (#243, A5)", () => {
     expect(rows.find((r) => r.key === "A")!.grossProfit).toBe(36); // 100 − 40 − 24 (2/3 de 36)
     expect(rows.find((r) => r.key === "B")!.grossProfit).toBe(28); // 50 − 10 − 12 (1/3 de 36)
     expect(monthlySeries([o], [], "2026-03-01", "2026-03-31")[0]).toMatchObject({ revenue: 150, costs: 86, profit: 64 }); // 50 de custo + 36 de taxas
+  });
+});
+
+describe("indicadores por canal e impressora (#215)", () => {
+  const row = (key: string, revenue: number, grossProfit: number, hours: number) => ({ key, revenue, grossProfit, qty: 1, hours });
+
+  test("margem sobre a receita e lucro bruto por hora de máquina; sem base fica null", () => {
+    const [a, b, c] = indicators([row("Shopee", 200, 80, 4), row("Direto", 100, 70, 0), row("Zero", 0, 0, 2)]);
+    expect(a).toMatchObject({ margin: 40, profitPerHour: 20 });
+    expect(b).toMatchObject({ margin: 70, profitPerHour: null });
+    expect(c).toMatchObject({ margin: null, profitPerHour: 0 });
+  });
+
+  test("o melhor vai pelo lucro por hora quando todos têm tempo; senão pela margem; sozinho não há melhor", () => {
+    const withHours = indicators([row("A", 200, 80, 4), row("B", 150, 90, 2)]);
+    expect(bestOf(withHours)).toMatchObject({ by: "hour", row: { key: "B" } }); // 45 R$/h contra 20
+    const mixed = indicators([row("A", 200, 80, 4), row("B", 100, 70, 0)]);
+    expect(bestOf(mixed)).toMatchObject({ by: "margin", row: { key: "B" } }); // 70% contra 40%
+    expect(bestOf(indicators([row("A", 200, 80, 4)]))).toBeNull();
+    expect(bestOf([])).toBeNull();
+    expect(bestOf(indicators([row("A", 0, 0, 0), row("B", 0, 0, 0)]))).toBeNull(); // nada vendido
+  });
+
+  test("as horas vêm do tempo de impressão de cada peça × quantidade", () => {
+    const rows = breakdown([order({ items: [{ id: 1, productId: 1, description: "A", qty: 3, unitPrice: 10, discountPct: 0, unitCost: 2, printMinutes: 20, custom: "" }] })], "2026-03-01", "2026-03-31", (_o, i) => i.description);
+    expect(rows[0].hours).toBe(1);
   });
 });

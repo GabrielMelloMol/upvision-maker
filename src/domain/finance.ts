@@ -107,7 +107,7 @@ export function monthlySeries(orders: Order[], costs: OperationalCost[], from: s
   });
 }
 
-export type BreakdownRow = { key: string; revenue: number; grossProfit: number; qty: number };
+export type BreakdownRow = { key: string; revenue: number; grossProfit: number; qty: number; /** Horas de máquina (tempo de impressão de cada peça × quantidade). */ hours: number };
 
 /** Receita, lucro bruto (sem despesas fixas) e quantidade agrupados por uma chave (canal, produto, impressora…). */
 export function breakdown(orders: Order[], from: string, to: string, keyOf: (o: Order, i: OrderItem) => string): BreakdownRow[] {
@@ -115,14 +115,35 @@ export function breakdown(orders: Order[], from: string, to: string, keyOf: (o: 
   for (const o of deliveredIn(orders, from, to)) {
     for (const i of o.items) {
       const k = keyOf(o, i);
-      const cur = map.get(k) ?? { key: k, revenue: 0, grossProfit: 0, qty: 0 };
+      const cur = map.get(k) ?? { key: k, revenue: 0, grossProfit: 0, qty: 0, hours: 0 };
       const rev = lineTotal(i);
       const orderRev = orderTotals(o.items, 0).total;
       const fees = orderRev > 0 ? ((o.fees ?? 0) * rev) / orderRev : 0; // as taxas do pedido, repartidas pela receita de cada linha (A5)
-      map.set(k, { key: k, revenue: round2(cur.revenue + rev), grossProfit: round2(cur.grossProfit + rev - i.unitCost * i.qty - fees), qty: cur.qty + i.qty });
+      map.set(k, { key: k, revenue: round2(cur.revenue + rev), grossProfit: round2(cur.grossProfit + rev - i.unitCost * i.qty - fees), qty: cur.qty + i.qty, hours: round2(cur.hours + (i.printMinutes * i.qty) / 60) });
     }
   }
   return [...map.values()].sort((a, b) => b.revenue - a.revenue);
+}
+
+/** Indicadores de uma linha do `breakdown`: margem sobre a receita e lucro bruto por hora de máquina (null sem base). */
+export type Indicator = BreakdownRow & { margin: number | null; profitPerHour: number | null };
+export const indicators = (rows: BreakdownRow[]): Indicator[] =>
+  rows.map((r) => ({ ...r, margin: r.revenue > 0 ? round2((r.grossProfit / r.revenue) * 100) : null, profitPerHour: r.hours > 0 ? round2(r.grossProfit / r.hours) : null }));
+
+/** Linhas do melhor para o pior: pelo lucro por hora de máquina quando todas têm tempo; senão pela margem. */
+export function rankIndicators(rows: Indicator[]): { rows: Indicator[]; by: "hour" | "margin" } {
+  const by = rows.length > 0 && rows.every((r) => r.profitPerHour !== null) ? "hour" : "margin";
+  const key = (r: Indicator) => (by === "hour" ? r.profitPerHour! : (r.margin ?? -Infinity));
+  return { rows: [...rows].sort((a, b) => key(b) - key(a)), by };
+}
+
+/** Quem dá mais lucro. Precisa de pelo menos 2 linhas para comparar (com uma só não há "melhor"). */
+export function bestOf(rows: Indicator[]): { row: Indicator; by: "hour" | "margin" } | null {
+  if (rows.length < 2) return null;
+  const ranked = rankIndicators(rows);
+  const row = ranked.rows[0];
+  const top = ranked.by === "hour" ? row.profitPerHour! : (row.margin ?? -Infinity);
+  return top === -Infinity ? null : { row, by: ranked.by };
 }
 
 const COVER_DAYS = 14;
