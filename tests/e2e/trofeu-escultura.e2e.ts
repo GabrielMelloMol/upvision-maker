@@ -9,7 +9,7 @@ const PRINTS = process.env.TROFEU_PRINTS;
 async function shot(page: Page, name: string) {
   if (!PRINTS) return;
   mkdirSync(PRINTS, { recursive: true });
-  await page.screenshot({ path: `${PRINTS}/${name}.png` });
+  await page.screenshot({ path: `${PRINTS}/${name}${process.env.TROFEU_SUFFIX ?? ""}.png` });
 }
 async function open(page: Page, label: string) {
   await go(page, "Modelos prontos");
@@ -50,6 +50,38 @@ test("troféu escultura: fita, estrela e cruz torcidas", async ({ page }) => {
   await page.getByRole("button", { name: "Cruz bronze" }).click();
   await idle(page);
   await shot(page, "06-escultura-cruz");
+});
+
+const assembled = (page: Page) => page.getByRole("button", { name: "Montado (só para ver)" }).click().then(() => idle(page));
+const onTable = (page: Page) => page.getByRole("button", { name: "Mesa (o que imprime)" }).click().then(() => idle(page));
+
+test("troféu atleta: Mesa mostra o que imprime e Montado mostra o troféu em pé na base", async ({ page }) => {
+  await open(page, "Troféu atleta");
+  const size = async () => (await hud(page).textContent()) ?? "";
+  const flat = await size();
+  await assembled(page);
+  await expect(page.getByText(/Montado: é só para ver/)).toBeVisible();
+  expect(await size()).not.toBe(flat);
+  await shot(page, "07-atleta-futebol-montado");
+  for (const [sport, file] of [["Basquete", "08-atleta-basquete-montado"], ["Vôlei", "09-atleta-volei-montado"], ["Natação", "10-atleta-natacao-montado"]] as const) {
+    await page.getByLabel("Esporte", { exact: true }).selectOption({ label: sport }); // a variação pronta zera a prévia: troca pelo campo
+    await idle(page);
+    await shot(page, file);
+  }
+  await onTable(page);
+  await expect(page.getByText(/Montado: é só para ver/)).toHaveCount(0);
+});
+
+test("troféu escultura montada: fita, estrela e cruz em pé na base", async ({ page }) => {
+  await open(page, "Troféu escultura");
+  await assembled(page);
+  await shot(page, "11-escultura-fita-montada");
+  await page.getByRole("button", { name: "Estrela", exact: true }).click();
+  await idle(page);
+  await shot(page, "12-escultura-estrela-montada");
+  await page.getByRole("button", { name: "Cruz", exact: true }).click();
+  await idle(page);
+  await shot(page, "13-escultura-cruz-montada");
 });
 
 test("troféu: a família mostra as variações Atleta e Escultura", async ({ page }) => {

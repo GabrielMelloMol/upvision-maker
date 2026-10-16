@@ -21,21 +21,40 @@ type Person = {
   arms: [V, V][]; // cotovelo, mão
   legs: [V, V, V][]; // joelho, tornozelo, ponta do pé
   hand?: number; // raio da mão (luva maior no boxe)
+  front?: number; // meia largura dos ombros de frente (0 = de perfil)
 };
 
-const HEAD_R = 7.4;
+const HEAD_R = 8.2;
 
-/** Corpo humano a partir das juntas: tronco, pescoço, braços e pernas afunilados, cabeça e sapatos. */
+const lerp = (a: V, b: V, t: number): V => [a[0] + (b[0] - a[0]) * t, a[1] + (b[1] - a[1]) * t];
+/** Cadeia de círculos: uma cápsula afunilada entre cada par (dá o volume de músculo ao braço e à perna). */
+const chain = (...c: Dot[]): Limb[] => c.slice(1).map((d, i) => [c[i][0], c[i][1], c[i][2], d[0], d[1], d[2]]);
+
+/** Corpo humano estilo pictograma: tronco com ombros e quadris, braços e pernas com músculo, cabeça e sapatos. */
 function person(p: Person): Pick<SportShape, "limbs" | "dots"> {
-  const limbs: Limb[] = [[p.sh[0], p.sh[1], 8, p.hip[0], p.hip[1], 6.6], [p.head[0], p.head[1], 3.2, p.sh[0], p.sh[1], 4]];
+  const dx = p.hip[0] - p.sh[0];
+  const dy = p.hip[1] - p.sh[1];
+  const len = Math.hypot(dx, dy) || 1;
+  const n: V = [-dy / len, dx / len]; // perpendicular ao tronco
+  const sw = p.front ?? 0;
+  const shoulder = (i: number): V => [p.sh[0] + n[0] * sw * (i === 0 ? 1 : -1), p.sh[1] + n[1] * sw * (i === 0 ? 1 : -1)];
+  const hipAt = (i: number): V => [p.hip[0] + n[0] * sw * 0.55 * (i === 0 ? 1 : -1), p.hip[1] + n[1] * sw * 0.55 * (i === 0 ? 1 : -1)];
+  const limbs: Limb[] = [
+    ...chain([p.sh[0] + n[0] * sw, p.sh[1] + n[1] * sw, 6.4], [p.hip[0] + n[0] * sw * 0.55, p.hip[1] + n[1] * sw * 0.55, 6.8]),
+    ...chain([p.sh[0] - n[0] * sw, p.sh[1] - n[1] * sw, 6.4], [p.hip[0] - n[0] * sw * 0.55, p.hip[1] - n[1] * sw * 0.55, 6.8]),
+    ...chain([p.sh[0], p.sh[1], 8.4], [p.hip[0], p.hip[1], 7.2]),
+    ...chain([p.head[0], p.head[1], 3.8], [p.sh[0], p.sh[1], 5.4]),
+  ];
   const dots: Dot[] = [[p.head[0], p.head[1], HEAD_R]];
-  for (const [el, ha] of p.arms) {
-    limbs.push([p.sh[0], p.sh[1], 4.6, el[0], el[1], 3.7], [el[0], el[1], 3.7, ha[0], ha[1], 3.1]);
-    dots.push([ha[0], ha[1], p.hand ?? 3.6]);
-  }
-  for (const [kn, ft, toe] of p.legs) {
-    limbs.push([p.hip[0], p.hip[1], 6.4, kn[0], kn[1], 4.8], [kn[0], kn[1], 4.8, ft[0], ft[1], 3.4], [ft[0], ft[1], 3.4, toe[0], toe[1], 2.8]);
-  }
+  p.arms.forEach(([el, ha], i) => {
+    const s0 = shoulder(i % 2);
+    limbs.push(...chain([s0[0], s0[1], 5.8], [el[0], el[1], 4.4]), ...chain([el[0], el[1], 4.4], [...lerp(el, ha, 0.3), 4.6], [ha[0], ha[1], 2.6]));
+    dots.push([ha[0], ha[1], p.hand ?? 3.2]);
+  });
+  p.legs.forEach(([kn, ft, toe], i) => {
+    const h0 = hipAt(i % 2);
+    limbs.push(...chain([h0[0], h0[1], 8.6], [kn[0], kn[1], 6]), ...chain([kn[0], kn[1], 6], [...lerp(kn, ft, 0.3), 6.6], [ft[0], ft[1], 3.2]), ...chain([ft[0], ft[1], 3.2], [toe[0], toe[1], 2.8]));
+  });
   return { limbs, dots };
 }
 
@@ -54,15 +73,15 @@ export const SPORTS = {
     { dots: [[50, 40, 8]], floor: [-16, 12] },
   ),
   basquete: join(
-    person({ head: [2, 93], sh: [0, 80], hip: [-2, 52], arms: [[[14, 86], [14, 106]], [[6, 88], [10, 103]]], legs: [[[4, 30], [2, 3], [10, 3]], [[-6, 29], [-10, 3], [-2, 3]]] }),
-    { dots: [[13, 116, 9]], floor: [-18, 18] },
+    person({ front: 3, head: [4, 93], sh: [2, 80], hip: [-2, 52], arms: [[[16, 88], [14, 108]], [[-6, 90], [2, 108]]], legs: [[[10, 30], [4, 3], [13, 3]], [[-10, 28], [-14, 3], [-5, 3]]] }),
+    { dots: [[8, 116, 9]], floor: [-20, 20] },
   ),
   volei: join(
-    person({ head: [0, 93], sh: [0, 80], hip: [0, 52], arms: [[[-11, 90], [-6, 106]], [[11, 90], [6, 106]]], legs: [[[8, 30], [10, 3], [18, 3]], [[-8, 30], [-12, 3], [-4, 3]]] }),
-    { dots: [[0, 114, 9]], floor: [-20, 24] },
+    person({ front: 4, head: [0, 93], sh: [0, 80], hip: [0, 52], arms: [[[-17, 90], [-9, 108]], [[17, 90], [9, 108]]], legs: [[[8, 30], [10, 3], [18, 3]], [[-8, 30], [-12, 3], [-4, 3]]] }),
+    { dots: [[0, 115, 9]], floor: [-20, 24] },
   ),
   tenis: join(
-    person({ head: [-2, 93], sh: [-4, 80], hip: [-2, 52], arms: [[[8, 76], [24, 72]], [[-18, 78], [-30, 88]]], legs: [[[-14, 28], [-22, 3], [-14, 3]], [[12, 30], [20, 3], [28, 3]]] }),
+    person({ front: 3, head: [-2, 93], sh: [-4, 80], hip: [-2, 52], arms: [[[8, 76], [24, 72]], [[-18, 78], [-30, 88]]], legs: [[[-14, 28], [-22, 3], [-14, 3]], [[12, 30], [20, 3], [28, 3]]] }),
     { limbs: [[24, 72, 1.8, 38, 91, 1.6]], rings: [[44, 98, 11.5, 8]], floor: [-28, 34] },
   ),
   natacao: join(
@@ -95,32 +114,32 @@ export const SPORTS = {
     { floor: [-8, 14] },
   ),
   handebol: join(
-    person({ head: [2, 93], sh: [0, 80], hip: [-2, 52], arms: [[[-16, 92], [-10, 104]], [[14, 82], [30, 86]]], legs: [[[12, 32], [16, 3], [24, 3]], [[-14, 30], [-24, 3], [-16, 3]]] }),
+    person({ front: 3, head: [2, 93], sh: [0, 80], hip: [-2, 52], arms: [[[-16, 92], [-10, 104]], [[14, 82], [30, 86]]], legs: [[[12, 32], [16, 3], [24, 3]], [[-14, 30], [-24, 3], [-16, 3]]] }),
     { dots: [[-10, 114, 7.5]], floor: [-26, 26] },
   ),
   beisebol: join(
-    person({ head: [-2, 93], sh: [-2, 80], hip: [0, 52], arms: [[[-14, 84], [-14, 97]], [[-4, 88], [-10, 98]]], legs: [[[-12, 28], [-16, 3], [-8, 3]], [[12, 28], [18, 3], [26, 3]]] }),
+    person({ front: 2, head: [-2, 93], sh: [-2, 80], hip: [0, 52], arms: [[[-14, 84], [-14, 97]], [[-4, 88], [-10, 98]]], legs: [[[-12, 28], [-16, 3], [-8, 3]], [[12, 28], [18, 3], [26, 3]]] }),
     { limbs: [[-12, 97, 1.8, -34, 128, 3.6]], floor: [-18, 28] },
   ),
   boxe: join(
-    person({ head: [4, 92], sh: [0, 80], hip: [-4, 52], arms: [[[18, 78], [34, 86]], [[8, 70], [16, 85]]], legs: [[[10, 30], [14, 3], [22, 3]], [[-10, 30], [-18, 3], [-10, 3]]], hand: 6.8 }),
+    person({ front: 2, head: [4, 92], sh: [0, 80], hip: [-4, 52], arms: [[[18, 78], [34, 86]], [[8, 70], [16, 85]]], legs: [[[10, 30], [14, 3], [22, 3]], [[-10, 30], [-18, 3], [-10, 3]]], hand: 6.8 }),
     { floor: [-20, 24] },
   ),
   skate: join(
-    person({ head: [0, 91], sh: [-2, 78], hip: [0, 52], arms: [[[-22, 70], [-38, 66]], [[18, 72], [34, 80]]], legs: [[[-10, 32], [-14, 13], [-8, 13]], [[10, 32], [14, 13], [20, 13]]] }),
+    person({ front: 4, head: [0, 91], sh: [-2, 78], hip: [0, 52], arms: [[[-22, 70], [-38, 66]], [[18, 72], [34, 80]]], legs: [[[-10, 32], [-14, 13], [-8, 13]], [[10, 32], [14, 13], [20, 13]]] }),
     { limbs: [[-28, 10, 1.9, 28, 10, 1.9]], dots: [[-20, 4.5, 4.5], [20, 4.5, 4.5]], floor: [-26, 26] },
   ),
   halterofilismo: join(
-    person({ head: [0, 92], sh: [0, 80], hip: [0, 52], arms: [[[-14, 100], [-20, 116]], [[14, 100], [20, 116]]], legs: [[[-12, 28], [-18, 3], [-10, 3]], [[12, 28], [18, 3], [26, 3]]] }),
-    { limbs: [[-40, 116, 1.8, 40, 116, 1.8]], dots: [[-31, 116, 11], [31, 116, 11], [-25, 116, 8.5], [25, 116, 8.5]], floor: [-20, 28] },
+    person({ front: 5, head: [0, 92], sh: [0, 80], hip: [0, 52], arms: [[[-24, 98], [-27, 116]], [[24, 98], [27, 116]]], legs: [[[-12, 28], [-18, 3], [-10, 3]], [[12, 28], [18, 3], [26, 3]]] }),
+    { limbs: [[-42, 116, 1.8, 42, 116, 1.8]], dots: [[-37, 116, 11], [37, 116, 11], [-31, 116, 8.5], [31, 116, 8.5]], floor: [-20, 28] },
   ),
   taekwondo: join(
     person({ head: [-14, 91], sh: [-10, 78], hip: [0, 52], arms: [[[-22, 70], [-30, 82]], [[-6, 66], [10, 76]]], legs: [[[0, 28], [0, 3], [8, 3]], [[18, 58], [40, 66], [46, 67]]] }),
     { floor: [-6, 14] },
   ),
   golfe: join(
-    person({ head: [0, 92], sh: [-2, 80], hip: [2, 52], arms: [[[14, 86], [8, 100]], [[8, 84], [8, 99]]], legs: [[[2, 28], [0, 3], [8, 3]], [[-10, 28], [-10, 3], [-3, 3]]] }),
-    { limbs: [[8, 100, 1.3, -34, 74, 1.3]], dots: [[-36, 72, 3.6]], floor: [-14, 14] },
+    person({ front: 3, head: [-2, 92], sh: [-2, 79], hip: [2, 52], arms: [[[12, 84], [4, 99]], [[-12, 86], [2, 98]]], legs: [[[6, 28], [6, 3], [14, 3]], [[-6, 28], [-10, 4], [-3, 3]]] }),
+    { limbs: [[3, 99, 1.4, -36, 70, 1.4]], dots: [[-38, 68, 3.8]], floor: [-14, 18] },
   ),
 } satisfies Record<string, SportShape>;
 

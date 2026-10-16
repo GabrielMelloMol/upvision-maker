@@ -77,4 +77,26 @@ describe("troféu escultura (#223)", () => {
     const out = build({ baseText: "", baseText2: "" });
     expect(out.models[1].parts.map((x) => x.name)).toEqual(["Base"]);
   });
+
+  describe("Montado: em pé na base, com a lingueta dentro do rasgo", () => {
+    test.each([["atleta"], ["fluxo"], ["iris"], ["nexo"]] as const)("%s: não bate na base, desce 8 mm no rasgo e fica em pé", (form) => {
+      const out = build({ form, layout: "assembled", height: 120, twist: 200 });
+      const [piece, base] = out.models;
+      const body = solid(piece.parts[0].mesh);
+      const slab = solid(base.parts[0].mesh);
+      expect(body.status()).toBe("NoError");
+      expect(body.intersect(slab).volume()).toBeCloseTo(0, 3); // a lingueta cabe no rasgo (folga)
+      const b = body.boundingBox();
+      expect(b.min[2]).toBeCloseTo(2, 3); // 10 de base − 8 de lingueta
+      expect(b.max[2]).toBeGreaterThan(110);
+      expect(out.warnings?.some((w) => w.includes("Montado"))).toBe(true);
+      body.delete();
+      slab.delete();
+    });
+
+    test("a mesa continua sendo o padrão e não avisa nada de montagem", () => {
+      expect(DEFAULT_SCULPTURE.layout).toBe("print");
+      expect(build({}).warnings?.some((w) => w.includes("Montado"))).toBeFalsy();
+    });
+  });
 });

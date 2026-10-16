@@ -20,6 +20,14 @@ describe("silhuetas de esportes (#223)", () => {
     cs.delete();
   });
 
+  test.each(SPORT_IDS)("%s: nenhum traço mais fino que 1,6 mm no tamanho de 110 mm (imprime com bico de 0,4)", (id) => {
+    const cs = sportSilhouette(M, id, 110);
+    const opened = cs.offset(-0.8, "Miter").offset(0.8, "Miter"); // o que sobra depois de tirar tudo mais fino que 1,6 mm
+    expect(opened.area() / cs.area()).toBeGreaterThan(0.985);
+    opened.delete();
+    cs.delete();
+  });
+
   test("todo esporte tem nome e são 15", () => {
     expect(SPORT_IDS).toHaveLength(15);
     for (const id of SPORT_IDS) expect(SPORT_LABELS[id].length).toBeGreaterThan(2);

@@ -5,11 +5,13 @@ import type { Model } from "../types";
 import { moveModel, roundedRect, slab, solidMesh, type ModelCtx, type ModelOutput } from "./common";
 import { trophyBase } from "./trophy";
 
+export type SculptureLayout = "print" | "assembled";
 export type SculptureForm = "atleta" | "fluxo" | "iris" | "nexo";
 export const SCULPTURE_FORMS: SculptureForm[] = ["atleta", "fluxo", "iris", "nexo"];
 
 export type SculptureParams = {
   form: SculptureForm;
+  layout: SculptureLayout; // peças na mesa (o que imprime) ou o troféu montado em pé na base (só para ver)
   sport: SportId;
   height: number; // altura do atleta (maior dimensão) ou da coluna torcida
   girth: number; // largura da coluna torcida
@@ -24,6 +26,7 @@ export type SculptureParams = {
 
 export const DEFAULT_SCULPTURE: SculptureParams = {
   form: "atleta",
+  layout: "print",
   sport: "futebol",
   height: 120,
   girth: 44,
@@ -45,6 +48,7 @@ const STAR_POINTS = 5;
 const STAR_INNER = 0.55;
 const SOFTEN = 1.6; // cantos da estrela arredondados
 const GAP_TO_BASE = 14;
+const BASE_H = 10; // altura da base compacta
 const BASE_D = 55; // base compacta da trophyBase: 120 × 55
 const BASE_W = 120;
 
@@ -76,7 +80,10 @@ function athlete(ctx: ModelCtx, p: SculptureParams): { model: Model; tabW: numbe
     const floorW = floor.bounds().max[0] - floor.bounds().min[0];
     const tabW = Math.min(MAX_TAB_W, floorW * 0.7);
     const tab = k(k(M.CrossSection.square([tabW, TAB_H + OVERLAP], true)).translate([0, bottom - (TAB_H - OVERLAP) / 2]));
-    return { tabW, width, model: { name: "Atleta", parts: [{ name: "Atleta", color: p.bodyColor, mesh: slab(k(sil.add(tab)), p.thickness) }] } };
+    const flat = k(sil.add(tab));
+    // montado: em pé (a espessura vira profundidade), com a lingueta dentro do rasgo no topo da base
+    const mesh = p.layout === "assembled" ? solidMesh(k(k(k(flat.extrude(p.thickness)).rotate([90, 0, 0])).translate([0, p.thickness / 2, BASE_H - bottom]))) : slab(flat, p.thickness);
+    return { tabW, width, model: { name: "Atleta", parts: [{ name: "Atleta", color: p.bodyColor, mesh }] } };
   });
 }
 
@@ -90,7 +97,10 @@ function column(ctx: ModelCtx, p: SculptureParams): { model: Model; tabW: number
     const tabW = Math.min(MAX_TAB_W, p.girth * 0.45);
     // a lingueta segue a ponta torcida da coluna: o rasgo da base é reto e a peça gira para encaixar
     const tab = k(k(k(M.Manifold.cube([tabW, TAB_T, TAB_H + OVERLAP], true)).translate([0, 0, p.height + (TAB_H - OVERLAP) / 2])).rotate([0, 0, p.twist]));
-    return { tabW, width: p.girth, model: { name: "Coluna", parts: [{ name: "Coluna", color: p.bodyColor, mesh: solidMesh(k(body.add(tab))) }] } };
+    const whole = k(body.add(tab));
+    // montada: de pé com a lingueta para baixo; o giro desfaz a torção da ponta para a lingueta bater com o rasgo reto
+    const mesh = solidMesh(p.layout === "assembled" ? k(k(k(whole.rotate([180, 0, 0])).translate([0, 0, p.height + BASE_H])).rotate([0, 0, p.twist])) : whole);
+    return { tabW, width: p.girth, model: { name: "Coluna", parts: [{ name: "Coluna", color: p.bodyColor, mesh }] } };
   });
 }
 
@@ -101,6 +111,10 @@ export function buildSculpture(ctx: ModelCtx, p: SculptureParams): ModelOutput {
   const thickness = p.form === "atleta" ? p.thickness : TAB_T;
   const baseW = Math.max(piece.width * 0.9, piece.tabW + 20);
   const base = trophyBase(ctx, { width: baseW, tabW: piece.tabW, thickness, relief: 1, lines: [p.baseText, p.baseText2], compact: true, baseColor: p.baseColor, textColor: p.textColor }, (m) => void warnings.push(m));
+  if (p.layout === "assembled") {
+    warnings.push("Montado: é só para ver. Para imprimir, volte para \"Mesa\".");
+    return { models: [piece.model, base], warnings };
+  }
   // o atleta (peça plana) leva a base embaixo, como o troféu adaptável; a coluna leva a base ao lado
   const placed = p.form === "atleta" ? moveModel(base, 0, -(TAB_H + GAP_TO_BASE + BASE_D / 2)) : moveModel(base, piece.width / 2 + BASE_W / 2 + GAP_TO_BASE, 0);
   return { models: [piece.model, placed], warnings };
