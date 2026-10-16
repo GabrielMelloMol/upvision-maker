@@ -4,9 +4,11 @@ import { costsRepo } from "../db/costsRepo";
 import { ordersRepo } from "../db/ordersRepo";
 import { productsRepo } from "../db/productsRepo";
 import { wasteRunsRepo } from "../db/wasteRunsRepo";
-import { printers } from "../db/repo";
+import { loadSettings, printers } from "../db/repo";
 import type { Db } from "../db/types";
 import { toCsv } from "../domain/csv";
+import { feesToRecalc } from "../domain/feeRecalc";
+import FeeRecalc from "./finance/FeeRecalc";
 import { breakdown, change, financeSummary, monthlySeries, periodRange, previousRange, type OperationalCost } from "../domain/finance";
 import { money } from "../domain/format";
 import { lineTotal, orderTotals, paymentOf, todayIso, type Order } from "../domain/orders";
@@ -21,10 +23,11 @@ import { errorText, useToast } from "../ui/Toast";
 import EmptyState from "../ui/EmptyState";
 import LoadError from "../ui/LoadError";
 import type { Go } from "../pages";
+import { DEFAULT_SETTINGS } from "../domain/settings";
 import { useData } from "../ui/useData";
 
-const load = async (db: Db) => ({ orders: await ordersRepo.list(db), costs: await costsRepo.list(db), products: await productsRepo.list(db), printers: await printers.list(db), waste: await wasteRunsRepo.list(db) });
-const EMPTY = { orders: [] as Order[], costs: [] as OperationalCost[], products: [] as Product[], printers: [] as Printer[], waste: [] as WasteRun[] };
+const load = async (db: Db) => ({ orders: await ordersRepo.list(db), costs: await costsRepo.list(db), products: await productsRepo.list(db), printers: await printers.list(db), waste: await wasteRunsRepo.list(db), settings: await loadSettings(db) });
+const EMPTY = { settings: DEFAULT_SETTINGS, orders: [] as Order[], costs: [] as OperationalCost[], products: [] as Product[], printers: [] as Printer[], waste: [] as WasteRun[] };
 const NO_PRINTER = "Sem impressora";
 
 export default function Finance({ go }: { go: Go }) {
@@ -107,6 +110,7 @@ export default function Finance({ go }: { go: Go }) {
       ) : (
         <>
 
+      <FeeRecalc fixes={feesToRecalc(data.orders, data.settings)} orders={data.orders} onDone={reload} />
       <div className="row filters">
         <Segmented
           label="Período"

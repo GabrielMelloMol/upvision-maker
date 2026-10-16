@@ -30,8 +30,10 @@ const mlTiers = (pct: number): Channel["tiers"] => [
 ];
 const mlShipping = { freeShippingAbove: 79, shippingCost: 20 } as const;
 
-export const ML_CLASSIC_2026: Channel = { name: "Mercado Livre (clássico)", feePct: 14, feeFixed: 5.65, tiers: mlTiers(14), ...mlShipping, checkedAt: RULES_DATE, rulesNote: ML_NOTE };
-export const ML_PREMIUM_2026: Channel = { name: "Mercado Livre (premium)", feePct: 17, feeFixed: 5.65, tiers: mlTiers(17), ...mlShipping, checkedAt: RULES_DATE, rulesNote: ML_NOTE };
+/** Categorias de comissão: só a porcentagem publicada (a lista de categorias de cada plataforma muda); a pessoa renomeia e confere. */
+const byPct = (pcts: number[]) => pcts.map((feePct) => ({ name: `Categoria com ${String(feePct).replace(".", ",")}%`, feePct }));
+export const ML_CLASSIC_2026: Channel = { name: "Mercado Livre (clássico)", feePct: 14, feeFixed: 5.65, tiers: mlTiers(14), ...mlShipping, categories: byPct([10, 12, 14]), category: "Categoria com 14%", checkedAt: RULES_DATE, rulesNote: ML_NOTE };
+export const ML_PREMIUM_2026: Channel = { name: "Mercado Livre (premium)", feePct: 17, feeFixed: 5.65, tiers: mlTiers(17), ...mlShipping, categories: byPct([15, 17, 19]), category: "Categoria com 17%", checkedAt: RULES_DATE, rulesNote: ML_NOTE };
 
 const TIKTOK_NOTE = "TikTok Shop (desde 15/07/2026): 10% + R$ 4 abaixo de R$ 50; 6% + R$ 6 a partir de R$ 50, sobre o preço depois do seu desconto. O programa de frete grátis é opcional e cobra +6% (teto de R$ 50): some à parte. Regra lida em fontes secundárias em 15/10/2026: confira na central do vendedor.";
 export const TIKTOK_2026: Channel = { name: "TikTok Shop", feePct: 10, feeFixed: 4, tiers: [{ from: 50, feePct: 6, feeFixed: 6 }], checkedAt: RULES_DATE, rulesNote: TIKTOK_NOTE };
@@ -40,10 +42,13 @@ export const AMAZON_2026: Channel = {
   name: "Amazon",
   feePct: 15,
   feeFixed: 2,
+  feeMinPerItem: 1,
+  categories: byPct([10, 12, 15]),
+  category: "Categoria com 15%",
   checkedAt: RULES_DATE,
   rulesNote: "Amazon: comissão de 10% a 15% conforme a categoria (mínimo de R$ 1 por item). O R$ 2 por item é do plano individual: no profissional ele não existe (R$ 19 por mês). Confira a categoria e o plano na central do vendedor (página de 19/09/2026).",
 };
-export const SHEIN_2026: Channel = { name: "Shein", feePct: 18, feeFixed: 0, checkedAt: RULES_DATE, rulesNote: "Shein: 18% (20% em moda feminina), sem taxa fixa; novos CNPJ têm 90 dias de isenção. Fontes secundárias em 15/10/2026: confira na central do vendedor." };
+export const SHEIN_2026: Channel = { name: "Shein", feePct: 18, feeFixed: 0, categories: [{ name: "Moda feminina", feePct: 20 }, { name: "Demais categorias", feePct: 18 }], category: "Demais categorias", checkedAt: RULES_DATE, rulesNote: "Shein: 18% (20% em moda feminina), sem taxa fixa; novos CNPJ têm 90 dias de isenção. Fontes secundárias em 15/10/2026: confira na central do vendedor." };
 
 /** O canal de fábrica antigo, sem nada mexido pela pessoa: troca pelo de 2026 ao abrir as preferências salvas. */
 const OLD_FACTORY: Record<string, { feePct: number; feeFixed: number; replace: Channel }> = {

@@ -433,3 +433,11 @@ td.best-name { max-width: 0; width: 100%; overflow: hidden; text-overflow: ellip
 .ph-compare { width: 100%; margin: var(--space-3) 0; font-size: var(--text-sm); }
 .ph-compare th, .ph-compare td { text-align: left; vertical-align: top; }
 .pricing-how h3 { margin: var(--space-4) 0 0; font-size: var(--text-md); }
+
+/* Regras novas de um canal editado (#246) */
+.rules-news { margin: var(--space-2) 0 var(--space-3); padding: var(--space-3) var(--space-4); border-radius: var(--r); background: var(--fill); box-shadow: inset 0 0 0 0.5px var(--border); }
+.rules-news p { margin: var(--space-1) 0; }
+.rules-news .row { display: flex; align-items: center; gap: var(--space-3); margin-top: var(--space-2); }
+.fee-recalc p { margin: var(--space-1) 0 var(--space-3); }
+.fee-recalc-list { margin: 0 0 var(--space-2); padding-left: var(--space-5); }
+.fee-recalc .row { display: flex; align-items: center; gap: var(--space-3); }

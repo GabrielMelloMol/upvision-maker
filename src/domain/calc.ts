@@ -59,6 +59,16 @@ export interface ChannelPrice {
 const EPS = 1e-9;
 const shipsAt = (c: Channel, price: number) => c.freeShippingAbove !== undefined && price >= c.freeShippingAbove - EPS;
 
+/**
+ * Categoria do anúncio (#246): a comissão da categoria escolhida no canal substitui a do canal e a de cada faixa de preço
+ * (a faixa continua mudando a taxa fixa). Sem categoria escolhida ou conhecida, o canal fica como está.
+ */
+export function withCategory(c: Channel): Channel {
+  const cat = c.category ? c.categories?.find((x) => x.name === c.category) : undefined;
+  if (!cat) return c;
+  return { ...c, feePct: cat.feePct, tiers: c.tiers?.map((t) => ({ ...t, feePct: cat.feePct })) };
+}
+
 /** Comissão e taxa fixa que valem num preço: as da última faixa (`tiers`) que o preço alcança, ou as do canal. */
 function tierAt(c: Channel, price: number): { feePct: number; feeFixed: number } {
   let t = { feePct: pos(c.feePct), feeFixed: pos(c.feeFixed) };
@@ -73,14 +83,16 @@ export const channelFees = (c: Channel, price: number, taxPct: number) => round2
 export const ceilCent = (p: number) => Math.ceil(p * 100 - 1e-6) / 100;
 
 /** Preços em que as taxas do canal mudam (faixas, taxa fixa, frete, teto da comissão), em ordem. */
-export function feeCuts(c: Channel): number[] {
+export function feeCuts(channel: Channel): number[] {
+  const c = withCategory(channel);
   const base = pos(c.feePct) / 100;
-  return [...(c.tiers ?? []).map((x) => x.from), c.fixedBelow, c.freeShippingAbove, c.feeCapPerItem !== undefined && base > 0 ? c.feeCapPerItem / base : undefined].filter((x): x is number => x !== undefined).sort((a, b) => a - b);
+  return [...(c.tiers ?? []).map((x) => x.from), c.fixedBelow, c.freeShippingAbove, c.feeCapPerItem !== undefined && base > 0 ? c.feeCapPerItem / base : undefined, c.feeMinPerItem && base > 0 ? c.feeMinPerItem / base : undefined].filter((x): x is number => x !== undefined).sort((a, b) => a - b);
 }
 
-function feesAt(c: Channel, price: number, taxPct: number): number {
+function feesAt(channel: Channel, price: number, taxPct: number): number {
+  const c = withCategory(channel);
   const tier = tierAt(c, price);
-  const commission = Math.min((price * tier.feePct) / 100, c.feeCapPerItem ?? Infinity);
+  const commission = Math.max(Math.min((price * tier.feePct) / 100, c.feeCapPerItem ?? Infinity), pos(c.feeMinPerItem));
   const fixed = c.fixedBelow === undefined || price < c.fixedBelow - EPS ? tier.feeFixed : 0;
   const shipping = shipsAt(c, price) ? pos(c.shippingCost) : 0;
   return commission + fixed + shipping + pos(c.extraPerSale) + (price * pos(taxPct)) / 100;
@@ -92,11 +104,11 @@ function feesAt(c: Channel, price: number, taxPct: number): number {
  * a própria faixa; um limite também serve quando nele a margem já passa da pedida (a taxa fixa some no limite, por
  * exemplo). null = impossível.
  */
-export function channelPrice(c: Channel, cost: number, marginPct: number, taxPct: number): number | null {
+export function channelPrice(channel: Channel, cost: number, marginPct: number, taxPct: number): number | null {
+  const c = withCategory(channel);
   const m = marginPct / 100;
   const t = pos(taxPct) / 100;
-  const base = pos(c.feePct) / 100;
-  const cuts = [0, ...(c.tiers ?? []).map((x) => x.from), c.fixedBelow, c.freeShippingAbove, c.feeCapPerItem !== undefined && base > 0 ? c.feeCapPerItem / base : undefined]
+  const cuts = [0, ...feeCuts(c)]
     .filter((x): x is number => x !== undefined)
     .sort((a, b) => a - b);
   const marginAt = (p: number) => (p - feesAt(c, p, taxPct) - cost) / p;
@@ -108,8 +120,9 @@ export function channelPrice(c: Channel, cost: number, marginPct: number, taxPct
     const tier = tierAt(c, probe);
     const rate = tier.feePct / 100;
     const capped = c.feeCapPerItem !== undefined && probe * rate >= c.feeCapPerItem;
-    const a = (capped ? 0 : rate) + t;
-    const b = pos(c.extraPerSale) + (capped ? c.feeCapPerItem! : 0) + (c.fixedBelow === undefined || probe < c.fixedBelow ? tier.feeFixed : 0) + (shipsAt(c, probe) ? pos(c.shippingCost) : 0);
+    const floored = !capped && probe * rate < pos(c.feeMinPerItem);
+    const a = (capped || floored ? 0 : rate) + t;
+    const b = pos(c.extraPerSale) + (capped ? c.feeCapPerItem! : 0) + (floored ? pos(c.feeMinPerItem) : 0) + (c.fixedBelow === undefined || probe < c.fixedBelow ? tier.feeFixed : 0) + (shipsAt(c, probe) ? pos(c.shippingCost) : 0);
     const denom = 1 - a - m;
     if (denom > 0) {
       const p = (cost + b) / denom;

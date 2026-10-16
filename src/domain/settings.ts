@@ -19,6 +19,11 @@ export const ChannelSchema = z.object({
    * primeira faixa; a partir do `from` de cada faixa valem os dela (a última que o preço alcança).
    */
   tiers: z.array(FeeTierSchema).max(12).optional(),
+  /** Comissão por categoria do anúncio (Mercado Livre, Amazon, Shein cobram % diferente por categoria); `category` é a escolhida. */
+  categories: z.array(z.object({ name: z.string().trim().min(1), feePct: pct })).max(30).optional(),
+  category: z.string().optional(),
+  /** Comissão mínima por item (a Amazon cobra no mínimo R$ 1). */
+  feeMinPerItem: z.number().min(0).optional(),
   /** De onde vêm as taxas e o que a pessoa precisa conferir (mostrado ao lado do canal). */
   rulesNote: z.string().trim().max(700).optional(),
   // Faixas de preço (#31), todas opcionais: sem elas o canal é só comissão % + taxa fixa.
