@@ -23,7 +23,7 @@ Peça maior que a mesa de 256 mm do A1 conta como **aviso** quando o app avisa n
 impressoras de mesa maior); sem o aviso do app, é **falha**.
 
 
-**Total:** 334 casos · 246 ok · 88 com aviso · 0 com falha · 0 n/a
+**Total:** 336 casos · 248 ok · 88 com aviso · 0 com falha · 0 n/a
 
 ## Forja
 
@@ -172,10 +172,12 @@ impressoras de mesa maior); sem o aviso do app, é **falha**.
 | Medalha (ferramenta) | máximo | ✅ ok | Bambu ✓ · Orca ✓ · Projeto Bambu ✓ | 150 | 99,1 | 1 | – | – |
 | Medalha (ferramenta) | mínimo | ⚠️ aviso | Bambu ✓ · Orca ✓ · Projeto Bambu ✓ | 6 | 2,3 | 1 | – | "CAMPEÃ": parede/traço < 0,4 mm em Z 1,7 mm; app: "CAMPEÃ" ficou com 2,0 mm de altura: os traços ficam com menos de 0,4 mm e somem na impressão. Aumente o texto ou a peça, encurte a linha ou use uma fonte mais grossa. |
 | Medalha (ferramenta) | padrão | ✅ ok | Bambu ✓ · Orca ✓ · Projeto Bambu ✓ | 24 | 11,3 | 1 | – | – |
+| Decal em modelo próprio (ferramenta) | copo cônico: enrolar embutido | ✅ ok | Bambu ✓ · Orca ✓ · Projeto Bambu ✓ | 139 | 73,3 | 1 | – | – |
 | Decal em modelo próprio (ferramenta) | copo: gravado curvo | ✅ ok | Bambu ✓ · Orca ✓ | 62 | 63,7 | 1 | – | – |
 | Decal em modelo próprio (ferramenta) | copo: relevo curvo | ✅ ok | Bambu ✓ · Orca ✓ · Projeto Bambu ✓ | 176 | 95,8 | 1 | – | – |
 | Decal em modelo próprio (ferramenta) | embutido | ✅ ok | Bambu ✓ · Orca ✓ · Projeto Bambu ✓ | 136 | 53,5 | 1 | – | – |
-| Decal em modelo próprio (ferramenta) | esfera: embutido curvo | ✅ ok | Bambu ✓ · Orca ✓ · Projeto Bambu ✓ | 119 | 70,2 | 1 | – | – |
+| Decal em modelo próprio (ferramenta) | esfera: embutido curvo | ✅ ok | Bambu ✓ · Orca ✓ · Projeto Bambu ✓ | 120 | 70,2 | 1 | – | – |
+| Decal em modelo próprio (ferramenta) | garrafa: enrolar relevo | ✅ ok | Bambu ✓ · Orca ✓ · Projeto Bambu ✓ | 217 | 146,6 | 1 | – | – |
 | Decal em modelo próprio (ferramenta) | relevo | ✅ ok | Bambu ✓ · Orca ✓ · Projeto Bambu ✓ | 135 | 53,4 | 1 | – | – |
 | Corte parcial (ferramenta) | cilindro | ✅ ok | Bambu ✓ · Orca ✓ | 36 | 17,2 | 1 | – | app: A região corta a peça pelo lado (a borda dela atravessa o material acima do plano): aumente o raio. |
 | Corte parcial (ferramenta) | dois cortes | ✅ ok | Bambu ✓ · Orca ✓ | 37 | 19,2 | 1 | – | – |

@@ -2221,6 +2221,20 @@
   "plates": 1
  },
  {
+  "key": "ownDecal:copo cônico: enrolar embutido",
+  "owner": "Forja",
+  "group": "tools",
+  "label": "Decal em modelo próprio (ferramenta)",
+  "variant": "copo cônico: enrolar embutido",
+  "status": "ok",
+  "reasons": [],
+  "date": "2026-10-16",
+  "slicers": "Bambu ✓ · Orca ✓ · Projeto Bambu ✓",
+  "minutes": 139,
+  "grams": 73.3,
+  "plates": 1
+ },
+ {
   "key": "ownDecal:copo: gravado curvo",
   "owner": "Forja",
   "group": "tools",
@@ -2272,8 +2286,22 @@
   "reasons": [],
   "date": "2026-10-16",
   "slicers": "Bambu ✓ · Orca ✓ · Projeto Bambu ✓",
-  "minutes": 119,
+  "minutes": 120,
   "grams": 70.2,
+  "plates": 1
+ },
+ {
+  "key": "ownDecal:garrafa: enrolar relevo",
+  "owner": "Forja",
+  "group": "tools",
+  "label": "Decal em modelo próprio (ferramenta)",
+  "variant": "garrafa: enrolar relevo",
+  "status": "ok",
+  "reasons": [],
+  "date": "2026-10-16",
+  "slicers": "Bambu ✓ · Orca ✓ · Projeto Bambu ✓",
+  "minutes": 217,
+  "grams": 146.6,
   "plates": 1
  },
  {

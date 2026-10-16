@@ -2,6 +2,7 @@ import { nozzleMm, nozzleText } from "./bed";
 import { placeDecal, type Decal, type DecalRegions, type DecalWarning } from "./decals";
 import type { CS, ManifoldToplevel, Solid } from "./manifold";
 import { toMesh } from "./mesh";
+import type { K } from "./planeCut";
 import { scoped } from "./shape2d";
 import type { Mesh, Model, Part } from "./types";
 
@@ -89,23 +90,48 @@ export function surfaceIndex(mesh: Mesh): SurfaceIndex {
 
 type Stats = { total: number; steep: number };
 
+/** Como o desenho (x, y em mm sobre a superfície, t para fora) vira ponto da peça: projeção reta ou enrolado na curva. */
+export type SurfaceMap = {
+  sample(x: number, y: number): { pos: [number, number, number]; n: [number, number, number]; steep: boolean } | null;
+  /** Onde o desenho vale (a silhueta da peça na projeção; a faixa útil do rótulo no enrolado). */
+  domain(k: K, body: Solid): CS;
+  /** Aviso quando uma parte do desenho pega trecho que estica (null = o mapa nunca estica). */
+  steepText: string | null;
+  outsideText: string;
+  /** Aviso extra sobre a caixa do desenho já no lugar (largura em volta, por exemplo). */
+  check?: (box: { min: [number, number]; max: [number, number] }) => string | null;
+};
+
 /** Extruda `cs` de t0 a t1 (em relação à superfície), afina a malha e deforma cada vértice para a superfície: ponto + t × normal. */
-function conform(k: <D extends { delete(): void }>(o: D) => D, cs: CS, t0: number, t1: number, idx: SurfaceIndex, len: number, stats: Stats): Solid {
+function conform(k: K, cs: CS, t0: number, t1: number, map: SurfaceMap, len: number, stats: Stats): Solid {
   const prism = k(k(cs.extrude(t1 - t0)).translate([0, 0, t0]));
   return k(
     k(prism.refineToLength(len)).warpBatch((v, n) => {
       for (let i = 0; i < n; i++) {
         const [x, y, t] = [v[i * 3], v[i * 3 + 1], v[i * 3 + 2]];
-        const h = idx.sample(x, y);
+        const h = map.sample(x, y);
         if (!h) continue;
         stats.total++;
-        if (h.nz < STEEP_COS) stats.steep++;
-        v[i * 3] = x + h.nx * t;
-        v[i * 3 + 1] = y + h.ny * t;
-        v[i * 3 + 2] = h.z + h.nz * t;
+        if (h.steep) stats.steep++;
+        v[i * 3] = h.pos[0] + h.n[0] * t;
+        v[i * 3 + 1] = h.pos[1] + h.n[1] * t;
+        v[i * 3 + 2] = h.pos[2] + h.n[2] * t;
       }
     }),
   );
+}
+
+/** Projeção reta ao longo de +Z na superfície que está por cima. */
+function projectionMap(idx: SurfaceIndex): SurfaceMap {
+  return {
+    sample(x, y) {
+      const h = idx.sample(x, y);
+      return h ? { pos: [x, y, h.z], n: [h.nx, h.ny, h.nz], steep: h.nz < STEEP_COS } : null;
+    },
+    domain: (k, body) => k(body.project()),
+    steepText: "Pega um trecho muito inclinado (mais de 60°): o desenho estica ali. Mova para a parte mais de frente da curva, diminua ou use Enrolar.",
+    outsideText: "O desenho sai da peça: a parte de fora não imprime. Mova ou diminua.",
+  };
 }
 
 const solidOf = (M: ManifoldToplevel, m: Mesh): Solid => M.Manifold.ofMesh(new M.Mesh({ numProp: 3, vertProperties: m.positions, triVerts: m.indices }));
@@ -116,13 +142,19 @@ const solidOf = (M: ManifoldToplevel, m: Mesh): Solid => M.Manifold.ofMesh(new M
  * (corta reto, no eixo do ponto). Mesmo contrato do `applyDecals` das faces planas.
  */
 export function applySurfaceDecals(M: ManifoldToplevel, models: Model[], decals: { decal: Decal; regions: DecalRegions }[]): { models: Model[]; warnings: DecalWarning[] } {
+  if (!models.length) return { models, warnings: [] };
+  return applyMapped(M, models, decals, (m) => projectionMap(surfaceIndex(m.parts[0].mesh)));
+}
+
+/** O motor dos decais em superfície curva, com o mapa (projeção reta ou enrolado) que o `makeMap` entrega para a peça principal. */
+export function applyMapped(M: ManifoldToplevel, models: Model[], decals: { decal: Decal; regions: DecalRegions }[], makeMap: (model: Model) => SurfaceMap): { models: Model[]; warnings: DecalWarning[] } {
   const active = decals.filter((d) => d.decal.visible !== false && d.regions.length);
   if (!models.length || !active.length) return { models, warnings: [] };
   return scoped((k) => {
     const part = models[0].parts[0];
-    const idx = surfaceIndex(part.mesh);
+    const map = makeMap(models[0]);
     let body = k(solidOf(M, part.mesh));
-    const sil = k(body.project());
+    const sil = map.domain(k, body);
     const zb = body.boundingBox();
     const warnings: DecalWarning[] = [];
     const added: Part[] = [];
@@ -132,9 +164,11 @@ export function applySurfaceDecals(M: ManifoldToplevel, models: Model[], decals:
       const placed = regions.map((r) => ({ color: r.color ?? decal.color, cs: k(placeDecal(r.cs, decal, ref)) }));
       const all = k(M.CrossSection.union(placed.map((p) => p.cs)));
       const area = all.area();
+      const extra = map.check?.(all.bounds() as { min: [number, number]; max: [number, number] });
+      if (extra) warnings.push({ decalId: decal.id, text: extra });
       const onPart = placed.map((p) => ({ color: p.color, cs: k(p.cs.intersect(sil)) })).filter((p) => !p.cs.isEmpty());
       const inside = k(M.CrossSection.union(onPart.map((p) => p.cs)));
-      if (area - inside.area() > area * MISS_FRAC) warnings.push({ decalId: decal.id, text: "O desenho sai da peça: a parte de fora não imprime. Mova ou diminua." });
+      if (area - inside.area() > area * MISS_FRAC) warnings.push({ decalId: decal.id, text: map.outsideText });
       const line = nozzleMm();
       const opened = k(k(inside.offset(-line / 2, "Round")).offset(line / 2, "Round"));
       if (inside.area() - opened.area() > inside.area() * THIN_FRAC) warnings.push({ decalId: decal.id, text: `Tem traço mais fino que ${nozzleText()} mm (o bico): pode sumir na impressão. Aumente o tamanho.` });
@@ -144,10 +178,10 @@ export function applySurfaceDecals(M: ManifoldToplevel, models: Model[], decals:
         if (decal.mode === "cut") {
           body = k(body.subtract(k(k(p.cs.extrude(zb.max[2] - zb.min[2] + 4)).translate([0, 0, zb.min[2] - 2]))));
         } else if (decal.mode === "raised") {
-          const relief = k(conform(k, p.cs, -EMBED_MM, decal.depth, idx, len, stats).subtract(body));
+          const relief = k(conform(k, p.cs, -EMBED_MM, decal.depth, map, len, stats).subtract(body));
           if (!relief.isEmpty()) added.push({ name: `Desenho ${++n}`, color: p.color, mesh: toMesh(relief) });
         } else {
-          const cutter = conform(k, p.cs, -decal.depth, OUT_MM, idx, len, stats);
+          const cutter = conform(k, p.cs, -decal.depth, OUT_MM, map, len, stats);
           if (decal.mode === "inlay") {
             const fill = k(body.intersect(cutter));
             if (!fill.isEmpty()) added.push({ name: `Desenho ${++n}`, color: p.color, mesh: toMesh(fill) });
@@ -155,7 +189,7 @@ export function applySurfaceDecals(M: ManifoldToplevel, models: Model[], decals:
           body = k(body.subtract(cutter));
         }
       }
-      if (stats.total && stats.steep / stats.total > STEEP_FRAC) warnings.push({ decalId: decal.id, text: "Pega um trecho muito inclinado (mais de 60°): o desenho estica ali. Mova para a parte mais de frente da curva ou diminua." });
+      if (map.steepText && stats.total && stats.steep / stats.total > STEEP_FRAC) warnings.push({ decalId: decal.id, text: map.steepText });
     }
     return { models: [{ ...models[0], parts: [{ ...part, mesh: toMesh(body) }, ...added] }, ...models.slice(1)], warnings };
   });

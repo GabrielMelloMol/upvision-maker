@@ -1,6 +1,7 @@
 import { getManifold, type ManifoldToplevel } from "../../geometry/manifold";
-import { fromFaceFrame, toFaceFrame, type PlanarFace, type Vec3 } from "../../geometry/ownModel";
-import { applySurfaceDecals, surfaceFace } from "../../geometry/surfaceDecal";
+import { faceAxes, fromFaceFrame, toFaceFrame, type PlanarFace, type Vec3 } from "../../geometry/ownModel";
+import { applyMapped, applySurfaceDecals, surfaceFace } from "../../geometry/surfaceDecal";
+import { fitWrap, wrapFace, wrapMap, type WrapFit } from "../../geometry/wrapDecal";
 import type { Model } from "../../geometry/types";
 import { applyLayers, type DecalEngine, type LayersResult } from "./applyLayers";
 import type { Layer } from "./layers";
@@ -34,7 +35,15 @@ export async function applyOwnDecals(model: Model, face: PlanarFace, layers: Lay
 }
 
 /** Ponto escolhido numa superfície qualquer (curva ou não): onde o clique acertou e para onde a superfície aponta ali. */
-export type SurfaceSpot = { part: number; point: Vec3; normal: Vec3 };
+/** `wrap`: o eixo da peça (do arquivo) em torno do qual o desenho dá a volta; sem ele a projeção é reta. */
+export type WrapAxis = "x" | "y" | "z";
+export type SurfaceSpot = { part: number; point: Vec3; normal: Vec3; wrap?: WrapAxis };
+
+const WORLD_AXIS: Record<WrapAxis, Vec3> = { x: [1, 0, 0], y: [0, 1, 0], z: [0, 0, 1] };
+const wrapEngine = (fit: WrapFit): DecalEngine => ({
+  face: (_M, models) => wrapFace(fit, models[0].parts[0].name),
+  apply: (M, models, decals) => applyMapped(M, models, decals, () => wrapMap(M, fit)),
+});
 
 const CURVED: DecalEngine = { face: surfaceFace, apply: applySurfaceDecals };
 
@@ -47,9 +56,20 @@ export async function applyOwnCurved(model: Model, spot: SurfaceSpot, layers: La
   const frame = { normal: spot.normal, centroid: spot.point };
   const part = model.parts[spot.part];
   const local: Model = { name: model.name, parts: [{ ...part, mesh: toFaceFrame(part.mesh, frame) }] };
+  let engine = CURVED;
+  const notes: string[] = [];
+  if (spot.wrap) {
+    // o eixo do arquivo no quadro do ponto escolhido (X para a direita, Y para cima, Z para fora)
+    const { u, v, n } = faceAxes(spot.normal);
+    const A = WORLD_AXIS[spot.wrap];
+    const dotv = (a: Vec3, b: Vec3) => a[0] * b[0] + a[1] * b[1] + a[2] * b[2];
+    const r = fitWrap(local.parts[0].mesh, [dotv(u, A), dotv(v, A), dotv(n, A)]);
+    if ("fit" in r) engine = wrapEngine(r.fit);
+    else notes.push(`Enrolar: ${r.fail} Usei a projeção reta.`);
+  }
   let res: LayersResult;
   try {
-    res = await applyLayers(m, [local], layers, CURVED);
+    res = await applyLayers(m, [local], layers, engine);
   } catch (e) {
     if (/manifold|valid/i.test(String(e))) throw new Error(OWN_MODEL_ERRORS.open, { cause: e });
     throw e;
@@ -57,7 +77,7 @@ export async function applyOwnCurved(model: Model, spot: SurfaceSpot, layers: La
   if (!layers.length) return { ...res, models: [model] };
   const [done] = res.models;
   const parts = model.parts.flatMap((p, i) => (i === spot.part ? done.parts.map((q) => ({ ...q, mesh: fromFaceFrame(q.mesh, frame) })) : [p]));
-  return { ...res, models: [{ ...model, parts }] };
+  return { ...res, warnings: [...notes, ...res.warnings], models: [{ ...model, parts }] };
 }
 
 /** A parte mais perto do ponto clicado (para modelos 3MF com várias peças). */
