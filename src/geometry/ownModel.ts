@@ -79,6 +79,15 @@ export function readOwnFile(bytes: Uint8Array, fileName: string): Model {
   throw new Error("Envie um arquivo .stl ou .3mf.");
 }
 
+/** Como `readOwnFile`, mas um modelo por objeto do arquivo (um 3MF com vários objetos soltos continua com vários objetos, que o fatiador arruma na mesa). */
+export function readOwnObjects(bytes: Uint8Array, fileName: string): Model[] {
+  if (!/\.3mf$/i.test(fileName)) return [readOwnFile(bytes, fileName)];
+  const file = read3mf(bytes);
+  const base = fileName.replace(/\.[^.]+$/, "");
+  const objects = file.objects.map((o) => modelFrom3mf({ ...file, objects: [o] }, fileName));
+  return objects.map((m, i) => ({ ...m, name: file.objects[i].name || `${base} ${i + 1}` }));
+}
+
 /** 3MF lido → modelo com uma parte por parte do arquivo, na cor do filamento (a pintura por cor não é lida aqui). */
 export function modelFrom3mf(file: Read3mf, fileName: string): Model {
   const name = fileName.replace(/\.[^.]+$/, "");
