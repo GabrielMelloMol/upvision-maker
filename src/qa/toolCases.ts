@@ -22,6 +22,8 @@ import { buildMedalDesign, DEFAULT_MEDAL_DESIGN, type MedalDesign } from "../geo
 import { runCuts, type CutItem } from "../geometry/cutSequence";
 import { suggestCuts } from "../geometry/cutSuggest";
 import { partialCut, DEFAULT_PARTIAL_CUT, type PartialCutOptions } from "../geometry/partialCut";
+import { COUPONS } from "../geometry/testKit/catalog";
+import { couponModels, DEFAULT_KIT } from "../geometry/testKit/kit";
 import { cutModels, DEFAULT_CUT } from "../geometry/planeCut";
 import { COLOR_LITHO_PROFILE, CUTTER_PROFILE, DEFAULT_PROFILE, STAMP_HINGE_PROFILE, STAMP_PROFILE, THERMO_MOLD_PROFILE, THERMO_SCREEN_PROFILE, LAYERED_PROFILE, LITHO_PROFILE, RELIEF_PROFILE, type PrintProfile } from "../geometry/printProfile";
 import { qrModel, type QrStyle } from "../geometry/qr3d";
@@ -247,7 +249,14 @@ export function toolCases(M: ManifoldToplevel): QaCase[] {
     return { models: o.models, warnings: o.warnings };
   };
 
+  // kit de testes físicos (#247): um caso por grupo de peças, com as medidas de exemplo
+  const kitCoupon = (id: (typeof COUPONS)[number]["id"]): Out => {
+    const ctx = { M, art: null, artLayers: null, text: () => null };
+    return { models: layoutOnPlate(couponModels(M, ctx, id, DEFAULT_KIT.inputs), PLATE_MM - 2 * GAP_MM, GAP_MM), warnings: [] };
+  };
+
   return [
+    ...cases("testkit", "Kit de testes", COUPONS.map((c): Variant => [c.title.toLowerCase(), () => kitCoupon(c.id)])),
     ...cases("partialcut", "Corte parcial", [
       ["sugestão para menos suporte", (): Out => {
         const model = readOwnFile(new Uint8Array(readFileSync(ARM)), "boneco-braco.stl");

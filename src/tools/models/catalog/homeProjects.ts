@@ -7,6 +7,7 @@ import { buildLedLetter, DEFAULT_LED_LETTER } from "../../../geometry/models/led
 import { buildOutlineBowl, DEFAULT_OUTLINE_BOWL } from "../../../geometry/models/outlineBowl";
 import { buildPhotoHolder, DEFAULT_PHOTO_HOLDER } from "../../../geometry/models/photoHolder";
 import { buildReliefTile, DEFAULT_RELIEF_TILE } from "../../../geometry/models/reliefTile";
+import { validatedFit } from "../../../geometry/fits";
 import { buildScrewCase, DEFAULT_SCREW_CASE } from "../../../geometry/models/screwCase";
 import { buildShadowbox, DEFAULT_SHADOWBOX } from "../../../geometry/models/shadowbox";
 import { buildStampMold, DEFAULT_STAMP_MOLD } from "../../../geometry/models/stampMold";
@@ -341,6 +342,7 @@ export const HOME_PROJECT_MODELS: ModelDef[] = [
     font: true,
     art: "Ícone para o mosaico (opcional)",
     defaults: DEFAULT_SCREW_CASE,
+    liveDefaults: (): Record<string, number> => { const v = validatedFit("threadClearance"); return v === undefined ? {} : { clearance: v }; }, // a folga que a pessoa validou no Kit de testes (#247)
     sections: [
       {
         title: "Nome",

@@ -17,6 +17,7 @@ import { PAGE_REDIRECTS, PAGES } from "./pages";
 import PageSkeleton from "./ui/PageSkeleton";
 import { releaseHeavy } from "./ui/heavy";
 import { refreshBed } from "./tools/bedPrinter";
+import { refreshFits } from "./tools/fitsLoader";
 import { openWith } from "./tools/intent";
 import { flushPendingSaves } from "./tools/pendingSaves";
 import { getDb } from "./db";
@@ -90,6 +91,7 @@ export default function App() {
     [toast],
   );
   useEffect(() => void getDb().then(refreshBed).catch((e) => console.warn("Mesa da impressora:", e)), []); // #119
+  useEffect(() => void getDb().then(refreshFits).catch((e) => console.warn("Folgas validadas:", e)), []); // #247
   // telas pedindo para abrir outra (ex.: "Levar para a Calculadora" das ferramentas 3D, #99)
   useEffect(() => {
     const onGo = (e: Event) => navigate((e as CustomEvent<string>).detail);
@@ -127,6 +129,7 @@ export default function App() {
     if (id !== pageId) releaseHeavy(); // solta motores WASM e workers da tela que saiu (#88)
     // mesa da impressora escolhida (#119): relê ao trocar de tela (impressora cadastrada ou trocada nas Preferências)
     getDb().then(refreshBed).catch((e) => console.warn("Mesa da impressora:", e));
+    getDb().then(refreshFits).catch((e) => console.warn("Folgas validadas:", e));
     setPageId(id);
     setScrolled(false);
   }

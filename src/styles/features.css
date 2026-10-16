@@ -383,3 +383,7 @@ td.best-name { max-width: 0; width: 100%; overflow: hidden; text-overflow: ellip
 .org-tabs [role="tab"] > svg { width: 16px; height: 16px; }
 .org-tabs [role="tab"][aria-selected="true"] { color: var(--text); border-bottom-color: var(--accent); font-weight: 600; }
 .org-tabs [role="tab"]:hover { color: var(--text); background: var(--fill); }
+
+/* Kit de testes: uma linha por peça no cartão "Lançar o resultado" (#247) */
+.fit-row { display: grid; gap: 4px; padding-top: var(--space-3); border-top: 1px solid var(--border); }
+.fit-row:first-of-type { border-top: 0; padding-top: 0; }

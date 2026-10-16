@@ -81,6 +81,8 @@ export const SettingsSchema = z.object({
   /** Impressora que dá o tamanho da mesa nas ferramentas (#119); null = a única ou a primeira cadastrada. */
   bedPrinterId: z.number().int().positive().nullable(),
   slicer: z.enum(SLICER_IDS).nullable(),
+  /** Folgas e medidas validadas com o Kit de testes físicos (#247), por chave: viram o padrão das ferramentas. */
+  fits: z.record(z.string(), z.number()).default({}),
 });
 export type Settings = z.infer<typeof SettingsSchema>;
 
@@ -107,4 +109,5 @@ export const DEFAULT_SETTINGS: Settings = {
   ams: { slots: 4, filaments: [] },
   bedPrinterId: null,
   slicer: null,
+  fits: {},
 };
