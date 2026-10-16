@@ -77,7 +77,7 @@ async function keychains(o: SceneOpts): Promise<PhotoScene> {
     const hole = ringHole(raw, DEFAULT_KEYCHAIN.ringOuter);
     placed.push(place(await maybeBevel(raw, o), [ringAndChain(hole, k.heading)], k.pose));
   }
-  return sceneOf(placed, { heroPad: 0.45 });
+  return sceneOf(placed, { view: "top" });
 }
 
 const MEDALS = [
@@ -160,12 +160,12 @@ function floorAt(models: Model[], [x, y]: [number, number]): number {
 }
 
 /** Ferragens na mesa, em fração da largura (x) e da profundidade (y, negativo = para a frente da caixa). */
+const NICHE_BACK = 0.28; // as ferragens ficam no fundo (lado de trás) do nicho: da câmera alta a parede da frente esconde o centro
 const SPILL: [number, number][] = [[0.1, -0.35], [0.2, -0.28], [0.32, -0.42], [0.04, -0.5], [0.42, -0.3], [0.26, -0.55]];
 
 const BOXES: { patch: Params; view: string; pose: Pose }[] = [
-  { patch: { boxColor: "#0f9d8a", lidColor: "#fbf3df", decorColor: "#0f9d8a" }, view: "open", pose: { x: 0, y: -20, rotZ: -8 } },
-  { patch: { boxColor: "#e8613c", lidColor: "#fff6ea", decorColor: "#e8613c", outerW: 110, outerD: 80, outerH: 32 }, view: "closed", pose: { x: 95, y: 85, rotZ: 14 } },
-  { patch: { boxColor: "#4f46e5", lidColor: "#eef0ff", decorColor: "#4f46e5", outerW: 100, outerD: 70, outerH: 28 }, view: "closed", pose: { x: -85, y: 95, rotZ: -12 } },
+  { patch: { boxColor: "#0f9d8a", lidColor: "#fbf3df", decorColor: "#0f9d8a" }, view: "open", pose: { x: 0, y: 0, rotZ: -6 } },
+  { patch: { boxColor: "#e8613c", lidColor: "#fff6ea", decorColor: "#e8613c", outerW: 110, outerD: 80, outerH: 32 }, view: "closed", pose: { x: 160, y: -14, rotZ: -10 } },
 ];
 
 async function organizers(o: SceneOpts): Promise<PhotoScene> {
@@ -180,7 +180,7 @@ async function organizers(o: SceneOpts): Promise<PhotoScene> {
     if (v.view === "open") {
       const W = b.max[0] - b.min[0] - 2 * 2.4, D = b.max[1] - b.min[1] - 2 * 2.4, cols = 5, rows = 4;
       const pts: [number, number][] = [];
-      for (let r = 0; r < rows; r++) for (let c = 0; c < cols; c++) pts.push([-W / 2 + ((c + 0.5) * W) / cols, -D / 2 + ((r + 0.5) * D) / rows]);
+      for (let r = 0; r < rows; r++) for (let c = 0; c < cols; c++) pts.push([-W / 2 + ((c + 0.5) * W) / cols, -D / 2 + ((r + 0.5 + NICHE_BACK) * D) / rows]);
       extras.push(hardwareAt(pts, floorAt(moved, pts[0])));
       // da câmera baixa só se vê o alto dos nichos: parte das ferragens fica caída na mesa, na frente da caixa
       const spill: [number, number][] = SPILL.map(([fx, fy]) => [fx * W, -D / 2 + fy * D]);
@@ -188,13 +188,13 @@ async function organizers(o: SceneOpts): Promise<PhotoScene> {
     }
     placed.push(place(await maybeBevel(moved, o), extras, v.pose));
   }
-  return sceneOf(placed, { heroPad: 0.1 });
+  return sceneOf(placed, { heroPad: 0.08, elevation: ORGANIZER_ELEVATION_DEG });
 }
 
 const THERMOS: { shape: ThermoShape; text: string; sheet: string; design: string; pose: Pose }[] = [
-  { shape: "heart", text: "Amor", sheet: "#c0263f", design: "#fff1f3", pose: { x: 4, y: -16, rotZ: -10 } },
-  { shape: "heart", text: "Natal", sheet: "#1f7a4d", design: "#f4f4f2", pose: { x: -48, y: 28, rotZ: 14 } },
-  { shape: "flower", text: "Mãe", sheet: "#d6338a", design: "#fff0f8", pose: { x: 50, y: 30, rotZ: 6 } },
+  { shape: "heart", text: "Amor", sheet: "#c0263f", design: "#fff1f3", pose: { x: 0, y: -26, rotZ: -10 } },
+  { shape: "heart", text: "Natal", sheet: "#1f7a4d", design: "#f4f4f2", pose: { x: -52, y: 34, rotZ: 14 } },
+  { shape: "flower", text: "Mãe", sheet: "#d6338a", design: "#fff0f8", pose: { x: 50, y: 36, rotZ: 6 } },
 ];
 
 async function thermos(o: SceneOpts): Promise<PhotoScene> {
@@ -210,7 +210,7 @@ async function thermos(o: SceneOpts): Promise<PhotoScene> {
     const out = buildThermo(M, sil, design, { ...d, colors: { ...d.colors, sheet: v.sheet, border: v.sheet, clip: v.sheet, design: v.design } });
     placed.push(place(await maybeBevel(grounded([out.assembled]), o), [], v.pose));
   }
-  return sceneOf(placed, { heroPad: 0.4 });
+  return sceneOf(placed, { view: "top" });
 }
 
 export async function photoScene(id: PhotoId, o: SceneOpts = {}): Promise<PhotoScene> {
@@ -228,6 +228,8 @@ export async function photoScene(id: PhotoId, o: SceneOpts = {}): Promise<PhotoS
   }
 }
 
+const FLAT_RATIO = 0.4; // peça mais baixa que 40% do maior lado da base: deitada na mesa, foto de cima
+const ORGANIZER_ELEVATION_DEG = 62; // mais alto que o padrão: a tampa aberta não esconde o que há atrás
 const GENERIC_SPREAD = 1.05; // distância entre cópias, em tamanhos da peça
 
 /** Cena genérica de qualquer modelo pronto (miniaturas): a peça e duas cópias nas cores seguintes da vitrine, na mesa. */
@@ -237,7 +239,8 @@ export async function genericScene(id: string, o: SceneOpts = {}): Promise<Photo
   const w = Math.max(b.max[0] - b.min[0], 1), d = Math.max(b.max[1] - b.min[1], 1);
   const step = Math.max(w, d) * GENERIC_SPREAD;
   const variants = [id, `${id}-b`, `${id}-c`].map((alt) => grounded(showcaseColors(alt, base)));
+  const flat = b.max[2] - b.min[2] < Math.max(w, d) * FLAT_RATIO;
   const poses: Pose[] = [{ x: 0, y: -step * 0.3, rotZ: 8 }, { x: -step * 0.62, y: step * 0.5, rotZ: -10 }, { x: step * 0.66, y: step * 0.55, rotZ: 14 }];
   const placed = await Promise.all(variants.map(async (v, i) => place(await maybeBevel(v, o), [], poses[i])));
-  return sceneOf(placed, { heroPad: 0.05 });
+  return sceneOf(placed, flat ? { view: "top" } : { heroPad: 0.05 });
 }

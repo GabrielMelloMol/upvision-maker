@@ -1,5 +1,6 @@
 import * as THREE from "three";
 import { ProceduralEquirectTexture } from "three-gpu-pathtracer";
+import woodUrl from "./assets/oak_veneer_01.jpg";
 
 /*
  * Cena da foto realista (#251), tudo gerado no app (sem HDRI de arquivo, sem internet): luz de janela quente do lado,
@@ -43,35 +44,26 @@ export function studioEnvironment(): ProceduralEquirectTexture {
   return tex;
 }
 
-/** Madeira clara viva: veio forte, tons de mel a castanho, emendas de tábua. A textura repete a cada 400 mm. */
-function woodTexture(): THREE.CanvasTexture {
-  const S = 512;
-  const c = document.createElement("canvas");
-  c.width = c.height = S;
-  const g = c.getContext("2d")!;
-  g.fillStyle = "#b99e7e";
-  g.fillRect(0, 0, S, S);
-  let seed = 11;
-  const rnd = () => ((seed = (seed * 1664525 + 1013904223) >>> 0) / 4294967296);
-  for (let band = 0; band < 6; band++) {
-    g.fillStyle = `rgba(${178 + rnd() * 30},${150 + rnd() * 26},${118 + rnd() * 26},${0.1 + rnd() * 0.12})`;
-    g.fillRect(0, (band / 6) * S, S, S / 6);
-  }
-  for (let i = 0; i < 220; i++) {
-    const y = rnd() * S;
-    const amp = 2 + rnd() * 7;
-    const ph = rnd() * 6.28;
-    g.strokeStyle = `rgba(${88 + rnd() * 30},${70 + rnd() * 24},${52 + rnd() * 20},${0.1 + rnd() * 0.24})`;
-    g.lineWidth = 0.5 + rnd() * 2.4;
-    g.beginPath();
-    for (let x = 0; x <= S; x += 12) g.lineTo(x, y + Math.sin(x / 70 + ph) * amp);
-    g.stroke();
-  }
-  g.fillStyle = "rgba(58,44,32,0.45)"; // emenda entre tábuas
-  g.fillRect(0, S / 2 - 1, S, 2);
-  const t = new THREE.CanvasTexture(c);
+/*
+ * Madeira da mesa: "Oak Veneer 01" do Poly Haven (CC0, https://polyhaven.com/a/oak_veneer_01), 1k, embutida no app: roda sem internet.
+ * A imagem precisa estar carregada antes de montar a cena (`preloadStage`).
+ */
+let woodImage: HTMLImageElement | null = null;
+export async function preloadStage(): Promise<void> {
+  if (woodImage) return;
+  const img = new Image();
+  img.src = woodUrl;
+  await img.decode();
+  woodImage = img;
+}
+
+function woodTexture(): THREE.Texture {
+  if (!woodImage) throw new Error("preloadStage() antes de montar a cena");
+  const t = new THREE.Texture(woodImage);
   t.colorSpace = THREE.SRGBColorSpace;
   t.wrapS = t.wrapT = THREE.RepeatWrapping;
+  t.anisotropy = 8;
+  t.needsUpdate = true;
   return t;
 }
 
@@ -99,7 +91,7 @@ function brickTexture(): THREE.CanvasTexture {
   return t;
 }
 
-const WOOD_TILE_MM = 400;
+const WOOD_TILE_MM = 600; // a folha de folheado mede ~60 cm
 const BRICK_TILE_MM = 260; // uma repetição da textura: 4 tijolos de 65 mm
 const WALL_W = 4000;
 const WALL_H = 1600;

@@ -4,7 +4,7 @@ import { PhysicalCamera, WebGLPathTracer } from "three-gpu-pathtracer";
 import type { Model } from "../../geometry/types";
 import { fitCamera } from "../frame";
 import { type Filament, filamentMaterial, layerUVs, splitTops } from "./materials";
-import { type Backdrop, brickWall, studioEnvironment, table } from "./stage";
+import { type Backdrop, brickWall, preloadStage, studioEnvironment, table } from "./stage";
 
 /*
  * Foto realista (#251): path tracing progressivo no navegador (three-gpu-pathtracer, WebGL2, sem rede). Câmera ¾ com
@@ -15,6 +15,8 @@ export const PHOTO_W = 1280;
 export const PHOTO_H = 960;
 const CREASE = (35 * Math.PI) / 180;
 const FOCAL_MM = 50;
+const TOP_ELEVATION_DEG = 78; // de cima, mas não a 90° para a perspectiva ainda dar volume
+const TOP_F_STOP = 8; // vista de cima: tudo nítido
 const F_STOP = 2.8; // fundo bem desfocado (rodada 2)
 const ELEVATION_DEG = 25; // câmera baixa
 export const AZIMUTH_DEG = 28; // quanto a câmera gira para a direita da frente (−y)
@@ -33,6 +35,10 @@ export type PhotoScene = {
   extras: THREE.Object3D[];
   /** peça principal (índice em `items`): o quadro e o foco seguem ela */
   hero?: number;
+  /** "top": vista de cima (peças planas); "3q" (padrão): câmera baixa de lado */
+  view?: "top" | "3q";
+  /** altura da câmera nesta cena, em graus (padrão: 25° de lado, 78° de cima) */
+  elevation?: number;
   /** altura da mesa (Z, mm), quando nenhuma peça toca nela (medalha pendurada) */
   floorZ?: number;
   /** folga em volta da peça principal desta cena (a opção `heroPad` vence) */
@@ -103,7 +109,8 @@ export function createPhoto(scene3: PhotoScene, opts: PhotoOpts = {}, canvas?: H
   const center = box.getCenter(new THREE.Vector3());
   const span = Math.max(size.x, size.y, size.z, 1);
   // enquadramento: a peça principal mais uma folga (as outras peças aparecem em volta, desfocadas); sem principal, tudo
-  const hero = scene3.hero !== undefined && (opts.frame ?? "hero") === "hero" ? itemGroups[scene3.hero] : undefined;
+  const top = scene3.view === "top";
+  const hero = scene3.hero !== undefined && (opts.frame ?? (top ? "all" : "hero")) === "hero" ? itemGroups[scene3.hero] : undefined;
   let frameBox = box;
   if (hero) {
     const hb = new THREE.Box3().setFromObject(hero);
@@ -120,7 +127,7 @@ export function createPhoto(scene3: PhotoScene, opts: PhotoOpts = {}, canvas?: H
   scene.add(floor);
 
   // câmera baixa, de lado, olhando o centro das peças; enquadra em Z para cima e converte para Y para cima
-  const el = ((opts.elevation ?? ELEVATION_DEG) * Math.PI) / 180, az = ((opts.azimuth ?? AZIMUTH_DEG) * Math.PI) / 180;
+  const el = ((opts.elevation ?? scene3.elevation ?? (top ? TOP_ELEVATION_DEG : ELEVATION_DEG)) * Math.PI) / 180, az = ((opts.azimuth ?? (top ? 0 : AZIMUTH_DEG)) * Math.PI) / 180;
   const dir = new THREE.Vector3(Math.sin(az) * Math.cos(el), -Math.cos(az) * Math.cos(el), Math.sin(el));
   const probe = new THREE.PerspectiveCamera(FOV_DEG, w / h, 0.1, span * 50);
   fitCamera(probe, frameBox, dir, MARGIN);
@@ -133,10 +140,10 @@ export function createPhoto(scene3: PhotoScene, opts: PhotoOpts = {}, canvas?: H
   camera.up.set(0, 1, 0);
   camera.lookAt(target);
   camera.setFocalLength(FOCAL_MM);
-  camera.fStop = opts.fStop ?? F_STOP;
+  camera.fStop = opts.fStop ?? (top ? TOP_F_STOP : F_STOP);
   camera.focusDistance = camera.position.distanceTo(focus);
   camera.updateMatrixWorld();
-  if (opts.wall ?? opts.backdrop !== "studio") {
+  if (opts.wall ?? (!top && opts.backdrop !== "studio")) {
     const toCam = camera.position.clone().sub(target).setY(0).normalize(); // horizontal, da peça para a câmera
     scene.add(brickWall(target.clone().addScaledVector(toCam, -span * WALL_FACTOR).setY(floor.position.y), toCam));
   }
@@ -198,6 +205,7 @@ export function createPhoto(scene3: PhotoScene, opts: PhotoOpts = {}, canvas?: H
 /** Renderiza até o número de amostras e devolve o PNG e o tempo. */
 export async function renderPhoto(scene3: PhotoScene, opts: PhotoOpts = {}): Promise<{ url: string; ms: number; samples: number; setupMs: number; gpu: string }> {
   const s0 = performance.now();
+  await preloadStage();
   const photo = createPhoto(scene3, opts);
   await photo.ready();
   photo.step(); // 1ª amostra: compila o shader e sobe a BVH
