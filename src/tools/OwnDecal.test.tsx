@@ -73,6 +73,29 @@ describe("Decal no seu modelo (#113)", { timeout: 60_000 }, () => {
     hit.normal = [1, 0, 0];
   }, 40_000);
 
+  test("num ponto de superfície curva dá para escolher Projetar ou Enrolar e o eixo da peça (#245)", async () => {
+    const { container } = renderWithApp(<OwnDecal />);
+    const user = await open(container);
+    await screen.findByRole("group", { name: "Faces planas" });
+    hit.point = [40, 10, 10];
+    hit.normal = [0.7, 0, 0.7];
+    const viewer = container.querySelector(".viewer")!;
+    fireEvent.pointerDown(viewer, { clientX: 10, clientY: 10 });
+    fireEvent.pointerUp(viewer, { clientX: 10, clientY: 10 });
+    expect(await screen.findByRole("button", { name: "Projetar", pressed: true })).toBeInTheDocument();
+    expect(screen.getByText(/ou use Enrolar/)).toBeInTheDocument();
+    await user.click(screen.getByRole("button", { name: "Enrolar" }));
+    expect(screen.getByRole("button", { name: "Enrolar", pressed: true })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Em pé", pressed: true })).toBeInTheDocument();
+    expect(screen.getByText(/como o rótulo de uma garrafa/)).toBeInTheDocument();
+    await user.click(screen.getByRole("button", { name: "Deitada em X" }));
+    expect(screen.getByRole("button", { name: "Deitada em X", pressed: true })).toBeInTheDocument();
+    await user.click(screen.getByRole("button", { name: "Projetar" }));
+    expect(screen.queryByRole("button", { name: "Em pé" })).toBeNull();
+    hit.point = [40, 10, 10];
+    hit.normal = [1, 0, 0];
+  }, 40_000);
+
   test("arraste na prévia (girar a câmera) não escolhe face", async () => {
     const { container } = renderWithApp(<OwnDecal />);
     await open(container);

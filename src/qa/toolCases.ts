@@ -163,6 +163,21 @@ export function toolCases(M: ManifoldToplevel): QaCase[] {
     return { models: out.models, warnings: out.warnings };
   };
 
+  // nome enrolado na volta (#245): garrafa com ombro e copo cônico, relevo e embutido, com o texto mais largo que a projeção reta aguenta
+  const wrapped = async (shape: "garrafa" | "cone", mode: "raised" | "inlay"): Promise<Out> => {
+    const prof: [number, number][] = [[0, 0]];
+    for (let z = 0; z <= 100; z += 2) prof.push([33, z]);
+    for (let z = 102; z <= 140; z += 2) prof.push([33 - (20 * (1 - Math.cos(((z - 100) / 40) * Math.PI))) / 2, z]);
+    for (let z = 142; z <= 170; z += 2) prof.push([13, z]);
+    prof.push([0, 170]);
+    const solid = shape === "garrafa" ? new M.CrossSection([prof], "NonZero").revolve(128) : M.Manifold.cylinder(80, 38, 30, 128).subtract(M.Manifold.cylinder(80, 35.6, 27.6, 128).translate([0, 0, 3]));
+    const model: Model = { name: shape, parts: [{ name: "Peça", color: "#d4d4d8", mesh: toMesh(solid) }] };
+    const spot = shape === "garrafa" ? { part: 0, point: [33, 0, 50] as [number, number, number], normal: [1, 0, 0] as [number, number, number], wrap: "z" as const } : { part: 0, point: [34, 0, 40] as [number, number, number], normal: [0.99, 0, 0.12] as [number, number, number], wrap: "z" as const };
+    const layer = { ...newTextLayer(null, "hanken", "#d6262e", mode), text: "Maria Eduarda 2026", x: 0, y: 0, width: 100, depth: 0.6 };
+    const out = await applyOwnCurved(model, spot, [layer], M);
+    return { models: out.models, warnings: out.warnings };
+  };
+
   const medal = async (patch: Partial<MedalDesign>): Promise<Out> => {
     const f = await loadFont("hanken");
     const warnings: string[] = [];
@@ -376,6 +391,8 @@ export function toolCases(M: ManifoldToplevel): QaCase[] {
       ["copo: relevo curvo", () => curved("copo", "raised")],
       ["copo: gravado curvo", () => curved("copo", "engraved")],
       ["esfera: embutido curvo", () => curved("esfera", "inlay")],
+      ["garrafa: enrolar relevo", () => wrapped("garrafa", "raised")],
+      ["copo cônico: enrolar embutido", () => wrapped("cone", "inlay")],
     ]),
     ...cases("bedcut", "Cortar para caber na mesa", [
       ["pino redondo (2 pedaços)", () => bedCutCase(300, 150, 60)],

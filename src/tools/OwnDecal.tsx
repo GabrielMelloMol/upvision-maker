@@ -6,9 +6,10 @@ import Alert from "../ui/Alert";
 import Dropzone from "../ui/Dropzone";
 import ExportButtons from "../ui/ExportButtons";
 import Preview3D from "../ui/Preview3D";
+import Segmented from "../ui/Segmented";
 import { errorText } from "../ui/Toast";
 import { useModelBuilder } from "../ui/useModelBuilder";
-import { applyOwnCurved, applyOwnDecals, OWN_MODEL_ERRORS, partAtPoint, type SurfaceSpot } from "./models/applyOwn";
+import { applyOwnCurved, applyOwnDecals, OWN_MODEL_ERRORS, partAtPoint, type SurfaceSpot, type WrapAxis } from "./models/applyOwn";
 import DecalGizmo from "./models/DecalGizmo";
 import LayersPanel, { layerValid } from "./models/LayersPanel";
 import { useModelLayers, type ModelEdits } from "./models/useModelLayers";
@@ -98,6 +99,13 @@ export default function OwnDecal() {
     lay.select(null);
   }
 
+  /** Projetar (sem eixo) ou Enrolar em torno de um eixo: a base do desenho muda (volta × altura), então a posição volta ao ponto. */
+  function setWrap(axis: WrapAxis | undefined) {
+    if (!spot) return;
+    tool.set((cur) => ({ ...cur, spot: cur.spot && { ...cur.spot, wrap: axis } }), "faceId");
+    lay.replace(lay.layers.map((l) => ({ ...l, x: 0, y: 0 })));
+  }
+
   function onPick(hit: { point: [number, number, number]; normal: [number, number, number] }) {
     if (!model) return;
     const found = faceAtPoint(model, faces, hit.point, hit.normal);
@@ -155,7 +163,38 @@ export default function OwnDecal() {
                   <button type="button" className="sm" onClick={() => tool.set((cur) => ({ ...cur, spot: null }), "faceId")}>Limpar ponto</button>
                 </div>
               )}
-              {spot && <p className="hint">O desenho é projetado na superfície e o relevo ou o entalhe acompanha a curva. Quanto mais inclinada a superfície em relação ao ponto, mais o desenho estica: prefira o ponto mais de frente. Vazado corta reto, na direção do ponto.</p>}
+              {spot && (
+                <>
+                  <Segmented
+                    label="Como o desenho segue a curva"
+                    value={spot.wrap ? "wrap" : "project"}
+                    options={[
+                      ["project", "Projetar"],
+                      ["wrap", "Enrolar"],
+                    ]}
+                    onChange={(v) => setWrap(v === "wrap" ? "z" : undefined)}
+                    full
+                  />
+                  {spot.wrap ? (
+                    <>
+                      <Segmented
+                        label="Eixo da peça"
+                        value={spot.wrap}
+                        options={[
+                          ["z", "Em pé"],
+                          ["x", "Deitada em X"],
+                          ["y", "Deitada em Y"],
+                        ]}
+                        onChange={(v) => setWrap(v as WrapAxis)}
+                        full
+                      />
+                      <p className="hint">O desenho dá a volta na peça como o rótulo de uma garrafa, com o tamanho real das letras (copo, caneca, garrafa, vaso, cone, esfera). Escolha o eixo em torno do qual a peça é redonda: Em pé para peça apoiada na base, Deitada para peça de lado. Relevo, gravado e embutido enrolam; vazado corta reto.</p>
+                    </>
+                  ) : (
+                    <p className="hint">O desenho é projetado na superfície e o relevo ou o entalhe acompanha a curva. Quanto mais inclinada a superfície em relação ao ponto, mais o desenho estica: prefira o ponto mais de frente ou use Enrolar. Vazado corta reto, na direção do ponto.</p>
+                  )}
+                </>
+              )}
               {faces.length === 0 ? (
                 <p className="hint">Nenhuma face plana grande neste modelo: clique direto na superfície.</p>
               ) : (
@@ -199,7 +238,7 @@ export default function OwnDecal() {
           />
           {lay.view.face && (face || spot) && lay.layers.length > 0 && (
             <section className="card stack gizmo-card">
-              <h3>{spot ? "Vista de frente do ponto" : "Vista da face"}</h3>
+              <h3>{spot ? (spot.wrap ? "Rótulo desenrolado" : "Vista de frente do ponto") : "Vista da face"}</h3>
               <DecalGizmo face={lay.view.face} layers={lay.layers} shapes={lay.view.shapes} selected={lay.selected} onSelect={lay.select} onCommit={lay.change} />
               <p className="hint">Arraste para mover; a alça do canto muda o tamanho e a de cima gira (Shift: 15°). Setas movem 1 mm.</p>
             </section>

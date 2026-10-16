@@ -165,8 +165,8 @@ export const ARTICLES: HelpArticle[] = [
     id: "owndecal",
     title: "Nome ou logo no seu modelo",
     intro: "Ponha seu nome ou logo em qualquer superfície de um STL ou 3MF que você já tem, plana ou curva (copo, esfera, tampa abaulada), em outra cor, para imprimir em duas cores.",
-    steps: ["Arraste o STL ou 3MF (um sólido fechado).", "Clique na prévia no ponto onde o desenho vai ficar: numa face plana (ela fica pintada de azul, ou escolha na lista) ou em qualquer ponto de uma superfície curva (aparece um disco azul).", "Adicione um texto ou desenho e arraste na vista da face.", "Salve o 3MF: na face plana a cor entra rente, sem mudar o tamanho; na curva o relevo ou o entalhe acompanha a superfície. Quanto mais inclinado o trecho, mais o desenho estica: prefira o ponto mais de frente."],
-    tips: ["O ponto tem de estar na parte de fora da peça, voltada para quem olha. Em reentrância o desenho não entra.", "Use só modelos que são seus ou cuja licença permite alterar. O app não confere a licença."],
+    steps: ["Arraste o STL ou 3MF (um sólido fechado).", "Clique na prévia no ponto onde o desenho vai ficar: numa face plana (ela fica pintada de azul, ou escolha na lista) ou em qualquer ponto de uma superfície curva (aparece um disco azul).", "Adicione um texto ou desenho e arraste na vista da face.", "Salve o 3MF: na face plana a cor entra rente, sem mudar o tamanho; na curva o relevo ou o entalhe acompanha a superfície. Quanto mais inclinado o trecho, mais o desenho estica: prefira o ponto mais de frente ou use Enrolar (veja a dica)."],
+    tips: ["Enrolar: num copo, caneca, garrafa, vaso, cone ou esfera o desenho dá a volta como o rótulo de uma garrafa, com o tamanho real das letras, sem esticar. Escolha o eixo da peça (Em pé para peça apoiada na base, Deitada para peça de lado); em peça que não é redonda o app avisa e projeta reto.", "O ponto tem de estar na parte de fora da peça, voltada para quem olha. Em reentrância o desenho não entra.", "Use só modelos que são seus ou cuja licença permite alterar. O app não confere a licença."],
   },
   {
     id: "protect",
