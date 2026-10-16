@@ -22,7 +22,7 @@ beforeAll(async () => {
 const solid = (m: Mesh): Solid => M.Manifold.ofMesh(new M.Mesh({ numProp: 3, vertProperties: m.positions, triVerts: m.indices }));
 
 describe("halter (#213)", () => {
-  test("anilhas, barra com argola e texto: partes fechadas, deitadas na mesa, sem se sobrepor", () => {
+  test("anilhas, barra e texto: partes fechadas, deitadas na mesa, sem se sobrepor", () => {
     const { models } = buildDumbbell(ctx, DEFAULT_DUMBBELL);
     expect(models[0].parts.map((p) => p.name)).toEqual(["Anilhas", "Barra", "Texto"]);
     const solids = models[0].parts.map((p) => solid(p.mesh));
@@ -31,24 +31,41 @@ describe("halter (#213)", () => {
     expect(solids[1].intersect(solids[2]).volume()).toBeCloseTo(0, 3); // o texto fica sobre a barra
     const b = meshBounds(models[0].parts.map((p) => p.mesh))!;
     expect(b.min[2]).toBeCloseTo(0, 6);
-    expect(b.max[0] - b.min[0]).toBeCloseTo(DEFAULT_DUMBBELL.length, 1);
     expect(b.max[2]).toBeCloseTo(DEFAULT_DUMBBELL.thickness + DEFAULT_DUMBBELL.relief, 3);
   });
 
-  test("a barra é uma peça só com a argola, que tem furo de verdade e fica dentro da altura das anilhas", () => {
-    const bar = solid(buildDumbbell(ctx, DEFAULT_DUMBBELL).models[0].parts[1].mesh);
-    expect(bar.decompose()).toHaveLength(1);
-    expect(bar.genus()).toBe(1); // o furo da argola
-    const b = bar.boundingBox();
-    expect(b.max[1]).toBeLessThan(DEFAULT_DUMBBELL.plateH / 2);
+  test("a argola é uma orelha na ponta, longe do texto: tem furo de verdade e o texto não chega nela", () => {
+    const { models } = buildDumbbell(ctx, DEFAULT_DUMBBELL);
+    const plates = solid(models[0].parts[0].mesh);
+    expect(plates.decompose().map((x) => x.genus()).sort()).toEqual([0, 1]); // só o furo da orelha, no lado direito
+    const text = meshBounds([models[0].parts[2].mesh])!;
+    const pb = plates.boundingBox();
+    expect(pb.max[0]).toBeGreaterThan(DEFAULT_DUMBBELL.length / 2 + 4); // a orelha passa da ponta
+    expect(text.max[0]).toBeLessThan(DEFAULT_DUMBBELL.length / 2 - 8); // o texto fica na barra, bem antes da ponta
+    // o furo deixa passar uma argola de 3 mm
+    const ring = M.Manifold.cylinder(30, 1.5, 1.5, 24).translate([DEFAULT_DUMBBELL.length / 2 + 2.8, 0, -5]);
+    expect(plates.intersect(ring).volume()).toBeCloseTo(0, 3);
   });
 
-  test("as anilhas descem em degraus de fora para dentro e são simétricas", () => {
+  test("o texto fica centrado na barra", () => {
+    const text = meshBounds([buildDumbbell(ctx, DEFAULT_DUMBBELL).models[0].parts[2].mesh])!;
+    expect((text.min[0] + text.max[0]) / 2).toBeCloseTo(0, 1);
+    expect((text.min[1] + text.max[1]) / 2).toBeCloseTo(0, 1);
+  });
+
+  test("duas anilhas por lado: a tampa de fora é menor que a de dentro, com a fresta entre elas, e os dois lados são iguais", () => {
     const plates = solid(buildDumbbell(ctx, DEFAULT_DUMBBELL).models[0].parts[0].mesh);
-    expect(plates.decompose()).toHaveLength(2); // uma pilha de cada lado
-    const [a, b] = plates.decompose().map((s) => s.boundingBox());
+    const pieces = plates.decompose().map((s) => s.boundingBox());
+    expect(pieces).toHaveLength(2);
+    const [a, b] = pieces[0].min[0] < pieces[1].min[0] ? pieces : [pieces[1], pieces[0]];
+    // o lado esquerdo tem a altura da anilha grande; a orelha só entra do lado direito
     expect(a.max[1] - a.min[1]).toBeCloseTo(DEFAULT_DUMBBELL.plateH, 2);
-    expect(Math.abs(a.max[0] + b.min[0] + (a.min[0] + b.max[0]))).toBeLessThan(1e-3);
+    expect(b.max[1] - b.min[1]).toBeCloseTo(DEFAULT_DUMBBELL.plateH, 2);
+    // a fresta: uma sonda fina na altura de cima da tampa, rente à fresta, não toca em nada
+    const L = DEFAULT_DUMBBELL.length;
+    const gapX = -L / 2 + L * 0.075 + 0.3; // meio da fresta do lado esquerdo
+    const probe = M.Manifold.cube([0.2, 4, 6], true).translate([gapX, DEFAULT_DUMBBELL.plateH * 0.45, DEFAULT_DUMBBELL.thickness / 2]);
+    expect(plates.intersect(probe).volume()).toBeCloseTo(0, 3);
   });
 
   test("sem texto sai só com as duas partes", () => {

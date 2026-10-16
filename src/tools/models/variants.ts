@@ -225,10 +225,10 @@ export const VARIANTS: Record<string, Variant[]> = {
     { label: "Estudo", patch: { thumb: 24, text: "ESTUDO", ringColor: GREEN, tabColor: WHITE, textColor: GREEN }, collections: ["formatura"] },
   ],
   bookStand: [
-    { label: "Receitas", patch: { thick: 30, height: 150, tilt: 24, width: 110, text: "RECEITAS", bodyColor: RED, textColor: WHITE }, collections: ["maes"] },
-    { label: "Livro grosso", patch: { thick: 60, height: 180, tilt: 20, width: 140, text: "LEITURA", bodyColor: BLUE, textColor: WHITE } },
-    { label: "Caderno", patch: { thick: 15, height: 130, tilt: 25, width: 100, text: "ESTUDOS", bodyColor: GREEN, textColor: WHITE }, collections: ["formatura"] },
-    { label: "Tablet", patch: { thick: 12, height: 130, tilt: 28, width: 130, lip: 16, text: "", bodyColor: BLACK, textColor: WHITE } },
+    { label: "Receitas", patch: { thick: 30, height: 150, tilt: 24, width: 110, text: "RECEITAS", bodyColor: RED, accentColor: "#7f1d1d", textColor: WHITE }, collections: ["maes"] },
+    { label: "Livro grosso", patch: { thick: 60, height: 180, tilt: 20, width: 140, text: "LEITURA", bodyColor: BLUE, accentColor: "#1e3a8a", textColor: WHITE } },
+    { label: "Caderno", patch: { thick: 15, height: 130, tilt: 25, width: 100, text: "ESTUDOS", bodyColor: GREEN, accentColor: "#14532d", textColor: WHITE }, collections: ["formatura"] },
+    { label: "Tablet", patch: { thick: 12, height: 130, tilt: 28, width: 130, lip: 16, text: "", bodyColor: BLACK, accentColor: "#6b7280", textColor: WHITE } },
   ],
   gymKeychain: [
     { label: "20 KG", patch: { text: "20 KG", plateColor: BLACK, artColor: RED } },

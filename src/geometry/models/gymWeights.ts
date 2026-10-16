@@ -10,8 +10,8 @@ import { artParts, roundedRect, slab, type ModelCtx, type ModelOutput } from "./
 type K = <D extends { delete(): void }>(o: D) => D;
 
 export type DumbbellParams = {
-  length: number; // comprimento total (anilha a anilha)
-  plateH: number; // altura das anilhas externas
+  length: number; // comprimento da barra e das anilhas (a argola fica além da ponta)
+  plateH: number; // altura da anilha de dentro, a maior
   thickness: number;
   relief: number;
   text: string;
@@ -21,49 +21,56 @@ export type DumbbellParams = {
 };
 export const DEFAULT_DUMBBELL: DumbbellParams = { length: 58, plateH: 32, thickness: 5, relief: 1, text: "20 KG", plateColor: "#1c1c1e", barColor: "#9ca3af", textColor: "#f8f8f6" };
 
-// proporções do halter, em fração do comprimento (de fora para dentro: anilha, anilha menor, trava, barra)
-const OUTER_W = 0.085;
-const INNER_W = 0.085;
-const INNER_H = 0.74;
-const COLLAR_W = 0.045;
-const COLLAR_H = 0.4;
-const BAR_H = 0.3; // da altura da anilha
-const LOOP_R = 4.6;
+// de fora para dentro, em fração do comprimento: tampa (anilha pequena), anilha grande, trava e a barra
+const CAP_W = 0.075;
+const CAP_H = 0.62; // da altura da anilha grande
+const PLATE_W = 0.1;
+const GAP = 0.6; // fresta entre a tampa e a anilha: dá cara de duas anilhas empilhadas
+const COLLAR_W = 0.04;
+const COLLAR_H = 0.36;
+const BRIDGE_H = 0.3; // a ponte que mantém tampa e anilha juntas, no meio da fresta
+const PLATE_R = 2.6;
+const BAR_H = 0.34; // da altura da anilha
+const LOOP_R = 4.4;
 const LOOP_HOLE = 2.1;
-const GRIP_GAP = 0.8; // texto não encosta nas bordas da barra
+const GRIP_GAP = 0.9; // texto não encosta nas bordas da barra
 
 /** Retângulo de cantos arredondados com o canto esquerdo em x0 (e centrado em y). */
 const box = (M: Parameters<typeof roundedRect>[0], k: K, x0: number, w: number, h: number, r: number): CS => k(k(roundedRect(M, w, h, r)).translate([x0 + w / 2, 0]));
 
+/**
+ * Halter de chaveiro: duas anilhas empilhadas de cada lado (a tampa pequena por fora, a grande por dentro, como
+ * discos vistos de lado, com uma fresta entre elas), trava e barra com o texto no meio. A argola fica numa orelha na
+ * ponta direita, longe do texto.
+ */
 export function buildDumbbell(ctx: ModelCtx, p: DumbbellParams): ModelOutput {
   const { M, text, art, artLayers } = ctx;
   return scoped((k) => {
-    const L = p.length, h = p.plateH;
+    const L = p.length, H = p.plateH;
     const half = L / 2;
-    const wOut = L * OUTER_W, wIn = L * INNER_W, wCol = L * COLLAR_W;
+    const wCap = L * CAP_W, wPl = L * PLATE_W, wCol = L * COLLAR_W;
     const side = (sign: 1 | -1) => {
-      const x = (a: number, w: number) => (sign === 1 ? a : -a - w);
-      return [
-        box(M, k, x(half - wOut, wOut), wOut, h, 1.6),
-        box(M, k, x(half - wOut - wIn, wIn), wIn, h * INNER_H, 1.4),
-        box(M, k, x(half - wOut - wIn - wCol, wCol), wCol, h * COLLAR_H, 0.8),
-      ];
+      const cap = box(M, k, sign === 1 ? half - wCap : -half, wCap, H * CAP_H, PLATE_R);
+      const plate = box(M, k, sign === 1 ? half - wCap - GAP - wPl : -half + wCap + GAP, wPl, H, PLATE_R);
+      const bridge = box(M, k, sign === 1 ? half - wCap - GAP - 0.2 : -half + wCap - 0.2, GAP + 0.4, H * BRIDGE_H, 0.3);
+      const collar = box(M, k, sign === 1 ? half - wCap - GAP - wPl - wCol : -half + wCap + GAP + wPl - 0.01, wCol + 0.01, H * COLLAR_H, 0.8); // 0,01 de encaixe na anilha; a face de dentro é a da barra
+      return [cap, plate, bridge, collar];
     };
-    const plates = k(M.CrossSection.union([...side(1), ...side(-1)]));
-    const barLen = L - 2 * (wOut + wIn + wCol);
-    const barH = h * BAR_H;
-    const bar = box(M, k, -barLen / 2, barLen, barH, 1.2);
-    const ly = barH / 2 + LOOP_R - 1.2;
-    const loop = k(k(k(M.CrossSection.circle(LOOP_R, 48)).translate([0, ly])).subtract(k(k(M.CrossSection.circle(LOOP_HOLE, 32)).translate([0, ly]))));
-    const barAndLoop = k(M.CrossSection.union([bar, loop]));
+    const ear = k(k(M.CrossSection.circle(LOOP_R, 48)).translate([half + LOOP_R - 1.6, 0]));
+    const earHole = k(k(M.CrossSection.circle(LOOP_HOLE, 32)).translate([half + LOOP_R - 1.6, 0]));
+    const plates = k(k(M.CrossSection.union([...side(1), ...side(-1), ear])).subtract(earHole));
+    const barLen = L - 2 * (wCap + GAP + wPl + wCol);
+    const barH = H * BAR_H;
+    const bar = box(M, k, -barLen / 2, barLen, barH, 1.4);
     const parts = [
       { name: "Anilhas", color: p.plateColor, mesh: slab(plates, p.thickness) },
-      { name: "Barra", color: p.barColor, mesh: slab(barAndLoop, p.thickness) },
+      { name: "Barra", color: p.barColor, mesh: slab(bar, p.thickness) },
     ];
     const src = art ?? (() => { const t = text(p.text, 100); return t && k(t); })();
     if (src) {
-      const box2 = k(M.CrossSection.square([barLen - 2 * GRIP_GAP, barH - 2 * GRIP_GAP], true));
-      const placed = k(shrinkToFit(k(fitInto(src, barLen - 2 * GRIP_GAP, barH - 2 * GRIP_GAP, 0)), box2));
+      const w = barLen - 2 * GRIP_GAP, h = barH - 2 * GRIP_GAP;
+      const box2 = k(M.CrossSection.square([w, h], true));
+      const placed = k(shrinkToFit(k(fitInto(src, w, h, 0)), box2)); // centrado na barra
       if (!placed.isEmpty()) parts.push(...artParts({ M, text, art, artLayers }, placed, p.textColor, "Texto", p.relief, p.thickness));
     }
     return { models: [{ name: "Halter", parts }] };

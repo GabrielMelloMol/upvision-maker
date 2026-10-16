@@ -9,7 +9,7 @@ const PRINTS = process.env.MODELOS_PRINTS;
 async function shot(page: Page, name: string) {
   if (!PRINTS) return;
   mkdirSync(PRINTS, { recursive: true });
-  await page.screenshot({ path: `${PRINTS}/${name}.png` });
+  await page.screenshot({ path: `${PRINTS}/${name}${process.env.MODELOS_SUFFIX ?? ""}.png` });
 }
 async function open(page: Page, query: string, label: string) {
   await go(page, "Modelos prontos");
@@ -71,7 +71,7 @@ test("suportes de livro: apoio de polegar e suporte de mesa", async ({ page }) =
 
 test("suporte de livro de mesa: variações prontas e família com as duas variações", async ({ page }) => {
   await open(page, "livro", "Suporte de livro de mesa");
-  await expect(page.locator(".viewer .legend span")).toHaveCount(2);
+  await expect(page.locator(".viewer .legend span")).toHaveCount(3);
   await shot(page, "09-suporte-de-livro");
   await page.getByRole("button", { name: "Receitas" }).click();
   await idle(page);

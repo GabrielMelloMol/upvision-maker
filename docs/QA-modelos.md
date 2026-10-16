@@ -43,9 +43,9 @@ impressoras de mesa maior); sem o aviso do app, é **falha**.
 | Clicker (clicker) | máximo | ✅ ok | Bambu ✓ · Orca ✓ · Projeto Bambu ✓ | 78 | 21,3 | 1 | – | app: Encaixe feito para chave tipo Cherry MX (e compatíveis). Imprima a chapa e a cruz primeiro: se ficar justo, aumente as folgas.; app: A chave entra por cima na chapa do corpo; a tecla encaixa na haste. |
 | Clicker (clicker) | mínimo | ✅ ok | Bambu ✓ · Orca ✓ · Projeto Bambu ✓ | 67 | 18,7 | 1 | – | app: Encaixe feito para chave tipo Cherry MX (e compatíveis). Imprima a chapa e a cruz primeiro: se ficar justo, aumente as folgas.; app: A chave entra por cima na chapa do corpo; a tecla encaixa na haste. |
 | Clicker (clicker) | padrão | ✅ ok | Bambu ✓ · Orca ✓ · Projeto Bambu ✓ | 72 | 20,0 | 1 | – | app: Encaixe feito para chave tipo Cherry MX (e compatíveis). Imprima a chapa e a cruz primeiro: se ficar justo, aumente as folgas.; app: A chave entra por cima na chapa do corpo; a tecla encaixa na haste. |
-| Chaveiro halter (gymDumbbell) | máximo | ✅ ok | Bambu ✓ · Orca ✓ · Projeto Bambu ✓ | 90 | 28,2 | 1 | – | – |
+| Chaveiro halter (gymDumbbell) | máximo | ✅ ok | Bambu ✓ · Orca ✓ · Projeto Bambu ✓ | 91 | 28,6 | 1 | – | – |
 | Chaveiro halter (gymDumbbell) | mínimo | ✅ ok | Bambu ✓ · Orca ✓ · Projeto Bambu ✓ | 31 | 7,6 | 1 | – | – |
-| Chaveiro halter (gymDumbbell) | padrão | ✅ ok | Bambu ✓ · Orca ✓ · Projeto Bambu ✓ | 53 | 14,1 | 1 | – | – |
+| Chaveiro halter (gymDumbbell) | padrão | ✅ ok | Bambu ✓ · Orca ✓ · Projeto Bambu ✓ | 53 | 14,2 | 1 | – | – |
 | Chaveiro kettlebell (gymKettlebell) | máximo | ✅ ok | Bambu ✓ · Orca ✓ · Projeto Bambu ✓ | 28 | 19,1 | 1 | – | – |
 | Chaveiro kettlebell (gymKettlebell) | mínimo | ✅ ok | Bambu ✓ · Orca ✓ · Projeto Bambu ✓ | 8 | 3,3 | 1 | – | – |
 | Chaveiro kettlebell (gymKettlebell) | padrão | ✅ ok | Bambu ✓ · Orca ✓ · Projeto Bambu ✓ | 12 | 6,3 | 1 | – | – |
@@ -73,9 +73,6 @@ impressoras de mesa maior); sem o aviso do app, é **falha**.
 | Chaveiro giratório (spinner) | máximo | ✅ ok | Bambu ✓ · Orca ✓ · Projeto Bambu ✓ | 93 | 31,6 | 1 | – | – |
 | Chaveiro giratório (spinner) | mínimo | ✅ ok | Bambu ✓ · Orca ✓ · Projeto Bambu ✓ | 40 | 10,2 | 1 | – | – |
 | Chaveiro giratório (spinner) | padrão | ✅ ok | Bambu ✓ · Orca ✓ · Projeto Bambu ✓ | 51 | 14,2 | 1 | – | – |
-| Suporte de livro de mesa (bookStand) | máximo | ⚠️ aviso | Bambu ✓ · Orca ✓ · Projeto Bambu ✓ | – | – | – | – | Bambu: torre de purga em cima de uma peça depois do --arrange do CLI (na tela, arraste a torre ou use Arrumar); Orca: torre de purga em cima de uma peça depois do --arrange do CLI (na tela, arraste a torre ou use Arrumar); Projeto Bambu: torre de purga em cima de uma peça depois do --arrange do CLI (na tela, arraste a torre ou use Arrumar) |
-| Suporte de livro de mesa (bookStand) | mínimo | ✅ ok | Bambu ✓ · Orca ✓ · Projeto Bambu ✓ | 100 | 44,5 | 1 | – | – |
-| Suporte de livro de mesa (bookStand) | padrão | ✅ ok | Bambu ✓ · Orca ✓ · Projeto Bambu ✓ | 242 | 147,9 | 1 | – | – |
 | Apoio de polegar para livro (bookThumb) | máximo | ✅ ok | Bambu ✓ · Orca ✓ · Projeto Bambu ✓ | 62 | 27,6 | 1 | – | – |
 | Apoio de polegar para livro (bookThumb) | mínimo | ✅ ok | Bambu ✓ · Orca ✓ · Projeto Bambu ✓ | 22 | 6,6 | 1 | – | – |
 | Apoio de polegar para livro (bookThumb) | padrão | ✅ ok | Bambu ✓ · Orca ✓ · Projeto Bambu ✓ | 33 | 12,0 | 1 | – | – |
@@ -216,6 +213,9 @@ impressoras de mesa maior); sem o aviso do app, é **falha**.
 | Marca-página (bookmark) | máximo | ✅ ok | Bambu ✓ · Orca ✓ · Projeto Bambu ✓ | 63 | 46,0 | 1 | – | – |
 | Marca-página (bookmark) | mínimo | ✅ ok | Bambu ✓ · Orca ✓ · Projeto Bambu ✓ | 7 | 3,1 | 1 | – | – |
 | Marca-página (bookmark) | padrão | ✅ ok | Bambu ✓ · Orca ✓ · Projeto Bambu ✓ | 23 | 13,8 | 1 | – | – |
+| Suporte de livro de mesa (bookStand) | máximo | ⚠️ aviso | Bambu ✓ · Orca ✓ · Projeto Bambu ✓ | – | – | – | – | "Suporte de livro" não cabe na mesa de 256 mm (288,6 × 290,2 × 186,2 mm); Bambu: torre de purga em cima de uma peça depois do --arrange do CLI (na tela, arraste a torre ou use Arrumar); Orca: torre de purga em cima de uma peça depois do --arrange do CLI (na tela, arraste a torre ou use Arrumar); Projeto Bambu: torre de purga em cima de uma peça depois do --arrange do CLI (na tela, arraste a torre ou use Arrumar); app: "Suporte de livro" tem 289 × 290 × 186 mm e passa da mesa de 256 mm: diminua o tamanho. |
+| Suporte de livro de mesa (bookStand) | mínimo | ✅ ok | Bambu ✓ · Orca ✓ · Projeto Bambu ✓ | 496 | 107,5 | 1 | – | – |
+| Suporte de livro de mesa (bookStand) | padrão | ✅ ok | Bambu ✓ · Orca ✓ · Projeto Bambu ✓ | 896 | 243,8 | 1 | – | – |
 | Clipe e pente de cabos (cableComb) | máximo | ✅ ok | Bambu ✓ · Orca ✓ | 74 | 49,8 | 1 | – | – |
 | Clipe e pente de cabos (cableComb) | mínimo | ✅ ok | Bambu ✓ · Orca ✓ | 2 | 0,2 | 1 | – | – |
 | Clipe e pente de cabos (cableComb) | padrão | ✅ ok | Bambu ✓ · Orca ✓ | 6 | 1,7 | 1 | – | – |

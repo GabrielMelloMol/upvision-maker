@@ -98,7 +98,7 @@ export const KEYCHAIN_MODELS: ModelDef[] = [
     id: "gymDumbbell",
     category: "keychains",
     label: "Chaveiro halter",
-    blurb: "Halter com anilhas em degraus e argola no meio da barra, com o peso em relevo.",
+    blurb: "Halter com duas anilhas empilhadas de cada lado, orelha para a argola na ponta e o peso em relevo na barra.",
     icon: Dumbbell,
     font: true,
     art: "Arte na barra (opcional; no lugar do texto)",
