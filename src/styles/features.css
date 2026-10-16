@@ -106,6 +106,8 @@ g:hover > .viz-hit { fill: var(--fill); }
 .hbars-track { height: 10px; }
 .hbars-bar { display: block; height: 100%; min-width: 2px; background: var(--viz-1); border-radius: 0 4px 4px 0; }
 .hbars-value { font-variant-numeric: tabular-nums; text-align: right; white-space: nowrap; color: var(--text); }
+.hbars-sub { grid-column: 1 / -1; margin-top: -4px; }
+.hbars-sep { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); }
 .stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 12px; } /* ocupa a largura toda (polimento) */
 .stat { background: var(--surface-raised); box-shadow: var(--shadow-1); border-radius: var(--r-lg); padding: 14px 16px; display: grid; gap: 2px; align-content: start; }
 .stat-label { font-size: 12px; color: var(--muted); }

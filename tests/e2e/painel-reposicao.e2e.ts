@@ -36,6 +36,8 @@ test("painel: reposição sugerida (imprima mais N, em mesas) e onde dá mais lu
     mkdirSync(PRINTS, { recursive: true });
     await restock.scrollIntoViewIfNeeded();
     await page.screenshot({ path: `${PRINTS}/01-painel-reposicao-e-lucro.png`, fullPage: true });
+    await profit.scrollIntoViewIfNeeded();
+    await profit.screenshot({ path: `${PRINTS}/02-onde-da-mais-lucro.png` });
   }
   for (const scheme of ["light", "dark"] as const) {
     await page.emulateMedia({ colorScheme: scheme });
@@ -50,4 +52,11 @@ test("financeiro: por canal e por impressora mostram margem e R$ por hora (#215)
   await go(page, "Financeiro");
   await expect(page.locator(".card", { hasText: "Por canal" })).toContainText(/margem \d+%/);
   await expect(page.locator(".card", { hasText: "Por impressora" })).toContainText(/R\$\s[\d.,]+\/h/);
+  if (PRINTS) {
+    mkdirSync(PRINTS, { recursive: true });
+    const cards = page.locator(".cols-3").last();
+    await cards.scrollIntoViewIfNeeded();
+    await page.waitForTimeout(600);
+    await page.screenshot({ path: `${PRINTS}/03-financeiro-margem-e-reais-por-hora.png`, fullPage: true });
+  }
 });

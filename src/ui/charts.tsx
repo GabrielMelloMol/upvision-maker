@@ -166,10 +166,14 @@ export function HBars({ rows, format = money }: { rows: { label: string; value: 
         <li key={r.label} title={`${r.label}: ${format(r.value)}${r.sub ? ` · ${r.sub}` : ""}`}>
           <span className="hbars-label">{r.label}</span>
           <span className="hbars-track"><span className="hbars-bar" style={{ width: `${Math.max(0, (r.value / max) * 100)}%` }} /></span>
-          <span className="hbars-value">
-            {format(r.value)}
-            {r.sub && <span className="muted small"> · {r.sub}</span>}
-          </span>
+          <span className="hbars-value">{format(r.value)}</span>
+          {/* a explicação vai numa 2ª linha: em coluna estreita não corta (o separador só existe para o texto copiado) */}
+          {r.sub && (
+            <span className="hbars-sub muted small">
+              <span className="hbars-sep"> · </span>
+              {r.sub}
+            </span>
+          )}
         </li>
       ))}
     </ul>
