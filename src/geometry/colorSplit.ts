@@ -3,6 +3,7 @@ import { toMesh } from "./mesh";
 import { decodePaint, type Tri, type Vec3 } from "./paint";
 import { scoped } from "./shape2d";
 import { nozzleText } from "./bed";
+import { colorName } from "./colorName";
 import { autoSelections, colorClusters, DEFAULT_TOLERANCE, hasMaterialColors, regionTriangles, triOf, type ColorSelection } from "./colorRegions";
 import { minStrokeMm } from "./textCheck";
 import type { Read3mf, ReadPart } from "./threemfRead";
@@ -215,7 +216,7 @@ export function splitByColor(M: ManifoldToplevel, file: Read3mf, o: SplitOptions
           if (s.isEmpty()) continue;
           volumes.set(f, (volumes.get(f) ?? 0) + s.volume());
           const isBase = f === part.extruder;
-          out.push({ name: isBase ? part.name : `${part.name} · ${extraColor.has(f) ? `cor ${extraColor.get(f)}` : `filamento ${f}`}`, color: colorOf(file.filamentColors, f, extraColor), mesh: toMesh(s) });
+          out.push({ name: isBase ? part.name : `${part.name} · ${extraColor.has(f) ? `cor ${colorName(extraColor.get(f)!)}` : `filamento ${f}`}`, color: colorOf(file.filamentColors, f, extraColor), mesh: toMesh(s) });
         }
       });
       return out;

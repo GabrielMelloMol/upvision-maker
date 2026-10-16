@@ -1,3 +1,4 @@
+import { colorName } from "./colorName";
 import type { Model, Part } from "./types";
 import type { Read3mf, ReadPart } from "./threemfRead";
 import type { Tri, Vec3 } from "./paint";
@@ -140,7 +141,7 @@ export function colorPreview(file: Read3mf, tolPct: number, selected: ColorSelec
         const idx = new Uint32Array(tris.length * 3);
         tris.forEach((t, n) => idx.set(p.mesh.indices.subarray(t * 3, t * 3 + 3), n * 3));
         const color = clusters[i]?.color ?? "#cccccc";
-        parts.push({ name: chosen.has(color) ? `Separar ${color}` : `Cor ${color}`, color, mesh: { positions: p.mesh.positions, indices: idx } });
+        parts.push({ name: chosen.has(color) ? `Separar ${colorName(color)}` : `Cor ${colorName(color)}`, color, mesh: { positions: p.mesh.positions, indices: idx } });
       }
     }
     return { name: o.name, parts };

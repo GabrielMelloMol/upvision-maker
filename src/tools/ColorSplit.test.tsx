@@ -23,9 +23,9 @@ describe("Separar cores de um 3MF", () => {
     await user.upload(container.querySelector<HTMLInputElement>('input[type="file"]')!, fixture("cubo-pintado-bambu.3mf"));
     const list = await screen.findByLabelText("Cores encontradas", undefined, BUILD);
     expect(within(list).getAllByRole("listitem").map((li) => li.textContent)).toEqual([
-      expect.stringContaining("Filamento 1"),
-      expect.stringContaining("Filamento 2 · 0,4 cm³"),
-      expect.stringContaining("Filamento 3"),
+      expect.stringContaining("Filamento 1 do arquivo"),
+      expect.stringContaining("Filamento 2 do arquivo · 0,4 cm³"),
+      expect.stringContaining("Filamento 3 do arquivo"),
     ]);
     await waitFor(() => expect(screen.getByRole("button", { name: /Salvar 3MF/ })).toBeEnabled(), BUILD);
     await user.click(screen.getByRole("button", { name: /Salvar 3MF/ }));
@@ -97,4 +97,21 @@ describe("Separar cores de um 3MF", () => {
     expect(screen.getByLabelText(/Número de partes/)).toBeInTheDocument();
     expect(container).toBeTruthy();
   });
+
+  test("nomes de cor em português, sem código; com filamento cadastrado parecido ele é sugerido e entra no peso e no custo (#229)", async () => {
+    await t.db.execute("INSERT INTO filaments (material, color, brand, pricePerKg, spoolG, stockG, minG) VALUES ('PLA', 'Azul', 'Bambu', 100, 1000, 1000, 0)");
+    const user = userEvent.setup();
+    const { container } = renderWithApp(<ColorSplit />);
+    await user.upload(container.querySelector<HTMLInputElement>('input[type="file"]')!, new File([readFileSync(resolve(__dirname, "../../tests/fixtures/3mf/personagem-colorido-material.3mf"))], "personagem.3mf"));
+    const found = await screen.findByLabelText("Cores encontradas", undefined, BUILD);
+    await waitFor(() => expect(within(found).getAllByRole("listitem")).toHaveLength(4), BUILD);
+    // nenhum código de cor aparece como texto (só no detalhe, em title)
+    expect(screen.queryByText(/#[0-9a-f]{6}/i)).toBeNull();
+    const blue = within(found).getByText("Azul").closest("li")!;
+    expect(within(blue).getByText(/parece com: PLA Azul Bambu/)).toBeInTheDocument();
+    expect(blue.textContent).toMatch(/~R\$\s?\d/); // o custo usa o preço do filamento
+    const green = within(found).getByText("Verde").closest("li")!;
+    expect(within(green).getByText(/Nenhum filamento cadastrado parecido/)).toBeInTheDocument();
+    expect(within(blue).getByTitle(/Código da cor: #[0-9a-f]{6}/)).toBeInTheDocument();
+  }, 60_000);
 });

@@ -1,4 +1,12 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
+import { getDb } from "../db";
+import { filaments as filamentsRepo } from "../db/repo";
+import type { Filament } from "../domain/entities";
+import { densityOfMaterial } from "../domain/estimate";
+import { money } from "../domain/format";
+import { capitalized, colorName } from "../geometry/colorName";
+import { colorSwatch } from "../ui/ColorDots";
+import { filamentLabel, suggestFilament } from "./filamentSuggest";
 import { autoSelections, colorClusters, colorPreview, DEFAULT_TOLERANCE, hasMaterialColors, nearestTriangle, sameColor, type ColorSelection } from "../geometry/colorRegions";
 import { splitByColor, type SplitMode } from "../geometry/colorSplit";
 import { getManifold } from "../geometry/manifold";
@@ -36,7 +44,6 @@ const PIN_MODES: [PinMode, string][] = [
   ["loose", "Pino solto"],
   ["fixed", "Pino fixo na parte A"],
 ];
-const PLA_G_PER_CM3 = 1.24;
 const MAX_BYTES = 200 * 1024 * 1024;
 
 const initialState = () => ({
@@ -51,6 +58,8 @@ const initialState = () => ({
   /** Cores escolhidas para separar; null = automático (todas menos a maior). */
   picks: null as ColorSelection[] | null,
   touching: true,
+  /** Filamento escolhido para cada cor (id do cadastro; null = nenhum). Sem escolha vale o mais parecido. */
+  assign: {} as Record<string, number | null>,
 });
 type SplitState = ReturnType<typeof initialState>;
 
@@ -66,8 +75,25 @@ export default function ColorSplit() {
       return { ...initialState(), ...r, file: r.file && bytes ? { name: r.file.name, bytes } : null };
     },
   });
-  const { file, depth, mode, cutOn, cut, cutParts, keepPosition, tolerance, picks, touching } = tool.state;
-  const [setFile, setDepth, setMode, setCutOn, setCut, setCutParts, setKeep, setTol, setPicks, setTouching] = [tool.field("file"), tool.field("depth"), tool.field("mode"), tool.field("cutOn"), tool.field("cut"), tool.field("cutParts"), tool.field("keepPosition"), tool.field("tolerance"), tool.field("picks"), tool.field("touching")];
+  const { file, depth, mode, cutOn, cut, cutParts, keepPosition, tolerance, picks, touching, assign } = tool.state;
+  const [setFile, setDepth, setMode, setCutOn, setCut, setCutParts, setKeep, setTol, setPicks, setTouching, setAssign] = [tool.field("file"), tool.field("depth"), tool.field("mode"), tool.field("cutOn"), tool.field("cut"), tool.field("cutParts"), tool.field("keepPosition"), tool.field("tolerance"), tool.field("picks"), tool.field("touching"), tool.field("assign")];
+  const [stock, setStock] = useState<Filament[]>([]);
+  useEffect(() => {
+    getDb()
+      .then(filamentsRepo.list)
+      .then(setStock)
+      .catch(() => {}); // sem banco (prévia solta): só os nomes das cores
+  }, []);
+  /** O filamento da cor: o que a pessoa escolheu ou, sem escolha, o cadastrado mais parecido. */
+  const chosenFor = (color: string): { filament: Filament; swatch: string } | null => {
+    const key = color.toLowerCase();
+    if (key in assign) {
+      const f = assign[key] === null ? undefined : stock.find((x) => x.id === assign[key]);
+      const swatch = f ? colorSwatch(f.color) : null;
+      return f && swatch ? { filament: f, swatch } : null;
+    }
+    return suggestFilament(key, stock);
+  };
   const [view, setView] = useState<"result" | "original">("result");
   const [pickNote, setPickNote] = useState<string | null>(null);
   const [fileError, setFileError] = useState<string | null>(null);
@@ -116,10 +142,12 @@ export default function ColorSplit() {
     const M = await getManifold();
     const out = splitByColor(M, read, { depth, mode, selections: byMaterial ? selected : undefined, tolerance, keepPosition });
     setColors(out.colors);
-    if (!cutOn) return { models: out.models, warnings: out.warnings };
+    // com filamento cadastrado a peça sai na cor dele: o arquivo, o peso e o custo usam o filamento escolhido
+    const recolor = (list: typeof out.models) => list.map((m) => ({ ...m, parts: m.parts.map((p) => ({ ...p, color: chosenFor(p.color)?.swatch ?? p.color })) }));
+    if (!cutOn) return { models: recolor(out.models), warnings: out.warnings };
     const c = cutParts === 2 ? cutModels(M, out.models, cut) : cutInParts(M, out.models, cut, cutParts);
-    return { models: c.models, warnings: [...out.warnings, ...c.warnings] };
-  }, [read, depth, mode, valid, cutOn, cut, cutParts, keepPosition, tolerance, picks, byMaterial]);
+    return { models: recolor(c.models), warnings: [...out.warnings, ...c.warnings] };
+  }, [read, depth, mode, valid, cutOn, cut, cutParts, keepPosition, tolerance, picks, byMaterial, stock, assign]);
   const original = useMemo(() => (read && byMaterial ? colorPreview(read, tolerance, selected) : []), [read, byMaterial, tolerance, picks, clusters]); // eslint-disable-line react-hooks/exhaustive-deps
   const showOriginal = byMaterial && view === "original";
 
@@ -146,12 +174,12 @@ export default function ColorSplit() {
                   <li key={c.color}>
                     <button type="button" className={isSelected(c.color) ? "sm primary" : "sm"} aria-pressed={isSelected(c.color)} onClick={() => toggleCluster(c.color)}>
                       <span className="swatch-inline">
-                        <i style={{ background: c.color }} />
+                        <i style={{ background: c.color }} aria-hidden />
                         {isSelected(c.color) ? "Separar" : i === 0 ? "Base" : "Fica na base"}
                       </span>
                     </button>{" "}
-                    <span className="muted">
-                      {c.color} · {Math.round(c.share * 100)}% da superfície
+                    <span className="muted" title={c.color}>
+                      {capitalized(colorName(c.color))} · {Math.round(c.share * 100)}% da superfície
                     </span>
                   </li>
                 ))}
@@ -213,17 +241,44 @@ export default function ColorSplit() {
             <div className="card stack" aria-label="Cores encontradas">
               <h3>Cores encontradas</h3>
               <ul className="stack">
-                {colors.map((c) => (
-                  <li key={c.filament}>
-                    <span className="swatch-inline">
-                      <i style={{ background: c.color }} />
-                      Filamento {c.filament}
-                    </span>{" "}
-                    <span className="muted">
-                      · {(c.volume / 1000).toFixed(1).replace(".", ",")} cm³ · ~{Math.round((c.volume / 1000) * PLA_G_PER_CM3)} g de PLA (maciço)
-                    </span>
-                  </li>
-                ))}
+                {colors.map((c) => {
+                  const chosen = chosenFor(c.color);
+                  const suggested = suggestFilament(c.color.toLowerCase(), stock);
+                  const material = chosen?.filament.material;
+                  const g = (c.volume / 1000) * densityOfMaterial(material);
+                  const cost = chosen ? (g / 1000) * chosen.filament.pricePerKg : null;
+                  return (
+                    <li key={c.filament} className="stack">
+                      <span className="swatch-inline" title={`Código da cor: ${c.color}`}>
+                        <i style={{ background: chosen?.swatch ?? c.color }} aria-hidden />
+                        <strong>{capitalized(colorName(c.color))}</strong>
+                      </span>
+                      <span className="muted">
+                        {!byMaterial && `Filamento ${c.filament} do arquivo · `}
+                        {(c.volume / 1000).toFixed(1).replace(".", ",")} cm³ · ~{Math.round(g)} g de {material ?? "PLA"} (maciço)
+                        {cost !== null && ` · ~${money(cost)}`}
+                      </span>
+                      {stock.length > 0 && (
+                        <label className="field">
+                          <span className="field-label">Filamento{suggested && chosen?.filament.id === suggested.filament.id ? ` (parece com: ${filamentLabel(suggested.filament)})` : ""}</span>
+                          <select
+                            aria-label={`Filamento para ${colorName(c.color)}`}
+                            value={chosen?.filament.id ?? ""}
+                            onChange={(e) => setAssign((cur) => ({ ...cur, [c.color.toLowerCase()]: e.target.value ? Number(e.target.value) : null }))}
+                          >
+                            <option value="">Nenhum cadastrado (usar a cor do arquivo)</option>
+                            {stock.map((f) => (
+                              <option key={f.id} value={f.id}>
+                                {filamentLabel(f)}
+                              </option>
+                            ))}
+                          </select>
+                        </label>
+                      )}
+                      {stock.length > 0 && !chosen && <span className="hint">Nenhum filamento cadastrado parecido: o peso usa PLA e o custo fica de fora.</span>}
+                    </li>
+                  );
+                })}
               </ul>
             </div>
           )}
