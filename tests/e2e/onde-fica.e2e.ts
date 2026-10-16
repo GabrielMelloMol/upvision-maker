@@ -69,10 +69,10 @@ test("onde fica: Presentes, Casa e decoração e Organização e utilidades sepa
   await expect(page.getByRole("group", { name: "Variação" }).getByRole("button", { name: "Cumbuca" })).toBeVisible();
 
   await tabs.getByRole("button", { name: "Casa e decoração" }).click();
-  await expect(families.getByRole("button")).toHaveText(["Moldura", "Luminárias e abajures", "Quadro e desenho", "Vaso", "Brinquedos"]);
+  await expect(families.getByRole("button")).toHaveText(["Moldura", "Luminárias e abajures", "Quadro e desenho", "Vaso", "Brinquedos", "Suporte de livro"]);
 
   await tabs.getByRole("button", { name: "Organização" }).click();
-  await expect(families.getByRole("button")).toHaveText(["Potes e organizadores", "Organizador modular (Gridfinity)", "Suporte de celular e tablet", "Tecla de teclado", "Porta-chave de parede", "Utilitários"]);
+  await expect(families.getByRole("button")).toHaveText(["Painel perfurado", "Potes e organizadores", "Organizador modular (Gridfinity)", "Suporte de celular e tablet", "Tecla de teclado", "Porta-chave de parede", "Utilitários", "Peças mecânicas", "Gabaritos de oficina"]);
 
   // buscar leva à aba da família do modelo, mesmo vindo de outra categoria
   await page.getByRole("searchbox", { name: "Buscar modelo" }).fill("tecla");
