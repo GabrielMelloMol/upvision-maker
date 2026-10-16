@@ -1,4 +1,4 @@
-import { Award, Bot, Gift, Stamp as StampIcon, Calculator as CalcIcon, Cookie, Cylinder, KeyRound, Layers, House, ImageUp, Package, Palette, Printer, Settings, ShoppingBag, Users, Building2, ClipboardList, FileText, LayoutDashboard, LineChart, Receipt, QrCode as QrIcon, Scissors, Split } from "lucide-react";
+import { Award, Bot, Gift, Stamp as StampIcon, Calculator as CalcIcon, BookOpenText, Cookie, Cylinder, KeyRound, Layers, House, ImageUp, Package, Palette, Printer, Settings, ShoppingBag, Users, Building2, ClipboardList, FileText, LayoutDashboard, LineChart, Receipt, QrCode as QrIcon, Scissors, Split } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import { Boxes, Braces, FolderOpen, ChartNoAxesColumn, Globe, Grid3x3, LayoutGrid, Shapes, Sparkle, Sun, Tag, Sticker, Wallet } from "lucide-react";
 import { lazy, type ReactNode } from "react";
@@ -7,6 +7,7 @@ import Home from "./pages/Home";
 // Cada página vira um chunk próprio: a abertura do app não carrega OpenSCAD, MediaPipe etc.
 const Create = lazy(() => import("./pages/Create"));
 const Calculator = lazy(() => import("./pages/Calculator"));
+const PricingHow = lazy(() => import("./pages/PricingHow"));
 const Products = lazy(() => import("./pages/Products"));
 const Customers = lazy(() => import("./pages/Customers"));
 const Orders = lazy(() => import("./pages/Orders"));
@@ -96,6 +97,7 @@ const ALL: PageDef[] = [
   { id: "finance", section: "results", label: "Financeiro", group: "Gestão", icon: LineChart, blurb: "Receita, lucro, R$/hora e gráficos.", render: (go) => <Finance go={go} /> },
   { id: "costs", section: "results", label: "Custos operacionais", group: "Gestão", icon: Receipt, blurb: "Aluguel, impostos, parcelas…", render: () => <Costs /> },
   { id: "calculator", section: "sell", label: "Calculadora", group: "Gestão", icon: CalcIcon, blurb: "Custo e preço por canal de venda.", render: (go) => <Calculator go={go} /> },
+  { id: "pricing", section: "sell", label: "Como calculamos o preço", group: "Gestão", icon: BookOpenText, blurb: "A conta de cada componente do custo e do preço, com um exemplo.", render: (go) => <PricingHow go={go} /> },
   { id: "customers", section: "sell", label: "Clientes", group: "Gestão", icon: Users, blurb: "Contatos, endereço e desconto padrão.", render: () => <Customers /> },
   { id: "products", section: "sell", label: "Produtos", group: "Gestão", icon: ShoppingBag, blurb: "Composição, fotos, kits e estoque pronto.", render: () => <Products /> },
   { id: "filaments", section: "stock", label: "Filamentos", group: "Gestão", icon: Cylinder, blurb: "Estoque, mínimo e custo médio.", render: () => <Filaments /> },

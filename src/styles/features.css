@@ -419,3 +419,14 @@ td.best-name { max-width: 0; width: 100%; overflow: hidden; text-overflow: ellip
 .strip-step { display: inline-flex; align-items: center; gap: 4px; }
 .strip-step output { min-width: 5.5em; text-align: center; font-size: var(--text-sm); }
 .strip-editor button.sm { min-width: 28px; min-height: 28px; }
+
+/* Como calculamos o preço (#216) */
+.pricing-how { max-width: 760px; }
+.pricing-how .card { margin-bottom: var(--space-3); }
+.ph-steps { list-style: none; margin: var(--space-4) 0; padding: 0; }
+.ph-head { display: flex; align-items: baseline; justify-content: space-between; gap: var(--space-3); }
+.ph-head h2 { margin: 0; font-size: var(--title-3); display: flex; align-items: center; gap: var(--space-2); }
+.ph-n { display: inline-grid; place-items: center; width: 24px; height: 24px; border-radius: 50%; background: var(--fill-strong); color: var(--text); font-size: var(--text-sm); font-weight: 600; }
+.ph-value { font-variant-numeric: tabular-nums; white-space: nowrap; }
+.ph-sum code { display: block; margin-top: var(--space-1); padding: var(--space-2) var(--space-3); border-radius: var(--r); background: var(--fill); font-family: inherit; font-variant-numeric: tabular-nums; white-space: normal; overflow-wrap: anywhere; }
+.pricing-how p { margin: var(--space-2) 0; }

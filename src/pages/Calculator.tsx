@@ -344,7 +344,7 @@ export default function Calculator({ go }: { go: Go }) {
 
         <aside className="calc-summary" aria-live="polite">
           <CalcWarnings psuFix={psuFix} watts={num(f.watts)} onUseWatts={(w) => void applyWatts(w)} warnings={shownWarnings} onDismiss={(k) => setDismissed([...dismissed, k])} />
-          <PriceHero r={r} s={data.settings} onSave={saveAsProduct} onPreferences={() => go("preferences")}>
+          <PriceHero r={r} s={data.settings} onSave={saveAsProduct} onPreferences={() => go("preferences")} onHow={() => go("pricing")}>
             {mode === "quick" && (
               <>
                 <TestPrice rows={rows} value={competitor} onChange={setCompetitor} minMarginPct={data.settings.minMarginPct} target={data.settings.targetProfitPerHour} />
