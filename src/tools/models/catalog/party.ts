@@ -8,6 +8,8 @@ import { buildOrnamentSpinner, DEFAULT_ORNAMENT_SPINNER } from "../../../geometr
 import { buildShirtPrint, DEFAULT_SHIRT_PRINT } from "../../../geometry/models/shirtPrint";
 import { buildSnowflake, DEFAULT_SNOWFLAKE } from "../../../geometry/models/snowflake";
 import { buildTrophy, DEFAULT_TROPHY } from "../../../geometry/models/trophy";
+import { buildSculpture, DEFAULT_SCULPTURE } from "../../../geometry/models/trophySculpture";
+import { SPORT_IDS, SPORT_LABELS } from "../../../geometry/sports";
 import { buildWallLetters, DEFAULT_WALL_LETTERS } from "../../../geometry/models/wallLetters";
 import { buildWindowFrame, DEFAULT_WINDOW_FRAME } from "../../../geometry/models/windowFrame";
 import { as, bool, choice, color, num, signLine, text, textureFields, type ModelDef } from "../fields";
@@ -93,6 +95,36 @@ export const PARTY_MODELS: ModelDef[] = [
       { title: "Tamanho e cores", fields: [{ k: "shape", kind: "choice", label: "Formato", options: [["star", "Estrela"], ["circle", "Redondo"], ["shield", "Escudo"], ["hexagon", "Hexágono"]] }, num("size", "Tamanho", 40, 180, { step: 1 }), num("thickness", "Espessura", 2.5, 8), num("relief", "Relevo", 0.4, 3), color("plateColor", "Placa"), color("accentColor", "Borda e textos"), color("artColor", "Imagem"), color("baseColor", "Base")] },
     ],
     build: (ctx, p) => buildTrophy(ctx, as(p)),
+  },
+  {
+    id: "trophyAthlete",
+    category: "party",
+    label: "Troféu atleta",
+    blurb: "Silhueta de atleta (15 esportes) em pé sobre uma base com o nome do campeão. Imprime deitada, sem suporte; a lingueta encaixa na base.",
+    icon: Trophy,
+    font: true,
+    defaults: DEFAULT_SCULPTURE,
+    sections: [
+      { title: "Esporte", fields: [choice("sport", "Esporte", SPORT_IDS.map((id) => [id, SPORT_LABELS[id]] as const))] },
+      { title: "Textos da base", fields: [text("baseText", "Linha de cima", 24), text("baseText2", "Linha de baixo (opcional)", 24)] },
+      { title: "Tamanho e cores", fields: [num("height", "Tamanho do atleta", 60, 170, { step: 1 }), num("thickness", "Espessura", 4, 10), color("bodyColor", "Atleta"), color("baseColor", "Base"), color("textColor", "Texto da base")] },
+    ],
+    build: (ctx, p) => buildSculpture(ctx, as({ ...p, form: "atleta" })),
+  },
+  {
+    id: "trophyTwist",
+    category: "party",
+    label: "Troféu escultura",
+    blurb: "Coluna torcida (fita, estrela ou cruz) sobre uma base com o nome. Imprime de cabeça para baixo e a lingueta encaixa na base.",
+    icon: Trophy,
+    font: true,
+    defaults: { ...DEFAULT_SCULPTURE, form: "fluxo", height: 150 },
+    sections: [
+      { title: "Forma", fields: [choice("form", "Forma", [["fluxo", "Fita"], ["iris", "Estrela"], ["nexo", "Cruz"]]), num("twist", "Torção", 90, 540, { step: 15, unit: "°" })] },
+      { title: "Textos da base", fields: [text("baseText", "Linha de cima", 24), text("baseText2", "Linha de baixo (opcional)", 24)] },
+      { title: "Tamanho e cores", fields: [num("height", "Altura", 60, 220, { step: 1 }), num("girth", "Largura", 30, 70, { step: 1 }), color("bodyColor", "Escultura"), color("baseColor", "Base"), color("textColor", "Texto da base")] },
+    ],
+    build: (ctx, p) => buildSculpture(ctx, as(p)),
   },
   {
     id: "adaptiveMedal",

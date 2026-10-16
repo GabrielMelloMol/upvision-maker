@@ -25,7 +25,7 @@ dentro dela, a pessoa escolhe a **variação** por miniatura (como os estilos de
 | 4 | **Tag de identificação** | Pet (`petTag`) · MOLLE (`molle`) | Forja | Nome na frente, dados no verso / rasgos para fita. |
 | 5 | **Chaveiro** | Logo (`logoKeychain`) · NFC (`nfc`) · Anilha (`gymKeychain`) · Espelho (`mirror`) · Abridor (`opener`) · Giratório (`spinner`) · Clicker (`clicker`) | Forja | 7 variações em 2 grupos na tela: "Com arte" (logo, NFC, anilha) e "Com função" (espelho, abridor, giratório, clicker). Ver pergunta B (a ferramenta Chaveiros). |
 | 6 | **Nomes** | Articulado (`articulatedName`) · Pingentes (`namePendants`) · Topo de lápis (`pencilTopper`) | Forja, Torno | Peças com o nome como assunto principal. |
-| 7 | **Troféu** | Placa na base (`trophy`) · Elegante (`trophyElegant`) · No contorno do desenho (`adaptiveTrophy`) | Forja | Estilos, como pede a issue. |
+| 7 | **Troféu** | Placa na base (`trophy`) · Elegante (`trophyElegant`) · No contorno do desenho (`adaptiveTrophy`) · Atleta (`trophyAthlete`) · Escultura (`trophyTwist`) | Forja | Estilos, como pede a issue. |
 | 8 | **Medalha** | No contorno do desenho (`adaptiveMedal`) | Forja | Ver pergunta B (a ferramenta Medalhas vira a variação "Redonda/formatos"). |
 | 9 | **Topo de bolo** | `cake` | Forja | Sozinho; os estilos (15 anos, casamento…) continuam. |
 | 10 | **Mesa de doces** | Boleira (`cakeStand`) · Suporte de palitos (`stickStand`) | Torno | |

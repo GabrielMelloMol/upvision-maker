@@ -100,7 +100,7 @@ describe("Modelos prontos", () => {
     const user = userEvent.setup();
     renderWithApp(<Models />);
     await user.type(screen.getByRole("searchbox", { name: "Buscar modelo" }), "trofeu");
-    expect(gallery().getAllByRole("button").map((b) => b.textContent)).toEqual(["Troféu", "Troféu elegante", "Troféu adaptável"]);
+    expect(gallery().getAllByRole("button").map((b) => b.textContent)).toEqual(["Troféu", "Troféu atleta", "Troféu escultura", "Troféu elegante", "Troféu adaptável"]);
     // buscando, nenhuma categoria fica marcada
     const cats = within(screen.getByRole("group", { name: "Categoria" })).getAllByRole("button");
     expect(cats.every((b) => b.getAttribute("aria-pressed") === "false")).toBe(true);

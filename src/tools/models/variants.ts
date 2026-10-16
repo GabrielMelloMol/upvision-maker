@@ -181,6 +181,19 @@ export const VARIANTS: Record<string, Variant[]> = {
     { label: "Formatura", patch: { baseText: "FORMATURA 2026", baseText2: "Turma de Direito" }, collections: ["formatura"] },
     { label: "Campeonato", patch: { baseText: "CAMPEONATO 2026", baseText2: "1º LUGAR" } },
   ],
+  trophyAthlete: [
+    { label: "Futebol", patch: { sport: "futebol", baseText: "CAMPEÃO", baseText2: "FUTEBOL" } },
+    { label: "Basquete", patch: { sport: "basquete", baseText: "CAMPEÃO", baseText2: "BASQUETE" } },
+    { label: "Vôlei", patch: { sport: "volei", baseText: "CAMPEÃS", baseText2: "VÔLEI" } },
+    { label: "Natação", patch: { sport: "natacao", baseText: "1º LUGAR", baseText2: "NATAÇÃO" } },
+    { label: "Corrida", patch: { sport: "corrida", baseText: "FINALISTA", baseText2: "CORRIDA DE RUA" } },
+    { label: "Prata", patch: { sport: "tenis", baseText: "2º LUGAR", baseText2: "TÊNIS", bodyColor: "#c0c4cc" } },
+  ],
+  trophyTwist: [
+    { label: "Fita dourada", patch: { form: "fluxo", bodyColor: GOLD } },
+    { label: "Estrela prateada", patch: { form: "iris", bodyColor: "#c0c4cc", twist: 180, baseText: "2º LUGAR" } },
+    { label: "Cruz bronze", patch: { form: "nexo", bodyColor: "#b87333", baseText: "3º LUGAR" } },
+  ],
   lamp: [
     { label: "LOVE", patch: { text: "LOVE" }, collections: ["casamento"] },
     { label: "MÃE", patch: { text: "MÃE" }, collections: ["maes"] },
