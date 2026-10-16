@@ -120,6 +120,13 @@ export const ARTICLES: HelpArticle[] = [
     steps: ["Arraste o 3MF pintado (Bambu Studio, OrcaSlicer ou PrusaSlicer).", "Confira as cores encontradas.", "Se quiser, corte pelo plano com pino de encaixe.", "Salve as peças e cole ou encaixe depois de imprimir."],
   },
   {
+    id: "bedcut",
+    title: "Cortar para caber na mesa",
+    intro: "O STL ou 3MF é maior que a mesa da impressora: o app corta em pedaços iguais, faz o encaixe entre eles e numera cada junta nas duas faces.",
+    steps: ["Arraste o STL ou 3MF grande.", "Confira a mesa (a da impressora escolhida ou digite as medidas).", "Veja quantos pedaços o app sugere ou escolha as partes por eixo.", "Escolha o encaixe: pino redondo ou quadrado, rabo de andorinha ou ímã.", "Salve: cada pedaço já assenta na mesa pela face cortada e as juntas têm o mesmo número nos dois lados."],
+    tips: ["Os pinos e as chaves saem à parte, na mesma cor das peças: imprima junto.", "No ímã, vire um dos ímãs ao contrário para os dois se atraírem.", "Com a vista Montada você afasta os pedaços para ver as juntas."],
+  },
+  {
     id: "partialcut",
     title: "Corte parcial",
     intro: "Corte só um pedaço de um STL ou 3MF (a cabeça de um personagem, sem cortar a árvore ao lado): o plano de corte só vale dentro de uma caixa.",

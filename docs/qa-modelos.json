@@ -1515,6 +1515,75 @@
   "plates": 1
  },
  {
+  "key": "bedcut:3 eixos com números",
+  "owner": "Forja",
+  "group": "tools",
+  "label": "Cortar para caber na mesa (ferramenta)",
+  "variant": "3 eixos com números",
+  "status": "aviso",
+  "reasons": [
+   "o conjunto arrumado ocupa 1513,3 × 168,0 mm: passa da mesa de 256 mm",
+   "mais de 24 h de impressão",
+   "não coube numa placa: 6 placas"
+  ],
+  "date": "2026-10-16",
+  "slicers": "Bambu ✓ · Orca ✓ · Projeto Bambu ✓",
+  "minutes": 2998,
+  "grams": 3413.8,
+  "plates": 6
+ },
+ {
+  "key": "bedcut:ímã",
+  "owner": "Forja",
+  "group": "tools",
+  "label": "Cortar para caber na mesa (ferramenta)",
+  "variant": "ímã",
+  "status": "aviso",
+  "reasons": [
+   "o conjunto arrumado ocupa 418,0 × 150,0 mm: passa da mesa de 256 mm",
+   "não coube numa placa: 2 placas"
+  ],
+  "date": "2026-10-16",
+  "slicers": "Bambu ✓ · Orca ✓",
+  "minutes": 577,
+  "grams": 675.4,
+  "plates": 2
+ },
+ {
+  "key": "bedcut:pino redondo (2 pedaços)",
+  "owner": "Forja",
+  "group": "tools",
+  "label": "Cortar para caber na mesa (ferramenta)",
+  "variant": "pino redondo (2 pedaços)",
+  "status": "aviso",
+  "reasons": [
+   "o conjunto arrumado ocupa 418,0 × 168,0 mm: passa da mesa de 256 mm",
+   "não coube numa placa: 2 placas"
+  ],
+  "date": "2026-10-16",
+  "slicers": "Bambu ✓ · Orca ✓ · Projeto Bambu ✓",
+  "minutes": 873,
+  "grams": 735.3,
+  "plates": 2
+ },
+ {
+  "key": "bedcut:rabo de andorinha",
+  "owner": "Forja",
+  "group": "tools",
+  "label": "Cortar para caber na mesa (ferramenta)",
+  "variant": "rabo de andorinha",
+  "status": "aviso",
+  "reasons": [
+   "o conjunto arrumado ocupa 418,0 × 174,0 mm: passa da mesa de 256 mm",
+   "não coube numa placa: 2 placas"
+  ],
+  "date": "2026-10-16",
+  "slicers": "Bambu ✓ · Orca ✓ · Projeto Bambu ✓",
+  "minutes": 856,
+  "grams": 743.2,
+  "plates": 2
+ },
+ {
   "key": "colorsplit:corte com pino",
   "owner": "Forja",
   "group": "tools",
