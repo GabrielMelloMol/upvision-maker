@@ -78,25 +78,35 @@ describe("troféu escultura (#223)", () => {
     expect(out.models[1].parts.map((x) => x.name)).toEqual(["Base"]);
   });
 
-  describe("Montado: em pé na base, com a lingueta dentro do rasgo", () => {
-    test.each([["atleta"], ["fluxo"], ["iris"], ["nexo"]] as const)("%s: não bate na base, desce 8 mm no rasgo e fica em pé", (form) => {
+  describe("Montado ao lado: só prévia, o 3MF sai sempre na posição de impressão", () => {
+    const printable = (o: ReturnType<typeof build>) => o.models.filter((m) => !m.previewOnly);
+
+    test.each([["atleta"], ["fluxo"], ["iris"], ["nexo"]] as const)("%s: o que se exporta é igual ao da mesa; o montado é extra, em pé, sem bater na base", (form) => {
+      const onTable = build({ form, height: 120, twist: 200 });
       const out = build({ form, layout: "assembled", height: 120, twist: 200 });
-      const [piece, base] = out.models;
-      const body = solid(piece.parts[0].mesh);
-      const slab = solid(base.parts[0].mesh);
+      // exportável: idêntico à mesa (mesma geometria, mesma posição)
+      expect(printable(out).map((m) => m.parts.map((x) => Array.from(x.mesh.positions)))).toEqual(onTable.models.map((m) => m.parts.map((x) => Array.from(x.mesh.positions))));
+      expect(onTable.models.some((m) => m.previewOnly)).toBe(false);
+      // prévia: um modelo a mais, marcado, com o troféu em pé
+      const stand = out.models.filter((m) => m.previewOnly);
+      expect(stand).toHaveLength(1);
+      const body = solid(stand[0].parts[0].mesh);
+      const slab = solid(stand[0].parts[stand[0].parts.length - 2].mesh); // a base (antes do texto da base)
       expect(body.status()).toBe("NoError");
-      expect(body.intersect(slab).volume()).toBeCloseTo(0, 3); // a lingueta cabe no rasgo (folga)
+      expect(body.intersect(slab).volume()).toBeCloseTo(0, 3); // a lingueta cabe no rasgo
       const b = body.boundingBox();
       expect(b.min[2]).toBeCloseTo(2, 3); // 10 de base − 8 de lingueta
       expect(b.max[2]).toBeGreaterThan(110);
-      expect(out.warnings?.some((w) => w.includes("Montado"))).toBe(true);
+      // e o montado fica ao lado das peças da mesa, sem sobrepor
+      const tableB = meshBounds(printable(out).flatMap((m) => m.parts.map((x) => x.mesh)))!;
+      const standB = meshBounds(stand[0].parts.map((x) => x.mesh))!;
+      expect(standB.min[0]).toBeGreaterThan(tableB.max[0]);
       body.delete();
       slab.delete();
     });
 
-    test("a mesa continua sendo o padrão e não avisa nada de montagem", () => {
+    test("a mesa continua sendo o padrão", () => {
       expect(DEFAULT_SCULPTURE.layout).toBe("print");
-      expect(build({}).warnings?.some((w) => w.includes("Montado"))).toBeFalsy();
     });
   });
 });

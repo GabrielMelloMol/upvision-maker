@@ -1,5 +1,6 @@
 import AxeBuilder from "@axe-core/playwright";
 import { mkdirSync } from "node:fs";
+import { strFromU8, unzipSync } from "fflate";
 import type { Page } from "@playwright/test";
 import { expect, go, openApp, test, toastWith } from "./tauri";
 
@@ -52,7 +53,7 @@ test("troféu escultura: fita, estrela e cruz torcidas", async ({ page }) => {
   await shot(page, "06-escultura-cruz");
 });
 
-const assembled = (page: Page) => page.getByRole("button", { name: "Montado (só para ver)" }).click().then(() => idle(page));
+const assembled = (page: Page) => page.getByRole("button", { name: "Mesa e montado ao lado (o 3MF leva só a mesa)" }).click().then(() => idle(page));
 const onTable = (page: Page) => page.getByRole("button", { name: "Mesa (o que imprime)" }).click().then(() => idle(page));
 
 test("troféu atleta: Mesa mostra o que imprime e Montado mostra o troféu em pé na base", async ({ page }) => {
@@ -60,7 +61,6 @@ test("troféu atleta: Mesa mostra o que imprime e Montado mostra o troféu em p�
   const size = async () => (await hud(page).textContent()) ?? "";
   const flat = await size();
   await assembled(page);
-  await expect(page.getByText(/Montado: é só para ver/)).toBeVisible();
   expect(await size()).not.toBe(flat);
   await shot(page, "07-atleta-futebol-montado");
   for (const [sport, file] of [["Basquete", "08-atleta-basquete-montado"], ["Vôlei", "09-atleta-volei-montado"], ["Natação", "10-atleta-natacao-montado"]] as const) {
@@ -69,7 +69,21 @@ test("troféu atleta: Mesa mostra o que imprime e Montado mostra o troféu em p�
     await shot(page, file);
   }
   await onTable(page);
-  await expect(page.getByText(/Montado: é só para ver/)).toHaveCount(0);
+});
+
+test("troféu: com a prévia montada o 3MF salvo é o mesmo da mesa (sempre na posição de impressão)", async ({ page, tauri }) => {
+  await open(page, "Troféu atleta");
+  // salvar com a prévia montada: o 3MF é o mesmo da mesa (o montado é só prévia)
+  // o zip tem datas dentro: compara o modelo (as malhas e as posições), não os bytes
+  await assembled(page);
+  const threeMf = () => [...tauri.files.entries()].filter(([k]) => k.endsWith(".3mf")).map(([, v]) => strFromU8(unzipSync(v as Uint8Array)["3D/3dmodel.model"]).replace(/UUID="[^"]*"|<metadata[^>]*>[^<]*<\/metadata>/gi, ""));
+  await page.getByRole("button", { name: /Salvar 3MF/ }).click();
+  await expect(toastWith(page, "Arquivo salvo em")).toBeVisible();
+  const fromAssembled = threeMf();
+  expect(fromAssembled).toHaveLength(1);
+  await onTable(page);
+  await page.getByRole("button", { name: /Salvar 3MF/ }).click();
+  await expect.poll(() => threeMf()[0]).toBe(fromAssembled[0]);
 });
 
 test("troféu escultura montada: fita, estrela e cruz em pé na base", async ({ page }) => {
