@@ -40,7 +40,7 @@ export const FAMILIES: Family[] = [
     tools: [{ page: "keychain", label: "Nome em lote", first: true }],
   },
   { id: "names", label: "Nomes", category: "keychains", variants: [{ id: "articulatedName", label: "Articulado" }, { id: "namePendants", label: "Pingentes" }, { id: "pencilTopper", label: "Topo de lápis" }] },
-  { id: "trophy", label: "Troféu", category: "party", variants: [{ id: "trophy", label: "Placa na base" }, { id: "trophyElegant", label: "Elegante" }, { id: "adaptiveTrophy", label: "No contorno" }] },
+  { id: "trophy", label: "Troféu", category: "party", variants: [{ id: "trophy", label: "Placa na base" }, { id: "trophyElegant", label: "Elegante" }, { id: "adaptiveTrophy", label: "No contorno" }, { id: "trophyAthlete", label: "Atleta" }, { id: "trophyTwist", label: "Escultura" }] },
   { id: "medal", label: "Medalha", category: "party", variants: [{ id: "adaptiveMedal", label: "No contorno" }], tools: [{ page: "medal", label: "Redonda", first: true }] },
   { id: "souvenirs", label: "Lembrancinhas", category: "gifts", variants: [{ id: "fridgeMagnet", label: "Ímã geladeira" }, { id: "shirtPrint", label: "Camisa" }, { id: "outlineBowl", label: "Cumbuca" }], tools: [{ page: "pixel", label: "Pixel art" }] },
   { id: "cake", label: "Topo de bolo", category: "party", variants: [{ id: "cake", label: "Topo de bolo" }] },
