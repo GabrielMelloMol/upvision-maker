@@ -147,7 +147,7 @@ export function profileAt(pr: VesselProfile, s: number): { rho: number; z: numbe
 /** Raio do disco plano: o comprimento do perfil (fundo + canto + parede) mais a aba da boca e a sobra. */
 export const discRadius = (pr: VesselProfile, p: Pick<VesselParams, "rim" | "margin">) => pr.total + p.rim + p.margin;
 
-const WARP_MM = 1.5;
+const WARP_MM = 1;
 
 /** Deforma o disco plano (com a face de baixo em z = 0) sobre o molde: cada ponto a r do centro vai para a distância r ao longo do perfil e a espessura segue a normal. */
 function warpOntoVessel(flat: Solid, pr: VesselProfile, k: K): Solid {
@@ -225,7 +225,13 @@ export function buildVessel(M: ManifoldToplevel, p: VesselParams, opts: { previe
 
     let assembled: Model = { name: "Pote pronto (não imprime)", previewOnly: true, parts: [] };
     if (preview) {
-      const warp = (cs: CS): Solid | null => (cs.isEmpty() ? null : k(warpOntoVessel(k(cs.extrude(p.t)), pr, k)));
+      // o disco é cortado na boca (r = comprimento do perfil) antes de deformar: a emenda do perfil com a aba cai numa aresta, sem dentes
+      const inside = k(M.CrossSection.circle(pr.total, SEGMENTS)), outside = k(disc.subtract(inside));
+      const warp = (cs: CS): Solid | null => {
+        if (cs.isEmpty()) return null;
+        const halves = [k(cs.intersect(inside)), k(cs.intersect(outside))].filter((h) => !h.isEmpty()).map((h) => warpOntoVessel(k(h.extrude(p.t)), pr, k));
+        return halves.length ? k(M.Manifold.union(halves)) : null;
+      };
       const formed = [["Borda", c.border, warp(flatSolid.border)], [parts[1].name, c.sheet, warp(flatSolid.mesh)], ["Fundo", c.base, p.kind === "cesto" && p.solidBase ? warp(flatSolid.base) : null]] as const;
       // de pé: a boca para cima (o molde vira o pote de cabeça para baixo)
       const upright = (s: Solid | null) => (s ? k(k(s.mirror([0, 0, 1])).translate([0, 0, p.height + p.t])) : null);

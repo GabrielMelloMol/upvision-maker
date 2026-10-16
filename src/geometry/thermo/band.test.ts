@@ -18,7 +18,7 @@ describe("pulseira termoformada", () => {
       const out = buildBand(M, B(), null, { preview: false });
       const [w, h, z] = modelSize(out.strip[0]);
       expect(w).toBeCloseTo(stripLength(DEFAULT_BAND), 0);
-      expect(stripLength(DEFAULT_BAND)).toBe(135);
+      expect(stripLength(DEFAULT_BAND)).toBe(175);
       expect(h).toBeCloseTo(DEFAULT_BAND.width, 0);
       expect(z).toBeCloseTo(DEFAULT_BAND.t, 3);
     }));

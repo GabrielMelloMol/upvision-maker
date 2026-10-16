@@ -115,7 +115,7 @@ export default function ThermoWare() {
             <Segmented label="Peça" value={s.kind} options={KINDS} onChange={setKind} full />
             {s.kind === "pote" && <span className="hint">Pote de PLA inteiro, em pé, com a boca para cima e uma aba plana em volta.</span>}
             {s.kind === "cesto" && <span className="hint">Igual ao pote, mas a parede é uma malha (favo ou losango), com a boca sólida para dar rigidez.</span>}
-            {s.kind === "pulseira" && <span className="hint">Uma tira plana que se enrola num mandril com o diâmetro do pulso e fica em C.</span>}
+            {s.kind === "pulseira" && <span className="hint">Uma tira plana que se enrola num mandril com o diâmetro interno que você escolher (uns 60 a 65 mm para passar a mão) e fica em C: a abertura deixa abrir e fechar.</span>}
           </div>
 
           {vessel && (
@@ -178,7 +178,7 @@ export default function ThermoWare() {
               <div className="card stack">
                 <h3>Medidas</h3>
                 <div className="grid two">
-                  <NumField label="Circunferência do pulso" value={b.wrist} onChange={setB("wrist")} min={BAND_LIMITS.wrist[0]} max={BAND_LIMITS.wrist[1]} step={1} hint="Meça com uma fita e some 10 a 20 mm de folga" />
+                  <NumField label="Circunferência interna" value={b.wrist} onChange={setB("wrist")} min={BAND_LIMITS.wrist[0]} max={BAND_LIMITS.wrist[1]} step={1} hint="Em volta da parte mais larga da mão (uns 190 a 220 mm), para a pulseira abrir e passar" />
                   <NumField label="Largura" value={b.width} onChange={setB("width")} min={BAND_LIMITS.width[0]} max={BAND_LIMITS.width[1]} step={1} />
                   <NumField label="Espessura" value={b.t} onChange={setB("t")} min={BAND_LIMITS.t[0]} max={BAND_LIMITS.t[1]} step={0.1} hint="1 a 1,5 mm dobra bem" />
                   <NumField label="Abertura do C" value={b.opening} onChange={setB("opening")} min={BAND_LIMITS.opening[0]} max={BAND_LIMITS.opening[1]} step={1} hint="Negativa = as pontas se sobrepõem" />
@@ -240,7 +240,7 @@ export default function ThermoWare() {
               )}
               {bInfo && (
                 <p>
-                  Tira plana de <strong>{fmt(bInfo.length, 0)} mm</strong> (pulso {fmt(b.wrist, 0)} mm {b.opening >= 0 ? "menos" : "mais"} {fmt(Math.abs(b.opening), 0)} mm de {b.opening >= 0 ? "abertura" : "sobreposição"}), que dá {fmt(bInfo.sweep, 0)}° no mandril de {fmt(bInfo.mandrelD)} mm.
+                  Tira plana de <strong>{fmt(bInfo.length, 0)} mm</strong> (circunferência {fmt(b.wrist, 0)} mm {b.opening >= 0 ? "menos" : "mais"} {fmt(Math.abs(b.opening), 0)} mm de {b.opening >= 0 ? "abertura" : "sobreposição"}), que dá {fmt(bInfo.sweep, 0)}° no mandril de {fmt(bInfo.mandrelD)} mm.
                 </p>
               )}
               <h3>Peso e tempo de cada peça</h3>

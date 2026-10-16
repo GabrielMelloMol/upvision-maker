@@ -79,7 +79,7 @@ export const ARTICLES: HelpArticle[] = [
     id: "thermoware",
     title: "Pote, cesto e pulseira termoformados",
     intro: "Um disco ou uma tira de PLA, impressos planos, ganham forma a quente num molde de PETG: o pote (inteiro) ou o cesto (em malha), com a forma positiva (macho), a negativa (fêmea) ou o par que prensa, e a pulseira em C enrolada num mandril.",
-    steps: ["Escolha Pote, Cesto ou Pulseira.", "No pote e no cesto, defina o diâmetro da boca, a altura, o ângulo de saída (5° ou mais) e o raio do canto. O app calcula o diâmetro do disco plano: fundo + parede + aba.", "Na pulseira, meça o pulso, escolha a largura, a abertura do C e, se quiser, um texto.", "Salve o disco (ou a tira) em PLA e o molde (ou o mandril) em PETG, e siga o passo a passo da termoformagem, com soprador ou água quente."],
+    steps: ["Escolha Pote, Cesto ou Pulseira.", "No pote e no cesto, defina o diâmetro da boca, a altura, o ângulo de saída (5° ou mais) e o raio do canto. O app calcula o diâmetro do disco plano: fundo + parede + aba.", "Na pulseira, meça a mão (uns 190 a 220 mm em volta), escolha a largura, a abertura do C e, se quiser, um texto.", "Salve o disco (ou a tira) em PLA e o molde (ou o mandril) em PETG, e siga o passo a passo da termoformagem, com soprador ou água quente."],
     tips: ["A conta do disco é aproximada: a tela afina ao esticar. Teste primeiro numa sobra.", "O molde é de PETG porque o PLA quente não gruda nele.", "Na pulseira, 1 a 1,5 mm de espessura dobra bem; mais que isso, ela volta."],
   },
   {

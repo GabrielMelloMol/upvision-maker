@@ -225,7 +225,7 @@ describe("caixinha completa", () => {
 
   test("telas, bases, fecho e moldes em grupos por material; cores separadas; só a prévia fica fora do arquivo", () =>
     scoped((k) => {
-      const out = buildThermo(M, sil(k), dot(k, 10), P({ colors: { sheet: "#112233", border: "#223344", design: "#334455", mold: "#445566", clip: "#556677", base: "#667788" } }));
+      const out = buildThermo(M, sil(k), dot(k, 10), P({ baseArt: true, colors: { sheet: "#112233", border: "#223344", design: "#334455", mold: "#445566", clip: "#556677", base: "#667788" } }));
       expect(out.screens.map((m) => m.name)).toEqual(["Tela 1", "Tela 2", "Base 1", "Base 2"]);
       expect(out.closure.map((m) => m.name)).toEqual(["Clipe"]);
       expect(out.molds.map((m) => m.name)).toEqual(["Molde macho", "Molde fêmea"]);
@@ -269,7 +269,7 @@ describe("caixinha completa", () => {
 
   test("o desenho também vai na base (outra cor, nivelado) e some quando se desliga", () =>
     scoped((k) => {
-      const on = quick(M, sil(k), dot(k, 10), P());
+      const on = quick(M, sil(k), dot(k, 10), P({ baseArt: true }));
       const off = quick(M, sil(k), dot(k, 10), P({ baseArt: false }));
       expect(named(on.screens, "Base 1").parts.map((x) => x.name)).toEqual(["Base", "Arte"]);
       expect(named(off.screens, "Base 1").parts.map((x) => x.name)).toEqual(["Base"]);

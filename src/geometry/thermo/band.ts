@@ -24,7 +24,7 @@ export type BandParams = {
 };
 
 export const DEFAULT_BAND: BandParams = {
-  wrist: 160,
+  wrist: 200,
   width: 20,
   t: 1.2,
   opening: 25,
@@ -54,8 +54,8 @@ const END_ROUND = 6; // pontas arredondadas da tira
 const MANDREL_PAD = 8; // o mandril é mais alto que a tira
 const CHAMFER = 1.2;
 const OVERLAP_RAMP = 6;
-const WARP_MM = 1.5;
-const PREVIEW_LIFT = 0.08; // a tira fica um tico fora do mandril na prévia: faces coladas piscam
+const WARP_MM = 0.8;
+const PREVIEW_LIFT = 0;
 
 const solidPart = (name: string, color: string, s: Solid | null): Part[] => (s ? [{ name, color, mesh: toMesh(s) }] : []);
 const extruded = (cs: CS, h: number, k: K): Solid | null => (cs.isEmpty() ? null : k(cs.extrude(h)));
@@ -129,7 +129,7 @@ export function buildBand(M: ManifoldToplevel, p: BandParams, design: CS | null,
       assembled = {
         name: "Pulseira pronta (não imprime)",
         previewOnly: true,
-        parts: [...solidPart("Borda", c.border, around(border)), ...solidPart("Tira", c.strip, around(mesh)), ...(hasDesign ? solidPart("Desenho", c.design, around(dsg)) : []), { name: "Mandril", color: "#cbd5e1", mesh: toMesh(mandrel) }],
+        parts: [...solidPart("Borda", c.border, around(border)), ...solidPart("Tira", c.strip, around(mesh)), ...(hasDesign ? solidPart("Desenho", c.design, around(dsg)) : [])],
       };
     }
 

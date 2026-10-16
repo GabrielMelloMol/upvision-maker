@@ -40,7 +40,7 @@ export type ThermoParams = {
   cap: CapSpec;
 };
 
-export const DEFAULT_THERMO: ThermoParams = { domeH: 10, curve: 2.2, compensate: true, mold: DEFAULT_MOLD, screen: DEFAULT_SCREEN, colors: DEFAULT_COLORS, designOnBoth: true, thickenDesign: true, bases: "both", baseT: 1.6, baseArt: true, cap: DEFAULT_CAP };
+export const DEFAULT_THERMO: ThermoParams = { domeH: 10, curve: 2.2, compensate: true, mold: DEFAULT_MOLD, screen: DEFAULT_SCREEN, colors: DEFAULT_COLORS, designOnBoth: true, thickenDesign: true, bases: "both", baseT: 1.6, baseArt: false, cap: DEFAULT_CAP };
 
 /** Parâmetros de partida da caixinha: os de fábrica, com o furo da orelha do clipe que a pessoa validou no Kit de testes (#247). */
 export const thermoDefaults = (): ThermoParams => ({ ...DEFAULT_THERMO, screen: { ...DEFAULT_SCREEN, hole: fitValue("clipHole") }, colors: { ...DEFAULT_THERMO.colors }, mold: { ...DEFAULT_MOLD }, cap: { ...DEFAULT_CAP, thread: { ...DEFAULT_CAP.thread } } });
@@ -230,7 +230,7 @@ export function buildThermo(M: ManifoldToplevel, sil: CS, design: CS | null, p: 
         assembledParts.push(...solidPart("Tampa", c.clip, tab.s > 0 ? onPin : k(onPin.rotate([0, 0, 180]))));
       }
       assembled = { name: "Caixa montada (não imprime)", previewOnly: true, parts: assembledParts };
-      shell = { name: "Casca prensada (não imprime)", previewOnly: true, parts: [...built[0].shell, ...built[0].plate] };
+      shell = { name: "Casca prensada (não imprime)", previewOnly: true, parts: [...built[0].shell, ...built[0].plate.filter((q) => q.name !== "Arte")] }; // sem a arte da base: vista pela malha ela parece um desenho fantasma
     }
 
     const info: ThermoInfo = { stretch: S, apertureAfter: p.screen.aperture * S, designScale: dScale, inradius: L, moldGap: moldGap(t, p.mold), thinTop, bases };
