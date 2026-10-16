@@ -62,6 +62,18 @@ export const ordersRepo = {
     ]);
   },
 
+  /** Grava as taxas recalculadas nos pedidos (um lote só) e deixa uma linha no histórico de cada um (#246). */
+  async setFees(db: Db, fixes: { id: number; status: string; fees: number }[]): Promise<void> {
+    if (!fixes.length) return;
+    const at = nowLocal();
+    await db.batch(
+      fixes.flatMap((f) => [
+        { sql: "UPDATE orders SET fees = ? WHERE id = ?", params: [f.fees, f.id] },
+        { sql: "INSERT INTO order_history (orderId, status, note, at) VALUES (?, ?, ?, ?)", params: [f.id, f.status, `Taxas do canal recalculadas pelas regras de hoje: ${f.fees.toFixed(2).replace(".", ",")}`, at] },
+      ]),
+    );
+  },
+
   history: (db: Db, orderId: number) => db.select<HistoryEntry>("SELECT * FROM order_history WHERE orderId = ? ORDER BY id", [orderId]),
 
   // Pedido, itens e histórico vão num lote só (transação no Rust, M7): fechar o app no meio não deixa pedido sem itens.

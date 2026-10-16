@@ -8,7 +8,7 @@ import type { Channel } from "./settings";
 export const RULES_DATE = "2026-10-15";
 
 const SHOPEE_NOTE = "Shopee CNPJ: 20% + R$ 4,50 até R$ 79,99; 14% + R$ 16 (R$ 80 a 99,99), + R$ 20 (R$ 100 a 199,99), + R$ 26 (R$ 200 ou mais); sem teto. Regra de 01/10/2026 lida em fontes secundárias em 15/10/2026: confira na central do vendedor.";
-const ML_NOTE = "Mercado Livre: comissão varia por categoria (clássico 10% a 14%, premium 15% a 19%). Abaixo de R$ 79 há um custo por unidade (R$ 5,65 até R$ 18,99; R$ 6,85 até R$ 48,99; R$ 8,15 até R$ 78,99, peça de até 0,3 kg). A partir de R$ 79 o frete grátis é obrigatório e parte dele é sua: o R$ 20 é só um exemplo, use o valor de uma etiqueta real. Regra lida em fontes secundárias em 15/10/2026: confira na central do vendedor.";
+const ML_NOTE = "Mercado Livre: comissão varia por categoria (clássico 10% a 14%, premium 15% a 19%). Abaixo de R$ 79 há um custo por unidade (R$ 5,65 até R$ 18,99; R$ 6,85 até R$ 48,99; R$ 8,15 até R$ 78,99, peça de até 0,3 kg). Categorias de exemplo: Casa, móveis e decoração 14%, Brinquedos 13% (clássico); a sua pode ser outra, use 'Outra' e digite a %. A partir de R$ 79 o frete grátis é obrigatório e parte dele é sua: o R$ 20 é só um exemplo, use o valor de uma etiqueta real. Regra lida em fontes secundárias em 15/10/2026: confira na central do vendedor.";
 
 export const SHOPEE_2026: Channel = {
   name: "Shopee",
@@ -30,8 +30,14 @@ const mlTiers = (pct: number): Channel["tiers"] => [
 ];
 const mlShipping = { freeShippingAbove: 79, shippingCost: 20 } as const;
 
-export const ML_CLASSIC_2026: Channel = { name: "Mercado Livre (clássico)", feePct: 14, feeFixed: 5.65, tiers: mlTiers(14), ...mlShipping, checkedAt: RULES_DATE, rulesNote: ML_NOTE };
-export const ML_PREMIUM_2026: Channel = { name: "Mercado Livre (premium)", feePct: 17, feeFixed: 5.65, tiers: mlTiers(17), ...mlShipping, checkedAt: RULES_DATE, rulesNote: ML_NOTE };
+/**
+ * Categorias de comissão (#246). Só entram as que têm a porcentagem publicada em fonte conferida; "Outra" deixa a
+ * pessoa digitar a % da categoria dela (a lista de cada plataforma é longa e muda). O texto do canal diz de onde veio.
+ */
+export const OTHER_CATEGORY = "Outra";
+const other = (feePct: number) => ({ name: OTHER_CATEGORY, feePct });
+export const ML_CLASSIC_2026: Channel = { name: "Mercado Livre (clássico)", feePct: 14, feeFixed: 5.65, tiers: mlTiers(14), ...mlShipping, categories: [{ name: "Casa, móveis e decoração", feePct: 14 }, { name: "Brinquedos", feePct: 13 }, other(14)], category: "Casa, móveis e decoração", checkedAt: RULES_DATE, rulesNote: ML_NOTE };
+export const ML_PREMIUM_2026: Channel = { name: "Mercado Livre (premium)", feePct: 17, feeFixed: 5.65, tiers: mlTiers(17), ...mlShipping, categories: [other(17)], category: OTHER_CATEGORY, checkedAt: RULES_DATE, rulesNote: ML_NOTE };
 
 const TIKTOK_NOTE = "TikTok Shop (desde 15/07/2026): 10% + R$ 4 abaixo de R$ 50; 6% + R$ 6 a partir de R$ 50, sobre o preço depois do seu desconto. O programa de frete grátis é opcional e cobra +6% (teto de R$ 50): some à parte. Regra lida em fontes secundárias em 15/10/2026: confira na central do vendedor.";
 export const TIKTOK_2026: Channel = { name: "TikTok Shop", feePct: 10, feeFixed: 4, tiers: [{ from: 50, feePct: 6, feeFixed: 6 }], checkedAt: RULES_DATE, rulesNote: TIKTOK_NOTE };
@@ -40,10 +46,13 @@ export const AMAZON_2026: Channel = {
   name: "Amazon",
   feePct: 15,
   feeFixed: 2,
+  feeMinPerItem: 1,
+  categories: [other(15)],
+  category: OTHER_CATEGORY,
   checkedAt: RULES_DATE,
   rulesNote: "Amazon: comissão de 10% a 15% conforme a categoria (mínimo de R$ 1 por item). O R$ 2 por item é do plano individual: no profissional ele não existe (R$ 19 por mês). Confira a categoria e o plano na central do vendedor (página de 19/09/2026).",
 };
-export const SHEIN_2026: Channel = { name: "Shein", feePct: 18, feeFixed: 0, checkedAt: RULES_DATE, rulesNote: "Shein: 18% (20% em moda feminina), sem taxa fixa; novos CNPJ têm 90 dias de isenção. Fontes secundárias em 15/10/2026: confira na central do vendedor." };
+export const SHEIN_2026: Channel = { name: "Shein", feePct: 18, feeFixed: 0, categories: [{ name: "Moda feminina", feePct: 20 }, { name: "Demais categorias", feePct: 18 }], category: "Demais categorias", checkedAt: RULES_DATE, rulesNote: "Shein: 18% (20% em moda feminina), sem taxa fixa; novos CNPJ têm 90 dias de isenção. Fontes secundárias em 15/10/2026: confira na central do vendedor." };
 
 /** O canal de fábrica antigo, sem nada mexido pela pessoa: troca pelo de 2026 ao abrir as preferências salvas. */
 const OLD_FACTORY: Record<string, { feePct: number; feeFixed: number; replace: Channel }> = {
