@@ -246,17 +246,20 @@ g:hover > .viz-hit { fill: var(--fill); }
 .create-models a:hover img { transform: scale(1.04); }
 .create-empty { margin-top: var(--space-8); }
 /* Criar (#250): cartões de produto com foto, o que resolve e quantos tipos; abas por categoria; filtros recolhidos */
-.create-products { grid-template-columns: repeat(auto-fill, minmax(176px, 1fr)); }
+.create-products { grid-template-columns: repeat(auto-fill, minmax(210px, 1fr)); }
 .create-products a { align-content: start; }
 .create-products strong { font-size: var(--text-md); font-weight: 600; }
-.create-products .product-blurb { color: var(--muted); padding: 0 2px; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
-.create-products .product-meta { color: var(--muted); padding: 0 2px; font-size: var(--text-sm); font-weight: 600; }
+.create-products .product-blurb { color: var(--text); opacity: 0.78; padding: 0 2px; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+.create-products .product-meta { color: var(--muted); padding: 0 2px; font-size: var(--text-sm); font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; min-height: 1.4em; }
 .create-products .product-meta:empty { display: none; }
 .create-products .ams-need { font-weight: 500; padding: 0; margin: 0; }
 .create-products a:hover .model-thumb, .create-products a:focus-visible .model-thumb { box-shadow: 0 0 0 2px var(--accent); }
 .create-products a:focus-visible { outline: 3px solid var(--focus-ring); outline-offset: 2px; }
 .create-tabs { margin-top: var(--space-4); }
-.create > .chips + .chips { margin-top: var(--space-2); }
+.create-tabs .tab-split { margin-left: auto; } /* "Do seu arquivo" e "Não achou?" ficam num grupo à direita, longe das categorias de produto */
+.create-occasions { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-2); margin-top: var(--space-2); }
+.create-occasions > .muted { font-size: var(--text-sm); font-weight: 600; }
+.create-occasions .chips button { min-height: 24px; padding: 0 10px; }
 .create-more { margin-top: var(--space-3); font-size: var(--text-sm); }
 .create-more summary { cursor: pointer; color: var(--muted); width: fit-content; }
 .create-more[open] summary { margin-bottom: var(--space-2); }
@@ -278,14 +281,14 @@ g:hover > .viz-hit { fill: var(--fill); }
 .occasion-text { display: grid; gap: 2px; }
 /* Início (#250): saudação, uma busca e atalhos que abrem direto; a impressora animada ficou só no site */
 .home-hero { display: grid; gap: var(--space-3); }
-.home-hero h2 { margin: var(--space-3) 0 0; font-size: var(--title-3); font-weight: 650; }
+.home-hero h2 { margin: var(--space-5) 0 0; font-size: var(--title-3); font-weight: 650; }
 .home-hero .home-head h2 { margin: 0; }
-.home-search { display: flex; gap: var(--space-3); align-items: center; }
+.home-search { margin-top: var(--space-2); display: flex; gap: var(--space-3); align-items: center; }
 .home-search .affix { flex: 1; min-width: 0; }
 .home-search .prefix { width: 16px; height: 16px; }
 .home-hero .home-actions { grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); }
 .home-actions { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: var(--space-3); }
-.home-actions button { all: unset; box-sizing: border-box; cursor: pointer; width: 100%; display: grid; gap: var(--space-3); align-content: space-between; min-height: 92px; padding: var(--space-4); border-radius: var(--r-lg); background: var(--surface); box-shadow: 0 0 0 0.5px var(--border); font-weight: 600; font-size: var(--text-md); transition: background var(--dur-fast) ease; }
+.home-actions button { all: unset; box-sizing: border-box; cursor: pointer; width: 100%; height: 100%; display: grid; gap: var(--space-3); align-content: space-between; min-height: 92px; padding: var(--space-4); border-radius: var(--r-lg); background: var(--surface); box-shadow: 0 0 0 0.5px var(--border); font-weight: 600; font-size: var(--text-md); transition: background var(--dur-fast) ease; }
 .home-actions svg { width: 22px; height: 22px; color: var(--accent-text); stroke-width: 1.75; }
 .home-actions button:hover { background: var(--surface-2); }
 .home-actions button:focus-visible { outline: 3px solid var(--focus-ring); outline-offset: 1px; }

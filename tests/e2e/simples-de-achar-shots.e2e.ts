@@ -22,4 +22,12 @@ for (const scheme of ["light", "dark"] as const)
     await settleColors(page);
     await page.waitForTimeout(500);
     await page.screenshot({ path: `${DIR}/${TAG}-busca-pix-${scheme}.png` });
+    if (TAG === "depois") {
+      // o editor com "Todos os produtos" (não existia antes: a galeria ficava em cima do editor)
+      await page.locator(".create-products a").first().click();
+      await expect(page.getByRole("button", { name: "Todos os produtos" })).toBeVisible();
+      await page.waitForTimeout(1500);
+      await settleColors(page);
+      await page.screenshot({ path: `${DIR}/${TAG}-editor-${scheme}.png` });
+    }
   });

@@ -77,7 +77,7 @@ test("Criar (#118): selo de AMS no cartão e filtro 'só 1 cor' dentro de Filtro
   const all = cards().length;
   const need = (a: HTMLElement) => document.getElementById(a.getAttribute("aria-describedby") ?? "")?.textContent ?? "";
   expect(cards().some((a) => need(a) === "Precisa de AMS (ou uma mesa por cor)")).toBe(true);
-  await user.click(screen.getByText("Filtros"));
+  await user.click(screen.getByText(/^Filtros/));
   await user.click(screen.getByRole("switch", { name: /Só 1 cor/ }));
   expect(cards().length).toBeGreaterThan(0);
   expect(cards().length).toBeLessThan(all);

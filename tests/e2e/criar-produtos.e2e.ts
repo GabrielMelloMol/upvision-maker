@@ -76,7 +76,7 @@ test("Criar: ocasião e favoritos moram aqui e o filtro 'só 1 cor' fica em Filt
   await chips.getByRole("button", { name: /^Mais \(/ }).click();
   await chips.getByRole("button", { name: "Dia das Mães" }).click();
   await expect(page.getByRole("heading", { name: "Para Dia das Mães" })).toBeVisible();
-  await page.getByText("Filtros", { exact: true }).click();
+  await page.getByText(/^Filtros/).click();
   await page.getByRole("switch", { name: /Só 1 cor/ }).click();
   await expect(cards(page).first()).toBeVisible();
 });

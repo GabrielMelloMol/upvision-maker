@@ -19,7 +19,7 @@ import OccasionCard from "../ui/OccasionCard";
 import Toggle from "../ui/Toggle";
 
 /** Selo curto do card (#118); o rótulo inteiro (AMS_LABEL) fica na dica. */
-const AMS_SHORT = { "uma-cor": "1 cor", "troca-manual": "Sem AMS, com pausas", ams: "Com AMS" } as const;
+const AMS_SHORT = { "uma-cor": "1 cor", "troca-manual": "Pausa p/ trocar cor", ams: "Várias cores" } as const;
 const SEARCH_HINT = "chaveiro com nome, placa Pix, topo de bolo";
 
 const pageOf = (id: string) => PAGES.find((p) => p.id === id);
@@ -192,14 +192,17 @@ export default function Create({ go }: { go: Go }) {
       </div>
       <div className="create-tabs chips" role="group" aria-label="Categoria">
         {TABS.map(([t, label]) => (
-          <button key={t} type="button" aria-pressed={!searching && !occasion && tab === t} onClick={() => (setQ(""), setOccasion(null), setTab(t))}>
+          <button key={t} type="button" className={t === "file" ? "tab-split" : undefined} aria-pressed={!searching && !occasion && tab === t} onClick={() => (setQ(""), setOccasion(null), setTab(t))}>
             {label}
           </button>
         ))}
       </div>
-      <OccasionChips occasion={searching ? null : occasion} onOccasion={(o) => (setQ(""), setOccasion(o))} />
-      <details className="create-more">
-        <summary>Filtros</summary>
+      <div className="create-occasions">
+        <span className="muted">Ocasião:</span>
+        <OccasionChips occasion={searching ? null : occasion} onOccasion={(o) => (setQ(""), setOccasion(o))} />
+      </div>
+      <details className="create-more" open={noAms || undefined}>
+        <summary>Filtros{noAms ? " · 1 ativo" : ": só modelos de 1 cor"}</summary>
         <Toggle label="Só 1 cor: imprime sem troca automática de cor (AMS)" checked={noAms} onChange={setNoAms} />
       </details>
       {content()}

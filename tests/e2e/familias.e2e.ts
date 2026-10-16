@@ -1,5 +1,5 @@
 import AxeBuilder from "@axe-core/playwright";
-import { expect, go, openApp, openProduct, pickModel, test } from "./tauri";
+import { expect, go, openApp, openProduct, pickModel, settleColors, test } from "./tauri";
 
 /** Criar em famílias (#141, #250): um cartão por família, variação com miniatura, atalhos para as ferramentas e busca pelo nome antigo. */
 const CATEGORIES = ["Chaveiros", "Placas", "Presentes e lembrancinhas", "Festa e esporte", "Casa e decoração", "Organização e utilidades", "Cozinha"];
@@ -79,6 +79,7 @@ for (const scheme of ["light", "dark"] as const)
               .filter(Boolean),
           );
           expect(bad, `${c} › ${names[i]}`).toEqual([]);
+          await settleColors(page); // a tela acabou de abrir: o axe mede a cor do momento, não a da transição
           const axe = await new AxeBuilder({ page }).include(".model-variants").withTags(["wcag2a", "wcag2aa", "wcag22aa"]).analyze();
           expect(axe.violations.map((v) => `${v.id}: ${v.nodes.length}`), `${c} › ${i}`).toEqual([]);
           checked++;
