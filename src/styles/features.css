@@ -256,7 +256,7 @@ g:hover > .viz-hit { fill: var(--fill); }
 .create-products a:hover .model-thumb, .create-products a:focus-visible .model-thumb { box-shadow: 0 0 0 2px var(--accent); }
 .create-products a:focus-visible { outline: 3px solid var(--focus-ring); outline-offset: 2px; }
 .create-tabs { margin-top: var(--space-4); }
-.create-tabs .tab-split { margin-left: auto; } /* "Do seu arquivo" e "Não achou?" ficam num grupo à direita, longe das categorias de produto */
+/* "Do seu arquivo" e "Não achou?" seguem as categorias; em 1280 px não cabem na mesma linha e a quebra fica alinhada à esquerda */
 .create-occasions { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-2); margin-top: var(--space-2); }
 .create-occasions > .muted { font-size: var(--text-sm); font-weight: 600; }
 .create-occasions .chips button { min-height: 24px; padding: 0 10px; }
