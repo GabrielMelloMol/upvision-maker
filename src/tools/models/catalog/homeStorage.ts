@@ -9,6 +9,7 @@ import { buildSlingshot, DEFAULT_SLINGSHOT } from "../../../geometry/models/slin
 import { buildPhoneCase, DEFAULT_PHONE_CASE } from "../../../geometry/models/phoneCase";
 import { buildDiscBox, DEFAULT_DISC_BOX, DISC_ITEMS } from "../../../geometry/models/discBox";
 import { buildPegboard, buildPegHooks, DEFAULT_PEG_HOOKS, DEFAULT_PEGBOARD } from "../../../geometry/models/pegboard";
+import { fitDefaults } from "../fitDefaults";
 
 /** Casa, organização: caixa com tampa e o sistema Gridfinity (caixinhas e base). */
 export const HOME_STORAGE_MODELS: ModelDef[] = [
@@ -186,6 +187,7 @@ export const HOME_STORAGE_MODELS: ModelDef[] = [
     icon: CircuitBoard,
     font: true,
     defaults: DEFAULT_BOARD_BOX,
+    liveDefaults: () => fitDefaults({ clearance: "boardClearance" }), // a folga da placa validada no Kit de testes (#247)
     sections: [
       {
         title: "A placa (confira com a sua)",
@@ -265,6 +267,7 @@ export const HOME_STORAGE_MODELS: ModelDef[] = [
     icon: Smartphone,
     font: true,
     defaults: DEFAULT_PHONE_CASE,
+    liveDefaults: () => fitDefaults({ clearance: "phoneClearance" }), // a folga da capa validada no Kit de testes (#247)
     sections: [
       { title: "Nome", fields: [text("name", "Nome nas costas", 16)] },
       {

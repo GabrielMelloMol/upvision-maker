@@ -78,7 +78,7 @@ export function cylX(M: ManifoldToplevel, k: K, r: number, x0: number, x1: numbe
 const block = (M: ManifoldToplevel, k: K, x0: number, x1: number, y0: number, y1: number, z0: number, z1: number): Solid =>
   k(k(M.Manifold.cube([x1 - x0, y1 - y0, z1 - z0])).translate([x0, y0, z0]));
 
-export type Geo = { W: number; D: number; Hb: number; lidT: number; floor: number; outerRadius: number; latchClearance: number };
+export type Geo = { W: number; D: number; Hb: number; lidT: number; floor: number; outerRadius: number; latchClearance: number; /** Folga radial do pino (mm); sem ela vale a de fábrica. */ hingeClearance?: number; /** Quanto o gancho da trava avança (mm); sem ele vale o de fábrica. */ latchReach?: number };
 export type Hinge = {
   /** Orelhas com aletas e furos, e a trava: soma à caixa. */
   boxAdd: Solid;
@@ -92,7 +92,8 @@ export type Hinge = {
 };
 
 export function buildHinge(M: ManifoldToplevel, k: K, g: Geo): Hinge {
-  const { rk, boreR, pinR, off, headR, headH, blind, ribT, ribR, nc } = HINGE;
+  const { rk, pinR, off, headR, headH, blind, ribT, ribR, nc } = HINGE;
+  const boreR = pinR + (g.hingeClearance ?? HINGE.boreR - HINGE.pinR); // furo = pino + a folga radial (0,3 de fábrica)
   const A = { y: g.D / 2 + off, z: g.Hb + rk };
   const rib = stopRibAngle(g.lidT);
   const centers = hingeCenters(g.W, g.outerRadius);
@@ -129,7 +130,8 @@ export function buildHinge(M: ManifoldToplevel, k: K, g: Geo): Hinge {
 
 /** Lingueta da trava: polígono em (y, z) extrudado na largura `LATCH.width`, no meio da frente. */
 export function latchSolid(M: ManifoldToplevel, k: K, g: Geo): Solid {
-  const { width, strip, gap, hookReach, tab, ledge, ledgeFrom } = LATCH;
+  const { width, strip, gap, tab, ledge, ledgeFrom } = LATCH;
+  const hookReach = g.latchReach ?? LATCH.hookReach;
   const yf = -g.D / 2, yi = yf - gap, yo = yi - strip;
   const zb = Math.max(g.floor + 1, g.Hb - ledgeFrom), zl = zb + ledge;
   const zh = g.Hb + g.lidT + g.latchClearance; // face de baixo do dente

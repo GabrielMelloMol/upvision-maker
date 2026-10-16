@@ -5,6 +5,7 @@ import {
   type SprocketParams,
 } from "../../../geometry/models/mechanics";
 import { as, bool, choice, color, num, type ModelDef } from "../fields";
+import { fitDefaults } from "../fitDefaults";
 
 const PITCHES = [["2", "GT2 (passo 2 mm)"], ["3", "HTD 3M (passo 3 mm)"]] as const;
 const PRESETS = [["ansi35", "ANSI 35 (passo 9,525)"], ["ansi25", "ANSI 25 (passo 6,35)"], ["06b", "06B (passo 9,525)"], ["08b", "08B (passo 12,7)"], ["custom", "Medidas livres"]] as const;
@@ -22,6 +23,7 @@ export const MECHANIC_MODELS: ModelDef[] = [
     blurb: "Dentes de involuta pelo módulo e número de dentes, com folga para FDM. Mostra a segunda engrenagem à distância certa entre os eixos.",
     icon: Cog,
     defaults: DEFAULT_SPUR_GEAR,
+    liveDefaults: () => fitDefaults({ backlash: "gearBacklash" }), // a folga dos dentes validada no Kit de testes (#247)
     sections: [
       {
         title: "Dentes",
@@ -153,6 +155,7 @@ export const MECHANIC_MODELS: ModelDef[] = [
     blurb: "Sol, planetas, coroa e porta-satélites. Os dentes só fecham quando (sol + coroa) é múltiplo do número de planetas; o app avisa e ajusta.",
     icon: Orbit,
     defaults: DEFAULT_PLANETARY,
+    liveDefaults: () => fitDefaults({ backlash: "gearBacklash" }), // a folga dos dentes validada no Kit de testes (#247)
     sections: [
       {
         title: "Engrenagens",

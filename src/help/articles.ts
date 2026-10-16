@@ -173,7 +173,7 @@ export const ARTICLES: HelpArticle[] = [
     title: "Kit de testes",
     intro: "Um arquivo com as peças pequenas de conferência de tudo que depende de medida ou folga: imprima uma vez, experimente e lance o resultado para o app usar a sua folga como padrão.",
     steps: ["Marque as peças que você vai usar e digite as suas medidas (copo, placa, celular).", "Salve a folha de conferência (PDF) e imprima o 3MF; a capa pede TPU e a trava, PETG.", "Experimente cada peça como diz a folha: o número em relevo é a posição na varredura de folgas.", "Em \"Lançar o resultado\", escolha o número da peça que serviu: a folga dela vira o padrão."],
-    tips: ["Mudou de filamento, de bico ou de impressora? Repita o teste: a folga ideal muda.", "Escolher \"Ainda não testei\" volta ao padrão de fábrica.", "Hoje a folga da rosca já vale no Estojo com tampa de rosca; as outras ficam guardadas e passam a valer quando as ferramentas entrarem no app."],
+    tips: ["Mudou de filamento, de bico ou de impressora? Repita o teste: a folga ideal muda.", "Escolher \"Ainda não testei\" volta ao padrão de fábrica.", "Cada folga lançada vira o padrão da ferramenta que a usa (alça de copo, caixa de placa, capa, rosca, docinho, engrenagens, dobradiça e trava da caixa organizadora, clipe da caixinha). Projetos já começados mantêm o valor que tinham; vale nos novos."],
   },
   {
     id: "owndecal",

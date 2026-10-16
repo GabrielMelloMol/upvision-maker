@@ -32,7 +32,7 @@ export type Coupon = {
   /** Material em que o teste vale. */
   material: string;
   group: MaterialGroup;
-  /** Ferramenta que já usa o valor lançado (as outras só passam a usar quando entrarem no app). */
+  /** Ferramenta que usa o valor lançado como padrão. */
   appliedIn?: string;
 };
 
@@ -52,6 +52,7 @@ export const COUPONS: Coupon[] = [
     pass: "Vale o anel de menor número que desliza só com a mão e não balança.",
     material: "PLA ou PETG",
     group: "general",
+    appliedIn: "Alça de copo térmico",
   },
   {
     id: "board",
@@ -68,6 +69,7 @@ export const COUPONS: Coupon[] = [
     pass: "Vale a moldura onde ela entra sem forçar e sem folga visível nas bordas.",
     material: "PLA ou PETG",
     group: "general",
+    appliedIn: "Caixa de placa eletrônica",
   },
   {
     id: "phone",
@@ -84,6 +86,7 @@ export const COUPONS: Coupon[] = [
     pass: "Vale a que abraça o canto firme, sem esforço para entrar nem sair.",
     material: "TPU 95A (em PLA o teste engana: não dobra)",
     group: "tpu",
+    appliedIn: "Capa de celular",
   },
   {
     id: "thread",
@@ -100,7 +103,7 @@ export const COUPONS: Coupon[] = [
     pass: "Vale a que gira macia, fecha sem balançar e não solta sozinha ao sacudir.",
     material: "PLA ou PETG",
     group: "general",
-    appliedIn: "Estojo com tampa de rosca",
+    appliedIn: "Estojo com tampa de rosca e Chaveiro aromatizador",
   },
   {
     id: "candy",
@@ -117,6 +120,7 @@ export const COUPONS: Coupon[] = [
     pass: "Vale o par em que o êmbolo desliza sem prender e sem sobrar balanço.",
     material: "PLA ou PETG",
     group: "general",
+    appliedIn: "Forma de docinho com ejetor",
   },
   {
     id: "gear",
@@ -133,6 +137,7 @@ export const COUPONS: Coupon[] = [
     pass: "Vale o par que gira macio, sem prender nem estalar, com o mínimo de jogo.",
     material: "PLA ou PETG",
     group: "general",
+    appliedIn: "Engrenagem e Redutor planetário",
   },
   {
     id: "hinge",
@@ -149,6 +154,7 @@ export const COUPONS: Coupon[] = [
     pass: "Vale a de menor número que solta fácil e gira sem arrastar nem balançar.",
     material: "PLA ou PETG",
     group: "general",
+    appliedIn: "Caixa organizadora (dobradiça)",
   },
   {
     id: "latch",
@@ -165,6 +171,7 @@ export const COUPONS: Coupon[] = [
     pass: "Vale a que estala firme, segura sem folga e solta sem quebrar a lâmina.",
     material: "PETG (em PLA a lâmina pode trincar)",
     group: "petg",
+    appliedIn: "Caixa organizadora (trava)",
   },
   {
     id: "clip",
@@ -181,6 +188,7 @@ export const COUPONS: Coupon[] = [
     pass: "Vale o furo por onde o clipe passa com um leve aperto e gira sem escapar.",
     material: "PLA ou PETG",
     group: "general",
+    appliedIn: "Caixinha termoformada (em projetos novos)",
   },
 ];
 

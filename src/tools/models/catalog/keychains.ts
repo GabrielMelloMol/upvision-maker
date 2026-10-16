@@ -15,6 +15,7 @@ import { buildPetTag, DEFAULT_PET_TAG } from "../../../geometry/models/petTag";
 import { buildSpinner, DEFAULT_SPINNER } from "../../../geometry/models/spinner";
 import { as, bool, choice, color, logoFields, num, resinFields, text, type ModelDef } from "../fields";
 import { buildDumbbell, buildKettlebell, DEFAULT_DUMBBELL, DEFAULT_KETTLEBELL } from "../../../geometry/models/gymWeights";
+import { fitDefaults } from "../fitDefaults";
 
 /** Modelos prontos da categoria Chaveiros. */
 export const KEYCHAIN_MODELS: ModelDef[] = [
@@ -172,6 +173,7 @@ export const KEYCHAIN_MODELS: ModelDef[] = [
     artColors: true,
     assembledInfo: "Prévia do aromatizador com a tampa rosqueada. Ela não vai para o arquivo: o que imprime está em Mesa (corpo e tampa separados, a tampa de pé).",
     defaults: DEFAULT_AROMA,
+    liveDefaults: () => fitDefaults({ clearance: "threadClearance" }), // a folga da rosca validada no Kit de testes (#247)
     sections: [
       {
         title: "Formato",
