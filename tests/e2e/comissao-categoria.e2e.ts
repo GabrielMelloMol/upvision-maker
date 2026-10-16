@@ -12,7 +12,7 @@ async function shot(page: Page, name: string, scrollTo?: Locator) {
   mkdirSync(SHOTS, { recursive: true });
   await page.screenshot({ path: `${SHOTS}/${name}.png` });
 }
-const EDITED = JSON.stringify({ failurePct: 0, channels: [{ name: "Shopee", feePct: 20, feeFixed: 4, extraPerSale: 1.5, checkedAt: "2026-05-01" }, { name: "Mercado Livre (clássico)", feePct: 14, feeFixed: 5.65, checkedAt: "2026-10-15", categories: [{ name: "Categoria com 10%", feePct: 10 }, { name: "Categoria com 14%", feePct: 14 }], category: "Categoria com 14%" }] });
+const EDITED = JSON.stringify({ failurePct: 0, channels: [{ name: "Shopee", feePct: 20, feeFixed: 4, extraPerSale: 1.5, checkedAt: "2026-05-01" }, { name: "Mercado Livre (clássico)", feePct: 14, feeFixed: 5.65, checkedAt: "2026-10-15", categories: [{ name: "Brinquedos", feePct: 10 }, { name: "Casa, móveis e decoração", feePct: 14 }], category: "Casa, móveis e decoração" }] });
 const seedSettings = (db: import("node:sqlite").DatabaseSync, json: string) => db.exec(`INSERT INTO settings (id, data) VALUES (1, '${json}') ON CONFLICT(id) DO UPDATE SET data = excluded.data`);
 
 test.beforeEach(async ({ page }) => {
@@ -63,8 +63,8 @@ test("categoria do anúncio: escolher outra categoria muda a taxa e o preço do 
   await go(page, "Preferências");
   await prefsSection(page, "Canais de venda");
   const select = page.getByLabel("Categoria do anúncio (Mercado Livre (clássico))");
-  await expect(select).toHaveValue("Categoria com 14%");
-  await select.selectOption("Categoria com 10%");
+  await expect(select).toHaveValue("Casa, móveis e decoração");
+  await select.selectOption("Brinquedos");
   await shot(page, "02-categoria-do-anuncio", select);
   await page.getByRole("button", { name: "Salvar preferências" }).click();
   await expect(toastWith(page, "Preferências salvas")).toBeVisible();

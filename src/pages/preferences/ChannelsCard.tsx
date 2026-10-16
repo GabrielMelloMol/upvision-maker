@@ -90,8 +90,8 @@ export default function ChannelsCard({ channels, setChannels, error }: Props) {
             <p className="hint">
               {stale ? <span className="badge warn">{stale}</span> : c.checkedAt ? `Conferido em ${dateBr(c.checkedAt)}.` : "Taxas ainda não conferidas por você."}{" "}
               {c.checkedAt !== today && (
-                <button type="button" className="link" onClick={() => setChannel(i, "checkedAt", today)}>
-                  Conferi hoje ({c.name || "canal"})
+                <button type="button" className="link" aria-label={`Conferi hoje (${c.name || "canal"})`} onClick={() => setChannel(i, "checkedAt", today)}>
+                  Conferi hoje
                 </button>
               )}
             </p>
@@ -116,8 +116,8 @@ export default function ChannelsCard({ channels, setChannels, error }: Props) {
             {c.categories.length > 0 && (
               <div className="category-pick">
                 <label>
-                  Categoria do anúncio ({c.name || "canal"})
-                  <select value={c.category} onChange={(e) => pickCategory(i, e.target.value)}>
+                  Categoria do anúncio
+                  <select aria-label={`Categoria do anúncio (${c.name || "canal"})`} value={c.category} onChange={(e) => pickCategory(i, e.target.value)}>
                     <option value="">Sem categoria (comissão do canal)</option>
                     {c.categories.filter((x) => x.name.trim() && x.name.trim() !== OTHER_CATEGORY).map((x) => (
                       <option key={x.name} value={x.name.trim()}>
@@ -129,8 +129,8 @@ export default function ChannelsCard({ channels, setChannels, error }: Props) {
                 </label>
                 {c.category === OTHER_CATEGORY && (
                   <label>
-                    Comissão (%) da outra categoria ({c.name || "canal"})
-                    <input inputMode="decimal" value={c.categories.find((x) => x.name === OTHER_CATEGORY)?.feePct ?? c.feePct} onChange={(e) => setCategories(i, c.categories.map((x) => (x.name === OTHER_CATEGORY ? { ...x, feePct: e.target.value } : x)))} />
+                    Comissão (%) da outra categoria
+                    <input aria-label={`Comissão (%) da outra categoria (${c.name || "canal"})`} inputMode="decimal" value={c.categories.find((x) => x.name === OTHER_CATEGORY)?.feePct ?? c.feePct} onChange={(e) => setCategories(i, c.categories.map((x) => (x.name === OTHER_CATEGORY ? { ...x, feePct: e.target.value } : x)))} />
                   </label>
                 )}
                 <span className="hint">A comissão da categoria vale no lugar da do canal. Confira a sua na central do canal.</span>
@@ -141,30 +141,30 @@ export default function ChannelsCard({ channels, setChannels, error }: Props) {
               <p className="hint">Taxas por faixa: a comissão e a taxa fixa acima valem até a primeira faixa; a partir do preço de cada linha valem as dela.</p>
               {c.tiers.map((t, k) => (
                 <div key={k} className="row line tier-line">
-                  <MoneyField label={`A partir de (faixa ${k + 1}, ${c.name || "canal"})`} value={t.from} onChange={(v) => setTiers(i, c.tiers.map((x, j) => (j === k ? { ...x, from: v } : x)))} />
-                  <label>Comissão (%) da faixa {k + 1} ({c.name || "canal"})<input inputMode="decimal" value={t.feePct} onChange={(e) => setTiers(i, c.tiers.map((x, j) => (j === k ? { ...x, feePct: e.target.value } : x)))} /></label>
-                  <MoneyField label={`Taxa fixa da faixa ${k + 1} (${c.name || "canal"})`} value={t.feeFixed} onChange={(v) => setTiers(i, c.tiers.map((x, j) => (j === k ? { ...x, feeFixed: v } : x)))} />
-                  <button type="button" className="link danger" onClick={() => setTiers(i, c.tiers.filter((_, j) => j !== k))}>Remover faixa {k + 1} ({c.name || "canal"})</button>
+                  <MoneyField label={`A partir de (faixa ${k + 1})`} aria-label={`A partir de (faixa ${k + 1}, ${c.name || "canal"})`} value={t.from} onChange={(v) => setTiers(i, c.tiers.map((x, j) => (j === k ? { ...x, from: v } : x)))} />
+                  <label>Comissão (%) da faixa {k + 1}<input aria-label={`Comissão (%) da faixa ${k + 1} (${c.name || "canal"})`} inputMode="decimal" value={t.feePct} onChange={(e) => setTiers(i, c.tiers.map((x, j) => (j === k ? { ...x, feePct: e.target.value } : x)))} /></label>
+                  <MoneyField label={`Taxa fixa da faixa ${k + 1}`} aria-label={`Taxa fixa da faixa ${k + 1} (${c.name || "canal"})`} value={t.feeFixed} onChange={(v) => setTiers(i, c.tiers.map((x, j) => (j === k ? { ...x, feeFixed: v } : x)))} />
+                  <button type="button" className="link danger" aria-label={`Remover faixa ${k + 1} (${c.name || "canal"})`} onClick={() => setTiers(i, c.tiers.filter((_, j) => j !== k))}>Remover faixa {k + 1}</button>
                 </div>
               ))}
-              <button type="button" className="sm" onClick={() => setTiers(i, [...c.tiers, { from: "", feePct: c.feePct, feeFixed: c.feeFixed }])}>
-                <Plus aria-hidden /> Adicionar faixa de preço ({c.name || "canal"})
+              <button type="button" className="sm" aria-label={`Adicionar faixa de preço (${c.name || "canal"})`} onClick={() => setTiers(i, [...c.tiers, { from: "", feePct: c.feePct, feeFixed: c.feeFixed }])}>
+                <Plus aria-hidden /> Adicionar faixa de preço
               </button>
               <p className="hint">Quando as taxas mudam com o preço: por exemplo, a taxa fixa só vale abaixo de um valor e, acima dele, o frete fica por sua conta. Deixe em branco o que não se aplica.</p>
               <p className="hint">Categorias de comissão: o canal cobra uma % diferente por categoria. Cadastre as suas e escolha a do anúncio acima.</p>
               {c.categories.map((x, k) => (
                 <div key={k} className="row line tier-line">
-                  <label>Categoria {k + 1} ({c.name || "canal"})<input value={x.name} onChange={(e) => setCategories(i, c.categories.map((y, j) => (j === k ? { ...y, name: e.target.value } : y)))} /></label>
-                  <label>Comissão (%) da categoria {k + 1} ({c.name || "canal"})<input inputMode="decimal" value={x.feePct} onChange={(e) => setCategories(i, c.categories.map((y, j) => (j === k ? { ...y, feePct: e.target.value } : y)))} /></label>
-                  <button type="button" className="link danger" onClick={() => setCategories(i, c.categories.filter((_, j) => j !== k))}>Remover categoria {k + 1} ({c.name || "canal"})</button>
+                  <label>Categoria {k + 1}<input aria-label={`Categoria ${k + 1} (${c.name || "canal"})`} value={x.name} onChange={(e) => setCategories(i, c.categories.map((y, j) => (j === k ? { ...y, name: e.target.value } : y)))} /></label>
+                  <label>Comissão (%) da categoria {k + 1}<input aria-label={`Comissão (%) da categoria ${k + 1} (${c.name || "canal"})`} inputMode="decimal" value={x.feePct} onChange={(e) => setCategories(i, c.categories.map((y, j) => (j === k ? { ...y, feePct: e.target.value } : y)))} /></label>
+                  <button type="button" className="link danger" aria-label={`Remover categoria ${k + 1} (${c.name || "canal"})`} onClick={() => setCategories(i, c.categories.filter((_, j) => j !== k))}>Remover categoria {k + 1}</button>
                 </div>
               ))}
-              <button type="button" className="sm" onClick={() => setCategories(i, [...c.categories, { name: "", feePct: c.feePct }])}>
-                <Plus aria-hidden /> Adicionar categoria de comissão ({c.name || "canal"})
+              <button type="button" className="sm" aria-label={`Adicionar categoria de comissão (${c.name || "canal"})`} onClick={() => setCategories(i, [...c.categories, { name: "", feePct: c.feePct }])}>
+                <Plus aria-hidden /> Adicionar categoria de comissão
               </button>
               <div className="grid">
                 {BANDS.map(([k, label]) => (
-                  <MoneyField key={k} label={`${label} (${c.name || "canal"})`} value={c[k]} placeholder="—" onChange={(v) => setChannel(i, k, v)} />
+                  <MoneyField key={k} label={label} aria-label={`${label} (${c.name || "canal"})`} value={c[k]} placeholder="—" onChange={(v) => setChannel(i, k, v)} />
                 ))}
               </div>
             </details>
