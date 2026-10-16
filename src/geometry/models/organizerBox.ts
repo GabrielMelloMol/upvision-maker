@@ -246,7 +246,7 @@ function own(ctx: ModelCtx, k: K, p: OrganizerParams, d: Dims, warnings: string[
   const Hb = d.bodyH;
   const shell = at(k, k(roundedRect(M, d.outerW, d.outerD, p.outerRadius)), Hb, 0);
   let box = k(shell.subtract(at(k, cellsRegion(M, k, p, d), Hb - p.floor + 1, p.floor)));
-  const geo = { W: d.outerW, D: d.outerD, Hb, lidT: p.lidT, floor: p.floor, outerRadius: p.outerRadius, latchClearance: p.latchClearance };
+  const geo = { W: d.outerW, D: d.outerD, Hb, lidT: p.lidT, floor: p.floor, outerRadius: p.outerRadius, latchClearance: p.latchClearance, hingeClearance: p.hingeClearance, latchReach: p.latchReach };
   const hg = hinge ? buildHinge(M, k, geo) : null;
   if (hg) box = k(box.add(hg.boxAdd));
   const [zLow, zHigh] = freeBand(p, d);

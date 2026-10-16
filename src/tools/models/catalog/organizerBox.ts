@@ -3,6 +3,7 @@ import { buildOrganizerBox } from "../../../geometry/models/organizerBox";
 import { dimsOf, deriveOrganizer, DEFAULT_ORGANIZER, MATERIALS, type OrganizerParams } from "../../../geometry/models/organizer/params";
 import { as, bool, choice, color, num, text, type FieldDef, type ModelDef, type Params } from "../fields";
 import { ORGANIZER_GUIDE } from "../organizer/guide";
+import { fitDefaults } from "../fitDefaults";
 
 const br = (n: number) => n.toLocaleString("pt-BR", { maximumFractionDigits: 1 });
 const slide = (k: string, label: string, min: number, max: number, hint: string | ((p: Params) => string), extra: Partial<Extract<FieldDef, { kind: "num" }>> = {}): FieldDef => num(k, label, min, max, { slider: true, hint, ...extra });
@@ -27,6 +28,7 @@ export const ORGANIZER_BOX_MODEL: ModelDef = {
   artSection: 4,
   art: "Desenho na tampa (opcional)",
   defaults: DEFAULT_ORGANIZER,
+  liveDefaults: () => fitDefaults({ hingeClearance: "hingeClearance", latchReach: "latchReach" }), // as folgas validadas no Kit de testes (#247)
   guide: ORGANIZER_GUIDE,
   derive: (changed, value, p, prev) => deriveOrganizer(changed, value, p, prev),
   sections: [
@@ -66,6 +68,8 @@ export const ORGANIZER_BOX_MODEL: ModelDef = {
         slide("lidT", "Espessura da tampa", 1.6, 4, "2,4 mm fica firme e deixa o pino bem preso.", { step: 0.1 }),
         choice("material", "Material", MATERIALS),
         slide("latchClearance", "Folga da trava", 0.15, 0.6, "Dura demais, aumente 0,05; solta demais, diminua. O material já ajusta o padrão.", { step: 0.05 }),
+        slide("hingeClearance", "Folga do pino da dobradiça", 0.15, 0.6, "Pino preso: aumente 0,05; tampa balançando: diminua. O Kit de testes (Ajustes) acha o seu valor.", { step: 0.05 }),
+        slide("latchReach", "Profundidade do gancho da trava", 0.6, 2, "Gancho fundo prende firme; raso solta fácil. O Kit de testes (Ajustes) acha o seu valor.", { step: 0.1 }),
         bool("handle", "Puxador (peça para colar na tampa)"),
         bool("stackable", "Empilhável (anel na tampa e rebaixo no fundo)"),
         bool("labelSlot", "Porta-etiqueta na frente (rebaixo de 32 × 17 mm)"),

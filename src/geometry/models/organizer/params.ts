@@ -20,6 +20,9 @@ export type OrganizerParams = {
   lid: "hinge" | "snap" | "slide" | "none";
   lidT: number;
   latchClearance: number;
+  /** Folga radial do pino da dobradiça no furo (mm) e quanto o gancho da trava avança (mm): validadas no Kit de testes (#247). */
+  hingeClearance: number;
+  latchReach: number;
   material: Material;
   handle: boolean;
   stackable: boolean;
@@ -57,6 +60,8 @@ export const DEFAULT_ORGANIZER: OrganizerParams = {
   lid: "hinge",
   lidT: 2.4,
   latchClearance: LATCH_BY_MATERIAL.petg,
+  hingeClearance: 0.3,
+  latchReach: 1.2,
   material: "petg",
   handle: false,
   stackable: false,

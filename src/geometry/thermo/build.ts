@@ -8,6 +8,7 @@ import { inradius, stretchOf, type DomeGeo } from "./dome";
 import { buildMoldSolid, DEFAULT_MOLD, type MoldParams } from "./mold";
 import { mergeMeshes, warpOntoDome } from "./preview";
 import { clipRegion, DEFAULT_SCREEN, earOf, ringRegion, screenRegions, type ScreenParams } from "./screen";
+import { fitValue } from "../fits";
 
 type K = <D extends { delete(): void }>(o: D) => D;
 
@@ -30,6 +31,9 @@ export type ThermoParams = {
 };
 
 export const DEFAULT_THERMO: ThermoParams = { domeH: 10, curve: 2.2, compensate: true, mold: DEFAULT_MOLD, screen: DEFAULT_SCREEN, colors: DEFAULT_COLORS, designOnBoth: true, thickenDesign: true };
+
+/** Parâmetros de partida da caixinha: os de fábrica, com o furo da orelha do clipe que a pessoa validou no Kit de testes (#247). */
+export const thermoDefaults = (): ThermoParams => ({ ...DEFAULT_THERMO, screen: { ...DEFAULT_SCREEN, hole: fitValue("clipHole") }, colors: { ...DEFAULT_THERMO.colors } });
 
 export type ThermoInfo = {
   /** Quanto a tela estica (comprimento do perfil do domo ÷ distância da borda ao topo). */

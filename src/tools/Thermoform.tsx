@@ -6,7 +6,7 @@ import { getManifold, type CS } from "../geometry/manifold";
 import { THERMO_MOLD_PROFILE, THERMO_SCREEN_PROFILE } from "../geometry/printProfile";
 import { scoped, shrinkToFit } from "../geometry/shape2d";
 import { buildStampArt, DEFAULT_ART, type StampLayout } from "../geometry/stampArt";
-import { buildThermo, DEFAULT_THERMO, type ThermoInfo, type ThermoParams } from "../geometry/thermo/build";
+import { buildThermo, thermoDefaults, type ThermoInfo, type ThermoParams } from "../geometry/thermo/build";
 import { ASYMMETRY_WARN, asymmetry, presetSilhouette, SHAPE_LABELS, silhouetteFromDesign, symmetrize, type SymSide, type ThermoShape } from "../geometry/thermo/shapes";
 import { hasEmoji, textToCrossSection } from "../geometry/text";
 import { splitLines, stackLines } from "../geometry/keychain";
@@ -62,7 +62,7 @@ type State = {
   p: ThermoParams;
 };
 
-const initial = (): State => ({ source: "shape", shape: "heart", width: 70, sym: "keep", image: null, cutout: true, silText: "Ana", silFont: "pacifico", text: "Feliz\nNatal", font: "great-vibes", logo: peekHandoff(), layout: "stack", textScale: 55, p: { ...DEFAULT_THERMO, colors: { ...DEFAULT_THERMO.colors } } });
+const initial = (): State => ({ source: "shape", shape: "heart", width: 70, sym: "keep", image: null, cutout: true, silText: "Ana", silFont: "pacifico", text: "Feliz\nNatal", font: "great-vibes", logo: peekHandoff(), layout: "stack", textScale: 55, p: thermoDefaults() });
 
 type View = { screens: Model[]; mold: Model; assembled: Model; info: ThermoInfo; asym: number };
 const shiftModel = (m: Model, dx: number, dy: number): Model => ({ ...m, parts: m.parts.map((q) => ({ ...q, mesh: { ...q.mesh, positions: q.mesh.positions.map((v, i) => (i % 3 === 0 ? v + dx : i % 3 === 1 ? v + dy : v)) } })) });

@@ -9,6 +9,7 @@ import { buildGridCutter, DEFAULT_GRID_CUTTER } from "../../../geometry/models/g
 import { buildStamp, DEFAULT_STAMP } from "../../../geometry/models/stamp";
 import { buildTextureRoller, DEFAULT_TEXTURE_ROLLER } from "../../../geometry/models/textureRoller";
 import { as, bool, choice, color, num, text, type ModelDef } from "../fields";
+import { fitDefaults } from "../fitDefaults";
 
 /** Modelos prontos da categoria Cozinha. */
 export const KITCHEN_MODELS: ModelDef[] = [
@@ -64,6 +65,7 @@ export const KITCHEN_MODELS: ModelDef[] = [
     art: "Desenho da forma (opcional: vale no formato \"Meu desenho\")",
     art2: "Marca para o êmbolo (opcional: o doce sai com ela em relevo)",
     defaults: DEFAULT_CANDY_MOLD,
+    liveDefaults: () => fitDefaults({ clearance: "candyClearance" }), // a folga do ejetor validada no Kit de testes (#247)
     sections: [
       {
         title: "Peso e formato",
@@ -274,6 +276,7 @@ export const KITCHEN_MODELS: ModelDef[] = [
     icon: CupSoda,
     font: true,
     defaults: DEFAULT_CUP_HANDLE,
+    liveDefaults: () => fitDefaults({ clearance: "cupClearance" }), // a folga do copo validada no Kit de testes (#247)
     sections: [
       {
         title: "Medidas do copo",
