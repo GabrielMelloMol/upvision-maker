@@ -77,6 +77,8 @@ export type ModelDef = {
   art2?: string;
   /** Foto enviada: oferece "Recortar o fundo da foto" (ligado) antes de vetorizar (#193). */
   cutout?: boolean;
+  /** O modelo traz uma peça montada só de prévia (`previewOnly`): a prévia ganha a alternância Mesa / Montada, com este aviso na vista montada. */
+  assembledInfo?: string;
   /** Mostra o quadro "Que imagem funciona", os exemplos prontos e a silhueta entendida com avisos (kit card). */
   artGuide?: boolean;
   /** O modelo usa as cores do desenho (uma camada por cor): QA e miniatura usam um desenho de exemplo colorido. */

@@ -2,6 +2,7 @@ import type { CS, ManifoldToplevel, Solid } from "../manifold";
 import { medalOutline } from "../medal";
 import { fitInto, scoped } from "../shape2d";
 import type { Part } from "../types";
+import { bevelPrism, type Edge } from "./bevel";
 import { roundedRect, solidMesh, type ModelCtx, type ModelOutput } from "./common";
 
 export type ScrewCaseParams = {
@@ -100,21 +101,24 @@ function thread(M: ManifoldToplevel, p: ScrewCaseParams, grow: number, z0: numbe
   });
 }
 
+/** Contorno externo diferente do cilindro (coração, gota, hexágono…): o miolo da rosca continua redondo. */
+export type CaseShape = { outline: CS; lidOutline: CS; edge: Edge; bevel: number };
+
 type Built = { body: Solid; lid: Solid; decor: Part[] };
 
-function build(ctx: ModelCtx, p: ScrewCaseParams, k: <D extends { delete(): void }>(o: D) => D): Built {
+function build(ctx: ModelCtx, p: ScrewCaseParams, k: <D extends { delete(): void }>(o: D) => D, shape?: CaseShape): Built {
   const { M } = ctx;
   const L = caseLayout(p);
   const Ri = p.innerDiameter / 2;
   const top = L.shoulder + L.neckH;
   // corpo: base cheia até o ombro + gargalo com rosca macho (chanfrada no topo para achar a entrada)
-  const base = k(M.Manifold.cylinder(L.shoulder, L.outer, L.outer, SEGMENTS));
+  const base = shape ? k(bevelPrism(M, shape.outline, L.shoulder, shape.edge, shape.bevel, { bottom: true })) : k(M.Manifold.cylinder(L.shoulder, L.outer, L.outer, SEGMENTS));
   const chamfer = k(k(M.Manifold.cylinder(L.neckH - p.threadDepth, L.maleMajor + 1, L.maleMajor + 1, SEGMENTS)).add(k(k(M.Manifold.cylinder(p.threadDepth, L.maleMajor + 1, L.maleMinor, SEGMENTS)).translate([0, 0, L.neckH - p.threadDepth]))));
   const male = k(k(thread(M, p, 0, L.shoulder, L.neckH)).intersect(k(chamfer.translate([0, 0, L.shoulder]))));
   const cavity = k(k(M.Manifold.cylinder(top - p.floor + 1, Ri, Ri, SEGMENTS)).translate([0, 0, p.floor]));
   let body = k(k(base.add(male)).subtract(cavity));
   // tampa (na posição fechada): encosta no ombro; rosca fêmea = a macho + folga, na mesma fase
-  const lidOuter = k(k(M.Manifold.cylinder(L.lidHeight, L.outer, L.outer, SEGMENTS)).translate([0, 0, L.shoulder]));
+  const lidOuter = k(k(shape ? bevelPrism(M, shape.lidOutline, L.lidHeight, shape.edge, shape.bevel, { top: true }) : M.Manifold.cylinder(L.lidHeight, L.outer, L.outer, SEGMENTS)).translate([0, 0, L.shoulder]));
   const female = k(thread(M, p, p.clearance, L.shoulder - 0.01, L.neckH + 0.02));
   const room = k(k(M.Manifold.cylinder(HEADROOM + 0.01, L.maleMajor + p.clearance, L.maleMajor + p.clearance, SEGMENTS)).translate([0, 0, top]));
   let lid = k(lidOuter.subtract(k(female.add(room))));
@@ -161,9 +165,9 @@ function build(ctx: ModelCtx, p: ScrewCaseParams, k: <D extends { delete(): void
 }
 
 /** Estojo fechado (para conferir encaixe e espaço interno). Quem chama dá delete() nos dois. */
-export function screwCaseClosed(ctx: ModelCtx, p: ScrewCaseParams): { body: Solid; lid: Solid } {
+export function screwCaseClosed(ctx: ModelCtx, p: ScrewCaseParams, shape?: CaseShape): { body: Solid; lid: Solid } {
   return scoped((k) => {
-    const b = build(ctx, p, k);
+    const b = build(ctx, p, k, shape);
     return { body: b.body.translate([0, 0, 0]), lid: b.lid.translate([0, 0, 0]) };
   });
 }

@@ -147,6 +147,149 @@
   "plates": 1
  },
  {
+  "key": "aroma:coração",
+  "owner": "Forja",
+  "group": "keychains",
+  "label": "Chaveiro aromatizador (aroma)",
+  "variant": "coração",
+  "status": "aviso",
+  "reasons": [
+   "6 cores: mais que os 4 do AMS lite",
+   "Bambu: torre de purga passa da mesa na posição padrão do CLI (na tela, arraste a torre ou use Arrumar)",
+   "Orca: torre de purga passa da mesa na posição padrão do CLI (na tela, arraste a torre ou use Arrumar)",
+   "Projeto Bambu: torre de purga passa da mesa na posição padrão do CLI (na tela, arraste a torre ou use Arrumar)"
+  ],
+  "date": "2026-10-15",
+  "slicers": "Bambu ✓ · Orca ✓ · Projeto Bambu ✓"
+ },
+ {
+  "key": "aroma:feltro grande, muitos furos",
+  "owner": "Forja",
+  "group": "keychains",
+  "label": "Chaveiro aromatizador (aroma)",
+  "variant": "feltro grande, muitos furos",
+  "status": "aviso",
+  "reasons": [
+   "6 cores: mais que os 4 do AMS lite",
+   "Bambu: torre de purga passa da mesa na posição padrão do CLI (na tela, arraste a torre ou use Arrumar)",
+   "Orca: torre de purga passa da mesa na posição padrão do CLI (na tela, arraste a torre ou use Arrumar)",
+   "Projeto Bambu: torre de purga passa da mesa na posição padrão do CLI (na tela, arraste a torre ou use Arrumar)"
+  ],
+  "date": "2026-10-15",
+  "slicers": "Bambu ✓ · Orca ✓ · Projeto Bambu ✓"
+ },
+ {
+  "key": "aroma:gota",
+  "owner": "Forja",
+  "group": "keychains",
+  "label": "Chaveiro aromatizador (aroma)",
+  "variant": "gota",
+  "status": "aviso",
+  "reasons": [
+   "6 cores: mais que os 4 do AMS lite",
+   "Bambu: torre de purga passa da mesa na posição padrão do CLI (na tela, arraste a torre ou use Arrumar)",
+   "Orca: torre de purga passa da mesa na posição padrão do CLI (na tela, arraste a torre ou use Arrumar)",
+   "Projeto Bambu: torre de purga passa da mesa na posição padrão do CLI (na tela, arraste a torre ou use Arrumar)"
+  ],
+  "date": "2026-10-15",
+  "slicers": "Bambu ✓ · Orca ✓ · Projeto Bambu ✓"
+ },
+ {
+  "key": "aroma:hexágono",
+  "owner": "Forja",
+  "group": "keychains",
+  "label": "Chaveiro aromatizador (aroma)",
+  "variant": "hexágono",
+  "status": "aviso",
+  "reasons": [
+   "6 cores: mais que os 4 do AMS lite",
+   "Bambu: torre de purga passa da mesa na posição padrão do CLI (na tela, arraste a torre ou use Arrumar)",
+   "Orca: torre de purga passa da mesa na posição padrão do CLI (na tela, arraste a torre ou use Arrumar)",
+   "Projeto Bambu: torre de purga passa da mesa na posição padrão do CLI (na tela, arraste a torre ou use Arrumar)"
+  ],
+  "date": "2026-10-15",
+  "slicers": "Bambu ✓ · Orca ✓ · Projeto Bambu ✓"
+ },
+ {
+  "key": "aroma:máximo",
+  "owner": "Forja",
+  "group": "keychains",
+  "label": "Chaveiro aromatizador (aroma)",
+  "variant": "máximo",
+  "status": "aviso",
+  "reasons": [
+   "6 cores: mais que os 4 do AMS lite",
+   "Bambu: torre de purga passa da mesa na posição padrão do CLI (na tela, arraste a torre ou use Arrumar)",
+   "Orca: torre de purga passa da mesa na posição padrão do CLI (na tela, arraste a torre ou use Arrumar)",
+   "Projeto Bambu: torre de purga passa da mesa na posição padrão do CLI (na tela, arraste a torre ou use Arrumar)"
+  ],
+  "date": "2026-10-15",
+  "slicers": "Bambu ✓ · Orca ✓ · Projeto Bambu ✓"
+ },
+ {
+  "key": "aroma:mínimo",
+  "owner": "Forja",
+  "group": "keychains",
+  "label": "Chaveiro aromatizador (aroma)",
+  "variant": "mínimo",
+  "status": "aviso",
+  "reasons": [
+   "6 cores: mais que os 4 do AMS lite",
+   "Bambu: torre de purga passa da mesa na posição padrão do CLI (na tela, arraste a torre ou use Arrumar)",
+   "Orca: torre de purga passa da mesa na posição padrão do CLI (na tela, arraste a torre ou use Arrumar)",
+   "Projeto Bambu: torre de purga passa da mesa na posição padrão do CLI (na tela, arraste a torre ou use Arrumar)",
+   "app: Folga pequena: a tampa pode não rosquear. Imprima o teste da rosca antes."
+  ],
+  "date": "2026-10-15",
+  "slicers": "Bambu ✓ · Orca ✓ · Projeto Bambu ✓"
+ },
+ {
+  "key": "aroma:padrão",
+  "owner": "Forja",
+  "group": "keychains",
+  "label": "Chaveiro aromatizador (aroma)",
+  "variant": "padrão",
+  "status": "aviso",
+  "reasons": [
+   "6 cores: mais que os 4 do AMS lite",
+   "Bambu: torre de purga passa da mesa na posição padrão do CLI (na tela, arraste a torre ou use Arrumar)",
+   "Orca: torre de purga passa da mesa na posição padrão do CLI (na tela, arraste a torre ou use Arrumar)",
+   "Projeto Bambu: torre de purga passa da mesa na posição padrão do CLI (na tela, arraste a torre ou use Arrumar)"
+  ],
+  "date": "2026-10-15",
+  "slicers": "Bambu ✓ · Orca ✓ · Projeto Bambu ✓"
+ },
+ {
+  "key": "aroma:sem olhal, folga larga",
+  "owner": "Forja",
+  "group": "keychains",
+  "label": "Chaveiro aromatizador (aroma)",
+  "variant": "sem olhal, folga larga",
+  "status": "aviso",
+  "reasons": [
+   "6 cores: mais que os 4 do AMS lite",
+   "Bambu: torre de purga passa da mesa na posição padrão do CLI (na tela, arraste a torre ou use Arrumar)",
+   "Orca: torre de purga passa da mesa na posição padrão do CLI (na tela, arraste a torre ou use Arrumar)",
+   "Projeto Bambu: torre de purga passa da mesa na posição padrão do CLI (na tela, arraste a torre ou use Arrumar)"
+  ],
+  "date": "2026-10-15",
+  "slicers": "Bambu ✓ · Orca ✓ · Projeto Bambu ✓"
+ },
+ {
+  "key": "aroma:teste da rosca",
+  "owner": "Forja",
+  "group": "keychains",
+  "label": "Chaveiro aromatizador (aroma)",
+  "variant": "teste da rosca",
+  "status": "ok",
+  "reasons": [],
+  "date": "2026-10-15",
+  "slicers": "Bambu ✓ · Orca ✓ · Projeto Bambu ✓",
+  "minutes": 68,
+  "grams": 17.6,
+  "plates": 1
+ },
+ {
   "key": "articulatedName:máximo",
   "owner": "Forja",
   "group": "keychains",

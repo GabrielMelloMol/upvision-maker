@@ -1,5 +1,6 @@
-import { BottleWine, Smartphone, CircleDashed, Disc3, Dumbbell, KeyRound, Link2, Nfc, PawPrint, Pencil, ToggleLeft } from "lucide-react";
+import { BottleWine, Wind, Smartphone, CircleDashed, Disc3, Dumbbell, KeyRound, Link2, Nfc, PawPrint, Pencil, ToggleLeft } from "lucide-react";
 import { buildArticulatedName, DEFAULT_ARTICULATED } from "../../../geometry/models/articulatedName";
+import { buildAroma, DEFAULT_AROMA } from "../../../geometry/models/aromaKeychain";
 import { buildClicker, DEFAULT_CLICKER } from "../../../geometry/models/clicker";
 import { buildGymKeychain, DEFAULT_GYM_KEYCHAIN } from "../../../geometry/models/gymKeychain";
 import { buildLogoPlate, DEFAULT_LOGO_KEYCHAIN } from "../../../geometry/models/logoPlate";
@@ -157,6 +158,59 @@ export const KEYCHAIN_MODELS: ModelDef[] = [
       },
     ],
     build: (ctx, p) => buildOpener(ctx, as(p)),
+  },
+  {
+    id: "aroma",
+    category: "keychains",
+    label: "Chaveiro aromatizador",
+    blurb: "Cápsula com tampa de rosca, cavidade para o feltro, furos de aroma em volta do seu logo em relevo e olhal para pendurar no carro ou na bolsa.",
+    icon: Wind,
+    font: true,
+    art: "Logo em relevo (opcional; sem logo, vale o texto)",
+    artColors: true,
+    assembledInfo: "Prévia do aromatizador com a tampa rosqueada. Ela não vai para o arquivo: o que imprime está em Mesa (corpo e tampa separados, a tampa de pé).",
+    defaults: DEFAULT_AROMA,
+    sections: [
+      {
+        title: "Formato",
+        fields: [
+          choice("shape", "Formato da cápsula", [["round", "Redondo"], ["heart", "Coração"], ["drop", "Gota"], ["hex", "Hexágono"]]),
+          choice("edge", "Arestas", [["round", "Arredondadas"], ["chamfer", "Chanfradas"], ["none", "Retas"]]),
+          bool("knurl", "Estrias na borda da tampa (pegada para girar)"),
+        ],
+      },
+      {
+        title: "Feltro e cápsula",
+        fields: [
+          num("feltDiameter", "Diâmetro do feltro", 15, 45, { step: 0.5, hint: "Disco de feltro ou papelão de aroma. A cavidade fica 1 mm maior. Comum: 25 a 30 mm." }),
+          num("feltThickness", "Espessura do feltro", 1, 6, { step: 0.5, hint: "Vai com 3 mm de espaço acima para pingar o óleo." }),
+          num("wall", "Parede", 1.2, 3),
+          num("floor", "Fundo", 1, 3),
+        ],
+      },
+      {
+        title: "Tampa: furos e logo",
+        fields: [
+          num("holes", "Quantidade de furos", 3, 16, { step: 1, unit: "", hint: "Mais furos, cheiro mais forte e mais rápido." }),
+          num("holeDiameter", "Diâmetro do furo", 1.2, 4, { step: 0.2 }),
+          text("text", "Texto do logo (sem desenho)", 10),
+          num("logoSize", "Tamanho do logo", 8, 40, { step: 1, hint: "Se for maior que o espaço dentro do anel de furos, o logo ocupa o espaço todo." }),
+          num("relief", "Relevo do logo", 0.4, 1.6),
+          bool("keyring", "Olhal para argola"),
+        ],
+      },
+      {
+        title: "Rosca e cores",
+        fields: [
+          choice("print", "Imprimir", [["full", "Peça inteira"], ["test", "Só o teste da rosca"]]),
+          num("clearance", "Folga da rosca", 0.15, 0.6, { step: 0.05, hint: "0,35 serve na maioria das impressoras. Imprima antes só o teste da rosca (uns 10 minutos): se a tampa ficar presa, aumente de 0,05 em 0,05; se ficar frouxa, diminua." }),
+          color("bodyColor", "Corpo"),
+          color("lidColor", "Tampa"),
+          color("logoColor", "Logo"),
+        ],
+      },
+    ],
+    build: (ctx, p) => buildAroma(ctx, as(p)),
   },
   {
     id: "clicker",
