@@ -83,9 +83,9 @@ describe("Financeiro", () => {
     const card = (title: string) => screen.getByRole("heading", { name: title }).closest("section") as HTMLElement;
     const items = (title: string) => within(card(title)).getAllByRole("listitem").map((li) => brl(li.getAttribute("title") ?? ""));
     // canal soma só os itens (o frete fica fora do breakdown)
-    expect(items("Por canal")).toEqual(["Shopee: R$ 200,00 · lucro bruto R$ 150,00", "Instagram: R$ 90,00 · lucro bruto R$ 70,00"]);
+    expect(items("Por canal")).toEqual(["Shopee: R$ 200,00 · lucro bruto R$ 150,00 · margem 75% · R$ 30,00/h", "Instagram: R$ 90,00 · lucro bruto R$ 70,00 · margem 78% · R$ 35,00/h"]);
     expect(items("Mais vendidos")).toEqual(["Chaveiro: R$ 200,00 · 10 un", "Medalha: R$ 90,00 · 2 un"]);
-    expect(items("Por impressora")).toEqual(["Bambu A1: R$ 200,00 · lucro bruto R$ 150,00", "Sem impressora: R$ 90,00 · lucro bruto R$ 70,00"]);
+    expect(items("Por impressora")).toEqual(["Bambu A1: R$ 200,00 · lucro bruto R$ 150,00 · margem 75% · R$ 30,00/h", "Sem impressora: R$ 90,00 · lucro bruto R$ 70,00 · margem 78% · R$ 35,00/h"]);
     // barra maior = 100%
     expect((within(card("Por canal")).getAllByRole("listitem")[0].querySelector(".hbars-bar") as HTMLElement).style.width).toBe("100%");
   });

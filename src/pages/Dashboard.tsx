@@ -1,13 +1,15 @@
-import { AlertTriangle, CalendarClock, CheckCircle2, CircleAlert, PackageSearch, TrendingUp } from "lucide-react";
+import { AlertTriangle, CalendarClock, CheckCircle2, CircleAlert, PackageSearch, Printer as PrinterIcon, Store, TrendingUp } from "lucide-react";
+import { useState } from "react";
 import { costsRepo } from "../db/costsRepo";
 import { ordersRepo } from "../db/ordersRepo";
 import { productsRepo } from "../db/productsRepo";
 import { wasteRunsRepo } from "../db/wasteRunsRepo";
-import { filaments, materials } from "../db/repo";
+import { filaments, materials, printers } from "../db/repo";
 import type { Db } from "../db/types";
-import type { Filament, Material } from "../domain/entities";
+import type { Filament, Material, Printer } from "../domain/entities";
 import { businessHealth, HEALTH_HEADLINE } from "../domain/health";
-import { breakdown, change, financeSummary, periodRange, recommendedStock, stockHealth, type OperationalCost } from "../domain/finance";
+import { bestOf, breakdown, rankIndicators, change, financeSummary, indicators, periodRange, type Indicator, type OperationalCost } from "../domain/finance";
+import { COVER_OPTIONS, DEFAULT_COVER_DAYS, restockSuggestions, WINDOW_DAYS, type RestockLevel } from "../domain/restock";
 import { money } from "../domain/format";
 import { isLate, orderTotals, paymentOf, STATUS_LABEL, todayIso, type Order } from "../domain/orders";
 import { addDays } from "../domain/quotes";
@@ -15,18 +17,18 @@ import type { Product } from "../domain/products";
 import type { WasteRun } from "../domain/wasteRuns";
 import type { Go } from "../pages";
 import Button from "../ui/Button";
+import Segmented from "../ui/Segmented";
 import { StatTile } from "../ui/charts";
 import LoadError from "../ui/LoadError";
 import { setPendingOpen } from "../ui/search";
 import { useData } from "../ui/useData";
 
-const load = async (db: Db) => ({ orders: await ordersRepo.list(db), costs: await costsRepo.list(db), products: await productsRepo.list(db), filaments: await filaments.list(db), materials: await materials.list(db), waste: await wasteRunsRepo.list(db) });
-const EMPTY = { orders: [] as Order[], costs: [] as OperationalCost[], products: [] as Product[], filaments: [] as Filament[], materials: [] as Material[], waste: [] as WasteRun[] };
-const WINDOW_DAYS = 30;
+const load = async (db: Db) => ({ orders: await ordersRepo.list(db), costs: await costsRepo.list(db), products: await productsRepo.list(db), filaments: await filaments.list(db), materials: await materials.list(db), waste: await wasteRunsRepo.list(db), printers: await printers.list(db) });
+const EMPTY = { orders: [] as Order[], costs: [] as OperationalCost[], products: [] as Product[], filaments: [] as Filament[], materials: [] as Material[], waste: [] as WasteRun[], printers: [] as Printer[] };
 const OPEN = new Set(["pending", "production", "done"]);
 const dateBr = (iso: string) => iso.split("-").reverse().slice(0, 2).join("/");
 
-const HEALTH = {
+const HEALTH: Record<RestockLevel, { icon: typeof CheckCircle2; label: string; cls: string }> = {
   ok: { icon: CheckCircle2, label: "saudável", cls: "ok" },
   warn: { icon: CircleAlert, label: "atenção", cls: "warn" },
   critical: { icon: AlertTriangle, label: "crítico", cls: "critical" },
@@ -34,6 +36,7 @@ const HEALTH = {
 
 export default function Dashboard({ go }: { go: Go }) {
   const [data, reload, , error] = useData(load, EMPTY);
+  const [cover, setCover] = useState<number>(DEFAULT_COVER_DAYS);
   const today = todayIso();
   const [mFrom, mTo] = periodRange("month", today);
   const month = financeSummary(data.orders, data.costs, mFrom, mTo, data.waste);
@@ -50,16 +53,13 @@ export default function Dashboard({ go }: { go: Go }) {
   const lowFil = data.filaments.filter((f) => f.stockG <= f.minG);
   const lowMat = data.materials.filter((m) => m.stock <= m.min);
   const health = businessHealth({ today, month, lateDueDates: late.map((o) => o.dueDate!), lowStock: lowFil.length + lowMat.length, emptyStock: lowFil.filter((f) => f.stockG <= 0).length + lowMat.filter((m) => m.stock <= 0).length });
-  const sold = breakdown(data.orders, addDays(today, -WINDOW_DAYS), today, (_o, i) => String(i.productId ?? "")).filter((b) => b.key);
-  const best = sold
-    .map((b) => {
-      const p = data.products.find((x) => String(x.id) === b.key);
-      const rec = recommendedStock(b.qty, WINDOW_DAYS);
-      return p && { p, qty: b.qty, rec, health: stockHealth(p.stock, rec) };
-    })
-    .filter((x) => !!x)
-    .sort((a, b) => b.qty - a.qty)
-    .slice(0, 6);
+  const restock = restockSuggestions(data.orders, data.products, today, cover).slice(0, 6);
+  // onde dá mais lucro (últimos 30 dias): por canal, por impressora (a do produto) e por produto
+  const from30 = addDays(today, -WINDOW_DAYS);
+  const printerOf = (pid: number | null) => data.printers.find((x) => x.id === data.products.find((p) => p.id === pid)?.printerId)?.name ?? "Sem impressora";
+  const byChannel = indicators(breakdown(data.orders, from30, today, (o) => o.channel));
+  const byPrinter = indicators(breakdown(data.orders, from30, today, (_o, i) => printerOf(i.productId)));
+  const byProduct = indicators(breakdown(data.orders, from30, today, (_o, i) => i.description));
 
   const openOrder = (o: Order) => {
     setPendingOpen({ pageId: "orders", recordId: o.id });
@@ -159,37 +159,93 @@ export default function Dashboard({ go }: { go: Go }) {
             </div>
           )}
         </section>
-
-        <section className="card">
-          <h2 className="card-title"><TrendingUp aria-hidden /> Mais vendidos (30 dias)</h2>
-          {best.length === 0 ? (
-            <p className="muted small">Ainda sem vendas entregues de produtos cadastrados nos últimos 30 dias.</p>
-          ) : (
-            <table>
-              <thead><tr><th>Produto</th><th className="num">Vendidos</th><th className="num">Pronto / ideal</th></tr></thead>
-              <tbody>
-                {best.map(({ p, qty, rec, health }) => {
-                  const h = HEALTH[health];
-                  return (
-                    <tr key={p.id}>
-                      {/* nome longo: uma linha com reticências e o nome inteiro na dica (polimento) */}
-                      <td className="best-name" title={p.name}>
-                        {p.name}
-                      </td>
-                      <td className="num">{qty.toLocaleString("pt-BR")}</td>
-                      <td className="num">
-                        {p.stock.toLocaleString("pt-BR")} / {rec}{" "}
-                        <span className={`health ${h.cls}`}><h.icon size={12} aria-hidden /> {h.label}</span>
-                      </td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
-          )}
-          <p className="hint">Ideal = vendas médias por dia × 14 dias.</p>
-        </section>
       </div>
+
+      <section className="card" aria-label="Reposição sugerida">
+        <h2 className="card-title"><TrendingUp aria-hidden /> Reposição sugerida</h2>
+        {restock.length === 0 ? (
+          <p className="muted small">Ainda sem vendas nem pedidos de produtos cadastrados nos últimos {WINDOW_DAYS} dias.</p>
+        ) : (
+          <table>
+            <thead><tr><th>Produto</th><th className="num">Vendeu ({WINDOW_DAYS} dias)</th><th className="num">Pronto</th><th>O que fazer</th></tr></thead>
+            <tbody>
+              {restock.map((r) => {
+                const h = HEALTH[r.level];
+                return (
+                  <tr key={r.product.id}>
+                    {/* nome longo: uma linha com reticências e o nome inteiro na dica (polimento) */}
+                    <td className="best-name" title={r.product.name}>
+                      {r.product.name}
+                    </td>
+                    <td className="num">{r.sold.toLocaleString("pt-BR")}</td>
+                    <td className="num">{r.stock.toLocaleString("pt-BR")}</td>
+                    <td>
+                      <span className={`health ${h.cls}`}><h.icon size={12} aria-hidden /> {h.label}</span> {restockText(r)}
+                    </td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        )}
+        <Segmented label="Cobrir os próximos" value={String(cover)} options={COVER_OPTIONS.map((d) => [String(d), `${d} dias`] as const)} onChange={(v) => setCover(Number(v))} full />
+        <p className="hint">Imprimir = vendas médias por dia × {cover} dias + pedidos em aberto − o que já está pronto, em mesas cheias.</p>
+      </section>
+
+      <section className="card" aria-label="Onde dá mais lucro">
+        <h2 className="card-title"><Store aria-hidden /> Onde dá mais lucro ({WINDOW_DAYS} dias)</h2>
+        {byChannel.length + byPrinter.length === 0 ? (
+          <p className="muted small">Aparece quando houver pedidos entregues.</p>
+        ) : (
+          <div className="cols-3">
+            <Ranking title="Canal" icon={<Store aria-hidden size={14} />} rows={byChannel} />
+            <Ranking title="Impressora" icon={<PrinterIcon aria-hidden size={14} />} rows={byPrinter} />
+            <Ranking title="Produto" rows={byProduct.slice(0, 5)} />
+          </div>
+        )}
+        <p className="hint">Lucro bruto = receita − custo das peças − taxas do canal, sem as despesas fixas. R$/h = por hora de máquina, com o tempo de impressão cadastrado nos produtos.</p>
+      </section>
     </div>
   );
 }
+
+const pct = (n: number | null) => (n === null ? "—" : `${n.toLocaleString("pt-BR", { maximumFractionDigits: 0 })}%`);
+
+/** Uma linha por canal, impressora ou produto: lucro bruto, margem e R$/h, com o melhor destacado. */
+function Ranking({ title, icon, rows }: { title: string; icon?: React.ReactNode; rows: Indicator[] }) {
+  const best = bestOf(rows);
+  const ranked = rankIndicators(rows).rows;
+  return (
+    <div>
+      <h3 className="small">{icon} {title}</h3>
+      {rows.length === 0 ? (
+        <p className="muted small">Sem vendas.</p>
+      ) : (
+        <ul className="dash-list" aria-label={`Lucro por ${title.toLowerCase()}`}>
+          {ranked.map((r) => (
+            <li key={r.key}>
+              <span>
+                {r.key}
+                {best?.row.key === r.key && <> <span className="badge ok" title={best.by === "hour" ? "Maior lucro por hora de máquina" : "Maior margem"}>melhor</span></>}
+              </span>
+              <span className="muted small">
+                {money(r.grossProfit)} · {pct(r.margin)}{r.profitPerHour !== null ? ` · ${money(r.profitPerHour)}/h` : ""}
+              </span>
+            </li>
+          ))}
+        </ul>
+      )}
+    </div>
+  );
+}
+
+const plural = (n: number, one: string, many: string) => `${n} ${n === 1 ? one : many}`;
+
+/** A frase de cada linha da reposição: o que imprimir ou por que está em dia. */
+function restockText(r: ReturnType<typeof restockSuggestions>[number]): string {
+  if (r.toPrint === 0) return r.daysLeft === null ? "em dia" : `em dia · cobre ${plural(r.daysLeft, "dia", "dias")}`;
+  const mesas = r.product.piecesPerPlate > 1 ? ` (${plural(r.plates, "mesa", "mesas")})` : "";
+  const why = r.stock < r.committed ? ` · faltam ${plural(Math.ceil(r.committed - r.stock), "peça", "peças")} dos pedidos` : r.daysLeft === 0 ? " · acabou" : r.daysLeft !== null && r.daysLeft <= 7 ? ` · acaba em ${plural(r.daysLeft, "dia", "dias")}` : "";
+  return `Imprima mais ${r.toPrint.toLocaleString("pt-BR")}${mesas}${why}`;
+}
+

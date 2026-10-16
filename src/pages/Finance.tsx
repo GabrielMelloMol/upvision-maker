@@ -7,7 +7,7 @@ import { wasteRunsRepo } from "../db/wasteRunsRepo";
 import { printers } from "../db/repo";
 import type { Db } from "../db/types";
 import { toCsv } from "../domain/csv";
-import { breakdown, change, financeSummary, monthlySeries, periodRange, previousRange, type OperationalCost } from "../domain/finance";
+import { breakdown, change, financeSummary, indicators, monthlySeries, periodRange, previousRange, type Indicator, type OperationalCost } from "../domain/finance";
 import { money } from "../domain/format";
 import { lineTotal, orderTotals, paymentOf, todayIso, type Order } from "../domain/orders";
 import type { Product } from "../domain/products";
@@ -25,6 +25,8 @@ import { useData } from "../ui/useData";
 
 const load = async (db: Db) => ({ orders: await ordersRepo.list(db), costs: await costsRepo.list(db), products: await productsRepo.list(db), printers: await printers.list(db), waste: await wasteRunsRepo.list(db) });
 const EMPTY = { orders: [] as Order[], costs: [] as OperationalCost[], products: [] as Product[], printers: [] as Printer[], waste: [] as WasteRun[] };
+/** "lucro bruto R$ 70,00 · margem 78% · R$ 35,00/h": o que cada canal ou impressora deixa e quanto rende por hora de máquina. */
+const profitSub = (b: Indicator) => `lucro bruto ${money(b.grossProfit)}${b.margin !== null ? ` · margem ${b.margin.toLocaleString("pt-BR", { maximumFractionDigits: 0 })}%` : ""}${b.profitPerHour !== null ? ` · ${money(b.profitPerHour)}/h` : ""}`;
 const NO_PRINTER = "Sem impressora";
 
 export default function Finance({ go }: { go: Go }) {
@@ -62,9 +64,9 @@ export default function Finance({ go }: { go: Go }) {
   const lost = wasteTotals(waste, from, to);
   const failPct = failureShare(lost.failure, s.cogs);
   const series = monthlySeries(orders, costs, from, to, waste);
-  const byChannel = breakdown(orders, from, to, (o) => o.channel);
+  const byChannel = indicators(breakdown(orders, from, to, (o) => o.channel));
   const byProduct = breakdown(orders, from, to, (_o, i) => i.description).slice(0, 8);
-  const byPrinter = breakdown(orders, from, to, (_o, i) => printerName(i.productId));
+  const byPrinter = indicators(breakdown(orders, from, to, (_o, i) => printerName(i.productId)));
   const channels = [...new Set(data.orders.map((o) => o.channel))];
 
   async function exportCsv() {
@@ -172,7 +174,7 @@ export default function Finance({ go }: { go: Go }) {
       <div className="cols-3">
         <section className="card">
           <h2 className="card-title">Por canal</h2>
-          <HBars rows={byChannel.map((b) => ({ label: b.key, value: b.revenue, sub: `lucro bruto ${money(b.grossProfit)}` }))} />
+          <HBars rows={byChannel.map((b) => ({ label: b.key, value: b.revenue, sub: profitSub(b) }))} />
         </section>
         <section className="card">
           <h2 className="card-title">Mais vendidos</h2>
@@ -180,7 +182,7 @@ export default function Finance({ go }: { go: Go }) {
         </section>
         <section className="card">
           <h2 className="card-title">Por impressora</h2>
-          <HBars rows={byPrinter.map((b) => ({ label: b.key, value: b.revenue, sub: `lucro bruto ${money(b.grossProfit)}` }))} />
+          <HBars rows={byPrinter.map((b) => ({ label: b.key, value: b.revenue, sub: profitSub(b) }))} />
         </section>
       </div>
         </>

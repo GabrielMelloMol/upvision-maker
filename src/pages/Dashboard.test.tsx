@@ -8,10 +8,10 @@ import Dashboard from "./Dashboard";
 
 const t = setupTauri();
 
-async function order(o: { name: string; status: string; dueDate?: string | null; deliveredAt?: string | null; items: { productId: number | null; qty: number; unitPrice: number; unitCost?: number }[] }) {
-  const r = await t.db.execute("INSERT INTO orders (customerName, channel, status, dueDate, deliveredAt, createdAt) VALUES (?, 'Loja', ?, ?, ?, '2026-01-01 10:00:00')", [o.name, o.status, o.dueDate ?? null, o.deliveredAt ?? null]);
+async function order(o: { name: string; status: string; channel?: string; printMinutes?: number; dueDate?: string | null; deliveredAt?: string | null; items: { productId: number | null; qty: number; unitPrice: number; unitCost?: number }[] }) {
+  const r = await t.db.execute("INSERT INTO orders (customerName, channel, status, dueDate, deliveredAt, createdAt) VALUES (?, ?, ?, ?, ?, '2026-01-01 10:00:00')", [o.name, o.channel ?? "Loja", o.status, o.dueDate ?? null, o.deliveredAt ?? null]);
   for (const [k, i] of o.items.entries()) {
-    await t.db.execute("INSERT INTO order_items (orderId, position, productId, description, qty, unitPrice, unitCost) VALUES (?, ?, ?, 'Item', ?, ?, ?)", [r.lastInsertId, k, i.productId, i.qty, i.unitPrice, i.unitCost ?? 0]);
+    await t.db.execute("INSERT INTO order_items (orderId, position, productId, description, qty, unitPrice, unitCost, printMinutes) VALUES (?, ?, ?, 'Item', ?, ?, ?, ?)", [r.lastInsertId, k, i.productId, i.qty, i.unitPrice, i.unitCost ?? 0, o.printMinutes ?? 0]);
   }
   return Number(r.lastInsertId);
 }
@@ -68,9 +68,10 @@ describe("Painel", () => {
     await user.click(within(estoque).getByRole("button", { name: "Repor materiais" }));
     expect(go).toHaveBeenLastCalledWith("materials");
 
-    // ideal = ceil(vendidos / 30 × 14): 30 → 14, 10 → 5
-    const rows = within(card(/Mais vendidos/)).getAllByRole("row").slice(1).map(text);
-    expect(rows).toEqual(["Medalha3020 / 14  saudável", "Vaso300 / 14  crítico", "Chaveiro101 / 5  atenção"]);
+    // reposição (#215): ritmo × 14 dias − pronto, o mais urgente primeiro; Vaso acabou (30 em 30 dias, estoque 0),
+    // Chaveiro cobre 3 dias (10 em 30 dias, 1 pronto: ideal 5, faltam 4) e Medalha está em dia (20 prontos, cobre 20 dias)
+    const rows = within(card(/Reposição sugerida/)).getAllByRole("row").slice(1).map(text);
+    expect(rows).toEqual(["Vaso300 crítico Imprima mais 14 · acabou", "Chaveiro101 crítico Imprima mais 4 · acaba em 3 dias", "Medalha3020 saudável em dia · cobre 20 dias"]);
   });
 
   test("A receber soma o que falta dos pedidos não cancelados, descontando sinal e pagos (#177)", async () => {
@@ -117,7 +118,8 @@ describe("Painel", () => {
     renderWithApp(<Dashboard go={vi.fn()} />);
     expect(await screen.findByText("Nenhum pedido com prazo nos próximos 7 dias.")).toBeInTheDocument();
     expect(screen.getByText("Filamentos e materiais acima do mínimo.")).toBeInTheDocument();
-    expect(screen.getByText(/Ainda sem vendas entregues/)).toBeInTheDocument();
+    expect(screen.getByText(/Ainda sem vendas nem pedidos de produtos cadastrados/)).toBeInTheDocument();
+    expect(screen.getByText("Aparece quando houver pedidos entregues.")).toBeInTheDocument();
     expect(text(tile("Atrasados"))).toContain("0tudo em dia");
     expect(text(tile("Receita do mês"))).toContain("sem base para comparar");
     expect(screen.queryByRole("button", { name: /Repor/ })).not.toBeInTheDocument();
@@ -158,5 +160,42 @@ describe("M15: erro do banco no Painel", () => {
     };
     renderWithApp(<Dashboard go={() => {}} />);
     expect(await screen.findByText(/Não foi possível ler os dados: banco travado/)).toBeInTheDocument();
+  });
+
+  test("reposição: a cobertura de 7, 14 ou 30 dias muda o que imprimir, e mesas de várias peças arredondam (#215)", async () => {
+    const comp = JSON.stringify({ filaments: [], materials: [], items: [] });
+    await t.db.execute("INSERT INTO products (id, name, composition, stock, piecesPerPlate) VALUES (1, 'Vaso', ?, 0, 6)", [comp]);
+    await order({ name: "Bia", status: "delivered", deliveredAt: "2026-06-12", items: [{ productId: 1, qty: 30, unitPrice: 10 }] });
+    const user = userEvent.setup();
+    renderWithApp(<Dashboard go={vi.fn()} />);
+    const rows = () => within(card(/Reposição sugerida/)).getAllByRole("row").slice(1).map(text);
+    await waitFor(() => expect(rows()).toEqual(["Vaso300 crítico Imprima mais 18 (3 mesas) · acabou"])); // 14 dias → 14 peças → 3 mesas de 6
+    await user.click(within(card(/Reposição sugerida/)).getByRole("button", { name: "7 dias" }));
+    await waitFor(() => expect(rows()).toEqual(["Vaso300 crítico Imprima mais 12 (2 mesas) · acabou"])); // 7 peças → 2 mesas
+    await user.click(within(card(/Reposição sugerida/)).getByRole("button", { name: "30 dias" }));
+    await waitFor(() => expect(rows()).toEqual(["Vaso300 crítico Imprima mais 30 (5 mesas) · acabou"]));
+  });
+
+  test("pedidos abertos entram na reposição: falta estoque para eles (#215)", async () => {
+    const comp = JSON.stringify({ filaments: [], materials: [], items: [] });
+    await t.db.execute("INSERT INTO products (id, name, composition, stock) VALUES (1, 'Chaveiro', ?, 2)", [comp]);
+    await order({ name: "Ana", status: "pending", items: [{ productId: 1, qty: 8, unitPrice: 10 }] });
+    renderWithApp(<Dashboard go={vi.fn()} />);
+    await waitFor(() => expect(within(card(/Reposição sugerida/)).getByText(/Imprima mais 6 · faltam 6 peças dos pedidos/)).toBeInTheDocument());
+  });
+
+  test("onde dá mais lucro: por canal, por impressora e por produto, com o melhor marcado (#215)", async () => {
+    const comp = JSON.stringify({ filaments: [], materials: [], items: [] });
+    await t.db.execute("INSERT INTO printers (id, name, watts) VALUES (1, 'A1', 100), (2, 'P1S', 100)");
+    await t.db.execute("INSERT INTO products (id, name, composition, stock, printerId) VALUES (1, 'Chaveiro', ?, 0, 1), (2, 'Vaso', ?, 0, 2)", [comp, comp]);
+    // Shopee: 100 de receita, 60 de lucro em 1 h (60/h); Loja: 100 de receita, 80 de lucro em 4 h (20/h)
+    await order({ name: "A", status: "delivered", deliveredAt: "2026-06-10", channel: "Shopee", printMinutes: 60, items: [{ productId: 1, qty: 1, unitPrice: 100, unitCost: 40 }] });
+    await order({ name: "B", status: "delivered", deliveredAt: "2026-06-11", channel: "Loja", printMinutes: 240, items: [{ productId: 2, qty: 1, unitPrice: 100, unitCost: 20 }] });
+    renderWithApp(<Dashboard go={vi.fn()} />);
+    const sec = await screen.findByRole("region", { name: "Onde dá mais lucro" });
+    const channels = await within(sec).findByRole("list", { name: "Lucro por canal" });
+    expect(within(channels).getAllByRole("listitem").map(text)).toEqual(["Shopee melhorR$ 60,00 · 60% · R$ 60,00/h", "LojaR$ 80,00 · 80% · R$ 20,00/h"]);
+    const printers = within(sec).getByRole("list", { name: "Lucro por impressora" });
+    expect(within(printers).getAllByRole("listitem").map(text)).toEqual(["A1 melhorR$ 60,00 · 60% · R$ 60,00/h", "P1SR$ 80,00 · 80% · R$ 20,00/h"]);
   });
 });

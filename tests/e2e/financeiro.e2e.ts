@@ -43,7 +43,7 @@ test("painel: atrasados, estoque acabando e abrir pedido", async ({ page, tauri 
   await go(page, "Painel");
   await expect(page.locator(".stat", { hasText: "Atrasados" })).toContainText("1");
   await expect(page.locator(".card", { hasText: "Estoque acabando" })).toContainText("PLA · Preto · X");
-  await expect(page.locator(".card", { hasText: "Mais vendidos" })).toContainText("Chaveiro");
+  await expect(page.getByRole("region", { name: "Reposição sugerida" })).toContainText("Chaveiro");
   await page.getByRole("button", { name: "#2 Bia" }).click();
   await expect(page.getByRole("dialog", { name: /Pedido #2 · Bia/ })).toBeVisible();
 });
