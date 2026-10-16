@@ -2,9 +2,9 @@ import * as THREE from "three";
 import { toCreasedNormals } from "three/addons/utils/BufferGeometryUtils.js";
 import { PhysicalCamera, WebGLPathTracer } from "three-gpu-pathtracer";
 import type { Model } from "../../geometry/types";
-import { fitCamera, THUMB_VIEW } from "../frame";
+import { fitCamera } from "../frame";
 import { type Filament, filamentMaterial, layerUVs, splitTops } from "./materials";
-import { type Backdrop, studioEnvironment, table } from "./stage";
+import { type Backdrop, brickWall, studioEnvironment, table } from "./stage";
 
 /*
  * Foto realista (#251): path tracing progressivo no navegador (three-gpu-pathtracer, WebGL2, sem rede). Câmera ¾ com
@@ -15,9 +15,19 @@ export const PHOTO_W = 1280;
 export const PHOTO_H = 960;
 const CREASE = (35 * Math.PI) / 180;
 const FOCAL_MM = 50;
-const F_STOP = 6; // quanto menor, mais desfoque fora do plano da peça
+const F_STOP = 2.8; // fundo bem desfocado (rodada 2)
+const ELEVATION_DEG = 25; // câmera baixa
+const AZIMUTH_DEG = 28; // quanto a câmera gira para a direita da frente (−y)
+const FOV_DEG = 27; // 50 mm em quadro cheio
+const MARGIN = 0.03; // corte apertado
+const WALL_FACTOR = 1; // a parede fica a tantos tamanhos de peça atrás
 const TO_Y_UP = new THREE.Euler(-Math.PI / 2, 0, 0);
-const VIGNETTE = 0.22;
+const VIGNETTE = 0.2;
+
+/** Uma peça (ou grupo de peças) da cena, com o filamento dela. */
+export type PhotoItem = { models: Model[]; filament?: Filament };
+/** O que vai na foto: peças impressas e adereços (metal, fita...), tudo em mm, Z para cima, já na posição da cena. */
+export type PhotoScene = { items: PhotoItem[]; extras: THREE.Object3D[] };
 
 export type PhotoOpts = {
   filament?: Filament;
@@ -25,6 +35,9 @@ export type PhotoOpts = {
   /** amostras por pixel (≈ 200 já fica limpo; menos fica granulado) */
   samples?: number;
   fStop?: number;
+  elevation?: number;
+  azimuth?: number;
+  wall?: boolean;
   exposure?: number;
   bounces?: number;
   w?: number;
@@ -36,46 +49,51 @@ export type Photo = { renderer: THREE.WebGLRenderer; tracer: WebGLPathTracer; st
 const yUp = (v: THREE.Vector3) => v.clone().applyEuler(TO_Y_UP);
 
 /** Monta a cena e devolve o controle da renderização progressiva. */
-export function createPhoto(models: Model[], opts: PhotoOpts = {}, canvas?: HTMLCanvasElement): Photo {
+export function createPhoto(scene3: PhotoScene, opts: PhotoOpts = {}, canvas?: HTMLCanvasElement): Photo {
   const w = opts.w ?? PHOTO_W, h = opts.h ?? PHOTO_H;
   const renderer = new THREE.WebGLRenderer({ antialias: false, alpha: false, preserveDrawingBuffer: true, canvas });
   renderer.setPixelRatio(1);
   renderer.setSize(w, h, false);
   renderer.outputColorSpace = THREE.SRGBColorSpace;
-  renderer.toneMapping = THREE.ACESFilmicToneMapping;
-  renderer.toneMappingExposure = opts.exposure ?? 1.0;
+  renderer.toneMapping = THREE.NeutralToneMapping; // mantém a saturação das cores (o ACES lava)
+  renderer.toneMappingExposure = opts.exposure ?? 0.14;
 
   const scene = new THREE.Scene();
   scene.environment = studioEnvironment();
   scene.background = new THREE.Color(0xe9ebee);
   const group = new THREE.Group();
-  for (const m of models)
-    for (const part of m.parts) {
-      let g = new THREE.BufferGeometry();
-      g.setAttribute("position", new THREE.BufferAttribute(part.mesh.positions, 3));
-      g.setIndex(new THREE.BufferAttribute(part.mesh.indices, 1));
-      g = toCreasedNormals(g, CREASE);
-      const { walls, tops } = splitTops(g);
-      g.dispose();
-      for (const [geo, isTop] of [[walls, false], [tops, true]] as const) {
-        if (!geo) continue;
-        layerUVs(geo);
-        group.add(new THREE.Mesh(geo, filamentMaterial(opts.filament ?? "pla", part.color, isTop)));
+  const printed = new THREE.Group();
+  for (const item of scene3.items)
+    for (const m of item.models)
+      for (const part of m.parts) {
+        let g = new THREE.BufferGeometry();
+        g.setAttribute("position", new THREE.BufferAttribute(part.mesh.positions, 3));
+        g.setIndex(new THREE.BufferAttribute(part.mesh.indices, 1));
+        g = toCreasedNormals(g, CREASE);
+        const { walls, tops } = splitTops(g);
+        g.dispose();
+        for (const [geo, isTop] of [[walls, false], [tops, true]] as const) {
+          if (!geo) continue;
+          layerUVs(geo);
+          printed.add(new THREE.Mesh(geo, filamentMaterial(item.filament ?? opts.filament ?? "pla", part.color, isTop)));
+        }
       }
-    }
-  const box = new THREE.Box3().setFromObject(group); // Z para cima
+  group.add(printed, ...scene3.extras);
+  const box = new THREE.Box3().setFromObject(printed); // Z para cima: foco, mesa e enquadramento seguem só o que foi impresso (a corrente e a fita podem sair do quadro)
   const size = box.getSize(new THREE.Vector3());
   const center = box.getCenter(new THREE.Vector3());
   const span = Math.max(size.x, size.y, size.z, 1);
   group.rotation.copy(TO_Y_UP);
   scene.add(group);
-  const floor = table(opts.backdrop ?? "studio", span, box.min.z, yUp(center)); // Z da mesa vira Y
+  const floor = table(opts.backdrop ?? "wood", span, box.min.z, yUp(center)); // Z da mesa vira Y
   scene.add(floor);
 
-  // câmera: enquadra em Z para cima e converte (posição e alvo) para Y para cima
-  const probe = new THREE.PerspectiveCamera(THUMB_VIEW.fov, w / h, 0.1, span * 50);
-  fitCamera(probe, box, THUMB_VIEW.dir, 0.08);
-  const camera = new PhysicalCamera(THUMB_VIEW.fov, w / h, span * 0.05, span * 80);
+  // câmera baixa, de lado, olhando o centro das peças; enquadra em Z para cima e converte para Y para cima
+  const el = ((opts.elevation ?? ELEVATION_DEG) * Math.PI) / 180, az = ((opts.azimuth ?? AZIMUTH_DEG) * Math.PI) / 180;
+  const dir = new THREE.Vector3(Math.sin(az) * Math.cos(el), -Math.cos(az) * Math.cos(el), Math.sin(el));
+  const probe = new THREE.PerspectiveCamera(FOV_DEG, w / h, 0.1, span * 50);
+  fitCamera(probe, box, dir, MARGIN);
+  const camera = new PhysicalCamera(FOV_DEG, w / h, span * 0.05, span * 80);
   const target = yUp(center);
   camera.position.copy(yUp(probe.position));
   camera.up.set(0, 1, 0);
@@ -84,11 +102,11 @@ export function createPhoto(models: Model[], opts: PhotoOpts = {}, canvas?: HTML
   camera.fStop = opts.fStop ?? F_STOP;
   camera.focusDistance = camera.position.distanceTo(target);
   camera.updateMatrixWorld();
+  if (opts.wall ?? opts.backdrop !== "studio") {
+    const toCam = camera.position.clone().sub(target).setY(0).normalize(); // horizontal, da peça para a câmera
+    scene.add(brickWall(target.clone().addScaledVector(toCam, -span * WALL_FACTOR).setY(floor.position.y), toCam));
+  }
 
-  scene.traverse((o) => {
-    const mat = (o as THREE.Mesh).material as THREE.MeshPhysicalMaterial | undefined;
-    for (const t of [mat?.map, mat?.normalMap]) if (t) renderer.initTexture(t); // sobe as texturas à GPU antes do path tracer lê-las
-  });
   const tracer = new WebGLPathTracer(renderer);
   tracer.renderDelay = 0;
   tracer.fadeDuration = 0;
@@ -144,9 +162,9 @@ export function createPhoto(models: Model[], opts: PhotoOpts = {}, canvas?: HTML
 }
 
 /** Renderiza até o número de amostras e devolve o PNG e o tempo. */
-export async function renderPhoto(models: Model[], opts: PhotoOpts = {}): Promise<{ url: string; ms: number; samples: number; setupMs: number; gpu: string }> {
+export async function renderPhoto(scene3: PhotoScene, opts: PhotoOpts = {}): Promise<{ url: string; ms: number; samples: number; setupMs: number; gpu: string }> {
   const s0 = performance.now();
-  const photo = createPhoto(models, opts);
+  const photo = createPhoto(scene3, opts);
   await photo.ready();
   photo.step(); // 1ª amostra: compila o shader e sobe a BVH
   photo.renderer.getContext().finish();
@@ -171,6 +189,6 @@ export async function renderPhoto(models: Model[], opts: PhotoOpts = {}): Promis
  * A primeira foto da página com textura (mesa de madeira) sai escura: o path tracer só enxerga as texturas depois de um
  * primeiro uso completo. Uma foto minúscula descartada, com a mesma mesa, resolve; chame antes da primeira foto de verdade.
  */
-export async function warmUp(models: Model[], opts: PhotoOpts = {}): Promise<void> {
-  await renderPhoto(models, { ...opts, w: 32, h: 24, samples: 2 });
+export async function warmUp(scene3: PhotoScene, opts: PhotoOpts = {}): Promise<void> {
+  await renderPhoto(scene3, { ...opts, w: 32, h: 24, samples: 2 });
 }

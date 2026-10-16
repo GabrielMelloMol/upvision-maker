@@ -10,11 +10,13 @@ export const FILAMENT_LABELS: Record<Filament, string> = { pla: "PLA fosco", sil
 
 export const LAYER_MM = 0.2;
 export const TOP_LINE_MM = 0.42;
-const STRIPE_PX = 32; // altura da faixa (uma camada)
+const STRIPE_PX = 24; // altura da faixa (uma camada)
+export const LAYER_ROWS = 12; // camadas diferentes na textura: cada uma com a sua força (imperfeição, sem repetir a cada 0,2 mm)
 const GRAIN_PX = 128; // largura (ao longo da camada): o grão não repete de forma óbvia
 const TOP_NZ = 0.5; // acima disso o triângulo é face de cima/baixo
 const SLOPE = 2.4; // inclinação máxima da normal na camada (quanto mais, mais marcada)
-const GRAIN = 0.1; // grão ao longo da linha
+const GRAIN = 0.12; // grão ao longo da linha
+const ROW_VARIATION = 0.45; // quanto a força de cada camada varia (± fração)
 
 let cachedNormal: THREE.CanvasTexture | null = null;
 
@@ -23,23 +25,27 @@ export function layerNormalMap(): THREE.CanvasTexture {
   if (cachedNormal) return cachedNormal;
   const c = document.createElement("canvas");
   c.width = GRAIN_PX;
-  c.height = STRIPE_PX;
+  c.height = STRIPE_PX * LAYER_ROWS;
   const g = c.getContext("2d")!;
-  const img = g.createImageData(GRAIN_PX, STRIPE_PX);
+  const img = g.createImageData(GRAIN_PX, STRIPE_PX * LAYER_ROWS);
   let seed = 7;
   const rnd = () => ((seed = (seed * 1664525 + 1013904223) >>> 0) / 4294967296) * 2 - 1;
-  for (let y = 0; y < STRIPE_PX; y++) {
-    const t = (y + 0.5) / STRIPE_PX;
-    const slope = Math.cos(Math.PI * t) * SLOPE * 0.5; // perfil sen(πt): a camada sobe e desce
-    for (let x = 0; x < GRAIN_PX; x++) {
-      const nx = rnd() * GRAIN;
-      const ny = -slope / 2 + rnd() * GRAIN * 0.5;
-      const len = Math.hypot(nx, ny, 1);
-      const i = (y * GRAIN_PX + x) * 4;
-      img.data[i] = ((nx / len) * 0.5 + 0.5) * 255;
-      img.data[i + 1] = ((ny / len) * 0.5 + 0.5) * 255;
-      img.data[i + 2] = ((1 / len) * 0.5 + 0.5) * 255;
-      img.data[i + 3] = 255;
+  for (let row = 0; row < LAYER_ROWS; row++) {
+    const strength = 1 + rnd() * ROW_VARIATION; // camada mais ou menos marcada
+    const shift = rnd() * 0.12; // e levemente deslocada
+    for (let y = 0; y < STRIPE_PX; y++) {
+      const t = (y + 0.5) / STRIPE_PX;
+      const slope = Math.cos(Math.PI * (t + shift)) * SLOPE * 0.5 * strength;
+      for (let x = 0; x < GRAIN_PX; x++) {
+        const nx = rnd() * GRAIN;
+        const ny = -slope / 2 + rnd() * GRAIN * 0.5;
+        const len = Math.hypot(nx, ny, 1);
+        const i = ((row * STRIPE_PX + y) * GRAIN_PX + x) * 4;
+        img.data[i] = ((nx / len) * 0.5 + 0.5) * 255;
+        img.data[i + 1] = ((ny / len) * 0.5 + 0.5) * 255;
+        img.data[i + 2] = ((1 / len) * 0.5 + 0.5) * 255;
+        img.data[i + 3] = 255;
+      }
     }
   }
   g.putImageData(img, 0, 0);
@@ -57,10 +63,12 @@ export function layerNormalMap(): THREE.CanvasTexture {
 function paint(color: string): THREE.Color {
   const c = new THREE.Color(color);
   const hsl = c.getHSL({ h: 0, s: 0, l: 0 });
-  if (hsl.l < 0.045) c.setHSL(hsl.h, hsl.s, 0.045);
+  const sat = Math.min(1, hsl.s * SATURATE); // foto de produto: cores vivas, o filamento real é mais saturado que o hex da tela
+  c.setHSL(hsl.h, sat, Math.max(hsl.l, 0.045));
   return c;
 }
 
+const SATURATE = 1.12;
 const TOP_NORMAL = 0.3; // as linhas do bico na face de cima: bem mais leves que as camadas da parede
 
 export function filamentMaterial(kind: Filament, color: string, top = false): THREE.MeshPhysicalMaterial {
@@ -68,7 +76,7 @@ export function filamentMaterial(kind: Filament, color: string, top = false): TH
   if (kind === "silk") {
     // silk: acetinado com reflexo largo e cor funda (metal leve)
     const deep = paint(color).multiplyScalar(0.8);
-    return new THREE.MeshPhysicalMaterial({ ...base, color: deep, roughness: 0.3, metalness: 0.4 });
+    return new THREE.MeshPhysicalMaterial({ ...base, color: deep, roughness: 0.32, metalness: 0.3 });
   }
   if (kind === "petg") {
     // PETG: liso e brilhante, reflexo nítido da caixa de luz (sem clearcoat: o WebKit do app não compila o shader com ele)
@@ -121,11 +129,11 @@ export function layerUVs(g: THREE.BufferGeometry): void {
       const p = P[k];
       if (top) {
         uv[(t + k) * 2] = (p.x * LINE - p.y * LINE) / 20; // ao longo da linha (grão)
-        uv[(t + k) * 2 + 1] = (p.x * LINE + p.y * LINE) / TOP_LINE_MM;
+        uv[(t + k) * 2 + 1] = (p.x * LINE + p.y * LINE) / (TOP_LINE_MM * LAYER_ROWS);
       } else {
         const len = Math.hypot(N.x, N.y) || 1;
         uv[(t + k) * 2] = (p.x * (-N.y / len) + p.y * (N.x / len)) / 20;
-        uv[(t + k) * 2 + 1] = p.z / LAYER_MM;
+        uv[(t + k) * 2 + 1] = p.z / (LAYER_MM * LAYER_ROWS);
       }
     }
   }
