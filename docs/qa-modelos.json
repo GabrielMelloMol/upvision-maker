@@ -4161,15 +4161,14 @@
   "group": "home",
   "label": "Estilingue personalizado (slingshot)",
   "variant": "máximo",
-  "status": "aviso",
+  "status": "ok",
   "reasons": [
-   "Orca: torre de purga em cima de uma peça depois do --arrange do CLI (na tela, arraste a torre ou use Arrumar)",
    "app: Brinquedo e hobby, sem garantia de resistência: imprima deitado, como no arquivo (as camadas ficam no plano da forquilha, que é como ela é puxada), em PETG ou ABS, com 5 paredes e 100% de preenchimento. Use óculos, não aponte para pessoas ou animais e não deixe com criança sem um adulto."
   ],
   "date": "2026-10-16",
   "slicers": "Bambu ✓ · Orca ✓ · Projeto Bambu ✓",
-  "minutes": 321,
-  "grams": 309,
+  "minutes": 311,
+  "grams": 289.1,
   "plates": 1
  },
  {
@@ -4180,13 +4179,14 @@
   "variant": "mínimo",
   "status": "ok",
   "reasons": [
+   "app: O cabo ficou estreito para as marcas de dedo: aumente a largura ou a cintura.",
    "app: Braço fino (12 mm): a forquilha pode quebrar na primeira esticada. Use 14 mm ou mais.",
    "app: Brinquedo e hobby, sem garantia de resistência: imprima deitado, como no arquivo (as camadas ficam no plano da forquilha, que é como ela é puxada), em PETG ou ABS, com 5 paredes e 100% de preenchimento. Use óculos, não aponte para pessoas ou animais e não deixe com criança sem um adulto."
   ],
   "date": "2026-10-16",
   "slicers": "Bambu ✓ · Orca ✓ · Projeto Bambu ✓",
-  "minutes": 38,
-  "grams": 25.2,
+  "minutes": 34,
+  "grams": 20.3,
   "plates": 1
  },
  {
@@ -4201,8 +4201,8 @@
   ],
   "date": "2026-10-16",
   "slicers": "Bambu ✓ · Orca ✓",
-  "minutes": 117,
-  "grams": 93.7,
+  "minutes": 113,
+  "grams": 81,
   "plates": 1
  },
  {
@@ -4217,8 +4217,8 @@
   ],
   "date": "2026-10-16",
   "slicers": "Bambu ✓ · Orca ✓ · Projeto Bambu ✓",
-  "minutes": 122,
-  "grams": 96.8,
+  "minutes": 117,
+  "grams": 83.9,
   "plates": 1
  },
  {
@@ -4233,8 +4233,8 @@
   ],
   "date": "2026-10-16",
   "slicers": "Bambu ✓ · Orca ✓",
-  "minutes": 115,
-  "grams": 94.1,
+  "minutes": 110,
+  "grams": 81.3,
   "plates": 1
  },
  {

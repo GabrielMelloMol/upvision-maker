@@ -197,6 +197,8 @@ export const HOME_STORAGE_MODELS: ModelDef[] = [
           num("forkLen", "Comprimento da forquilha", 35, 90, { step: 1 }),
           num("spread", "Abertura entre as pontas", 25, 100, { step: 1, hint: "De centro a centro dos furos do elástico." }),
           num("armW", "Largura dos braços", 12, 26, { step: 0.5, hint: "Menos de 14 mm quebra com facilidade." }),
+          num("waist", "Cintura do cabo", 0.6, 1, { step: 0.05, unit: "", hint: "1 deixa o cabo reto; 0,8 estreita no meio e firma a mão." }),
+          bool("fingers", "Marcas de dedo nos lados do cabo"),
           num("thickness", "Espessura", 8, 20, { step: 1 }),
           color("color", "Estilingue"),
           color("nameColor", "Nome (em relevo)"),

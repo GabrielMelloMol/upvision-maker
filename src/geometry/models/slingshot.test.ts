@@ -23,7 +23,7 @@ describe("estilingue personalizado (#238)", { timeout: 60_000 }, () => {
     expect(b.max[2] - b.min[2]).toBeCloseTo(P.thickness, 2);
     expect(b.max[0] + b.min[0]).toBeCloseTo(0, 1); // simétrico
     expect(b.max[0] - b.min[0]).toBeCloseTo(P.spread + P.armW, 0);
-    expect(b.max[1] - b.min[1]).toBeCloseTo(P.handleLen + P.forkLen + P.armW, 0);
+    expect(b.max[1] - b.min[1]).toBeCloseTo(P.handleLen + P.forkLen + P.armW / 2, 0);
     const s = solid(m);
     expect(s.decompose().length).toBe(1);
     s.delete();
@@ -64,5 +64,33 @@ describe("estilingue personalizado (#238)", { timeout: 60_000 }, () => {
     const base = sling().warnings!;
     expect(base).toHaveLength(1);
     expect(base[0]).toMatch(/Brinquedo e hobby.*PETG ou ABS.*óculos.*não aponte para pessoas ou animais.*adulto/);
+  });
+
+  test("cabo com cintura: no meio é mais estreito que nas pontas; sem cintura (1) é reto; arestas arredondadas; marcas de dedo tiram material", () => {
+    const widthAt = (m: Mesh, y: number) => { const sd = solid(m); const strip = M.Manifold.cube([200, 1, P.thickness], false).translate([-100, y, 0]); const cut = sd.intersect(strip); const bb = cut.boundingBox(); [sd, strip, cut].forEach((o) => o.delete()); return bb.max[0] - bb.min[0]; };
+    const waisted = part(sling({ fingers: false }), "Estilingue")!.mesh;
+    const mid = widthAt(waisted, P.handleLen * 0.5), end = widthAt(waisted, P.handleLen * 0.12);
+    expect(mid).toBeLessThan(end - 3);
+    const straight = part(sling({ fingers: false, waist: 1 }), "Estilingue")!.mesh;
+    expect(widthAt(straight, P.handleLen * 0.5)).toBeGreaterThan(mid + 3);
+    // arestas: a seção no topo é menor que a do meio da espessura (arredondado)
+    const sd = solid(waisted);
+    const top = sd.slice(P.thickness - 0.1), midC = sd.slice(P.thickness / 2);
+    expect(top.area()).toBeLessThan(midC.area() - 20);
+    [sd, top, midC].forEach((o) => o.delete());
+    expect(vol(part(sling({ fingers: true }), "Estilingue")!.mesh)).toBeLessThan(vol(waisted) - 30);
+  });
+
+  test("cabo estreito demais para as concavidades: sem elas, com aviso; o nome nunca sai das bordas (uma peça só)", () => {
+    const thin = sling({ handleW: 22, waist: 0.6 });
+    expect(thin.warnings!.join(" ")).toMatch(/estreito para as marcas de dedo/);
+    for (const o of [thin, sling({ handleW: 22, waist: 0.6, nameMode: "raised" }), sling()]) {
+      const nome = o.models[0].parts.find((x) => x.name === "Nome");
+      if (!nome) continue;
+      const nb = meshBounds([nome.mesh])!, sb = meshBounds([o.models[0].parts[0].mesh])!;
+      expect(nb.min[0]).toBeGreaterThan(sb.min[0] + 1);
+      expect(nb.max[0]).toBeLessThan(sb.max[0] - 1);
+    }
+    expect(sling().warnings!.join(" ")).not.toMatch(/estreito para as marcas/);
   });
 });
