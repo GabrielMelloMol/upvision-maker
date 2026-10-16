@@ -1,4 +1,4 @@
-import { ArrowDown, ArrowLeft, ArrowRight, ArrowUp, BottleWine, Cat, Wind, Smartphone, CircleDashed, Disc3, Dumbbell, KeyRound, Link2, Nfc, PawPrint, Pencil, ToggleLeft } from "lucide-react";
+import { ArrowDown, ArrowLeft, ArrowRight, ArrowUp, BottleWine, Cat, Wind, Smartphone, CircleDashed, Disc3, Dumbbell, KeyRound, Link2, Nfc, PawPrint, Pencil, ToggleLeft, Weight } from "lucide-react";
 import { buildArticulatedName, DEFAULT_ARTICULATED } from "../../../geometry/models/articulatedName";
 import { buildAroma, DEFAULT_AROMA } from "../../../geometry/models/aromaKeychain";
 import { buildClicker, DEFAULT_CLICKER } from "../../../geometry/models/clicker";
@@ -14,6 +14,7 @@ import { buildPhoneKeychain, DEFAULT_PHONE_KEYCHAIN } from "../../../geometry/mo
 import { buildPetTag, DEFAULT_PET_TAG } from "../../../geometry/models/petTag";
 import { buildSpinner, DEFAULT_SPINNER } from "../../../geometry/models/spinner";
 import { as, bool, choice, color, logoFields, num, resinFields, text, type ModelDef } from "../fields";
+import { buildDumbbell, buildKettlebell, DEFAULT_DUMBBELL, DEFAULT_KETTLEBELL } from "../../../geometry/models/gymWeights";
 
 /** Modelos prontos da categoria Chaveiros. */
 export const KEYCHAIN_MODELS: ModelDef[] = [
@@ -366,5 +367,35 @@ export const KEYCHAIN_MODELS: ModelDef[] = [
       },
     ],
     build: (ctx, p) => buildNamePendants(ctx, as(p)),
+  },
+  {
+    id: "gymDumbbell",
+    category: "keychains",
+    label: "Chaveiro halter",
+    blurb: "Halter com duas anilhas empilhadas de cada lado, orelha para a argola na ponta e o peso em relevo na barra.",
+    icon: Dumbbell,
+    font: true,
+    art: "Arte na barra (opcional; no lugar do texto)",
+    defaults: DEFAULT_DUMBBELL,
+    sections: [
+      { title: "Texto", fields: [text("text", "Texto na barra", 8, "Ex.: 20 KG. Encolhe sozinho para caber na barra.")] },
+      { title: "Tamanho e cores", fields: [num("length", "Comprimento", 45, 90, { step: 1 }), num("plateH", "Altura das anilhas", 20, 45, { step: 1 }), num("thickness", "Espessura", 3, 8), num("relief", "Relevo", 0.4, 2), color("plateColor", "Anilhas"), color("barColor", "Barra e argola"), color("textColor", "Texto")] },
+    ],
+    build: (ctx, p) => buildDumbbell(ctx, as(p)),
+  },
+  {
+    id: "gymKettlebell",
+    category: "keychains",
+    label: "Chaveiro kettlebell",
+    blurb: "Kettlebell com a alça vazada (já serve de argola) e o peso em relevo no corpo.",
+    icon: Weight,
+    font: true,
+    art: "Arte no corpo (opcional; no lugar do texto)",
+    defaults: DEFAULT_KETTLEBELL,
+    sections: [
+      { title: "Texto", fields: [text("text", "Texto no corpo", 4, "Ex.: 16. Fica no meio do corpo.")] },
+      { title: "Tamanho e cores", fields: [num("diameter", "Tamanho do corpo", 28, 55, { step: 1 }), num("thickness", "Espessura", 3, 8), num("relief", "Relevo", 0.4, 2), color("bodyColor", "Kettlebell"), color("textColor", "Texto")] },
+    ],
+    build: (ctx, p) => buildKettlebell(ctx, as(p)),
   },
 ];

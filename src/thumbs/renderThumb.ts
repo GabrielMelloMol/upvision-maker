@@ -25,7 +25,9 @@ const STUDIO_SHADOW = 0.42; // sombra de contato da vitrine: bem visível no fun
 const MIN_LIGHTNESS = 0.06; // preto vira grafite escuro (continua preto); o rim separa do card escuro
 
 /** Entradas que alguns modelos exigem para não abrir vazios. */
-const INPUTS: Record<string, Params> = { organizerBox: { boxColor: "#0f9d8a", lidColor: "#fbf3df", decorColor: "#0f9d8a" },  pix: { key: "loja@upvision.app", name: "Minha Loja", city: "Sao Paulo" }, coaster: { faceDown: false, text: "Café", borderWidth: 2 }, musicCard: { code: "qr", codeLink: "https://open.spotify.com/track/11dFghVXANMlKmJXsNCbNl", codeSize: 40 }, phoneStandFold: { layout: "assembled", text: "Ana", bodyColor: "#7c8ea6" }, bigFrame: { artW: 150, artH: 190, width: 22, claws: false, back: "none", bodyColor: "#8b5a2b" } }; // a miniatura mostra a moldura inteira (uma peça), não as peças soltas // o porta-copos imprime com o desenho na mesa: na miniatura ele aparece em cima
+/** Modelos em que o texto é o destaque: a miniatura mostra o texto padrão, não o desenho de exemplo. */
+const TEXT_THUMBS = new Set(["gymDumbbell", "gymKettlebell", "paperClip", "bookThumb", "bookStand"]);
+const INPUTS: Record<string, Params> = { organizerBox: { boxColor: "#0f9d8a", lidColor: "#fbf3df", decorColor: "#0f9d8a" },  pix: { key: "loja@upvision.app", name: "Minha Loja", city: "Sao Paulo" }, coaster: { faceDown: false, text: "Café", borderWidth: 2 }, musicCard: { code: "qr", codeLink: "https://open.spotify.com/track/11dFghVXANMlKmJXsNCbNl", codeSize: 40 }, phoneStandFold: { layout: "assembled", text: "Ana", bodyColor: "#7c8ea6" }, bigFrame: { artW: 150, artH: 190, width: 22, claws: false, back: "none", bodyColor: "#8b5a2b" } };
 
 export async function buildModels(id: string, patch: Params = {}): Promise<Model[]> {
   const def = MODELS.find((m) => m.id === id);
@@ -37,7 +39,7 @@ export async function buildModels(id: string, patch: Params = {}): Promise<Model
   const extra = Object.fromEntries(await Promise.all(fields.filter((f) => f.kind === "font").map(async (f) => [f.k, await loadFont(String(p[f.k]))] as const)));
   const ctx: ModelCtx = {
     M,
-    art: def.art ? testArt(M) : null,
+    art: def.art && !TEXT_THUMBS.has(def.id) ? testArt(M) : null,
     artLayers: def.art && def.artColors ? testArtLayers(M) : null,
     text: (s, h) => (s.trim() ? textToCrossSection(M, font, s, h) : null),
     arc: (s, h, r, side) => (s.trim() ? arcTextToCrossSection(M, font, s, h, r, side) : null),

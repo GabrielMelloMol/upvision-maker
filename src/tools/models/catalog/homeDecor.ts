@@ -1,4 +1,4 @@
-import { Bookmark, Car, Keyboard, Plane, Truck, CaseUpper, CircleDot, Frame, Gem, KeySquare, Lamp, LampDesk, PencilRuler, PenTool, Puzzle, Smartphone, WholeWord } from "lucide-react";
+import { Bookmark, Paperclip, Car, Keyboard, Plane, Truck, CaseUpper, CircleDot, Frame, Gem, KeySquare, Lamp, LampDesk, PencilRuler, PenTool, Puzzle, Smartphone, WholeWord } from "lucide-react";
 import { buildCutoutFrame, buildCutoutStand, DEFAULT_CUTOUT_FRAME, DEFAULT_CUTOUT_STAND } from "../../../geometry/models/cutoutFrame";
 import { KIT_CAR } from "../../../geometry/kit/models/kitCar";
 import { KIT_TRUCK } from "../../../geometry/kit/models/kitTruck";
@@ -11,6 +11,7 @@ import { buildBigLetter, DEFAULT_BIG_LETTER } from "../../../geometry/models/big
 import { buildBigFrame, DEFAULT_BIG_FRAME } from "../../../geometry/models/bigFrame";
 import { buildBookmark, DEFAULT_BOOKMARK } from "../../../geometry/models/bookmark";
 import { buildCoaster, DEFAULT_COASTER } from "../../../geometry/models/coaster";
+import { buildPaperClip, DEFAULT_PAPER_CLIP } from "../../../geometry/models/paperClip";
 import { buildKeyHolder, DEFAULT_KEY_HOLDER } from "../../../geometry/models/keyHolder";
 import { buildLamp, DEFAULT_LAMP } from "../../../geometry/models/lamp";
 import { buildLineArtStand, DEFAULT_LINE_ART } from "../../../geometry/models/lineArtStand";
@@ -27,6 +28,21 @@ import { as, bool, choice, color, font, nfcFields, num, profile, text, textureFi
 export const HOME_DECOR_MODELS: ModelDef[] = [
   kitTemplateDef(AVIAO, { category: "home", icon: Plane }),
   kitTemplateDef(HELICOPTERO, { category: "home", icon: Plane }),
+  {
+    id: "paperClip",
+    category: "home",
+    label: "Clipe de papel",
+    blurb: "Clipe chato no formato do de arame, com uma cabeça de texto ou desenho: marca a página ou prende folhas.",
+    icon: Paperclip,
+    font: true,
+    art: "Desenho da cabeça (opcional; no lugar do texto)",
+    defaults: DEFAULT_PAPER_CLIP,
+    sections: [
+      { title: "Cabeça", fields: [text("text", "Texto da cabeça", 10), num("headSize", "Largura da cabeça", 15, 65, { step: 1, hint: "Até 65 mm; a cabeça encolhe o texto para caber." }), num("border", "Borda da cabeça", 1, 5, { step: 0.2 }), num("relief", "Relevo", 0.4, 1.5)] },
+      { title: "Clipe", fields: [num("length", "Comprimento do clipe", 30, 50, { step: 1 }), num("width", "Largura do clipe", 11, 20, { step: 0.5 }), num("band", "Fita", 1.2, 2.4, { step: 0.1, hint: "Mais fina flexiona mais; mais grossa aperta mais." }), num("thickness", "Altura", 1.2, 3, { step: 0.1 }), color("clipColor", "Clipe"), color("artColor", "Texto ou desenho")] },
+    ],
+    build: (ctx, p) => buildPaperClip(ctx, as(p)),
+  },
   {
     id: "bookmark",
     category: "home",

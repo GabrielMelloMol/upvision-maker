@@ -13,6 +13,11 @@ export const MODEL_PROFILES: Record<string, PrintProfile> = {
   cutterStamp: { walls: 2, notes: ["Lâmina fina: deixe ligado \"Detectar paredes finas\" no fatiador para ela não sumir."] },
   ejector: { walls: 3, infill: 20 },
   candyMold: { walls: 3, infill: 20, notes: ["Imprima a forma com a aba na mesa e o êmbolo com a marca para baixo. Use filamento próprio para alimento (PETG/PLA food safe) e lave bem: peça impressa tem frestas."] },
+  gymDumbbell: { walls: 3, infill: 40, notes: ["Imprima deitado, como sai no arquivo: troque o filamento na barra e no texto como no AMS, ou use uma cor só."] },
+  gymKettlebell: { walls: 3, infill: 40 },
+  paperClip: { layerHeight: 0.16, walls: 2, infill: 100, notes: ["Imprima deitado, como sai no arquivo. A fita é fina de propósito: PETG flexiona mais e aguenta mais aberturas que PLA. Se quebrar ao abrir, aumente a fita ou a altura."] },
+  bookThumb: { walls: 3, infill: 30, notes: ["O anel sai em pé e a aba chata na mesa: sem suporte. PETG é mais confortável na pele e resiste melhor ao uso."] },
+  bookStand: { walls: 3, infill: 20, notes: ["Imprima como está no arquivo, com a base na mesa: o apoio inclinado não precisa de suporte. Para tablet pesado, ligue mais paredes (4) ou preencha 30%."] },
   bagClip: { walls: 4, infill: 30, notes: ["Imprima deitado, como sai no arquivo: as hastes flexionam sem quebrar."] },
   fridgeMagnet: { walls: 3, infill: 20, notes: ["Há uma pausa para colocar os ímãs: coloque todos com a mesma face para cima e retome; as camadas seguintes cobrem. Confira a altura de camada igual à do fatiador."] },
   shirtPrint: {
