@@ -24,10 +24,14 @@ impressoras de mesa maior); sem o aviso do app, é **falha**.
 
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 **Total:** 338 casos · 242 ok · 96 com aviso · 0 com falha · 0 n/a
 =======
 **Total:** 337 casos · 241 ok · 96 com aviso · 0 com falha · 0 n/a
 >>>>>>> origin/feat/abridor-imagem
+=======
+**Total:** 338 casos · 249 ok · 89 com aviso · 0 com falha · 0 n/a
+>>>>>>> origin/feat/alca-copo
 
 ## Forja
 
@@ -343,6 +347,15 @@ impressoras de mesa maior); sem o aviso do app, é **falha**.
 | Boleira (cakeStand) | máximo | ⚠️ aviso | Bambu ✓ · Orca ✓ · Projeto Bambu ✓ | – | – | – | – | "Boleira" não cabe na mesa de 256 mm (270,0 × 270,0 × 200,0 mm); Bambu recusa na mesa de 256 mm do A1 (o app avisa); Orca recusa na mesa de 256 mm do A1 (o app avisa); Projeto Bambu recusa na mesa de 256 mm do A1 (o app avisa); app: O prato tem 270 mm: passa da mesa de 256 mm. Diminua o diâmetro. |
 | Boleira (cakeStand) | mínimo | ✅ ok | Bambu ✓ · Orca ✓ · Projeto Bambu ✓ | 36 | 16,6 | 1 | – | – |
 | Boleira (cakeStand) | padrão | ✅ ok | Bambu ✓ · Orca ✓ · Projeto Bambu ✓ | 157 | 108,2 | 1 | – | – |
+| Alça de copo térmico (cupHandle) | anel de teste | ✅ ok | Bambu ✓ · Orca ✓ | 14 | 14,5 | 1 | – | app: Anel de teste: ele tem que passar pelo copo de baixo para cima e parar rente à marca de 70 mm da base. Se apertar, aumente a folga; se ficar folgado, diminua. |
+| Alça de copo térmico (cupHandle) | copo pequeno | ✅ ok | Bambu ✓ · Orca ✓ · Projeto Bambu ✓ | 383 | 129,1 | 1 | – | – |
+| Alça de copo térmico (cupHandle) | luva com faixas | ✅ ok | Bambu ✓ · Orca ✓ · Projeto Bambu ✓ | 417 | 152,8 | 1 | – | – |
+| Alça de copo térmico (cupHandle) | luva vazada | ✅ ok | Bambu ✓ · Orca ✓ · Projeto Bambu ✓ | 489 | 167,2 | 1 | – | – |
+| Alça de copo térmico (cupHandle) | máximo | ⚠️ aviso | Bambu ✓ · Orca ✓ · Projeto Bambu ✓ | – | – | – | – | Bambu: torre de purga passa da mesa na posição padrão do CLI (na tela, arraste a torre ou use Arrumar); Orca: torre de purga passa da mesa na posição padrão do CLI (na tela, arraste a torre ou use Arrumar); Projeto Bambu: torre de purga passa da mesa na posição padrão do CLI (na tela, arraste a torre ou use Arrumar) |
+| Alça de copo térmico (cupHandle) | mínimo | ✅ ok | Bambu ✓ · Orca ✓ · Projeto Bambu ✓ | 112 | 37,1 | 1 | – | – |
+| Alça de copo térmico (cupHandle) | nome gravado | ✅ ok | Bambu ✓ · Orca ✓ | 169 | 79,5 | 1 | – | – |
+| Alça de copo térmico (cupHandle) | padrão | ✅ ok | Bambu ✓ · Orca ✓ · Projeto Bambu ✓ | 486 | 169,4 | 1 | – | – |
+| Alça de copo térmico (cupHandle) | sem marcas de dedo, sem fantasma | ✅ ok | Bambu ✓ · Orca ✓ · Projeto Bambu ✓ | 492 | 169,9 | 1 | – | – |
 | Cortador + carimbo (cutterStamp) | máximo | ✅ ok | Bambu ✓ · Orca ✓ | 62 | 51,5 | 1 | – | app: Sem desenho interno para marcar: sai só o cortador. |
 | Cortador + carimbo (cutterStamp) | mínimo | ✅ ok | Bambu ✓ · Orca ✓ | 7 | 1,8 | 1 | – | app: Sem desenho interno para marcar: sai só o cortador. |
 | Cortador + carimbo (cutterStamp) | padrão | ✅ ok | Bambu ✓ · Orca ✓ | 13 | 5,9 | 1 | – | app: Sem desenho interno para marcar: sai só o cortador. |

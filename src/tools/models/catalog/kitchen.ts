@@ -1,8 +1,9 @@
-import { CakeSlice, Candy, Cookie, Cylinder, Grid3x3, Lollipop, Paperclip, Stamp } from "lucide-react";
+import { CakeSlice, Candy, Cookie, CupSoda, Cylinder, Grid3x3, Lollipop, Paperclip, Stamp } from "lucide-react";
 import { buildBagClip, DEFAULT_BAG_CLIP } from "../../../geometry/models/bagClip";
 import { buildEjector, DEFAULT_EJECTOR } from "../../../geometry/models/brigadeiroEjector";
 import { buildCakeStand, buildStickStand, DEFAULT_CAKE_STAND, DEFAULT_STICK_STAND } from "../../../geometry/models/confectionery";
 import { buildCutterStamp, DEFAULT_CUTTER_STAMP } from "../../../geometry/models/cutterStamp";
+import { buildCupHandle, DEFAULT_CUP_HANDLE } from "../../../geometry/models/cupHandle";
 import { buildGridCutter, DEFAULT_GRID_CUTTER } from "../../../geometry/models/gridCutter";
 import { buildStamp, DEFAULT_STAMP } from "../../../geometry/models/stamp";
 import { buildTextureRoller, DEFAULT_TEXTURE_ROLLER } from "../../../geometry/models/textureRoller";
@@ -228,5 +229,55 @@ export const KITCHEN_MODELS: ModelDef[] = [
       },
     ],
     build: (ctx, p) => buildTextureRoller(ctx, as(p)),
+  },
+  {
+    id: "cupHandle",
+    category: "kitchen",
+    label: "Alça de copo térmico",
+    blurb: "Alça removível para copo cônico (tipo Stanley): o copo assenta num fundo e uma luva do mesmo cone o abraça, com a alça em D com a alça arredondada e o nome na frente. Veja o encaixe pelo copo fantasma e imprima antes o anel de teste.",
+    icon: CupSoda,
+    font: true,
+    defaults: DEFAULT_CUP_HANDLE,
+    sections: [
+      {
+        title: "Medidas do copo",
+        fields: [
+          num("baseDiameter", "Diâmetro da base do copo", 40, 140, { step: 0.5, hint: "Meça com paquímetro ou fita: diâmetro = volta ÷ 3,14. Os perfis prontos são aproximados." }),
+          num("topDiameter", "Diâmetro do corpo, lá em cima", 40, 160, { step: 0.5, hint: "Onde o copo é mais largo (abaixo da borda da tampa)." }),
+          num("bodyHeight", "Altura do corpo", 80, 400, { step: 1, hint: "Da base até o topo do corpo cônico." }),
+        ],
+      },
+      {
+        title: "Luva e alça",
+        fields: [
+          num("gripZ", "Onde a luva começa (altura da base)", 10, 150, { step: 1, hint: "Mais baixo deixa o copo mais firme; a luva não pode passar do topo do corpo." }),
+          num("sleeveHeight", "Altura da luva", 15, 60, { step: 1 }),
+          num("clearance", "Folga do encaixe", 0.2, 1, { step: 0.05, hint: "0,5 serve na maioria. Imprima só o anel de teste: ele tem que subir pelo copo e parar na altura marcada. Se apertar, aumente a folga; se ficar frouxo, diminua." }),
+          num("wall", "Parede da luva", 2, 6, { step: 0.5 }),
+          num("handleWidth", "Largura da alça", 12, 30, { step: 1 }),
+          num("fingerGap", "Vão dos dedos", 20, 60, { step: 1 }),
+          bool("grooves", "Marcas de dedo na pegada"),
+          choice("sleeveStyle", "Luva", [["smooth", "Lisa"], ["cutouts", "Vazada"], ["bands", "Com faixas"]]),
+          bool("showCup", "Mostrar o copo fantasma na prévia (só para ver o encaixe)"),
+        ],
+      },
+      {
+        title: "Nome",
+        fields: [
+          text("name", "Nome", 12),
+          choice("nameMode", "Nome", [["raised", "Em relevo (outra cor)"], ["engraved", "Gravado"], ["none", "Sem nome"]]),
+          num("depth", "Profundidade / relevo", 0.4, 1.6, { step: 0.1 }),
+        ],
+      },
+      {
+        title: "Imprimir e cores",
+        fields: [
+          choice("print", "Imprimir", [["full", "Alça inteira"], ["test", "Só o anel de teste"]]),
+          color("bodyColor", "Alça"),
+          color("nameColor", "Nome (em relevo)"),
+        ],
+      },
+    ],
+    build: (ctx, p) => buildCupHandle(ctx, as(p)),
   },
 ];

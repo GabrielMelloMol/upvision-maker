@@ -27,6 +27,7 @@ export const MODEL_PROFILES: Record<string, PrintProfile> = {
   keycap: { walls: 3, infill: 20, notes: ["Sai de ponta-cabeça, com o topo na mesa: a legenda fica lisa e a haste cresce sem suporte. A folga da cruz depende da impressora: imprima uma tecla de teste e ajuste de 0,1 em 0,1 mm. Troque o filamento nas primeiras camadas (a legenda) como no AMS."] },
   phoneKeychain: { walls: 4, infill: 40, notes: ["Faz força (abridor e apoio do celular): PETG aguenta mais que PLA. Imprima deitado, como sai no arquivo."] },
   aroma: { walls: 3, infill: 20, notes: ["A tampa sai de pé, com o logo para cima: sem suporte. Se a tampa não girar, imprima o teste da rosca e ajuste a folga."] },
+  cupHandle: { walls: 4, infill: 25, notes: ["Imprima em PETG (aguenta o peso e o calor do copo). Fica de pé como no arquivo: a alça inclinada em cima imprime sem suporte. Antes da peça inteira, imprima só o anel de teste e confira o encaixe no copo."] },
   opener: { walls: 4, infill: 40, notes: ["Faz força: PETG aguenta mais que PLA."] },
   openerImage: { walls: 4, infill: 40, notes: ["Faz força: PETG aguenta mais que PLA. Base, relevo e borda têm cores diferentes: troque o filamento na camada em que o relevo começa."] },
   clicker: { walls: 3, infill: 30 },

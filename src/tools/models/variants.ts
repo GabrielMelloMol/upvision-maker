@@ -65,6 +65,13 @@ export const VARIANTS: Record<string, Variant[]> = {
     { label: "Lembrancinha de festa (nome)", patch: { shape: "hex", text: "Ana", holes: 8, bodyColor: LILAC, lidColor: WHITE, logoColor: PINK }, collections: ["aniversario"] },
     { label: "Dia das Mães (coração)", patch: { shape: "heart", text: "Mãe", holes: 8, bodyColor: PINK, lidColor: WHITE, logoColor: RED }, collections: ["maes"] },
   ],
+  cupHandle: [
+    { label: "Stanley Quencher 40 oz (aprox.)", patch: { baseDiameter: 80, topDiameter: 100, bodyHeight: 260, gripZ: 70, sleeveHeight: 40 } },
+    { label: "Stanley Quencher 30 oz (aprox.)", patch: { baseDiameter: 80, topDiameter: 91, bodyHeight: 215, gripZ: 60, sleeveHeight: 40 } },
+    { label: "Copo 1,2 L tipo Stanley (aprox.)", patch: { baseDiameter: 85, topDiameter: 105, bodyHeight: 270, gripZ: 80, sleeveHeight: 40 } },
+    { label: "Copo 900 ml tipo Stanley (aprox.)", patch: { baseDiameter: 78, topDiameter: 95, bodyHeight: 235, gripZ: 70, sleeveHeight: 40 } },
+    { label: "Copo 500 ml cônico (aprox.)", patch: { baseDiameter: 62, topDiameter: 78, bodyHeight: 165, gripZ: 45, sleeveHeight: 35 } },
+  ],
   kitBicho: [
     { label: "Cachorro", patch: { head: "dog", tail: "up", profile: "oval" } },
     { label: "Gato", patch: { head: "cat", tail: "long", profile: "oval" } },
