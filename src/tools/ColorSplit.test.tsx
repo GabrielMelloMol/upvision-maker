@@ -6,6 +6,7 @@ import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
 import { describe, expect, test, vi } from "vitest";
 import { renderWithApp, setupTauri } from "../test/harness";
+import { colorCube3mf } from "../test/colorCube";
 import ColorSplit from "./ColorSplit";
 
 vi.mock("../ui/viewerScene", () => ({ createViewer: () => ({ setModels() {}, dispose() {} }) }));
@@ -68,5 +69,32 @@ describe("Separar cores de um 3MF", () => {
     expect(names.some((n) => n.endsWith("parte A"))).toBe(true);
     expect(names.some((n) => n.endsWith("parte B"))).toBe(true);
   }, 60_000);
-});
 
+  test("3MF que pinta por material (#229): lista os grupos de cor, separa os menores e dá para deixar um na base", async () => {
+    const user = userEvent.setup();
+    const { container } = renderWithApp(<ColorSplit />);
+    const file = new File([colorCube3mf({ cima: [1, 3], baixo: 1, frente: 2 }).slice()], "cubo-materiais.3mf");
+    await user.upload(container.querySelector<HTMLInputElement>('input[type="file"]')!, file);
+    const card = await screen.findByLabelText("Cores do arquivo", undefined, BUILD);
+    const rows = within(card).getAllByRole("listitem").map((li) => li.textContent);
+    expect(rows).toEqual([expect.stringContaining("Base"), expect.stringContaining("Separar"), expect.stringContaining("Separar")]);
+    expect(within(card).getAllByRole("button", { pressed: true })).toHaveLength(2);
+    await waitFor(() => expect(within(screen.getByLabelText("Cores encontradas")).getAllByRole("listitem")).toHaveLength(3), BUILD);
+    // deixar o azul na base: sobram duas cores e aparece o "Voltar ao automático"
+    await user.click(within(card).getAllByRole("button", { pressed: true })[1]);
+    await waitFor(() => expect(within(screen.getByLabelText("Cores encontradas")).getAllByRole("listitem")).toHaveLength(2), BUILD);
+    await user.click(screen.getByRole("button", { name: "Voltar ao automático" }));
+    await waitFor(() => expect(within(screen.getByLabelText("Cores encontradas")).getAllByRole("listitem")).toHaveLength(3), BUILD);
+  }, 60_000);
+
+  test("objetos separados: aparece 'manter a posição original'; o corte aceita várias partes", async () => {
+    const user = userEvent.setup();
+    const { container } = renderWithApp(<ColorSplit />);
+    expect(screen.queryByText(/Manter a posição original/)).toBeNull();
+    await user.click(screen.getByRole("button", { name: "Objetos separados" }));
+    expect(screen.getByText(/Manter a posição original/)).toBeInTheDocument();
+    await user.click(screen.getByLabelText(/Cortar com encaixe/));
+    expect(screen.getByLabelText(/Número de partes/)).toBeInTheDocument();
+    expect(container).toBeTruthy();
+  });
+});

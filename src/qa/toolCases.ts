@@ -1,7 +1,10 @@
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
 import { qrMatrix } from "../domain/qr";
+import { nearestTriangle } from "../geometry/colorRegions";
 import { splitByColor } from "../geometry/colorSplit";
+import { cutInParts } from "../geometry/planeCut";
+import { colorMesh3mf } from "../test/colorCube";
 import { buildCutter, DEFAULT_CUTTER, type CutterParams } from "../geometry/cutter";
 import { extrudeDesign } from "../geometry/extrude";
 import { loadFont } from "../geometry/fonts";
@@ -232,6 +235,26 @@ export function toolCases(M: ManifoldToplevel): QaCase[] {
     return { models: c.models, warnings: [...out.warnings, ...c.warnings] };
   };
 
+  // 3MF que pinta por material (como sai do Blender/Meshy): vaso com faixa vermelha no topo, listra azul e duas bolinhas amarelas
+  const materialVase = (): Uint8Array => {
+    const prof: [number, number][] = [[0, 0]];
+    for (let z = 0; z <= 90; z += 3) prof.push([12 + 14 * Math.sin((Math.PI * z) / 90) ** 1.2, z]);
+    prof.push([0, 90]);
+    const vase = new M.CrossSection([prof], "NonZero").revolve(96);
+    const mesh = toMesh(vase);
+    const dots = [[26, 0, 38], [-24, 12, 52]];
+    const pick = ([x, y, z]: [number, number, number]) => (dots.some(([dx, dy, dz]) => Math.hypot(x - dx, y - dy, z - dz) < 6) ? 3 : z > 70 ? 1 : z > 28 && z < 38 ? 2 : 0);
+    return colorMesh3mf(mesh, ["#e8e4da", "#c0392b", "#2563eb", "#facc15"], pick);
+  };
+  const material = (o: { touching?: boolean; parts?: number }): Out => {
+    const file = read3mf(materialVase());
+    const seed = o.touching ? nearestTriangle(file, [26, 0, 38]) : null; // só a bolinha amarela de um lado
+    const out = splitByColor(M, file, { depth: 1, mode: "parts", selections: seed ? [{ color: "#facc15", scope: "touching", seed: { obj: seed.obj, part: seed.part, tri: seed.tri } }] : undefined });
+    if (!o.parts) return out;
+    const c = cutInParts(M, out.models, DEFAULT_CUT, o.parts);
+    return { models: c.models, warnings: [...out.warnings, ...c.warnings] };
+  };
+
   // corte parcial: "personagem + árvore" (dois blocos separados), corta só o topo do primeiro
   const partial = (patch: Partial<PartialCutOptions>): Out => {
     const scene: Model = { name: "Cena", parts: [{ name: "Peça", color: "#d4d4d8", mesh: toMesh(M.Manifold.union([M.Manifold.cube([20, 20, 40]), M.Manifold.cube([20, 20, 40]).translate([40, 0, 0])])) }] };
@@ -377,6 +400,9 @@ export function toolCases(M: ManifoldToplevel): QaCase[] {
       ["mínimo", () => split(0.2, false)],
       ["máximo", () => split(10, false)],
       ["corte com pino", () => split(1, true)],
+      ["material: vaso 3 cores", () => material({})],
+      ["material: só a região clicada", () => material({ touching: true })],
+      ["material: corte em 3 partes", () => material({ parts: 3 })],
     ]),
     // organizador de gaveta e talheres (#140): casos do Torno
     ...drawerCases(M),

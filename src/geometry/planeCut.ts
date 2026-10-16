@@ -150,3 +150,31 @@ export function spread(models: Model[]): Model[] {
     return { ...m, parts: m.parts.map((p) => ({ ...p, mesh: { ...p.mesh, positions: p.mesh.positions.map((v, i) => (i % 3 === 0 ? v + dx : v)) } })) };
   });
 }
+
+export const MAX_CUT_PARTS = 6;
+
+/**
+ * Corte em `n` partes iguais, um depois do outro (cada corte na parte que sobrou), com encaixe em cada junta.
+ * Cada parte sai numerada e com a face cortada para a mesa; no modo solto os pinos de cada junta saem à parte.
+ */
+export function cutInParts(M: ManifoldToplevel, models: Model[], o: CutOptions, n: number): { models: Model[]; warnings: string[] } {
+  if (n < 2) return cutModels(M, models, o);
+  const count = Math.min(MAX_CUT_PARTS, n);
+  const warnings = new Set<string>();
+  const out: Model[] = [];
+  for (const model of models) {
+    let rest = model;
+    for (let i = 1; i < count; i++) {
+      const r = cutModels(M, [rest], { ...o, axis: i === 1 ? o.axis : "z", at: 1 / (count - i + 1) });
+      r.warnings.forEach((w) => warnings.add(w));
+      const [a, b, pins] = r.models;
+      out.push({ ...a, name: `${model.name} · parte ${i}` });
+      if (pins) out.push({ ...pins, name: `${model.name} · pinos da junta ${i}` });
+      rest = b;
+    }
+    out.push({ ...rest, name: `${model.name} · parte ${count}` });
+  }
+  const placed = fitSetOnBed(spread(out));
+  const set = setOnBedWarning(placed);
+  return { models: placed, warnings: set ? [...warnings, set] : [...warnings] };
+}

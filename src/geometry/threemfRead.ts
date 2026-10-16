@@ -7,7 +7,15 @@ import type { Mesh } from "./types";
  * componentes (inclusive em arquivos separados, `p:path`), transformações, extrusora por parte e pintura por
  * triângulo. As coordenadas saem já transformadas (posição na mesa).
  */
-export type ReadPart = { id: string; name: string; extruder: number; mesh: Mesh; paint: string[] | null };
+export type ReadPart = {
+  id: string;
+  name: string;
+  extruder: number;
+  mesh: Mesh;
+  paint: string[] | null;
+  /** Cor de cada triângulo vinda dos materiais do 3MF (basematerials / colorgroup), "#rrggbb"; null se o arquivo não pinta por material. */
+  triColors: string[] | null;
+};
 export type ReadObject = { name: string; parts: ReadPart[] };
 export type Read3mf = { objects: ReadObject[]; filamentColors: string[] };
 
@@ -29,11 +37,36 @@ const mul = (a: Mat, b: Mat): Mat => {
   return out;
 };
 
-type RawObject = { id: string; name: string; mesh?: { positions: Float32Array; indices: Uint32Array; paint: string[] | null }; components: { objectid: string; path?: string; transform: Mat }[] };
+type RawObject = { id: string; name: string; mesh?: { positions: Float32Array; indices: Uint32Array; paint: string[] | null; triColors: string[] | null }; components: { objectid: string; path?: string; transform: Mat }[] };
+
+const hex6 = (c: string) => `#${c.replace("#", "").slice(0, 6).toLowerCase()}`;
+const mixHex = (list: string[]) => {
+  if (list.length === 1) return list[0];
+  const ch = [1, 3, 5].map((i) => Math.round(list.reduce((a, c) => a + parseInt(c.slice(i, i + 2), 16), 0) / list.length));
+  return `#${ch.map((v) => v.toString(16).padStart(2, "0")).join("")}`;
+};
+
+/** Materiais de cor do arquivo: id do grupo → cores (basematerials e colorgroup, com ou sem prefixo de namespace). */
+function parseMaterials(xml: string): Map<string, string[]> {
+  const out = new Map<string, string[]>();
+  for (const g of xml.matchAll(/<(?:\w+:)?(basematerials|colorgroup)\b([^>]*)>([\s\S]*?)<\/(?:\w+:)?\1>/g)) {
+    const id = attr(g[2], "id");
+    if (!id) continue;
+    const key = g[1] === "basematerials" ? "displaycolor" : "color";
+    const colors: string[] = [];
+    for (const c of g[3].matchAll(/<(?:\w+:)?(?:base|color)\b([^>]*)\/?>/g)) {
+      const v = attr(c[1], key);
+      colors.push(v && /^#?[0-9a-f]{6}/i.test(v) ? hex6(v) : "#cccccc");
+    }
+    out.set(id, colors);
+  }
+  return out;
+}
 
 /** Objetos de um arquivo .model (malhas e componentes). */
 function parseModelFile(xml: string): Map<string, RawObject> {
   const out = new Map<string, RawObject>();
+  const materials = parseMaterials(xml);
   for (const m of xml.matchAll(/<object\b([^>]*)>([\s\S]*?)<\/object>/g)) {
     const [, head, body] = m;
     const id = attr(head, "id")!;
@@ -44,14 +77,24 @@ function parseModelFile(xml: string): Map<string, RawObject> {
       for (const v of vs[1].matchAll(/<vertex\b([^>]*)\/?>/g)) pos.push(Number(attr(v[1], "x")), Number(attr(v[1], "y")), Number(attr(v[1], "z")));
       const idx: number[] = [];
       const paint: string[] = [];
+      const triColors: string[] = [];
+      const objPid = attr(head, "pid"), objIndex = attr(head, "pindex");
       let painted = false;
+      let colored = false;
       for (const t of body.matchAll(/<triangle\b([^>]*)\/?>/g)) {
         idx.push(Number(attr(t[1], "v1")), Number(attr(t[1], "v2")), Number(attr(t[1], "v3")));
         const p = attr(t[1], "paint_color") ?? attr(t[1], "slic3rpe:mmu_segmentation") ?? "";
         if (p) painted = true;
         paint.push(p);
+        const pid = attr(t[1], "pid") ?? objPid;
+        const group = pid ? materials.get(pid) : undefined;
+        const picks = ["p1", "p2", "p3"].map((n) => attr(t[1], n)).filter((v): v is string => v !== undefined).map(Number);
+        const fallback = !picks.length && objIndex !== undefined ? [Number(objIndex)] : picks;
+        const cols = group ? fallback.map((i) => group[i]).filter((c): c is string => c !== undefined) : [];
+        if (cols.length) colored = true;
+        triColors.push(cols.length ? mixHex(cols) : "");
       }
-      obj.mesh = { positions: Float32Array.from(pos), indices: Uint32Array.from(idx), paint: painted ? paint : null };
+      obj.mesh = { positions: Float32Array.from(pos), indices: Uint32Array.from(idx), paint: painted ? paint : null, triColors: colored ? triColors : null };
     }
     for (const c of body.matchAll(/<component\b([^>]*)\/?>/g)) obj.components.push({ objectid: attr(c[1], "objectid")!, path: attr(c[1], "p:path"), transform: parseMat(attr(c[1], "transform")) });
     out.set(id, obj);
@@ -135,6 +178,7 @@ export function read3mf(bytes: Uint8Array): Read3mf {
           extruder: ex.part.get(o.id) ?? baseExtruder,
           mesh: { positions: transform(o.mesh.positions, m), indices: o.mesh.indices },
           paint: o.mesh.paint,
+          triColors: o.mesh.triColors,
         });
       }
       for (const c of o.components) {
