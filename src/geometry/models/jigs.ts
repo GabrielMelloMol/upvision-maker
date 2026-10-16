@@ -85,7 +85,7 @@ export function buildRadiusGauge(ctx: ModelCtx, p: RadiusGaugeParams): ModelOutp
       const rect = k(k(roundedRect(M, TAB_W, h, 1)).translate([TAB_W / 2, h / 2]));
       const notch = k(k(M.CrossSection.circle(r, SEG)).translate([TAB_W / 2, h]));
       const bump = k(k(M.CrossSection.circle(r, SEG)).translate([TAB_W / 2, 0])); // meio círculo para baixo
-      let blade = k(k(rect.subtract(notch)).add(bump));
+      const blade = k(k(rect.subtract(notch)).add(bump));
       // o número fica no trecho livre, abaixo do entalhe (o entalhe desce r a partir do topo): centrado entre a base e o fundo do entalhe
       const free = h - r;
       const txt = ctx.text(`${br(r, r % 1 ? 1 : 0)}`, p.font);
