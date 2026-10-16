@@ -11,8 +11,8 @@ import type { Params } from "../../tools/models/defs";
 import { buildModels, showcaseColors } from "../renderThumb";
 import { bevelModels } from "./bevel";
 import { boundsOf, grounded, placeModels, type Pose } from "./compose";
-import { hardwareAt, ringAndChain, ribbonV } from "./extras";
-import type { PhotoItem, PhotoScene } from "./render";
+import { dowelRack, hangingRibbon, hardwareAt, ringAndChain } from "./extras";
+import { AZIMUTH_DEG, type PhotoItem, type PhotoScene } from "./render";
 
 /*
  * As cenas da foto realista (#251, rodada 2): cada peça montada como se usa e em 3 a 4 cópias com nomes e cores
@@ -44,7 +44,7 @@ function place(models: Model[], extras: THREE.Object3D[], pose: Pose, filament?:
   });
   return { item: { models: placeModels(models, pose), filament }, extras: wrapped };
 }
-const sceneOf = (placed: Placed[]): PhotoScene => ({ items: placed.map((p) => p.item), extras: placed.flatMap((p) => p.extras) });
+const sceneOf = (placed: Placed[], more: Partial<PhotoScene> = {}): PhotoScene => ({ items: placed.map((p) => p.item), extras: placed.flatMap((p) => p.extras), hero: 0, ...more }); // a primeira peça é a principal (a da frente)
 const maybeBevel = (models: Model[], o: SceneOpts) => (o.bevel ? bevelModels(models) : Promise.resolve(models));
 
 /** Centro do furo da argola: ponto mais à esquerda da base e o seu y (o disco da argola tem o centro a `ringOuter` dele). */
@@ -61,10 +61,10 @@ function ringHole(models: Model[], ringOuter: number): THREE.Vector3 {
 }
 
 const KEYCHAINS = [
-  { name: "Ana", base: "#e8613c", top: "#fff6ea", pose: { x: -26, y: -38, rotZ: -8 }, heading: 188 },
-  { name: "Beto", base: "#2563eb", top: "#ffffff", pose: { x: 22, y: -12, rotZ: 6 }, heading: 172 },
-  { name: "Clara", base: "#d6338a", top: "#fff0f8", pose: { x: -16, y: 14, rotZ: -4 }, heading: 195 },
-  { name: "Duda", base: "#16a34a", top: "#f7fff7", pose: { x: 30, y: 40, rotZ: 10 }, heading: 168 },
+  { name: "Ana", base: "#e8613c", top: "#fff6ea", pose: { x: 2, y: -30, rotZ: -6 }, heading: 188 },
+  { name: "Beto", base: "#2563eb", top: "#ffffff", pose: { x: 12, y: -4, rotZ: 6 }, heading: 172 },
+  { name: "Clara", base: "#d6338a", top: "#fff0f8", pose: { x: -22, y: 14, rotZ: -4 }, heading: 195 },
+  { name: "Duda", base: "#16a34a", top: "#f7fff7", pose: { x: 14, y: 32, rotZ: 8 }, heading: 168 },
 ];
 
 async function keychains(o: SceneOpts): Promise<PhotoScene> {
@@ -77,33 +77,46 @@ async function keychains(o: SceneOpts): Promise<PhotoScene> {
     const hole = ringHole(raw, DEFAULT_KEYCHAIN.ringOuter);
     placed.push(place(await maybeBevel(raw, o), [ringAndChain(hole, k.heading)], k.pose));
   }
-  return sceneOf(placed);
+  return sceneOf(placed, { heroPad: 0.45 });
 }
 
 const MEDALS = [
-  { text: "1º LUGAR", base: "#c48a12", accent: "#ffe9a0", ribbon: "#c81e3a", pose: { x: -70, y: -4, rotZ: 6 }, filament: "silk" as const },
-  { text: "2º LUGAR", base: "#8f98a6", accent: "#f2f4f8", ribbon: "#1d4ed8", pose: { x: 0, y: 14, rotZ: -5 }, filament: "silk" as const },
-  { text: "3º LUGAR", base: "#a85f2c", accent: "#f0c9a0", ribbon: "#15803d", pose: { x: 72, y: -2, rotZ: 4 }, filament: "silk" as const },
+  { text: "1º LUGAR", base: "#c48a12", accent: "#ffe9a0", ribbon: "#c81e3a", t: 0 },
+  { text: "2º LUGAR", base: "#8f98a6", accent: "#f2f4f8", ribbon: "#1d4ed8", t: -68 },
+  { text: "3º LUGAR", base: "#a85f2c", accent: "#f0c9a0", ribbon: "#15803d", t: 68 },
 ];
+const RACK_H = 140; // altura da barra
+const RACK_AXIS_DEG = 43; // a barra se afasta um pouco da câmera para a direita
+const HANG_MM = 28; // do furo da medalha até o centro da barra
+const FACE_DEG = AZIMUTH_DEG; // as medalhas giram para olhar a câmera
 
+/** Medalhas penduradas num cabide de madeira, de frente para a câmera; a dourada no meio. */
 async function medals(o: SceneOpts): Promise<PhotoScene> {
   const M = await getManifold();
   const font = await loadFont("hanken");
   const placed: Placed[] = [];
+  const extras: THREE.Object3D[] = [dowelRack([0, 0], RACK_AXIS_DEG, 125, RACK_H)];
+  const a = (RACK_AXIS_DEG * Math.PI) / 180, f = (FACE_DEG * Math.PI) / 180;
   for (const m of MEDALS) {
     const text = centered(textToCrossSection(M, font, m.text, 8));
     const raw = grounded([buildMedal(M, { ...DEFAULT_MEDAL, diameter: 60, baseColor: m.base, accentColor: m.accent, artColor: m.accent }, null, text)]);
     const b = boundsOf(raw);
-    const slot = new THREE.Vector3((b.min[0] + b.max[0]) / 2, b.max[1] - MEDAL_SLOT_FROM_TOP, DEFAULT_MEDAL.thickness / 2);
-    placed.push(place(await maybeBevel(raw, o), [ribbonV(slot, DEFAULT_MEDAL.ribbon, m.ribbon)], m.pose, m.filament));
+    const sx = (b.min[0] + b.max[0]) / 2, sy = b.max[1] - MEDAL_SLOT_FROM_TOP, sz = DEFAULT_MEDAL.thickness / 2;
+    // o furo da medalha fica na frente da barra; em pé (rotX 90) e virada para a câmera (rotZ), o furo vai para este ponto
+    const slotXY: [number, number] = [Math.cos(a) * m.t + Math.sin(f) * (5 + 0.4), Math.sin(a) * m.t - Math.cos(f) * (5 + 0.4)];
+    const off: [number, number] = [sx * Math.cos(f) + sz * Math.sin(f), sx * Math.sin(f) - sz * Math.cos(f)];
+    const slotZ = RACK_H - HANG_MM;
+    const pose: Pose = { x: slotXY[0] - off[0], y: slotXY[1] - off[1], z: slotZ - sy, rotX: 90, rotZ: FACE_DEG };
+    placed.push(place(await maybeBevel(raw, o), [], pose, "silk"));
+    extras.push(hangingRibbon(new THREE.Vector3(slotXY[0], slotXY[1], slotZ), RACK_H, DEFAULT_MEDAL.ribbon, m.ribbon, FACE_DEG, RACK_AXIS_DEG));
   }
-  return sceneOf(placed);
+  return sceneOf(placed, { extras: [...placed.flatMap((p) => p.extras), ...extras], floorZ: 0, heroPad: 0.4 });
 }
 
 const PIX = [
-  { plate: "#6f9a7e", dark: "#173424", sub: "Loja da Ana", pose: { x: -88, y: 4, rotZ: 12 } },
-  { plate: "#b98f8a", dark: "#3a1f1c", sub: "Clínica Bortolini", pose: { x: 0, y: -26, rotZ: -5 } },
-  { plate: "#f4f1ea", dark: "#1c1c1e", sub: "Ateliê Mel", pose: { x: 88, y: 8, rotZ: -14 } },
+  { plate: "#b98f8a", dark: "#3a1f1c", sub: "Clínica Bortolini", pose: { x: 4, y: -22, rotZ: -6 } },
+  { plate: "#6f9a7e", dark: "#173424", sub: "Loja da Ana", pose: { x: -62, y: 26, rotZ: 12 } },
+  { plate: "#f4f1ea", dark: "#1c1c1e", sub: "Ateliê Mel", pose: { x: 66, y: 20, rotZ: -14 } },
 ];
 
 /** Placa em pé no suporte inclinado: o eixo da placa vira o do encaixe (90° − inclinação) e a borda de baixo assenta no fundo dele. */
@@ -123,7 +136,7 @@ async function pixPlates(o: SceneOpts): Promise<PhotoScene> {
     const models = await buildModels("pix", { plateColor: v.plate, darkColor: v.dark, subtitle: v.sub, name: v.sub, key: "loja@upvision.app", city: "Sao Paulo", title: "PAGUE COM PIX" });
     placed.push(place(await maybeBevel(grounded(standPix(models)), o), [], v.pose));
   }
-  return sceneOf(placed);
+  return sceneOf(placed, { heroPad: 0.3 });
 }
 
 /** Altura do fundo do nicho em (x, y): a face virada para cima mais baixa que cobre esse ponto (o vão do nicho só tem o fundo). */
@@ -150,9 +163,9 @@ function floorAt(models: Model[], [x, y]: [number, number]): number {
 const SPILL: [number, number][] = [[0.1, -0.35], [0.2, -0.28], [0.32, -0.42], [0.04, -0.5], [0.42, -0.3], [0.26, -0.55]];
 
 const BOXES: { patch: Params; view: string; pose: Pose }[] = [
-  { patch: { boxColor: "#0f9d8a", lidColor: "#fbf3df", decorColor: "#0f9d8a" }, view: "open", pose: { x: -30, y: 8, rotZ: -8 } },
-  { patch: { boxColor: "#e8613c", lidColor: "#fff6ea", decorColor: "#e8613c", outerW: 110, outerD: 80, outerH: 32 }, view: "closed", pose: { x: 150, y: -30, rotZ: 14 } },
-  { patch: { boxColor: "#4f46e5", lidColor: "#eef0ff", decorColor: "#4f46e5", outerW: 100, outerD: 70, outerH: 28 }, view: "closed", pose: { x: 140, y: 62, rotZ: -12 } },
+  { patch: { boxColor: "#0f9d8a", lidColor: "#fbf3df", decorColor: "#0f9d8a" }, view: "open", pose: { x: 0, y: -20, rotZ: -8 } },
+  { patch: { boxColor: "#e8613c", lidColor: "#fff6ea", decorColor: "#e8613c", outerW: 110, outerD: 80, outerH: 32 }, view: "closed", pose: { x: 95, y: 85, rotZ: 14 } },
+  { patch: { boxColor: "#4f46e5", lidColor: "#eef0ff", decorColor: "#4f46e5", outerW: 100, outerD: 70, outerH: 28 }, view: "closed", pose: { x: -85, y: 95, rotZ: -12 } },
 ];
 
 async function organizers(o: SceneOpts): Promise<PhotoScene> {
@@ -175,13 +188,13 @@ async function organizers(o: SceneOpts): Promise<PhotoScene> {
     }
     placed.push(place(await maybeBevel(moved, o), extras, v.pose));
   }
-  return sceneOf(placed);
+  return sceneOf(placed, { heroPad: 0.1 });
 }
 
 const THERMOS: { shape: ThermoShape; text: string; sheet: string; design: string; pose: Pose }[] = [
-  { shape: "heart", text: "Natal", sheet: "#1f7a4d", design: "#f4f4f2", pose: { x: -52, y: 10, rotZ: 14 } },
-  { shape: "heart", text: "Amor", sheet: "#c0263f", design: "#fff1f3", pose: { x: 34, y: -14, rotZ: -12 } },
-  { shape: "flower", text: "Mãe", sheet: "#d6338a", design: "#fff0f8", pose: { x: 6, y: 62, rotZ: 6 } },
+  { shape: "heart", text: "Amor", sheet: "#c0263f", design: "#fff1f3", pose: { x: 4, y: -16, rotZ: -10 } },
+  { shape: "heart", text: "Natal", sheet: "#1f7a4d", design: "#f4f4f2", pose: { x: -48, y: 28, rotZ: 14 } },
+  { shape: "flower", text: "Mãe", sheet: "#d6338a", design: "#fff0f8", pose: { x: 50, y: 30, rotZ: 6 } },
 ];
 
 async function thermos(o: SceneOpts): Promise<PhotoScene> {
@@ -197,7 +210,7 @@ async function thermos(o: SceneOpts): Promise<PhotoScene> {
     const out = buildThermo(M, sil, design, { ...d, colors: { ...d.colors, sheet: v.sheet, border: v.sheet, clip: v.sheet, design: v.design } });
     placed.push(place(await maybeBevel(grounded([out.assembled]), o), [], v.pose));
   }
-  return sceneOf(placed);
+  return sceneOf(placed, { heroPad: 0.4 });
 }
 
 export async function photoScene(id: PhotoId, o: SceneOpts = {}): Promise<PhotoScene> {
@@ -224,7 +237,7 @@ export async function genericScene(id: string, o: SceneOpts = {}): Promise<Photo
   const w = Math.max(b.max[0] - b.min[0], 1), d = Math.max(b.max[1] - b.min[1], 1);
   const step = Math.max(w, d) * GENERIC_SPREAD;
   const variants = [id, `${id}-b`, `${id}-c`].map((alt) => grounded(showcaseColors(alt, base)));
-  const poses: Pose[] = [{ x: 0, y: -step * 0.45, rotZ: 8 }, { x: -step * 0.55, y: step * 0.4, rotZ: -10 }, { x: step * 0.6, y: step * 0.35, rotZ: 14 }];
+  const poses: Pose[] = [{ x: 0, y: -step * 0.3, rotZ: 8 }, { x: -step * 0.62, y: step * 0.5, rotZ: -10 }, { x: step * 0.66, y: step * 0.55, rotZ: 14 }];
   const placed = await Promise.all(variants.map(async (v, i) => place(await maybeBevel(v, o), [], poses[i])));
-  return sceneOf(placed);
+  return sceneOf(placed, { heroPad: 0.05 });
 }

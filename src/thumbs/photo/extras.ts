@@ -57,6 +57,44 @@ export function ribbonV(slot: THREE.Vector3, width: number, color: string, sprea
 }
 
 /** Parafusos e porcas, um por ponto (centro de nicho da caixa), sobre a base `z`. Determinístico. */
+const DOWEL_R = 5;
+const wood = () => new THREE.MeshPhysicalMaterial({ color: 0xa88a64, roughness: 0.55, metalness: 0 });
+
+/** Cabide de medalhas: barra de madeira na altura `height`, na direção `axisDeg` (graus no plano da mesa), apoiada em dois pés até a mesa (z = 0). */
+export function dowelRack(origin: [number, number], axisDeg: number, halfLen: number, height: number): THREE.Group {
+  const g = new THREE.Group();
+  const a = (axisDeg * Math.PI) / 180;
+  const bar = new THREE.Mesh(new THREE.CylinderGeometry(DOWEL_R, DOWEL_R, halfLen * 2, 24), wood());
+  bar.quaternion.setFromUnitVectors(new THREE.Vector3(0, 1, 0), new THREE.Vector3(Math.cos(a), Math.sin(a), 0)); // o cilindro nasce ao longo de Y
+  bar.position.set(origin[0], origin[1], height);
+  g.add(bar);
+  for (const s of [-1, 1]) {
+    const post = new THREE.Mesh(new THREE.BoxGeometry(12, 12, height + DOWEL_R * 2), wood());
+    post.rotation.z = a;
+    post.position.set(origin[0] + Math.cos(a) * (halfLen + 6) * s, origin[1] + Math.sin(a) * (halfLen + 6) * s, (height + DOWEL_R * 2) / 2 - DOWEL_R);
+    g.add(post);
+  }
+  return g;
+}
+
+/** Fita pendurada: desce da barra (por cima dela, pela frente) até o furo da medalha. `slot` é o ponto do furo (x, y, z); `azDeg` aponta a frente da medalha. */
+export function hangingRibbon(slot: THREE.Vector3, barZ: number, width: number, color: string, azDeg: number, axisDeg: number): THREE.Group {
+  const g = new THREE.Group();
+  const mat = fabric(color);
+  const rot = (azDeg * Math.PI) / 180;
+  const n = new THREE.Vector2(Math.sin(rot), -Math.cos(rot)); // da barra para a câmera
+  const down = new THREE.Mesh(new THREE.BoxGeometry(width, RIBBON_THICK, barZ - slot.z), mat);
+  down.position.set(slot.x, slot.y, (barZ + slot.z) / 2);
+  down.rotation.z = rot;
+  const dowelXY = [slot.x - n.x * (DOWEL_R + 0.5), slot.y - n.y * (DOWEL_R + 0.5)];
+  const axis = (axisDeg * Math.PI) / 180;
+  const wrap = new THREE.Mesh(new THREE.CylinderGeometry(DOWEL_R + 0.5, DOWEL_R + 0.5, width, 24, 1, true), new THREE.MeshPhysicalMaterial({ color: new THREE.Color(color), roughness: 0.85, side: THREE.DoubleSide })); // a fita dá a volta na barra
+  wrap.quaternion.setFromUnitVectors(new THREE.Vector3(0, 1, 0), new THREE.Vector3(Math.cos(axis), Math.sin(axis), 0));
+  wrap.position.set(dowelXY[0], dowelXY[1], barZ);
+  g.add(down, wrap);
+  return g;
+}
+
 export function hardwareAt(points: [number, number][], z: number): THREE.Group {
   const g = new THREE.Group();
   const steel = metal();

@@ -10,8 +10,8 @@ export type Backdrop = "studio" | "wood";
 
 type Box = { dir: THREE.Vector3; radius: number; power: number; tint: [number, number, number] };
 const unit = (x: number, y: number, z: number) => new THREE.Vector3(x, y, z).normalize();
-const WARM: [number, number, number] = [1, 0.87, 0.7];
-const COOL: [number, number, number] = [0.78, 0.88, 1];
+const WARM: [number, number, number] = [1, 0.95, 0.89]; // ~5500 K: a câmera tem o branco balanceado para a janela, o branco sai branco
+const COOL: [number, number, number] = [0.86, 0.93, 1];
 const NEUTRAL: [number, number, number] = [1, 1, 1];
 const BOXES: Box[] = [
   { dir: unit(-1, 0.38, 0.22), radius: 0.42, power: 11, tint: WARM }, // janela à esquerda, baixa: luz lateral
@@ -49,25 +49,25 @@ function woodTexture(): THREE.CanvasTexture {
   const c = document.createElement("canvas");
   c.width = c.height = S;
   const g = c.getContext("2d")!;
-  g.fillStyle = "#c79a68";
+  g.fillStyle = "#b99e7e";
   g.fillRect(0, 0, S, S);
   let seed = 11;
   const rnd = () => ((seed = (seed * 1664525 + 1013904223) >>> 0) / 4294967296);
   for (let band = 0; band < 6; band++) {
-    g.fillStyle = `rgba(${190 + rnd() * 35},${150 + rnd() * 30},${105 + rnd() * 30},${0.1 + rnd() * 0.12})`;
+    g.fillStyle = `rgba(${178 + rnd() * 30},${150 + rnd() * 26},${118 + rnd() * 26},${0.1 + rnd() * 0.12})`;
     g.fillRect(0, (band / 6) * S, S, S / 6);
   }
   for (let i = 0; i < 220; i++) {
     const y = rnd() * S;
     const amp = 2 + rnd() * 7;
     const ph = rnd() * 6.28;
-    g.strokeStyle = `rgba(${85 + rnd() * 35},${60 + rnd() * 25},${35 + rnd() * 20},${0.1 + rnd() * 0.24})`;
+    g.strokeStyle = `rgba(${88 + rnd() * 30},${70 + rnd() * 24},${52 + rnd() * 20},${0.1 + rnd() * 0.24})`;
     g.lineWidth = 0.5 + rnd() * 2.4;
     g.beginPath();
     for (let x = 0; x <= S; x += 12) g.lineTo(x, y + Math.sin(x / 70 + ph) * amp);
     g.stroke();
   }
-  g.fillStyle = "rgba(60,32,10,0.45)"; // emenda entre tábuas
+  g.fillStyle = "rgba(58,44,32,0.45)"; // emenda entre tábuas
   g.fillRect(0, S / 2 - 1, S, 2);
   const t = new THREE.CanvasTexture(c);
   t.colorSpace = THREE.SRGBColorSpace;

@@ -17,9 +17,10 @@ const CREASE = (35 * Math.PI) / 180;
 const FOCAL_MM = 50;
 const F_STOP = 2.8; // fundo bem desfocado (rodada 2)
 const ELEVATION_DEG = 25; // câmera baixa
-const AZIMUTH_DEG = 28; // quanto a câmera gira para a direita da frente (−y)
+export const AZIMUTH_DEG = 28; // quanto a câmera gira para a direita da frente (−y)
 const FOV_DEG = 27; // 50 mm em quadro cheio
 const MARGIN = 0.03; // corte apertado
+const HERO_PAD = 0.05; // folga em volta da peça principal; a caixa projetada é maior que a peça, então ~0 já a deixa com ~55% do quadro
 const WALL_FACTOR = 1; // a parede fica a tantos tamanhos de peça atrás
 const TO_Y_UP = new THREE.Euler(-Math.PI / 2, 0, 0);
 const VIGNETTE = 0.2;
@@ -27,7 +28,16 @@ const VIGNETTE = 0.2;
 /** Uma peça (ou grupo de peças) da cena, com o filamento dela. */
 export type PhotoItem = { models: Model[]; filament?: Filament };
 /** O que vai na foto: peças impressas e adereços (metal, fita...), tudo em mm, Z para cima, já na posição da cena. */
-export type PhotoScene = { items: PhotoItem[]; extras: THREE.Object3D[] };
+export type PhotoScene = {
+  items: PhotoItem[];
+  extras: THREE.Object3D[];
+  /** peça principal (índice em `items`): o quadro e o foco seguem ela */
+  hero?: number;
+  /** altura da mesa (Z, mm), quando nenhuma peça toca nela (medalha pendurada) */
+  floorZ?: number;
+  /** folga em volta da peça principal desta cena (a opção `heroPad` vence) */
+  heroPad?: number;
+};
 
 export type PhotoOpts = {
   filament?: Filament;
@@ -38,6 +48,10 @@ export type PhotoOpts = {
   elevation?: number;
   azimuth?: number;
   wall?: boolean;
+  /** "hero" (padrão, se a cena tem peça principal): enquadra ela e o que cabe em volta; "all": todas as peças */
+  frame?: "hero" | "all";
+  /** quanto cabe em volta da peça principal, em fração do tamanho dela (0,3 → ela ocupa ~60% do quadro) */
+  heroPad?: number;
   exposure?: number;
   bounces?: number;
   w?: number;
@@ -63,7 +77,11 @@ export function createPhoto(scene3: PhotoScene, opts: PhotoOpts = {}, canvas?: H
   scene.background = new THREE.Color(0xe9ebee);
   const group = new THREE.Group();
   const printed = new THREE.Group();
-  for (const item of scene3.items)
+  const itemGroups: THREE.Group[] = [];
+  for (const item of scene3.items) {
+    const ig = new THREE.Group();
+    itemGroups.push(ig);
+    printed.add(ig);
     for (const m of item.models)
       for (const part of m.parts) {
         let g = new THREE.BufferGeometry();
@@ -75,32 +93,48 @@ export function createPhoto(scene3: PhotoScene, opts: PhotoOpts = {}, canvas?: H
         for (const [geo, isTop] of [[walls, false], [tops, true]] as const) {
           if (!geo) continue;
           layerUVs(geo);
-          printed.add(new THREE.Mesh(geo, filamentMaterial(item.filament ?? opts.filament ?? "pla", part.color, isTop)));
+          ig.add(new THREE.Mesh(geo, filamentMaterial(item.filament ?? opts.filament ?? "pla", part.color, isTop)));
         }
       }
+  }
   group.add(printed, ...scene3.extras);
   const box = new THREE.Box3().setFromObject(printed); // Z para cima: foco, mesa e enquadramento seguem só o que foi impresso (a corrente e a fita podem sair do quadro)
   const size = box.getSize(new THREE.Vector3());
   const center = box.getCenter(new THREE.Vector3());
   const span = Math.max(size.x, size.y, size.z, 1);
+  // enquadramento: a peça principal mais uma folga (as outras peças aparecem em volta, desfocadas); sem principal, tudo
+  const hero = scene3.hero !== undefined && (opts.frame ?? "hero") === "hero" ? itemGroups[scene3.hero] : undefined;
+  let frameBox = box;
+  if (hero) {
+    const hb = new THREE.Box3().setFromObject(hero);
+    const hs = hb.getSize(new THREE.Vector3());
+    frameBox = hb.clone().expandByScalar(Math.max(hs.x, hs.y) * (opts.heroPad ?? scene3.heroPad ?? HERO_PAD));
+    frameBox.min.z = hb.min.z; // nada abaixo da mesa
+  }
+  const frameCenter = frameBox.getCenter(new THREE.Vector3());
+  const focusPoint = hero ? new THREE.Box3().setFromObject(hero).getCenter(new THREE.Vector3()) : frameCenter;
   group.rotation.copy(TO_Y_UP);
   scene.add(group);
-  const floor = table(opts.backdrop ?? "wood", span, box.min.z, yUp(center)); // Z da mesa vira Y
+  const floor = table(opts.backdrop ?? "wood", span, scene3.floorZ ?? box.min.z, yUp(center)); // Z da mesa vira Y
+
   scene.add(floor);
 
   // câmera baixa, de lado, olhando o centro das peças; enquadra em Z para cima e converte para Y para cima
   const el = ((opts.elevation ?? ELEVATION_DEG) * Math.PI) / 180, az = ((opts.azimuth ?? AZIMUTH_DEG) * Math.PI) / 180;
   const dir = new THREE.Vector3(Math.sin(az) * Math.cos(el), -Math.cos(az) * Math.cos(el), Math.sin(el));
   const probe = new THREE.PerspectiveCamera(FOV_DEG, w / h, 0.1, span * 50);
-  fitCamera(probe, box, dir, MARGIN);
+  fitCamera(probe, frameBox, dir, MARGIN);
   const camera = new PhysicalCamera(FOV_DEG, w / h, span * 0.05, span * 80);
-  const target = yUp(center);
+  // o fitCamera desloca o alvo na tela para centrar a caixa: o ponto olhado é onde o eixo da câmera passa mais perto do centro
+  const fwd = probe.getWorldDirection(new THREE.Vector3());
+  const target = yUp(probe.position.clone().addScaledVector(fwd, frameCenter.clone().sub(probe.position).dot(fwd)));
+  const focus = yUp(focusPoint); // foco na peça principal
   camera.position.copy(yUp(probe.position));
   camera.up.set(0, 1, 0);
   camera.lookAt(target);
   camera.setFocalLength(FOCAL_MM);
   camera.fStop = opts.fStop ?? F_STOP;
-  camera.focusDistance = camera.position.distanceTo(target);
+  camera.focusDistance = camera.position.distanceTo(focus);
   camera.updateMatrixWorld();
   if (opts.wall ?? opts.backdrop !== "studio") {
     const toCam = camera.position.clone().sub(target).setY(0).normalize(); // horizontal, da peça para a câmera
