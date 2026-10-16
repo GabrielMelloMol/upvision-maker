@@ -117,7 +117,7 @@ export default function Thermoform() {
   const lines = splitLines(s.text);
   const sc = p.screen;
   const valid =
-    inRange(s.width, 40, 140) && inRange(p.domeH, 6, 40) && inRange(p.curve, 1.6, 4) && inRange(sc.t, 0.6, 2) && inRange(sc.border, 2, 8) && inRange(sc.aperture, 2, 8) && inRange(sc.wire, 0.6, 2) &&
+    inRange(s.width, 40, 140) && inRange(p.domeH, 6, 40) && inRange(p.curve, 1.6, 4) && inRange(sc.t, 0.6, 2) && inRange(sc.border, 2, 8) && inRange(sc.aperture, 1.4, 8) && inRange(sc.wire, 0.6, 2) &&
     inRange(p.mold.flange, 3, 15) && inRange(p.mold.clearance, CLEARANCE_RANGE[0], CLEARANCE_RANGE[1]) && inRange(s.textScale, 20, 200);
   const hasDesign = lines.length > 0 || !!s.logo;
 
@@ -283,7 +283,7 @@ export default function Thermoform() {
             <span className="field-label">Malha</span>
             <Segmented label="Malha" value={sc.mesh} options={MESHES} onChange={setScreen("mesh")} full />
             <div className="grid two">
-              <NumField label="Abertura do furo" value={sc.aperture} onChange={setScreen("aperture")} min={2} max={8} step={0.5} />
+              <NumField label="Abertura do furo" value={sc.aperture} onChange={setScreen("aperture")} min={1.4} max={8} step={0.1} />
               <NumField label="Espessura do fio" value={sc.wire} onChange={setScreen("wire")} min={0.6} max={2} step={0.1} hint="Pelo menos 2 filetes do bico" />
               <NumField label="Espessura da tela" value={sc.t} onChange={setScreen("t")} min={0.6} max={2} step={0.1} />
               <NumField label="Borda sólida" value={sc.border} onChange={setScreen("border")} min={2} max={8} step={0.5} />

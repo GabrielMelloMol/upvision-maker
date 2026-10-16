@@ -503,7 +503,7 @@ export function toolCases(M: ManifoldToplevel): QaCase[] {
       ["coração com tampa rosqueada", () => thermo("screens", "heart", 70, { screen: { ...DEFAULT_THERMO.screen, closure: "cap" } }), THERMO_SCREEN_PROFILE],
       ["ovo sem base", () => thermo("screens", "egg", 70, { bases: "none" }), THERMO_SCREEN_PROFILE],
       ["flor com uma base", () => thermo("screens", "flower", 70, { bases: "one" }), THERMO_SCREEN_PROFILE],
-      ["mínimo", () => thermo("screens", "square", 40, { screen: { ...DEFAULT_THERMO.screen, t: 0.6, border: 2, aperture: 2, wire: 0.6 } }), THERMO_SCREEN_PROFILE],
+      ["mínimo", () => thermo("screens", "square", 40, { screen: { ...DEFAULT_THERMO.screen, t: 0.6, border: 2, aperture: 1.4, wire: 0.6 } }), THERMO_SCREEN_PROFILE],
       ["máximo", () => thermo("screens", "egg", 100, { screen: { ...DEFAULT_THERMO.screen, t: 2, border: 8, aperture: 8, wire: 2 } }), THERMO_SCREEN_PROFILE],
     ]),
     ...cases("thermoClosure", "Caixinha termoformada: clipe e tampa", [

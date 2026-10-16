@@ -46,8 +46,8 @@ export const DEFAULT_VESSEL: VesselParams = {
   rim: 5,
   margin: 6,
   mesh: "honeycomb",
-  aperture: 4,
-  wire: 1.2,
+  aperture: 2.5,
+  wire: 1,
   solidBase: true,
   mold: "male",
   flange: 8,
@@ -57,7 +57,7 @@ export const DEFAULT_VESSEL: VesselParams = {
 };
 
 /** Cesto: a mesma peça com a malha no lugar do plástico cheio. */
-export const BASKET_VESSEL: Partial<VesselParams> = { kind: "cesto", mouthD: 90, height: 60, draft: 8, cornerR: 10 };
+export const BASKET_VESSEL: Partial<VesselParams> = { kind: "cesto", mouthD: 90, height: 60, draft: 8, cornerR: 10, aperture: 3 };
 
 export type VesselInfo = {
   /** Diâmetro do disco plano (conta da planificação + borda e sobra) e do fundo plano do molde. */
