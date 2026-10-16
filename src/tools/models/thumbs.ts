@@ -2,6 +2,8 @@
  * Miniaturas dos Modelos prontos (#149): render com fundo transparente, câmera ¾ e luz de estúdio, geradas por
  * `npm run thumbs` (src/thumbs/renderThumb.ts) em src/assets/model-thumbs/<id>.webp. O card dá o fundo (claro/escuro).
  */
-export const THUMBS: Record<string, string> = Object.fromEntries(
-  Object.entries(import.meta.glob("../../assets/model-thumbs/*.webp", { eager: true, query: "?url", import: "default" }) as Record<string, string>).map(([path, url]) => [path.replace(/^.*\/(.+)\.webp$/, "$1"), url]),
-);
+const byId = (files: Record<string, string>) => Object.fromEntries(Object.entries(files).map(([path, url]) => [path.replace(/^.*\/(.+)\.(webp|jpg|png)$/, "$1"), url]));
+const renders = byId(import.meta.glob("../../assets/model-thumbs/*.webp", { eager: true, query: "?url", import: "default" }) as Record<string, string>);
+/** Foto real da peça impressa (#211): `src/assets/model-photos/<id>.webp|jpg|png`; quando existe, é a capa no lugar do desenho. */
+const photos = byId(import.meta.glob("../../assets/model-photos/*.{webp,jpg,png}", { eager: true, query: "?url", import: "default" }) as Record<string, string>);
+export const THUMBS: Record<string, string> = { ...renders, ...photos };

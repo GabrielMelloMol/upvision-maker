@@ -439,7 +439,7 @@ export default function Models({ only, embedded }: { only?: string; embedded?: {
             history={{ undo: tool.undo, redo: tool.redo, canUndo: tool.canUndo, canRedo: tool.canRedo }}
             disabled={copies ? "No lote, os desenhos e textos livres ficam de fora: desligue o lote para usá-los." : undefined}
           />
-          <ExportButtons models={models.filter((m) => !m.previewOnly)} name={copies ? `${def.label}-lote` : `${def.label}-${String(p.text ?? p.line1 ?? p.title ?? p.base ?? "")}`} busy={busy} pauses={pauses} profile={profileFor(id, p)} tips={guide.help.tips} onSaved={tool.exported} />
+          <ExportButtons models={models.filter((m) => !m.previewOnly)} name={copies ? `${def.label}-lote` : `${def.label}-${String(p.text ?? p.line1 ?? p.title ?? p.base ?? "")}`} busy={busy} pauses={pauses} profile={profileFor(id, p)} tips={guide.help.tips} promoModels={shownViews?.find((v) => v.id === "closed")?.models ?? models} onSaved={tool.exported} />
           <GeneratorHelp def={def} help={guide.help} />
         </div>
         <div className="preview-col">

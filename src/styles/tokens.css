@@ -45,6 +45,8 @@
   --surface-2: #f5f5f7;
   --surface-raised: #ffffff;
   --fill: rgb(120 120 128 / 0.1); /* fundo de controles (segmented, trilho) */
+  --thumb-bg: linear-gradient(160deg, #f6f7f9, #dde1e8); /* fundo de estúdio das miniaturas (#211): peça preta e peça branca aparecem nos dois temas */
+  --thumb-ink: #6b7280;
   --fill-hover: rgb(120 120 128 / 0.16);
   --fill-strong: rgb(120 120 128 / 0.24);
   --field: #ffffff;
@@ -121,6 +123,8 @@
     --surface: #1e1e21;
     --surface-2: #26262a;
     --surface-raised: #2a2a2e;
+    --thumb-bg: linear-gradient(160deg, #cdd2da, #aeb5c1); /* estúdio cinza médio: não ofusca no escuro e mostra peça preta e branca */
+    --thumb-ink: #4b5563;
     --fill: rgb(120 120 128 / 0.2);
     --fill-hover: rgb(120 120 128 / 0.28);
     --fill-strong: rgb(120 120 128 / 0.36);
