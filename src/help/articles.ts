@@ -249,6 +249,13 @@ export const ARTICLES: HelpArticle[] = [
     tips: ["Cada pedido mostra o custo estimado; dá para pôr limite de gasto no site da Anthropic."],
   },
   {
+    id: "pricing",
+    title: "Como calculamos o preço",
+    intro: "A mesma conta da Calculadora, um componente por vez, com um exemplo de 4 chaveiros.",
+    steps: ["Leia a regra de cada linha: filamento, extras, energia, máquina, mão de obra, falhas e custos fixos.", "Confira a soma e o custo por peça no fim do exemplo.", "Veja como o multiplicador e o preço por canal saem desse custo.", "Em Onde mudar, ajuste cada valor para o seu caso."],
+    tips: ["Em Seus valores hoje, o topo mostra o kWh, a sua hora, a taxa de falha e os multiplicadores que você usa."],
+  },
+  {
     id: "calculator",
     title: "Calculadora de preço",
     intro: "Filamento, gramas, tempo e impressora: o resto vem das Preferências.",

@@ -440,3 +440,17 @@ td.best-name { max-width: 0; width: 30%; overflow: hidden; text-overflow: ellips
 .compare-row dl { display: grid; grid-template-columns: auto 1fr; gap: 2px 12px; margin: 0; font-size: var(--text-sm); }
 .compare-row dt { color: var(--muted); }
 .compare-row dd { margin: 0; color: var(--text); }
+
+/* Como calculamos o preço (#216) */
+.pricing-how { max-width: 760px; }
+.pricing-how .card { margin-bottom: var(--space-3); }
+.ph-steps { list-style: none; margin: var(--space-4) 0; padding: 0; }
+.ph-head { display: flex; align-items: baseline; justify-content: space-between; gap: var(--space-3); }
+.ph-head h2 { margin: 0; font-size: var(--title-3); display: flex; align-items: center; gap: var(--space-2); }
+.ph-n { display: inline-grid; place-items: center; width: 24px; height: 24px; border-radius: 50%; background: var(--fill-strong); color: var(--text); font-size: var(--text-sm); font-weight: 600; }
+.ph-value { font-variant-numeric: tabular-nums; white-space: nowrap; }
+.ph-sum code { display: block; margin-top: var(--space-1); padding: var(--space-2) var(--space-3); border-radius: var(--r); background: var(--fill); font-family: inherit; font-variant-numeric: tabular-nums; white-space: normal; overflow-wrap: anywhere; }
+.pricing-how p { margin: var(--space-2) 0; }
+.ph-compare { width: 100%; margin: var(--space-3) 0; font-size: var(--text-sm); }
+.ph-compare th, .ph-compare td { text-align: left; vertical-align: top; }
+.pricing-how h3 { margin: var(--space-4) 0 0; font-size: var(--text-md); }

@@ -6,10 +6,10 @@ import type { Settings } from "../../domain/settings";
 
 const pct = (n: number) => `${n.toLocaleString("pt-BR", { maximumFractionDigits: 1 })} %`;
 
-type HeroProps = { r: CalcResult; s: Settings; onSave: () => void; onPreferences: () => void; children?: React.ReactNode };
+type HeroProps = { r: CalcResult; s: Settings; onSave: () => void; onPreferences: () => void; onHow?: () => void; children?: React.ReactNode };
 
 /** Custo por peça e os dois preços do multiplicador, com os nomes explicados (lojista × venda direta). */
-export function PriceHero({ r, s, onSave, onPreferences, children }: HeroProps) {
+export function PriceHero({ r, s, onSave, onPreferences, onHow, children }: HeroProps) {
   const laborAfter = r.labor > 0 && !s.multiplyLabor;
   const cost = r.unitCost > 0 ? r : { unitCost: 15.96, resale: 47.88, consumer: 79.8 }; // exemplo quando ainda não há conta
   return (
@@ -47,6 +47,11 @@ export function PriceHero({ r, s, onSave, onPreferences, children }: HeroProps) 
         <button type="button" className="link" onClick={onPreferences}>
           Ajustar os multiplicadores nas Preferências
         </button>
+        {onHow && (
+          <button type="button" className="link" onClick={onHow}>
+            Como calculamos o preço
+          </button>
+        )}
       </details>
       {children}
     </section>

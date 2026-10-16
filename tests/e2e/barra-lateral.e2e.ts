@@ -87,7 +87,7 @@ test("barra lateral: na janela mínima (900 px) as telas da seção aberta ficam
   await nav.getByRole("button", { name: "Vender" }).hover();
   const menu = page.getByRole("menu", { name: "Vender" });
   await expect(menu).toBeVisible();
-  await expect(menu.getByRole("menuitem")).toHaveText(["Pedidos", "Orçamentos", "Calculadora", "Clientes", "Produtos"]);
+  await expect(menu.getByRole("menuitem")).toHaveText(["Pedidos", "Orçamentos", "Calculadora", "Como calculamos o preço", "Clientes", "Produtos"]);
   await expect(menu.getByRole("menuitem", { name: "Pedidos" })).toHaveAttribute("aria-current", "page");
   if (before) await page.screenshot({ path: `${before}/trilho-menu-vender.png` });
   await menu.hover(); // cruzar o espaço até o menu não o fecha
