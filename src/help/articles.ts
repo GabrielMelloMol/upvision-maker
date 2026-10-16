@@ -141,6 +141,13 @@ export const ARTICLES: HelpArticle[] = [
     tips: ["O app confere que as duas peças fecham e que, somadas, voltam ao volume original.", "Cortes finos demais para o pino saem sem encaixe e avisam.", "Use só modelos que são seus ou cuja licença permite alterar."],
   },
   {
+    id: "mold",
+    title: "Molde a partir de STL",
+    intro: "Transforme uma peça (STL ou 3MF) num molde de duas metades para resina, silicone, sabonete, vela, gesso ou chocolate.",
+    steps: ["Arraste o STL ou 3MF (um sólido fechado): o app já abre no eixo e no plano que menos prendem a peça.", "Se quiser, mude a direção e a posição do plano; o aviso diz se parte da peça vai prender na hora de tirar.", "Escolha o lado do canal de vazamento (com funil) e quantos respiros; ajuste a parede e o encolhimento do material.", "Veja quanto material cabe na cavidade, salve o 3MF e imprima as duas metades com a face de partição para cima, sem suporte.", "Passe desmoldante, feche com elásticos ou presilhas e vaze pelo funil."],
+    tips: ["O pino de cada canto alinha as metades; a folga de 0,3 mm costuma entrar justo.", "Para silicone e resina, o encolhimento aumenta a cavidade; comece com 0 a 2%.", "Para chocolate e sabonete, use material próprio para contato com alimento e forre o molde.", "Use só peças que são suas ou cuja licença permite copiar."],
+  },
+  {
     id: "owndecal",
     title: "Nome ou logo no seu modelo",
     intro: "Ponha seu nome ou logo numa face plana de um STL ou 3MF que você já tem, em outra cor, para imprimir em duas cores.",
