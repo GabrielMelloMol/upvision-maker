@@ -305,6 +305,7 @@ export const HOME_STORAGE_MODELS: ModelDef[] = [
   {
     id: "discBox",
     category: "organize",
+    assembledInfo: "Prévia da caixa fechada, com a tampa. Ela não vai para o arquivo: o que imprime está em Mesa (a caixa e a tampa de cabeça para baixo).",
     label: "Caixa de discos",
     blurb: "CDs, DVDs ou Blu-rays em pé, cada um no seu vão, com entalhe para pegar e tampa com o nome em 2 cores. A tampa imprime de cabeça para baixo, sem ponte.",
     icon: Disc3,
@@ -314,13 +315,12 @@ export const HOME_STORAGE_MODELS: ModelDef[] = [
       { title: "O que guarda", fields: [choice("kind", "Tipo", Object.entries(DISC_ITEMS).map(([id, i]) => [id, i.label] as const)), num("count", "Quantos", 1, 24, { step: 1, unit: "", hint: "Uma caixa comum de CD ocupa 12 mm de largura; a caixa e a tampa juntas cabem na mesa da A1 até uns 6 (com mais, saem em duas mesas)." })] },
       { title: "Tampa", fields: [text("text", "Nome na tampa", 16)] },
       { title: "Cores", fields: [color("bodyColor", "Caixa"), color("lidColor", "Tampa"), color("textColor", "Nome")] },
-      { title: "Prévia", fields: [choice("layout", "Prévia", [["print", "Mesa (o que imprime)"], ["assembled", "Mesa e fechada ao lado (o 3MF leva só a mesa)"]])] },
     ],
     build: (ctx, p) => buildDiscBox(ctx, as(p)),
   },
   {
     id: "pegboard",
-    category: "home",
+    category: "organize",
     label: "Painel perfurado",
     blurb: "Painel de furos para pendurar ferramentas, com parafusos de cabeça chata e espaçadores atrás. Se passa da mesa, sai em ladrilhos cortados entre os furos.",
     icon: LayoutGrid,
@@ -335,7 +335,7 @@ export const HOME_STORAGE_MODELS: ModelDef[] = [
   },
   {
     id: "pegHooks",
-    category: "home",
+    category: "organize",
     label: "Ganchos do painel",
     blurb: "Ganchos em J, duplos ou hastes retas com pino redondo no diâmetro do furo do painel (folga de 0,4 mm). Várias cópias por mesa.",
     icon: Wrench,

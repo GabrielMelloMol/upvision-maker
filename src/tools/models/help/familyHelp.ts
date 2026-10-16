@@ -207,6 +207,42 @@ export const FAMILY_HELP: Record<string, GuideHelp> = {
     tips: ["4 paredes e 30% de preenchimento. PETG flexiona mais sem quebrar."],
     faq: [{ q: "O clipe quebrou ao abrir.", a: "Use PETG e imprima deitado; abra devagar na primeira vez." }],
   },
+  pegboard: {
+    use: ["Painel de parede para pendurar ferramentas, com os ganchos que encaixam nos furos.", "Bancada, oficina, ateliê ou quarto de costura."],
+    avoid: ["Peso grande no mesmo gancho: ferramenta pesada pede gancho duplo ou haste curta, perto do painel."],
+    tips: ["Escolha o mesmo passo (25 ou 20 mm) e o mesmo diâmetro de furo no painel e nos ganchos.", "Os espaçadores atrás dão o vão para o pino do gancho passar: deixe uns 12 mm.", "Painel maior que a mesa sai em ladrilhos cortados entre os furos: parafuse todos na parede, encostados."],
+    faq: [{ q: "O gancho fica folgado no furo.", a: "O pino usa o diâmetro do furo menos 0,4 mm. Se sua impressora sai larga ou justa, mude o diâmetro do furo nos dois modelos em 0,2 mm e imprima um gancho de teste." }, BED_FAQ],
+  },
+  bookHolder: {
+    use: ["Suporte de mesa para livro de receitas, caderno ou tablet, e apoio de polegar para ler com uma mão só."],
+    avoid: ["Livros muito pesados no apoio de polegar: ele segura a página, não o livro."],
+    tips: ["O suporte de mesa imprime com a base na mesa, sem suporte: a inclinação para trás é suave.", "Com 2 cores, o batente e os pés ficam numa cor e o nome em relevo em outra."],
+    faq: [{ q: "Qual a largura certa?", a: "Um pouco menor que o livro aberto: 120 mm serve para a maioria dos livros de receitas." }, COLORS_FAQ],
+  },
+  mechanics: {
+    use: ["Engrenagem, polia, correia, planetário, roda dentada e corrente para projetos de máquina, robótica e reparo."],
+    avoid: ["Peça que gira sob carga sem testar: imprima uma de teste e confira a folga entre os dentes."],
+    tips: ["Imprima engrenagens deitadas, com 4 paredes e 40% de preenchimento.", "Módulo e número de dentes definem o diâmetro: use o mesmo módulo nas peças que se encaixam."],
+    faq: [{ q: "A engrenagem trava.", a: "Aumente a folga entre os dentes (0,1 a 0,2 mm) e confira se as duas peças têm o mesmo módulo." }, BED_FAQ],
+  },
+  cupHandle: {
+    use: ["Alça removível para copo térmico cônico (Stanley e parecidos), para carregar com uma mão."],
+    avoid: ["Copos muito cheios sem testar o encaixe: imprima antes o anel de teste."],
+    tips: ["Imprima em PETG, que aguenta o peso e o calor do copo.", "Meça o diâmetro da base e do topo do seu copo e escolha o modelo mais próximo nas sugestões."],
+    faq: [{ q: "A alça escorrega.", a: "Diminua o diâmetro do aro em 1 mm ou ligue mais paredes; o copo cônico aperta de baixo para cima." }],
+  },
+  sinkFunnel: {
+    use: ["Tampa de ralo, funil, O-ring e retentor feitos pela sua medida, para reparo em casa."],
+    avoid: ["Vedação de gás, água quente sob pressão ou contato com alimento sem material próprio: use peça comprada."],
+    tips: ["Meça o ralo por dentro com paquímetro ou régua e confira com uma peça de teste.", "PETG aguenta melhor a água; lave sem água muito quente."],
+    faq: [{ q: "A tampa não entra no ralo.", a: "O pino usa uma folga de 0,4 mm. Se o ralo for de plástico mole ou irregular, teste com 0,6 mm." }],
+  },
+  jigs: {
+    use: ["Gabaritos de oficina: furação com guia de broca, gabarito de raio e régua de marcação."],
+    avoid: ["Tolerância de precisão industrial: a peça impressa serve para marcar e guiar, não para medir micrômetros."],
+    tips: ["Imprima deitado, com 4 paredes, para a guia não flexionar.", "Confira o furo guia com a broca antes de usar na peça de verdade."],
+    faq: [{ q: "A broca anda dentro do furo guia.", a: "Use o diâmetro da broca mais 0,2 mm de folga; mais que isso a guia perde precisão." }],
+  },
 };
 
 /** Texto de apoio quando um modelo novo ainda não tem família com ajuda escrita. */

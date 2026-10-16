@@ -2,7 +2,6 @@ import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
 import opentype from "opentype.js";
 import { beforeAll, describe, expect, test } from "vitest";
-import { meshBounds } from "../bounds";
 import { getManifold, type ManifoldToplevel, type Solid } from "../manifold";
 import { textToCrossSection } from "../text";
 import type { Mesh } from "../types";
@@ -51,7 +50,7 @@ describe("caixa de discos (#214)", { timeout: 60_000 }, () => {
   });
 
   test("a tampa encaixa na caixa: fechada, as duas peças não se sobrepõem e a folga é pequena", () => {
-    const out = build({ layout: "assembled", kind: "slim", count: 8 });
+    const out = build({ kind: "slim", count: 8 });
     const closed = out.models.find((m) => m.previewOnly)!;
     const box = solid(closed.parts[0].mesh);
     const lid = solid(closed.parts[1].mesh);
@@ -81,15 +80,12 @@ describe("caixa de discos (#214)", { timeout: 60_000 }, () => {
     n.delete();
   });
 
-  test("o 3MF sai sempre com a caixa e a tampa na mesa; a caixa fechada é só prévia, ao lado", () => {
-    const table = build();
-    const asm = build({ layout: "assembled" });
-    const printable = asm.models.filter((m) => !m.previewOnly);
-    expect(printable.map((m) => m.parts.map((x) => Array.from(x.mesh.positions)))).toEqual(table.models.map((m) => m.parts.map((x) => Array.from(x.mesh.positions))));
-    expect(asm.models.filter((m) => m.previewOnly)).toHaveLength(1);
-    const tb = meshBounds(printable.flatMap((m) => m.parts.map((x) => x.mesh)))!;
-    const pb = meshBounds(asm.models.find((m) => m.previewOnly)!.parts.map((x) => x.mesh))!;
-    expect(pb.min[0]).toBeGreaterThan(tb.max[0]);
+  test("o 3MF sai sempre com a caixa e a tampa na mesa; a caixa fechada é só prévia (alternância Mesa / Montada)", () => {
+    const out = build();
+    expect(out.models.filter((m) => !m.previewOnly).map((m) => m.name)).toEqual(["Caixa", "Tampa"]);
+    const closed = out.models.filter((m) => m.previewOnly);
+    expect(closed).toHaveLength(1);
+    expect(closed[0].name).toBe("Fechada");
   });
 
   test("mais discos, caixa mais larga; entalhe nas duas paredes e divisórias baixas", () => {

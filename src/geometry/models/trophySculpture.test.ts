@@ -24,7 +24,7 @@ const build = (over: Partial<SculptureParams>) => buildSculpture(ctx, { ...DEFAU
 describe("troféu escultura (#223)", () => {
   test.each(SPORT_IDS)("atleta de %s: peça fechada e única, com lingueta embaixo, mais a base", (sport) => {
     const out = build({ sport });
-    expect(out.models).toHaveLength(2);
+    expect(out.models.filter((m) => !m.previewOnly)).toHaveLength(2); // peça e base (mais o montado, só de prévia)
     const body = solid(out.models[0].parts[0].mesh);
     expect(body.status()).toBe("NoError");
     expect(body.decompose()).toHaveLength(1);
@@ -78,15 +78,14 @@ describe("troféu escultura (#223)", () => {
     expect(out.models[1].parts.map((x) => x.name)).toEqual(["Base"]);
   });
 
-  describe("Montado ao lado: só prévia, o 3MF sai sempre na posição de impressão", () => {
+  describe("Montado: só prévia (alternância Mesa / Montada), o 3MF sai sempre na posição de impressão", () => {
     const printable = (o: ReturnType<typeof build>) => o.models.filter((m) => !m.previewOnly);
 
     test.each([["atleta"], ["fluxo"], ["iris"], ["nexo"]] as const)("%s: o que se exporta é igual ao da mesa; o montado é extra, em pé, sem bater na base", (form) => {
-      const onTable = build({ form, height: 120, twist: 200 });
-      const out = build({ form, layout: "assembled", height: 120, twist: 200 });
-      // exportável: idêntico à mesa (mesma geometria, mesma posição)
-      expect(printable(out).map((m) => m.parts.map((x) => Array.from(x.mesh.positions)))).toEqual(onTable.models.map((m) => m.parts.map((x) => Array.from(x.mesh.positions))));
-      expect(onTable.models.some((m) => m.previewOnly)).toBe(false);
+      const out = build({ form, height: 120, twist: 200 });
+      // exportável: só as peças da mesa (o montado não entra no arquivo)
+      expect(printable(out)).toHaveLength(2);
+      expect(printable(out).every((m) => !m.previewOnly)).toBe(true);
       // prévia: um modelo a mais, marcado, com o troféu em pé
       const stand = out.models.filter((m) => m.previewOnly);
       expect(stand).toHaveLength(1);
@@ -97,16 +96,8 @@ describe("troféu escultura (#223)", () => {
       const b = body.boundingBox();
       expect(b.min[2]).toBeCloseTo(2, 3); // 10 de base − 8 de lingueta
       expect(b.max[2]).toBeGreaterThan(110);
-      // e o montado fica ao lado das peças da mesa, sem sobrepor
-      const tableB = meshBounds(printable(out).flatMap((m) => m.parts.map((x) => x.mesh)))!;
-      const standB = meshBounds(stand[0].parts.map((x) => x.mesh))!;
-      expect(standB.min[0]).toBeGreaterThan(tableB.max[0]);
       body.delete();
       slab.delete();
-    });
-
-    test("a mesa continua sendo o padrão", () => {
-      expect(DEFAULT_SCULPTURE.layout).toBe("print");
     });
   });
 });

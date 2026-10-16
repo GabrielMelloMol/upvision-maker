@@ -1,4 +1,3 @@
-import { meshBounds } from "../bounds";
 import type { CS, Solid } from "../manifold";
 import { fitInto, scoped } from "../shape2d";
 import type { Model } from "../types";
@@ -10,7 +9,6 @@ import { moveModel, roundedRect, solidMesh, type ModelCtx, type ModelOutput } fr
  * cabeça para baixo (topo na mesa: sem ponte) e leva o nome em duas cores, rente, e um furo oval para puxar.
  */
 export type DiscKind = "disc" | "slim" | "jewel" | "dvd" | "bluray";
-export type DiscLayout = "print" | "assembled";
 
 /** Medidas de cada item em mm: profundidade na caixa, altura em pé e espessura. */
 export const DISC_ITEMS: Record<DiscKind, { label: string; depth: number; height: number; thick: number }> = {
@@ -25,13 +23,12 @@ export type DiscBoxParams = {
   kind: DiscKind;
   count: number;
   text: string;
-  layout: DiscLayout; // só a mesa, ou também a caixa fechada ao lado (só prévia: o 3MF leva só a mesa)
   bodyColor: string;
   lidColor: string;
   textColor: string;
 };
 
-export const DEFAULT_DISC_BOX: DiscBoxParams = { kind: "jewel", count: 6, text: "FILMES", layout: "print", bodyColor: "#2563eb", lidColor: "#1e3a8a", textColor: "#f8f8f6" };
+export const DEFAULT_DISC_BOX: DiscBoxParams = { kind: "jewel", count: 6, text: "FILMES", bodyColor: "#2563eb", lidColor: "#1e3a8a", textColor: "#f8f8f6" };
 
 export const WALL = 2;
 export const FLOOR = 2;
@@ -51,7 +48,6 @@ const NOTCH_R = 20;
 const PULL_W = 30;
 const PULL_H = 11;
 const SEG = 48;
-const PREVIEW_GAP = 25;
 
 /** Medidas derivadas, exportadas para os testes. */
 export function discBoxSizes(p: Pick<DiscBoxParams, "kind" | "count">) {
@@ -125,7 +121,7 @@ export function buildDiscBox(ctx: ModelCtx, p: DiscBoxParams): ModelOutput {
     const gap = 15;
     const lidModel = moveModel({ name: "Tampa", parts: lidParts }, s.outerX / 2 + gap + (s.outerX + 2 * (FIT + WALL)) / 2, 0);
     const models: Model[] = [boxModel, lidModel];
-    if (p.layout === "assembled") {
+    {
       const up = (x: Solid) => k(x.translate([0, 0, s.boxH - OVERLAP]));
       const closed: Model = {
         name: "Fechada",
@@ -136,9 +132,7 @@ export function buildDiscBox(ctx: ModelCtx, p: DiscBoxParams): ModelOutput {
           ...(l.name ? [{ name: "Nome", color: p.textColor, mesh: solidMesh(up(l.name)) }] : []),
         ],
       };
-      const printed = meshBounds(models.flatMap((m) => m.parts.map((x) => x.mesh)));
-      const shown = meshBounds(closed.parts.map((x) => x.mesh));
-      if (printed && shown) models.push(moveModel(closed, printed.max[0] + PREVIEW_GAP - shown.min[0], 0));
+      models.push(closed);
     }
     return { models };
   });

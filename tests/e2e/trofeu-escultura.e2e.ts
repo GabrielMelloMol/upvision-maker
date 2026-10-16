@@ -53,7 +53,7 @@ test("troféu escultura: fita, estrela e cruz torcidas", async ({ page }) => {
   await shot(page, "06-escultura-cruz");
 });
 
-const assembled = (page: Page) => page.getByRole("button", { name: "Mesa e montado ao lado (o 3MF leva só a mesa)" }).click().then(() => idle(page));
+const assembled = (page: Page) => page.getByRole("button", { name: "Montada (não imprime)" }).click().then(() => idle(page));
 const onTable = (page: Page) => page.getByRole("button", { name: "Mesa (o que imprime)" }).click().then(() => idle(page));
 
 test("troféu atleta: Mesa mostra o que imprime e Montado mostra o troféu em pé na base", async ({ page }) => {

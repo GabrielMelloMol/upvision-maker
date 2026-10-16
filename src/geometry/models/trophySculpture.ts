@@ -1,18 +1,15 @@
 import type { CS, ManifoldToplevel } from "../manifold";
-import { meshBounds } from "../bounds";
 import { scoped } from "../shape2d";
 import { sportSilhouette, type SportId } from "../sports";
 import type { Model } from "../types";
 import { moveModel, roundedRect, slab, solidMesh, type ModelCtx, type ModelOutput } from "./common";
 import { trophyBase } from "./trophy";
 
-export type SculptureLayout = "print" | "assembled";
 export type SculptureForm = "atleta" | "fluxo" | "iris" | "nexo";
 export const SCULPTURE_FORMS: SculptureForm[] = ["atleta", "fluxo", "iris", "nexo"];
 
 export type SculptureParams = {
   form: SculptureForm;
-  layout: SculptureLayout; // só as peças na mesa, ou também o troféu montado em pé ao lado (só prévia: o 3MF sai sempre com as peças da mesa)
   sport: SportId;
   height: number; // altura do atleta (maior dimensão) ou da coluna torcida
   girth: number; // largura da coluna torcida
@@ -27,7 +24,6 @@ export type SculptureParams = {
 
 export const DEFAULT_SCULPTURE: SculptureParams = {
   form: "atleta",
-  layout: "print",
   sport: "futebol",
   height: 120,
   girth: 44,
@@ -105,12 +101,10 @@ function column(ctx: ModelCtx, p: SculptureParams, assembled: boolean): { model:
   });
 }
 
-const PREVIEW_GAP = 25;
-
 /**
- * Troféu escultura (#223): atleta de um dos 15 esportes ou coluna torcida (fita, estrela, cruz), sobre base com texto.
- * Os modelos exportados são sempre os da mesa (posição de impressão); com `layout: "assembled"` entra ao lado um modelo
- * só de prévia com o troféu em pé dentro da base.
+ * Troféu escultura (#223): atleta de um dos 58 esportes ou coluna torcida (fita, estrela, cruz), sobre base com texto.
+ * Os modelos exportados são sempre os da mesa (posição de impressão); o troféu em pé dentro da base vai como modelo só de
+ * prévia (`previewOnly`), que a alternância Mesa / Montada da galeria mostra.
  */
 export function buildSculpture(ctx: ModelCtx, p: SculptureParams): ModelOutput {
   const warnings: string[] = [];
@@ -122,11 +116,7 @@ export function buildSculpture(ctx: ModelCtx, p: SculptureParams): ModelOutput {
   // o atleta (peça plana) leva a base embaixo, como o troféu adaptável; a coluna leva a base ao lado
   const placed = p.form === "atleta" ? moveModel(base, 0, -(TAB_H + GAP_TO_BASE + BASE_D / 2)) : moveModel(base, piece.width / 2 + BASE_W / 2 + GAP_TO_BASE, 0);
   const models: Model[] = [piece.model, placed];
-  if (p.layout === "assembled") {
-    const stand: Model = { name: "Montado", previewOnly: true, parts: [...make(true).model.parts, ...base.parts] };
-    const printed = meshBounds(models.flatMap((m) => m.parts.map((x) => x.mesh)));
-    const shown = meshBounds(stand.parts.map((x) => x.mesh));
-    if (printed && shown) models.push(moveModel(stand, printed.max[0] + PREVIEW_GAP - shown.min[0], -(shown.min[1] + shown.max[1]) / 2));
-  }
+  const stand: Model = { name: "Montado", previewOnly: true, parts: [...make(true).model.parts, ...base.parts] };
+  models.push(stand);
   return { models, warnings };
 }

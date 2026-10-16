@@ -29,7 +29,7 @@ test("caixa de discos: tipos, quantidade, tampa de cabeça para baixo e 3MF só 
   await open(page, "discos", "Caixa de discos");
   await expect(page.locator(".viewer .legend span")).toHaveCount(3); // caixa, tampa e nome
   await shot(page, "01-caixa-de-discos");
-  await page.getByRole("button", { name: "Mesa e fechada ao lado (o 3MF leva só a mesa)" }).click();
+  await page.getByRole("button", { name: "Montada (não imprime)" }).click();
   await idle(page);
   await shot(page, "02-caixa-de-discos-fechada");
   await page.getByRole("button", { name: "12 DVDs" }).click();
