@@ -4,6 +4,12 @@ import type { Params } from "./fields";
 
 /** Configuração recomendada por modelo pronto (#86), por cima do padrão (0,2 mm · 3 paredes · 15% · sem suporte). */
 export const MODEL_PROFILES: Record<string, PrintProfile> = {
+  spurGear: { layerHeight: 0.16, walls: 4, infill: 40, notes: ["Imprima deitada, como sai no arquivo. Se os dentes do par travarem, aumente a folga de 0,05 em 0,05 mm; se balançarem demais, reduza. Peça de bancada: não foi testada com carga ou motor forte."] },
+  planetary: { layerHeight: 0.16, walls: 4, infill: 40, notes: ["Imprima cada peça deitada. O porta-satélites sai com os pinos para cima: vire-o sobre os planetas na montagem, com o eixo do sol passando pelo furo do meio. Se algo travar, aumente a folga dos dentes. Peça de bancada: não foi testada com carga."] },
+  pulley: { layerHeight: 0.16, walls: 4, infill: 50, notes: ["Imprima deitada. Rosqueie o parafuso M3 de fixação direto no plástico (ou use porca embutida). Confira o passo da correia antes de imprimir: GT2 é 2 mm, HTD 3M é 3 mm."] },
+  timingBelt: { layerHeight: 0.2, walls: 2, infill: 100, notes: ["Imprima em TPU 95A, devagar (20 a 30 mm/s) e sem retração. É uma correia de bancada: não substitui uma correia de fábrica em máquina de precisão."] },
+  sprocket: { layerHeight: 0.16, walls: 4, infill: 40, notes: ["Imprima deitada. Confira a corrente que você tem (ANSI 25, ANSI 35, 06B ou 08B); com a folga muito justa o rolete não entra, com a folga solta a corrente pula."] },
+  chain: { layerHeight: 0.16, walls: 3, infill: 100, support: false, brim: false, notes: ["Imprima como está no arquivo, sem suporte e sem brim nos pinos. Se os elos grudarem, aumente a folga de 0,05 em 0,05 mm; depois de esfriar, dobre cada junta para soltar."] },
   cutterStamp: { walls: 2, notes: ["Lâmina fina: deixe ligado \"Detectar paredes finas\" no fatiador para ela não sumir."] },
   ejector: { walls: 3, infill: 20 },
   bagClip: { walls: 4, infill: 30, notes: ["Imprima deitado, como sai no arquivo: as hastes flexionam sem quebrar."] },

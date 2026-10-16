@@ -14,6 +14,12 @@ export const queryWords = (q: string): string[] => clean(q).split(/\s+/).filter(
 
 /** Palavras que a pessoa digita e o nome técnico não tem. Por id do modelo. */
 export const MODEL_ALIASES: Record<string, string> = {
+  spurGear: "engrenagem engrenagens dentes catraca mecanismo roda dentada par redução motor",
+  planetary: "planetário redutor redução caixa de redução engrenagens motor nema satélite",
+  pulley: "polia correia dentada gt2 htd impressora 3d cnc eixo motor de passo",
+  timingBelt: "correia dentada gt2 htd tpu borracha transmissão",
+  sprocket: "roda dentada corrente bicicleta moto coroa pinhão catraca roletes",
+  chain: "corrente elos articulada pulseira print in place impressa montada",
   fridgeMagnet: "imã ima geladeira magnético lembrancinha souvenir",
   shirtPrint: "camiseta camisa roupa blusa tecido transfer ferro de passar estampar",
   coaster: "porta copos descanso de copo bolacha mesa",

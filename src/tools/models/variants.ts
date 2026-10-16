@@ -60,6 +60,29 @@ export const MODEL_COLLECTIONS: Record<string, Collection[]> = {
 const PINK = "#f472b6", GOLD = "#f5c542", WHITE = "#f8f8f6", BLACK = "#1c1c1e", RED = "#d6262e", GREEN = "#22a04b", BLUE = "#2563eb", LILAC = "#7e3fd6", SKY = "#7cc4f5";
 
 export const VARIANTS: Record<string, Variant[]> = {
+  spurGear: [
+    { label: "Par 1 : 1 (20 e 20 dentes)", patch: { teeth: 20, teeth2: 20 } },
+    { label: "Par 1 : 2 (18 e 36 dentes)", patch: { teeth: 18, teeth2: 36 } },
+    { label: "Redução forte 1 : 3 (12 e 36 dentes)", patch: { teeth: 12, teeth2: 36 } },
+  ],
+  planetary: [
+    { label: "Redução 4 : 1", patch: { sun: 12, planet: 12, planets: 3 } },
+    { label: "Redução 5 : 1", patch: { sun: 12, planet: 18, planets: 3 } },
+  ],
+  pulley: [
+    { label: "GT2 de 16 dentes", patch: { pitch: "2", teeth: 16 } },
+    { label: "GT2 de 20 dentes", patch: { pitch: "2", teeth: 20 } },
+    { label: "HTD 3M de 24 dentes", patch: { pitch: "3", teeth: 24, width: 10 } },
+  ],
+  sprocket: [
+    { label: "ANSI 25 (12 dentes)", patch: { preset: "ansi25", teeth: 12 } },
+    { label: "ANSI 35 (16 dentes)", patch: { preset: "ansi35", teeth: 16 } },
+    { label: "08B (14 dentes)", patch: { preset: "08b", teeth: 14 } },
+  ],
+  chain: [
+    { label: "Pulseira (10 elos pequenos)", patch: { links: 10, pitch: 14, width: 8, thickness: 3 } },
+    { label: "Corrente grossa (6 elos)", patch: { links: 6, pitch: 24, width: 14, thickness: 5 } },
+  ],
   kitBicho: [
     { label: "Cachorro", patch: { head: "dog", tail: "up", profile: "oval" } },
     { label: "Gato", patch: { head: "cat", tail: "long", profile: "oval" } },

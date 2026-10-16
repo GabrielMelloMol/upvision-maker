@@ -614,6 +614,299 @@
   "plates": 1
  },
  {
+  "key": "chain:máximo",
+  "owner": "Forja",
+  "group": "organize",
+  "label": "Corrente articulada (chain)",
+  "variant": "máximo",
+  "status": "aviso",
+  "reasons": [
+   "\"Corrente\" não cabe na mesa de 256 mm (1224,0 × 24,0 × 9,6 mm)",
+   "Bambu recusa na mesa de 256 mm do A1 (o app avisa)",
+   "Orca recusa na mesa de 256 mm do A1 (o app avisa)",
+   "app: A corrente tem 1184 mm: passa da mesa de 256 mm. Use menos elos.",
+   "app: Imprima sem suporte e sem brim nos pinos. Se os elos grudarem, aumente a folga de 0,05 em 0,05 mm; depois de esfriar, dobre cada junta."
+  ],
+  "date": "2026-10-16",
+  "slicers": "Bambu ✓ · Orca ✓"
+ },
+ {
+  "key": "chain:mínimo",
+  "owner": "Forja",
+  "group": "organize",
+  "label": "Corrente articulada (chain)",
+  "variant": "mínimo",
+  "status": "ok",
+  "reasons": [
+   "app: Imprima sem suporte e sem brim nos pinos. Se os elos grudarem, aumente a folga de 0,05 em 0,05 mm; depois de esfriar, dobre cada junta."
+  ],
+  "date": "2026-10-16",
+  "slicers": "Bambu ✓ · Orca ✓",
+  "minutes": 4,
+  "grams": 0.7,
+  "plates": 1
+ },
+ {
+  "key": "chain:padrão",
+  "owner": "Forja",
+  "group": "organize",
+  "label": "Corrente articulada (chain)",
+  "variant": "padrão",
+  "status": "ok",
+  "reasons": [
+   "app: Imprima sem suporte e sem brim nos pinos. Se os elos grudarem, aumente a folga de 0,05 em 0,05 mm; depois de esfriar, dobre cada junta."
+  ],
+  "date": "2026-10-16",
+  "slicers": "Bambu ✓ · Orca ✓",
+  "minutes": 24,
+  "grams": 7.8,
+  "plates": 1
+ },
+ {
+  "key": "planetary:máximo",
+  "owner": "Forja",
+  "group": "organize",
+  "label": "Redutor planetário (planetary)",
+  "variant": "máximo",
+  "status": "ok",
+  "reasons": [
+   "app: Os dentes só fecham com 4 planetas: usei 4 em vez de 6.",
+   "app: Redutor 4,00 : 1 (coroa parada, sol na entrada, porta-satélites na saída): sol 24, 4 planetas de 24, coroa 72 dentes."
+  ],
+  "date": "2026-10-16",
+  "slicers": "Bambu ✓ · Orca ✓ · Projeto Bambu ✓",
+  "minutes": 787,
+  "grams": 267.2,
+  "plates": 1
+ },
+ {
+  "key": "planetary:mínimo",
+  "owner": "Forja",
+  "group": "organize",
+  "label": "Redutor planetário (planetary)",
+  "variant": "mínimo",
+  "status": "ok",
+  "reasons": [
+   "app: Redutor 4,00 : 1 (coroa parada, sol na entrada, porta-satélites na saída): sol 9, 2 planetas de 9, coroa 27 dentes."
+  ],
+  "date": "2026-10-16",
+  "slicers": "Bambu ✓ · Orca ✓ · Projeto Bambu ✓",
+  "minutes": 87,
+  "grams": 20.7,
+  "plates": 1
+ },
+ {
+  "key": "planetary:padrão",
+  "owner": "Forja",
+  "group": "organize",
+  "label": "Redutor planetário (planetary)",
+  "variant": "padrão",
+  "status": "ok",
+  "reasons": [
+   "app: Redutor 4,00 : 1 (coroa parada, sol na entrada, porta-satélites na saída): sol 12, 3 planetas de 12, coroa 36 dentes."
+  ],
+  "date": "2026-10-16",
+  "slicers": "Bambu ✓ · Orca ✓ · Projeto Bambu ✓",
+  "minutes": 202,
+  "grams": 52.4,
+  "plates": 1
+ },
+ {
+  "key": "pulley:máximo",
+  "owner": "Forja",
+  "group": "organize",
+  "label": "Polia de correia dentada (pulley)",
+  "variant": "máximo",
+  "status": "ok",
+  "reasons": [
+   "app: Polia de 80 dentes, diâmetro primitivo 50,93 mm e de fora 50,68 mm, para correia de passo 2 mm (GT2)."
+  ],
+  "date": "2026-10-16",
+  "slicers": "Bambu ✓ · Orca ✓",
+  "minutes": 71,
+  "grams": 31.1,
+  "plates": 1
+ },
+ {
+  "key": "pulley:mínimo",
+  "owner": "Forja",
+  "group": "organize",
+  "label": "Polia de correia dentada (pulley)",
+  "variant": "mínimo",
+  "status": "ok",
+  "reasons": [
+   "app: Polia de 12 dentes, diâmetro primitivo 7,64 mm e de fora 7,39 mm, para correia de passo 2 mm (GT2)."
+  ],
+  "date": "2026-10-16",
+  "slicers": "Bambu ✓ · Orca ✓",
+  "minutes": 8,
+  "grams": 0.8,
+  "plates": 1
+ },
+ {
+  "key": "pulley:padrão",
+  "owner": "Forja",
+  "group": "organize",
+  "label": "Polia de correia dentada (pulley)",
+  "variant": "padrão",
+  "status": "ok",
+  "reasons": [
+   "app: Polia de 20 dentes, diâmetro primitivo 12,73 mm e de fora 12,48 mm, para correia de passo 2 mm (GT2)."
+  ],
+  "date": "2026-10-16",
+  "slicers": "Bambu ✓ · Orca ✓",
+  "minutes": 12,
+  "grams": 1.9,
+  "plates": 1
+ },
+ {
+  "key": "sprocket:máximo",
+  "owner": "Forja",
+  "group": "organize",
+  "label": "Roda dentada de corrente (sprocket)",
+  "variant": "máximo",
+  "status": "ok",
+  "reasons": [
+   "app: Roda de 60 dentes para corrente de passo 9,525 mm: diâmetro primitivo 182,00 mm e de fora 184,54 mm."
+  ],
+  "date": "2026-10-16",
+  "slicers": "Bambu ✓ · Orca ✓",
+  "minutes": 121,
+  "grams": 87.9,
+  "plates": 1
+ },
+ {
+  "key": "sprocket:mínimo",
+  "owner": "Forja",
+  "group": "organize",
+  "label": "Roda dentada de corrente (sprocket)",
+  "variant": "mínimo",
+  "status": "ok",
+  "reasons": [
+   "app: Roda de 9 dentes para corrente de passo 9,525 mm: diâmetro primitivo 27,85 mm e de fora 30,39 mm."
+  ],
+  "date": "2026-10-16",
+  "slicers": "Bambu ✓ · Orca ✓",
+  "minutes": 7,
+  "grams": 2.5,
+  "plates": 1
+ },
+ {
+  "key": "sprocket:padrão",
+  "owner": "Forja",
+  "group": "organize",
+  "label": "Roda dentada de corrente (sprocket)",
+  "variant": "padrão",
+  "status": "ok",
+  "reasons": [
+   "app: Roda de 16 dentes para corrente de passo 9,525 mm: diâmetro primitivo 48,82 mm e de fora 51,36 mm."
+  ],
+  "date": "2026-10-16",
+  "slicers": "Bambu ✓ · Orca ✓",
+  "minutes": 15,
+  "grams": 6.8,
+  "plates": 1
+ },
+ {
+  "key": "spurGear:máximo",
+  "owner": "Forja",
+  "group": "organize",
+  "label": "Engrenagem (e o par engrenado) (spurGear)",
+  "variant": "máximo",
+  "status": "aviso",
+  "reasons": [
+   "\"Par de engrenagens\" não cabe na mesa de 256 mm (1209,9 × 610,0 × 46,0 mm)",
+   "Bambu recusa na mesa de 256 mm do A1 (o app avisa)",
+   "Orca recusa na mesa de 256 mm do A1 (o app avisa)",
+   "app: Par engrenado: distância entre os eixos 600,00 mm, redução 1,00 : 1.",
+   "app: O par é grande para a mesa: confira o tamanho."
+  ],
+  "date": "2026-10-16",
+  "slicers": "Bambu ✓ · Orca ✓"
+ },
+ {
+  "key": "spurGear:mínimo",
+  "owner": "Forja",
+  "group": "organize",
+  "label": "Engrenagem (e o par engrenado) (spurGear)",
+  "variant": "mínimo",
+  "status": "ok",
+  "reasons": [
+   "app: Par engrenado: distância entre os eixos 7,20 mm, redução 1,00 : 1."
+  ],
+  "date": "2026-10-16",
+  "slicers": "Bambu ✓ · Orca ✓",
+  "minutes": 2,
+  "grams": 0.3,
+  "plates": 1
+ },
+ {
+  "key": "spurGear:padrão",
+  "owner": "Forja",
+  "group": "organize",
+  "label": "Engrenagem (e o par engrenado) (spurGear)",
+  "variant": "padrão",
+  "status": "ok",
+  "reasons": [
+   "app: Par engrenado: distância entre os eixos 56,00 mm, redução 1,80 : 1."
+  ],
+  "date": "2026-10-16",
+  "slicers": "Bambu ✓ · Orca ✓",
+  "minutes": 82,
+  "grams": 35.4,
+  "plates": 1
+ },
+ {
+  "key": "timingBelt:máximo",
+  "owner": "Forja",
+  "group": "organize",
+  "label": "Correia dentada fechada (timingBelt)",
+  "variant": "máximo",
+  "status": "ok",
+  "reasons": [
+   "app: Correia fechada de 200 dentes, 400 mm de comprimento. Imprima em TPU 95A, devagar e sem retração."
+  ],
+  "date": "2026-10-16",
+  "slicers": "Bambu ✓ · Orca ✓",
+  "minutes": 111,
+  "grams": 34.1,
+  "plates": 1
+ },
+ {
+  "key": "timingBelt:mínimo",
+  "owner": "Forja",
+  "group": "organize",
+  "label": "Correia dentada fechada (timingBelt)",
+  "variant": "mínimo",
+  "status": "ok",
+  "reasons": [
+   "app: Correia curta: o TPU dobra demais e pode rachar. Use 30 dentes ou mais.",
+   "app: Costas da correia finas: abaixo de 1 mm ela rasga.",
+   "app: Correia fechada de 20 dentes, 40 mm de comprimento. Imprima em TPU 95A, devagar e sem retração."
+  ],
+  "date": "2026-10-16",
+  "slicers": "Bambu ✓ · Orca ✓",
+  "minutes": 2,
+  "grams": 0.3,
+  "plates": 1
+ },
+ {
+  "key": "timingBelt:padrão",
+  "owner": "Forja",
+  "group": "organize",
+  "label": "Correia dentada fechada (timingBelt)",
+  "variant": "padrão",
+  "status": "ok",
+  "reasons": [
+   "app: Correia fechada de 60 dentes, 120 mm de comprimento. Imprima em TPU 95A, devagar e sem retração."
+  ],
+  "date": "2026-10-16",
+  "slicers": "Bambu ✓ · Orca ✓",
+  "minutes": 9,
+  "grams": 1.7,
+  "plates": 1
+ },
+ {
   "key": "adaptiveMedal:máximo",
   "owner": "Forja",
   "group": "party",
