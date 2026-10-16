@@ -6,6 +6,7 @@ import type { Filament } from "../domain/entities";
 import { densityOfMaterial, ESTIMATE_ERROR_PCT, estimateModels } from "../domain/estimate";
 import { fallbackPricePerKg } from "../domain/estimateDefaults";
 import { money } from "../domain/format";
+import { capitalized, colorName } from "../geometry/colorName";
 import type { PrintProfile } from "../geometry/printProfile";
 import type { Model } from "../geometry/types";
 import { setPendingEstimate } from "../pages/calculator/pendingFile";
@@ -68,7 +69,7 @@ export default function EstimateCard({ models, profile, name, busy }: { models: 
         <ul className="estimate-colors">
           {lines.map((l) => (
             <li key={l.color}>
-              <i style={{ background: l.color }} aria-hidden /> {l.filament ? [l.filament.material, l.filament.color].filter(Boolean).join(" ") : "cor sem filamento cadastrado"}: {grams(l.grams)}
+              <i style={{ background: l.color }} aria-hidden /> {l.filament ? [l.filament.material, l.filament.color].filter(Boolean).join(" ") : `${capitalized(colorName(l.color))} · sem filamento cadastrado`}: {grams(l.grams)}
             </li>
           ))}
         </ul>

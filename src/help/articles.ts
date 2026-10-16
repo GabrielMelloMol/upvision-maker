@@ -130,8 +130,8 @@ export const ARTICLES: HelpArticle[] = [
   {
     id: "colorsplit",
     title: "Separar cores de um 3MF",
-    intro: "Abra um 3MF pintado no fatiador e separe cada cor numa peça, para imprimir sem AMS.",
-    steps: ["Arraste o 3MF pintado (Bambu Studio, OrcaSlicer ou PrusaSlicer).", "Confira as cores encontradas.", "Se quiser, corte pelo plano com pino de encaixe.", "Salve as peças e cole ou encaixe depois de imprimir."],
+    intro: "Abra um 3MF colorido (pintado no fatiador ou com cores de material, como sai do Blender ou de gerador por IA) e separe cada cor numa peça, para imprimir sem AMS.",
+    steps: ["Arraste o 3MF colorido (Bambu Studio, OrcaSlicer, PrusaSlicer, Blender…).", "Se o arquivo pinta por material, ajuste a tolerância entre cores e escolha quais viram peça separada; na vista Original, clique numa cor para separar só a região que toca ou todas as áreas dela.", "Escolha partes (multicor) ou objetos separados, com a posição original se quiser.", "Se quiser, corte em até 6 partes iguais com pino de encaixe em cada junta.", "Salve as peças e cole ou encaixe depois de imprimir."],
   },
   {
     id: "partialcut",

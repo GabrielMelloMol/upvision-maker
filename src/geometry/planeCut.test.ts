@@ -2,7 +2,7 @@ import { beforeAll, describe, expect, test } from "vitest";
 import { meshBounds } from "./bounds";
 import { getManifold, type ManifoldToplevel, type Solid } from "./manifold";
 import { toMesh } from "./mesh";
-import { cutModels, DEFAULT_CUT, pinSpots } from "./planeCut";
+import { cutInParts, cutModels, DEFAULT_CUT, pinSpots } from "./planeCut";
 import { volume } from "./testUtil";
 import type { Mesh, Model } from "./types";
 
@@ -84,5 +84,29 @@ describe("corte pelo plano com encaixe", () => {
     const { models } = cutModels(M, [two], { ...DEFAULT_CUT, axis: "y", pin: "none" });
     expect(models[0].parts.map((p) => p.color)).toEqual(["#000000", "#ffffff"]);
     expect(models[1].parts.map((p) => p.color)).toEqual(["#000000", "#ffffff"]);
+  });
+});
+
+describe("corte em partes iguais, uma depois da outra (#229)", () => {
+  const bar = (): Model => ({ name: "Barra", parts: [{ name: "Barra", color: "#2563eb", mesh: toMesh(M.Manifold.cube([20, 20, 60])) }] });
+
+  test("3 partes de 20 mm com pino só nas juntas; as partes saem numeradas, apoiadas na mesa e somam o volume da barra menos os furos", () => {
+    const { models, warnings } = cutInParts(M, [bar()], { ...DEFAULT_CUT, pin: "round", size: 6, clearance: 0.2 }, 3);
+    expect(warnings).toEqual([]);
+    expect(models.map((m) => m.name)).toEqual(["Barra · parte 1", "Barra · pinos da junta 1", "Barra · parte 2", "Barra · pinos da junta 2", "Barra · parte 3"]);
+    const parts = models.filter((m) => m.name.includes("parte"));
+    for (const m of parts) {
+      const b = meshBounds(m.parts.map((p) => p.mesh))!;
+      expect(b.min[2]).toBeCloseTo(0);
+      expect(b.max[2]).toBeCloseTo(20, 0);
+    }
+    expect(parts.reduce((s, m) => s + vol(m), 0)).toBeLessThan(24000); // os furos tiram um pouco do volume
+    expect(parts.reduce((s, m) => s + vol(m), 0)).toBeGreaterThan(24000 - 1500);
+    expect(models.filter((m) => m.name.includes("pinos"))).toHaveLength(2);
+  });
+
+  test("n = 1 não corta; n acima de 6 vira 6", () => {
+    expect(cutInParts(M, [bar()], { ...DEFAULT_CUT, pin: "none" }, 1).models).toHaveLength(2);
+    expect(cutInParts(M, [bar()], { ...DEFAULT_CUT, pin: "none" }, 9).models).toHaveLength(6);
   });
 });

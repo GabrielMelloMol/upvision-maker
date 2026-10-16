@@ -16,7 +16,7 @@ export const PAGE_ALIASES: Record<string, string> = {
   lithophane: "foto em relevo litofania e quadro litofania lithophane colorida relevo baixo-relevo quadro por camadas shadowbox shadow box luz lâmpada quadro de luz abajur foto 3d",
   pixel: "pixel art mosaico 8 bits quebra cabeça ímã imã",
   organizers: "organizador organizadores gaveta caixinhas divisória medir gridfinity ferramenta foto encaixe contorno bandeja caixa avulsa",
-  colorsplit: "separar 3mf por cor dividir cores 3mf cor separar pintado bambu",
+  colorsplit: "separar 3mf por cor dividir cores 3mf cor separar pintado bambu material blender meshy tolerancia regiao cortar partes",
   partialcut: "corte parcial cortar pedaço cabeça região caixa plano fatiar dividir stl 3mf pino encaixe separar parte",
   protect: "proteger arquivo hash sha256 certificado autoria prova integridade assinatura direitos autorais verificar conferir cópia stl 3mf",
   mold: "molde bipartido duas metades stl 3mf resina silicone sabonete vela gesso chocolate vazar fundição funil respiro canal pino cavidade desmoldar",

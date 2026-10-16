@@ -82,7 +82,8 @@ describe("estimativa ao vivo (#99)", { timeout: 30_000 }, () => {
   test("sem filamento cadastrado: estima em PLA e sem R$; some enquanto gera", async () => {
     const models = await twoColors();
     const { rerender } = renderWithApp(<EstimateCard models={models} name="x" />);
-    expect(await screen.findAllByText(/cor sem filamento cadastrado/)).toHaveLength(2);
+    expect(await screen.findAllByText(/sem filamento cadastrado/)).toHaveLength(2);
+    expect(screen.getByText(/Branco · sem filamento cadastrado/)).toBeInTheDocument(); // o nome da cor, não o código
     expect(screen.queryByText(/R\$/)).not.toBeInTheDocument();
     rerender(<EstimateCard models={models} name="x" busy />);
     expect(screen.queryByRole("group", { name: "Estimativa sem fatiar" })).not.toBeInTheDocument();
