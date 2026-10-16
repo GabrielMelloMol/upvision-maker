@@ -1,9 +1,10 @@
-import { Cable, CircleDot, Cog, Sprout, Wind } from "lucide-react";
+import { Cable, CircleDot, Cog, Sprout, Wind, Cylinder } from "lucide-react";
 import { buildCableComb, DEFAULT_CABLE_COMB } from "../../../geometry/models/cableComb";
 import { buildHoseAdapter, DEFAULT_HOSE_ADAPTER } from "../../../geometry/models/hoseAdapter";
 import { buildKnob, DEFAULT_KNOB } from "../../../geometry/models/knob";
 import { buildPlantMarker, DEFAULT_PLANT_MARKER } from "../../../geometry/models/plantMarker";
 import { buildSpacer, DEFAULT_SPACER } from "../../../geometry/models/spacer";
+import { buildSpoolHolder, DEFAULT_SPOOL_HOLDER } from "../../../geometry/models/spoolHolder";
 import { as, bool, choice, color, num, text, type ModelDef } from "../fields";
 
 /** Casa, utilitários paramétricos rápidos (#121): arruela, marcador de planta, pente de cabos, botão e adaptador de mangueira. */
@@ -139,5 +140,34 @@ export const HOME_UTILITY_MODELS: ModelDef[] = [
       },
     ],
     build: (ctx, p) => buildHoseAdapter(ctx, as(p)),
+  },
+  {
+    id: "spoolHolder",
+    category: "home",
+    label: "Suporte de carretel",
+    blurb: "Base com dois postes e um eixo solto: o carretel gira apoiado só no eixo, pelas medidas do seu carretel.",
+    icon: Cylinder,
+    defaults: DEFAULT_SPOOL_HOLDER,
+    sections: [
+      {
+        title: "O carretel",
+        fields: [
+          num("spoolD", "Diâmetro do carretel", 100, 300, { step: 1, hint: "Carretel de 1 kg: 195 a 200 mm; de 250 g: 140 mm." }),
+          num("spoolW", "Largura entre as abas", 30, 120, { step: 1, hint: "1 kg: 55 a 70 mm. Meça o carretel que você mais usa." }),
+          num("hole", "Furo central", 20, 80, { step: 0.5, hint: "O mais comum é 52 a 53 mm." }),
+          num("clearance", "Folga do eixo no furo", 0.5, 3, { step: 0.25, hint: "1 mm de cada lado deixa o carretel girar solto." }),
+        ],
+      },
+      {
+        title: "Encaixe e cores",
+        fields: [
+          num("socketGap", "Folga do eixo nos postes", 0.1, 0.6, { step: 0.05, hint: "0,25 entra com leve pressão; se o eixo agarrar, aumente." }),
+          num("thickness", "Espessura dos postes", 5, 14, { step: 1 }),
+          color("color", "Base"),
+          color("axleColor", "Eixo"),
+        ],
+      },
+    ],
+    build: (ctx, p) => buildSpoolHolder(ctx, as(p)),
   },
 ];

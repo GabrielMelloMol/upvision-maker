@@ -4200,6 +4200,52 @@
   "plates": 1
  },
  {
+  "key": "spoolHolder:máximo",
+  "owner": "Torno",
+  "group": "home",
+  "label": "Suporte de carretel (spoolHolder)",
+  "variant": "máximo",
+  "status": "aviso",
+  "reasons": [
+   "o conjunto arrumado ocupa 280,0 × 165,0 mm: passa da mesa de 256 mm",
+   "mais de 24 h de impressão",
+   "app: As 2 peças não cabem juntas na mesa de 256 mm: o fatiador vai usar mais de uma mesa (ou imprima uma de cada vez)."
+  ],
+  "date": "2026-10-16",
+  "slicers": "Bambu ✓ · Orca ✓ · Projeto Bambu ✓",
+  "minutes": 2174,
+  "grams": 1034.6,
+  "plates": 1
+ },
+ {
+  "key": "spoolHolder:mínimo",
+  "owner": "Torno",
+  "group": "home",
+  "label": "Suporte de carretel (spoolHolder)",
+  "variant": "mínimo",
+  "status": "ok",
+  "reasons": [],
+  "date": "2026-10-16",
+  "slicers": "Bambu ✓ · Orca ✓ · Projeto Bambu ✓",
+  "minutes": 614,
+  "grams": 199.2,
+  "plates": 1
+ },
+ {
+  "key": "spoolHolder:padrão",
+  "owner": "Torno",
+  "group": "home",
+  "label": "Suporte de carretel (spoolHolder)",
+  "variant": "padrão",
+  "status": "ok",
+  "reasons": [],
+  "date": "2026-10-16",
+  "slicers": "Bambu ✓ · Orca ✓ · Projeto Bambu ✓",
+  "minutes": 1237,
+  "grams": 490.8,
+  "plates": 1
+ },
+ {
   "key": "stampMold:máximo",
   "owner": "Torno",
   "group": "home",
