@@ -135,6 +135,33 @@ describe("como vai imprimir", () => {
     expect(t.files.has(`/pasta/parede-lote-${n}-de-${n}.3mf`)).toBe(true);
   });
 
+  test("passou de 36 mesas: Salvar em lotes é o botão principal, o 3MF único vira secundário e o fatiador some (#225)", () => {
+    const big = Array.from({ length: 80 }, (_, i) => ({ name: `L${i}`, parts: [{ name: "L", color: "#000000", mesh: { positions: new Float32Array([0, 0, 0, 230, 0, 0, 0, 245, 0, 230, 245, 5]), indices: new Uint32Array([0, 1, 2, 1, 3, 2]) } }] }));
+    renderWithApp(<ExportButtons models={big} name="parede" />);
+    expect(screen.getByRole("button", { name: /Salvar em lotes/ })).toHaveClass("action");
+    const single = screen.getByRole("button", { name: /Salvar 3MF único/ });
+    expect(single).not.toHaveClass("action");
+    expect(screen.getByText(/um 3MF só não abre direito no fatiador/)).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: /^Abrir no / })).toBeNull();
+  });
+
+  test("dezenas de peças: os STL ficam num botão só (pasta) e a lista vai para 'ver todos' (#225)", async () => {
+    t.openPath = "/pasta";
+    const user = userEvent.setup();
+    const many = Array.from({ length: 12 }, (_, i) => model(`Letra ${i + 1}`));
+    renderWithApp(<ExportButtons models={many} name="letras" />);
+    expect(screen.getAllByRole("button", { name: /^STL letra/, hidden: true }).length).toBe(12); // dentro do details (recolhido)
+    expect(screen.getByText("ver todos")).toBeInTheDocument();
+    await user.click(screen.getByRole("button", { name: /Salvar todos os STL em uma pasta \(12 arquivos\)/ }));
+    await waitFor(() => expect([...t.files.keys()].filter((k) => k.startsWith("/pasta/") && k.endsWith(".stl")).length).toBe(12));
+  });
+
+  test("poucas peças (até 4): um botão de STL por peça, sem agrupar", () => {
+    renderWithApp(<ExportButtons models={[model("A"), model("B"), model("C")]} name="x" />);
+    expect(screen.getByRole("button", { name: "STL a" })).toBeInTheDocument();
+    expect(screen.queryByText("ver todos")).toBeNull();
+  });
+
   test("poucas peças: sem botão de lotes", () => {
     renderWithApp(<ExportButtons models={[model("A")]} name="x" />);
     expect(screen.queryByRole("button", { name: /Salvar em lotes/ })).toBeNull();
