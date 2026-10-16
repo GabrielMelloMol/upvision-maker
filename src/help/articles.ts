@@ -150,9 +150,9 @@ export const ARTICLES: HelpArticle[] = [
   {
     id: "owndecal",
     title: "Nome ou logo no seu modelo",
-    intro: "Ponha seu nome ou logo numa face plana de um STL ou 3MF que você já tem, em outra cor, para imprimir em duas cores.",
-    steps: ["Arraste o STL ou 3MF (um sólido fechado).", "Clique numa face plana na prévia, ou escolha na lista; a face fica pintada de azul.", "Adicione um texto ou desenho e arraste na vista da face.", "Salve o 3MF: a cor entra na peça rente à face, sem mudar o tamanho."],
-    tips: ["Só vale para faces planas e na parte de fora da peça; faces curvas ficam para depois.", "Use só modelos que são seus ou cuja licença permite alterar. O app não confere a licença."],
+    intro: "Ponha seu nome ou logo em qualquer superfície de um STL ou 3MF que você já tem, plana ou curva (copo, esfera, tampa abaulada), em outra cor, para imprimir em duas cores.",
+    steps: ["Arraste o STL ou 3MF (um sólido fechado).", "Clique na prévia no ponto onde o desenho vai ficar: numa face plana (ela fica pintada de azul, ou escolha na lista) ou em qualquer ponto de uma superfície curva (aparece um disco azul).", "Adicione um texto ou desenho e arraste na vista da face.", "Salve o 3MF: na face plana a cor entra rente, sem mudar o tamanho; na curva o relevo ou o entalhe acompanha a superfície. Quanto mais inclinado o trecho, mais o desenho estica: prefira o ponto mais de frente."],
+    tips: ["O ponto tem de estar na parte de fora da peça, voltada para quem olha. Em reentrância o desenho não entra.", "Use só modelos que são seus ou cuja licença permite alterar. O app não confere a licença."],
   },
   {
     id: "protect",

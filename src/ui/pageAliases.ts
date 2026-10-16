@@ -21,6 +21,7 @@ export const PAGE_ALIASES: Record<string, string> = {
   protect: "proteger arquivo hash sha256 certificado autoria prova integridade assinatura direitos autorais verificar conferir cópia stl 3mf",
   mold: "molde bipartido duas metades stl 3mf resina silicone sabonete vela gesso chocolate vazar fundição funil respiro canal pino cavidade desmoldar",
   owndecal: "decal adesivo nome logo stl 3mf face plana colar",
+  owndecal: "decal adesivo nome logo stl 3mf face plana curva copo caneca esfera superficie colar",
   scad: "openscad customizer scad parâmetros personalizar",
   search3d: "buscar modelos 3d internet thingiverse printables makerworld baixar stl",
   ai: "ia claude inteligência artificial descrever peça",

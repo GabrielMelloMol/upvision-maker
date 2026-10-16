@@ -7,7 +7,8 @@ import { boxStl } from "../test/boxStl";
 import OwnDecal from "./OwnDecal";
 
 // o visualizador de verdade precisa de WebGL: a prévia de teste devolve um acerto fixo na face da direita (+X)
-vi.mock("../ui/viewerScene", () => ({ createViewer: () => ({ setModels() {}, dispose() {}, pick: () => ({ point: [40, 10, 10], normal: [1, 0, 0] }) }) }));
+const hit = vi.hoisted(() => ({ point: [40, 10, 10] as [number, number, number], normal: [1, 0, 0] as [number, number, number] }));
+vi.mock("../ui/viewerScene", () => ({ createViewer: () => ({ setModels() {}, dispose() {}, pick: () => hit }) }));
 
 const t = setupTauri();
 const BUILD = { timeout: 30_000 };
@@ -34,10 +35,10 @@ describe("Decal no seu modelo (#113)", { timeout: 60_000 }, () => {
     const user = await open(container);
     const group = await screen.findByRole("group", { name: "Faces planas" });
     expect(group.querySelectorAll("button")).toHaveLength(6);
-    expect(screen.getByText("Escolha uma face primeiro.")).toBeInTheDocument();
+    expect(screen.getByText("Clique na prévia para escolher onde o desenho vai.")).toBeInTheDocument();
     await user.click(screen.getByRole("button", { name: /^Face 1 · para (cima|baixo) · 40,0 × 30,0 mm/ }));
     await waitFor(() => expect([...container.querySelectorAll(".legend span")].map((s) => s.textContent)).toContain("Face escolhida"), BUILD);
-    expect(screen.queryByText("Escolha uma face primeiro.")).toBeNull();
+    expect(screen.queryByText("Clique na prévia para escolher onde o desenho vai.")).toBeNull();
   }, 40_000);
 
   test("clicar na prévia escolhe a face; um desenho embutido vira parte colorida e sai no 3MF sem a face de destaque", async () => {
@@ -53,6 +54,23 @@ describe("Decal no seu modelo (#113)", { timeout: 60_000 }, () => {
     expect(container.querySelector(".decal-gizmo")).not.toBeNull();
     await user.click(screen.getByRole("button", { name: /Salvar 3MF/ }));
     await waitFor(() => expect(t.files.has("/saida/caixa-decal.3mf")).toBe(true));
+  }, 40_000);
+
+  test("clicar fora de uma face plana escolhe um ponto da superfície curva: avisa, mostra o ponto e deixa o desenho entrar", async () => {
+    const { container } = renderWithApp(<OwnDecal />);
+    const user = await open(container);
+    await screen.findByRole("group", { name: "Faces planas" });
+    hit.point = [40, 10, 10]; // fora de qualquer face: um ponto no ar ao lado da caixa, mas com a normal inclinada
+    hit.normal = [0.7, 0, 0.7];
+    const viewer = container.querySelector(".viewer")!;
+    fireEvent.pointerDown(viewer, { clientX: 10, clientY: 10 });
+    fireEvent.pointerUp(viewer, { clientX: 10, clientY: 10 });
+    expect(await screen.findByText(/ponto escolhido, numa parte inclinada/)).toBeInTheDocument();
+    expect(screen.queryByText("Clique na prévia para escolher onde o desenho vai.")).toBeNull();
+    await user.click(screen.getByRole("button", { name: "Limpar ponto" }));
+    expect(screen.queryByText(/ponto escolhido/)).toBeNull();
+    hit.point = [40, 10, 10];
+    hit.normal = [1, 0, 0];
   }, 40_000);
 
   test("arraste na prévia (girar a câmera) não escolhe face", async () => {

@@ -7,7 +7,7 @@ import { extrudeDesign } from "../geometry/extrude";
 import { loadFont } from "../geometry/fonts";
 import { toMesh } from "../geometry/mesh";
 import { planarFaces, readOwnFile } from "../geometry/ownModel";
-import { applyOwnDecals } from "../tools/models/applyOwn";
+import { applyOwnCurved, applyOwnDecals } from "../tools/models/applyOwn";
 import { newTextLayer } from "../tools/models/layers";
 import { composeKeychainArt } from "../geometry/keychainArt";
 import { buildKeychain, DEFAULT_KEYCHAIN, layoutOnPlate, type KeychainParams } from "../geometry/keychain";
@@ -142,6 +142,19 @@ export function toolCases(M: ManifoldToplevel): QaCase[] {
     const side = planarFaces(block).find((f) => f.normal[0] === 1)!;
     const layer = { ...newTextLayer(null, "hanken", "#d6262e", mode), text: "Ana", x: 0, y: 0, width: 30 };
     const out = await applyOwnDecals(block, side, [layer], M);
+    return { models: out.models, warnings: out.warnings };
+  };
+
+  // nome na lateral de um copo oco e numa esfera (#212): relevo, gravado e embutido acompanham a curva
+  const curved = async (shape: "copo" | "esfera", mode: "raised" | "engraved" | "inlay", text = "Ana"): Promise<Out> => {
+    const solid =
+      shape === "copo"
+        ? M.Manifold.cylinder(90, 35, 35, 160).subtract(M.Manifold.cylinder(90, 32.6, 32.6, 160).translate([0, 0, 3]))
+        : M.Manifold.sphere(35, 128).translate([0, 0, 35]);
+    const model: Model = { name: shape, parts: [{ name: "Peça", color: "#d4d4d8", mesh: toMesh(solid) }] };
+    const spot = shape === "copo" ? { part: 0, point: [35, 0, 50] as [number, number, number], normal: [1, 0, 0] as [number, number, number] } : { part: 0, point: [0, 0, 70] as [number, number, number], normal: [0, 0, 1] as [number, number, number] };
+    const layer = { ...newTextLayer(null, "hanken", "#d6262e", mode), text, x: 0, y: 0, width: 30, depth: mode === "raised" ? 0.8 : 0.6 };
+    const out = await applyOwnCurved(model, spot, [layer], M);
     return { models: out.models, warnings: out.warnings };
   };
 
@@ -320,6 +333,9 @@ export function toolCases(M: ManifoldToplevel): QaCase[] {
     ...cases("ownDecal", "Decal em modelo próprio", [
       ["embutido", () => ownDecal("inlay")],
       ["relevo", () => ownDecal("raised")],
+      ["copo: relevo curvo", () => curved("copo", "raised")],
+      ["copo: gravado curvo", () => curved("copo", "engraved")],
+      ["esfera: embutido curvo", () => curved("esfera", "inlay")],
     ]),
     ...cases("medal", "Medalha", [
       ["padrão", () => medal({})],

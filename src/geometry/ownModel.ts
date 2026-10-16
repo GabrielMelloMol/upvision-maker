@@ -144,7 +144,16 @@ export function planarFaces(model: Model): PlanarFace[] {
       found.push({ id, part: pi, normal, offset, area, centroid: c, triangles: members, extreme: true });
     }
   });
-  const faces = found.sort((a, b) => b.area - a.area).slice(0, MAX_FACES);
+  const seen = new Map<string, number>();
+  // duas faces separadas no mesmo plano (tampos de alturas iguais) teriam o mesmo id: a segunda em diante ganha um sufixo
+  const faces = found
+    .sort((a, b) => b.area - a.area)
+    .slice(0, MAX_FACES)
+    .map((f) => {
+      const n = seen.get(f.id) ?? 0;
+      seen.set(f.id, n + 1);
+      return n ? { ...f, id: `${f.id}#${n}` } : f;
+    });
   // "para fora": nada da peça (nem das outras partes) passa do plano
   return faces.map((f) => {
     let top = -Infinity;
@@ -181,6 +190,12 @@ function pointTriDistance(p: Vec3, [a, b, c]: [Vec3, Vec3, Vec3]): number {
   return Math.hypot(...sub(p, closest));
 }
 
+const MIN_FACE_SIDE_MM = 6;
+/** Faces planas de verdade: tira as facetas finas de uma superfície curva (num cilindro cada faixa de 1 mm "é plana"), que não servem para pôr um desenho. */
+export function wideFaces(model: Model, faces: PlanarFace[]): PlanarFace[] {
+  return faces.filter((f) => Math.min(...faceSize(model, f)) >= MIN_FACE_SIDE_MM);
+}
+
 /** A face plana que o clique atingiu: mesma direção da normal, plano junto do ponto e o triângulo mais próximo. */
 export function faceAtPoint(model: Model, faces: PlanarFace[], point: Vec3, normal: Vec3): PlanarFace | null {
   let best: { face: PlanarFace; d: number } | null = null;
@@ -203,7 +218,7 @@ export function faceAxes(normal: Vec3): { u: Vec3; v: Vec3; n: Vec3 } {
 }
 
 /** Gira e move a malha: p' = R (p − centro), com R levando (u, v, n) a (X, Y, Z); a face fica em z = 0, olhando para cima. */
-export function toFaceFrame(mesh: Mesh, face: PlanarFace): Mesh {
+export function toFaceFrame(mesh: Mesh, face: Pick<PlanarFace, "normal" | "centroid">): Mesh {
   const { u, v, n } = faceAxes(face.normal);
   const out = new Float32Array(mesh.positions.length);
   for (let i = 0; i < out.length; i += 3) {
@@ -216,7 +231,7 @@ export function toFaceFrame(mesh: Mesh, face: PlanarFace): Mesh {
 }
 
 /** O inverso de `toFaceFrame`: devolve a malha ao lugar e à posição originais. */
-export function fromFaceFrame(mesh: Mesh, face: PlanarFace): Mesh {
+export function fromFaceFrame(mesh: Mesh, face: Pick<PlanarFace, "normal" | "centroid">): Mesh {
   const { u, v, n } = faceAxes(face.normal);
   const out = new Float32Array(mesh.positions.length);
   for (let i = 0; i < out.length; i += 3) {

@@ -3,10 +3,10 @@ import { beforeAll, describe, expect, test } from "vitest";
 import { meshBounds } from "../../geometry/bounds";
 import { getManifold, type ManifoldToplevel } from "../../geometry/manifold";
 import { toMesh } from "../../geometry/mesh";
-import { faceAtPoint, fromFaceFrame, planarFaces, readAsciiStl, toFaceFrame } from "../../geometry/ownModel";
+import { faceAtPoint, fromFaceFrame, planarFaces, readAsciiStl, toFaceFrame, wideFaces } from "../../geometry/ownModel";
 import { volume } from "../../geometry/testUtil";
 import type { Model } from "../../geometry/types";
-import { applyOwnDecals, OWN_MODEL_ERRORS } from "./applyOwn";
+import { applyOwnCurved, applyOwnDecals, OWN_MODEL_ERRORS, partAtPoint } from "./applyOwn";
 import { newArtLayer, type Layer } from "./layers";
 
 let M: ManifoldToplevel;
@@ -93,5 +93,58 @@ describe("faces planas e decal em modelo próprio (#113)", { timeout: 60_000 }, 
     expect(m.indices.length).toBe(3);
     expect(m.positions.length).toBe(9);
     expect(() => readAsciiStl("solid vazio\nendsolid")).toThrow(/vazio/);
+  });
+});
+
+describe("decal em superfície curva de arquivo próprio (#212)", { timeout: 120_000 }, () => {
+  const cup = (): Model => ({ name: "Copo", parts: [{ name: "Peça", color: "#d4d4d8", mesh: toMesh(M.Manifold.cylinder(90, 40, 40, 128)) }] });
+  const HEART = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><path d="M50 90 C5 55 5 15 30 15 C42 15 50 25 50 30 C50 25 58 15 70 15 C95 15 95 55 50 90Z"/></svg>';
+
+  test("logo na lateral de um copo: o relevo contorna o cilindro e o arquivo volta no lugar original", async () => {
+    const spot = { part: 0, point: [40, 0, 45] as [number, number, number], normal: [1, 0, 0] as [number, number, number] };
+    const out = await applyOwnCurved(cup(), spot, [layer({ svg: HEART, width: 30, mode: "raised", depth: 0.8, y: 0 })], M);
+    const [body, relief] = out.models[0].parts;
+    expect(out.warnings).toEqual([]);
+    const bb = meshBounds([body.mesh])!;
+    expect([bb.max[0], bb.max[2]]).toEqual([expect.closeTo(40, 2), expect.closeTo(90, 2)]); // a peça não mexe
+    const rb = meshBounds([relief.mesh])!;
+    expect(rb.max[0]).toBeCloseTo(40.8, 1); // 0,8 mm para fora, no ponto do clique
+    expect((rb.min[2] + rb.max[2]) / 2).toBeCloseTo(45, 0); // centrado na altura do clique
+    // acompanha o cilindro: todos os vértices do relevo ficam entre o raio 39,5 e 40,85
+    for (let i = 0; i < relief.mesh.positions.length; i += 3) {
+      const r = Math.hypot(relief.mesh.positions[i], relief.mesh.positions[i + 1]);
+      expect(r).toBeGreaterThan(39.4);
+      expect(r).toBeLessThan(40.9);
+    }
+  });
+
+  test("gravado em arquivo próprio mantém a malha fechada (volume cai ≈ área × profundidade)", async () => {
+    const v0 = volume(cup().parts[0].mesh);
+    const spot = { part: 0, point: [0, 40, 45] as [number, number, number], normal: [0, 1, 0] as [number, number, number] };
+    const out = await applyOwnCurved(cup(), spot, [layer({ svg: HEART, width: 24, mode: "engraved", depth: 0.5 })], M);
+    const drop = v0 - volume(out.models[0].parts[0].mesh);
+    expect(drop).toBeGreaterThan(24 * 22 * 0.5 * 0.3); // coração ≈ 50-60% do quadrado
+    expect(drop).toBeLessThan(24 * 24 * 0.5);
+  });
+
+  test("num copo as faixas finas do cilindro não contam como faces planas: sobram o fundo e a borda", () => {
+    const faces = wideFaces(cup(), planarFaces(cup()));
+    expect(planarFaces(cup()).length).toBeGreaterThan(faces.length);
+    expect(faces.every((f) => Math.abs(f.normal[2]) > 0.99)).toBe(true);
+    expect(wideFaces(block(), planarFaces(block()))).toHaveLength(6);
+  });
+
+  test("dois tampos no mesmo plano viram duas faces com ids diferentes (a lista da tela usa o id como chave)", () => {
+    const two = M.Manifold.cube([20, 20, 5], false).add(M.Manifold.cube([20, 20, 5], false).translate([40, 0, 0]));
+    const m: Model = { name: "Dois", parts: [{ name: "Peça", color: "#ddd", mesh: toMesh(two) }] };
+    const tops = planarFaces(m).filter((f) => f.normal[2] > 0.99);
+    expect(tops).toHaveLength(2);
+    expect(new Set(planarFaces(m).map((f) => f.id)).size).toBe(planarFaces(m).length);
+  });
+
+  test("a parte mais perto do clique é a escolhida", () => {
+    const m: Model = { name: "Duas", parts: [cup().parts[0], { name: "Outra", color: "#fff", mesh: toMesh(M.Manifold.cube([5, 5, 5], true).translate([200, 0, 0])) }] };
+    expect(partAtPoint(m, [199, 0, 0])).toBe(1);
+    expect(partAtPoint(m, [40, 0, 40])).toBe(0);
   });
 });
