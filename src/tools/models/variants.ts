@@ -60,6 +60,12 @@ export const MODEL_COLLECTIONS: Record<string, Collection[]> = {
 const PINK = "#f472b6", GOLD = "#f5c542", WHITE = "#f8f8f6", BLACK = "#1c1c1e", RED = "#d6262e", GREEN = "#22a04b", BLUE = "#2563eb", LILAC = "#7e3fd6", SKY = "#7cc4f5";
 
 export const VARIANTS: Record<string, Variant[]> = {
+  phoneCase: [
+    { label: "iPhone 15 / 16 (aprox.)", patch: { phoneL: 147.6, phoneW: 71.6, phoneT: 7.8, cornerR: 11, camX: 4.5, camY: 4.5, camW: 34, camH: 34, camR: 9 } },
+    { label: "iPhone 15 / 16 Pro (aprox.)", patch: { phoneL: 149.6, phoneW: 71.5, phoneT: 8.3, cornerR: 11, camX: 4, camY: 4, camW: 37, camH: 38, camR: 10 } },
+    { label: "iPhone 16 Pro Max (aprox.)", patch: { phoneL: 163, phoneW: 77.6, phoneT: 8.3, cornerR: 11.5, camX: 4.5, camY: 4.5, camW: 38, camH: 38, camR: 10 } },
+    { label: "Galaxy S24 (aprox.)", patch: { phoneL: 147, phoneW: 70.6, phoneT: 7.6, cornerR: 10, camX: 8, camY: 6, camW: 16, camH: 46, camR: 8 } },
+  ],
   kitBicho: [
     { label: "Cachorro", patch: { head: "dog", tail: "up", profile: "oval" } },
     { label: "Gato", patch: { head: "cat", tail: "long", profile: "oval" } },

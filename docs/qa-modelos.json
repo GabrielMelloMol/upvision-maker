@@ -3654,6 +3654,104 @@
   "plates": 1
  },
  {
+  "key": "phoneCase:com nome",
+  "owner": "Torno",
+  "group": "home",
+  "label": "Capa de celular (TPU) (phoneCase)",
+  "variant": "com nome",
+  "status": "ok",
+  "reasons": [
+   "app: Confira as medidas no seu aparelho (comprimento, largura, espessura, raio do canto e a câmera) e imprima antes a peça de teste. As medidas dos modelos prontos são aproximadas e variam por versão e fabricante: a capa só encaixa se as medidas forem as do seu aparelho. TPU 95A, devagar e sem retração."
+  ],
+  "date": "2026-10-16",
+  "slicers": "Bambu ✓ · Orca ✓",
+  "minutes": 32,
+  "grams": 24.1,
+  "plates": 1
+ },
+ {
+  "key": "phoneCase:máximo",
+  "owner": "Torno",
+  "group": "home",
+  "label": "Capa de celular (TPU) (phoneCase)",
+  "variant": "máximo",
+  "status": "ok",
+  "reasons": [
+   "app: O recorte da câmera sai do aparelho: confira x, y, largura e altura.",
+   "app: Folga grande para TPU: a capa fica frouxa. Costuma servir de 0,1 a 0,2 mm.",
+   "app: Confira as medidas no seu aparelho (comprimento, largura, espessura, raio do canto e a câmera) e imprima antes a peça de teste. As medidas dos modelos prontos são aproximadas e variam por versão e fabricante: a capa só encaixa se as medidas forem as do seu aparelho. TPU 95A, devagar e sem retração."
+  ],
+  "date": "2026-10-16",
+  "slicers": "Bambu ✓ · Orca ✓",
+  "minutes": 125,
+  "grams": 65.5,
+  "plates": 1
+ },
+ {
+  "key": "phoneCase:mínimo",
+  "owner": "Torno",
+  "group": "home",
+  "label": "Capa de celular (TPU) (phoneCase)",
+  "variant": "mínimo",
+  "status": "ok",
+  "reasons": [
+   "app: Confira as medidas no seu aparelho (comprimento, largura, espessura, raio do canto e a câmera) e imprima antes a peça de teste. As medidas dos modelos prontos são aproximadas e variam por versão e fabricante: a capa só encaixa se as medidas forem as do seu aparelho. TPU 95A, devagar e sem retração."
+  ],
+  "date": "2026-10-16",
+  "slicers": "Bambu ✓ · Orca ✓",
+  "minutes": 21,
+  "grams": 8.5,
+  "plates": 1
+ },
+ {
+  "key": "phoneCase:padrão",
+  "owner": "Torno",
+  "group": "home",
+  "label": "Capa de celular (TPU) (phoneCase)",
+  "variant": "padrão",
+  "status": "ok",
+  "reasons": [
+   "app: Confira as medidas no seu aparelho (comprimento, largura, espessura, raio do canto e a câmera) e imprima antes a peça de teste. As medidas dos modelos prontos são aproximadas e variam por versão e fabricante: a capa só encaixa se as medidas forem as do seu aparelho. TPU 95A, devagar e sem retração."
+  ],
+  "date": "2026-10-16",
+  "slicers": "Bambu ✓ · Orca ✓",
+  "minutes": 45,
+  "grams": 22.8,
+  "plates": 1
+ },
+ {
+  "key": "phoneCase:peça de teste",
+  "owner": "Torno",
+  "group": "home",
+  "label": "Capa de celular (TPU) (phoneCase)",
+  "variant": "peça de teste",
+  "status": "ok",
+  "reasons": [
+   "app: Peça de teste: experimente no aparelho. Se apertar demais ou sobrar, ajuste a folga e as medidas e imprima outra, antes da capa inteira."
+  ],
+  "date": "2026-10-16",
+  "slicers": "Bambu ✓ · Orca ✓",
+  "minutes": 10,
+  "grams": 5.2,
+  "plates": 1
+ },
+ {
+  "key": "phoneCase:X",
+  "owner": "Torno",
+  "group": "home",
+  "label": "Capa de celular (TPU) (phoneCase)",
+  "variant": "X",
+  "status": "ok",
+  "reasons": [
+   "app: Confira as medidas no seu aparelho (comprimento, largura, espessura, raio do canto e a câmera) e imprima antes a peça de teste. As medidas dos modelos prontos são aproximadas e variam por versão e fabricante: a capa só encaixa se as medidas forem as do seu aparelho. TPU 95A, devagar e sem retração."
+  ],
+  "date": "2026-10-16",
+  "slicers": "Bambu ✓ · Orca ✓",
+  "minutes": 34,
+  "grams": 24,
+  "plates": 1
+ },
+ {
   "key": "phoneStand:máximo",
   "owner": "Torno",
   "group": "home",
