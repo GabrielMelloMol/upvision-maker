@@ -1,4 +1,5 @@
 import { applyDecals, decalFace, decalShape, type DecalRegions } from "../../geometry/decals";
+import type { Decal, DecalWarning } from "../../geometry/decals";
 import { loadEmojiFont, loadFont } from "../../geometry/fonts";
 import type { CS, ManifoldToplevel } from "../../geometry/manifold";
 import { hasEmoji, textToCrossSection } from "../../geometry/text";
@@ -47,9 +48,16 @@ async function regionsOf(M: ManifoldToplevel, l: Layer): Promise<DecalRegions> {
  * Aplica as camadas livres na peça principal (motor em geometry/decals.ts) e devolve também a face de cima e o
  * contorno de cada camada para o gizmo. Os avisos saem com o nome da camada.
  */
-export async function applyLayers(M: ManifoldToplevel, models: Model[], layers: Layer[]): Promise<LayersResult> {
+/** O motor que põe os decais: o da face de cima (plano) ou o da superfície curva (#212). */
+export type DecalEngine = {
+  face: (M: ManifoldToplevel, models: Model[]) => { outline: [number, number][][]; bounds: unknown; part: string };
+  apply: (M: ManifoldToplevel, models: Model[], decals: { decal: Decal; regions: DecalRegions }[]) => { models: Model[]; warnings: DecalWarning[] };
+};
+const FLAT: DecalEngine = { face: decalFace, apply: applyDecals };
+
+export async function applyLayers(M: ManifoldToplevel, models: Model[], layers: Layer[], engine: DecalEngine = FLAT): Promise<LayersResult> {
   if (!models.length) return { models, warnings: [], byLayer: {}, face: null, shapes: {} };
-  const f = decalFace(M, models);
+  const f = engine.face(M, models);
   const face: FaceInfo = { outline: f.outline, bounds: f.bounds as Bounds, part: f.part, others: otherParts(M, models[0], f.part) };
   if (!layers.length) return { models, warnings: [], byLayer: {}, face, shapes: {} };
   const built: { layer: Layer; regions: DecalRegions }[] = [];
@@ -70,7 +78,7 @@ export async function applyLayers(M: ManifoldToplevel, models: Model[], layers: 
       local.delete();
       all.delete();
     }
-    const out = applyDecals(M, models, built.map(({ layer, regions }) => ({ decal: layer, regions })));
+    const out = engine.apply(M, models, built.map(({ layer, regions }) => ({ decal: layer, regions })));
     const byLayer: Record<string, string[]> = {};
     const warnings = out.warnings.map((w) => {
       const l = w.decalId ? layers.find((x) => x.id === w.decalId) : undefined;

@@ -1,6 +1,6 @@
 import { useMemo, useState } from "react";
 import { getManifold } from "../geometry/manifold";
-import { faceAtPoint, faceDirection, faceHighlight, faceSize, planarFaces, readOwnFile, type PlanarFace } from "../geometry/ownModel";
+import { faceAtPoint, faceDirection, faceHighlight, faceSize, fromFaceFrame, planarFaces, readOwnFile, type PlanarFace } from "../geometry/ownModel";
 import type { Model } from "../geometry/types";
 import Alert from "../ui/Alert";
 import Dropzone from "../ui/Dropzone";
@@ -8,7 +8,7 @@ import ExportButtons from "../ui/ExportButtons";
 import Preview3D from "../ui/Preview3D";
 import { errorText } from "../ui/Toast";
 import { useModelBuilder } from "../ui/useModelBuilder";
-import { applyOwnDecals, OWN_MODEL_ERRORS } from "./models/applyOwn";
+import { applyOwnCurved, applyOwnDecals, OWN_MODEL_ERRORS, partAtPoint, type SurfaceSpot } from "./models/applyOwn";
 import DecalGizmo from "./models/DecalGizmo";
 import LayersPanel, { layerValid } from "./models/LayersPanel";
 import { useModelLayers, type ModelEdits } from "./models/useModelLayers";
@@ -20,13 +20,30 @@ const MAX_BYTES = 200 * 1024 * 1024;
 const OWN = "own";
 const HIGHLIGHT = "#38bdf8";
 const mm = (n: number) => n.toFixed(1).replace(".", ",");
+/** Inclinação da superfície em relação à vertical, em graus (para o chip do ponto escolhido). */
+const tiltText = (n: [number, number, number]) => `${Math.round((Math.acos(Math.min(1, Math.abs(n[2]))) * 180) / Math.PI)}°`;
 
-const initialState = () => ({ file: null as { name: string; bytes: Uint8Array } | null, faceId: null as string | null, edits: {} as ModelEdits });
+const initialState = () => ({ file: null as { name: string; bytes: Uint8Array } | null, faceId: null as string | null, spot: null as SurfaceSpot | null, edits: {} as ModelEdits });
 type OwnState = ReturnType<typeof initialState>;
 
+const MARKER_R = 3;
+const MARKER_SEGMENTS = 32;
+const MARKER_LIFT = 0.05;
+
+/** Só para a prévia: um disco no ponto escolhido numa superfície curva, deitado sobre ela (não vai para o arquivo). */
+function spotMarker(spot: SurfaceSpot, color: string): Model {
+  const pos = new Float32Array((MARKER_SEGMENTS + 1) * 3);
+  pos[2] = MARKER_LIFT;
+  for (let i = 0; i < MARKER_SEGMENTS; i++) pos.set([MARKER_R * Math.cos((i / MARKER_SEGMENTS) * 2 * Math.PI), MARKER_R * Math.sin((i / MARKER_SEGMENTS) * 2 * Math.PI), MARKER_LIFT], (i + 1) * 3);
+  const indices = Uint32Array.from({ length: MARKER_SEGMENTS * 3 }, (_, j) => (j % 3 === 0 ? 0 : 1 + ((Math.floor(j / 3) + (j % 3) - 1) % MARKER_SEGMENTS)));
+  const mesh = fromFaceFrame({ positions: pos, indices }, { normal: spot.normal, centroid: spot.point });
+  return { name: "Ponto escolhido", parts: [{ name: "Ponto escolhido", color, mesh }] };
+}
+
 /**
- * Decal em modelo próprio (#113): abre um STL ou 3MF, a pessoa clica numa face plana (ou escolhe na lista) e põe texto
- * ou desenho nela com o gizmo; a cor entra na peça rente à face (como o Separador) e sai no 3MF multicor.
+ * Decal em modelo próprio (#113, #212): abre um STL ou 3MF, a pessoa clica numa face plana (ou escolhe na lista) ou em qualquer
+ * ponto de uma superfície curva e põe texto ou desenho com o gizmo; na face plana a cor entra rente (como o Separador), na
+ * curva o relevo ou o entalhe acompanha a superfície; sai no 3MF multicor.
  */
 export default function OwnDecal() {
   const tool = useToolState("owndecal", initialState, {
@@ -38,8 +55,8 @@ export default function OwnDecal() {
       return { ...initialState(), ...r, file: r.file && bytes ? { name: r.file.name, bytes } : null };
     },
   });
-  const { file, faceId, edits } = tool.state;
-  const [setFaceId, setEdits] = [tool.field("faceId"), tool.field("edits")];
+  const { file, faceId, spot, edits } = tool.state;
+  const setEdits = tool.field("edits");
   const [fileError, setFileError] = useState<string | null>(null);
   const [pickNote, setPickNote] = useState<string | null>(null);
   const lay = useModelLayers(OWN, edits, setEdits, "inlay");
@@ -65,13 +82,13 @@ export default function OwnDecal() {
     if (!/\.(stl|3mf)$/i.test(f.name)) return setFileError("Envie um arquivo .stl ou .3mf.");
     if (f.size > MAX_BYTES) return setFileError("Arquivo maior que 200 MB.");
     const bytes = new Uint8Array(await f.arrayBuffer());
-    tool.set((cur) => ({ ...cur, file: { name: f.name, bytes }, faceId: null, edits: {} }), "file");
+    tool.set((cur) => ({ ...cur, file: { name: f.name, bytes }, faceId: null, spot: null, edits: {} }), "file");
   }
 
   function choose(next: PlanarFace) {
     setPickNote(null);
     if (!next.extreme) return setPickNote(OWN_MODEL_ERRORS.notExtreme);
-    setFaceId(next.id);
+    tool.set((cur) => ({ ...cur, faceId: next.id, spot: null }), "faceId");
     lay.replace(lay.layers.map((l) => ({ ...l, x: 0, y: 0 }))); // a posição vale em relação ao centro da face
     lay.select(null);
   }
@@ -79,21 +96,30 @@ export default function OwnDecal() {
   function onPick(hit: { point: [number, number, number]; normal: [number, number, number] }) {
     if (!model) return;
     const found = faceAtPoint(model, faces, hit.point, hit.normal);
-    if (!found) return setPickNote("Esse trecho não é uma face plana grande. Clique numa face reta e lisa, ou escolha na lista.");
-    choose(found);
+    if (found) return choose(found);
+    setPickNote(null);
+    tool.set((cur) => ({ ...cur, faceId: null, spot: { part: partAtPoint(model, hit.point), point: hit.point, normal: hit.normal } }), "faceId");
+    lay.replace(lay.layers.map((l) => ({ ...l, x: 0, y: 0 })));
+    lay.select(null);
   }
 
   const valid = lay.layers.every(layerValid);
   const { models, warnings, busy, error } = useModelBuilder(async () => {
     if (!model || !valid) return null;
-    if (!face) return { models: [model], warnings: [] };
-    const out = await applyOwnDecals(model, face, lay.layers.filter(layerValid), await getManifold());
+    if (!face && !spot) return { models: [model], warnings: [] };
+    const M = await getManifold();
+    const on = lay.layers.filter(layerValid);
+    const out = spot ? await applyOwnCurved(model, spot, on, M) : await applyOwnDecals(model, face!, on, M);
     lay.setView({ face: out.face, shapes: out.shapes, byLayer: out.byLayer, elements: [] });
     return { models: out.models, warnings: out.warnings };
-  }, [model, face, lay.layers, valid]);
+  }, [model, face, spot, lay.layers, valid]);
 
   // a face escolhida fica pintada só até haver um decal (depois ele mesmo mostra onde está)
-  const preview = useMemo(() => (model && face && !lay.layers.length ? [...models, faceHighlight(model, face, HIGHLIGHT)] : models), [models, model, face, lay.layers.length]);
+  const preview = useMemo(() => {
+    if (!model || lay.layers.length) return models;
+    if (face) return [...models, faceHighlight(model, face, HIGHLIGHT)];
+    return spot ? [...models, spotMarker(spot, HIGHLIGHT)] : models;
+  }, [models, model, face, spot, lay.layers.length]);
   const sizeText = (f: PlanarFace) => {
     const [w, h] = faceSize(model!, f);
     return `${mm(w)} × ${mm(h)} mm`;
@@ -102,7 +128,7 @@ export default function OwnDecal() {
   return (
     <div className="page">
       <h1>Nome ou logo no seu modelo</h1>
-      <p className="lead">Nome ou logo numa face plana do seu STL ou 3MF.</p>
+      <p className="lead">Nome ou logo em qualquer superfície, curva ou plana.</p>
       <ToolSessionBar tool={tool} />
       <div className="tool-layout">
         <div className="controls">
@@ -115,11 +141,18 @@ export default function OwnDecal() {
           </div>
           {model && (
             <div className="card stack">
-              <h3>Face</h3>
-              <p className="hint">Clique numa face plana na prévia ou escolha na lista. O decal vai nessa face, olhando de fora.</p>
+              <h3>Onde</h3>
+              <p className="hint">Clique na prévia no ponto onde o desenho vai ficar: numa face plana ou em qualquer superfície curva (copo, esfera, tampa abaulada). Em face plana também dá para escolher na lista.</p>
               {pickNote && <Alert kind="warn">{pickNote}</Alert>}
+              {spot && (
+                <div className="row wrap">
+                  <span className="hint"><strong>Superfície curva</strong>: ponto escolhido, a {tiltText(spot.normal)} da vertical</span>
+                  <button type="button" className="sm" onClick={() => tool.set((cur) => ({ ...cur, spot: null }), "faceId")}>Limpar ponto</button>
+                </div>
+              )}
+              {spot && <p className="hint">O desenho é projetado na superfície e o relevo ou o entalhe acompanha a curva. Quanto mais inclinada a superfície em relação ao ponto, mais o desenho estica: prefira o ponto mais de frente. Vazado corta reto, na direção do ponto.</p>}
               {faces.length === 0 ? (
-                <Alert kind="warn">Nenhuma face plana grande foi achada neste modelo. Nesta versão o decal só funciona em faces planas.</Alert>
+                <p className="hint">Nenhuma face plana grande neste modelo: clique direto na superfície.</p>
               ) : (
                 <div className="row wrap" role="group" aria-label="Faces planas">
                   {faces.slice(0, 12).map((f, i) => (
@@ -144,7 +177,7 @@ export default function OwnDecal() {
               onDuplicate={lay.duplicate}
               onRemove={lay.remove}
               history={{ undo: tool.undo, redo: tool.redo, canUndo: tool.canUndo, canRedo: tool.canRedo }}
-              disabled={face ? undefined : "Escolha uma face primeiro."}
+              disabled={face || spot ? undefined : "Clique na prévia para escolher onde o desenho vai."}
             />
           )}
           <ExportButtons models={models} name={`${baseName}-decal`} busy={busy} onSaved={tool.exported} />
@@ -158,9 +191,9 @@ export default function OwnDecal() {
             emptyText={!valid ? "Corrija os campos em vermelho." : "Envie um STL ou 3MF para começar."}
             onPick={model ? onPick : undefined}
           />
-          {lay.view.face && face && lay.layers.length > 0 && (
+          {lay.view.face && (face || spot) && lay.layers.length > 0 && (
             <section className="card stack gizmo-card">
-              <h3>Vista da face</h3>
+              <h3>{spot ? "Vista de frente do ponto" : "Vista da face"}</h3>
               <DecalGizmo face={lay.view.face} layers={lay.layers} shapes={lay.view.shapes} selected={lay.selected} onSelect={lay.select} onCommit={lay.change} />
               <p className="hint">Arraste para mover; a alça do canto muda o tamanho e a de cima gira (Shift: 15°). Setas movem 1 mm.</p>
             </section>

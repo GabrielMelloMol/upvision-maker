@@ -85,7 +85,7 @@ const ALL: PageDef[] = [
   { id: "pixel", section: "create", label: "Pixel art", group: "Ferramentas", icon: Grid3x3, blurb: "Imagem em pixels nas cores dos filamentos: mosaico, quebra-cabeça ou ímã.", render: () => <PixelArt /> },
   { id: "organizers", section: "create", label: "Organizadores", group: "Ferramentas", icon: LayoutGrid, blurb: "Organize uma gaveta: pela medida dela, pela foto das ferramentas ou com caixinhas avulsas.", render: () => <Organizers /> },
   { id: "colorsplit", section: "create", label: "Separar cores de um 3MF", group: "Ferramentas", icon: Split, blurb: "3MF pintado vira uma peça por cor.", render: () => <ColorSplit /> },
-  { id: "owndecal", section: "create", label: "Nome ou logo no seu modelo", group: "Ferramentas", icon: Sticker, blurb: "Nome ou logo numa face plana do STL ou 3MF, em outra cor.", render: () => <OwnDecal /> },
+  { id: "owndecal", section: "create", label: "Nome ou logo no seu modelo", group: "Ferramentas", icon: Sticker, blurb: "Nome ou logo em qualquer superfície, curva ou plana.", render: () => <OwnDecal /> },
   { id: "partialcut", section: "create", label: "Corte parcial", group: "Ferramentas", icon: Scissors, blurb: "Corta só um pedaço do STL ou 3MF, dentro de uma caixa, com pino de encaixe.", render: () => <PartialCut /> },
   { id: "scad", section: "create", label: "Modelo personalizável (OpenSCAD)", group: "Ferramentas", icon: Braces, blurb: "Arquivo .scad do Customizer vira formulário e 3MF.", render: () => <ScadCustomizer /> },
   { id: "search3d", section: "create", label: "Buscar modelos na internet", group: "Ferramentas", icon: Globe, blurb: "Printables, MakerWorld, Thingiverse, Cults3D e Thangs; licenças.", render: (go) => <ModelSearch go={go} /> },

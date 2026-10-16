@@ -203,7 +203,7 @@ export function faceAxes(normal: Vec3): { u: Vec3; v: Vec3; n: Vec3 } {
 }
 
 /** Gira e move a malha: p' = R (p − centro), com R levando (u, v, n) a (X, Y, Z); a face fica em z = 0, olhando para cima. */
-export function toFaceFrame(mesh: Mesh, face: PlanarFace): Mesh {
+export function toFaceFrame(mesh: Mesh, face: Pick<PlanarFace, "normal" | "centroid">): Mesh {
   const { u, v, n } = faceAxes(face.normal);
   const out = new Float32Array(mesh.positions.length);
   for (let i = 0; i < out.length; i += 3) {
@@ -216,7 +216,7 @@ export function toFaceFrame(mesh: Mesh, face: PlanarFace): Mesh {
 }
 
 /** O inverso de `toFaceFrame`: devolve a malha ao lugar e à posição originais. */
-export function fromFaceFrame(mesh: Mesh, face: PlanarFace): Mesh {
+export function fromFaceFrame(mesh: Mesh, face: Pick<PlanarFace, "normal" | "centroid">): Mesh {
   const { u, v, n } = faceAxes(face.normal);
   const out = new Float32Array(mesh.positions.length);
   for (let i = 0; i < out.length; i += 3) {
