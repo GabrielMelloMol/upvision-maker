@@ -75,6 +75,7 @@ export const MODEL_ALIASES: Record<string, string> = {
   radiusGauge: "gabarito raios raio quina filete concordância medir calibre",
   labelJig: "gabarito etiqueta moldura colar posição adesivo rótulo",
   slingshot: "estilingue bodoque atiradeira funda forquilha brinquedo nome",
+  phoneCase: "capa celular smartphone iphone samsung galaxy tpu case proteção nome",
   opener: "abridor garrafa lata chaveiro",
   openerImage: "abridor garrafa lata chaveiro imagem foto desenho contorno recorte silhueta gato logo personalizado argola",
   spinner: "giratório gira chaveiro fidget",

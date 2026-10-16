@@ -126,6 +126,12 @@ export const VARIANTS: Record<string, Variant[]> = {
     { label: "Etiqueta 100 × 50", patch: { labelW: 100, labelH: 50 } },
     { label: "Etiqueta de rolo 50 × 30", patch: { labelW: 50, labelH: 30, rim: 10 } },
   ],
+  phoneCase: [
+    { label: "iPhone 15 / 16 (aprox.)", patch: { phoneL: 147.6, phoneW: 71.6, phoneT: 7.8, cornerR: 11, camX: 4.5, camY: 4.5, camW: 34, camH: 34, camR: 9 } },
+    { label: "iPhone 15 / 16 Pro (aprox.)", patch: { phoneL: 149.6, phoneW: 71.5, phoneT: 8.3, cornerR: 11, camX: 4, camY: 4, camW: 37, camH: 38, camR: 10 } },
+    { label: "iPhone 16 Pro Max (aprox.)", patch: { phoneL: 163, phoneW: 77.6, phoneT: 8.3, cornerR: 11.5, camX: 4.5, camY: 4.5, camW: 38, camH: 38, camR: 10 } },
+    { label: "Galaxy S24 (aprox.)", patch: { phoneL: 147, phoneW: 70.6, phoneT: 7.6, cornerR: 10, camX: 8, camY: 6, camW: 16, camH: 46, camR: 8 } },
+  ],
   kitBicho: [
     { label: "Cachorro", patch: { head: "dog", tail: "up", profile: "oval" } },
     { label: "Gato", patch: { head: "cat", tail: "long", profile: "oval" } },

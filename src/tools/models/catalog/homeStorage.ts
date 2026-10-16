@@ -1,4 +1,4 @@
-import { CircuitBoard, Grid2x2, Grid3x3, Package, Ruler, RulerDimensionLine, TestTube, Target } from "lucide-react";
+import { CircuitBoard, Grid2x2, Grid3x3, Package, Ruler, RulerDimensionLine, TestTube, Target, Smartphone } from "lucide-react";
 import { buildBoardBox, DEFAULT_BOARD_BOX } from "../../../geometry/models/boardBox";
 import { buildGridBase, buildGridBin, buildGridTest, DEFAULT_GRID_BASE, DEFAULT_GRID_BIN } from "../../../geometry/models/gridfinity";
 import { buildLidBox, DEFAULT_LID_BOX } from "../../../geometry/models/lidBox";
@@ -6,6 +6,7 @@ import { buildRuler3d, DEFAULT_RULER } from "../../../geometry/models/ruler3d";
 import { as, bool, choice, color, num, text, type ModelDef } from "../fields";
 import { ORGANIZER_BOX_MODEL } from "./organizerBox";
 import { buildSlingshot, DEFAULT_SLINGSHOT } from "../../../geometry/models/slingshot";
+import { buildPhoneCase, DEFAULT_PHONE_CASE } from "../../../geometry/models/phoneCase";
 
 /** Casa, organização: caixa com tampa e o sistema Gridfinity (caixinhas e base). */
 export const HOME_STORAGE_MODELS: ModelDef[] = [
@@ -253,5 +254,50 @@ export const HOME_STORAGE_MODELS: ModelDef[] = [
       },
     ],
     build: (ctx, p) => buildSlingshot(ctx, as(p)),
+  },
+  {
+    id: "phoneCase",
+    category: "home",
+    label: "Capa de celular (TPU)",
+    blurb: "Capa em TPU pelas medidas do seu aparelho, com recorte de câmera e botões, desenho e nome nas costas. Só encaixa se as medidas forem as do seu aparelho: imprima antes a peça de teste.",
+    icon: Smartphone,
+    font: true,
+    defaults: DEFAULT_PHONE_CASE,
+    sections: [
+      { title: "Nome", fields: [text("name", "Nome nas costas", 16)] },
+      {
+        title: "O aparelho (meça o seu)",
+        fields: [
+          num("phoneL", "Comprimento", 100, 190, { step: 0.1, hint: "Os modelos prontos têm medidas aproximadas e variam por versão: confira com paquímetro e com a ficha do fabricante." }),
+          num("phoneW", "Largura", 55, 100, { step: 0.1 }),
+          num("phoneT", "Espessura", 5, 14, { step: 0.1, hint: "Sem a capa antiga, na parte mais grossa das laterais (sem a câmera)." }),
+          num("cornerR", "Raio dos cantos", 4, 20, { step: 0.5 }),
+        ],
+      },
+      {
+        title: "Câmera e botões",
+        fields: [
+          num("camX", "Câmera: distância da lateral", 0, 60, { step: 0.5, hint: "Visto de trás, a partir do canto de cima à esquerda da capa." }),
+          num("camY", "Câmera: distância do topo", 0, 60, { step: 0.5 }),
+          num("camW", "Câmera: largura do recorte", 0, 70, { step: 0.5, hint: "0 tira o recorte." }),
+          num("camH", "Câmera: altura do recorte", 0, 70, { step: 0.5 }),
+          num("camR", "Câmera: cantos", 0, 25, { step: 0.5 }),
+          text("buttons", "Recortes dos botões (uma linha cada)", 120, "Lado, posição e comprimento em mm, a posição medida do topo: direita, 40, 22. Lado: direita ou esquerda, como você vê o aparelho de frente."),
+        ],
+      },
+      {
+        title: "Capa",
+        fields: [
+          num("clearance", "Folga em volta do aparelho", 0.05, 0.5, { step: 0.05, hint: "TPU estica: 0,1 a 0,2 mm. Se a peça de teste apertar, aumente de 0,05 em 0,05." }),
+          num("wall", "Parede", 1.2, 3, { step: 0.2 }),
+          num("floor", "Fundo", 1, 2.5, { step: 0.2 }),
+          num("lip", "Borda sobre a tela", 0.8, 3, { step: 0.2 }),
+          choice("pattern", "Costas", [["hex", "Hexágonos"], ["cross", "X"], ["smooth", "Lisa"]]),
+          choice("print", "Imprimir", [["case", "Capa inteira"], ["test", "Só a peça de teste (25 mm)"]]),
+          color("color", "Cor"),
+        ],
+      },
+    ],
+    build: (ctx, p) => buildPhoneCase(ctx, as(p)),
   },
 ];
