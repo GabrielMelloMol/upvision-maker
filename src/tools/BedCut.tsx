@@ -1,13 +1,11 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { bed as printerBed } from "../geometry/bed";
-import { bedCut, DEFAULT_BEDCUT, type BedCutInfo, type BedCutOptions } from "../geometry/bedCut";
+import { DEFAULT_BEDCUT, type BedCutInfo, type BedCutOptions } from "../geometry/bedCut";
+import { bedCutAsync, openBedCutAsync } from "../geometry/bedCutClient";
 import { MAX_PARTS_PER_AXIS, planCuts, type Vec3 } from "../geometry/bedCutPlan";
-import { loadFont } from "../geometry/fonts";
-import { getManifold } from "../geometry/manifold";
+import { fileKey } from "../geometry/jobs";
 import { meshBounds } from "../geometry/bounds";
 import type { JointKind } from "../geometry/bedCutJoints";
-import { readOwnFile } from "../geometry/ownModel";
-import type { Model } from "../geometry/types";
 import Alert from "../ui/Alert";
 import Dropzone from "../ui/Dropzone";
 import ExportButtons from "../ui/ExportButtons";
@@ -17,7 +15,9 @@ import Segmented from "../ui/Segmented";
 import Slider from "../ui/Slider";
 import Toggle from "../ui/Toggle";
 import { errorText } from "../ui/Toast";
+import { useJobControl } from "../ui/useJobControl";
 import { useModelBuilder } from "../ui/useModelBuilder";
+import WorkProgress from "../ui/WorkProgress";
 import { restoreBytes, storeBytes } from "./storedFile";
 import ToolSessionBar from "./ToolSessionBar";
 import { useToolState } from "./useToolState";
@@ -86,19 +86,22 @@ export default function BedCut() {
   const printer = printerBed();
   const bed = s.bed ?? { x: printer.x, y: printer.y, z: printer.z };
 
-  const model = useMemo<Model | { error: string } | null>(() => {
-    if (!s.file) return null;
-    try {
-      return readOwnFile(s.file.bytes, s.file.name);
-    } catch (e) {
-      return { error: errorText(e) };
-    }
-  }, [s.file]);
-  const source = model && !("error" in model) ? model : null;
-  const dims = useMemo<Vec3 | null>(() => {
-    const b = source && meshBounds(source.parts.map((p) => p.mesh));
-    return b ? ([b.max[0] - b.min[0], b.max[1] - b.min[1], b.max[2] - b.min[2]] as Vec3) : null;
-  }, [source]);
+  const key = useMemo(() => (s.file ? fileKey(s.file.name, s.file.bytes) : ""), [s.file]);
+  const [opened, setOpened] = useState<{ key: string; dims: Vec3 } | { key: string; error: string } | null>(null);
+  useEffect(() => {
+    if (!s.file) return;
+    let alive = true;
+    openBedCutAsync(key, s.file.bytes, s.file.name).then(
+      (dims) => alive && setOpened({ key, dims }),
+      (e) => alive && setOpened({ key, error: errorText(e) }),
+    );
+    return () => {
+      alive = false;
+    };
+  }, [key]); // eslint-disable-line react-hooks/exhaustive-deps
+  const current = opened?.key === key && s.file ? opened : null;
+  const dims = current && "dims" in current ? current.dims : null;
+  const openError = current && "error" in current ? current.error : null;
   const suggested = useMemo(() => (dims ? planCuts(dims, bed, s.margin) : null), [dims, bed.x, bed.y, bed.z, s.margin]); // eslint-disable-line react-hooks/exhaustive-deps
 
   async function onFile(f: File) {
@@ -110,8 +113,10 @@ export default function BedCut() {
   }
 
   const valid = [bed.x, bed.y].every((v) => inRange(v, 50, 1000)) && inRange(bed.z, 50, 1000) && inRange(s.margin, 0, 30) && inRange(s.clearance, 0, 1) && (s.size === 0 || inRange(s.size, 3, 30)) && s.counts.every((n) => inRange(n, 1, MAX_PARTS_PER_AXIS));
+  const inputs = [dims, valid, bed.x, bed.y, bed.z, s.margin, s.auto, s.counts, s.joint, s.size, s.clearance, s.magnetD, s.magnetH, s.numbers, s.explode];
+  const ctl = useJobControl(inputs);
   const { models: all, warnings, busy, error } = useModelBuilder(async () => {
-    if (!source || !valid) return null;
+    if (!s.file || !dims || !valid) return null;
     const o: BedCutOptions = {
       bed,
       margin: s.margin,
@@ -123,10 +128,10 @@ export default function BedCut() {
       numbers: s.numbers,
       explode: s.explode,
     };
-    const out = bedCut(await getManifold(), source, o, s.numbers ? await loadFont("hanken") : null);
+    const out = await ctl.run((onProgress) => bedCutAsync(key, s.file!.bytes, s.file!.name, o, onProgress));
     setInfo(out.info);
     return { models: [...out.models, ...out.assembled], warnings: out.warnings };
-  }, [source, valid, bed.x, bed.y, bed.z, s.margin, s.auto, s.counts, s.joint, s.size, s.clearance, s.magnetD, s.magnetH, s.numbers, s.explode]);
+  }, [...inputs, ctl.rev]);
   const shown = useMemo(() => all.filter((m) => (s.view === "assembled" ? m.previewOnly : !m.previewOnly)), [all, s.view]);
   const printable = useMemo(() => all.filter((m) => !m.previewOnly), [all]);
   const baseName = s.file?.name.replace(/\.[^.]+$/, "") ?? "peca";
@@ -143,7 +148,7 @@ export default function BedCut() {
             <h3>Arquivo</h3>
             <Dropzone accept=".stl,.3mf" label={s.file ? s.file.name : "Arraste o .stl ou .3mf grande"} hint="Um sólido fechado; furos pequenos na malha o app conserta." onFile={onFile} />
             {fileError && <Alert kind="error">{fileError}</Alert>}
-            {model && "error" in model && <Alert kind="error">{model.error}</Alert>}
+            {openError && <Alert kind="error">{openError}</Alert>}
             {dims && <span className="hint">Peça: {mm(dims[0])} × {mm(dims[1])} × {mm(dims[2])} mm</span>}
             <p className="hint">Quando usar: o STL é maior que a mesa da impressora. O app corta em pedaços iguais, faz o encaixe entre eles e numera cada junta nas duas faces para montar sem erro.</p>
           </div>
@@ -205,7 +210,7 @@ export default function BedCut() {
             )}
             <Toggle label="Numerar as juntas (gravado nas duas faces)" checked={s.numbers} onChange={set("numbers")} />
           </div>
-          {info && source && (
+          {info && dims && (
             <div className="card stack" aria-label="Resultado do corte">
               <h3>Resultado</h3>
               <p>
@@ -237,6 +242,7 @@ export default function BedCut() {
             onChange={set("view")}
           />
           {s.view === "assembled" && <Slider label="Afastar os pedaços" min={0} max={60} value={s.explode} display={(v) => `${v} mm`} onChange={set("explode")} />}
+          <WorkProgress control={ctl} busy={busy} error={error} title="Cortando a peça" />
           <Preview3D models={shown} busy={busy} busyText="Cortando…" error={error} emptyText={!valid ? "Corrija os campos em vermelho." : "Envie um STL ou 3MF grande para cortar."} />
           {warnings.map((w) => (
             <Alert key={w} kind="warn">

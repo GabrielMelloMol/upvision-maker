@@ -3,7 +3,7 @@ import { faceAxes, fromFaceFrame, toFaceFrame, type PlanarFace, type Vec3 } from
 import { applyMapped, applySurfaceDecals, surfaceFace } from "../../geometry/surfaceDecal";
 import { fitWrap, wrapFace, wrapMap, type WrapFit } from "../../geometry/wrapDecal";
 import type { Model } from "../../geometry/types";
-import { applyLayers, type DecalEngine, type LayersResult } from "./applyLayers";
+import { applyLayers, applyPrepared, type DecalEngine, type LayersResult, type PreparedLayer } from "./applyLayers";
 import type { Layer } from "./layers";
 
 export const OWN_MODEL_ERRORS = {
@@ -16,14 +16,14 @@ export const OWN_MODEL_ERRORS = {
  * entram pelo motor de sempre (relevo, gravado, vazado ou embutido na cor) e tudo volta ao lugar e à posição originais.
  * O gizmo trabalha no plano da face (X para a direita, Y para cima, olhando de fora).
  */
-export async function applyOwnDecals(model: Model, face: PlanarFace, layers: Layer[], M?: ManifoldToplevel): Promise<LayersResult> {
+export async function applyOwnDecals(model: Model, face: PlanarFace, layers: Layer[], M?: ManifoldToplevel, prepared?: PreparedLayer[]): Promise<LayersResult> {
   if (!face.extreme) throw new Error(OWN_MODEL_ERRORS.notExtreme);
   const m = M ?? (await getManifold());
   const part = model.parts[face.part];
   const local: Model = { name: model.name, parts: [{ ...part, mesh: toFaceFrame(part.mesh, face) }] };
   let res: LayersResult;
   try {
-    res = await applyLayers(m, [local], layers);
+    res = prepared ? applyPrepared(m, [local], layers, prepared) : await applyLayers(m, [local], layers);
   } catch (e) {
     if (/manifold|valid/i.test(String(e))) throw new Error(OWN_MODEL_ERRORS.open, { cause: e });
     throw e;
@@ -51,7 +51,7 @@ const CURVED: DecalEngine = { face: surfaceFace, apply: applySurfaceDecals };
  * Decais (#212) numa superfície curva de um modelo próprio: a peça gira para o ponto ficar na origem olhando para cima,
  * o desenho é projetado na superfície e o relevo/entalhe acompanha a curva; depois tudo volta ao lugar original.
  */
-export async function applyOwnCurved(model: Model, spot: SurfaceSpot, layers: Layer[], M?: ManifoldToplevel): Promise<LayersResult> {
+export async function applyOwnCurved(model: Model, spot: SurfaceSpot, layers: Layer[], M?: ManifoldToplevel, prepared?: PreparedLayer[]): Promise<LayersResult> {
   const m = M ?? (await getManifold());
   const frame = { normal: spot.normal, centroid: spot.point };
   const part = model.parts[spot.part];
@@ -69,7 +69,7 @@ export async function applyOwnCurved(model: Model, spot: SurfaceSpot, layers: La
   }
   let res: LayersResult;
   try {
-    res = await applyLayers(m, [local], layers, engine);
+    res = prepared ? applyPrepared(m, [local], layers, prepared, engine) : await applyLayers(m, [local], layers, engine);
   } catch (e) {
     if (/manifold|valid/i.test(String(e))) throw new Error(OWN_MODEL_ERRORS.open, { cause: e });
     throw e;

@@ -4,6 +4,7 @@ import { buildJoint, numberSpot, type JointKind, type Magnet } from "./bedCutJoi
 import type { ManifoldToplevel, Solid } from "./manifold";
 import { toMesh } from "./mesh";
 import { solidFromMesh } from "./cutSolid";
+import { JobCancelled, type Hooks } from "./jobs";
 import { scoped } from "./shape2d";
 import { textToCrossSection } from "./text";
 import type { Model, Part } from "./types";
@@ -73,9 +74,14 @@ function cellBoxes(M: ManifoldToplevel, lo: Vec3, hi: Vec3, bounds: [number[], n
   return out;
 }
 
-export function bedCut(M: ManifoldToplevel, model: Model, o: BedCutOptions, font: Font | null): BedCutResult {
+export function bedCut(M: ManifoldToplevel, model: Model, o: BedCutOptions, font: Font | null, hooks: Hooks = {}): BedCutResult {
+  const at = (fraction: number, stage: string) => {
+    if (hooks.cancelled?.()) throw new JobCancelled();
+    hooks.progress?.(fraction, stage);
+  };
   return scoped((k) => {
     const warnings: string[] = [];
+    at(0.02, "Conferindo a malha");
     const parts = model.parts.map((p) => {
       const r = solidFromMesh(M, p.mesh);
       if (r.holes) warnings.push(`A malha de "${p.name}" tinha ${r.holes} furo${r.holes > 1 ? "s" : ""} e foi consertada antes de cortar.`);
@@ -92,7 +98,9 @@ export function bedCut(M: ManifoldToplevel, model: Model, o: BedCutOptions, font
 
     // pedaços: a peça cortada em caixas
     const cells = new Map<string, Cell>();
-    for (const c of cellBoxes(M, bb.min as Vec3, bb.max as Vec3, bounds, counts)) {
+    const boxes = cellBoxes(M, bb.min as Vec3, bb.max as Vec3, bounds, counts);
+    for (const [n, c] of boxes.entries()) {
+      at(0.1 + (0.4 * n) / boxes.length, "Cortando os pedaços");
       const piece = k(solid.intersect(k(c.box)));
       if (piece.isEmpty() || piece.volume() < MIN_PIECE_MM3) continue;
       cells.set(joinKey(c.idx), { idx: c.idx, min: c.min, max: c.max, solid: piece });
@@ -116,6 +124,7 @@ export function bedCut(M: ManifoldToplevel, model: Model, o: BedCutOptions, font
           const sec = k(section.intersect(rect));
           if (sec.isEmpty()) continue; // o plano passou por um vão entre duas partes soltas: não há o que encaixar
           const id = ++joints;
+          at(0.5 + 0.3 * (1 - 1 / (1 + joints / 4)), "Fazendo os encaixes");
           const room = ROOM * Math.min(lower.max[a] - lower.min[a], upper.max[a] - upper.min[a]);
           const joint = o.joint === "none" ? null : buildJoint(M, k, o.joint, sec, { size: o.size, clearance: o.clearance, magnet: o.magnet, room });
           if (o.joint !== "none" && !joint) warnings.push(`A junta ${id} (${axis.toUpperCase()}) é pequena demais para o encaixe escolhido: saiu sem encaixe.`);
@@ -148,6 +157,7 @@ export function bedCut(M: ManifoldToplevel, model: Model, o: BedCutOptions, font
     }
 
     // cada pedaço assenta na mesa pela face em que mais se apoia (que caiba); depois tudo arrumado em mesas
+    at(0.85, "Arrumando na mesa");
     const u = usable(o.bed, o.margin);
     const list = [...cells.values()].sort((p, q) => p.idx[2] - q.idx[2] || p.idx[1] - q.idx[1] || p.idx[0] - q.idx[0]);
     const laid = list.map((c, i) => {
@@ -189,6 +199,7 @@ export function bedCut(M: ManifoldToplevel, model: Model, o: BedCutOptions, font
       return { name: label(i + 1), previewOnly: true, parts: [{ name: label(i + 1), color: PIECE_COLOR, mesh: toMesh(k(c.solid.translate(off))) }] };
     });
 
+    at(0.97, "Montando a prévia");
     const fits = plan.fits && laid.every((p) => p.w <= u.x + 1e-6 || p.w <= u.y + 1e-6);
     return {
       models: [...models, ...keyModels],

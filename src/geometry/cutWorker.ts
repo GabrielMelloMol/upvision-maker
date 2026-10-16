@@ -1,43 +1,33 @@
 /// <reference lib="webworker" />
-import { getManifold } from "./manifold";
 import { runCuts, type CutPlan, type CutsResult } from "./cutSequence";
+import { fitRegionToPart } from "./cutFit";
+import type { Region, RegionKind } from "./cutRegion";
+import type { PartialCutOptions, Vec3 } from "./partialCut";
 import { suggestCuts, type Suggestion } from "./cutSuggest";
-import type { Mesh, Model } from "./types";
+import { serveJob } from "./jobWorker";
+import { modelBuffers } from "./jobs";
+import { getManifold } from "./manifold";
+import { readOwnFile } from "./ownModel";
+import type { Model } from "./types";
 
-/** Corte parcial fora da tela principal: peças grandes (centenas de milhares de triângulos) não travam os controles. */
-export type CutRequest = { id: number; kind: "cut"; model: Model; plan: CutPlan } | { id: number; kind: "suggest"; model: Model };
-export type CutReply = { id: number; ok: true; cut?: CutsResult; suggestions?: Suggestion[] } | { id: number; ok: false; error: string };
+/** Corte parcial fora da tela principal: ler o arquivo, cortar e sugerir cortes em peças grandes não travam os controles. */
+export type CutRequest =
+  | { kind: "read"; bytes: Uint8Array; name: string }
+  | { kind: "cut"; model: Model; plan: CutPlan }
+  | { kind: "suggest"; model: Model }
+  | { kind: "fit"; model: Model; plane: FitPlane; shape: RegionKind; near: Vec3 };
+export type FitPlane = Pick<PartialCutOptions, "axis" | "tilt" | "offset" | "region">;
+export type CutReply = { kind: "fit"; region: Region } | { kind: "read"; model: Model } | { kind: "cut"; cut: CutsResult } | { kind: "suggest"; suggestions: Suggestion[] };
 
-/** Buffers de todas as malhas, para passar adiante sem copiar. */
-export function transferables(models: Model[]): ArrayBuffer[] {
-  const out = new Set<ArrayBuffer>(); // o mesmo buffer duas vezes na lista de transferência dá erro
-  const add = (m: Mesh) => {
-    out.add(m.positions.buffer as ArrayBuffer);
-    out.add(m.indices.buffer as ArrayBuffer);
-  };
-  for (const m of models) {
-    for (const p of m.parts) {
-      add(p.mesh);
-      if (p.lines) out.add(p.lines.points.buffer as ArrayBuffer);
-    }
+serveJob<CutRequest, CutReply>(async (req, hooks) => {
+  if (req.kind === "read") {
+    hooks.progress?.(0.1, "Lendo o arquivo");
+    const model = readOwnFile(req.bytes, req.name);
+    return { result: { kind: "read", model }, transfer: modelBuffers([model]) };
   }
-  return [...out];
-}
-
-self.onmessage = async (e: MessageEvent<CutRequest>) => {
-  const req = e.data;
-  try {
-    const M = await getManifold();
-    if (req.kind === "suggest") {
-      const reply: CutReply = { id: req.id, ok: true, suggestions: suggestCuts(M, req.model) };
-      self.postMessage(reply);
-      return;
-    }
-    const cut = runCuts(M, req.model, req.plan);
-    const reply: CutReply = { id: req.id, ok: true, cut };
-    self.postMessage(reply, transferables([...cut.models, ...cut.preview]));
-  } catch (err) {
-    const reply: CutReply = { id: req.id, ok: false, error: err instanceof Error ? err.message : String(err) };
-    self.postMessage(reply);
-  }
-};
+  const M = await getManifold();
+  if (req.kind === "fit") return { result: { kind: "fit", region: fitRegionToPart(M, req.model, req.plane, req.shape, req.near) } };
+  if (req.kind === "suggest") return { result: { kind: "suggest", suggestions: suggestCuts(M, req.model) } };
+  const cut = runCuts(M, req.model, req.plan, hooks);
+  return { result: { kind: "cut", cut }, transfer: modelBuffers([...cut.models, ...cut.preview]) };
+});

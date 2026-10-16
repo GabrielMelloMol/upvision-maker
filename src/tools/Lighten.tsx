@@ -1,10 +1,8 @@
-import { useMemo, useState } from "react";
-import { meshBounds } from "../geometry/bounds";
-import { readOwnFile } from "../geometry/ownModel";
+import { useEffect, useMemo, useState } from "react";
+import { fileKey, JobCancelled } from "../geometry/jobs";
 import { CORE_KINDS, DEFAULT_LIGHTEN, massGrams, type CoreKind, type LightenOpts } from "../geometry/lighten";
-import { LightenCancelled, lightenAsync } from "../geometry/lightenClient";
+import { lightenAsync, openLightenAsync } from "../geometry/lightenClient";
 import type { LightenResult, LightenSource } from "../geometry/lightenWorker";
-import type { Model } from "../geometry/types";
 import Alert from "../ui/Alert";
 import Dropzone from "../ui/Dropzone";
 import ExportButtons from "../ui/ExportButtons";
@@ -14,7 +12,9 @@ import Segmented from "../ui/Segmented";
 import Slider from "../ui/Slider";
 import Toggle from "../ui/Toggle";
 import { errorText } from "../ui/Toast";
+import { useJobControl } from "../ui/useJobControl";
 import { useModelBuilder } from "../ui/useModelBuilder";
+import WorkProgress from "../ui/WorkProgress";
 import LightenCompare, { type Compared } from "./lighten/LightenCompare";
 import { restoreBytes, storeBytes } from "./storedFile";
 import ToolSessionBar from "./ToolSessionBar";
@@ -52,47 +52,43 @@ export default function Lighten() {
   const [compared, setCompared] = useState<{ key: string; rows: Compared[] } | null>(null);
   const [comparing, setComparing] = useState<string | null>(null);
 
-  const parsed = useMemo<{ model: Model; triangles: number } | { error: string } | null>(() => {
-    if (!file) return null;
-    try {
-      const model = readOwnFile(file.bytes, file.name);
-      return { model, triangles: model.parts.reduce((n, p) => n + p.mesh.indices.length / 3, 0) };
-    } catch (e) {
-      return { error: errorText(e) };
-    }
-  }, [file]);
-  const model = parsed && "model" in parsed ? parsed.model : null;
+  const fileId = useMemo(() => (file ? fileKey(file.name, file.bytes) : ""), [file]);
+  const [opened, setOpened] = useState<{ key: string; triangles: number } | { key: string; error: string } | null>(null);
+  useEffect(() => {
+    if (!file || opened?.key === fileId) return;
+    let alive = true;
+    openLightenAsync(fileId, file.bytes, file.name).then(
+      (r) => alive && setOpened(r.empty ? { key: fileId, error: "O arquivo está vazio." } : { key: fileId, triangles: r.triangles }),
+      (e) => alive && setOpened({ key: fileId, error: errorText(e) }),
+    );
+    return () => {
+      alive = false;
+    };
+  }, [fileId]); // eslint-disable-line react-hooks/exhaustive-deps
+  const parsed = opened?.key === fileId && file ? opened : null;
+  const ready = !!parsed && "triangles" in parsed;
   const baseName = file?.name.replace(/\.[^.]+$/, "") ?? "bloco";
 
   const minWall = mode === "part" ? MIN_WALL_PART : 0;
   const valid = inRange(opts.cell, 4, 30) && inRange(opts.strut, 0.6, 5) && inRange(opts.wall, minWall, 8) && (mode === "part" || size.every((v) => inRange(v, 10, 200)));
-  const source: LightenSource | null = mode === "block" ? { kind: "block", size } : model ? { kind: "model", model } : null;
+  const source: LightenSource | null = mode === "block" ? { kind: "block", size } : file && ready ? { kind: "file", key: fileId, bytes: file.bytes, name: file.name } : null;
   const key = JSON.stringify({ mode, f: file && [file.name, file.bytes.length], opts, size });
   // a comparação vale para qualquer tipo de estrutura: trocar o tipo (inclusive por "Usar esta") não a invalida
   const compareKey = JSON.stringify({ mode, f: file && [file.name, file.bytes.length], opts: { ...opts, kind: null }, size });
 
+  const ctl = useJobControl([key, valid, ready]);
   const { models, view, warnings, busy, error } = useModelBuilder<LightenResult>(async () => {
     if (!source || !valid) return null;
-    try {
-      const r = await lightenAsync(source, opts);
-      return { models: [r.model], warnings: r.warnings, view: r };
-    } catch (e) {
-      if (e instanceof LightenCancelled) return null;
-      throw e;
-    }
-  }, [key, valid]);
+    const r = await ctl.run((onProgress) => lightenAsync(source, opts, onProgress));
+    return { models: [r.model], warnings: r.warnings, view: r };
+  }, [key, valid, ready, ctl.rev]);
 
   async function onFile(f: File) {
     setFileError(null);
     if (!/\.(stl|3mf)$/i.test(f.name)) return setFileError("Envie um arquivo .stl ou .3mf.");
     if (f.size > MAX_BYTES) return setFileError("Arquivo maior que 100 MB.");
     const bytes = new Uint8Array(await f.arrayBuffer());
-    try {
-      if (!meshBounds(readOwnFile(bytes, f.name).parts.map((p) => p.mesh))) return setFileError("O arquivo está vazio.");
-      tool.set((cur) => ({ ...cur, file: { name: f.name, bytes } }), "file");
-    } catch (e) {
-      setFileError(errorText(e));
-    }
+    tool.set((cur) => ({ ...cur, file: { name: f.name, bytes } }), "file");
   }
 
   async function compare() {
@@ -101,11 +97,11 @@ export default function Lighten() {
     try {
       for (const [kind, label] of CORE_KINDS) {
         setComparing(`Calculando ${label}… (${rows.length + 1} de ${CORE_KINDS.length})`);
-        rows.push({ kind, stats: (await lightenAsync(source, { ...opts, kind })).stats });
+        rows.push({ kind, stats: (await lightenAsync(source, { ...opts, kind }).promise).stats });
       }
       setCompared({ key: compareKey, rows });
     } catch (e) {
-      if (!(e instanceof LightenCancelled)) setFileError(errorText(e));
+      if (!(e instanceof JobCancelled)) setFileError(errorText(e));
     } finally {
       setComparing(null);
     }
@@ -130,7 +126,7 @@ export default function Lighten() {
                 <Dropzone accept=".stl,.3mf" label={file ? file.name : "Arraste o .stl ou .3mf"} hint="Um sólido fechado (sem furos na malha)." onFile={onFile} />
                 {fileError && <Alert kind="error">{fileError}</Alert>}
                 {parsed && "error" in parsed && <Alert kind="error">{parsed.error}</Alert>}
-                {parsed && "triangles" in parsed && parsed.triangles > MANY_TRIANGLES && <Alert kind="warn">A peça tem {parsed.triangles.toLocaleString("pt-BR")} triângulos: o cálculo pode levar alguns minutos.</Alert>}
+                {ready && parsed.triangles > MANY_TRIANGLES && <Alert kind="warn">A peça tem {parsed.triangles.toLocaleString("pt-BR")} triângulos: o cálculo pode levar alguns minutos.</Alert>}
                 <Alert kind="warn">Use só modelos que são seus ou cuja licença permite alterar e imprimir. O app não confere a licença do arquivo.</Alert>
               </>
             ) : (
@@ -172,6 +168,7 @@ export default function Lighten() {
           <ExportButtons models={models} name={`${baseName}-miolo-leve`} busy={busy} onSaved={tool.exported} />
         </div>
         <div className="preview-col">
+          <WorkProgress control={ctl} busy={busy} error={error} title="Calculando o miolo" />
           <Preview3D
             models={shown}
             quietBusy

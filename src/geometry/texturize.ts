@@ -1,4 +1,5 @@
 import { nozzleMm } from "./bed";
+import { JobCancelled, type Hooks } from "./jobs";
 import { buildOccluder } from "./occlusion";
 import { solidFromMesh } from "./cutSolid";
 import type { ManifoldToplevel } from "./manifold";
@@ -172,17 +173,11 @@ function direction(n: Vec3, heightAboveBase: number, o: TexturizeOptions): Vec3 
   return l < 1e-6 ? [0, 0, 0] : [n[0] / l, n[1] / l, 0];
 }
 
-/** Progresso e cancelamento do cálculo (a tela mostra a barra e o botão Cancelar; o worker usa os dois). */
-export type Hooks = { progress?: (fraction: number, stage: string) => void; cancelled?: () => boolean };
-export class TexturizeCancelled extends Error {
-  constructor() {
-    super("Cálculo cancelado.");
-  }
-}
+export { JobCancelled as TexturizeCancelled } from "./jobs";
 
 export function texturize(M: ManifoldToplevel, model: Model, o: TexturizeOptions, hooks: Hooks = {}, span: [number, number] = [0, 1]): TexturizeResult {
   const at = (f: number, stage: string) => {
-    if (hooks.cancelled?.()) throw new TexturizeCancelled();
+    if (hooks.cancelled?.()) throw new JobCancelled();
     hooks.progress?.(span[0] + (span[1] - span[0]) * f, stage);
   };
   const warnings: string[] = [];

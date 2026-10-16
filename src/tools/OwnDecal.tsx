@@ -1,6 +1,7 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
+import { fileKey } from "../geometry/jobs";
 import { getManifold } from "../geometry/manifold";
-import { faceAtPoint, faceDirection, faceHighlight, faceSize, fromFaceFrame, planarFaces, readOwnFile, wideFaces, type PlanarFace } from "../geometry/ownModel";
+import { faceDirection, fromFaceFrame } from "../geometry/ownModel";
 import type { Model } from "../geometry/types";
 import Alert from "../ui/Alert";
 import Dropzone from "../ui/Dropzone";
@@ -8,8 +9,13 @@ import ExportButtons from "../ui/ExportButtons";
 import Preview3D from "../ui/Preview3D";
 import Segmented from "../ui/Segmented";
 import { errorText } from "../ui/Toast";
+import { useJobControl } from "../ui/useJobControl";
 import { useModelBuilder } from "../ui/useModelBuilder";
-import { applyOwnCurved, applyOwnDecals, OWN_MODEL_ERRORS, partAtPoint, type SurfaceSpot, type WrapAxis } from "./models/applyOwn";
+import WorkProgress from "../ui/WorkProgress";
+import { prepareLayers } from "./models/applyLayers";
+import { OWN_MODEL_ERRORS, type SurfaceSpot, type WrapAxis } from "./models/applyOwn";
+import { applyOwnAsync, highlightOwn, openOwn, pickOwn } from "./models/ownClient";
+import type { FaceLite } from "./models/ownWorker";
 import DecalGizmo from "./models/DecalGizmo";
 import LayersPanel, { layerValid } from "./models/LayersPanel";
 import { useModelLayers, type ModelEdits } from "./models/useModelLayers";
@@ -67,18 +73,24 @@ export default function OwnDecal() {
   const [pickNote, setPickNote] = useState<string | null>(null);
   const lay = useModelLayers(OWN, edits, setEdits, "inlay");
 
-  // o arquivo lido: modelo e faces planas (só muda quando troca o arquivo)
-  const parsed = useMemo<{ model: Model; faces: PlanarFace[] } | { error: string } | null>(() => {
-    if (!file) return null;
-    try {
-      const model = readOwnFile(file.bytes, file.name);
-      return { model, faces: wideFaces(model, planarFaces(model)) };
-    } catch (e) {
-      return { error: errorText(e) };
-    }
-  }, [file]);
-  const model = parsed && "model" in parsed ? parsed.model : null;
-  const faces = parsed && "faces" in parsed ? parsed.faces : [];
+  // o arquivo é aberto num worker (um 3MF de 17 MB leva segundos): aqui chegam o modelo e as faces planas
+  const key = useMemo(() => (file ? fileKey(file.name, file.bytes) : ""), [file]);
+  const [opened, setOpened] = useState<{ key: string; model: Model; faces: FaceLite[] } | { key: string; error: string } | null>(null);
+  useEffect(() => {
+    if (!file) return;
+    let alive = true;
+    openOwn({ key, bytes: file.bytes, name: file.name }).then(
+      (r) => alive && setOpened({ key, model: r.models[0], faces: r.faces }),
+      (e) => alive && setOpened({ key, error: errorText(e) }),
+    );
+    return () => {
+      alive = false;
+    };
+  }, [file, key]);
+  const current = opened && opened.key === key ? opened : null;
+  const model = current && "model" in current ? current.model : null;
+  const faces = current && "faces" in current ? current.faces : [];
+  const reading = !!file && !current;
   const face = faces.find((f) => f.id === faceId) ?? null;
   const baseName = file?.name.replace(/\.[^.]+$/, "") ?? "modelo";
 
@@ -91,7 +103,7 @@ export default function OwnDecal() {
     tool.set((cur) => ({ ...cur, file: { name: f.name, bytes }, faceId: null, spot: null, edits: {} }), "file");
   }
 
-  function choose(next: PlanarFace) {
+  function choose(next: FaceLite) {
     setPickNote(null);
     if (!next.extreme) return setPickNote(OWN_MODEL_ERRORS.notExtreme);
     tool.set((cur) => ({ ...cur, faceId: next.id, spot: null }), "faceId");
@@ -106,37 +118,55 @@ export default function OwnDecal() {
     lay.replace(lay.layers.map((l) => ({ ...l, x: 0, y: 0 })));
   }
 
-  function onPick(hit: { point: [number, number, number]; normal: [number, number, number] }) {
-    if (!model) return;
-    const found = faceAtPoint(model, faces, hit.point, hit.normal);
+  async function onPick(hit: { point: [number, number, number]; normal: [number, number, number] }) {
+    if (!model || !file) return;
+    let r;
+    try {
+      r = await pickOwn({ key, bytes: file.bytes, name: file.name }, hit.point, hit.normal);
+    } catch {
+      return; // outro clique cancelou este
+    }
+    const found = r.faceId ? faces.find((f) => f.id === r.faceId) : null;
     if (found) return choose(found);
     setPickNote(null);
-    tool.set((cur) => ({ ...cur, faceId: null, spot: { part: partAtPoint(model, hit.point), point: hit.point, normal: hit.normal } }), "faceId");
+    tool.set((cur) => ({ ...cur, faceId: null, spot: { part: r.part, point: hit.point, normal: hit.normal } }), "faceId");
     lay.replace(lay.layers.map((l) => ({ ...l, x: 0, y: 0 })));
     lay.select(null);
   }
 
   const valid = lay.layers.every(layerValid);
+  const inputs = [model, face, spot, lay.layers];
+  const ctl = useJobControl(inputs);
   const { models, warnings, busy, error } = useModelBuilder(async () => {
-    if (!model || !valid) return null;
+    if (!model || !file || !valid) return null;
     if (!face && !spot) return { models: [model], warnings: [] };
-    const M = await getManifold();
     const on = lay.layers.filter(layerValid);
-    const out = spot ? await applyOwnCurved(model, spot, on, M) : await applyOwnDecals(model, face!, on, M);
+    // as formas (SVG e texto) são lidas aqui, que tem DOM e fontes; o worker só recebe os contornos
+    const prepared = on.length ? await prepareLayers(await getManifold(), on) : [];
+    const out = await ctl.run((onProgress) => applyOwnAsync({ key, bytes: file.bytes, name: file.name }, spot ? { spot } : { faceId: face!.id }, on, prepared, onProgress));
     lay.setView({ face: out.face, shapes: out.shapes, byLayer: out.byLayer, elements: [] });
     return { models: out.models, warnings: out.warnings };
-  }, [model, face, spot, lay.layers, valid]);
+  }, [...inputs, valid, ctl.rev]);
 
   // a face escolhida fica pintada só até haver um decal (depois ele mesmo mostra onde está)
+  const [highlight, setHighlight] = useState<{ faceId: string; model: Model } | null>(null);
+  useEffect(() => {
+    if (!file || !face || lay.layers.length) return;
+    let alive = true;
+    highlightOwn({ key, bytes: file.bytes, name: file.name }, face.id, HIGHLIGHT).then(
+      (r) => alive && setHighlight({ faceId: face.id, model: r.model }),
+      () => undefined,
+    );
+    return () => {
+      alive = false;
+    };
+  }, [file, key, face, lay.layers.length]);
   const preview = useMemo(() => {
     if (!model || lay.layers.length) return models;
-    if (face) return [...models, faceHighlight(model, face, HIGHLIGHT)];
+    if (face) return highlight?.faceId === face.id ? [...models, highlight.model] : models;
     return spot ? [...models, spotMarker(spot, HIGHLIGHT)] : models;
-  }, [models, model, face, spot, lay.layers.length]);
-  const sizeText = (f: PlanarFace) => {
-    const [w, h] = faceSize(model!, f);
-    return `${mm(w)} × ${mm(h)} mm`;
-  };
+  }, [models, model, face, spot, lay.layers.length, highlight]);
+  const sizeText = (f: FaceLite) => `${mm(f.size[0])} × ${mm(f.size[1])} mm`;
 
   return (
     <div className="page">
@@ -149,7 +179,12 @@ export default function OwnDecal() {
             <h3>Arquivo</h3>
             <Dropzone accept=".stl,.3mf" label={file ? file.name : "Arraste o .stl ou .3mf"} hint="Um sólido fechado (sem furos na malha)." onFile={onFile} />
             {fileError && <Alert kind="error">{fileError}</Alert>}
-            {parsed && "error" in parsed && <Alert kind="error">{parsed.error}</Alert>}
+            {reading && (
+              <span className="hint" role="status">
+                Lendo o arquivo…
+              </span>
+            )}
+            {current && "error" in current && <Alert kind="error">{current.error}</Alert>}
             <Alert kind="warn">Use só modelos que são seus ou cuja licença permite alterar e imprimir. O app não confere a licença do arquivo.</Alert>
           </div>
           {model && (
@@ -228,6 +263,7 @@ export default function OwnDecal() {
           <GeneratorHelp help={TOOL_HELP.owndecal} />
         </div>
         <div className="preview-col">
+          <WorkProgress control={ctl} busy={busy} error={error} title="Aplicando o desenho" />
           <Preview3D
             models={preview}
             busy={busy}

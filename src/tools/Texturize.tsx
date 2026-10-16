@@ -3,7 +3,7 @@ import { meshBounds } from "../geometry/bounds";
 import { loadFont } from "../geometry/fonts";
 import { lumaGrid } from "../geometry/heightfield";
 import { getManifold } from "../geometry/manifold";
-import { readObjectsAsync, texturizeAsync, TexturizeCancelled } from "../geometry/textureClient";
+import { readObjectsAsync, texturizeAsync } from "../geometry/textureClient";
 import { imageGrid, textGrid } from "../geometry/textureGrid";
 import { TEXTURES, textureById, thumbnail, type TextureId } from "../geometry/textureLib";
 import { DEFAULT_TEXTURIZE, type Direction, type Faces, type Mapping, type TextureSource, type TexturizeInfo, type TexturizeOptions } from "../geometry/texturize";
@@ -18,7 +18,9 @@ import Segmented from "../ui/Segmented";
 import Slider from "../ui/Slider";
 import Toggle from "../ui/Toggle";
 import { errorText } from "../ui/Toast";
+import { useJobControl } from "../ui/useJobControl";
 import { useModelBuilder } from "../ui/useModelBuilder";
+import WorkProgress from "../ui/WorkProgress";
 import { IMAGE_ACCEPT, loadRaster } from "../vectorize/client";
 import { restoreBytes, storeBytes } from "./storedFile";
 import ToolSessionBar from "./ToolSessionBar";
@@ -101,11 +103,6 @@ export default function Texturize() {
   const set = <K extends keyof State>(key: K) => tool.field(key) as (v: State[K] | ((cur: State[K]) => State[K])) => void;
   const [fileError, setFileError] = useState<string | null>(null);
   const [info, setInfo] = useState<TexturizeInfo | null>(null);
-  const [progress, setProgress] = useState<{ fraction: number; stage: string } | null>(null);
-  const [rev, setRev] = useState(0); // "Calcular de novo" depois de cancelar
-  const job = useRef<{ cancel: () => void } | null>(null);
-  const halt = useRef(false); // "Cancelar" tocado antes de o cálculo começar (durante a espera de 0,2 s depois de mudar uma opção)
-  const run = useRef(0);
 
   // o arquivo é lido num worker: um 3MF grande não trava a tela
   const [parsed, setParsed] = useState<{ file: object; models: Model[] } | { file: object; error: string } | null>(null);
@@ -148,6 +145,9 @@ export default function Texturize() {
     set("brush")((b) => [...b, { p: hit.point, r: s.brushR }]);
   }
 
+  // tudo que muda o resultado: mudar qualquer um cancela o cálculo em andamento
+  const inputs = [source, s.source, s.pattern, s.text, s.font, s.image, s.invert, s.scale, s.depth, s.direction, s.area, s.brush, s.mapping, s.flatBase, s.protectOverhang, s.interior];
+  const ctl = useJobControl(inputs);
   const valid = inRange(s.scale, 1, 60) && inRange(s.depth, 0.05, 3) && inRange(s.brushR, 2, 60) && (s.source !== "text" || !!s.text.trim()) && (s.source !== "image" || !!s.image);
   const { models: all, warnings, busy, error } = useModelBuilder(async () => {
     if (!source || !valid) return null;
@@ -171,25 +171,8 @@ export default function Texturize() {
       flatBase: s.flatBase,
       interior: s.interior,
     };
-    if (halt.current) {
-      halt.current = false;
-      throw new Error("Cálculo cancelado. Mude uma opção ou toque em Calcular de novo.");
-    }
     // o cálculo roda num worker: a tela não trava, mostra o progresso e dá para cancelar
-    const mine = ++run.current;
-    setProgress({ fraction: 0, stage: "Começando" });
-    const running = texturizeAsync(source, o, (fraction, stage) => run.current === mine && setProgress({ fraction, stage }));
-    job.current = running;
-    let out;
-    try {
-      out = await running.promise;
-    } catch (e) {
-      if (e instanceof TexturizeCancelled) throw new Error("Cálculo cancelado. Mude uma opção ou toque em Calcular de novo.", { cause: e });
-      throw e;
-    } finally {
-      if (run.current === mine) setProgress(null);
-      if (job.current === running) job.current = null;
-    }
+    const out = await ctl.run((onProgress) => texturizeAsync(source, o, onProgress));
     setInfo(out.info);
     // pinceladas: bolinhas só da prévia, no tamanho da pincelada
     const marks: Model[] =
@@ -202,13 +185,7 @@ export default function Texturize() {
           })
         : [];
     return { models: [...out.models, ...marks], warnings: out.warnings };
-  }, [source, valid, s.source, s.pattern, s.text, s.font, s.image, s.invert, s.scale, s.depth, s.direction, s.area, s.brush, s.mapping, s.flatBase, s.protectOverhang, s.interior, rev]);
-  // mudou uma opção: o cálculo que estava rodando já não vale, para na hora (poupa o processador)
-  useEffect(() => {
-    job.current?.cancel();
-    job.current = null;
-    halt.current = false;
-  }, [source, valid, s.source, s.pattern, s.text, s.font, s.image, s.invert, s.scale, s.depth, s.direction, s.area, s.brush, s.mapping, s.flatBase, s.protectOverhang, s.interior, rev]);
+  }, [...inputs, valid, ctl.rev]);
   const printable = useMemo(() => all.filter((m) => !m.previewOnly), [all]);
   const baseName = s.file?.name.replace(/\.[^.]+$/, "") ?? "peca";
   const groups = useMemo(() => [...new Set(TEXTURES.map((t) => t.group))], []);
@@ -303,31 +280,7 @@ export default function Texturize() {
           <ExportButtons models={printable} name={`${baseName}-textura`} busy={busy} onSaved={tool.exported} />
         </div>
         <div className="preview-col">
-          {busy && progress && (
-            <div className="card stack" role="status" aria-live="polite">
-              <label className="stack">
-                <span>
-                  Aplicando a textura: {progress.stage} ({Math.round(progress.fraction * 100)}%)
-                </span>
-                <progress value={progress.fraction} max={1} aria-label="Progresso da textura" />
-              </label>
-              <button
-                type="button"
-                className="sm"
-                onClick={() => {
-                  if (job.current) job.current.cancel();
-                  else halt.current = true;
-                }}
-              >
-                Cancelar
-              </button>
-            </div>
-          )}
-          {error && /cancelado/i.test(error) && (
-            <button type="button" className="sm primary" onClick={() => setRev((n) => n + 1)}>
-              Calcular de novo
-            </button>
-          )}
+          <WorkProgress control={ctl} busy={busy} error={error} title="Aplicando a textura" />
           <Preview3D
             models={all}
             busy={busy}
