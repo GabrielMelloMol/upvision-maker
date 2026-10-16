@@ -65,7 +65,7 @@ describe("Decal no seu modelo (#113)", { timeout: 60_000 }, () => {
     const viewer = container.querySelector(".viewer")!;
     fireEvent.pointerDown(viewer, { clientX: 10, clientY: 10 });
     fireEvent.pointerUp(viewer, { clientX: 10, clientY: 10 });
-    expect(await screen.findByText(/ponto escolhido, a 46° da vertical/)).toBeInTheDocument();
+    expect(await screen.findByText(/ponto escolhido, numa parte inclinada/)).toBeInTheDocument();
     expect(screen.queryByText("Clique na prévia para escolher onde o desenho vai.")).toBeNull();
     await user.click(screen.getByRole("button", { name: "Limpar ponto" }));
     expect(screen.queryByText(/ponto escolhido/)).toBeNull();

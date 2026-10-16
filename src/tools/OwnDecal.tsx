@@ -1,6 +1,6 @@
 import { useMemo, useState } from "react";
 import { getManifold } from "../geometry/manifold";
-import { faceAtPoint, faceDirection, faceHighlight, faceSize, fromFaceFrame, planarFaces, readOwnFile, type PlanarFace } from "../geometry/ownModel";
+import { faceAtPoint, faceDirection, faceHighlight, faceSize, fromFaceFrame, planarFaces, readOwnFile, wideFaces, type PlanarFace } from "../geometry/ownModel";
 import type { Model } from "../geometry/types";
 import Alert from "../ui/Alert";
 import Dropzone from "../ui/Dropzone";
@@ -19,9 +19,12 @@ import { useToolState } from "./useToolState";
 const MAX_BYTES = 200 * 1024 * 1024;
 const OWN = "own";
 const HIGHLIGHT = "#38bdf8";
+/** Para onde a superfície aponta no ponto escolhido, em palavras. */
+const spotText = (n: [number, number, number]) => {
+  const d = faceDirection(n);
+  return d === "inclinada" ? "numa parte inclinada" : `voltado ${d}`;
+};
 const mm = (n: number) => n.toFixed(1).replace(".", ",");
-/** Inclinação da superfície em relação à vertical, em graus (para o chip do ponto escolhido). */
-const tiltText = (n: [number, number, number]) => `${Math.round((Math.acos(Math.min(1, Math.abs(n[2]))) * 180) / Math.PI)}°`;
 
 const initialState = () => ({ file: null as { name: string; bytes: Uint8Array } | null, faceId: null as string | null, spot: null as SurfaceSpot | null, edits: {} as ModelEdits });
 type OwnState = ReturnType<typeof initialState>;
@@ -66,7 +69,7 @@ export default function OwnDecal() {
     if (!file) return null;
     try {
       const model = readOwnFile(file.bytes, file.name);
-      return { model, faces: planarFaces(model) };
+      return { model, faces: wideFaces(model, planarFaces(model)) };
     } catch (e) {
       return { error: errorText(e) };
     }
@@ -146,7 +149,7 @@ export default function OwnDecal() {
               {pickNote && <Alert kind="warn">{pickNote}</Alert>}
               {spot && (
                 <div className="row wrap">
-                  <span className="hint"><strong>Superfície curva</strong>: ponto escolhido, a {tiltText(spot.normal)} da vertical</span>
+                  <span className="hint"><strong>Superfície curva</strong>: ponto escolhido, {spotText(spot.normal)}</span>
                   <button type="button" className="sm" onClick={() => tool.set((cur) => ({ ...cur, spot: null }), "faceId")}>Limpar ponto</button>
                 </div>
               )}

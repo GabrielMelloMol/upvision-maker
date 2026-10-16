@@ -3,7 +3,7 @@ import { beforeAll, describe, expect, test } from "vitest";
 import { meshBounds } from "../../geometry/bounds";
 import { getManifold, type ManifoldToplevel } from "../../geometry/manifold";
 import { toMesh } from "../../geometry/mesh";
-import { faceAtPoint, fromFaceFrame, planarFaces, readAsciiStl, toFaceFrame } from "../../geometry/ownModel";
+import { faceAtPoint, fromFaceFrame, planarFaces, readAsciiStl, toFaceFrame, wideFaces } from "../../geometry/ownModel";
 import { volume } from "../../geometry/testUtil";
 import type { Model } from "../../geometry/types";
 import { applyOwnCurved, applyOwnDecals, OWN_MODEL_ERRORS, partAtPoint } from "./applyOwn";
@@ -125,6 +125,21 @@ describe("decal em superfície curva de arquivo próprio (#212)", { timeout: 120
     const drop = v0 - volume(out.models[0].parts[0].mesh);
     expect(drop).toBeGreaterThan(24 * 22 * 0.5 * 0.3); // coração ≈ 50-60% do quadrado
     expect(drop).toBeLessThan(24 * 24 * 0.5);
+  });
+
+  test("num copo as faixas finas do cilindro não contam como faces planas: sobram o fundo e a borda", () => {
+    const faces = wideFaces(cup(), planarFaces(cup()));
+    expect(planarFaces(cup()).length).toBeGreaterThan(faces.length);
+    expect(faces.every((f) => Math.abs(f.normal[2]) > 0.99)).toBe(true);
+    expect(wideFaces(block(), planarFaces(block()))).toHaveLength(6);
+  });
+
+  test("dois tampos no mesmo plano viram duas faces com ids diferentes (a lista da tela usa o id como chave)", () => {
+    const two = M.Manifold.cube([20, 20, 5], false).add(M.Manifold.cube([20, 20, 5], false).translate([40, 0, 0]));
+    const m: Model = { name: "Dois", parts: [{ name: "Peça", color: "#ddd", mesh: toMesh(two) }] };
+    const tops = planarFaces(m).filter((f) => f.normal[2] > 0.99);
+    expect(tops).toHaveLength(2);
+    expect(new Set(planarFaces(m).map((f) => f.id)).size).toBe(planarFaces(m).length);
   });
 
   test("a parte mais perto do clique é a escolhida", () => {
