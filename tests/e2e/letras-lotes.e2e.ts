@@ -35,6 +35,10 @@ test("letras de parede: passou de 36 mesas, Salvar em lotes grava vários 3MF na
     mkdirSync(PRINTS, { recursive: true });
     await page.screenshot({ path: `${PRINTS}/01-salvar-em-lotes-v2.png` });
     await page.locator(".viewer").screenshot({ path: `${PRINTS}/02-previa-do-caso-maximo-v2.png` });
+    // a área dos botões de salvar, com lotes como principal e os STL agrupados
+    const area = page.locator(".card", { has: btn });
+    await area.scrollIntoViewIfNeeded();
+    await area.screenshot({ path: `${PRINTS}/01b-botoes-v2.png` });
   }
   const n = Number(/\((\d+) arquivos/.exec((await btn.textContent())!)![1]);
   expect(n).toBeGreaterThan(1);
