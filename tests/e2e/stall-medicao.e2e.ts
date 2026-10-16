@@ -130,6 +130,9 @@ const SCENARIOS: Record<string, Scenario> = {
     page: "Corte parcial",
     run: async (p, ph) => {
       await ph("carregar"); await upload(p); await settle(p);
+      await ph("ponto");
+      await p.getByRole("button", { name: /na parte clicada/ }).click();
+      await p.locator(".viewer").click({ position: { x: 360, y: 560 } }); await settle(p);
       await ph("ajuste"); await p.getByRole("button", { name: "Vertical (X)" }).click(); await settle(p);
     },
   },

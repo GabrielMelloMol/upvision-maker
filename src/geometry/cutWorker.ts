@@ -1,5 +1,8 @@
 /// <reference lib="webworker" />
 import { runCuts, type CutPlan, type CutsResult } from "./cutSequence";
+import { fitRegionToPart } from "./cutFit";
+import type { Region, RegionKind } from "./cutRegion";
+import type { PartialCutOptions, Vec3 } from "./partialCut";
 import { suggestCuts, type Suggestion } from "./cutSuggest";
 import { serveJob } from "./jobWorker";
 import { modelBuffers } from "./jobs";
@@ -11,8 +14,10 @@ import type { Model } from "./types";
 export type CutRequest =
   | { kind: "read"; bytes: Uint8Array; name: string }
   | { kind: "cut"; model: Model; plan: CutPlan }
-  | { kind: "suggest"; model: Model };
-export type CutReply = { kind: "read"; model: Model } | { kind: "cut"; cut: CutsResult } | { kind: "suggest"; suggestions: Suggestion[] };
+  | { kind: "suggest"; model: Model }
+  | { kind: "fit"; model: Model; plane: FitPlane; shape: RegionKind; near: Vec3 };
+export type FitPlane = Pick<PartialCutOptions, "axis" | "tilt" | "offset" | "region">;
+export type CutReply = { kind: "fit"; region: Region } | { kind: "read"; model: Model } | { kind: "cut"; cut: CutsResult } | { kind: "suggest"; suggestions: Suggestion[] };
 
 serveJob<CutRequest, CutReply>(async (req, hooks) => {
   if (req.kind === "read") {
@@ -21,6 +26,7 @@ serveJob<CutRequest, CutReply>(async (req, hooks) => {
     return { result: { kind: "read", model }, transfer: modelBuffers([model]) };
   }
   const M = await getManifold();
+  if (req.kind === "fit") return { result: { kind: "fit", region: fitRegionToPart(M, req.model, req.plane, req.shape, req.near) } };
   if (req.kind === "suggest") return { result: { kind: "suggest", suggestions: suggestCuts(M, req.model) } };
   const cut = runCuts(M, req.model, req.plan, hooks);
   return { result: { kind: "cut", cut }, transfer: modelBuffers([...cut.models, ...cut.preview]) };

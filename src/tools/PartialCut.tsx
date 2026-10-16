@@ -1,11 +1,10 @@
 import { useEffect, useMemo, useState } from "react";
 import { meshBounds, type Bounds } from "../geometry/bounds";
-import { fileKey } from "../geometry/jobs";
+import { fileKey, JobCancelled } from "../geometry/jobs";
 import { getManifold } from "../geometry/manifold";
 import { applyHandle, regionHandles } from "../geometry/cutHandles";
-import { fitRegionToPart } from "../geometry/cutFit";
 import { centerRegionAt, regionBox as regionBoxOf, regionCenter, regionOfKind, type Region, type RegionKind } from "../geometry/cutRegion";
-import { cutAsync, readModelAsync } from "../geometry/cutClient";
+import { cutAsync, fitAsync, readModelAsync } from "../geometry/cutClient";
 import type { PinIssue } from "../geometry/cutSequence";
 import { cutOverlay, planeNormal, type CutReport, type Vec3 } from "../geometry/partialCut";
 import type { CutAxis, PinMode, PinShape } from "../geometry/planeCut";
@@ -87,6 +86,7 @@ export default function PartialCut() {
   const setO = <K extends keyof UiCut>(key: K) => (v: UiCut[K]) => tool.set((s) => patchActive(s, { [key]: v } as Partial<UiCut>), `${key}:${active}`);
   const setExplode = (v: number) => tool.set((s) => ({ ...s, cuts: s.cuts.map((c) => ({ ...c, explode: v })) }), "explode");
   const [fileError, setFileError] = useState<string | null>(null);
+  const [fitting, setFitting] = useState(false);
 
   const key = useMemo(() => (file ? fileKey(file.name, file.bytes) : ""), [file]);
   const [read, setRead] = useState<{ key: string; model: Model; bounds: Bounds } | { key: string; error: string } | null>(null);
@@ -134,10 +134,14 @@ export default function PartialCut() {
   /** Região da forma `kind` envolvendo a parte de cima do plano mais perto de `near` (cabeça, não só o pescoço). */
   async function fitTo(kind: RegionKind, near: Vec3) {
     if (!model || !bounds) return;
+    setFitting(true);
     try {
-      setO("region")(fitRegionToPart(await getManifold(), model, { axis: opts.axis, tilt: opts.tilt, offset, region: opts.region }, kind, near));
-    } catch {
+      setO("region")(await fitAsync(model, { axis: opts.axis, tilt: opts.tilt, offset, region: opts.region }, kind, near).promise);
+    } catch (e) {
+      if (e instanceof JobCancelled) return; // outro clique chegou antes: vale o último
       setO("region")(regionOfKind(kind, opts.region ? regionBoxOf(opts.region) : { min: bounds.min, max: bounds.max })); // sem parte acima do plano: só troca a forma
+    } finally {
+      setFitting(false);
     }
   }
 
@@ -280,6 +284,7 @@ export default function PartialCut() {
           <GeneratorHelp help={TOOL_HELP.partialcut} />
         </div>
         <div className="preview-col">
+          {fitting && <span className="hint" role="status">Ajustando a região à parte clicada…</span>}
           <WorkProgress control={ctl} busy={busy} error={error} title="Cortando" />
           <Preview3D
             models={shown}
