@@ -15,7 +15,11 @@ for (const scheme of ["light", "dark"] as const) {
     await page.screenshot({ path: `${DIR}/instalacao-nova-${scheme}.png` });
     tauri.db.exec(`INSERT INTO calc_history (name, data, at) VALUES ('Chaveiro', '{}', '2026-09-20 10:00:00')`);
     await page.reload();
-    await expect(page.getByRole("heading", { level: 1 })).toBeVisible();
+    // a abertura (splash) aparece de novo depois do reload: esperar o Início carregar
+    await expect(page.getByRole("heading", { name: /Bom dia|Boa tarde|Boa noite/, level: 1 })).toBeVisible({ timeout: 60_000 });
+    await expect(page.locator("#splash")).toHaveCount(0, { timeout: 30_000 }); // a abertura (3,6 s) cobre o Início até sair
+    await expect(page.getByRole("list", { name: "Criar" })).toBeVisible();
+    await expect(page.getByRole("heading", { name: "Esta semana" })).toBeVisible(); // o Início terminou de carregar
     await expect(page.getByRole("region", { name: "Comece por aqui" })).toHaveCount(0);
     await settleColors(page);
     await page.waitForTimeout(800);
