@@ -4,8 +4,9 @@ import { openApp, test } from "./tauri";
 // Gera as miniaturas dos Modelos prontos (#149): `npm run thumbs` (fora disso, pula). O render roda na própria página
 // (three.js e manifold do app, src/thumbs/renderThumb.ts). Grava fora de src/ (o Vite recarregaria a cada arquivo) e
 // fora de test-results/ (o Playwright apaga a pasta ao começar); o script copia para src/assets/model-thumbs.
-// THUMBS_IDS=a,b gera só esses.
+// THUMBS_IDS=a,b gera só esses; THUMBS_IDS=products, só as dos cartões que são ferramentas.
 const OUT = "node_modules/.cache/model-thumbs";
+const PRODUCT_OUT = "node_modules/.cache/product-thumbs";
 
 test("miniaturas dos modelos prontos", async ({ page }) => {
   test.skip(!process.env.THUMBS, "só com THUMBS=1 (npm run thumbs)");
@@ -20,7 +21,8 @@ test("miniaturas dos modelos prontos", async ({ page }) => {
     await page.waitForTimeout(1500);
   }
   const only = process.env.THUMBS_IDS?.split(",").filter(Boolean);
-  const ids: string[] = only?.length ? only : await page.evaluate(async () => (await import(/* @vite-ignore */ "/src/thumbs/renderThumb.ts")).thumbIds());
+  const productsOnly = only?.[0] === "products";
+  const ids: string[] = productsOnly ? [] : only?.length ? only : await page.evaluate(async () => (await import(/* @vite-ignore */ "/src/thumbs/renderThumb.ts")).thumbIds());
   const failed: string[] = [];
   for (const id of ids) {
     const url = await page
@@ -36,5 +38,18 @@ test("miniaturas dos modelos prontos", async ({ page }) => {
     writeFileSync(`${OUT}/${id}.webp`, Buffer.from(url.split(",")[1], "base64"));
   }
   console.log(`miniaturas: ${ids.length - failed.length} de ${ids.length}${failed.length ? `; falharam: ${failed.join("; ")}` : ""}`);
+  // cartões que são ferramentas (caixinha, cesto, pixel art): uma miniatura por produto, em product-thumbs
+  if (!only?.length || productsOnly) {
+    mkdirSync(PRODUCT_OUT, { recursive: true });
+    const pids: string[] = await page.evaluate(async () => (await import(/* @vite-ignore */ "/src/thumbs/productThumbs.ts")).productThumbIds());
+    for (const id of pids) {
+      const url = await page.evaluate(async (m) => (await import(/* @vite-ignore */ "/src/thumbs/productThumbs.ts")).renderProductThumb(m), id).catch((e: unknown) => {
+        failed.push(`${id} (${String(e).slice(0, 120)})`);
+        return null;
+      });
+      if (url?.startsWith("data:image/webp")) writeFileSync(`${PRODUCT_OUT}/${id}.webp`, Buffer.from(url.split(",")[1], "base64"));
+      else if (url) failed.push(`${id} (sem WebP)`);
+    }
+  }
   if (failed.length) throw new Error(`miniaturas que falharam: ${failed.join("; ")}`);
 });

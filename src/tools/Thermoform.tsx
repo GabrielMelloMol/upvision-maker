@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
+import { bedMm } from "../geometry/bed";
 import { estimateModels } from "../domain/estimate";
 import { loadEmojiFont, loadFont, type FontId } from "../geometry/fonts";
 import { getManifold, type CS } from "../geometry/manifold";
@@ -6,7 +7,7 @@ import { THERMO_CLOSURE_PROFILE, THERMO_MOLD_PROFILE, THERMO_SCREEN_PROFILE } fr
 import { scoped, shrinkToFit } from "../geometry/shape2d";
 import { buildStampArt, DEFAULT_ART, type StampLayout } from "../geometry/stampArt";
 import { buildThermo, thermoDefaults, type BaseMode, type ThermoInfo, type ThermoParams } from "../geometry/thermo/build";
-import { layoutGroups } from "../geometry/thermo/layout";
+import { layoutPlates } from "../geometry/thermo/layout";
 import { CLEARANCE_RANGE } from "../geometry/thermo/mold";
 import { ASYMMETRY_WARN, asymmetry, presetSilhouette, SHAPE_LABELS, silhouetteFromDesign, symmetrize, type SymSide, type ThermoShape } from "../geometry/thermo/shapes";
 import { hasEmoji, textToCrossSection } from "../geometry/text";
@@ -70,7 +71,6 @@ type State = {
 const initial = (): State => ({ source: "shape", shape: "heart", width: 70, sym: "keep", image: null, cutout: true, silText: "Ana", silFont: "pacifico", text: "Feliz\nNatal", font: "great-vibes", logo: peekHandoff(), layout: "stack", textScale: 55, p: thermoDefaults() });
 
 type View = { screens: Model[]; closure: Model[]; molds: Model[]; assembled: Model; shell: Model; info: ThermoInfo; asym: number };
-const GROUP_GAP = 40;
 
 const g = (n: number) => `${n.toLocaleString("pt-BR", { maximumFractionDigits: 0 })} g`;
 const fmt = (n: number, d = 2) => n.toFixed(d).replace(".", ",");
@@ -179,7 +179,14 @@ export default function Thermoform() {
         const warn = [...extra, ...out.warnings];
         if (diff > ASYMMETRY_WARN) warn.unshift(`A silhueta não é simétrica (${Math.round(diff * 100)}% diferente do espelho): o mesmo molde só serve para as duas metades se ela for. Use "Espelhar a esquerda" ou "Espelhar a direita".`);
         const bed = [out.screens, out.closure, out.molds].flatMap((g) => bedWarnings(g, warn));
-        const table = layoutGroups([out.screens, out.closure, out.molds], GROUP_GAP);
+        const table = layoutPlates(
+          [
+            { label: "PLA 0,20 mm", models: out.screens },
+            { label: "PLA 0,16 mm", models: out.closure },
+            { label: "PETG 0,24 mm", models: out.molds },
+          ],
+          bedMm(),
+        );
         return { models: table, warnings: [...warn, ...bed], view: { screens: out.screens, closure: out.closure, molds: out.molds, assembled: out.assembled, shell: out.shell, info: out.info, asym: diff } };
       } finally {
         design?.delete();

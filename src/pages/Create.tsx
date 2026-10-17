@@ -12,7 +12,7 @@ import { loadFavorites } from "../tools/models/favorites";
 import { modelOf } from "../tools/models/families";
 import OccasionChips, { type Occasion } from "../tools/models/OccasionChips";
 import { defaultEntry, FILE_TOOL_GROUPS, productsIn, TABS, typesOf, type Entry, type Product, type Tab } from "../tools/models/products";
-import { THUMBS } from "../tools/models/thumbs";
+import { PRODUCT_THUMBS, THUMBS } from "../tools/models/thumbs";
 import { COLLECTIONS } from "../tools/models/variants";
 import EmptyState from "../ui/EmptyState";
 import OccasionCard from "../ui/OccasionCard";
@@ -66,7 +66,7 @@ export default function Create({ go }: { go: Go }) {
   const card = (p: Product, entry: Entry = defaultEntry(p, ok), types: string | null = typesOf(p)) => {
     const models = p.entries.flatMap((e) => (e.kind === "model" ? [e.id] : []));
     const thumbId = entry.kind === "model" ? entry.id : models[0];
-    const thumb = (thumbId && THUMBS[thumbId]) || models.map((id) => THUMBS[id]).find(Boolean);
+    const thumb = (thumbId && THUMBS[thumbId]) || models.map((id) => THUMBS[id]).find(Boolean) || PRODUCT_THUMBS[p.id];
     const Icon = entry.kind === "tool" ? (pageOf(entry.page)?.icon ?? Shapes) : Shapes;
     const need = entry.kind === "model" ? AMS_NEED[entry.id] : undefined;
     return (
