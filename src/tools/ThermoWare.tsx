@@ -5,7 +5,8 @@ import { getManifold, type CS } from "../geometry/manifold";
 import { THERMO_WARE_MOLD_PROFILE, THERMO_WARE_PROFILE } from "../geometry/printProfile";
 import { buildStampArt, DEFAULT_ART } from "../geometry/stampArt";
 import { BAND_LIMITS, buildBand, DEFAULT_BAND, stripLength, type BandInfo, type BandParams } from "../geometry/thermo/band";
-import { layoutGroups } from "../geometry/thermo/layout";
+import { bedMm } from "../geometry/bed";
+import { layoutPlates } from "../geometry/thermo/layout";
 import { BASKET_VESSEL, buildVessel, DEFAULT_VESSEL, type VesselInfo, type VesselMold, type VesselParams } from "../geometry/thermo/vessel";
 import { hasEmoji } from "../geometry/text";
 import { splitLines } from "../geometry/keychain";
@@ -35,7 +36,6 @@ const MESHES = [["honeycomb", "Favo"], ["diamond", "Losango"]] as const;
 const BAND_MESHES = [["solid", "Inteira"], ["honeycomb", "Favo"], ["diamond", "Losango"]] as const;
 const SHOWS = [["table", "Mesa (o que imprime)"], ["ready", "Pronto (não imprime)"]] as const;
 type Show = (typeof SHOWS)[number][0];
-const GROUP_GAP = 30;
 const TEXT_FILL = 0.7; // quanto do comprimento da tira o texto ocupa
 
 type State = { kind: Kind; v: VesselParams; b: BandParams; text: string; font: FontId };
@@ -78,7 +78,7 @@ export default function ThermoWare() {
     if (vessel) {
       const out = buildVessel(M, { ...v, kind: s.kind === "cesto" ? "cesto" : "pote" }, { preview: show === "ready" });
       const bed = [out.screens, out.molds].flatMap((grp) => bedWarnings(grp, out.warnings));
-      return { models: layoutGroups([out.screens, out.molds], GROUP_GAP), warnings: [...out.warnings, ...bed], view: { kind: "vessel", screens: out.screens, molds: out.molds, ready: out.assembled, info: out.info } };
+      return { models: layoutPlates([{ label: "PLA 0,20 mm", models: out.screens }, { label: "PETG 0,24 mm", models: out.molds }], bedMm()), warnings: [...out.warnings, ...bed], view: { kind: "vessel", screens: out.screens, molds: out.molds, ready: out.assembled, info: out.info } };
     }
     let design: CS | null = null;
     if (lines.length) {
@@ -91,7 +91,7 @@ export default function ThermoWare() {
     try {
       const out = buildBand(M, b, design, { preview: show === "ready" });
       const bed = [out.strip, out.mandrel].flatMap((grp) => bedWarnings(grp, out.warnings));
-      return { models: layoutGroups([out.strip, out.mandrel], GROUP_GAP), warnings: [...out.warnings, ...bed], view: { kind: "band", screens: out.strip, molds: out.mandrel, ready: out.assembled, info: out.info } };
+      return { models: layoutPlates([{ label: "PLA 0,20 mm", models: out.strip }, { label: "PETG 0,24 mm", models: out.mandrel }], bedMm()), warnings: [...out.warnings, ...bed], view: { kind: "band", screens: out.strip, molds: out.mandrel, ready: out.assembled, info: out.info } };
     } finally {
       design?.delete();
     }

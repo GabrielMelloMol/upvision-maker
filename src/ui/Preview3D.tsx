@@ -103,7 +103,7 @@ export default function Preview3D({ models, busy, busyText = "Gerando modelo…"
     viewer.current?.setHandles?.(gizmo?.handles ?? [], gizmo?.onDrag ?? (() => {}));
   }, [gizmo]);
 
-  const legend = [...new Map(models.flatMap((m) => m.parts).filter((p) => p.name).map((p) => [p.color + p.name, p])).values()].slice(0, 8); // parte sem nome (contorno do plano) não entra na legenda
+  const legend = [...new Map(models.flatMap((m) => m.parts).filter((p) => p.name).map((p) => [p.color + p.name, p])).values()].slice(0, 12); // parte sem nome (contorno do plano) não entra na legenda
   const hintId = useId();
   // as medidas são da peça: partes fantasma (copo, docinho, plano de corte) só aparecem na vista e não contam
   const solid = models.map((m) => ({ ...m, parts: m.parts.filter((p) => !p.ghost) })).filter((m) => m.parts.length);
