@@ -1,4 +1,4 @@
-import { mkdirSync, writeFileSync } from "node:fs";
+import { existsSync, mkdirSync, writeFileSync } from "node:fs";
 import { openApp, test } from "./tauri";
 
 // Foto realista (#251): `npm run photos` (fora disso, pula). Render por path tracing na própria página (src/thumbs/photo).
@@ -30,10 +30,12 @@ test("fotos realistas dos modelos", async ({ page }) => {
     warm: Number(process.env.PHOTO_WARM ?? 1),
     extra: JSON.parse(process.env.PHOTO_OPTS ?? "{}"),
     all,
+    special: ["keychain", "organizer", "medal", "pix", "thermo"],
   };
   const tag = process.env.PHOTO_TAG ?? `${arg.filament}-${arg.backdrop}`;
   const times: Record<string, unknown> = {};
   for (const id of only?.length ? only : ids) {
+    if (all && !process.env.PHOTO_FORCE && existsSync(`${OUT}/${id}-${tag}.png`)) continue; // retoma o lote de onde parou
     if (process.env.PHOTO_BASE) {
       // a miniatura atual (rasterizada) da mesma peça, para a prancha comparar
       const url = await page.evaluate(async (id) => {
@@ -51,7 +53,7 @@ test("fotos realistas dos modelos", async ({ page }) => {
           const { photoScene, genericScene } = await import(/* @vite-ignore */ "/src/thumbs/photo/models.ts");
           const { renderPhoto, warmUp } = await import(/* @vite-ignore */ "/src/thumbs/photo/render.ts");
           const t0 = performance.now();
-          const scene = arg.all ? await genericScene(id, { bevel: arg.bevel }) : await photoScene(id as never, { bevel: arg.bevel });
+          const scene = arg.all && !arg.special.includes(id) ? await genericScene(id, { bevel: arg.bevel }) : await photoScene(id as never, { bevel: arg.bevel });
           const sceneMs = performance.now() - t0;
           const o = { filament: arg.filament as never, backdrop: arg.backdrop as never, samples: arg.samples, ...arg.extra };
           const w = window as { warmed?: boolean };

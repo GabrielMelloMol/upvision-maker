@@ -61,10 +61,10 @@ function ringHole(models: Model[], ringOuter: number): THREE.Vector3 {
 }
 
 const KEYCHAINS = [
-  { name: "Ana", base: "#e8613c", top: "#fff6ea", pose: { x: 2, y: -30, rotZ: -6 }, heading: 188 },
-  { name: "Beto", base: "#2563eb", top: "#ffffff", pose: { x: 12, y: -4, rotZ: 6 }, heading: 172 },
-  { name: "Clara", base: "#d6338a", top: "#fff0f8", pose: { x: -22, y: 14, rotZ: -4 }, heading: 195 },
-  { name: "Duda", base: "#16a34a", top: "#f7fff7", pose: { x: 14, y: 32, rotZ: 8 }, heading: 168 },
+  { name: "Ana", base: "#e8613c", top: "#fff6ea", pose: { x: -2, y: -30, rotZ: -6 }, heading: 188 },
+  { name: "Beto", base: "#2563eb", top: "#ffffff", pose: { x: 4, y: -4, rotZ: 6 }, heading: 172 },
+  { name: "Clara", base: "#d6338a", top: "#fff0f8", pose: { x: -8, y: 14, rotZ: -4 }, heading: 195 },
+  { name: "Duda", base: "#16a34a", top: "#f7fff7", pose: { x: 6, y: 32, rotZ: 8 }, heading: 168 },
 ];
 
 async function keychains(o: SceneOpts): Promise<PhotoScene> {
