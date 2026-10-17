@@ -18,6 +18,6 @@ test("cada arquivo vai numa placa do tamanho da mesa, lado a lado, com o nome na
   expect(a.max[0]).toBeLessThanOrEqual(128);
   expect(b.min[0]).toBeGreaterThanOrEqual(256 + 20 - 128);
   expect(b.max[0]).toBeLessThanOrEqual(256 + 20 + 128);
-  expect(Math.min(a.min[1], b.min[1])).toBeGreaterThanOrEqual(-256);
-  expect(Math.max(a.max[1], b.max[1])).toBeLessThanOrEqual(0);
+  expect(Math.min(a.min[1], b.min[1])).toBeGreaterThanOrEqual(-128);
+  expect(Math.max(a.max[1], b.max[1])).toBeLessThanOrEqual(128);
 });

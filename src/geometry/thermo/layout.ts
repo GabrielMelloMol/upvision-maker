@@ -45,9 +45,9 @@ export function layoutPlates(plates: Plate[], bed: number, gap = PLATE_GAP): Mod
     const cx = i * (bed + gap);
     const b = modelsBounds(pl.models);
     const dx = cx - (b ? (b.min[0] + b.max[0]) / 2 : 0);
-    const dy = -bed / 2 - (b ? (b.min[1] + b.max[1]) / 2 : 0);
+    const dy = -(b ? (b.min[1] + b.max[1]) / 2 : 0);
     const h = bed / 2;
-    const [x0, x1, y0, y1] = [cx - h, cx + h, -bed, 0];
+    const [x0, x1, y0, y1] = [cx - h, cx + h, -h, h];
     const c = [[x0, y0], [x1, y0], [x1, y1], [x0, y1]];
     const points = Float32Array.from(c.flatMap((p, k) => [p[0], p[1], 0.05, c[(k + 1) % 4][0], c[(k + 1) % 4][1], 0.05]));
     const outline: Model = { name: `Placa ${i + 1}`, parts: [{ name: `Placa ${i + 1} · ${pl.label}`, color: PLATE_COLOR, mesh: { positions: new Float32Array(0), indices: new Uint32Array(0) }, lines: { points, width: PLATE_LINE_PX, dash: 0 } }] };
