@@ -88,6 +88,8 @@ export const SettingsSchema = z.object({
   slicer: z.enum(SLICER_IDS).nullable(),
   /** Folgas e medidas validadas com o Kit de testes físicos (#247), por chave: viram o padrão das ferramentas. */
   fits: z.record(z.string(), z.number()).default({}),
+  /** Fechou o quadro "Comece por aqui" do Início no X (ele também some sozinho no 1º projeto ou 1º cálculo). */
+  startHereClosed: z.boolean().default(false),
 });
 export type Settings = z.infer<typeof SettingsSchema>;
 
@@ -115,4 +117,5 @@ export const DEFAULT_SETTINGS: Settings = {
   bedPrinterId: null,
   slicer: null,
   fits: {},
+  startHereClosed: false,
 };

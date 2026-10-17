@@ -3,6 +3,7 @@ import { fireEvent, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { isValidElement } from "react";
 import { afterEach, describe, expect, test, vi } from "vitest";
+import { loadSettings } from "../db/repo";
 import { PAGES } from "../pages";
 import { renderWithApp, setupTauri } from "../test/harness";
 import { takePendingOpen } from "../ui/search";
@@ -55,40 +56,55 @@ describe("Home (#139)", () => {
     expect(takePendingOpen("orders")).toBe(1);
   });
 
-  describe("UX B5: Comece por aqui acompanha o que já foi feito", () => {
+  describe("Comece por aqui só para quem acabou de instalar (#253)", () => {
     const quote = () => t.db.execute("INSERT INTO quotes (data, createdAt) VALUES ('{}', '2026-09-20 10:00:00')");
     const calc = () => t.db.execute("INSERT INTO calc_history (name, data, at) VALUES ('Chaveiro', '{}', '2026-09-20 10:00:00')");
-    const keychain = () => t.db.execute("INSERT INTO tool_state (id, data, updatedAt) VALUES ('keychain', '{}', '2026-09-20T10:00:00Z')");
-
-    test("ninguém fez nada: três passos, nenhum marcado como feito", async () => {
-      localStorage.removeItem("upvision.startHere.done");
-      renderWithApp(<Home go={() => {}} />);
-      const start = await screen.findByRole("region", { name: "Comece por aqui" });
-      expect(within(start).getAllByRole("listitem")).toHaveLength(3);
-      expect(within(start).queryByText("feito")).not.toBeInTheDocument();
-    });
-
-    test("passos já feitos ganham o selo 'feito' e o resto continua à vista", async () => {
-      localStorage.removeItem("upvision.startHere.done");
-      await quote();
-      await calc();
-      renderWithApp(<Home go={() => {}} />);
-      const start = await screen.findByRole("region", { name: "Comece por aqui" });
-      const items = within(start).getAllByRole("listitem");
-      expect(items[0]).not.toHaveTextContent("feito"); // chaveiro
-      expect(items[1]).toHaveTextContent("feito"); // calculadora
-      expect(items[2]).toHaveTextContent("feito"); // orçamento
-    });
-
-    test("os três feitos: o quadro some sozinho, sem precisar clicar no X", async () => {
-      localStorage.removeItem("upvision.startHere.done");
-      await keychain();
-      await calc();
-      await quote();
-      renderWithApp(<Home go={() => {}} />);
+    const project = () => t.db.execute("INSERT INTO tool_state (id, data, updatedAt) VALUES ('keychain', '{}', '2026-09-20T10:00:00Z')");
+    const settled = async () => {
       await screen.findByRole("heading", { name: /Bom dia|Boa tarde|Boa noite/, level: 1 });
       await vi.waitFor(() => expect(screen.getByRole("list", { name: "Criar" })).toBeInTheDocument());
       await new Promise((r) => setTimeout(r, 50));
+    };
+
+    test("instalação nova: três passos, o 1º leva à Criar", async () => {
+      const go = vi.fn();
+      renderWithApp(<Home go={go} />);
+      const start = await screen.findByRole("region", { name: "Comece por aqui" });
+      expect(within(start).getAllByRole("listitem")).toHaveLength(3);
+      expect(within(start).queryByText("feito")).not.toBeInTheDocument();
+      await userEvent.click(within(start).getByRole("button", { name: /Escolha um produto em Criar/ }));
+      expect(go).toHaveBeenCalledWith("create");
+    });
+
+    test("depois do 1º projeto o quadro some sozinho", async () => {
+      await project();
+      renderWithApp(<Home go={() => {}} />);
+      await settled();
+      expect(screen.queryByRole("region", { name: "Comece por aqui" })).not.toBeInTheDocument();
+    });
+
+    test("depois do 1º cálculo de preço o quadro some sozinho", async () => {
+      await calc();
+      renderWithApp(<Home go={() => {}} />);
+      await settled();
+      expect(screen.queryByRole("region", { name: "Comece por aqui" })).not.toBeInTheDocument();
+    });
+
+    test("só um orçamento feito não esconde o quadro; o passo ganha o selo", async () => {
+      await quote();
+      renderWithApp(<Home go={() => {}} />);
+      const start = await screen.findByRole("region", { name: "Comece por aqui" });
+      expect(within(start).getAllByRole("listitem")[2]).toHaveTextContent("feito");
+    });
+
+    test("fechar no X grava nas preferências (banco) e não volta na próxima abertura", async () => {
+      const first = renderWithApp(<Home go={() => {}} />);
+      await userEvent.click(await screen.findByRole("button", { name: "Fechar Comece por aqui" }));
+      await vi.waitFor(() => expect(screen.queryByRole("region", { name: "Comece por aqui" })).not.toBeInTheDocument());
+      expect((await loadSettings(t.db)).startHereClosed).toBe(true);
+      first.unmount();
+      renderWithApp(<Home go={() => {}} />);
+      await settled();
       expect(screen.queryByRole("region", { name: "Comece por aqui" })).not.toBeInTheDocument();
     });
   });
