@@ -7,6 +7,8 @@ import { fixThinStrokes } from "../stampArt";
 import { modelSize, modelVolume } from "../testUtil";
 import { buildThermo, DEFAULT_THERMO, type ThermoParams } from "./build";
 import { domeStack, inradius, insetAt, stretchOf } from "./dome";
+import { warpOntoDome } from "./preview";
+import { PRESS_NAMES } from "./press";
 import { buildFemaleSolid, buildMoldSolid, DEFAULT_MOLD, moldGap } from "./mold";
 import { DEFAULT_CAP } from "./thread";
 import { clipRegion, DEFAULT_SCREEN, earOf, meshHoles, screenRegions } from "./screen";
@@ -467,7 +469,9 @@ describe("molde fêmea", () => {
       const maleW = widthOf(k(row.intersect(male)));
       const cavityW = widthOf(k(row.subtract(female)));
       expect(maleW).toBeGreaterThan(40);
-      expect(cavityW - maleW).toBeCloseTo(2 * moldGap(t, m), 1);
+      // a folga vale em cada altura (a degrau da fatia vizinha, mais larga, soma até uns 0,2 mm por lado) e nunca fica abaixo do pedido
+      expect(cavityW - maleW).toBeGreaterThanOrEqual(2 * moldGap(t, m) - 0.05);
+      expect(cavityW - maleW).toBeLessThan(2 * moldGap(t, m) + 0.5);
     }));
 
   test("na posição de impressão a abertura da cavidade fica para cima, na face de cima do bloco", () =>
@@ -493,5 +497,51 @@ describe("molde fêmea", () => {
       const none = parts(k, { centerWall: 0 });
       const b0 = k(none.male.intersect(k(k(M.Manifold.cube([300, 300, 0.2], true)).translate([0, 0, none.m.flangeT + 0.5])))).boundingBox();
       expect(b0.max[0] - b0.min[0]).toBeLessThan(70 - 4);
+    }));
+
+  test("tela prensada no meio: a casca assenta no macho e cabe na fêmea com a folga, sem tocar nenhum dos dois", () =>
+    scoped((k) => {
+      const { male, female, m, t, g } = parts(k);
+      const s = circle(k);
+      const inner = k(s.offset(-3, "Round"));
+      const shell = k(warpOntoDome(k(s.extrude(t)), inner, g, k).translate([0, 0, m.flangeT]));
+      // a tela é a espessura certa (o volume da plana, a menos do estiramento da malha sólida) e fica entre os dois moldes
+      const onMale = k(shell.intersect(male)).volume() / shell.volume();
+      const inFemale = k(shell.intersect(female)).volume() / shell.volume();
+      // na fêmea a casca não entra (a folga vale na normal da superfície, também nas encostas suaves); no macho só os degraus de 0,4 mm das fatias encostam
+      expect(inFemale).toBeLessThan(1e-6);
+      expect(onMale).toBeLessThan(0.06);
+      const topOfShell = shell.boundingBox().max[2];
+      const topOfMale = male.boundingBox().max[2];
+      expect(topOfShell - topOfMale).toBeGreaterThan(t - 0.5);
+      expect(topOfShell - topOfMale).toBeLessThan(t + 0.5);
+      // a fêmea ainda tem a folga em cima da casca (tela + folga acima do macho, menos a espessura da tela)
+      const probe = k(k(M.Manifold.cylinder(60, 0.4, 0.4, 12)).translate([0, 0, topOfShell + 0.01]));
+      const free = k(probe.subtract(female)).boundingBox().max[2] - topOfShell;
+      expect(free).toBeGreaterThan(m.clearance - 0.45);
+    }));
+
+  test("vista Como prensar: fêmea embaixo com a cavidade para cima, tela no meio e macho em cima; aberto é mais alto que fechado; o corte tem só metade", () =>
+    scoped((k) => {
+      const heart = k(presetSilhouette(M, "heart", 60));
+      const at = (press: "open" | "mid" | "closed" | "section") => buildThermo(M, heart, null, P({ domeH: 10 }), { preview: false, press }).press;
+      const size = (md: ReturnType<typeof at>) => ({ x: modelSize(md)[0], y: modelSize(md)[1], z: modelSize(md)[2] });
+      const closed = at("closed");
+      expect(closed.parts.map((q) => q.name).filter(Boolean)).toEqual([PRESS_NAMES.female, PRESS_NAMES.sheet, PRESS_NAMES.male]);
+      expect(size(at("open")).z).toBeGreaterThan(size(closed).z + 20);
+      expect(size(at("mid")).z).toBeGreaterThan(size(closed).z);
+      const open = at("open");
+      const zOf = (name: string) => {
+        const q = open.parts.find((x) => x.name === name)!;
+        const zs = q.mesh.positions.filter((_, i) => i % 3 === 2);
+        return (Math.min(...zs) + Math.max(...zs)) / 2;
+      };
+      expect(zOf(PRESS_NAMES.female)).toBeLessThan(zOf(PRESS_NAMES.sheet));
+      expect(zOf(PRESS_NAMES.sheet)).toBeLessThan(zOf(PRESS_NAMES.male));
+      expect(open.parts.some((q) => q.lines)).toBe(true); // a seta do macho descendo
+      expect(closed.parts.some((q) => q.lines)).toBe(false);
+      const section = at("section");
+      const half = (md: ReturnType<typeof at>) => modelSize(md)[1];
+      expect(half(section)).toBeLessThan(half(closed) * 0.6);
     }));
 });

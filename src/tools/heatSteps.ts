@@ -18,7 +18,19 @@ const heat = (mode: HeatMode, what: string): string =>
     ? `Aqueça ${what} com soprador de ar quente (ou secador forte) a uns 15 a 20 cm, em movimentos circulares, por 20 a 40 segundos, sem parar num ponto só, até ficar mole e flexível. Não encoste o soprador e não derreta: o objetivo é amolecer.`
     : `Aqueça água a 70 a 80 °C (sem ferver) numa panela funda ou numa travessa e mergulhe ${what} por 20 a 40 segundos, até ficar mole e flexível. Pegue com pinça ou luva, tire o excesso de água num pano e trabalhe rápido: ela esfria em segundos.`;
 
-export function thermoSteps(kind: StepKind, mode: HeatMode, o: { closure?: "clip" | "ring" | "cap" | "none"; bases?: boolean } = {}): string[] {
+const SANDWICH =
+  "Monte o sanduíche, de baixo para cima (veja a figura): 1 o molde fêmea, com a cavidade para cima; 2 a tela plana de PLA, que é a única peça que esquenta; 3 o molde macho, virado com o domo para baixo, que desce e prensa a tela dentro da fêmea.";
+
+export function thermoSteps(kind: StepKind, mode: HeatMode, o: { closure?: "clip" | "ring" | "cap" | "none"; bases?: boolean; pair?: boolean } = {}): string[] {
+  if (kind === "vessel" && o.pair)
+    return [
+      `${SANDWICH} Imprima os dois moldes em PETG (o PLA quente não gruda nele) e o disco em PLA, deitado.`,
+      "Apoie a fêmea numa superfície que aguente calor, com a cavidade para cima. Os moldes ficam frios: só o disco esquenta.",
+      heat(mode, "o disco"),
+      "Com luva, centralize o disco quente sobre a fêmea, desça o macho por cima, no meio, e prense de uma vez até os dois moldes se encostarem. A folga entre eles é a espessura do disco mais um pouco.",
+      "Segure uns 20 segundos e, se quiser acelerar, passe um pano molhado em água fria por fora. Deixe esfriar até endurecer, levante o macho e tire a peça.",
+      "Apare a borda se precisar e confira se a peça fica em pé sozinha.",
+    ];
   if (kind === "vessel")
     return [
       "Imprima o molde em PETG (o PLA quente não gruda nele) e o disco em PLA, deitado.",
@@ -42,11 +54,11 @@ export function thermoSteps(kind: StepKind, mode: HeatMode, o: { closure?: "clip
     : o.closure === "clip" ? "Passe as pontas do clipe pelos furos das duas orelhas: ele funciona como dobradiça."
     : "Cole as duas metades pela borda.";
   return [
-    "Imprima os moldes (macho e fêmea) em PETG, o PLA quente não gruda nele, e as telas, as bases e o fecho em PLA.",
-    "Apoie o molde macho, com o domo para cima, numa superfície que aguente calor. Deixe a fêmea ao lado.",
+    `${SANDWICH} Imprima os moldes em PETG (o PLA quente não gruda nele) e as telas, as bases e o fecho em PLA.`,
+    "Apoie a fêmea numa superfície que aguente calor, com a cavidade para cima. Os moldes ficam frios: só a tela esquenta.",
     heat(mode, "uma tela"),
-    "Com luva, centralize a tela dentro da parede do macho (a orelha no lugar certo), pouse a fêmea por cima, de cabeça para baixo, e prense de uma vez até as bordas encostarem. Segure uns 15 segundos.",
-    "Deixe esfriar uns 30 segundos e solte: ela mantém a forma. Repita com a outra tela.",
+    "Com luva, ponha a tela quente sobre a fêmea (a orelha no lugar certo), encaixe o macho por cima, de cabeça para baixo (a parede baixa dele cerca e centraliza a tela), e prense de uma vez até os dois moldes se encostarem. Segure uns 15 segundos.",
+    "Deixe esfriar uns 30 segundos, levante o macho e solte a tela: ela mantém a forma de casca. Repita com a outra tela.",
     o.bases ? "Cole cada casca na sua base com cola instantânea em gel só na borda sólida." : "Confira se as duas cascas se encontram sem fresta.",
     closing,
   ];

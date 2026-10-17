@@ -104,6 +104,8 @@ export default function Preview3D({ models, busy, busyText = "Gerando modelo…"
   }, [gizmo]);
 
   const legend = [...new Map(models.flatMap((m) => m.parts).filter((p) => p.name).map((p) => [p.color + p.name, p])).values()].slice(0, 12); // parte sem nome (contorno do plano) não entra na legenda
+  const zooms = legend.filter((p) => p.zoom);
+  const zoomTo = (z: NonNullable<(typeof legend)[number]["zoom"]>) => viewer.current?.focusBox?.((z.to ?? z).min, (z.to ?? z).max);
   const hintId = useId();
   // as medidas são da peça: partes fantasma (copo, docinho, plano de corte) só aparecem na vista e não contam
   const solid = models.map((m) => ({ ...m, parts: m.parts.filter((p) => !p.ghost) })).filter((m) => m.parts.length);
@@ -122,15 +124,22 @@ export default function Preview3D({ models, busy, busyText = "Gerando modelo…"
       aria-busy={busy || undefined}
       aria-keyshortcuts="ArrowLeft ArrowRight ArrowUp ArrowDown + - 0"
       style={onPick ? { cursor: "crosshair" } : undefined}
-      onPointerDown={onPick ? (e) => (down.current = { x: e.clientX, y: e.clientY }) : undefined}
+      onPointerDown={onPick || zooms.length ? (e) => (down.current = { x: e.clientX, y: e.clientY }) : undefined}
       onPointerUp={
-        onPick
+        onPick || zooms.length
           ? (e) => {
               const d = down.current;
               down.current = null;
               if (!d || Math.hypot(e.clientX - d.x, e.clientY - d.y) > CLICK_SLOP_PX) return; // arrastar é girar a câmera
-              const hit = viewer.current?.pick(e.clientX, e.clientY);
-              if (hit) onPick(hit);
+              if (onPick) {
+                const hit = viewer.current?.pick(e.clientX, e.clientY);
+                if (hit) onPick(hit);
+                return;
+              }
+              // clique na área de uma placa da mesa: a câmera chega perto dela
+              const at = viewer.current?.ground(e.clientX, e.clientY);
+              const z = at && zooms.find((p) => at[0] >= p.zoom!.min[0] && at[0] <= p.zoom!.max[0] && at[1] >= p.zoom!.min[1] && at[1] <= p.zoom!.max[1])?.zoom;
+              if (z) zoomTo(z);
             }
           : undefined
       }
@@ -148,6 +157,9 @@ export default function Preview3D({ models, busy, busyText = "Gerando modelo…"
           "-": () => v.nudge(0, 0, 1 / ZOOM_STEP),
           "0": () => v.reset(),
         };
+        // 1, 2, 3… aproximam da placa de mesmo número (mesa com várias placas)
+        const plate = /^[1-9]$/.test(e.key) ? zooms[Number(e.key) - 1]?.zoom : undefined;
+        if (plate) act[e.key] = () => zoomTo(plate);
         const fn = act[e.key];
         if (!fn || e.metaKey || e.ctrlKey || e.altKey) return;
         e.preventDefault();
@@ -168,7 +180,13 @@ export default function Preview3D({ models, busy, busyText = "Gerando modelo…"
           {legend.map((p) => (
             <span key={p.color + p.name}>
               <i style={{ background: p.color }} />
-              {p.name}
+              {p.zoom ? (
+                <span className="legend-zoom" title="Clique para aproximar da placa" onClick={() => zoomTo(p.zoom!)}>
+                  {p.name}
+                </span>
+              ) : (
+                p.name
+              )}
             </span>
           ))}
         </div>

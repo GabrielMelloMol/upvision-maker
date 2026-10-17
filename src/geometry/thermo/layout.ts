@@ -33,14 +33,16 @@ export function layoutRows(rows: Model[][], gap: number): Model[] {
 export type Plate = { label: string; models: Model[] };
 const PLATE_GAP = 20;
 const PLATE_LINE_PX = 2;
+const ZOOM_PAD = 12;
 const PLATE_COLOR = "#64748b";
 
 /**
  * Mesa da prévia: cada arquivo (cada filamento e altura de camada) numa placa do tamanho da mesa da impressora, lado a lado,
- * com o contorno e o nome na legenda ("Placa 1 · PLA 0,20 mm"). Nenhuma peça fica fora de uma mesa; se uma placa passa da
+ * com o contorno e o que tem nela na legenda ("Placa 2 · Clipe · PLA 0,16 mm"); clicar na legenda ou na placa aproxima a câmera. Nenhuma peça fica fora de uma mesa; se uma placa passa da
  * mesa, o aviso de mesa já diz (o contorno só mostra de quanto).
  */
-export function layoutPlates(plates: Plate[], bed: number, gap = PLATE_GAP): Model[] {
+export function layoutPlates(all: Plate[], bed: number, gap = PLATE_GAP): Model[] {
+  const plates = all.filter((pl) => pl.models.length); // arquivo vazio (sem fecho, por exemplo) não ganha placa
   return plates.flatMap((pl, i) => {
     const cx = i * (bed + gap);
     const b = modelsBounds(pl.models);
@@ -50,7 +52,10 @@ export function layoutPlates(plates: Plate[], bed: number, gap = PLATE_GAP): Mod
     const [x0, x1, y0, y1] = [cx - h, cx + h, -h, h];
     const c = [[x0, y0], [x1, y0], [x1, y1], [x0, y1]];
     const points = Float32Array.from(c.flatMap((p, k) => [p[0], p[1], 0.05, c[(k + 1) % 4][0], c[(k + 1) % 4][1], 0.05]));
-    const outline: Model = { name: `Placa ${i + 1}`, parts: [{ name: `Placa ${i + 1} · ${pl.label}`, color: PLATE_COLOR, mesh: { positions: new Float32Array(0), indices: new Uint32Array(0) }, lines: { points, width: PLATE_LINE_PX, dash: 0 } }] };
-    return [outline, ...pl.models.map((m) => shiftModel(m, dx, dy))];
+    const moved = pl.models.map((m) => shiftModel(m, dx, dy));
+    const mb = modelsBounds(moved); // a câmera enquadra as peças da placa (com folga), não a mesa inteira: um clipe de 16 mm aparece
+    const near = mb && { min: [mb.min[0] - ZOOM_PAD, mb.min[1] - ZOOM_PAD, mb.min[2]] as [number, number, number], max: [mb.max[0] + ZOOM_PAD, mb.max[1] + ZOOM_PAD, mb.max[2]] as [number, number, number] };
+    const outline: Model = { name: `Placa ${i + 1}`, parts: [{ name: `Placa ${i + 1} · ${pl.label}`, color: PLATE_COLOR, mesh: { positions: new Float32Array(0), indices: new Uint32Array(0) }, lines: { points, width: PLATE_LINE_PX, dash: 0 }, zoom: { min: [x0, y0, 0], max: [x1, y1, 0], ...(near && { to: near }) } }] };
+    return [outline, ...moved];
   });
 }
