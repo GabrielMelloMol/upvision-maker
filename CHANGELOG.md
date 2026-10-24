@@ -6,6 +6,7 @@ Formato: `## <versão> — <data>` e itens `- …` em linguagem simples.
 ## Próxima versão (ainda não lançada)
 - **Restaurar um backup bem antigo não apaga mais as fotos de projetos e impressões (#259)**: num backup de antes das fotos de projetos, só as fotos de produto são trocadas; as dos projetos salvos e da ficha de impressão ficam como estavam.
 - **Campos de número não acusam erro enquanto você digita (#263)**: num campo com mínimo 10, digitar "1" a caminho de "12" não deixa mais o aviso vermelho aparecer; ele aparece quando você sai do campo e, depois disso, some assim que o número fica certo. A rodinha do mouse sobre um campo de número não muda mais o valor sem querer (no Windows).
+- **Custo multicor certo ao importar do fatiador (#147)**: o Bambu Studio já conta a purga das trocas de cor e a torre nas gramas de cada filamento, e o app somava a purga de novo (numa peça de 4 cores, quase o dobro do filamento). Agora ela só aparece como informação ("Já está dentro das gramas do fatiador"). No OrcaSlicer é o contrário: a purga não vem nas gramas e continua sendo somada, e o G-code do Orca, que antes dava "Não encontrei o peso do filamento", agora abre.
 
 ## 0.13.0 — 2026-10-16
 - **Caixa organizadora nunca passa da mesa (#204)**: no tamanho máximo (300 × 300 mm) a caixa passava da mesa de 256 mm e o fatiador recusava a peça. Agora as medidas são limitadas à mesa da impressora escolhida (a dobradiça, que sai 10 mm atrás, entra na conta) e o aviso diz o que mudou: "Você pediu 300 × 300 mm… Reduzi para 252 × 242 mm", e o que fazer para uma caixa maior.

@@ -43,6 +43,15 @@ describe("Importar do fatiador", () => {
     await waitFor(() => expect(onApply.mock.lastCall![0].filaments[1]).toEqual({ filamentId: null, pricePerKg: null, grams: 1.33 }));
   });
 
+  test("3MF real de 4 cores do Bambu (#147): a purga já está nas gramas, não soma de novo", async () => {
+    const onApply = vi.fn<(a: SlicerApply) => void>();
+    render(<SlicerImport stock={[AZUL]} printers={[A1]} onApply={onApply} />);
+    await upload(fixture("bambu-a1-4cores-torre-fatiado.3mf"));
+    expect(await screen.findByText(/^Desperdício multicor:/)).toBeInTheDocument();
+    expect(screen.getByText(/Já está dentro das gramas do fatiador/)).toBeInTheDocument();
+    await waitFor(() => expect(onApply.mock.lastCall![0].filaments.map((f) => f.grams)).toEqual([6.12, 11.47, 9.47, 8.94]));
+  });
+
   test("G-code real da A1 com suporte (#147): mostra quanto foi para o suporte, já dentro das gramas, e a dica da árvore", async () => {
     const onApply = vi.fn<(a: SlicerApply) => void>();
     render(<SlicerImport stock={[AZUL]} printers={[A1]} onApply={onApply} />);
