@@ -127,3 +127,30 @@ test("caixinha termoformada: sem violação estrutural de acessibilidade (axe)",
   const r = await new AxeBuilder({ page }).include("main").exclude("canvas").withTags(["wcag2a", "wcag2aa", "wcag21a", "wcag21aa", "wcag22aa"]).disableRules(["color-contrast"]).analyze();
   expect(r.violations.map((v) => `${v.id}: ${v.nodes.slice(0, 2).map((n) => n.target.join(" ")).join(" | ")}`)).toEqual([]);
 });
+
+test("caixinha termoformada: a mesa tem uma placa por arquivo com o que há nela, e Como prensar mostra o sanduíche fêmea, tela e macho", async ({ page }) => {
+  test.setTimeout(240_000);
+  await openApp(page);
+  await go(page, "Caixinha termoformada");
+  await idle(page);
+  await expect(page.locator(".viewer .hud")).toContainText("mm", { timeout: 90_000 });
+  const legend = page.locator(".legend");
+  await expect(legend).toContainText("Placa 1 · Tela (aquecer e prensar) e bases · PLA 0,20 mm");
+  await expect(legend).toContainText("Placa 2 · Clipe · PLA 0,16 mm");
+  await expect(legend).toContainText("Molde fêmea (de baixo)");
+  await expect(legend).toContainText("Molde macho (de cima)");
+  // clicar na placa aproxima a câmera dela
+  await legend.getByText(/Placa 2 · Clipe/).click();
+
+  await page.getByRole("button", { name: "Como prensar (não imprime)" }).click();
+  await idle(page);
+  await expect(legend).toContainText("1 Molde fêmea (de baixo)", { timeout: 90_000 });
+  await expect(legend).toContainText("2 Tela (aqueça esta)");
+  await expect(legend).toContainText("3 Molde macho (de cima)");
+  for (const quadro of ["Prensando", "Pronto", "Corte"]) {
+    await page.getByRole("button", { name: quadro, exact: true }).click();
+    await idle(page);
+    await expect(legend).toContainText("2 Tela (aqueça esta)", { timeout: 90_000 });
+  }
+  await expect(page.getByRole("region", { name: "Passo a passo da termoformagem" }).getByRole("img", { name: /Sanduíche da termoformagem/ })).toBeVisible();
+});

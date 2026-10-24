@@ -3,6 +3,7 @@ import { toMesh } from "../mesh";
 import { scoped } from "../shape2d";
 import type { Model, Part } from "../types";
 import { layoutRows } from "./layout";
+import { pressModel, pressStage, pressTravel, type PressFrame } from "./press";
 import { DEFAULT_SCREEN, screenRegions } from "./screen";
 
 type K = <D extends { delete(): void }>(o: D) => D;
@@ -72,7 +73,7 @@ export type VesselInfo = {
   lip: number;
 };
 
-export type VesselOut = { screens: Model[]; molds: Model[]; assembled: Model; warnings: string[]; info: VesselInfo };
+export type VesselOut = { screens: Model[]; molds: Model[]; assembled: Model; /** O sanduíche fêmea, disco e macho no quadro pedido (só com o par de moldes). */ press: Model; warnings: string[]; info: VesselInfo };
 
 const SAMPLES_TOP = 8;
 const SAMPLES_ARC = 28;
@@ -150,7 +151,7 @@ export const discRadius = (pr: VesselProfile, p: Pick<VesselParams, "rim" | "mar
 const WARP_MM = 1;
 
 /** Deforma o disco plano (com a face de baixo em z = 0) sobre o molde: cada ponto a r do centro vai para a distância r ao longo do perfil e a espessura segue a normal. */
-function warpOntoVessel(flat: Solid, pr: VesselProfile, k: K): Solid {
+function warpOntoVessel(flat: Solid, pr: VesselProfile, k: K, blend = 1): Solid {
   const fine = k(flat.refineToLength(WARP_MM));
   return fine.warpBatch((v, n) => {
     for (let i = 0; i < n; i++) {
@@ -159,9 +160,9 @@ function warpOntoVessel(flat: Solid, pr: VesselProfile, k: K): Solid {
       const r = Math.hypot(x, y);
       const at = profileAt(pr, r);
       const R = at.rho + at.nr * zf;
-      v[o] = r > 1e-9 ? (R * x) / r : 0;
-      v[o + 1] = r > 1e-9 ? (R * y) / r : 0;
-      v[o + 2] = at.z + at.nz * zf;
+      v[o] = x + blend * ((r > 1e-9 ? (R * x) / r : 0) - x);
+      v[o + 1] = y + blend * ((r > 1e-9 ? (R * y) / r : 0) - y);
+      v[o + 2] = zf + blend * (at.z + at.nz * zf - zf);
     }
   });
 }
@@ -176,7 +177,7 @@ const extruded = (cs: CS, h: number, k: K): Solid | null => (cs.isEmpty() ? null
  * tronco de cone com canto arredondado, ou dentro de uma fêmea, ou prensado entre os dois (folga = espessura + folga).
  * O disco tem o diâmetro da planificação: o comprimento do perfil do fundo à boca, mais a aba e a sobra.
  */
-export function buildVessel(M: ManifoldToplevel, p: VesselParams, opts: { preview?: boolean } = {}): VesselOut {
+export function buildVessel(M: ManifoldToplevel, p: VesselParams, opts: { preview?: boolean; press?: PressFrame } = {}): VesselOut {
   const preview = opts.preview ?? true;
   return scoped((k) => {
     const warnings: string[] = [];
@@ -219,26 +220,33 @@ export function buildVessel(M: ManifoldToplevel, p: VesselParams, opts: { previe
     const femaleInPlace = k(block.subtract(cavity));
     const female = k(k(femaleInPlace.mirror([0, 0, 1])).translate([0, 0, top]));
     const moldRow: Model[] = [];
-    if (p.mold !== "female") moldRow.push({ name: "Molde macho", parts: [{ name: "Molde macho", color: c.mold, mesh: toMesh(male) }] });
-    if (p.mold !== "male") moldRow.push({ name: "Molde fêmea", parts: [{ name: "Molde fêmea", color: c.mold, mesh: toMesh(female) }] });
+    if (p.mold !== "female") moldRow.push({ name: "Molde macho", parts: [{ name: p.mold === "both" ? "Molde macho (de cima)" : "Molde macho", color: c.mold, mesh: toMesh(male) }] });
+    if (p.mold !== "male") moldRow.push({ name: "Molde fêmea", parts: [{ name: p.mold === "both" ? "Molde fêmea (de baixo)" : "Molde fêmea", color: c.mold, mesh: toMesh(female) }] });
     const molds = layoutRows([moldRow], 10);
 
+    // o disco é cortado na boca (r = comprimento do perfil) antes de deformar: a emenda do perfil com a aba cai numa aresta, sem dentes
+    const inside = k(M.CrossSection.circle(pr.total, SEGMENTS)), outside = k(disc.subtract(inside));
+    const warp = (cs: CS, blend = 1): Solid | null => {
+      if (cs.isEmpty()) return null;
+      const halves = [k(cs.intersect(inside)), k(cs.intersect(outside))].filter((h) => !h.isEmpty()).map((h) => warpOntoVessel(k(h.extrude(p.t)), pr, k, blend));
+      return halves.length ? k(M.Manifold.union(halves)) : null;
+    };
     let assembled: Model = { name: "Pote pronto (não imprime)", previewOnly: true, parts: [] };
     if (preview) {
-      // o disco é cortado na boca (r = comprimento do perfil) antes de deformar: a emenda do perfil com a aba cai numa aresta, sem dentes
-      const inside = k(M.CrossSection.circle(pr.total, SEGMENTS)), outside = k(disc.subtract(inside));
-      const warp = (cs: CS): Solid | null => {
-        if (cs.isEmpty()) return null;
-        const halves = [k(cs.intersect(inside)), k(cs.intersect(outside))].filter((h) => !h.isEmpty()).map((h) => warpOntoVessel(k(h.extrude(p.t)), pr, k));
-        return halves.length ? k(M.Manifold.union(halves)) : null;
-      };
       const formed = [["Borda", c.border, warp(flatSolid.border)], [parts[1].name, c.sheet, warp(flatSolid.mesh)], ["Fundo", c.base, p.kind === "cesto" && p.solidBase ? warp(flatSolid.base) : null]] as const;
       // de pé: a boca para cima (o molde vira o pote de cabeça para baixo)
       const upright = (s: Solid | null) => (s ? k(k(s.mirror([0, 0, 1])).translate([0, 0, p.height + p.t])) : null);
       assembled = { name: "Pote pronto (não imprime)", previewOnly: true, parts: formed.flatMap(([n, col, s]) => solidPart(n, col, upright(s))) };
     }
+    let press: Model = { name: "Como prensar (não imprime)", previewOnly: true, parts: [] };
+    if (opts.press && p.mold === "both") {
+      const stage = pressStage(opts.press);
+      const shape = (cs: CS): Solid | null => (cs.isEmpty() ? null : stage.shape === 0 ? k(cs.extrude(p.t)) : warp(cs, stage.shape));
+      const sheet = opts.press === "section" ? [{ color: c.sheet, solid: shape(disc) }] : [{ color: c.border, solid: shape(flatSolid.border) }, { color: c.sheet, solid: shape(flatSolid.mesh) }, { color: c.base, solid: p.kind === "cesto" && p.solidBase ? shape(flatSolid.base) : null, label: false }];
+      press = pressModel(k, { frame: opts.press, male, female: femaleInPlace, sheet, flangeT: p.flangeT, femaleTop: top, travel: pressTravel(p.height), moldColor: c.mold });
+    }
 
     const info: VesselInfo = { discD: 2 * R, profileLen: pr.total, flatTop: 2 * pr.flatTop, potH: p.height + p.t, cornerR: pr.rf, lip: p.rim + p.margin };
-    return { screens, molds, assembled, warnings, info };
+    return { screens, molds, assembled, press, warnings, info };
   });
 }

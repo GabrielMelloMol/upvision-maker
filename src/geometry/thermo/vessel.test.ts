@@ -135,4 +135,20 @@ describe("pote termoformado", () => {
       expect(Math.max(...zs)).toBeGreaterThan(Math.min(...zs));
       expect(out.assembled.previewOnly).toBe(true);
     }));
+
+  test("como prensar (par de moldes): fêmea embaixo, disco no meio e macho em cima; o corte mostra metade; sem o par não há vista", () =>
+    scoped(() => {
+      const both = (press: "open" | "mid" | "closed" | "section") => buildVessel(M, V({ mold: "both", height: 30, mouthD: 60 }), { preview: false, press }).press;
+      const open = both("open"), closed = both("closed");
+      const zOf = (md: typeof open, name: string) => {
+        const zs = [...md.parts.find((q) => q.name === name)!.mesh.positions].filter((_, i) => i % 3 === 2);
+        return (Math.min(...zs) + Math.max(...zs)) / 2;
+      };
+      // aberto, as três peças estão empilhadas; fechado elas se encaixam umas nas outras
+      expect(zOf(open, "1 Molde fêmea (de baixo)")).toBeLessThan(zOf(open, "2 Tela (aqueça esta)"));
+      expect(zOf(open, "2 Tela (aqueça esta)")).toBeLessThan(zOf(open, "3 Molde macho (de cima)"));
+      expect(modelSize(open)[2]).toBeGreaterThan(modelSize(closed)[2] + 20);
+      expect(modelSize(both("section"))[1]).toBeLessThan(modelSize(closed)[1] * 0.6);
+      expect(buildVessel(M, V({ mold: "male", height: 30, mouthD: 60 }), { preview: false, press: "open" }).press.parts).toEqual([]);
+    }));
 });

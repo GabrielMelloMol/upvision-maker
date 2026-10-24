@@ -36,15 +36,26 @@ export const sliceCount = (zMax: number) => Math.min(MAX_SLICES, Math.max(6, Mat
  * Cada fatia é mais estreita que a de baixo, então o molde imprime sem suporte. Quem chama apaga o resultado.
  */
 export function domeStack(M: ManifoldToplevel, sil: CS, g: DomeGeo, e: number, k: K): Solid {
-  const zMax = g.H + e;
   // o degrau é o do domo sem folga: a casca de fora (e > 0) tem os mesmos planos de corte e envolve o macho sem fresta nem invasão
   const dz = g.H / sliceCount(g.H);
-  const n = Math.max(1, Math.ceil(zMax / dz - 1e-9));
+  const nMale = Math.max(1, Math.ceil(g.H / dz - 1e-9));
+  const male: CS[] = [];
+  for (let j = 0; j < nMale; j++) {
+    const slab = k(sil.offset(-insetAt(j * dz + dz / 2, g), "Round")); // no meio da fatia: o degrau fica metade para dentro, metade para fora da curva
+    if (slab.isEmpty() || slab.area() < 1e-3) break;
+    male.push(slab);
+  }
+  const n = e > 0 ? Math.max(1, Math.ceil((g.H + e) / dz - 1e-9)) : nMale;
   const parts: Solid[] = [];
   for (let i = 0; i < n; i++) {
     const z0 = i * dz;
-    const slab = k(sil.offset(e - insetAt(z0, g), "Round"));
-    if (slab.isEmpty() || slab.area() < 1e-3) break;
+    // a casca de fora é o macho engordado por uma bola de raio e (a folga vale na normal, também nas encostas suaves): em cada altura,
+    // as fatias do macho a menos de e de distância vertical, cada uma recuada pelo raio da bola naquela altura
+    const slab = e > 0 ? k(M.CrossSection.union(male.flatMap((m, j) => {
+      const gz = Math.max(0, j * dz - (z0 + dz), z0 - (j * dz + dz));
+      return gz >= e ? [] : [k(m.offset(Math.sqrt(e * e - gz * gz), "Round"))];
+    }))) : male[i];
+    if (!slab || slab.isEmpty() || slab.area() < 1e-3) break;
     const ext = k(slab.extrude(dz + (i === n - 1 ? 0 : 0.001)));
     parts.push(k(ext.translate([0, 0, z0])));
   }

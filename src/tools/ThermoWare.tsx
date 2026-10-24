@@ -7,6 +7,7 @@ import { buildStampArt, DEFAULT_ART } from "../geometry/stampArt";
 import { BAND_LIMITS, buildBand, DEFAULT_BAND, stripLength, type BandInfo, type BandParams } from "../geometry/thermo/band";
 import { bedMm } from "../geometry/bed";
 import { layoutPlates } from "../geometry/thermo/layout";
+import { PRESS_FRAMES, type PressFrame } from "../geometry/thermo/press";
 import { BASKET_VESSEL, buildVessel, DEFAULT_VESSEL, type VesselInfo, type VesselMold, type VesselParams } from "../geometry/thermo/vessel";
 import { hasEmoji } from "../geometry/text";
 import { splitLines } from "../geometry/keychain";
@@ -35,7 +36,8 @@ const MOLDS = [["male", "Só o macho"], ["female", "Só a fêmea"], ["both", "O 
 const MESHES = [["honeycomb", "Favo"], ["diamond", "Losango"]] as const;
 const BAND_MESHES = [["solid", "Inteira"], ["honeycomb", "Favo"], ["diamond", "Losango"]] as const;
 const SHOWS = [["table", "Mesa (o que imprime)"], ["ready", "Pronto (não imprime)"]] as const;
-type Show = (typeof SHOWS)[number][0];
+const SHOWS_PAIR = [["table", "Mesa (o que imprime)"], ["press", "Como prensar (não imprime)"], ["ready", "Pronto (não imprime)"]] as const;
+type Show = (typeof SHOWS_PAIR)[number][0];
 const TEXT_FILL = 0.7; // quanto do comprimento da tira o texto ocupa
 
 type State = { kind: Kind; v: VesselParams; b: BandParams; text: string; font: FontId };
@@ -48,7 +50,7 @@ const initial = (): State => ({
   font: "pacifico",
 });
 
-type Shared = { screens: Model[]; molds: Model[]; ready: Model };
+type Shared = { screens: Model[]; molds: Model[]; ready: Model; press: Model };
 /** A vista guarda de que peça veio: ao trocar de peça a anterior ainda fica na tela até a nova ficar pronta. */
 type View = (Shared & { kind: "vessel"; info: VesselInfo }) | (Shared & { kind: "band"; info: BandInfo });
 const g = (n: number) => `${n.toLocaleString("pt-BR", { maximumFractionDigits: 0 })} g`;
@@ -64,8 +66,10 @@ export default function ThermoWare() {
   const setKind = (kind: Kind) =>
     tool.set((cur) => ({ ...cur, kind, v: kind === "cesto" ? { ...cur.v, ...BASKET_VESSEL, kind: "cesto" } : kind === "pote" ? { ...cur.v, kind: "pote" } : cur.v }), "kind");
   const [show, setShow] = useState<Show>("table");
+  const [frame, setFrame] = useState<PressFrame>("open");
   const { v, b } = s;
   const vessel = s.kind !== "pulseira";
+  const pair = vessel && s.v.mold === "both";
   const lines = splitLines(s.text);
 
   const valid = vessel
@@ -76,9 +80,9 @@ export default function ThermoWare() {
     if (!valid) return null;
     const M = await getManifold();
     if (vessel) {
-      const out = buildVessel(M, { ...v, kind: s.kind === "cesto" ? "cesto" : "pote" }, { preview: show === "ready" });
+      const out = buildVessel(M, { ...v, kind: s.kind === "cesto" ? "cesto" : "pote" }, { preview: show === "ready", press: show === "press" ? frame : undefined });
       const bed = [out.screens, out.molds].flatMap((grp) => bedWarnings(grp, out.warnings));
-      return { models: layoutPlates([{ label: "PLA 0,20 mm", models: out.screens }, { label: "PETG 0,24 mm", models: out.molds }], bedMm()), warnings: [...out.warnings, ...bed], view: { kind: "vessel", screens: out.screens, molds: out.molds, ready: out.assembled, info: out.info } };
+      return { models: layoutPlates([{ label: "Tela (aquecer e prensar) · PLA 0,20 mm", models: out.screens }, { label: "Moldes · PETG 0,24 mm", models: out.molds }], bedMm()), warnings: [...out.warnings, ...bed], view: { kind: "vessel", screens: out.screens, molds: out.molds, ready: out.assembled, press: out.press, info: out.info } };
     }
     let design: CS | null = null;
     if (lines.length) {
@@ -91,11 +95,11 @@ export default function ThermoWare() {
     try {
       const out = buildBand(M, b, design, { preview: show === "ready" });
       const bed = [out.strip, out.mandrel].flatMap((grp) => bedWarnings(grp, out.warnings));
-      return { models: layoutPlates([{ label: "PLA 0,20 mm", models: out.strip }, { label: "PETG 0,24 mm", models: out.mandrel }], bedMm()), warnings: [...out.warnings, ...bed], view: { kind: "band", screens: out.strip, molds: out.mandrel, ready: out.assembled, info: out.info } };
+      return { models: layoutPlates([{ label: "Tira (aquecer e enrolar) · PLA 0,20 mm", models: out.strip }, { label: "Mandril · PETG 0,24 mm", models: out.mandrel }], bedMm()), warnings: [...out.warnings, ...bed], view: { kind: "band", screens: out.strip, molds: out.mandrel, ready: out.assembled, press: { name: "", previewOnly: true, parts: [] }, info: out.info } };
     } finally {
       design?.delete();
     }
-  }, [s, valid, show]);
+  }, [s, valid, show, frame]);
 
   const est = useMemo(() => (view ? [...view.screens.map((m) => [m, THERMO_WARE_PROFILE] as const), ...view.molds.map((m) => [m, THERMO_WARE_MOLD_PROFILE] as const)].map(([m, prof]) => ({ name: m.name, est: estimateModels([m], prof) })) : []), [view]);
   const baseName = s.kind === "pulseira" ? "pulseira" : s.kind;
@@ -224,9 +228,15 @@ export default function ThermoWare() {
           <GeneratorHelp help={TOOL_HELP.thermoware} />
         </div>
         <div className="preview-col">
-          <Segmented label="O que mostrar" value={show} options={SHOWS} onChange={setShow} full />
+          <Segmented label="O que mostrar" value={pair || show !== "press" ? show : "table"} options={pair ? SHOWS_PAIR : SHOWS} onChange={setShow} full />
+          {pair && show === "press" && (
+            <>
+              <Segmented label="Quadro" value={frame} options={PRESS_FRAMES} onChange={setFrame} full />
+              <Alert kind="info">{frame === "section" ? "Corte ao meio: o macho dentro da fêmea, com o disco no meio e a folga em volta. Vire a câmera em Frente." : "São dois moldes que se encaixam e o disco do meio é o que esquenta: 1 fêmea embaixo, 2 disco plano, 3 macho em cima, que desce e prensa. Não vai para o arquivo."}</Alert>
+            </>
+          )}
           {show === "ready" && <Alert kind="info">{s.kind === "pulseira" ? "A pulseira já enrolada no mandril, de frente. Ela não vai para o arquivo: o que imprime está em Mesa." : "O pote já formado, de pé. Ele não vai para o arquivo: o que imprime está em Mesa."}</Alert>}
-          <Preview3D models={show === "ready" && view ? [view.ready] : models} busy={busy} busyText="Gerando peças e molde…" error={error} views emptyText={!valid ? "Corrija os campos em vermelho para ver a peça." : "Ajuste as medidas para ver a peça."} />
+          <Preview3D models={show === "ready" && view ? [view.ready] : pair && show === "press" && view ? [view.press] : models} busy={busy} busyText="Gerando peças e molde…" error={error} views emptyText={!valid ? "Corrija os campos em vermelho para ver a peça." : "Ajuste as medidas para ver a peça."} />
           {warnings.map((w) => (
             <Alert key={w} kind="warn">{w}</Alert>
           ))}
@@ -251,7 +261,7 @@ export default function ThermoWare() {
               </ul>
             </section>
           )}
-          <ThermoSteps kind={vessel ? "vessel" : "band"} />
+          <ThermoSteps kind={vessel ? "vessel" : "band"} pair={pair} />
         </div>
       </div>
     </div>

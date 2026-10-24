@@ -8,6 +8,7 @@ import { inradius, stretchOf, type DomeGeo } from "./dome";
 import { layoutRows } from "./layout";
 import { buildFemaleSolid, buildMoldSolid, DEFAULT_MOLD, moldGap, type MoldParams } from "./mold";
 import { mergeMeshes, warpOntoDome } from "./preview";
+import { pressModel, pressStage, pressTravel, type PressFrame } from "./press";
 import { clipRegion, DEFAULT_SCREEN, earOf, postTabOf, ringRegion, screenRegions, type ScreenParams, type ScreenRegions } from "./screen";
 import { capSolid, DEFAULT_CAP, halfPost, postWidth, type CapSpec } from "./thread";
 import { fitValue } from "../fits";
@@ -72,6 +73,8 @@ export type ThermoOut = {
   assembled: Model;
   /** Uma casca já prensada, com a base (só prévia). */
   shell: Model;
+  /** O sanduíche fêmea, tela e macho no quadro pedido (só prévia; vazio se não pediu). */
+  press: Model;
   warnings: string[];
   info: ThermoInfo;
 };
@@ -120,7 +123,7 @@ function plateOf(M: ManifoldToplevel, k: K, sil: CS, inner: CS, art: CS | null, 
 type Half = { reg: ScreenRegions; plate: Plate | null };
 
 /** Duas telas, as bases, o fecho e os moldes macho e fêmea (PETG), a partir da silhueta simétrica e do desenho de cima (já centrado, em mm). */
-export function buildThermo(M: ManifoldToplevel, sil: CS, design: CS | null, p: ThermoParams, opts: { preview?: boolean } = {}): ThermoOut {
+export function buildThermo(M: ManifoldToplevel, sil: CS, design: CS | null, p: ThermoParams, opts: { preview?: boolean; press?: PressFrame } = {}): ThermoOut {
   const preview = opts.preview ?? true;
   return scoped((k) => {
     const warnings: string[] = [];
@@ -196,7 +199,7 @@ export function buildThermo(M: ManifoldToplevel, sil: CS, design: CS | null, p: 
     const shellOutline = ear && hasPlate.some((x) => !x) ? k(M.CrossSection.union([sil, ear])) : sil;
     const male = buildMoldSolid(M, base, g, p.mold, k, shellOutline, t);
     const female = buildFemaleSolid(M, base, g, p.mold, k, shellOutline, t);
-    const molds = layoutRows([[{ name: "Molde macho", parts: [{ name: "Molde macho", color: c.mold, mesh: toMesh(male) }] }, { name: "Molde fêmea", parts: [{ name: "Molde fêmea", color: c.mold, mesh: toMesh(female) }] }]], GAP);
+    const molds = layoutRows([[{ name: "Molde macho", parts: [{ name: "Molde macho (de cima)", color: c.mold, mesh: toMesh(male) }] }, { name: "Molde fêmea", parts: [{ name: "Molde fêmea (de baixo)", color: c.mold, mesh: toMesh(female) }] }]], GAP);
 
     // caixa montada: a tela plana deformada sobre o domo (como a termoformagem faz), uma metade de cabeça para baixo sobre a outra
     // (a prévia é a parte mais cara: os testes e o QA do fatiador pedem sem ela)
@@ -233,8 +236,18 @@ export function buildThermo(M: ManifoldToplevel, sil: CS, design: CS | null, p: 
       shell = { name: "Casca prensada (não imprime)", previewOnly: true, parts: [...built[0].shell, ...built[0].plate.filter((q) => q.name !== "Arte")] }; // sem a arte da base: vista pela malha ela parece um desenho fantasma
     }
 
+    let press = emptyPreview("Como prensar (não imprime)");
+    if (opts.press) {
+      const stage = pressStage(opts.press);
+      const shape = (cs: CS): Solid | null => (cs.isEmpty() ? null : stage.shape === 0 ? k(cs.extrude(t)) : warpOntoDome(k(cs.extrude(t)), base, g, k, stage.shape));
+      const r = regionsFor(wantDesign[0], false);
+      const sheet = opts.press === "section" ? [{ color: c.sheet, solid: shape(sil) }] : [{ color: c.border, solid: shape(r.border) }, { color: c.sheet, solid: shape(r.mesh) }, { color: c.design, solid: wantDesign[0] ? shape(r.design) : null, label: false }];
+      const female = buildFemaleSolid(M, base, g, p.mold, k, shellOutline, t, true);
+      press = pressModel(k, { frame: opts.press, male, female, sheet, flangeT: p.mold.flangeT, femaleTop: p.mold.flangeT + g.H + moldGap(t, p.mold) + p.mold.top, travel: pressTravel(g.H), moldColor: c.mold });
+    }
+
     const info: ThermoInfo = { stretch: S, apertureAfter: p.screen.aperture * S, designScale: dScale, inradius: L, moldGap: moldGap(t, p.mold), thinTop, bases };
     if (p.screen.aperture * S > 2 * p.screen.aperture) warnings.push(`A malha abre até ${(p.screen.aperture * S).toFixed(1).replace(".", ",")} mm depois de prensada (o furo de ${nozzleText(p.screen.aperture)} mm estica junto).`);
-    return { screens, closure: closureOut, molds, assembled, shell, warnings, info };
+    return { screens, closure: closureOut, molds, assembled, shell, press, warnings, info };
   });
 }

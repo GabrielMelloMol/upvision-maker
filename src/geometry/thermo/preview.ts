@@ -87,9 +87,9 @@ function ridgeTable(segs: Seg[], query: ReturnType<typeof boundaryQuery>, cap: n
  * da borda interna (o limite do domo) vai para onde o perfil está a `f × (comprimento do perfil até a crista ÷ distância
  * até a crista)` da borda, e a espessura segue a normal da superfície. A "crista" é o eixo medial local: nos dois lados
  * de um trecho estreito a tela chega nela e se encontra, sem fresta. A borda de fora do domo fica plana. A superfície é
- * lisa (a tela é subdividida antes), com a malha e o desenho acompanhando.
+ * lisa (a tela é subdividida antes), com a malha e o desenho acompanhando. `blend` (0 a 1) deforma só até essa fração, para os quadros da prensagem.
  */
-export function warpOntoDome(flat: Solid, inner: CS, g: DomeGeo, k: K): Solid {
+export function warpOntoDome(flat: Solid, inner: CS, g: DomeGeo, k: K, blend = 1): Solid {
   const segs: Seg[] = inner.toPolygons().flatMap((ring) => ring.map(([ax, ay], i) => ({ ax, ay, bx: ring[(i + 1) % ring.length][0], by: ring[(i + 1) % ring.length][1] })));
   const query = boundaryQuery(segs);
   const ridges = ridgeTable(segs, query, g.L);
@@ -132,9 +132,9 @@ export function warpOntoDome(flat: Solid, inner: CS, g: DomeGeo, k: K): Solid {
         const slope = Math.abs(dr) < 1e-9 ? 1e9 : (zs[lo] - zs[lo - 1]) / dr; // dh/ds, positiva
         const nx = (x - qx) / d, ny = (y - qy) / d; // para dentro
         const inv = 1 / Math.sqrt(1 + slope * slope);
-        verts[o] = qx + nx * s - slope * nx * inv * zf;
-        verts[o + 1] = qy + ny * s - slope * ny * inv * zf;
-        verts[o + 2] = zd + inv * zf;
+        verts[o] = x + blend * (qx + nx * s - slope * nx * inv * zf - x);
+        verts[o + 1] = y + blend * (qy + ny * s - slope * ny * inv * zf - y);
+        verts[o + 2] = zf + blend * (zd + inv * zf - zf);
       }
     }),
   );
