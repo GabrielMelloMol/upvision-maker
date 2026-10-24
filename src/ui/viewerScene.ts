@@ -284,6 +284,16 @@ export function createViewer(el: HTMLElement) {
       frame(wasEmpty);
       render();
     },
+    /** Os vértices das malhas mudaram no lugar (animação da prensagem, #270): sobe de novo para a GPU e redesenha, sem reenquadrar. */
+    refresh() {
+      for (const o of group.children as THREE.Mesh[]) {
+        const pos = o.geometry.getAttribute("position");
+        if (!pos || o.userData.ghost) continue;
+        pos.needsUpdate = true;
+        o.geometry.computeBoundingSphere(); // senão a peça que se moveu some ao sair da esfera antiga
+      }
+      render();
+    },
     /**
      * Teclado (#144): gira em volta do eixo Z (`dAz`), inclina (`dTilt`, sem virar de ponta-cabeça) e aproxima
      * (`zoom` < 1) ou afasta (> 1). Para o giro automático, como um toque do mouse.

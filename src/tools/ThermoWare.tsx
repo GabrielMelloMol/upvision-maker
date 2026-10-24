@@ -7,7 +7,8 @@ import { buildStampArt, DEFAULT_ART } from "../geometry/stampArt";
 import { BAND_LIMITS, buildBand, DEFAULT_BAND, stripLength, type BandInfo, type BandParams } from "../geometry/thermo/band";
 import { bedMm } from "../geometry/bed";
 import { layoutPlates } from "../geometry/thermo/layout";
-import { PRESS_FRAMES, type PressFrame } from "../geometry/thermo/press";
+import { PRESS_VIEWS, type PressMorph, type PressView } from "../geometry/thermo/press";
+import PressPlayer from "./PressPlayer";
 import { BASKET_VESSEL, buildVessel, DEFAULT_VESSEL, type VesselInfo, type VesselMold, type VesselParams } from "../geometry/thermo/vessel";
 import { hasEmoji } from "../geometry/text";
 import { splitLines } from "../geometry/keychain";
@@ -50,7 +51,7 @@ const initial = (): State => ({
   font: "pacifico",
 });
 
-type Shared = { screens: Model[]; molds: Model[]; ready: Model; press: Model };
+type Shared = { screens: Model[]; molds: Model[]; ready: Model; press: Model; morph?: PressMorph };
 /** A vista guarda de que peça veio: ao trocar de peça a anterior ainda fica na tela até a nova ficar pronta. */
 type View = (Shared & { kind: "vessel"; info: VesselInfo }) | (Shared & { kind: "band"; info: BandInfo });
 const g = (n: number) => `${n.toLocaleString("pt-BR", { maximumFractionDigits: 0 })} g`;
@@ -66,7 +67,7 @@ export default function ThermoWare() {
   const setKind = (kind: Kind) =>
     tool.set((cur) => ({ ...cur, kind, v: kind === "cesto" ? { ...cur.v, ...BASKET_VESSEL, kind: "cesto" } : kind === "pote" ? { ...cur.v, kind: "pote" } : cur.v }), "kind");
   const [show, setShow] = useState<Show>("table");
-  const [frame, setFrame] = useState<PressFrame>("open");
+  const [frame, setFrame] = useState<PressView>("play");
   const { v, b } = s;
   const vessel = s.kind !== "pulseira";
   const pair = vessel && s.v.mold === "both";
@@ -80,9 +81,9 @@ export default function ThermoWare() {
     if (!valid) return null;
     const M = await getManifold();
     if (vessel) {
-      const out = buildVessel(M, { ...v, kind: s.kind === "cesto" ? "cesto" : "pote" }, { preview: show === "ready", press: show === "press" ? frame : undefined });
+      const out = buildVessel(M, { ...v, kind: s.kind === "cesto" ? "cesto" : "pote" }, { preview: show === "ready", press: show === "press" ? (frame === "play" ? "closed" : frame) : undefined, morph: show === "press" && frame === "play" });
       const bed = [out.screens, out.molds].flatMap((grp) => bedWarnings(grp, out.warnings));
-      return { models: layoutPlates([{ label: "Tela (aquecer e prensar) · PLA 0,20 mm", models: out.screens }, { label: "Moldes · PETG 0,24 mm", models: out.molds }], bedMm()), warnings: [...out.warnings, ...bed], view: { kind: "vessel", screens: out.screens, molds: out.molds, ready: out.assembled, press: out.press, info: out.info } };
+      return { models: layoutPlates([{ label: "Tela (aquecer e prensar) · PLA 0,20 mm", models: out.screens }, { label: "Moldes · PETG 0,24 mm", models: out.molds }], bedMm()), warnings: [...out.warnings, ...bed], view: { kind: "vessel", screens: out.screens, molds: out.molds, ready: out.assembled, press: out.press, morph: out.morph, info: out.info } };
     }
     let design: CS | null = null;
     if (lines.length) {
@@ -231,12 +232,16 @@ export default function ThermoWare() {
           <Segmented label="O que mostrar" value={pair || show !== "press" ? show : "table"} options={pair ? SHOWS_PAIR : SHOWS} onChange={setShow} full />
           {pair && show === "press" && (
             <>
-              <Segmented label="Quadro" value={frame} options={PRESS_FRAMES} onChange={setFrame} full />
+              <Segmented label="Quadro" value={frame} options={PRESS_VIEWS} onChange={setFrame} full />
               <Alert kind="info">{frame === "section" ? "Corte ao meio: o macho dentro da fêmea, com o disco no meio e a folga em volta. Vire a câmera em Frente." : "São dois moldes que se encaixam e o disco do meio é o que esquenta: 1 fêmea embaixo, 2 disco plano, 3 macho em cima, que desce e prensa. Não vai para o arquivo."}</Alert>
             </>
           )}
           {show === "ready" && <Alert kind="info">{s.kind === "pulseira" ? "A pulseira já enrolada no mandril, de frente. Ela não vai para o arquivo: o que imprime está em Mesa." : `${s.kind === "cesto" ? "O cesto" : "O pote"} já formado, de pé. Ele não vai para o arquivo: o que imprime está em Mesa.`}</Alert>}
-          <Preview3D models={show === "ready" && view ? [view.ready] : pair && show === "press" && view ? [view.press] : models} busy={busy} busyText="Gerando peças e molde…" error={error} views emptyText={!valid ? "Corrija os campos em vermelho para ver a peça." : "Ajuste as medidas para ver a peça."} />
+          {pair && show === "press" && frame === "play" && view?.morph ? (
+            <PressPlayer morph={view.morph} busy={busy} busyText="Gerando peças e molde…" error={error} views emptyText={!valid ? "Corrija os campos em vermelho para ver a peça." : "Ajuste as medidas para ver a peça."} />
+          ) : (
+            <Preview3D models={show === "ready" && view ? [view.ready] : pair && show === "press" && view ? [view.press] : models} busy={busy} busyText="Gerando peças e molde…" error={error} views emptyText={!valid ? "Corrija os campos em vermelho para ver a peça." : "Ajuste as medidas para ver a peça."} />
+          )}
           {warnings.map((w) => (
             <Alert key={w} kind="warn">{w}</Alert>
           ))}

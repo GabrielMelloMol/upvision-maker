@@ -8,7 +8,8 @@ import { scoped, shrinkToFit } from "../geometry/shape2d";
 import { buildStampArt, DEFAULT_ART, type StampLayout } from "../geometry/stampArt";
 import { buildThermo, thermoDefaults, type BaseMode, type ThermoInfo, type ThermoParams } from "../geometry/thermo/build";
 import { layoutPlates } from "../geometry/thermo/layout";
-import { PRESS_FRAMES, type PressFrame } from "../geometry/thermo/press";
+import { PRESS_VIEWS, type PressMorph, type PressView } from "../geometry/thermo/press";
+import PressPlayer from "./PressPlayer";
 import { CLEARANCE_RANGE } from "../geometry/thermo/mold";
 import { ASYMMETRY_WARN, asymmetry, presetSilhouette, SHAPE_LABELS, silhouetteFromDesign, symmetrize, type SymSide, type ThermoShape } from "../geometry/thermo/shapes";
 import { hasEmoji, textToCrossSection } from "../geometry/text";
@@ -71,7 +72,7 @@ type State = {
 
 const initial = (): State => ({ source: "shape", shape: "heart", width: 70, sym: "keep", image: null, cutout: true, silText: "Ana", silFont: "pacifico", text: "Feliz\nNatal", font: "great-vibes", logo: peekHandoff(), layout: "stack", textScale: 55, p: thermoDefaults() });
 
-type View = { screens: Model[]; closure: Model[]; molds: Model[]; assembled: Model; shell: Model; press: Model; info: ThermoInfo; asym: number };
+type View = { screens: Model[]; closure: Model[]; molds: Model[]; assembled: Model; shell: Model; press: Model; morph?: PressMorph; info: ThermoInfo; asym: number };
 
 const g = (n: number) => `${n.toLocaleString("pt-BR", { maximumFractionDigits: 0 })} g`;
 const fmt = (n: number, d = 2) => n.toFixed(d).replace(".", ",");
@@ -113,7 +114,7 @@ export default function Thermoform() {
   const [cutWarn, setCutWarn] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [show, setShow] = useState<Show>("table");
-  const [frame, setFrame] = useState<PressFrame>("open");
+  const [frame, setFrame] = useState<PressView>("play");
   useEffect(clearHandoff, []);
 
   const lines = splitLines(s.text);
@@ -177,7 +178,7 @@ export default function Thermoform() {
         }
       }
       try {
-        const out = buildThermo(M, sil, design, p, { preview: show === "assembled" || show === "shell", press: show === "press" ? frame : undefined });
+        const out = buildThermo(M, sil, design, p, { preview: show === "assembled" || show === "shell", press: show === "press" ? (frame === "play" ? "closed" : frame) : undefined, morph: show === "press" && frame === "play" });
         const warn = [...extra, ...out.warnings];
         if (diff > ASYMMETRY_WARN) warn.unshift(`A silhueta não é simétrica (${Math.round(diff * 100)}% diferente do espelho): o mesmo molde só serve para as duas metades se ela for. Use "Espelhar a esquerda" ou "Espelhar a direita".`);
         const bed = [out.screens, out.closure, out.molds].flatMap((g) => bedWarnings(g, warn));
@@ -189,7 +190,7 @@ export default function Thermoform() {
           ],
           bedMm(),
         );
-        return { models: table, warnings: [...warn, ...bed], view: { screens: out.screens, closure: out.closure, molds: out.molds, assembled: out.assembled, shell: out.shell, press: out.press, info: out.info, asym: diff } };
+        return { models: table, warnings: [...warn, ...bed], view: { screens: out.screens, closure: out.closure, molds: out.molds, assembled: out.assembled, shell: out.shell, press: out.press, morph: out.morph, info: out.info, asym: diff } };
       } finally {
         design?.delete();
       }
@@ -368,7 +369,7 @@ export default function Thermoform() {
           <Segmented label="O que mostrar" value={show} options={SHOWS} onChange={setShow} full />
           {show === "press" && (
             <>
-              <Segmented label="Quadro" value={frame} options={PRESS_FRAMES} onChange={setFrame} full />
+              <Segmented label="Quadro" value={frame} options={PRESS_VIEWS} onChange={setFrame} full />
               <Alert kind="info">
                 {frame === "section"
                   ? "Corte ao meio: o macho dentro da fêmea, com a tela no meio e a folga em volta (a espessura da tela mais a folga do molde). Vire a câmera em Frente."
@@ -377,7 +378,11 @@ export default function Thermoform() {
             </>
           )}
           {(show === "assembled" || show === "shell") && <Alert kind="info">{show === "assembled" ? "Prévia da caixinha já prensada, com a tela curvada sobre o domo. Ela não vai para o arquivo: o que imprime está em Mesa." : "Uma casca já prensada, de perto: a malha curvada sobre o domo, com o desenho e a base. Ela não vai para o arquivo."}</Alert>}
-          <Preview3D models={show === "assembled" && view ? [view.assembled] : show === "shell" && view ? [view.shell] : show === "press" && view ? [view.press] : models} busy={busy || loading} busyText="Gerando telas e molde…" error={error} views emptyText={!valid ? "Corrija os campos em vermelho para ver a caixinha." : s.source === "image" && !s.image ? "Envie a silhueta (SVG ou imagem) para ver a caixinha." : "Escolha um formato para ver a caixinha."} />
+          {show === "press" && frame === "play" && view?.morph ? (
+            <PressPlayer morph={view.morph} busy={busy || loading} busyText="Gerando telas e molde…" error={error} views emptyText={!valid ? "Corrija os campos em vermelho para ver a caixinha." : s.source === "image" && !s.image ? "Envie a silhueta (SVG ou imagem) para ver a caixinha." : "Escolha um formato para ver a caixinha."} />
+          ) : (
+            <Preview3D models={show === "assembled" && view ? [view.assembled] : show === "shell" && view ? [view.shell] : show === "press" && view ? [view.press] : models} busy={busy || loading} busyText="Gerando telas e molde…" error={error} views emptyText={!valid ? "Corrija os campos em vermelho para ver a caixinha." : s.source === "image" && !s.image ? "Envie a silhueta (SVG ou imagem) para ver a caixinha." : "Escolha um formato para ver a caixinha."} />
+          )}
           {warnings.map((w) => (
             <Alert key={w} kind="warn">{w}</Alert>
           ))}

@@ -147,6 +147,13 @@ test("caixinha termoformada: a mesa tem uma placa por arquivo com o que há nela
   await expect(legend).toContainText("1 Molde fêmea (de baixo)", { timeout: 90_000 });
   await expect(legend).toContainText("2 Tela (aqueça esta)");
   await expect(legend).toContainText("3 Molde macho (de cima)");
+  // abre na animação (#270): tocar/pausar e a barra para arrastar até o fim (a casca pronta na fêmea)
+  await expect(page.getByRole("button", { name: "Animação", pressed: true })).toBeVisible();
+  const toggle = page.getByRole("button", { name: /(Pausar|Tocar) a prensagem/ });
+  await expect(toggle).toBeVisible();
+  await page.getByRole("slider", { name: "Prensagem" }).fill("1000");
+  await expect(page.locator(".press-player")).toContainText("Pronto");
+  await expect(page.getByRole("button", { name: "Tocar a prensagem" })).toBeVisible();
   for (const quadro of ["Prensando", "Pronto", "Corte"]) {
     await page.getByRole("button", { name: quadro, exact: true }).click();
     await idle(page);
