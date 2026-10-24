@@ -68,9 +68,9 @@ export default function PressPlayer({ morph, ...preview }: { morph: PressMorph }
     if (!playing && u >= 1) setU(0);
     setPlaying(!playing);
   };
+  // os controles ficam acima da prévia (que é alta): à vista enquanto a animação toca
   return (
     <>
-      <Preview3D {...preview} models={live.models} tick={u} />
       <div className="press-player">
         <Button size="sm" icon={playing ? Pause : Play} onClick={toggle} aria-label={playing ? "Pausar a prensagem" : "Tocar a prensagem"}>
           {playing ? "Pausar" : "Tocar"}
@@ -87,6 +87,7 @@ export default function PressPlayer({ morph, ...preview }: { morph: PressMorph }
           }}
         />
       </div>
+      <Preview3D {...preview} models={live.models} tick={u} />
     </>
   );
 }
