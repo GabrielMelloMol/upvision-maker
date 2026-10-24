@@ -67,6 +67,7 @@ describe("Extrusão SVG → 3D", () => {
     await screen.findByText(/× 2\.0 mm/, undefined, BUILD);
     await user.clear(screen.getByLabelText(/^Altura do desenho/));
     await user.type(screen.getByLabelText(/^Altura do desenho/), "500");
+    await user.tab(); // o erro aparece ao sair do campo (#263)
     expect(await screen.findByText("Corrija os campos em vermelho.", undefined, BUILD)).toBeInTheDocument();
     expect(screen.getByText("Use entre 0,2 e 100.")).toBeInTheDocument();
   });

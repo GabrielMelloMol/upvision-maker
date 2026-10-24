@@ -177,6 +177,7 @@ describe("formatos novos e base de LED (#101)", () => {
     await user.selectOptions(screen.getByLabelText("Formato"), "cylinder");
     await user.clear(screen.getByLabelText(/^Diâmetro \(mm\)/));
     await user.type(screen.getByLabelText(/^Diâmetro \(mm\)/), "500");
+    await user.tab(); // o erro aparece ao sair do campo (#263)
     expect(await screen.findByText(/Use entre 30 e 150/)).toBeInTheDocument();
   });
   test("litofania colorida: pede 5 filamentos, avisa do TD e salva um volume por cor", async () => {
@@ -221,6 +222,7 @@ describe("formatos novos e base de LED (#101)", () => {
     await user.click(screen.getByRole("button", { name: "Relevo" }));
     await user.clear(screen.getByLabelText(/^Profundidade/));
     await user.type(screen.getByLabelText(/^Profundidade/), "50");
+    await user.tab(); // o erro aparece ao sair do campo (#263)
     expect(await screen.findByText(/Use entre 0,5 e 10/)).toBeInTheDocument();
   });
 });

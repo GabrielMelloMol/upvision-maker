@@ -1,5 +1,5 @@
 import HintText from "./HintText";
-import { useId } from "react";
+import { useId, useState } from "react";
 import { labelTerm, TermDesc, TermTip } from "./TermTip";
 import { fieldHelp, rangeHelp, wantsSlider } from "./fieldHelp";
 
@@ -33,7 +33,11 @@ export default function NumField({ label, value, onChange, min, max, step = 0.1,
   const withSlider = (slider ?? wantsSlider(min, max)) && min !== undefined && max !== undefined;
   // frase de ajuda: a do campo, senão a do nome na lista (#210), senão a faixa
   const hint = ownHint ?? fieldHelp(label, section) ?? (min !== undefined && max !== undefined ? rangeHelp(min, max, unit) : undefined);
-  const bad = !Number.isFinite(value) || (min !== undefined && value < min) || (max !== undefined && value > max);
+  const outOfRange = !Number.isFinite(value) || (min !== undefined && value < min) || (max !== undefined && value > max);
+  // Digitando ("1" a caminho de "12"): o erro espera a pessoa sair do campo. Se já estava aparecendo quando ela
+  // entrou, segue ao vivo, para sumir assim que corrigir (#263).
+  const [typing, setTyping] = useState(false);
+  const bad = outOfRange && !typing;
   const asCm = cm && unit === "mm";
   const showEq = asCm && Number.isFinite(value) && value >= 10;
   // digitou em cm (35 em vez de 350): abaixo do mínimo, mas ×10 cabe
@@ -46,7 +50,12 @@ export default function NumField({ label, value, onChange, min, max, step = 0.1,
       {label} {unit && `(${unit})`}
       {showEq && <span className="num-eq" aria-hidden="true"> = {mmToCm(value)} cm</span>}
       {term && <TermTip term={term} />}
-      <input type="number" aria-describedby={[term && tipId, withSlider && hint && !bad && hintId].filter(Boolean).join(" ") || undefined} value={Number.isFinite(value) ? value : ""} min={min} max={max} step={step} aria-invalid={bad} onChange={(e) => onChange(e.target.valueAsNumber)} />
+      <input type="number" aria-describedby={[term && tipId, withSlider && hint && !bad && hintId].filter(Boolean).join(" ") || undefined} value={Number.isFinite(value) ? value : ""} min={min} max={max} step={step} aria-invalid={bad}
+        onFocus={() => setTyping(!outOfRange)}
+        onBlur={() => setTyping(false)}
+        // Windows: a rodinha sobre o campo em foco muda o número sem querer; sair do campo deixa a rodinha rolar a página
+        onWheel={(e) => e.currentTarget === document.activeElement && e.currentTarget.blur()}
+        onChange={(e) => onChange(e.target.valueAsNumber)} />
       {bad ? <span className="error">{rangeMessage(value, min, max, asCm, unit)}</span> : !withSlider && hint && <span className="hint"><HintText>{hint}</HintText></span>}
     </label>
     {withSlider && (

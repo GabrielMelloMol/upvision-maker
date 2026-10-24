@@ -39,6 +39,36 @@ describe("NumField com deslizante", () => {
     expect(screen.getByText(/Use entre 10 e 100/)).toBeInTheDocument();
   });
 
+  test("digitando, o erro espera sair do campo; depois do 1º erro, some assim que a pessoa corrige (#263)", () => {
+    render(<Harness />);
+    const box = screen.getByLabelText(/^Largura/);
+    fireEvent.focus(box);
+    fireEvent.change(box, { target: { value: "1" } }); // a caminho de "12", mínimo 10
+    expect(box).toHaveAttribute("aria-invalid", "false");
+    expect(screen.queryByText(/Use entre 10 e 100/)).toBeNull();
+    fireEvent.blur(box);
+    expect(screen.getByText(/Use entre 10 e 100/)).toBeInTheDocument();
+    fireEvent.focus(box);
+    fireEvent.change(box, { target: { value: "12" } });
+    expect(screen.queryByText(/Use entre 10 e 100/)).toBeNull();
+    fireEvent.change(box, { target: { value: "1" } });
+    expect(screen.getByText(/Use entre 10 e 100/)).toBeInTheDocument();
+  });
+
+  test("a rodinha do mouse sobre o campo em foco tira o foco, para não mudar o número sem querer (#263)", () => {
+    render(<Harness />);
+    const box = screen.getByLabelText(/^Largura/);
+    box.focus();
+    fireEvent.wheel(box, { deltaY: 100 });
+    expect(box).not.toHaveFocus();
+  });
+
+  test("a dica de cm continua aparecendo enquanto a pessoa digita (#194)", () => {
+    render(<NumField label="Largura" value={35} min={100} max={1500} cm onChange={() => {}} />);
+    fireEvent.focus(screen.getByLabelText(/^Largura/));
+    expect(screen.getByText(/Você quis dizer 35 cm/)).toBeInTheDocument();
+  });
+
   test("sem a prop slider, faixa curta ganha o deslizante sozinha; slider={false} e faixa longa ficam só com o número", () => {
     const { rerender } = render(<NumField label="Largura" value={50} min={10} max={100} onChange={() => {}} />);
     expect(screen.getByRole("slider")).toBeInTheDocument();
