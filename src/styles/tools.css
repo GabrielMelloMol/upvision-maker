@@ -29,6 +29,7 @@
 .viewer .busy-chip { position: absolute; right: 12px; bottom: 12px; display: flex; align-items: center; gap: 8px; font-size: var(--text-sm); padding: 5px 10px; border-radius: var(--r-pill); background: var(--glass); box-shadow: var(--shadow-1); color: var(--muted); }
 .viewer .busy-chip .spinner { width: 14px; height: 14px; border-width: 2px; }
 .viewer .legend { left: 12px; bottom: 12px; display: flex; gap: 12px; flex-wrap: wrap; }
+.viewer .legend > span { white-space: nowrap; } /* "Placa 2 · Clipe" não quebra no meio (#270) */
 .viewer .legend .legend-zoom { cursor: pointer; text-decoration: underline dotted; text-underline-offset: 3px; }
 .viewer .legend i { display: inline-block; width: 10px; height: 10px; border-radius: 3px; margin-right: 5px; vertical-align: -1px; box-shadow: 0 0 0 1px color-mix(in srgb, var(--text) 40%, transparent); } /* contorno que aparece em cores escuras no tema escuro (e em claras no claro) */
 .viewer .hud { right: 12px; top: 12px; color: var(--muted); font-variant-numeric: tabular-nums; font-weight: 500; }
