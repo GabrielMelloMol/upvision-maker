@@ -99,6 +99,20 @@ describe("fotos no backup (#162)", () => {
     expect(await db.select("SELECT id, owner, position, dataUrl FROM photos")).toEqual([{ id: 3, owner: "product:7", position: 0, dataUrl: JPG }]);
   });
 
+  test("backup antigo com product_photos não apaga as fotos de projetos e impressões, que a versão dele não tinha (C2)", async () => {
+    const db = await seeded();
+    await db.execute("INSERT INTO tool_projects (id, toolId, name, data, thumb, at) VALUES (1, 'chaveiro', 'Ana', '{}', NULL, 'x')");
+    await db.execute("INSERT INTO print_logs (id, at, result) VALUES (1, '2026-10-01', 'ok')");
+    const b = await exportBackup(db);
+    for (const owner of ["project:1", "print:1", "product:9"]) await db.execute("INSERT INTO photos (owner, position, dataUrl, createdAt) VALUES (?, 0, ?, 'x')", [owner, JPG]);
+    const tables = { ...b.tables, product_photos: [{ id: 1, productId: 7, position: 0, dataUrl: JPG }] } as Record<string, unknown>;
+    delete tables.photos;
+
+    await restoreBackup(db, parseBackup(JSON.stringify({ ...b, schemaVersion: 20, tables })));
+
+    expect((await db.select<{ owner: string }>("SELECT owner FROM photos ORDER BY owner")).map((r) => r.owner)).toEqual(["print:1", "product:7", "project:1"]);
+  });
+
   test("sem fotos no arquivo: o backup sai leve e restaurar não apaga as fotos que já estão no app", async () => {
     const db = await seeded();
     await db.execute("INSERT INTO products (id, name, kind, composition) VALUES (1, 'Vaso', 'simple', '{\"filaments\":[],\"materials\":[],\"items\":[]}')");

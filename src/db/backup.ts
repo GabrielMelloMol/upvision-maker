@@ -69,9 +69,13 @@ export async function restoreBackup(db: Db, backup: Backup): Promise<void> {
   for (const t of names) {
     if (t === "photos" && backup.photosOmitted) continue; // backup leve: as fotos do app ficam
     if (backup.missing?.includes(t)) continue; // a tabela não existia na versão do backup: não apaga (C2)
-    statements.push({ sql: `DELETE FROM ${t}` });
+    // Backup de antes da #162 (fotos em product_photos): a versão dele só tinha fotos de produto, então as de
+    // projetos e impressões ficam (C2), e o id das convertidas pula as que ficaram, para não colidir.
+    const legacy = t === "photos" && !backup.tables.photos.length && backup.tables.product_photos.length > 0;
+    statements.push({ sql: legacy ? "DELETE FROM photos WHERE owner LIKE 'product:%'" : `DELETE FROM ${t}` });
     const cols = Object.keys(TABLES[t].shape);
-    const sql = `INSERT INTO ${t} (${cols.join(", ")}) VALUES (${cols.map(() => "?").join(", ")})`;
+    const marks = cols.map((c) => (legacy && c === "id" ? "? + (SELECT COALESCE(MAX(id), 0) FROM photos WHERE owner NOT LIKE 'product:%')" : "?"));
+    const sql = `INSERT INTO ${t} (${cols.join(", ")}) VALUES (${marks.join(", ")})`;
     for (const row of rowsOf(backup, t)) statements.push({ sql, params: cols.map((c) => row[c] ?? null) });
   }
   if (backup.photosOmitted) {
