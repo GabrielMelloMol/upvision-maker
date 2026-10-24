@@ -3,6 +3,11 @@
 Cada versão aparece para a usuária na tela "O que há de novo" depois da atualização.
 Formato: `## <versão> — <data>` e itens `- …` em linguagem simples.
 
+## 0.14.1 — 2026-10-24
+- **Animação da prensagem na termoformagem (#270)**: em "Como prensar", a caixinha e o cesto/pote abrem em Animação: o molde de cima desce, a tela vira casca e o molde volta. Tem botão de tocar/pausar e uma barra para ver passo a passo.
+- **Fotos realistas da termoformagem (#270)**: Caixinha, Pote/cesto/pulseira e Pixel art ganharam foto de peça impressa na Criar.
+- **Legenda da Mesa sem quebra (#270)**: a legenda das peças da mesa não quebra mais no meio de um grupo.
+
 ## 0.14.0 — 2026-10-24
 - **Restaurar um backup bem antigo não apaga mais as fotos de projetos e impressões (#259)**: num backup de antes das fotos de projetos, só as fotos de produto são trocadas; as dos projetos salvos e da ficha de impressão ficam como estavam.
 - **Campos de número não acusam erro enquanto você digita (#263)**: num campo com mínimo 10, digitar "1" a caminho de "12" não deixa mais o aviso vermelho aparecer; ele aparece quando você sai do campo e, depois disso, some assim que o número fica certo. A rodinha do mouse sobre um campo de número não muda mais o valor sem querer (no Windows).
