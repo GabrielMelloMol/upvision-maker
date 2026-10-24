@@ -27,11 +27,16 @@ test("pote, cesto e pulseira termoformados: disco, molde e mandril em arquivos s
   await idle(page);
   await expect(page.locator(".legend")).toContainText("Malha");
   await expect(page.locator(".legend")).toContainText("Molde fêmea");
+  // a prensagem animada do cesto (#270)
+  await page.getByRole("button", { name: "Como prensar (não imprime)" }).click();
+  await idle(page);
+  await expect(page.getByRole("slider", { name: "Prensagem" })).toBeVisible({ timeout: 90_000 });
+  await expect(page.locator(".legend")).toContainText("2 Tela (aqueça esta)");
 
-  // prévia do pote pronto
+  // prévia do cesto pronto (o texto fala do cesto, não do pote)
   await page.getByRole("button", { name: "Pronto (não imprime)" }).click();
   await idle(page);
-  await expect(page.getByText(/O pote já formado, de pé/)).toBeVisible();
+  await expect(page.getByText(/O cesto já formado, de pé/)).toBeVisible();
 
   // pulseira: tira e mandril
   await page.getByRole("button", { name: "Pulseira", exact: true }).click();
