@@ -235,7 +235,7 @@ export default function ThermoWare() {
               <Alert kind="info">{frame === "section" ? "Corte ao meio: o macho dentro da fêmea, com o disco no meio e a folga em volta. Vire a câmera em Frente." : "São dois moldes que se encaixam e o disco do meio é o que esquenta: 1 fêmea embaixo, 2 disco plano, 3 macho em cima, que desce e prensa. Não vai para o arquivo."}</Alert>
             </>
           )}
-          {show === "ready" && <Alert kind="info">{s.kind === "pulseira" ? "A pulseira já enrolada no mandril, de frente. Ela não vai para o arquivo: o que imprime está em Mesa." : "O pote já formado, de pé. Ele não vai para o arquivo: o que imprime está em Mesa."}</Alert>}
+          {show === "ready" && <Alert kind="info">{s.kind === "pulseira" ? "A pulseira já enrolada no mandril, de frente. Ela não vai para o arquivo: o que imprime está em Mesa." : `${s.kind === "cesto" ? "O cesto" : "O pote"} já formado, de pé. Ele não vai para o arquivo: o que imprime está em Mesa.`}</Alert>}
           <Preview3D models={show === "ready" && view ? [view.ready] : pair && show === "press" && view ? [view.press] : models} busy={busy} busyText="Gerando peças e molde…" error={error} views emptyText={!valid ? "Corrija os campos em vermelho para ver a peça." : "Ajuste as medidas para ver a peça."} />
           {warnings.map((w) => (
             <Alert key={w} kind="warn">{w}</Alert>

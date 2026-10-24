@@ -57,6 +57,8 @@ describe("Pote, cesto e pulseira termoformados", () => {
     await user.click(saveButtons()[1]);
     await waitFor(() => expect(fileOf(/cesto-molde.*\.3mf$/)).toBeTruthy());
     expect(objects(t.files.get(fileOf(/cesto-molde.*\.3mf$/)!)!)).toBe(2);
+    await user.click(screen.getByRole("button", { name: "Pronto (não imprime)" }));
+    expect(screen.getByText(/O cesto já formado, de pé/)).toBeInTheDocument();
   }, 90_000);
 
   test("pulseira: tira e mandril, com a conta da tira", async () => {
