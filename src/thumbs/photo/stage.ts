@@ -94,10 +94,11 @@ function brickTexture(): THREE.CanvasTexture {
 const WOOD_TILE_MM = 600; // a folha de folheado mede ~60 cm
 const BRICK_TILE_MM = 260; // uma repetição da textura: 4 tijolos de 65 mm
 const WALL_W = 4000;
+const DARK_WOOD = 0x6e5646; // multiplica a textura: o mesmo carvalho, tingido de nogueira
 const WALL_H = 1600;
 
 /** Mesa abaixo da peça (Y para cima): madeira ou branca de estúdio. Sem clearcoat: o WebKit do app não compila o shader com ele. */
-export function table(kind: Backdrop, span: number, y: number, center: THREE.Vector3): THREE.Mesh {
+export function table(kind: Backdrop, span: number, y: number, center: THREE.Vector3, dark = false): THREE.Mesh {
   const size = span * 120;
   const geo = new THREE.PlaneGeometry(size, size);
   geo.rotateX(-Math.PI / 2);
@@ -105,7 +106,7 @@ export function table(kind: Backdrop, span: number, y: number, center: THREE.Vec
   if (kind === "wood") {
     const map = woodTexture();
     map.repeat.set(size / WOOD_TILE_MM, size / WOOD_TILE_MM);
-    mat = new THREE.MeshPhysicalMaterial({ map, roughness: 0.5, metalness: 0, specularIntensity: 0.45 });
+    mat = new THREE.MeshPhysicalMaterial({ map, color: dark ? DARK_WOOD : 0xffffff, roughness: 0.5, metalness: 0, specularIntensity: 0.45 });
   } else mat = new THREE.MeshPhysicalMaterial({ color: 0xc3c7cf, roughness: 0.92, metalness: 0 });
   const mesh = new THREE.Mesh(geo, mat);
   mesh.position.set(center.x, y, center.z);

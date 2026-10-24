@@ -43,6 +43,8 @@ export type PhotoScene = {
   floorZ?: number;
   /** folga em volta da peça principal desta cena (a opção `heroPad` vence) */
   heroPad?: number;
+  /** mesa de madeira escura: peça clara (branca, creme) some na madeira clara */
+  darkTable?: boolean;
 };
 
 export type PhotoOpts = {
@@ -122,7 +124,7 @@ export function createPhoto(scene3: PhotoScene, opts: PhotoOpts = {}, canvas?: H
   const focusPoint = hero ? new THREE.Box3().setFromObject(hero).getCenter(new THREE.Vector3()) : frameCenter;
   group.rotation.copy(TO_Y_UP);
   scene.add(group);
-  const floor = table(opts.backdrop ?? "wood", span, scene3.floorZ ?? box.min.z, yUp(center)); // Z da mesa vira Y
+  const floor = table(opts.backdrop ?? "wood", span, scene3.floorZ ?? box.min.z, yUp(center), scene3.darkTable); // Z da mesa vira Y
 
   scene.add(floor);
 

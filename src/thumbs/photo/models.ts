@@ -229,18 +229,48 @@ export async function photoScene(id: PhotoId, o: SceneOpts = {}): Promise<PhotoS
 }
 
 const FLAT_RATIO = 0.4; // peça mais baixa que 40% do maior lado da base: deitada na mesa, foto de cima
+const LONG_RATIO = 2.5; // peça plana bem mais comprida que larga (régua, corrente): cópias lado a lado pelo lado curto
+const LIGHT_LUMA = 0.6; // peça mais clara que isso (luminância linear média): mesa escura, senão some na madeira
 const ORGANIZER_ELEVATION_DEG = 62; // mais alto que o padrão: a tampa aberta não esconde o que há atrás
 const GENERIC_SPREAD = 1.05; // distância entre cópias, em tamanhos da peça
+const TALL_SPREAD = 1.5; // peça em pé: as cópias ficam mais longe, atrás, sem esconder nem cortar a principal
+const TALL_PAD = 0.22;
+const BIG_FLAT_MM = 120; // peça plana maior que isso e com mais de 40 mm de largura (cartela de kit, placa): sozinha na foto
+const BIG_FLAT_SHORT_MM = 40; // a régua (comprida e estreita) continua com cópias: sozinha vira um risco
+
+/** Luminância linear média das cores, pesada pelos triângulos de cada parte (≈ quanto da peça tem aquela cor). */
+export function meanLuma(models: Model[]): number {
+  let sum = 0, n = 0;
+  for (const m of models)
+    for (const p of m.parts) {
+      const c = new THREE.Color(p.color), t = p.mesh.indices.length / 3;
+      sum += (0.2126 * c.r + 0.7152 * c.g + 0.0722 * c.b) * t;
+      n += t;
+    }
+  return n ? sum / n : 0;
+}
 
 /** Cena genérica de qualquer modelo pronto (miniaturas): a peça e duas cópias nas cores seguintes da vitrine, na mesa. */
 export async function genericScene(id: string, o: SceneOpts = {}): Promise<PhotoScene> {
   const base = grounded(await buildModels(id));
   const b = boundsOf(base);
   const w = Math.max(b.max[0] - b.min[0], 1), d = Math.max(b.max[1] - b.min[1], 1);
-  const step = Math.max(w, d) * GENERIC_SPREAD;
+  const long = Math.max(w, d), short = Math.min(w, d);
+  const step = long * GENERIC_SPREAD;
   const variants = [id, `${id}-b`, `${id}-c`].map((alt) => grounded(showcaseColors(alt, base)));
-  const flat = b.max[2] - b.min[2] < Math.max(w, d) * FLAT_RATIO;
-  const poses: Pose[] = [{ x: 0, y: -step * 0.3, rotZ: 8 }, { x: -step * 0.62, y: step * 0.5, rotZ: -10 }, { x: step * 0.66, y: step * 0.55, rotZ: 14 }];
+  const flat = b.max[2] - b.min[2] < long * FLAT_RATIO;
+  let poses: Pose[] = [{ x: 0, y: -step * 0.3, rotZ: 8 }, { x: -step * 0.62, y: step * 0.5, rotZ: -10 }, { x: step * 0.66, y: step * 0.55, rotZ: 14 }];
+  const stretched = flat && long > short * LONG_RATIO;
+  if (stretched) {
+    // comprida: o lado longo na horizontal da foto e as cópias empilhadas, quase paralelas; a folga cobre o giro
+    const turn = d > w ? 90 : 0, gap = short * 1.6 + long * 0.08;
+    poses = [{ x: 0, y: -gap, rotZ: turn + 3 }, { x: -long * 0.06, y: 0, rotZ: turn - 2 }, { x: long * 0.05, y: gap, rotZ: turn + 4 }];
+  } else if (!flat) {
+    const far = long * TALL_SPREAD;
+    poses = [{ x: 0, y: 0, rotZ: 8 }, { x: -far * 0.85, y: far * 0.9, rotZ: -10 }, { x: far * 0.9, y: far, rotZ: 14 }];
+  }
+  if (flat && long > BIG_FLAT_MM && short > BIG_FLAT_SHORT_MM) variants.length = 1; // com cópias ela fica minúscula
   const placed = await Promise.all(variants.map(async (v, i) => place(await maybeBevel(v, o), [], poses[i])));
-  return sceneOf(placed, flat ? { view: "top" } : { heroPad: 0.05 });
+  const darkTable = meanLuma(variants[0]) > LIGHT_LUMA;
+  return sceneOf(placed, flat ? { view: "top", darkTable } : { heroPad: TALL_PAD, darkTable });
 }
