@@ -126,8 +126,10 @@ const ease = ([a, b]: readonly [number, number], u: number) => {
 export function morphAt(mo: Pick<PressMorph, "travel" | "hover">, u: number): { male: number; sheet: number; blend: number } {
   if (u >= DOWN[1]) return { male: mo.travel * ease(UP, u), sheet: 0, blend: 1 };
   const male = mo.travel * (1 - ease(DOWN, u));
-  const sheet = Math.min(mo.hover, male); // a tela paira até o macho encostar, depois desce com ele
-  return { male, sheet, blend: 1 - sheet / mo.hover };
+  // a ponta do macho encosta na tela plana quando falta `altura + hover` (o curso é altura + 2 × hover + 1, ver pressTravel);
+  // daí a tela afunda junto: o centro dela acompanha a ponta até o fundo
+  const k = Math.min(1, male / (mo.travel - mo.hover - 1));
+  return { male, sheet: mo.hover * k, blend: 1 - k };
 }
 
 /** Escreve o quadro `u` nos vértices da prévia (`male`: cópia do macho; `sheets`: um por pedaço da tela), sem recalcular a geometria. */

@@ -20,11 +20,15 @@ describe("animação da prensagem (#270)", () => {
     expect(morphAt(MO, 1)).toEqual({ male: 40, sheet: 0, blend: 1 });
   });
 
-  test("a tela só vira casca quando o macho encosta nela, e desce junto com ele", () => {
+  test("a tela fica plana até a ponta do macho encostar (curso − hover − 1, ver pressTravel) e daí afunda junto com ele, sem o macho atravessar", () => {
+    const contact = MO.travel - MO.hover - 1;
     for (let u = 0; u <= 0.6; u += 0.01) {
       const f = morphAt(MO, u);
-      expect(f.sheet).toBe(Math.min(MO.hover, f.male));
-      expect(f.blend).toBeCloseTo(1 - f.sheet / MO.hover, 9);
+      const k = Math.min(1, f.male / contact);
+      expect(f.sheet).toBeCloseTo(MO.hover * k, 9);
+      expect(f.blend).toBeCloseTo(1 - k, 9);
+      // o centro da tela (que desce `altura + hover` até o fundo) fica sempre na ponta do macho ou abaixo dela
+      expect((1 - f.blend) * contact).toBeLessThanOrEqual(f.male + 1e-9);
     }
   });
 
