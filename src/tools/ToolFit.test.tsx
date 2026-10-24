@@ -146,6 +146,7 @@ describe("Organizador pela foto (#169)", () => {
     await user.type(w, "35");
     await user.clear(d);
     await user.type(d, "25");
+    await user.tab(); // o erro aparece ao sair do campo (#263)
     expect(drawer.getAllByText(/Use entre 60 e 1\.000 mm \(6 e 100 cm\)/, { selector: "span.error" })).toHaveLength(2);
     await user.click(drawer.getByRole("button", { name: "Usar 350 mm" }));
     await user.click(drawer.getByRole("button", { name: "Usar 250 mm" }));

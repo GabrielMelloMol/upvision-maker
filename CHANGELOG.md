@@ -3,6 +3,9 @@
 Cada versão aparece para a usuária na tela "O que há de novo" depois da atualização.
 Formato: `## <versão> — <data>` e itens `- …` em linguagem simples.
 
+## Próxima versão (ainda não lançada)
+- **Campos de número não acusam erro enquanto você digita (#263)**: num campo com mínimo 10, digitar "1" a caminho de "12" não deixa mais o aviso vermelho aparecer; ele aparece quando você sai do campo e, depois disso, some assim que o número fica certo. A rodinha do mouse sobre um campo de número não muda mais o valor sem querer (no Windows).
+
 ## 0.13.0 — 2026-10-16
 - **Caixa organizadora nunca passa da mesa (#204)**: no tamanho máximo (300 × 300 mm) a caixa passava da mesa de 256 mm e o fatiador recusava a peça. Agora as medidas são limitadas à mesa da impressora escolhida (a dobradiça, que sai 10 mm atrás, entra na conta) e o aviso diz o que mudou: "Você pediu 300 × 300 mm… Reduzi para 252 × 242 mm", e o que fazer para uma caixa maior.
 - **As ferramentas passam a usar a folga que você validou no Kit de testes (#247)**: a folga que você escolhe em Ajustes › Kit de testes agora vira o padrão da alça de copo, da caixa de placa, da capa de celular, da rosca (Estojo e aromatizador), do docinho, das engrenagens e do redutor planetário, da dobradiça e da trava da caixa organizadora (com campos novos de folga do pino e profundidade do gancho) e do clipe da caixinha termoformada. Projetos já começados mantêm o valor que tinham.
