@@ -156,4 +156,27 @@ describe("foto → contornos em mm (#169)", { timeout: 60_000 }, () => {
     expect(r.outlines).toHaveLength(1);
     expect(r.outlines[0].holes).toBeUndefined();
   });
+
+  test("foto de celular de verdade: ruído do sensor e distorção de barril da lente, erro abaixo de 1 mm", () => {
+    const r = run({ ...BASE, noise: 6, distortion: -0.02 });
+    expect(r.outlines).toHaveLength(1);
+    const [short, long] = dims(r.outlines[0]);
+    expect(Math.abs(long - 100)).toBeLessThan(1);
+    expect(Math.abs(short - 40)).toBeLessThan(1);
+  });
+
+  test("ferramenta cinza clara (cromada, alumínio) ainda é separada do papel", () => {
+    const r = run({ ...BASE, boxes: [{ ...BASE.boxes[0], tone: 150 }] });
+    expect(r.outlines).toHaveLength(1);
+    const [short, long] = dims(r.outlines[0]);
+    expect(Math.abs(long - 100)).toBeLessThan(0.5);
+    expect(Math.abs(short - 40)).toBeLessThan(0.5);
+  });
+
+  test("ferramenta escura encostada na borda do papel: não junta com a mesa e avisa que pode ter sido cortada", () => {
+    const r = run({ ...SMALL, boxes: [{ x: 110, y: 120, w: 100, d: 40, h: 0 }] });
+    expect(r.outlines).toHaveLength(1);
+    expect(dims(r.outlines[0])[1]).toBeLessThan(100); // a margem de 1,5 mm da borda fica de fora, nunca a mesa
+    expect(r.warnings.join(" ")).toMatch(/sai da folha/);
+  });
 });

@@ -100,16 +100,22 @@ export function relative(g: Gray): Float32Array {
 
 /**
  * Limiar no meio do caminho entre o papel (1) e o tom típico das ferramentas: a borda borrada da foto cai exatamente
- * na metade, então o contorno não engorda nem emagrece. Limitado a 0,45–0,75 para não pegar sombra leve.
+ * na metade, então o contorno não engorda nem emagrece. Limitado a 0,45–0,75 para não pegar sombra leve. Sem nenhuma
+ * ferramenta escura, o tom vem das cinza-claras (rel 0,45–0,75), como uma chave cromada.
  */
 export function threshold(rel: Float32Array): number {
   const dark: number[] = [];
+  const light: number[] = [];
   for (let i = 0; i < rel.length; i += 7) if (rel[i] < 0.45) dark.push(rel[i]);
+  else if (rel[i] < 0.75) light.push(rel[i]);
+  // shortcut: ferramenta clara (alumínio, cromada) só é achada quando não há escura na foto; misturadas, ela precisa
+  // de limiar por região
+  if (dark.length < 50 && light.length >= 50) return median(light) / 2 + 0.5;
   if (dark.length < 50) return 0.6;
-  dark.sort((a, b) => a - b);
-  const tone = dark[Math.floor(dark.length / 2)];
-  return Math.min(0.75, Math.max(0.45, (1 + tone) / 2));
+  return Math.min(0.75, Math.max(0.45, (1 + median(dark)) / 2));
 }
+
+const median = (v: number[]) => v.sort((a, b) => a - b)[Math.floor(v.length / 2)];
 
 /** Erosão/dilatação com quadrado de lado 2r+1 (separável). */
 function morph(mask: Uint8Array, w: number, h: number, r: number, grow: boolean): Uint8Array {

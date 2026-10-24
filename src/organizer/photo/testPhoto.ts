@@ -27,6 +27,10 @@ export type Scene = {
   table?: { tone: number; shadow?: { width: number; strength: number } };
   /** O que está impresso no papel (tom 0–255 em x, y mm da folha; null = papel). */
   print?: (x: number, y: number) => number | null;
+  /** Ruído do sensor: desvio padrão (tom 0–255), sempre o mesmo para a mesma cena. */
+  noise?: number;
+  /** Distorção radial da lente (k1; negativo = barril, como a grande-angular do celular), em relação à meia diagonal. */
+  distortion?: number;
 };
 
 type V3 = [number, number, number];
@@ -113,17 +117,29 @@ export function renderScene(s: Scene, ss = 3): Rgba {
   const [w, h] = s.size;
   const R = rotation(s.camera, s.target, s.roll);
   const data = new Uint8ClampedArray(w * h * 4);
+  const half2 = (w * w + h * h) / 4;
+  let seed = 12345;
+  const rand = () => ((seed = (seed * 1103515245 + 12345) % 2147483648) / 2147483648);
   for (let py = 0; py < h; py++)
     for (let px = 0; px < w; px++) {
       let sum = 0;
       for (let sy = 0; sy < ss; sy++)
         for (let sx = 0; sx < ss; sx++) {
-          const cx = (px + (sx + 0.5) / ss - w / 2) / s.focalPx;
-          const cy = (py + (sy + 0.5) / ss - h / 2) / s.focalPx;
+          let ux = px + (sx + 0.5) / ss - w / 2;
+          let uy = py + (sy + 0.5) / ss - h / 2;
+          if (s.distortion) {
+            // pixel distorcido → raio sem distorção (inversa de 1ª ordem, boa para |k1| pequeno)
+            const f = 1 / (1 + s.distortion * ((ux * ux + uy * uy) / half2));
+            ux *= f;
+            uy *= f;
+          }
+          const cx = ux / s.focalPx;
+          const cy = uy / s.focalPx;
           const d: V3 = [R[0][0] * cx + R[1][0] * cy + R[2][0], R[0][1] * cx + R[1][1] * cy + R[2][1], R[0][2] * cx + R[1][2] * cy + R[2][2]];
           sum += shade(s, s.camera, d);
         }
-      const v = sum / (ss * ss);
+      // Box-Muller: ruído gaussiano
+      const v = sum / (ss * ss) + (s.noise ? s.noise * Math.sqrt(-2 * Math.log(rand() || 1e-9)) * Math.cos(2 * Math.PI * rand()) : 0);
       const i = (py * w + px) * 4;
       data[i] = v;
       data[i + 1] = v;
