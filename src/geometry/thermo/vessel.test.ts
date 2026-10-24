@@ -13,6 +13,17 @@ beforeAll(async () => {
 const V = (patch: Partial<VesselParams> = {}): VesselParams => ({ ...DEFAULT_VESSEL, ...patch });
 const named = <T extends { name: string }>(list: T[], name: string) => list.find((m) => m.name === name)!;
 
+
+/** Caixa (min, max) de um conjunto de malhas. */
+const bboxOf = (meshes: { positions: Float32Array }[]) => {
+  const lo = [Infinity, Infinity, Infinity], hi = [-Infinity, -Infinity, -Infinity];
+  for (const m of meshes) for (let i = 0; i < m.positions.length; i++) {
+    lo[i % 3] = Math.min(lo[i % 3], m.positions[i]);
+    hi[i % 3] = Math.max(hi[i % 3], m.positions[i]);
+  }
+  return { lo, hi };
+};
+
 describe("perfil do pote", () => {
   test("começa no centro do fundo, termina na boca e o comprimento é a soma dos trechos", () => {
     const pr = vesselProfile(DEFAULT_VESSEL);
@@ -150,5 +161,28 @@ describe("pote termoformado", () => {
       expect(modelSize(open)[2]).toBeGreaterThan(modelSize(closed)[2] + 20);
       expect(modelSize(both("section"))[1]).toBeLessThan(modelSize(closed)[1] * 0.6);
       expect(buildVessel(M, V({ mold: "male", height: 30, mouthD: 60 }), { preview: false, press: "open" }).press.parts).toEqual([]);
+    }));
+
+  test("animação da prensagem (pote, #270): a tela plana e a casca têm a mesma malha, e a casca fica onde está no quadro Pronto", () =>
+    scoped(() => {
+      const out = buildVessel(M, V({ mold: "both", height: 30, mouthD: 60 }), { preview: false, press: "closed", morph: true });
+      const mo = out.morph!;
+      expect(mo.parts.length).toBeGreaterThan(0);
+      for (const q of mo.parts) {
+        expect(q.pressed.indices).toEqual(q.flat.indices);
+        expect(q.pressed.positions.length).toBe(q.flat.positions.length);
+      }
+      const flat = bboxOf(mo.parts.map((q) => q.flat));
+      const pressed = bboxOf(mo.parts.map((q) => q.pressed));
+      expect(pressed.hi[2] - pressed.lo[2]).toBeGreaterThan(flat.hi[2] - flat.lo[2] + 5); // plana → funda
+      // a casca do morph cai sobre a tela do quadro Pronto (±1 mm)
+      const ready = bboxOf(out.press.parts.filter((q) => q.name !== "1 Molde fêmea (de baixo)" && q.name !== "3 Molde macho (de cima)").map((q) => q.mesh));
+      for (let a = 0; a < 3; a++) {
+        expect(Math.abs(pressed.lo[a] - ready.lo[a])).toBeLessThan(1);
+        expect(Math.abs(pressed.hi[a] - ready.hi[a])).toBeLessThan(1);
+      }
+      expect(mo.travel).toBeGreaterThan(0);
+      expect(mo.male.parts[0].mesh.positions.length).toBeGreaterThan(0);
+      expect(mo.female.parts[0].mesh.positions.length).toBeGreaterThan(0);
     }));
 });

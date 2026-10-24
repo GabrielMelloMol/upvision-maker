@@ -22,6 +22,8 @@ type Props = {
   quietBusy?: boolean;
   /** Mostra também a medida da peça pronta em cm (modelos que a pessoa dimensiona em cm). */
   cm?: boolean;
+  /** Mudou: os vértices de `models` foram alterados no lugar (animação) e a vista redesenha sem remontar. */
+  tick?: number;
 };
 
 const VIEW_BUTTONS: [ViewName, string][] = [
@@ -75,7 +77,7 @@ export const snapshotPreview = (max?: number) => {
 };
 
 /** Prévia 3D padrão de todas as ferramentas: Z para cima, mesa da impressora escolhida, girar/zoom com o mouse. */
-export default function Preview3D({ models, busy, busyText = "Gerando modelo…", error, emptyText = "A prévia aparece aqui.", onPick, gizmo, views, quietBusy, cm }: Props) {
+export default function Preview3D({ models, busy, busyText = "Gerando modelo…", error, emptyText = "A prévia aparece aqui.", onPick, gizmo, views, quietBusy, cm, tick }: Props) {
   const host = useRef<HTMLDivElement>(null);
   const viewer = useRef<ReturnType<typeof createViewer> | null>(null);
   const down = useRef<{ x: number; y: number } | null>(null);
@@ -98,6 +100,10 @@ export default function Preview3D({ models, busy, busyText = "Gerando modelo…"
     viewer.current?.setModels(models);
     if (active === viewer.current) activeModels = models;
   }, [models]);
+
+  useEffect(() => {
+    if (tick !== undefined) viewer.current?.refresh();
+  }, [tick]);
 
   useEffect(() => {
     viewer.current?.setHandles?.(gizmo?.handles ?? [], gizmo?.onDrag ?? (() => {}));

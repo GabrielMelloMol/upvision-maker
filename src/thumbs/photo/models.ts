@@ -3,8 +3,11 @@ import { loadFont } from "../../geometry/fonts";
 import { buildKeychain, DEFAULT_KEYCHAIN } from "../../geometry/keychain";
 import { getManifold, type CS } from "../../geometry/manifold";
 import { buildMedal, DEFAULT_MEDAL } from "../../geometry/medal";
+import { buildPixelArt, DEFAULT_PIXEL_OPTIONS } from "../../geometry/pixelArt";
+import { buildBand, DEFAULT_BAND } from "../../geometry/thermo/band";
 import { buildThermo, thermoDefaults } from "../../geometry/thermo/build";
 import { presetSilhouette, type ThermoShape } from "../../geometry/thermo/shapes";
+import { BASKET_VESSEL, buildVessel, DEFAULT_VESSEL } from "../../geometry/thermo/vessel";
 import { textToCrossSection } from "../../geometry/text";
 import type { Model } from "../../geometry/types";
 import type { Params } from "../../tools/models/defs";
@@ -18,7 +21,7 @@ import { AZIMUTH_DEG, type PhotoItem, type PhotoScene } from "./render";
  * As cenas da foto realista (#251, rodada 2): cada peça montada como se usa e em 3 a 4 cópias com nomes e cores
  * diferentes, espalhadas na mesa. `bevel` arredonda as quinas (0,4 mm) antes de montar a cena.
  */
-export const PHOTO_IDS = ["keychain", "organizer", "medal", "pix", "thermo"] as const;
+export const PHOTO_IDS = ["keychain", "organizer", "medal", "pix", "thermo", "vessel", "pixel"] as const;
 export type PhotoId = (typeof PHOTO_IDS)[number];
 export type SceneOpts = { bevel?: boolean };
 
@@ -213,6 +216,40 @@ async function thermos(o: SceneOpts): Promise<PhotoScene> {
   return sceneOf(placed, { view: "top" });
 }
 
+/** Cartão "Pote, cesto e pulseira" (#270): o cesto em pé na frente, o pote atrás e a pulseira deitada ao lado. */
+async function vessels(o: SceneOpts): Promise<PhotoScene> {
+  const M = await getManifold();
+  const cesto = buildVessel(M, { ...DEFAULT_VESSEL, ...BASKET_VESSEL, colors: { ...DEFAULT_VESSEL.colors, sheet: "#0f9d8a", border: "#0f9d8a", base: "#0f9d8a" } }, { preview: true }).assembled;
+  const pote = buildVessel(M, { ...DEFAULT_VESSEL, colors: { ...DEFAULT_VESSEL.colors, sheet: "#e8613c", border: "#e8613c", base: "#e8613c" } }, { preview: true }).assembled;
+  const band = buildBand(M, { ...DEFAULT_BAND, colors: { ...DEFAULT_BAND.colors, strip: "#c9317a", border: "#c9317a" } }, null, { preview: true }).assembled;
+  const strip = { ...band, parts: band.parts.filter((q) => !/mandril/i.test(q.name)) }; // só a pulseira, sem o mandril
+  const placed = [
+    place(await maybeBevel(grounded([cesto]), o), [], { x: 0, y: 0, rotZ: 8 }),
+    place(await maybeBevel(grounded([pote]), o), [], { x: -80, y: 105, rotZ: -10 }),
+    place(await maybeBevel(grounded([strip]), o), [], { x: 78, y: -38, rotZ: 25 }),
+  ];
+  return sceneOf(placed, { heroPad: 0.3 });
+}
+
+const PIXELS: { rows: string[]; palette: string[]; pose: Pose }[] = [
+  { rows: ["..aa...aa..", ".aaaa.aaaa.", "aabaaaaaaaa", "aabbaaaaaaa", "aaaaaaaaaaa", ".aaaaaaaaa.", "..aaaaaaa..", "...aaaaa...", "....aaa....", ".....a....."], palette: ["#e11d48", "#fda4af"], pose: { x: 2, y: -30, rotZ: -6 } },
+  { rows: ["....a....", "...aaa...", "aaaaaaaaa", ".aaaaaaa.", "..aaaaa..", ".aaa.aaa.", ".aa...aa."], palette: ["#f2b705", "#fff3b0"], pose: { x: -60, y: 30, rotZ: 10 } },
+  { rows: ["..aaaaa..", ".aaaaaaa.", "aabaaabaa", "aaaaaaaaa", "aaaaaaaaa", "aa.aaa.aa", "a...a...a"], palette: ["#4f46e5", "#ffffff"], pose: { x: 60, y: 34, rotZ: -12 } },
+];
+
+/** Cartão "Pixel art" (#270): três mosaicos (coração, estrela e fantasminha) deitados na mesa, foto de cima. */
+async function pixels(o: SceneOpts): Promise<PhotoScene> {
+  const M = await getManifold();
+  const placed: Placed[] = [];
+  for (const v of PIXELS) {
+    const cols = v.rows[0].length;
+    const cells = v.rows.flatMap((row) => [...row].map((c) => (c === "." ? -1 : c === "b" ? 1 : 0)));
+    const models = buildPixelArt(M, { cols, rows: v.rows.length, cells, palette: v.palette }, DEFAULT_PIXEL_OPTIONS, () => null).models;
+    placed.push(place(await maybeBevel(grounded(models), o), [], v.pose));
+  }
+  return sceneOf(placed, { view: "top", darkTable: true });
+}
+
 export async function photoScene(id: PhotoId, o: SceneOpts = {}): Promise<PhotoScene> {
   switch (id) {
     case "keychain":
@@ -225,6 +262,10 @@ export async function photoScene(id: PhotoId, o: SceneOpts = {}): Promise<PhotoS
       return pixPlates(o);
     case "thermo":
       return thermos(o);
+    case "vessel":
+      return vessels(o);
+    case "pixel":
+      return pixels(o);
   }
 }
 
