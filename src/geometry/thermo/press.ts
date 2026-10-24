@@ -1,6 +1,6 @@
 import type { Solid } from "../manifold";
 import { toMesh } from "../mesh";
-import type { Model, Part } from "../types";
+import type { Mesh, Model, Part } from "../types";
 
 type K = <D extends { delete(): void }>(o: D) => D;
 
@@ -72,4 +72,42 @@ export function pressModel(k: K, o: PressInput): Model {
     parts.push({ name: "Prensar: o macho desce", color: ARROW_COLOR, mesh: { positions: new Float32Array(0), indices: new Uint32Array(0) }, lines: { points: Float32Array.from(seg.flat()), width: ARROW_PX, dash: 0 } });
   }
   return { name: "Como prensar (não imprime)", previewOnly: true, parts };
+}
+
+type Warp = (verts: Float32Array, count: number) => void;
+
+/**
+ * Animação da prensagem (#270): cada pedaço da tela em duas posições com a MESMA malha (mesmos índices, vértice i ↔ i),
+ * plana e já virada casca, para interpolar quadro a quadro. Tudo no lugar do quadro "Pronto" de `pressModel` (fêmea
+ * embaixo, macho fechado); para animar, suba o macho `travel × (1 − t)` em z e a tela `min(hover, subida do macho)`, e
+ * misture plana → casca conforme o macho desce os últimos `hover` mm.
+ */
+export type PressMorph = { parts: { color: string; flat: Mesh; pressed: Mesh }[]; travel: number; hover: number; male: Model; female: Model };
+
+export type MorphInput = Omit<PressInput, "frame" | "sheet"> & {
+  /** A tela plana (face de baixo em z = 0), um sólido por pedaço; `refine` e `warp` são os mesmos da deformação da prévia. */
+  sheet: { color: string; solid: Solid | null }[];
+  refine: number;
+  warp: Warp;
+};
+
+export function pressMorph(k: K, o: MorphInput): PressMorph {
+  // vira de cabeça para baixo como `pressModel` (z → topo da fêmea − z), invertendo o sentido dos triângulos
+  const place = (src: Float32Array, indices: Uint32Array): Mesh => {
+    const positions = Float32Array.from(src);
+    for (let i = 2; i < positions.length; i += 3) positions[i] = o.femaleTop - (positions[i] + o.flangeT);
+    const flipped = Uint32Array.from(indices);
+    for (let i = 0; i < flipped.length; i += 3) [flipped[i + 1], flipped[i + 2]] = [flipped[i + 2], flipped[i + 1]];
+    return { positions, indices: flipped };
+  };
+  const parts = o.sheet.flatMap(({ color, solid }) => {
+    if (!solid) return [];
+    // a deformação vai direto nos vértices: o Manifold reordena a malha ao deformar, e a animação precisa da mesma ordem
+    const fine = toMesh(k(solid.refineToLength(o.refine)));
+    const formed = Float32Array.from(fine.positions);
+    o.warp(formed, formed.length / 3);
+    return [{ color, flat: place(fine.positions, fine.indices), pressed: place(formed, fine.indices) }];
+  });
+  const still = (name: string, color: string, s: Solid): Model => ({ name, previewOnly: true, parts: [{ name, color, mesh: toMesh(k(k(s.mirror([0, 0, 1])).translate([0, 0, o.femaleTop]))) }] });
+  return { parts, travel: o.travel, hover: HOVER, male: still(PRESS_NAMES.male, o.moldColor, o.male), female: still(PRESS_NAMES.female, tint(o.moldColor, FEMALE_TINT), o.female) };
 }

@@ -27,6 +27,17 @@ const SHAPES = SHAPE_LABELS.map(([s]) => s);
 const dot = (k: K, r = 8, x = 0, y = 0) => k(k(M.CrossSection.circle(r, 48)).translate([x, y]));
 const P = (patch: Partial<ThermoParams> = {}): ThermoParams => ({ ...DEFAULT_THERMO, ...patch });
 
+
+/** Caixa (min, max) de um conjunto de malhas. */
+const bboxOf = (meshes: { positions: Float32Array }[]) => {
+  const lo = [Infinity, Infinity, Infinity], hi = [-Infinity, -Infinity, -Infinity];
+  for (const m of meshes) for (let i = 0; i < m.positions.length; i++) {
+    lo[i % 3] = Math.min(lo[i % 3], m.positions[i]);
+    hi[i % 3] = Math.max(hi[i % 3], m.positions[i]);
+  }
+  return { lo, hi };
+};
+
 describe("silhueta", () => {
   for (const shape of SHAPES) {
     test(`${shape}: simétrica pelo eixo, centrada e na largura pedida`, () =>
@@ -543,5 +554,28 @@ describe("molde fêmea", () => {
       const section = at("section");
       const half = (md: ReturnType<typeof at>) => modelSize(md)[1];
       expect(half(section)).toBeLessThan(half(closed) * 0.6);
+    }));
+
+  test("animação da prensagem (caixinha, #270): a tela plana e a casca têm a mesma malha, e a casca fica onde está no quadro Pronto", () =>
+    scoped((k) => {
+      const out = buildThermo(M, k(presetSilhouette(M, "heart", 60)), null, P({ domeH: 10 }), { preview: false, press: "closed", morph: true });
+      const mo = out.morph!;
+      expect(mo.parts.length).toBeGreaterThan(0);
+      for (const q of mo.parts) {
+        expect(q.pressed.indices).toEqual(q.flat.indices);
+        expect(q.pressed.positions.length).toBe(q.flat.positions.length);
+      }
+      const flat = bboxOf(mo.parts.map((q) => q.flat));
+      const pressed = bboxOf(mo.parts.map((q) => q.pressed));
+      expect(pressed.hi[2] - pressed.lo[2]).toBeGreaterThan(flat.hi[2] - flat.lo[2] + 5); // plana → funda
+      // a casca do morph cai sobre a tela do quadro Pronto (±1 mm)
+      const ready = bboxOf(out.press.parts.filter((q) => q.name !== "1 Molde fêmea (de baixo)" && q.name !== "3 Molde macho (de cima)").map((q) => q.mesh));
+      for (let a = 0; a < 3; a++) {
+        expect(Math.abs(pressed.lo[a] - ready.lo[a])).toBeLessThan(1);
+        expect(Math.abs(pressed.hi[a] - ready.hi[a])).toBeLessThan(1);
+      }
+      expect(mo.travel).toBeGreaterThan(0);
+      expect(mo.male.parts[0].mesh.positions.length).toBeGreaterThan(0);
+      expect(mo.female.parts[0].mesh.positions.length).toBeGreaterThan(0);
     }));
 });
