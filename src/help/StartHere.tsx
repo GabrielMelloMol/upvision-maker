@@ -1,38 +1,20 @@
-import { Calculator, Check, FileText, KeyRound, X } from "lucide-react";
-import { useState } from "react";
+import { Calculator, Check, FileText, Shapes, X } from "lucide-react";
 import type { Go } from "../pages";
 import { openHelp, requestExample } from "./helpStore";
 
-const DONE_KEY = "upvision.startHere.done";
+/** O que já tem algo feito no app: o 1º projeto, o 1º cálculo de preço, o 1º orçamento. */
+export type StartSteps = { project: boolean; calculator: boolean; quote: boolean };
 
-function loadDone(): boolean {
-  try {
-    return localStorage.getItem(DONE_KEY) === "1";
-  } catch {
-    return false;
-  }
-}
-
-/** Quais dos três passos já têm algo feito no app. */
-export type StartSteps = { keychain: boolean; calculator: boolean; quote: boolean };
+/** O quadro só serve a quem acabou de instalar: some com o 1º projeto, o 1º cálculo ou ao fechar no X (#253). */
+export const startHereOver = (s: StartSteps, closed: boolean) => closed || s.project || s.calculator;
 
 /**
- * "Comece por aqui" na tela inicial (#84): três primeiros passos. Cada passo já feito ganha o selo "feito"; com os três
- * feitos o quadro some sozinho (UX B5). Antes disso, some quando a pessoa fecha.
+ * "Comece por aqui" na tela inicial (#84, #253): três primeiros passos. Cada passo já feito ganha o selo "feito".
+ * Quem fecha no X não vê de novo; o `onClose` grava isso nas preferências (banco, entra no backup).
  */
-export default function StartHere({ go, done: finished }: { go: Go; done: StartSteps }) {
-  const [done, setDone] = useState(loadDone);
-  if (done || (finished.keychain && finished.calculator && finished.quote)) return null;
-  const close = () => {
-    setDone(true);
-    try {
-      localStorage.setItem(DONE_KEY, "1");
-    } catch {
-      // sem armazenamento local: volta a aparecer na próxima abertura
-    }
-  };
+export default function StartHere({ go, done: finished, onClose }: { go: Go; done: StartSteps; onClose: () => void }) {
   const steps = [
-    { key: "keychain", icon: KeyRound, title: "Crie um chaveiro", text: "Um nome, uma fonte bonita e o 3MF em 2 cores.", run: () => go("keychain") },
+    { key: "project", icon: Shapes, title: "Escolha um produto em Criar", text: "Chaveiro, placa Pix, topo de bolo… com foto, para escolher.", run: () => go("create") },
     {
       key: "calculator",
       icon: Calculator,
@@ -58,7 +40,7 @@ export default function StartHere({ go, done: finished }: { go: Go; done: StartS
     <section className="start-here" aria-label="Comece por aqui">
       <div className="start-here-head">
         <h2>Comece por aqui</h2>
-        <button type="button" className="ghost icon-only" aria-label="Fechar Comece por aqui" onClick={close}>
+        <button type="button" className="ghost icon-only" aria-label="Fechar Comece por aqui" onClick={onClose}>
           <X aria-hidden />
         </button>
       </div>

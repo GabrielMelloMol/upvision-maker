@@ -13,8 +13,11 @@ import { addDays } from "../domain/quotes";
 import { PAGES, type Go } from "../pages";
 import { setPendingOpen } from "../ui/search";
 import { useData } from "../ui/useData";
+import { errorText, useToast } from "../ui/Toast";
 import OccasionCard from "../ui/OccasionCard";
-import StartHere, { type StartSteps } from "../help/StartHere";
+import StartHere, { startHereOver, type StartSteps } from "../help/StartHere";
+import { loadSettings, saveSettings } from "../db/repo";
+import { getDb } from "../db";
 
 /** Atalhos do Início (#250): cada um abre direto a ferramenta ou o modelo, sem passar pela Criar. `model` abre o Modelo pronto. */
 type Shortcut = { label: string; icon: typeof KeyRound; page?: string; model?: string };
@@ -48,20 +51,20 @@ export function ago(iso: string, now = Date.now()) {
 }
 
 const RECENT = 4; // Meus projetos no Início (#161): os 4 últimos, rascunhos e projetos juntos
-/** Quais dos 3 primeiros passos do "Comece por aqui" já têm algo feito no app (UX B5). */
+/** O que já foi feito no app, para o "Comece por aqui" (UX B5, #253). */
 const startedSteps = async (db: Db): Promise<StartSteps> => {
-  const [r] = await db.select<{ keychain: number; calculator: number; quote: number }>(
-    `SELECT (SELECT COUNT(*) FROM tool_projects WHERE toolId = 'keychain') + (SELECT COUNT(*) FROM tool_state WHERE id = 'keychain') AS keychain,
+  const [r] = await db.select<{ project: number; calculator: number; quote: number }>(
+    `SELECT (SELECT COUNT(*) FROM tool_projects) + (SELECT COUNT(*) FROM tool_state) AS project,
             (SELECT COUNT(*) FROM calc_history) AS calculator,
             (SELECT COUNT(*) FROM quotes) AS quote`,
   );
-  return { keychain: r.keychain > 0, calculator: r.calculator > 0, quote: r.quote > 0 };
+  return { project: r.project > 0, calculator: r.calculator > 0, quote: r.quote > 0 };
 };
-const load = async (db: Db) => ({ recent: libraryItems(await toolProjects.recent(db, RECENT), await toolState.recent(db, RECENT)), orders: await ordersRepo.list(db), steps: await startedSteps(db) });
+const load = async (db: Db) => ({ recent: libraryItems(await toolProjects.recent(db, RECENT), await toolState.recent(db, RECENT)), orders: await ordersRepo.list(db), steps: await startedSteps(db), startClosed: (await loadSettings(db)).startHereClosed });
 
 /** Início (#139): poucas ações, o que ficou pela metade e os prazos da semana. O resto está a um clique na barra lateral. */
 export default function Home({ go }: { go: Go }) {
-  const [data, , loading] = useData(load, { recent: [] as LibraryItem[], orders: [] as Order[], steps: { keychain: false, calculator: false, quote: false } });
+  const [data, reload, loading] = useData(load, { recent: [] as LibraryItem[], orders: [] as Order[], steps: { project: false, calculator: false, quote: false }, startClosed: false });
   const today = todayIso();
   const week = data.orders
     .filter((o) => OPEN.has(o.status) && o.dueDate && o.dueDate <= addDays(today, 7))
@@ -74,6 +77,16 @@ export default function Home({ go }: { go: Go }) {
     })
     .sort((a, b) => b.it.at.localeCompare(a.it.at))
     .slice(0, RECENT);
+  const toast = useToast();
+  const closeStart = async () => {
+    try {
+      const db = await getDb();
+      await saveSettings(db, { ...(await loadSettings(db)), startHereClosed: true });
+      reload();
+    } catch (e) {
+      toast(`Não foi possível fechar: ${errorText(e)}`, "error");
+    }
+  };
   const [find, setFind] = useState("");
   const run = (a: Shortcut) => go(a.model ? openModel(a.model) : a.page!);
   const search = (e: FormEvent) => {
@@ -122,7 +135,7 @@ export default function Home({ go }: { go: Go }) {
         {list("Vender", SELL)}
       </div>
       <OccasionCard go={go} />
-      {!loading && <StartHere go={go} done={data.steps} />}
+      {!loading && !startHereOver(data.steps, data.startClosed) && <StartHere go={go} done={data.steps} onClose={closeStart} />}
 
       {recent.length > 0 && (
         <section aria-labelledby="home-projects">
