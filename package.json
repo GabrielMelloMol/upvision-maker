@@ -17,7 +17,8 @@
     "e2e": "playwright test",
     "thumbs": "THUMBS=1 playwright test tests/e2e/thumbs.e2e.ts && mkdir -p src/assets/model-thumbs && cp node_modules/.cache/model-thumbs/*.webp src/assets/model-thumbs/",
     "help-shots": "HELP_SHOTS=1 playwright test tests/e2e/help-shots.e2e.ts",
-    "coverage": "vitest run --coverage"
+    "coverage": "vitest run --coverage",
+    "photos": "PHOTOS=1 playwright test -c playwright.photos.config.ts"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.128.0",
@@ -44,6 +45,8 @@
     "react": "^19.1.0",
     "react-dom": "^19.1.0",
     "three": "^0.186.1",
+    "three-gpu-pathtracer": "^0.0.27",
+    "three-mesh-bvh": "^0.9.16",
     "tz-lookup": "^6.1.25",
     "uqr": "^0.1.3",
     "vectortracer": "^0.1.2",
