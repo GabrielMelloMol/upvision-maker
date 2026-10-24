@@ -7,8 +7,8 @@ import { fixThinStrokes } from "../stampArt";
 import { inradius, stretchOf, type DomeGeo } from "./dome";
 import { layoutRows } from "./layout";
 import { buildFemaleSolid, buildMoldSolid, DEFAULT_MOLD, moldGap, type MoldParams } from "./mold";
-import { mergeMeshes, warpOntoDome } from "./preview";
-import { pressModel, pressStage, pressTravel, type PressFrame } from "./press";
+import { domeWarp, mergeMeshes, REFINE_MM, warpOntoDome } from "./preview";
+import { pressModel, pressMorph, pressStage, pressTravel, type PressFrame, type PressMorph } from "./press";
 import { clipRegion, DEFAULT_SCREEN, earOf, postTabOf, ringRegion, screenRegions, type ScreenParams, type ScreenRegions } from "./screen";
 import { capSolid, DEFAULT_CAP, halfPost, postWidth, type CapSpec } from "./thread";
 import { fitValue } from "../fits";
@@ -75,6 +75,8 @@ export type ThermoOut = {
   shell: Model;
   /** O sanduíche fêmea, tela e macho no quadro pedido (só prévia; vazio se não pediu). */
   press: Model;
+  /** A tela plana e a mesma malha já prensada, para animar (só com `press` e `morph`). */
+  morph?: PressMorph;
   warnings: string[];
   info: ThermoInfo;
 };
@@ -123,7 +125,7 @@ function plateOf(M: ManifoldToplevel, k: K, sil: CS, inner: CS, art: CS | null, 
 type Half = { reg: ScreenRegions; plate: Plate | null };
 
 /** Duas telas, as bases, o fecho e os moldes macho e fêmea (PETG), a partir da silhueta simétrica e do desenho de cima (já centrado, em mm). */
-export function buildThermo(M: ManifoldToplevel, sil: CS, design: CS | null, p: ThermoParams, opts: { preview?: boolean; press?: PressFrame } = {}): ThermoOut {
+export function buildThermo(M: ManifoldToplevel, sil: CS, design: CS | null, p: ThermoParams, opts: { preview?: boolean; press?: PressFrame; morph?: boolean } = {}): ThermoOut {
   const preview = opts.preview ?? true;
   return scoped((k) => {
     const warnings: string[] = [];
@@ -237,17 +239,24 @@ export function buildThermo(M: ManifoldToplevel, sil: CS, design: CS | null, p: 
     }
 
     let press = emptyPreview("Como prensar (não imprime)");
+    let morph: PressMorph | undefined;
     if (opts.press) {
       const stage = pressStage(opts.press);
       const shape = (cs: CS): Solid | null => (cs.isEmpty() ? null : stage.shape === 0 ? k(cs.extrude(t)) : warpOntoDome(k(cs.extrude(t)), base, g, k, stage.shape));
       const r = regionsFor(wantDesign[0], false);
       const sheet = opts.press === "section" ? [{ color: c.sheet, solid: shape(sil) }] : [{ color: c.border, solid: shape(r.border) }, { color: c.sheet, solid: shape(r.mesh) }, { color: c.design, solid: wantDesign[0] ? shape(r.design) : null, label: false }];
       const female = buildFemaleSolid(M, base, g, p.mold, k, shellOutline, t, true);
-      press = pressModel(k, { frame: opts.press, male, female, sheet, flangeT: p.mold.flangeT, femaleTop: p.mold.flangeT + g.H + moldGap(t, p.mold) + p.mold.top, travel: pressTravel(g.H), moldColor: c.mold });
+      const place = { male, female, flangeT: p.mold.flangeT, femaleTop: p.mold.flangeT + g.H + moldGap(t, p.mold) + p.mold.top, travel: pressTravel(g.H), moldColor: c.mold };
+      press = pressModel(k, { ...place, frame: opts.press, sheet });
+      if (opts.morph) {
+        const flat = (cs: CS) => (cs.isEmpty() ? null : k(cs.extrude(t)));
+        const pieces = [{ color: c.border, solid: flat(r.border) }, { color: c.sheet, solid: flat(r.mesh) }, { color: c.design, solid: wantDesign[0] ? flat(r.design) : null }];
+        morph = pressMorph(k, { ...place, sheet: pieces, refine: REFINE_MM, warp: domeWarp(base, g) });
+      }
     }
 
     const info: ThermoInfo = { stretch: S, apertureAfter: p.screen.aperture * S, designScale: dScale, inradius: L, moldGap: moldGap(t, p.mold), thinTop, bases };
     if (p.screen.aperture * S > 2 * p.screen.aperture) warnings.push(`A malha abre até ${(p.screen.aperture * S).toFixed(1).replace(".", ",")} mm depois de prensada (o furo de ${nozzleText(p.screen.aperture)} mm estica junto).`);
-    return { screens, closure: closureOut, molds, assembled, shell, press, warnings, info };
+    return { screens, closure: closureOut, molds, assembled, shell, press, ...(morph && { morph }), warnings, info };
   });
 }

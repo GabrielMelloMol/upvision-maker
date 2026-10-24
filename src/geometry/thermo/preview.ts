@@ -19,7 +19,7 @@ export function mergeMeshes(list: Mesh[]): Mesh {
   return { positions, indices };
 }
 
-const REFINE_MM = 1.2; // os triângulos da tela plana são cortados até este tamanho para a curva sair lisa
+export const REFINE_MM = 1.2; // os triângulos da tela plana são cortados até este tamanho para a curva sair lisa
 const NEAR_EDGE = 1e-4;
 
 type Seg = { ax: number; ay: number; bx: number; by: number };
@@ -90,6 +90,11 @@ function ridgeTable(segs: Seg[], query: ReturnType<typeof boundaryQuery>, cap: n
  * lisa (a tela é subdividida antes), com a malha e o desenho acompanhando. `blend` (0 a 1) deforma só até essa fração, para os quadros da prensagem.
  */
 export function warpOntoDome(flat: Solid, inner: CS, g: DomeGeo, k: K, blend = 1): Solid {
+  return k(k(flat.refineToLength(REFINE_MM)).warpBatch(domeWarp(inner, g, blend)));
+}
+
+/** A deformação de `warpOntoDome` sobre vértices soltos (x, y, z em sequência), para a animação da prensagem. */
+export function domeWarp(inner: CS, g: DomeGeo, blend = 1): (verts: Float32Array | Float64Array, count: number) => void {
   const segs: Seg[] = inner.toPolygons().flatMap((ring) => ring.map(([ax, ay], i) => ({ ax, ay, bx: ring[(i + 1) % ring.length][0], by: ring[(i + 1) % ring.length][1] })));
   const query = boundaryQuery(segs);
   const ridges = ridgeTable(segs, query, g.L);
@@ -105,9 +110,7 @@ export function warpOntoDome(flat: Solid, inner: CS, g: DomeGeo, k: K, blend = 1
     const u = (r - rho[lo - 1]) / Math.max(1e-9, rho[lo] - rho[lo - 1]);
     return arc[lo - 1] + u * (arc[lo] - arc[lo - 1]);
   };
-  const fine = k(flat.refineToLength(REFINE_MM));
-  return k(
-    fine.warpBatch((verts, count) => {
+  return (verts, count) => {
       for (let v = 0; v < count; v++) {
         const o = v * 3;
         const x = verts[o], y = verts[o + 1], zf = verts[o + 2];
@@ -136,6 +139,5 @@ export function warpOntoDome(flat: Solid, inner: CS, g: DomeGeo, k: K, blend = 1
         verts[o + 1] = y + blend * (qy + ny * s - slope * ny * inv * zf - y);
         verts[o + 2] = zf + blend * (zd + inv * zf - zf);
       }
-    }),
-  );
+  };
 }
