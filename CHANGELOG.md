@@ -3,6 +3,9 @@
 Cada versão aparece para a usuária na tela "O que há de novo" depois da atualização.
 Formato: `## <versão> — <data>` e itens `- …` em linguagem simples.
 
+## Próxima versão (ainda não lançada)
+- **Custo multicor certo ao importar do fatiador (#147)**: o Bambu Studio já conta a purga das trocas de cor e a torre nas gramas de cada filamento, e o app somava a purga de novo (numa peça de 4 cores, quase o dobro do filamento). Agora ela só aparece como informação ("Já está dentro das gramas do fatiador"). No OrcaSlicer é o contrário: a purga não vem nas gramas e continua sendo somada, e o G-code do Orca, que antes dava "Não encontrei o peso do filamento", agora abre.
+
 ## 0.13.0 — 2026-10-16
 - **Caixa organizadora nunca passa da mesa (#204)**: no tamanho máximo (300 × 300 mm) a caixa passava da mesa de 256 mm e o fatiador recusava a peça. Agora as medidas são limitadas à mesa da impressora escolhida (a dobradiça, que sai 10 mm atrás, entra na conta) e o aviso diz o que mudou: "Você pediu 300 × 300 mm… Reduzi para 252 × 242 mm", e o que fazer para uma caixa maior.
 - **As ferramentas passam a usar a folga que você validou no Kit de testes (#247)**: a folga que você escolhe em Ajustes › Kit de testes agora vira o padrão da alça de copo, da caixa de placa, da capa de celular, da rosca (Estojo e aromatizador), do docinho, das engrenagens e do redutor planetário, da dobradiça e da trava da caixa organizadora (com campos novos de folga do pino e profundidade do gancho) e do clipe da caixinha termoformada. Projetos já começados mantêm o valor que tinham.

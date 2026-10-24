@@ -2,7 +2,7 @@ import { strFromU8 } from "fflate";
 import { safeUnzip, ZipTooBig } from "../safeUnzip";
 import { featureGrams } from "./features";
 import { pieceName, round2, type SlicerFilament, type SlicerReport } from "./types";
-import { flushMatrix, purgeWaste, sequenceFromLayers, toolSequence, type SlicerWaste } from "./waste";
+import { flushMatrix, purgeIncluded, purgeWaste, sequenceFromLayers, toolSequence, type SlicerWaste } from "./waste";
 
 const attrs = (tag: string) => Object.fromEntries([...tag.matchAll(/([\w-]+)="([^"]*)"/g)].map((m) => [m[1], m[2]]));
 
@@ -39,7 +39,8 @@ export function parse3mf(bytes: Uint8Array): SlicerReport {
   const read = readSettings(files["Metadata/project_settings.config"]);
   const settings = read.settings;
   const printer = settings.printer_model || undefined;
-  const waste = multicolorWaste(files, plates, settings);
+  const purge = multicolorWaste(files, plates, settings);
+  const waste = purge && purgeIncluded(purge, filaments, /OrcaSlicer/i.test(xml));
   // suporte e torre (#147): só com o G-code das mesas dentro do 3MF ("Exportar 3MF fatiado")
   const gcodes = plates.flatMap((_, p) => files[`Metadata/plate_${p + 1}.gcode`] ?? []).map((g) => strFromU8(g));
   const extra = featureGrams(gcodes, (i) => Number(settings.filament_density?.[i]) || 1.24);

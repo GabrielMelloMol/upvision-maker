@@ -1,6 +1,6 @@
 import { numList, parseDuration, round2, splitList, type SlicerFilament, type SlicerReport } from "./types";
 import { featureGrams } from "./features";
-import { flushMatrix, purgeWaste, toolSequence, type SlicerWaste } from "./waste";
+import { flushMatrix, purgeIncluded, purgeWaste, toolSequence, type SlicerWaste } from "./waste";
 
 const HEAD_TAIL = 256 * 1024; // estatísticas ficam no começo (Bambu/Cura) ou no fim (Prusa)
 /** Densidade típica (g/cm³) de cada material, para estimar gramas de quem só informa metros (#47). Varia ±3% por marca. */
@@ -70,14 +70,19 @@ export function fromPrusaKeys(kv: Map<string, string>, source: string): SlicerRe
 function fromBambu(text: string, kv: Map<string, string>, full: () => string[]): SlicerReport {
   const time = /total estimated time:\s*([^;\n]+)/.exec(text)?.[1];
   const labels = kv.get("model label id");
-  const filaments = filamentsFrom(numList(kv.get("total filament weight [g]")), numList(kv.get("total filament length [mm]")), splitList(kv.get("filament_type")), splitList(kv.get("filament_colour")));
+  const orca = /OrcaSlicer/i.test(text.slice(0, 4096));
+  // o OrcaSlicer usa as chaves do PrusaSlicer ("filament used [g]")
+  const grams = kv.get("total filament weight [g]") ?? kv.get("filament used [g]");
+  const filaments = filamentsFrom(numList(grams), numList(kv.get("total filament length [mm]") ?? kv.get("filament used [mm]")), splitList(kv.get("filament_type")), splitList(kv.get("filament_colour")));
   if (!filaments.length || filaments.every((f) => !f.grams)) throw new Error("Não encontrei o peso do filamento neste G-code. Confira a densidade do filamento no fatiador.");
   const matrix = flushMatrix(numList(kv.get("flush_volumes_matrix")));
   const density = numList(kv.get("filament_density"));
   const densityOf = (i: number) => density[i] || DENSITY.PLA;
   const body = full();
   const seq = matrix ? body.flatMap(toolSequence).filter((t, i, a) => i === 0 || a[i - 1] !== t) : [];
-  const waste = matrix ? purgeWaste(seq, matrix, Number(kv.get("flush_multiplier")) || 1, densityOf, "gcode") : null;
+  // no G-code do Orca a matriz já vem multiplicada pelo flush_multiplier; o Bambu grava a crua (#147)
+  const purge = matrix ? purgeWaste(seq, matrix, orca ? 1 : Number(kv.get("flush_multiplier")) || 1, densityOf, "gcode") : null;
+  const waste = purge && purgeIncluded(purge, filaments, orca);
   const extra = featureGrams(body, densityOf, numList(kv.get("filament_diameter"))[0] || DEFAULT_DIAMETER_MM);
   return {
     source: "Bambu Studio / OrcaSlicer (G-code)",

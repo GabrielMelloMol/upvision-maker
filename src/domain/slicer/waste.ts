@@ -4,10 +4,9 @@ import { round2 } from "./types";
  * Desperdício de impressão multicor (#147): a cada troca de filamento o bico purga (flush) o volume da matriz do
  * fatiador (`flush_volumes_matrix[de][para]` × `flush_multiplier`, em mm³), cobrado do filamento que entra.
  *
- * Conferido no 3MF real da A1 (tests/fixtures/slicer/bambu-a1-2cores-fatiado.3mf): uma troca azul → branco purga
- * 616 mm³ (≈ 0,78 g), mas o `used_g` do branco inteiro é 0,55 g. Logo o `used_g` do Bambu Studio NÃO inclui a
- * purga e ela entra à parte. O PrusaSlicer/Orca já somam a torre de limpeza ao "filament used" e informam quanto
- * foi para a torre: aí só mostramos, sem somar de novo.
+ * Conferido somando a extrusão do G-code por filamento (tests/fixtures/slicer/*-fatiado.3mf, 4 e 2 cores): o `used_g`
+ * do Bambu Studio 2.8 JÁ inclui a purga e a torre (só mostramos); o do OrcaSlicer 2.4 inclui a torre mas não a purga
+ * (ela entra à parte). O PrusaSlicer soma a torre ao "filament used" e informa quanto foi para ela.
  */
 export type SlicerWaste = {
   /** Gramas purgadas por filamento (índice do fatiador, a partir de 1). */
@@ -68,4 +67,14 @@ export function purgeWaste(seq: number[], matrix: number[][], multiplier: number
   if (!swaps) return null;
   const byFilament = [...byIndex].map(([i, g]) => ({ index: i + 1, grams: round2(g) })).sort((a, b) => a.index - b.index);
   return { byFilament, grams: round2(byFilament.reduce((s, f) => s + f.grams, 0)), swaps, included: false, from };
+}
+
+/**
+ * O Bambu Studio 2.8 já põe a purga no `used_g` (conferido no G-code, 4 e 2 cores); o OrcaSlicer não. Se a purga de
+ * um filamento passa bem do consumo inteiro dele, ela não pode estar dentro (3MF dos chaveiros: 0,78 g de purga, 0,55 g
+ * de branco). Folga de 25% porque a matriz estima um pouco acima do que o G-code purga (4 cores: 32 g para 28 g).
+ */
+export function purgeIncluded(waste: SlicerWaste, filaments: { index: number; grams?: number }[], orca: boolean): SlicerWaste {
+  const inside = !orca && waste.byFilament.every((p) => p.grams <= 1.25 * (filaments.find((f) => f.index === p.index)?.grams ?? 0));
+  return { ...waste, included: inside };
 }

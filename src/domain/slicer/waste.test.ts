@@ -1,5 +1,6 @@
 import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
+import { gunzipSync } from "fflate";
 import { describe, expect, test } from "vitest";
 import { parseSlicerFile } from "./index";
 import { flushMatrix, purgeWaste, sequenceFromLayers, toolSequence } from "./waste";
@@ -8,10 +9,38 @@ const fixture = (f: string) => new Uint8Array(readFileSync(resolve(__dirname, ".
 const enc = (s: string) => new TextEncoder().encode(s);
 
 describe("desperdício multicor (#147)", () => {
-  test("3MF real da A1 (2 cores): 1 troca azul → branco purga 616 mm³ ≈ 0,78 g, fora do used_g", () => {
+  test("3MF real da A1 (2 cores), sem G-code dentro: 1 troca azul → branco purga 616 mm³ ≈ 0,78 g, mais que o branco inteiro (0,55 g): fica fora do used_g", () => {
     const r = parseSlicerFile("bambu-a1-2cores-fatiado.3mf", fixture("bambu-a1-2cores-fatiado.3mf"));
     expect(r.filaments.map((f) => f.grams)).toEqual([3.79, 0.55]); // o consumo do fatiador fica como está
     expect(r.waste).toEqual({ byFilament: [{ index: 2, grams: 0.78 }], grams: 0.78, swaps: 1, included: false, from: "camadas" });
+  });
+
+  // Bambu Studio 2.8.2, A1, 4 cubos de 15 mm em 4 cores, 30 camadas. Somando a extrusão do G-code por filamento, a
+  // purga (FLUSH_START…END) e a torre dão o used_g de cada um (±2%): o Bambu já conta as duas, não se soma de novo.
+  test("Bambu 4 cores com torre: purga e torre já estão no used_g, só informa", () => {
+    const r = parseSlicerFile("x.3mf", fixture("bambu-a1-4cores-torre-fatiado.3mf"));
+    expect(r.filaments.map((f) => f.grams)).toEqual([6.12, 11.47, 9.47, 8.94]);
+    expect(r.waste).toMatchObject({ swaps: 89, included: true, from: "gcode" });
+    expect(r.waste!.grams).toBeCloseTo(32, 0); // a purga real no G-code: 28,1 g
+    expect(r.tower).toBeCloseTo(4.3, 1); // 36,00 g com torre − 31,70 g sem torre
+  });
+
+  test("Bambu 4 cores sem torre: a peça pesa ~3 g e o used_g dá 31,7 g, porque a purga está dentro", () => {
+    const r = parseSlicerFile("x.3mf", fixture("bambu-a1-4cores-fatiado.3mf"));
+    expect(r.filaments.reduce((s, f) => s + (f.grams ?? 0), 0)).toBeCloseTo(31.7, 1);
+    expect(r.waste).toMatchObject({ included: true });
+    expect(r.tower).toBeUndefined();
+  });
+
+  test("OrcaSlicer: o used_g e o 'filament used' NÃO têm a purga (branco: 0,19 g, purga ~0,18 g), então ela é somada", () => {
+    const tmf = parseSlicerFile("x.3mf", fixture("orca-a1-2cores-fatiado.3mf"));
+    expect(tmf.filaments.map((f) => f.grams)).toEqual([2.37, 0.19]);
+    // 3MF: matriz crua (616) × flush_multiplier 0,3 = 185 mm³
+    expect(tmf.waste).toEqual({ byFilament: [{ index: 2, grams: 0.23 }], grams: 0.23, swaps: 1, included: false, from: "gcode" });
+    const gcode = parseSlicerFile("x.gcode", gunzipSync(fixture("orca-a1-2cores.gcode.gz")));
+    expect(gcode.filaments.map((f) => f.grams)).toEqual([2.37, 0.19]);
+    // G-code: a matriz já vem multiplicada (185) e não se multiplica de novo
+    expect(gcode.waste).toEqual({ byFilament: [{ index: 2, grams: 0.23 }], grams: 0.23, swaps: 1, included: false, from: "gcode" });
   });
 
   test("matriz n×n: linha = de, coluna = para; lista que não é quadrada é ignorada", () => {
@@ -68,7 +97,7 @@ describe("desperdício multicor (#147)", () => {
     ].join("\n");
     const r = parseSlicerFile("x.gcode", enc(g));
     // 0→1 (616) + 1→0 (229) + 0→1 (616) = 1461 mm³
-    expect(r.waste).toMatchObject({ swaps: 3, included: false, from: "gcode", grams: 1.84 });
+    expect(r.waste).toMatchObject({ swaps: 3, included: true, from: "gcode", grams: 1.84 }); // 0,29 ≤ 10 g e 1,55 ≤ 2 g
     expect(r.waste!.byFilament).toEqual([
       { index: 1, grams: 0.29 },
       { index: 2, grams: 1.55 },
