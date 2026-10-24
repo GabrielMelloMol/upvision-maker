@@ -16,7 +16,7 @@ const BUILD = { timeout: 30_000 };
 const legendColors = (c: HTMLElement) => [...c.querySelectorAll<HTMLElement>(".legend i")].map((i) => i.style.background);
 
 
-describe("Extrusão SVG → 3D", () => {
+describe("Imagem em relevo 3D", () => {
   test("SVG colorido (do Imagem → SVG): uma parte por cor, sem seletor de cor do desenho", async () => {
     const svg =
       '<svg xmlns="http://www.w3.org/2000/svg" width="40mm" height="20mm" viewBox="0 0 40 20"><path fill="#2563eb" d="M0 0H40V20H0Z"/><path fill="#f8f8f6" d="M10 5H30V15H10Z"/></svg>';

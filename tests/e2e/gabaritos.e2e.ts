@@ -1,10 +1,9 @@
 import type { Page } from "@playwright/test";
-import { expect, go, openApp, test } from "./tauri";
+import { expect, go, openApp, pickModel, test } from "./tauri";
 
 const idle = (page: Page) => expect(page.locator(".viewer .overlay.busy")).toHaveCount(0, { timeout: 90_000 });
 async function pick(page: Page, search: string, name: string) {
-  await page.getByRole("searchbox", { name: "Buscar modelo" }).fill(search);
-  await page.getByRole("group", { name: "Modelo" }).getByRole("button", { name, exact: true }).click();
+  await pickModel(page, search, name, { exact: true });
   await idle(page);
 }
 const size = async (page: Page): Promise<[number, number, number]> => {

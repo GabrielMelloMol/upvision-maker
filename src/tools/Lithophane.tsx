@@ -83,11 +83,11 @@ const mmText = (n: number) => n.toFixed(2).replace(".", ",");
 const initialState = () => ({ mode: "litho" as Mode, picked: false, file: null as File | null, width: 100, cell: 0.3, litho: DEFAULT_LITHO, color: DEFAULT_COLOR_LITHO as ColorLithoParams, relief: DEFAULT_RELIEF_UI, layered: DEFAULT_LAYERED_UI as LayeredUi });
 type LithoState = ReturnType<typeof initialState>;
 
-/** Foto em relevo: litofania (relevo que aparece contra a luz), colorida, relevo de uma cor, quadro por camadas e shadowbox. */
+/** Litofania: litofania (relevo que aparece contra a luz), colorida, relevo de uma cor, quadro por camadas e shadowbox. */
 export default function Lithophane() {
   // estado de trabalho: desfazer, rascunho guardado (a foto vai junto até 4 MB) e últimos projetos (#85)
   const tool = useToolState("lithophane", initialState, {
-    label: "Foto em relevo",
+    label: "Litofania",
     save: async (s) => ({ ...s, file: await storeFile(s.file) }),
     load: async (raw) => {
       const r = raw as Omit<LithoState, "file"> & { file?: StoredFile | null };
@@ -204,7 +204,7 @@ export default function Lithophane() {
 
   const head = (
     <>
-      <h1>Foto em relevo</h1>
+      <h1>Litofania</h1>
       <p className="lead">Foto ou imagem em relevo: litofania, quadro e mais.</p>
     </>
   );

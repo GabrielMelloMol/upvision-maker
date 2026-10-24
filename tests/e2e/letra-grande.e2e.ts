@@ -1,17 +1,15 @@
 import type { Page } from "@playwright/test";
-import { expect, go, openApp, test, toastWith } from "./tauri";
+import { expect, openApp, pickModel as pickModelBy, test, toastWith } from "./tauri";
 
 const hud = (page: Page) => page.locator(".viewer .hud");
 const idle = (page: Page) => expect(page.locator(".viewer .overlay.busy")).toHaveCount(0, { timeout: 60_000 });
 
 async function pickModel(page: Page, name: string) {
-  await page.getByRole("searchbox", { name: "Buscar modelo" }).fill(name);
-  await page.getByRole("group", { name: "Modelo" }).getByRole("button", { name, exact: true }).click();
+  await pickModelBy(page, name, name, { exact: true });
 }
 
 test("letra grande: nome encaixado vira 2 peças, material vira 3, aviso acima de 256 mm (#55)", async ({ page, tauri }) => {
   await openApp(page);
-  await go(page, "Modelos prontos");
   await pickModel(page, "Letra grande");
   await idle(page);
   await expect(hud(page)).toContainText("mm", { timeout: 60_000 });

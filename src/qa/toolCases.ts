@@ -32,12 +32,14 @@ import { DEFAULT_LIGHTEN, latticeBlock, lightenModel, type LightenOpts } from ".
 import { COUPONS } from "../geometry/testKit/catalog";
 import { couponModels, DEFAULT_KIT } from "../geometry/testKit/kit";
 import { cutModels, DEFAULT_CUT } from "../geometry/planeCut";
-import { COLOR_LITHO_PROFILE, CUTTER_PROFILE, DEFAULT_PROFILE, MOSAIC_BOARD_PROFILE, MOSAIC_PIECES_PROFILE, MOSAIC_POT_PROFILE, STAMP_HINGE_PROFILE, STAMP_PROFILE, THERMO_MOLD_PROFILE, THERMO_SCREEN_PROFILE, LAYERED_PROFILE, LITHO_PROFILE, RELIEF_PROFILE, type PrintProfile, INVITE_CARD_PROFILE, INVITE_LACE_PROFILE, INVITE_PIECES_PROFILE } from "../geometry/printProfile";
+import { COLOR_LITHO_PROFILE, CUTTER_PROFILE, DEFAULT_PROFILE, MOSAIC_BOARD_PROFILE, MOSAIC_PIECES_PROFILE, MOSAIC_POT_PROFILE, STAMP_HINGE_PROFILE, STAMP_PROFILE, THERMO_CLOSURE_PROFILE, THERMO_MOLD_PROFILE, THERMO_SCREEN_PROFILE, THERMO_WARE_MOLD_PROFILE, THERMO_WARE_PROFILE, LAYERED_PROFILE, LITHO_PROFILE, RELIEF_PROFILE, type PrintProfile, INVITE_CARD_PROFILE, INVITE_LACE_PROFILE, INVITE_PIECES_PROFILE } from "../geometry/printProfile";
 import { qrModel, type QrStyle } from "../geometry/qr3d";
 import { buildStamp, DEFAULT_STAMP, type StampParams } from "../geometry/stamp";
 import { buildInvite, DEFAULT_INVITE, PALETTES, type InviteParams } from "../geometry/invite/build";
 import { DEFAULT_ENVELOPE, type EnvelopeParams } from "../geometry/invite/envelope";
 import { buildThermo, DEFAULT_THERMO, type ThermoParams } from "../geometry/thermo/build";
+import { buildBand, DEFAULT_BAND, type BandParams } from "../geometry/thermo/band";
+import { BASKET_VESSEL, buildVessel, DEFAULT_VESSEL, type VesselParams } from "../geometry/thermo/vessel";
 import { presetSilhouette, type ThermoShape } from "../geometry/thermo/shapes";
 import { buildKit, DEFAULT_SETTINGS as MOSAIC_DEFAULT, type MosaicSettings } from "../geometry/mosaic/kit";
 import { DESIGNS } from "../geometry/mosaic/designs";
@@ -216,14 +218,14 @@ export function toolCases(M: ManifoldToplevel): QaCase[] {
     return { models, pauses: part === "envelope" ? out.pauses : [], warnings: [...out.warnings, ...bedWarnings(models, out.warnings)] };
   };
   // como a tela da Caixinha termoformada: silhueta pronta, texto de cima, as telas (PLA) e o molde (PETG) em arquivos separados
-  const thermo = async (part: "screens" | "mold", shape: ThermoShape, width: number, patch: Partial<ThermoParams> = {}): Promise<Out> => {
+  const thermo = async (part: "screens" | "closure" | "mold", shape: ThermoShape, width: number, patch: Partial<ThermoParams> = {}): Promise<Out> => {
     const font = await loadFont("pacifico");
     const sil = presetSilhouette(M, shape, width);
     try {
       const art = buildStampArt(M, { shape: "rect", w: width * 0.6, h: width * 0.4, logo: null, lines: ["Feliz Natal"], font, ...DEFAULT_ART }).art;
       try {
-        const out = buildThermo(M, sil, art, { ...DEFAULT_THERMO, ...patch });
-        const models = part === "screens" ? out.screens : [out.mold];
+        const out = buildThermo(M, sil, art, { ...DEFAULT_THERMO, ...patch }, { preview: false });
+        const models = part === "screens" ? out.screens : part === "closure" ? out.closure : out.molds;
         return { models, warnings: [...out.warnings, ...bedWarnings(models, out.warnings)] };
       } finally {
         art.delete();
@@ -231,6 +233,17 @@ export function toolCases(M: ManifoldToplevel): QaCase[] {
     } finally {
       sil.delete();
     }
+  };
+  // como a tela de Pote, cesto e pulseira termoformados: o disco (ou a tira) em PLA e o molde (ou o mandril) em PETG
+  const ware = (part: "disc" | "mold", patch: Partial<VesselParams> = {}): Out => {
+    const out = buildVessel(M, { ...DEFAULT_VESSEL, ...patch }, { preview: false });
+    const models = part === "disc" ? out.screens : out.molds;
+    return { models, warnings: [...out.warnings, ...bedWarnings(models, out.warnings)] };
+  };
+  const bracelet = (part: "strip" | "mandrel", patch: Partial<BandParams> = {}): Out => {
+    const out = buildBand(M, { ...DEFAULT_BAND, ...patch }, null, { preview: false });
+    const models = part === "strip" ? out.strip : out.mandrel;
+    return { models, warnings: [...out.warnings, ...bedWarnings(models, out.warnings)] };
   };
   const medalSizes = (v: number) => ({ topSize: v, centerSize: v, rankSize: v, dateSize: v, bottomSize: v });
 
@@ -373,14 +386,14 @@ export function toolCases(M: ManifoldToplevel): QaCase[] {
         ["boneco em outro eixo", () => mold(arm(), { axis: "x", offset: 0 })],
       ] as Variant[];
     })()),
-    ...cases("lighten", "Miolo leve", [
+    ...cases("lighten", "Deixar a peça mais leve", [
       ["giroide", () => lighten({ kind: "gyroid" })],
       ["voronoi", () => lighten({ kind: "voronoi" })],
       ["treliça cúbica", () => lighten({ kind: "cubic" })],
       ["bloco de treliça", () => lattice({ kind: "cubic" })],
       ["bloco de giroide", () => lattice({ kind: "gyroid" })],
     ]),
-    ...cases("partialcut", "Corte parcial", [
+    ...cases("partialcut", "Cortar um pedaço com encaixe", [
       ["sugestão para menos suporte", (): Out => {
         const model = readOwnFile(new Uint8Array(readFileSync(ARM)), "boneco-braco.stl");
         const [s] = suggestCuts(M, model);
@@ -419,13 +432,13 @@ export function toolCases(M: ManifoldToplevel): QaCase[] {
       ["garrafa: enrolar relevo", () => wrapped("garrafa", "raised")],
       ["copo cônico: enrolar embutido", () => wrapped("cone", "inlay")],
     ]),
-    ...cases("bedcut", "Cortar para caber na mesa", [
+    ...cases("bedcut", "Dividir peça grande", [
       ["pino redondo (2 pedaços)", () => bedCutCase(300, 150, 60)],
       ["ímã", () => bedCutCase(300, 150, 60, { joint: "magnet" })],
       ["rabo de andorinha", () => bedCutCase(300, 150, 60, { joint: "dovetail" })],
       ["3 eixos com números", () => bedCutCase(520, 300, 90, { joint: "square" })],
     ]),
-    ...cases("texturize", "Textura no seu modelo", [
+    ...cases("texturize", "Textura na peça", [
       ["carbono para fora", () => textured({ source: { kind: "pattern", id: "carbono" }, scale: 7, depth: 0.5 })],
       ["knurling nas laterais", () => textured({ source: { kind: "pattern", id: "knurling" }, scale: 4, depth: 0.5, faces: "sides" })],
       ["couro para dentro, cilíndrica", () => textured({ source: { kind: "pattern", id: "couro" }, scale: 8, depth: 0.6, direction: "in", mapping: "cylinder" })],
@@ -481,16 +494,24 @@ export function toolCases(M: ManifoldToplevel): QaCase[] {
       ["padrão", () => invite("pieces"), INVITE_PIECES_PROFILE],
       ["máximo", () => invite("pieces", {}, { pieces: { butterflies: 4, butterflySpan: 80, flowers: 6, flowerR: 24 } }), INVITE_PIECES_PROFILE],
     ]),
-    ...cases("thermoScreens", "Caixinha termoformada: telas", [
+    ...cases("thermoScreens", "Caixinha termoformada: telas e bases", [
       ["coração", () => thermo("screens", "heart", 70), THERMO_SCREEN_PROFILE],
       ["estrela", () => thermo("screens", "star", 70), THERMO_SCREEN_PROFILE],
       ["flor", () => thermo("screens", "flower", 70), THERMO_SCREEN_PROFILE],
       ["círculo losango", () => thermo("screens", "circle", 60, { screen: { ...DEFAULT_THERMO.screen, mesh: "diamond" } }), THERMO_SCREEN_PROFILE],
       ["bola de Natal com faixa", () => thermo("screens", "ball", 70, { screen: { ...DEFAULT_THERMO.screen, closure: "ring" } }), THERMO_SCREEN_PROFILE],
-      ["mínimo", () => thermo("screens", "square", 40, { screen: { ...DEFAULT_THERMO.screen, t: 0.6, border: 2, aperture: 2, wire: 0.6 } }), THERMO_SCREEN_PROFILE],
+      ["coração com tampa rosqueada", () => thermo("screens", "heart", 70, { screen: { ...DEFAULT_THERMO.screen, closure: "cap" } }), THERMO_SCREEN_PROFILE],
+      ["ovo sem base", () => thermo("screens", "egg", 70, { bases: "none" }), THERMO_SCREEN_PROFILE],
+      ["flor com uma base", () => thermo("screens", "flower", 70, { bases: "one" }), THERMO_SCREEN_PROFILE],
+      ["mínimo", () => thermo("screens", "square", 40, { screen: { ...DEFAULT_THERMO.screen, t: 0.6, border: 2, aperture: 1.4, wire: 0.6 } }), THERMO_SCREEN_PROFILE],
       ["máximo", () => thermo("screens", "egg", 100, { screen: { ...DEFAULT_THERMO.screen, t: 2, border: 8, aperture: 8, wire: 2 } }), THERMO_SCREEN_PROFILE],
     ]),
-    ...cases("thermoMold", "Caixinha termoformada: molde", [
+    ...cases("thermoClosure", "Caixinha termoformada: clipe e tampa", [
+      ["clipe", () => thermo("closure", "heart", 70), THERMO_CLOSURE_PROFILE],
+      ["tampa rosqueada", () => thermo("closure", "heart", 70, { screen: { ...DEFAULT_THERMO.screen, closure: "cap" } }), THERMO_CLOSURE_PROFILE],
+      ["tampa com pino curto e fino", () => thermo("closure", "circle", 60, { screen: { ...DEFAULT_THERMO.screen, closure: "cap" }, cap: { ...DEFAULT_THERMO.cap, thread: { ...DEFAULT_THERMO.cap.thread, major: 3.5, length: 8 } } }), THERMO_CLOSURE_PROFILE],
+    ]),
+    ...cases("thermoMold", "Caixinha termoformada: moldes macho e fêmea", [
       ["coração", () => thermo("mold", "heart", 70), THERMO_MOLD_PROFILE],
       ["estrela", () => thermo("mold", "star", 70), THERMO_MOLD_PROFILE],
       ["flor", () => thermo("mold", "flower", 70), THERMO_MOLD_PROFILE],
@@ -499,8 +520,26 @@ export function toolCases(M: ManifoldToplevel): QaCase[] {
       // referência: o molde de domo maciço, 8% e 100% de preenchimento (o que se imprimiria sem a casca oca)
       ["coração maciço 8%", () => thermo("mold", "heart", 70, { mold: { ...DEFAULT_THERMO.mold, hollow: false } }), THERMO_MOLD_PROFILE],
       ["coração maciço 100%", () => thermo("mold", "heart", 70, { mold: { ...DEFAULT_THERMO.mold, hollow: false } }), { ...THERMO_MOLD_PROFILE, infill: 100 }],
+      ["folga 0,4 mm", () => thermo("mold", "heart", 70, { mold: { ...DEFAULT_THERMO.mold, clearance: 0.4 } }), THERMO_MOLD_PROFILE],
       ["mínimo", () => thermo("mold", "square", 40, { domeH: 6 }), THERMO_MOLD_PROFILE],
       ["máximo", () => thermo("mold", "egg", 130, { domeH: 40 }), THERMO_MOLD_PROFILE],
+    ]),
+    ...cases("thermoWare", "Pote, cesto e pulseira termoformados: disco e tira", [
+      ["pote", () => ware("disc"), THERMO_WARE_PROFILE],
+      ["cesto favo", () => ware("disc", BASKET_VESSEL), THERMO_WARE_PROFILE],
+      ["cesto losango sem fundo sólido", () => ware("disc", { ...BASKET_VESSEL, mesh: "diamond", solidBase: false }), THERMO_WARE_PROFILE],
+      ["pote mínimo", () => ware("disc", { mouthD: 50, height: 20, draft: 12, cornerR: 4, t: 0.8, rim: 3, margin: 3 }), THERMO_WARE_PROFILE],
+      ["pulseira inteira", () => bracelet("strip"), THERMO_WARE_PROFILE],
+      ["pulseira em favo", () => bracelet("strip", { mesh: "honeycomb" }), THERMO_WARE_PROFILE],
+      ["pulseira sobreposta", () => bracelet("strip", { opening: -12, width: 30 }), THERMO_WARE_PROFILE],
+    ]),
+    ...cases("thermoWareMold", "Pote, cesto e pulseira termoformados: moldes e mandril", [
+      ["macho do pote", () => ware("mold"), THERMO_WARE_MOLD_PROFILE],
+      ["par do cesto", () => ware("mold", { ...BASKET_VESSEL, mold: "both" }), THERMO_WARE_MOLD_PROFILE],
+      ["fêmea do pote", () => ware("mold", { mold: "female" }), THERMO_WARE_MOLD_PROFILE],
+      ["macho alto", () => ware("mold", { mouthD: 70, height: 110, draft: 8 }), THERMO_WARE_MOLD_PROFILE],
+      ["mandril", () => bracelet("mandrel"), THERMO_WARE_MOLD_PROFILE],
+      ["mandril largo", () => bracelet("mandrel", { wrist: 230, width: 45 }), THERMO_WARE_MOLD_PROFILE],
     ]),
     ...cases("lithophane", "Litofania", [
       ["padrão", () => litho(100, 0.3, {}), LITHO_PROFILE],
@@ -556,7 +595,7 @@ export function toolCases(M: ManifoldToplevel): QaCase[] {
       ["padrão", () => spool(1)],
       ["máximo", () => spool(spoolTagsThatFit(PLATE_MM - 2 * GAP_MM, GAP_MM))],
     ]),
-    ...cases("colorsplit", "Separar cores de um 3MF", [
+    ...cases("colorsplit", "Separar as cores de um arquivo", [
       ["padrão", () => split(1, false)],
       ["mínimo", () => split(0.2, false)],
       ["máximo", () => split(10, false)],

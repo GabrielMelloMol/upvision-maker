@@ -4,7 +4,7 @@ import type { CS, ManifoldToplevel } from "../manifold";
 type K = <D extends { delete(): void }>(o: D) => D;
 
 type MeshStyle = "honeycomb" | "diamond";
-type Closure = "clip" | "ring" | "none";
+type Closure = "clip" | "ring" | "cap" | "none";
 type ClosureSide = "top" | "bottom";
 
 export type ScreenParams = {
@@ -37,8 +37,8 @@ export const DEFAULT_SCREEN: ScreenParams = {
   t: 1,
   border: 3,
   mesh: "honeycomb",
-  aperture: 2.5,
-  wire: 0.8,
+  aperture: 1.8,
+  wire: 0.84,
   closure: "clip",
   side: "top",
   earW: 9,
@@ -112,20 +112,34 @@ export function screenRegions(M: ManifoldToplevel, sil: CS, design: CS | null, p
   };
 }
 
-/** Orelha do fecho: aba que sai da silhueta no eixo de simetria (em cima ou embaixo), com o furo do clipe. */
-export function earOf(M: ManifoldToplevel, sil: CS, p: ScreenParams, k: K): CS {
+/** Onde o contorno encontra o eixo de simetria (x = 0) no lado escolhido: a borda no eixo e o ponto mais alto do formato (no sentido do lado). */
+function axisReach(M: ManifoldToplevel, sil: CS, side: ClosureSide, k: K): { s: 1 | -1; edge: number; reach: number } {
   const b = sil.bounds();
   const strip = k(k(M.CrossSection.square([0.2, b.max[1] - b.min[1] + 4], true)).translate([0, (b.max[1] + b.min[1]) / 2]));
   const onAxis = k(sil.intersect(strip)).bounds();
-  const s = p.side === "top" ? 1 : -1;
-  const edge = s * (s > 0 ? onAxis.max[1] : onAxis.min[1]); // distância do eixo até o contorno, no sentido da orelha
-  const reach = s * (s > 0 ? b.max[1] : b.min[1]); // ponto mais alto do formato (coração: passa do vão entre os lóbulos)
+  const s = side === "top" ? 1 : -1;
+  return { s, edge: s * (s > 0 ? onAxis.max[1] : onAxis.min[1]), reach: s * (s > 0 ? b.max[1] : b.min[1]) };
+}
+
+/** Orelha do fecho: aba que sai da silhueta no eixo de simetria (em cima ou embaixo), com o furo do clipe. */
+export function earOf(M: ManifoldToplevel, sil: CS, p: ScreenParams, k: K): CS {
+  const { s, edge, reach } = axisReach(M, sil, p.side, k); // reach: ponto mais alto do formato (coração: passa do vão entre os lóbulos)
   const holeR = p.hole / 2;
   const tip = Math.max(edge + p.earLen, reach + holeR + HOLE_MARGIN + EAR_END);
   const len = tip - edge + EAR_OVERLAP;
   const tab = k(rrect(M, p.earW, len, EAR_ROUND, k).translate([0, s * (edge - EAR_OVERLAP + len / 2)]));
   const hole = k(k(M.CrossSection.circle(holeR, 32)).translate([0, s * (tip - EAR_END - holeR)]));
   return k(tab.subtract(hole));
+}
+
+const POST_GAP = 1; // o pino começa um pouco além do ponto mais alto do formato (fora da faixa colada e dos lóbulos)
+
+/** Aba que prende o meio-pino da tampa à placa: do vão da borda até o começo do pino, na largura do pino. */
+export function postTabOf(M: ManifoldToplevel, sil: CS, p: ScreenParams, width: number, k: K): { tab: CS; start: number; s: 1 | -1 } {
+  const { s, edge, reach } = axisReach(M, sil, p.side, k);
+  const start = reach + POST_GAP;
+  const len = start + 1 - edge + EAR_OVERLAP;
+  return { tab: k(rrect(M, width, len, 0, k).translate([0, s * (edge - EAR_OVERLAP + len / 2)])), start, s };
 }
 
 /** Clipe-dobradiça: argola chata aberta (um "C" de pista), impressa deitada; as pontas passam pelos furos das duas orelhas. */

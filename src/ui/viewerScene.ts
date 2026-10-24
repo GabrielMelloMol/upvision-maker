@@ -341,6 +341,33 @@ export function createViewer(el: HTMLElement) {
       spinUntil = 0;
       wake();
     },
+    /** Aproxima a câmera de uma caixa (mm), mantendo o lado de onde se olha. */
+    focusBox(min: [number, number, number], max: [number, number, number]) {
+      const box = new THREE.Box3(new THREE.Vector3(...min), new THREE.Vector3(...max));
+      const center = box.getCenter(new THREE.Vector3());
+      const dir = camera.position.clone().sub(controls.target).normalize();
+      const to = center.clone().add(dir.clone().multiplyScalar(Math.max(fitDistance(MIN_RADIUS, camera.fov, camera.aspect), fitBoxDistance(box, camera.fov, camera.aspect, dir))));
+      clipFor(box, to);
+      if (reducedMotion()) {
+        camera.position.copy(to);
+        controls.target.copy(center);
+        controls.update();
+        render();
+        return;
+      }
+      fly = { from: camera.position.clone(), to, fromT: controls.target.clone(), toT: center, t0: performance.now(), spin: false };
+      spinUntil = 0;
+      wake();
+    },
+    /** Ponto (x, y em mm) onde o raio do clique cruza a mesa (z = 0), ou null. */
+    ground(x: number, y: number): [number, number] | null {
+      const r = renderer.domElement.getBoundingClientRect();
+      if (!r.width || !r.height) return null;
+      const ray = new THREE.Raycaster();
+      ray.setFromCamera(new THREE.Vector2(((x - r.left) / r.width) * 2 - 1, -((y - r.top) / r.height) * 2 + 1), camera);
+      const at = ray.ray.intersectPlane(new THREE.Plane(new THREE.Vector3(0, 0, 1), 0), new THREE.Vector3());
+      return at ? [at.x, at.y] : null;
+    },
     /** Volta ao enquadramento de chegada. */
     reset() {
       lastSize = 0;

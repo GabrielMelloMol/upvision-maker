@@ -1,12 +1,10 @@
 import type { Page } from "@playwright/test";
-import { expect, go, openApp, test } from "./tauri";
+import { expect, openApp, pickModel, test } from "./tauri";
 
 const idle = (page: Page) => expect(page.locator(".viewer .overlay.busy")).toHaveCount(0, { timeout: 90_000 });
 test("capa de celular: modelos aproximados, aviso de conferir no aparelho, peça de teste", async ({ page }) => {
   await openApp(page);
-  await go(page, "Modelos prontos");
-  await page.getByRole("searchbox", { name: "Buscar modelo" }).fill("capa de celular");
-  await page.getByRole("group", { name: "Modelo" }).getByRole("button", { name: "Capa de celular (TPU)", exact: true }).click();
+  await pickModel(page, "capa de celular", "Capa de celular (TPU)", { exact: true });
   await idle(page);
   await expect(page.getByText(/Confira as medidas no seu aparelho/)).toBeVisible();
   // a prévia da fonte mostra o nome, não o texto dos recortes dos botões

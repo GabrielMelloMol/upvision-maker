@@ -1,14 +1,12 @@
 import type { Page } from "@playwright/test";
-import { expect, go, openApp, test, toastWith } from "./tauri";
+import { expect, openApp, pickModel, test, toastWith } from "./tauri";
 
 const hud = (page: Page) => page.locator(".viewer .hud");
 const idle = (page: Page) => expect(page.locator(".viewer .overlay.busy")).toHaveCount(0, { timeout: 60_000 });
 
 test("porta-copos: redondo, quadrado, anel, pés e suporte para N unidades (#109)", async ({ page, tauri }) => {
   await openApp(page);
-  await go(page, "Modelos prontos");
-  await page.getByRole("searchbox", { name: "Buscar modelo" }).fill("copos");
-  await page.getByRole("group", { name: "Modelo" }).getByRole("button", { name: "Porta-copos", exact: true }).click();
+  await pickModel(page, "copos", "Porta-copos", { exact: true });
   await idle(page);
   // redondo de 90 mm e 4,5 mm de espessura; o desenho (nome + anel) é uma parte à parte
   await expect(hud(page)).toContainText("90.0 × 90.0 × 4.5 mm", { timeout: 60_000 });

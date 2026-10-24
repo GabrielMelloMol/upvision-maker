@@ -18,13 +18,13 @@ export const ARTICLES: HelpArticle[] = [
   {
     id: "create",
     title: "Criar",
-    intro: "Todas as ferramentas e os Modelos prontos num lugar só.",
-    steps: ["Busque pelo nome (ex.: chaveiro, placa, cortador) ou filtre pelo tipo.", "Clique numa ferramenta para abrir, ou num modelo pronto para abrir já nele.", "A ferramenta aberta aparece embaixo de Criar na barra lateral."],
-    tips: ["Tem um desenho ou uma foto? Veja o filtro De um desenho ou foto."],
+    intro: "Os produtos que você faz, com foto, e as ferramentas de arquivo, num lugar só.",
+    steps: ["Busque pelo que quer fazer ou vender (ex.: chaveiro com nome, placa Pix, topo de bolo) ou escolha uma categoria.", "Clique no produto: cada cartão diz o que resolve e quantos tipos tem.", "Dentro do produto, troque o tipo (ex.: Chaveiro › Anilha) e use Todos os produtos para voltar."],
+    tips: ["Tem um arquivo 3D ou uma imagem sua? Veja a aba Do seu arquivo.", "Ocasiões e Favoritos ficam logo abaixo das categorias.", "Em Filtros, deixe só os modelos que imprimem em 1 cor."],
   },
   {
     id: "svg",
-    title: "Imagem em desenho (SVG)",
+    title: "Imagem em vetor",
     intro: "Transforma um logo, desenho ou foto num contorno limpo, já no tamanho de impressão em mm.",
     steps: ["Arraste a imagem (PNG, JPG, WebP…).", "Escolha Logo / desenho (fundo liso) ou Silhueta (foto de pessoa, pet ou objeto).", "Em Cores, escolha de 1 a 4: cada cor vira uma camada que encaixa na outra.", "Ajuste a Largura final e clique em Aplicar alterações.", "Salve o SVG ou mande direto para o Cortador ou a Extrusão."],
     tips: ["Trechos em vermelho ficam com menos de 0,4 mm: use Engrossar traços finos ou aumente a largura."],
@@ -72,8 +72,15 @@ export const ARTICLES: HelpArticle[] = [
     id: "thermoform",
     title: "Caixinha termoformada",
     intro: "Duas telas planas de PLA, em malha de favo com borda e desenho sólidos, prensadas a quente sobre um molde em domo de PETG viram as metades de uma caixinha de presente.",
-    steps: ["Escolha um modelo pronto (Natal, Dia dos Namorados, Páscoa, brinde) ou um formato: coração, estrela, flor, círculo, quadrado, bola de Natal, ovo, uma imagem, um SVG ou um texto.", "Digite o texto e, se quiser, envie um logo. O desenho é o que fica sólido sobre a malha.", "Ajuste a altura do domo e a malha. O app mostra quanto a tela estica ao cobrir o molde e encolhe o desenho para ele sair do tamanho certo.", "Salve as telas e o clipe (PLA) num arquivo e o molde (PETG) em outro, e siga o passo a passo da termoformagem que aparece na tela."],
+    steps: ["Escolha um modelo pronto (Natal, Dia dos Namorados, Páscoa, brinde) ou um formato: coração, estrela, flor, círculo, quadrado, bola de Natal, ovo, uma imagem, um SVG ou um texto. Sem a silhueta, copie o texto pronto e peça a uma IA de imagem.", "Digite o texto e, se quiser, envie um logo. O desenho é o que fica sólido sobre a malha (e, se quiser, também na base, vista através dela).", "Ajuste a altura do domo e a malha. O app mostra quanto a tela estica ao cobrir o molde, a folga entre o macho e a fêmea e encolhe o desenho para ele sair do tamanho certo.", "Escolha as placas de base e o fecho: clipe-dobradiça, faixa colada (o aro) ou tampa rosqueada, que também é o pendurador, com furo para a fita.", "Salve as telas e as bases (PLA, 0,20 mm), o clipe ou a tampa (PLA, 0,16 mm) e os moldes macho e fêmea (PETG, 0,24 mm), e siga o passo a passo da termoformagem que aparece na tela, com soprador ou água quente."],
     tips: ["As duas metades usam o mesmo molde, por isso a silhueta precisa ser simétrica pelo eixo vertical. Se a imagem não for, use Espelhar a esquerda ou a direita.", "A malha é desenhada na peça (favo ou losango), então o 3MF fatia igual no Bambu Studio e no OrcaSlicer, sem mexer em nada no fatiador.", "O molde é oco com nervuras: pesa a metade de um molde maciço a 100% e aguenta a prensagem sem depender do preenchimento do fatiador."],
+  },
+  {
+    id: "thermoware",
+    title: "Pote, cesto e pulseira termoformados",
+    intro: "Um disco ou uma tira de PLA, impressos planos, ganham forma a quente num molde de PETG: o pote (inteiro) ou o cesto (em malha), com a forma positiva (macho), a negativa (fêmea) ou o par que prensa, e a pulseira em C enrolada num mandril.",
+    steps: ["Escolha Pote, Cesto ou Pulseira.", "No pote e no cesto, defina o diâmetro da boca, a altura, o ângulo de saída (5° ou mais) e o raio do canto. O app calcula o diâmetro do disco plano: fundo + parede + aba.", "Na pulseira, meça a mão (uns 190 a 220 mm em volta), escolha a largura, a abertura do C e, se quiser, um texto.", "Salve o disco (ou a tira) em PLA e o molde (ou o mandril) em PETG, e siga o passo a passo da termoformagem, com soprador ou água quente."],
+    tips: ["A conta do disco é aproximada: a tela afina ao esticar. Teste primeiro numa sobra.", "O molde é de PETG porque o PLA quente não gruda nele.", "Na pulseira, 1 a 1,5 mm de espessura dobra bem; mais que isso, ela volta."],
   },
   {
     id: "mosaic",
@@ -84,7 +91,7 @@ export const ARTICLES: HelpArticle[] = [
   },
   {
     id: "extrude",
-    title: "Desenho em 3D",
+    title: "Imagem em relevo 3D",
     intro: "Dá altura a qualquer desenho: placas, letreiros, apliques e topos.",
     steps: ["Envie o desenho (SVG ou imagem).", "Defina a largura e a altura do desenho em mm.", "Marque Base por baixo para ter uma placa no formato da silhueta.", "Salve em 3MF ou STL."],
     example: "Usar um desenho de exemplo",
@@ -101,7 +108,7 @@ export const ARTICLES: HelpArticle[] = [
     id: "models",
     title: "Modelos prontos",
     intro: "Mais de 50 modelos paramétricos. Ajuste texto, tamanho e cores e salve o 3MF separado por cor.",
-    steps: ["Escolha a categoria ou busque pelo nome; as pílulas filtram por ocasião.", "Ajuste os campos: a prévia 3D atualiza sozinha.", "Arraste textos e QR na Vista de cima, ou adicione seu desenho/texto livre.", "Salve o 3MF (ou o projeto do Bambu Studio quando há pausa)."],
+    steps: ["Escolha o produto na Criar (busque pelo nome ou use as abas e as ocasiões).", "Ajuste os campos: a prévia 3D atualiza sozinha.", "Arraste textos e QR na Vista de cima, ou adicione seu desenho/texto livre.", "Salve o 3MF (ou o projeto do Bambu Studio quando há pausa)."],
     tips: ["Nas peças com encaixe, a folga é um campo: se ficar justo ou solto, ajuste e imprima de novo.", "Salvar como variação guarda seus campos e camadas para reaproveitar."],
   },
   {
@@ -113,7 +120,7 @@ export const ARTICLES: HelpArticle[] = [
   },
   {
     id: "lithophane",
-    title: "Foto em relevo",
+    title: "Litofania",
     intro: "Uma foto vira relevo de cinco jeitos, nas abas: Litofania, Colorida, Relevo, Quadro por camadas e Shadowbox.",
     steps: ["Escolha o que quer fazer (você troca depois nas abas) e envie a foto: rostos e paisagens com bom contraste ficam melhores.", "Litofania: escolha o formato (plana, curva, caixa de luz, cilindro, coração ou círculo), as espessuras e, se quiser, a base de LED (disco ou fita, cabo ou 2 pilhas AAA).", "Quadro: escolha uma paleta pronta ou marque 2 a 4 filamentos, do escuro ao claro.", "No quadro, escolha o formato, o furo para pendurar e, se quiser, o encaixe de ímã.", "Salve o 3MF."],
     tips: ["Litofania em PLA branco, em pé, com 100% de preenchimento; a base de LED aguenta 15% a 20%.", "Abajur: a foto dá a volta inteira e o relevo fica por dentro; a emenda é disfarçada.", "A tampa de baixo da base encaixa por atrito: um pingo de cola ou fita segura.", "Sem AMS, o quadro pausa em cada troca de cor; com AMS, ligue Uma parte por cor.", "Cadastre o TD de cada filamento (em Filamentos) para as faixas ficarem na altura certa.", "Separe a pessoa ou o bicho para deixar o fundo liso numa cor ou recortar no contorno.", "Litofania colorida: precisa de 5 filamentos (branco, ciano, magenta, amarelo e preto), de preferência translúcidos, e do TD de cada um para as cores saírem fiéis.", "Relevo: uma placa de uma cor só, impressa deitada, em que o claro da foto sobe; ajuste profundidade, gama e realce de bordas e use Pessoa ou Bicho para deixar o fundo liso."],
@@ -129,27 +136,27 @@ export const ARTICLES: HelpArticle[] = [
   },
   {
     id: "colorsplit",
-    title: "Separar cores de um 3MF",
+    title: "Separar as cores de um arquivo",
     intro: "Abra um 3MF colorido (pintado no fatiador ou com cores de material, como sai do Blender ou de gerador por IA) e separe cada cor numa peça, para imprimir sem AMS.",
     steps: ["Arraste o 3MF colorido (Bambu Studio, OrcaSlicer, PrusaSlicer, Blender…).", "Se o arquivo pinta por material, ajuste a tolerância entre cores e escolha quais viram peça separada; na vista Original, clique numa cor para separar só a região que toca ou todas as áreas dela.", "Escolha partes (multicor) ou objetos separados, com a posição original se quiser.", "Se quiser, corte em até 6 partes iguais com pino de encaixe em cada junta.", "Salve as peças e cole ou encaixe depois de imprimir."],
   },
   {
     id: "bedcut",
-    title: "Cortar para caber na mesa",
+    title: "Dividir peça grande",
     intro: "O STL ou 3MF é maior que a mesa da impressora: o app corta em pedaços iguais, faz o encaixe entre eles e numera cada junta nas duas faces.",
     steps: ["Arraste o STL ou 3MF grande.", "Confira a mesa (a da impressora escolhida ou digite as medidas).", "Veja quantos pedaços o app sugere ou escolha as partes por eixo.", "Escolha o encaixe: pino redondo ou quadrado, rabo de andorinha ou ímã.", "Salve: cada pedaço já assenta na mesa pela face cortada e as juntas têm o mesmo número nos dois lados."],
     tips: ["Os pinos e as chaves saem à parte, na mesma cor das peças: imprima junto.", "No ímã, vire um dos ímãs ao contrário para os dois se atraírem.", "Com a vista Montada você afasta os pedaços para ver as juntas."],
   },
   {
     id: "texturize",
-    title: "Textura no seu modelo",
+    title: "Textura na peça",
     intro: "Dê acabamento a um STL ou 3MF que você já tem: fibra de carbono, couro, madeira, serrilhado, colmeia, felpudo… viram relevo de verdade na malha.",
     steps: ["Arraste o STL ou 3MF.", "Escolha uma textura (16 padrões), uma frase ou uma imagem.", "Ajuste o tamanho e a altura do relevo e se ele cresce para fora, para dentro ou centrado.", "Escolha onde: peça toda, só laterais, só o topo ou pinte com o pincel clicando na peça.", "Salve o STL ou 3MF: a prévia é igual ao arquivo."],
     tips: ["Base lisa e Sem balanço novo vêm ligados: a face que assenta na mesa e as partes viradas para baixo ficam como estavam.", "Para copo e vaso use a projeção Cilíndrica; para formas quebradas, Em caixa.", "Textura menor que duas linhas do bico (0,8 mm) se perde na impressão: o app avisa."],
   },
   {
     id: "partialcut",
-    title: "Corte parcial",
+    title: "Cortar um pedaço com encaixe",
     intro: "Corte só um pedaço de um STL ou 3MF (a cabeça de um personagem, sem cortar a árvore ao lado): o plano de corte só vale dentro de uma caixa.",
     steps: ["Arraste o STL ou 3MF (um sólido fechado).", "Escolha a direção e a posição do plano; incline se precisar.", "Reduza a caixa até pegar só o pedaço (ou clique na parte na prévia). Fora da caixa nada é cortado.", "Escolha o encaixe (pino solto ou fixo, com folga) e afaste o pedaço na prévia para conferir.", "Salve o 3MF: o pedaço sai deitado na face cortada, pronto para imprimir sem suporte."],
     tips: ["O app confere que as duas peças fecham e que, somadas, voltam ao volume original.", "Cortes finos demais para o pino saem sem encaixe e avisam.", "Use só modelos que são seus ou cuja licença permite alterar."],
@@ -163,7 +170,7 @@ export const ARTICLES: HelpArticle[] = [
   },
   {
     id: "lighten",
-    title: "Miolo leve",
+    title: "Deixar a peça mais leve",
     intro: "Gaste menos filamento numa peça grande: o app deixa uma casca maciça e troca o miolo por uma estrutura (giroide, voronoi ou treliça cúbica). Também faz um bloco de treliça.",
     steps: ["Arraste o STL ou 3MF (um sólido fechado), ou escolha \"Bloco de treliça\" e digite as medidas.", "Escolha a estrutura, o tamanho da célula, a espessura da parede da estrutura e a casca externa.", "Ligue \"Ver por dentro\" para ver o corte ao meio na prévia.", "Clique em \"Comparar as 3 estruturas\" para ver massa, economia e a menor seção de cada uma; \"Usar esta\" troca na hora.", "Salve o 3MF ou o STL."],
     tips: ["Célula maior deixa a estrutura mais aberta e leve; parede de estrutura fina demais (abaixo de 0,8 mm) pode não imprimir inteira.", "A comparação mostra só a menor seção de material em cada direção: serve para comparar as opções, não é uma simulação de carga. Em peça que segura peso, imprima um teste e force.", "Em peça com muitas cores do arquivo, as cores viram uma só.", "Use só modelos que são seus ou cuja licença permite alterar."],
@@ -177,17 +184,17 @@ export const ARTICLES: HelpArticle[] = [
   },
   {
     id: "owndecal",
-    title: "Nome ou logo no seu modelo",
+    title: "Nome ou logo na peça",
     intro: "Ponha seu nome ou logo em qualquer superfície de um STL ou 3MF que você já tem, plana ou curva (copo, esfera, tampa abaulada), em outra cor, para imprimir em duas cores.",
     steps: ["Arraste o STL ou 3MF (um sólido fechado).", "Clique na prévia no ponto onde o desenho vai ficar: numa face plana (ela fica pintada de azul, ou escolha na lista) ou em qualquer ponto de uma superfície curva (aparece um disco azul).", "Adicione um texto ou desenho e arraste na vista da face.", "Salve o 3MF: na face plana a cor entra rente, sem mudar o tamanho; na curva o relevo ou o entalhe acompanha a superfície. Quanto mais inclinado o trecho, mais o desenho estica: prefira o ponto mais de frente ou use Enrolar (veja a dica)."],
     tips: ["Enrolar: num copo, caneca, garrafa, vaso, cone ou esfera o desenho dá a volta como o rótulo de uma garrafa, com o tamanho real das letras, sem esticar. Escolha o eixo da peça (Em pé para peça apoiada na base, Deitada para peça de lado); em peça que não é redonda o app avisa e projeta reto.", "O ponto tem de estar na parte de fora da peça, voltada para quem olha. Em reentrância o desenho não entra.", "Use só modelos que são seus ou cuja licença permite alterar. O app não confere a licença."],
   },
   {
     id: "protect",
-    title: "Proteger arquivo",
+    title: "Certificado de autoria",
     intro: "Gere a impressão digital (SHA-256) do seu STL ou 3MF e um certificado em PDF com data e QR; depois confira o arquivo sem internet.",
     steps: ["Arraste o arquivo: o app calcula o hash na hora, sem enviar nada.", "Preencha obra, autor e contato (o nome da loja já vem dos Dados da empresa).", "Salve o certificado em PDF e, de preferência, o .json para conferir depois.", "Para conferir, escolha o arquivo e informe o hash: digitando, lendo o QR ou abrindo o .json."],
-    tips: ["Mudou um byte do arquivo, o hash muda e a conferência falha: serve para provar que a peça entregue é a mesma.", "A data vem do relógio deste computador e não é um carimbo de tempo independente; guarde o PDF e o arquivo juntos e registre o envio por e-mail ou plataforma de venda.", "Para gravar seu nome na própria peça, use Nome ou logo no seu modelo."],
+    tips: ["Mudou um byte do arquivo, o hash muda e a conferência falha: serve para provar que a peça entregue é a mesma.", "A data vem do relógio deste computador e não é um carimbo de tempo independente; guarde o PDF e o arquivo juntos e registre o envio por e-mail ou plataforma de venda.", "Para gravar seu nome na própria peça, use Nome ou logo na peça."],
   },
   {
     id: "pixel",
@@ -232,7 +239,7 @@ export const ARTICLES: HelpArticle[] = [
   },
   {
     id: "scad",
-    title: "Modelo personalizável (OpenSCAD)",
+    title: "Modelo do OpenSCAD (avançado)",
     intro: "Abra um .scad com parâmetros (formato do Customizer) e ajuste as medidas num formulário.",
     steps: ["Arraste o arquivo .scad baixado do Thingiverse, Printables ou MakerWorld.", "Escolha a licença que o autor informou e dê o crédito.", "Ajuste os campos de cada aba e confira a prévia.", "Salve o 3MF ou guarde em Meus modelos para usar de novo."],
     tips: [

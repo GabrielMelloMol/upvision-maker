@@ -1,5 +1,5 @@
 import type { Page } from "@playwright/test";
-import { expect, go, openApp, test } from "./tauri";
+import { expect, openApp, pickModel, test } from "./tauri";
 
 const hud = (page: Page) => page.locator(".viewer .hud");
 const idle = (page: Page) => expect(page.locator(".viewer .overlay.busy")).toHaveCount(0, { timeout: 60_000 });
@@ -7,9 +7,7 @@ const HEART = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 10 10"><circ
 
 test("ejetor: fundo com borda arredondada ou domo, com dica de camada fina (#62)", async ({ page }) => {
   await openApp(page);
-  await go(page, "Modelos prontos");
-  await page.getByRole("searchbox", { name: "Buscar modelo" }).fill("Ejetor");
-  await page.getByRole("group", { name: "Modelo" }).getByRole("button", { name: "Ejetor de brigadeiro", exact: true }).click();
+  await pickModel(page, "Ejetor", "Ejetor de brigadeiro", { exact: true });
   await page.locator('input[type="file"]').first().setInputFiles({ name: "redondo.svg", mimeType: "image/svg+xml", buffer: Buffer.from(HEART) });
   await idle(page);
   await expect(hud(page)).toContainText("mm", { timeout: 60_000 });

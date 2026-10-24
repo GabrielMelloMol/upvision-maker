@@ -1,13 +1,11 @@
 import AxeBuilder from "@axe-core/playwright";
 import type { Page } from "@playwright/test";
-import { expect, go, openApp, settleColors, test } from "./tauri";
+import { expect, openApp, pickModel, settleColors, test } from "./tauri";
 
 const idle = (page: Page) => expect(page.locator(".viewer .overlay.busy")).toHaveCount(0, { timeout: 90_000 });
 async function open(page: Page) {
   await openApp(page);
-  await go(page, "Modelos prontos");
-  await page.getByRole("searchbox", { name: "Buscar modelo" }).fill("docinho pelo peso");
-  await page.getByRole("group", { name: "Modelo" }).getByRole("button", { name: "Forma de docinho pelo peso", exact: true }).click();
+  await pickModel(page, "docinho pelo peso", "Forma de docinho pelo peso", { exact: true });
   await idle(page);
 }
 const width = async (page: Page) => Number(/([\d.]+) × [\d.]+ × /.exec((await page.locator(".viewer .hud").first().textContent()) ?? "")![1]);

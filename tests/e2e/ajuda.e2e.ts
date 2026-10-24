@@ -36,9 +36,9 @@ test("busca ⌘K acha artigos e termos; ⓘ nos campos técnicos (#84)", async (
 
   await page.keyboard.press("Control+k");
   await page.getByRole("combobox").fill("foto em relevo");
-  await page.getByRole("option", { name: /Como usar: Foto em relevo/ }).click();
-  await expect(page.getByRole("heading", { name: "Foto em relevo", level: 1 })).toBeVisible({ timeout: 30_000 });
-  await expect(page.getByRole("dialog", { name: "Foto em relevo" })).toBeVisible({ timeout: 30_000 });
+  await page.getByRole("option", { name: /Como usar: Litofania/ }).click();
+  await expect(page.getByRole("heading", { name: "Litofania", level: 1 })).toBeVisible({ timeout: 30_000 });
+  await expect(page.getByRole("dialog", { name: "Litofania" })).toBeVisible({ timeout: 30_000 });
   await page.getByRole("button", { name: "Usar uma foto de exemplo" }).click();
   await expect(page.getByRole("img", { name: "Simulação da litofania contra a luz" })).toBeVisible({ timeout: 60_000 });
 

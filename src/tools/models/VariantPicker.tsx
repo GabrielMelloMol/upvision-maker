@@ -7,7 +7,7 @@ import { THUMBS } from "./thumbs";
 type Props = { id: string; onPick: (id: string) => void; /** Só estas variações (a ferramenta Organizadores mostra um pedaço da família); sem atalhos para outras ferramentas. */ only?: readonly string[] };
 
 /** Nome da ferramenta (no menu) para o aviso "abre a ferramenta X" do atalho; o rótulo do botão é o da variante. */
-const TOOL_NAMES: Record<string, string> = { medal: "Medalhas", keychain: "Chaveiros", organizers: "Organizadores", drawer: "Organizadores", qr: "QR Code", toolfit: "Organizadores", pixel: "Pixel art", lithophane: "Foto em relevo" };
+const TOOL_NAMES: Record<string, string> = { medal: "Medalhas", keychain: "Chaveiros", organizers: "Organizadores", drawer: "Organizadores", qr: "QR Code", toolfit: "Organizadores", pixel: "Pixel art", lithophane: "Litofania" };
 
 /**
  * Seletor de variação da família (#141): miniatura pequena + rótulo, agrupado quando a família tem grupos

@@ -10,7 +10,7 @@ test("foco visível em botão fantasma, link, chip e botão de ícone (#142)", a
   await page.keyboard.press("Tab"); // daqui em diante o foco é "de teclado"
   const targets = [
     page.getByRole("button", { name: /^Favoritar|^Tirar .* dos favoritos/ }), // .icon-button
-    page.getByRole("group", { name: "Ocasião" }).getByRole("button").first(), // .chips
+    page.getByRole("button", { name: "Todos os produtos" }), // .link
     page.getByRole("button", { name: "Ajuda: Modelos prontos" }), // .ghost.icon-only
     page.getByRole("button", { name: "Buscar", exact: false }).first(), // .ghost da barra de cima
   ];

@@ -64,12 +64,12 @@ const MAX_EXPLODE = 60;
 const mm = (n: number) => n.toFixed(1).replace(".", ",") + " mm";
 
 /**
- * Corte parcial: o plano de corte só vale dentro de uma caixa que a pessoa limita, então o resto do arquivo
+ * Cortar um pedaço com encaixe: o plano de corte só vale dentro de uma caixa que a pessoa limita, então o resto do arquivo
  * (a árvore ao lado do personagem) não é cortado. Pino ou furo na face cortada; o pedaço sai deitado nela.
  */
 export default function PartialCut() {
   const tool = useToolState("partialcut", initialState, {
-    label: "Corte parcial",
+    label: "Cortar um pedaço com encaixe",
     save: (s) => ({ ...s, file: s.file && { name: s.file.name, bytes: storeBytes(s.file.bytes) } }),
     load: (raw) => {
       const r = raw as Record<string, unknown> & { file: { name: string; bytes: string | null } | null };
@@ -196,7 +196,7 @@ export default function PartialCut() {
 
   return (
     <div className="page">
-      <h1>Corte parcial</h1>
+      <h1>Cortar um pedaço com encaixe</h1>
       <p className="lead">Corta só um pedaço do modelo, dentro de uma região.</p>
       <ToolSessionBar tool={tool} />
       <div className="tool-layout">

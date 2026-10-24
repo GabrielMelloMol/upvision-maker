@@ -1,14 +1,12 @@
 import type { Page } from "@playwright/test";
-import { expect, go, openApp, test, toastWith } from "./tauri";
+import { expect, openApp, pickModel, test, toastWith } from "./tauri";
 
 // Modelos de cozinha e casa da fila da Lupa (#63, #65, #66, #73, #59, #64, #75).
 const idle = (page: Page) => expect(page.locator(".viewer .overlay.busy")).toHaveCount(0, { timeout: 60_000 });
 
 async function openModel(page: Page, name: string) {
   await openApp(page);
-  await go(page, "Modelos prontos");
-  await page.getByRole("searchbox", { name: "Buscar modelo" }).fill(name);
-  await page.getByRole("group", { name: "Modelo" }).getByRole("button", { name, exact: true }).click();
+  await pickModel(page, name, name, { exact: true });
   await idle(page);
   await expect(page.locator(".viewer .hud")).toContainText("mm", { timeout: 60_000 });
 }
@@ -123,30 +121,26 @@ test("utilitários paramétricos (#121): arruela, marcador, pente de cabos, bot�
   await expect(page.locator(".viewer .hud")).toContainText("mm");
   await save3mf(page, tauri.files);
 
-  await page.getByRole("searchbox", { name: "Buscar modelo" }).fill("Marcador de horta");
-  await page.getByRole("group", { name: "Modelo" }).getByRole("button", { name: "Marcador de horta ou planta", exact: true }).click();
+  await pickModel(page, "Marcador de horta", "Marcador de horta ou planta", { exact: true });
   await idle(page);
   await expect(page.locator(".legend")).toContainText("Texto");
   await page.getByLabel("Nome da planta").fill("Manjericão");
   await idle(page);
   await expect(page.locator(".viewer .hud")).toContainText("50.0 × 125.0");
 
-  await page.getByRole("searchbox", { name: "Buscar modelo" }).fill("Clipe e pente");
-  await page.getByRole("group", { name: "Modelo" }).getByRole("button", { name: "Clipe e pente de cabos", exact: true }).click();
+  await pickModel(page, "Clipe e pente", "Clipe e pente de cabos", { exact: true });
   await idle(page);
   await page.getByLabel(/^Número de cabos/).fill("5");
   await idle(page);
   await expect(page.locator(".viewer .hud")).toContainText("mm");
 
-  await page.getByRole("searchbox", { name: "Buscar modelo" }).fill("Botão ou manopla");
-  await page.getByRole("group", { name: "Modelo" }).getByRole("button", { name: "Botão ou manopla", exact: true }).click();
+  await pickModel(page, "Botão ou manopla", "Botão ou manopla", { exact: true });
   await idle(page);
   await page.getByRole("group", { name: "Furo do eixo" }).getByRole("button", { name: "Redondo" }).click();
   await idle(page);
   await expect(page.locator(".viewer .hud")).toContainText("× 18.0 mm");
 
-  await page.getByRole("searchbox", { name: "Buscar modelo" }).fill("Adaptador de mangueira");
-  await page.getByRole("group", { name: "Modelo" }).getByRole("button", { name: "Adaptador de mangueira ou aspirador", exact: true }).click();
+  await pickModel(page, "Adaptador de mangueira", "Adaptador de mangueira ou aspirador", { exact: true });
   await idle(page);
   await page.getByLabel(/^Diâmetro interno B/).fill("12");
   await page.getByLabel(/^Comprimento do cone/).fill("5");

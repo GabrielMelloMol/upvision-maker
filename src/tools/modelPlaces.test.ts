@@ -2,8 +2,8 @@ import { describe, expect, test } from "vitest";
 import { takeIntent } from "./intent";
 import { openModel, placeOf } from "./modelPlaces";
 
-describe("modelos que viraram aba de ferramenta (Foto em relevo)", () => {
-  test("o Shadowbox abre na aba da Foto em relevo, os outros modelos nos Modelos prontos", () => {
+describe("modelos que viraram aba de ferramenta (Litofania)", () => {
+  test("o Shadowbox abre na aba da Litofania, os outros modelos nos Modelos prontos", () => {
     expect(openModel("shadowbox")).toBe("lithophane");
     expect(takeIntent("lithophane")).toEqual({ mode: "shadowbox" });
     expect(openModel("tableLamp")).toBe("models");

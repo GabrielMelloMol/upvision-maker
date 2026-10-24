@@ -2,7 +2,7 @@ import { mkdirSync } from "node:fs";
 import AxeBuilder from "@axe-core/playwright";
 import type { Page } from "@playwright/test";
 import { strFromU8, unzipSync } from "fflate";
-import { expect, go, openApp, settleColors, test, toastWith } from "./tauri";
+import { expect, openApp, pickModel, settleColors, test, toastWith } from "./tauri";
 
 const hud = (page: Page) => page.locator(".viewer .hud");
 const idle = (page: Page) => expect(page.locator(".viewer .overlay.busy")).toHaveCount(0, { timeout: 120_000 });
@@ -11,9 +11,7 @@ const names3mf = (buf: Buffer) => [...strFromU8(unzipSync(new Uint8Array(buf))["
 async function open(page: Page) {
   await page.setViewportSize({ width: 1280, height: 1000 });
   await openApp(page);
-  await go(page, "Modelos prontos");
-  await page.getByRole("searchbox", { name: "Buscar modelo" }).fill("Caixa organizadora");
-  await page.getByRole("group", { name: "Modelo" }).getByRole("button", { name: /Caixa organizadora/ }).first().click();
+  await pickModel(page, "Caixa organizadora", /Caixa organizadora/);
   await idle(page);
 }
 const view = (page: Page, name: string) => page.getByRole("group", { name: "Vista da prévia" }).getByRole("button", { name, exact: true });

@@ -92,8 +92,8 @@ export function rank(items: SearchItem[], query: string): SearchItem[] {
     const hay = `${title} ${norm(it.subtitle ?? "")} ${norm(it.keywords ?? "")} ${norm(it.group)}`;
     if (!words.every((w) => hay.includes(w))) return [];
     const titleWords = title.split(/\s+/);
-    // a palavra inteira vale mais que o começo dela: "Pix" acha "Placa Pix" antes de "Pixel art"
-    const score = titleWords.includes(words[0]) ? 0 : title.startsWith(words[0]) ? 1 : titleWords.some((t) => t.startsWith(words[0])) ? 2 : 3;
+    // a palavra inteira (ou no plural) vale mais que o começo dela: "Pix" acha "Placa Pix" antes de "Pixel art"; "medalha" acha "Medalhas"
+    const score = titleWords.some((t) => t === words[0] || t === `${words[0]}s`) ? 0 : title.startsWith(words[0]) ? 1 : titleWords.some((t) => t.startsWith(words[0])) ? 2 : 3;
     return [{ it, score }];
   });
   return scored.sort((a, b) => a.score - b.score).map((s) => s.it);

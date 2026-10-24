@@ -35,11 +35,11 @@ async function withPhoto() {
   return { user, container };
 }
 
-describe("Foto em relevo", () => {
+describe("Litofania", () => {
   test("começa perguntando o que fazer, com os cinco jeitos; escolher abre a aba e a prévia vazia", async () => {
     const user = userEvent.setup();
     renderWithApp(<Lithophane />);
-    expect(screen.getByRole("heading", { name: "Foto em relevo", level: 1 })).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: "Litofania", level: 1 })).toBeInTheDocument();
     expect(screen.getByRole("heading", { name: "O que você quer fazer?" })).toBeInTheDocument();
     const cards = within(screen.getByRole("region", { name: "O que você quer fazer?" })).getAllByRole("button");
     expect(cards.map((c) => c.querySelector("strong")!.textContent)).toEqual(["Litofania", "Colorida", "Relevo", "Quadro por camadas", "Shadowbox"]);

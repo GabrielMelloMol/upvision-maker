@@ -1,5 +1,5 @@
 import { openRelief } from "./relief";
-import { expect, go, openApp, test, toastWith } from "./tauri";
+import { expect, go, openApp, pickModel, test, toastWith } from "./tauri";
 
 const SHOTS = process.env.SHOTS_DIR;
 
@@ -60,7 +60,7 @@ test("litofania: a foto volta junto no Continuar; medalha tem desfazer (#85)", a
   await expect(page.getByRole("img", { name: "Simulação da litofania contra a luz" })).toBeVisible({ timeout: 90_000 });
   await expect.poll(() => (tauri.db.prepare("SELECT data FROM tool_state WHERE id = 'lithophane'").get() as { data?: string } | undefined)?.data ?? "", { timeout: 15_000 }).toContain("data:image/jpeg;base64");
   await page.reload();
-  await go(page, "Foto em relevo");
+  await go(page, "Litofania");
   await page.getByRole("button", { name: "Continuar de onde parou" }).click();
   await expect(page.getByRole("img", { name: "Simulação da litofania contra a luz" })).toBeVisible({ timeout: 90_000 });
 
@@ -76,9 +76,7 @@ test("litofania: a foto volta junto no Continuar; medalha tem desfazer (#85)", a
 test("modelos prontos: continuar volta o mesmo modelo e os campos; desfazer vale para campo e camada juntos (#85)", async ({ page }) => {
   test.slow(); // prévia 3D ida e volta: com a suíte inteira em paralelo passa de 60 s
   await openApp(page);
-  await go(page, "Modelos prontos");
-  await page.getByRole("searchbox", { name: "Buscar modelo" }).fill("Placa de sinalização");
-  await page.getByRole("group", { name: "Modelo" }).getByRole("button", { name: "Placa de sinalização", exact: true }).click();
+  await pickModel(page, "Placa de sinalização", "Placa de sinalização", { exact: true });
   const first = page.locator(".controls").getByLabel("Texto", { exact: true });
   await first.fill("Caixa");
   await page.getByRole("region", { name: "Camadas livres" }).getByRole("button", { name: "Adicionar texto" }).click();

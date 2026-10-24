@@ -1,12 +1,10 @@
 import type { Page } from "@playwright/test";
-import { expect, go, openApp, test } from "./tauri";
+import { expect, openApp, pickModel, test } from "./tauri";
 
 const idle = (page: Page) => expect(page.locator(".viewer .overlay.busy")).toHaveCount(0, { timeout: 90_000 });
 test("estilingue: nome, formato e os cuidados escritos na tela", async ({ page }) => {
   await openApp(page);
-  await go(page, "Modelos prontos");
-  await page.getByRole("searchbox", { name: "Buscar modelo" }).fill("estilingue");
-  await page.getByRole("group", { name: "Modelo" }).getByRole("button", { name: "Estilingue personalizado", exact: true }).click();
+  await pickModel(page, "estilingue", "Estilingue personalizado", { exact: true });
   await idle(page);
   await expect(page.getByText(/Brinquedo e hobby, sem garantia de resistência/)).toBeVisible();
   await expect(page.locator(".viewer .legend")).toContainText("Nome");

@@ -1,7 +1,7 @@
 import AxeBuilder from "@axe-core/playwright";
 import { mkdirSync } from "node:fs";
 import type { Page } from "@playwright/test";
-import { expect, go, openApp, test, toastWith } from "./tauri";
+import { expect, openApp, pickModel, test, toastWith } from "./tauri";
 
 const hud = (page: Page) => page.locator(".viewer .hud");
 const idle = (page: Page) => expect(page.locator(".viewer .overlay.busy")).toHaveCount(0, { timeout: 60_000 });
@@ -12,9 +12,7 @@ async function shot(page: Page, name: string) {
   await page.screenshot({ path: `${PRINTS}/${name}.png` });
 }
 async function open(page: Page, query: string, label: string) {
-  await go(page, "Modelos prontos");
-  await page.getByRole("searchbox", { name: "Buscar modelo" }).fill(query);
-  await page.getByRole("group", { name: "Modelo" }).getByRole("button", { name: label, exact: true }).click();
+  await pickModel(page, query, label, { exact: true });
   await idle(page);
   await expect(hud(page)).toContainText("mm", { timeout: 60_000 });
 }

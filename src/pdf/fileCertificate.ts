@@ -65,7 +65,7 @@ export async function fileCertificatePdf(fonts: PdfFonts, c: Certificate, compan
   pdf.gap(8);
   pdf.text("Como conferir", { size: 12, font: "bold" });
   pdf.gap(2);
-  pdf.text("1. No UpVision Maker, abra Criar > Proteger arquivo > Conferir um arquivo.\n2. Escolha o arquivo e informe o hash deste certificado (digite, cole, escaneie o QR ou abra o arquivo .json salvo junto).\n3. O app diz se o arquivo confere. Funciona sem internet. Qualquer ferramenta de SHA-256 também serve: o hash tem que ser igual ao de cima.", { size: 10 });
+  pdf.text("1. No UpVision Maker, abra Criar > Certificado de autoria > Conferir um arquivo.\n2. Escolha o arquivo e informe o hash deste certificado (digite, cole, escaneie o QR ou abra o arquivo .json salvo junto).\n3. O app diz se o arquivo confere. Funciona sem internet. Qualquer ferramenta de SHA-256 também serve: o hash tem que ser igual ao de cima.", { size: 10 });
   pdf.gap(8);
   pdf.text("O que ele não mostra", { size: 12, font: "bold" });
   pdf.gap(2);

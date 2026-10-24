@@ -23,7 +23,7 @@ Peça maior que a mesa de 256 mm do A1 conta como **aviso** quando o app avisa n
 impressoras de mesa maior); sem o aviso do app, é **falha**.
 
 
-**Total:** 593 casos · 437 ok · 156 com aviso · 0 com falha · 0 n/a
+**Total:** 613 casos · 454 ok · 159 com aviso · 0 com falha · 0 n/a
 
 ## Forja
 
@@ -84,7 +84,7 @@ impressoras de mesa maior); sem o aviso do app, é **falha**.
 | Topo de lápis (pencilTopper) | máximo | ✅ ok | Bambu ✓ · Orca ✓ · Projeto Bambu ✓ | 34 | 18,0 | 1 | – | app: Furo de 12 mm: lápis comum tem ~7,5 mm. Se ficar justo ou folgado, ajuste e imprima de novo. |
 | Topo de lápis (pencilTopper) | mínimo | ✅ ok | Bambu ✓ · Orca ✓ · Projeto Bambu ✓ | 10 | 4,0 | 1 | – | app: Furo de 5 mm: lápis comum tem ~7,5 mm. Se ficar justo ou folgado, ajuste e imprima de novo. |
 | Topo de lápis (pencilTopper) | padrão | ✅ ok | Bambu ✓ · Orca ✓ · Projeto Bambu ✓ | 16 | 6,9 | 1 | – | app: Furo de 7,8 mm: lápis comum tem ~7,5 mm. Se ficar justo ou folgado, ajuste e imprima de novo. |
-| Tag de pet (petTag) | máximo | ✅ ok | Bambu ✓ · Orca ✓ · Projeto Bambu ✓ | 24 | 8,9 | 1 | – | – |
+| Tag de pet (petTag) | máximo | ✅ ok | Bambu ✓ · Orca ✓ · Projeto Bambu ✓ | 23 | 8,9 | 1 | – | – |
 | Tag de pet (petTag) | mínimo | ✅ ok | Bambu ✓ · Orca ✓ · Projeto Bambu ✓ | 9 | 2,7 | 1 | – | app: O nome encosta na borda da tag e foi cortado: arraste de volta ou use "Centralizar tudo". |
 | Tag de pet (petTag) | padrão | ✅ ok | Bambu ✓ · Orca ✓ · Projeto Bambu ✓ | 15 | 4,6 | 1 | – | – |
 | Chaveiro suporte de celular (phoneKeychain) | máximo | ✅ ok | Bambu ✓ · Orca ✓ · Projeto Bambu ✓ | 39 | 24,1 | 1 | – | app: Peça que faz força: imprima com 4+ paredes e 40%+ de preenchimento; PETG aguenta mais que PLA.; app: Apoie o celular na fenda, inclinado 75° para o lado da argola. Imprima deitado, como sai no arquivo. |
@@ -102,7 +102,7 @@ impressoras de mesa maior); sem o aviso do app, é **falha**.
 | Caixa organizadora (organizerBox) | máximo | ⚠️ aviso | Bambu ✓ · Orca ✓ · Projeto Bambu ✓ | – | – | – | – | o conjunto arrumado ocupa 514,0 × 251,6 mm: passa da mesa de 256 mm; Bambu: torre de purga em cima de uma peça depois do --arrange do CLI (na tela, arraste a torre ou use Arrumar); Orca: torre de purga em cima de uma peça depois do --arrange do CLI (na tela, arraste a torre ou use Arrumar); Projeto Bambu: torre de purga em cima de uma peça depois do --arrange do CLI (na tela, arraste a torre ou use Arrumar); app: Você pediu uma caixa de 300 × 300 mm, que passa da mesa de 256 mm (a dobradiça sai 10 mm atrás da caixa). Reduzi para 252 × 242 mm para caber. Para uma caixa maior, use uma impressora de mesa maior (Preferências → Impressora das ferramentas) ou faça duas caixas menores. |
 | Caixa organizadora (organizerBox) | mínimo | ✅ ok | Bambu ✓ · Orca ✓ · Projeto Bambu ✓ | 39 | 19,2 | 1 | – | app: Parede abaixo de 1,6 mm: a caixa fica frágil e a tampa pode quebrar. |
 | Caixa organizadora (organizerBox) | padrão | ⚠️ aviso | Bambu ✓ · Orca ✓ · Projeto Bambu ✓ | 362 | 251,3 | 2 | – | o conjunto arrumado ocupa 456,0 × 129,6 mm: passa da mesa de 256 mm; não coube numa placa: 2 placas; app: As peças não cabem juntas numa mesa de 256 mm: Tampa na mesa 2, Caixa na mesa 1, Pino 1 na mesa 1, Pino 2 na mesa 1. A 2ª mesa sai ao lado da 1ª, no mesmo 3MF; no fatiador deixe cada mesa na sua placa (ou imprima uma mesa de cada vez). |
-| Painel perfurado (pegboard) | máximo | ⚠️ aviso | Bambu ✓ · Orca ✓ | 7412 | 4338,0 | 16 | – | o conjunto arrumado ocupa 1024,0 × 1024,0 mm: passa da mesa de 256 mm; mais de 24 h de impressão; não coube numa placa: 16 placas; app: O painel passa da mesa e sai em 16 ladrilhos cortados entre as colunas de furos. Parafuse todos na parede encostados uns nos outros. |
+| Painel perfurado (pegboard) | máximo | ⚠️ aviso | Bambu ✓ · Orca ✓ | 7411 | 4338,0 | 16 | – | o conjunto arrumado ocupa 1024,0 × 1024,0 mm: passa da mesa de 256 mm; mais de 24 h de impressão; não coube numa placa: 16 placas; app: O painel passa da mesa e sai em 16 ladrilhos cortados entre as colunas de furos. Parafuse todos na parede encostados uns nos outros. |
 | Painel perfurado (pegboard) | mínimo | ✅ ok | Bambu ✓ · Orca ✓ | 11 | 6,2 | 1 | – | – |
 | Painel perfurado (pegboard) | padrão | ✅ ok | Bambu ✓ · Orca ✓ | 223 | 149,4 | 1 | – | – |
 | Ganchos do painel (pegHooks) | máximo | ⚠️ aviso | Bambu ✓ · Orca ✓ | – | – | – | – | "Ganchos" não cabe na mesa de 256 mm (135,0 × 1321,2 × 9,6 mm); Bambu recusa na mesa de 256 mm do A1 (o app avisa); Orca recusa na mesa de 256 mm do A1 (o app avisa); app: Só cabem 4 ganchos por mesa: imprima 6 vezes ou peça menos. |
@@ -194,17 +194,17 @@ impressoras de mesa maior); sem o aviso do app, é **falha**.
 | Mapa estelar de uma data (starMap) | máximo | ⚠️ aviso | Bambu ✓ · Orca ✓ · Projeto Bambu ✓ | 256 | 176,9 | 1 | – | o conjunto arrumado ocupa 180,0 × 274,0 mm: passa da mesa de 256 mm; Orca: torre de purga em cima de uma peça depois do --arrange do CLI (na tela, arraste a torre ou use Arrumar); app: 774 estrelas (até a magnitude 5.0, automático pelo tamanho da placa) no céu de São Paulo, SP, fuso UTC−3 (automático pela localização e pela data).; app: As 2 peças não cabem juntas na mesa de 256 mm: o fatiador vai usar mais de uma mesa (ou imprima uma de cada vez). |
 | Mapa estelar de uma data (starMap) | mínimo | ⚠️ aviso | Bambu ✓ · Orca ✓ · Projeto Bambu ✓ | 44 | 29,0 | 1 | – | "Mapa estelar": parede/traço < 0,4 mm em Z 2,2 mm; app: 192 estrelas (até a magnitude 3.6, automático pelo tamanho da placa) no céu de São Paulo, SP, fuso UTC−3:06 (automático pela localização e pela data).; app: 75 de 192 estrelas ficariam menores que 0,60 mm (o mínimo do bico de 0,4 mm) e foram engrossadas até ele. |
 | Mapa estelar de uma data (starMap) | padrão | ✅ ok | Bambu ✓ · Orca ✓ · Projeto Bambu ✓ | 91 | 62,1 | 1 | – | app: 481 estrelas (até a magnitude 4.5, automático pelo tamanho da placa) no céu de São Paulo, SP, fuso UTC−3 (automático pela localização e pela data). |
-| Cortar para caber na mesa (ferramenta) | 3 eixos com números | ⚠️ aviso | Bambu ✓ · Orca ✓ | 2720 | 3361,0 | 6 | – | o conjunto arrumado ocupa 1513,3 × 168,0 mm: passa da mesa de 256 mm; mais de 24 h de impressão; não coube numa placa: 6 placas |
-| Cortar para caber na mesa (ferramenta) | ímã | ⚠️ aviso | Bambu ✓ · Orca ✓ | 577 | 675,4 | 2 | – | o conjunto arrumado ocupa 418,0 × 150,0 mm: passa da mesa de 256 mm; não coube numa placa: 2 placas |
-| Cortar para caber na mesa (ferramenta) | pino redondo (2 pedaços) | ⚠️ aviso | Bambu ✓ · Orca ✓ | 595 | 682,5 | 2 | – | o conjunto arrumado ocupa 418,0 × 168,0 mm: passa da mesa de 256 mm; não coube numa placa: 2 placas |
-| Cortar para caber na mesa (ferramenta) | rabo de andorinha | ⚠️ aviso | Bambu ✓ · Orca ✓ | 637 | 701,3 | 2 | – | o conjunto arrumado ocupa 418,0 × 174,0 mm: passa da mesa de 256 mm; não coube numa placa: 2 placas |
-| Separar cores de um 3MF (ferramenta) | corte com pino | ✅ ok | Bambu ✓ · Orca ✓ · Projeto Bambu ✓ | 96 | 24,6 | 1 | – | – |
-| Separar cores de um 3MF (ferramenta) | material: corte em 3 partes | ⚠️ aviso | Bambu ✓ · Orca ✓ · Projeto Bambu ✓ | 555 | 164,7 | 1 | – | Orca: torre de purga passa da mesa na posição padrão do CLI (na tela, arraste a torre ou use Arrumar); Projeto Bambu: torre de purga passa da mesa na posição padrão do CLI (na tela, arraste a torre ou use Arrumar) |
-| Separar cores de um 3MF (ferramenta) | material: só a região clicada | ✅ ok | Bambu ✓ · Orca ✓ · Projeto Bambu ✓ | 156 | 65,2 | 1 | – | – |
-| Separar cores de um 3MF (ferramenta) | material: vaso 3 cores | ✅ ok | Bambu ✓ · Orca ✓ · Projeto Bambu ✓ | 534 | 160,7 | 1 | – | – |
-| Separar cores de um 3MF (ferramenta) | máximo | ✅ ok | Bambu ✓ · Orca ✓ · Projeto Bambu ✓ | 15 | 5,7 | 1 | – | app: Tirei 1 fragmento minúsculo (menos de 4 mm³) que sobraram do corte: não imprimem e o fatiador recusaria o objeto. |
-| Separar cores de um 3MF (ferramenta) | mínimo | ⚠️ aviso | Bambu ✓ · Orca ✓ · Projeto Bambu ✓ | 16 | 6,8 | 1 | – | Bambu: a cor 3 (#2563eb) não saiu no G-code (o app avisa); Orca: a cor 3 (#2563eb) não saiu no G-code (o app avisa); Projeto Bambu: a cor 3 (#2563eb) não saiu no G-code (o app avisa); app: Com 0,2 mm de profundidade, a cor pintada nas laterais fica mais fina que a linha do bico (0,4 mm) e some no fatiador: use 0,4 mm ou mais. |
-| Separar cores de um 3MF (ferramenta) | padrão | ✅ ok | Bambu ✓ · Orca ✓ · Projeto Bambu ✓ | 85 | 21,5 | 1 | – | – |
+| Dividir peça grande (ferramenta) | 3 eixos com números | ⚠️ aviso | Bambu ✓ · Orca ✓ | 2720 | 3361,0 | 6 | – | o conjunto arrumado ocupa 1513,3 × 168,0 mm: passa da mesa de 256 mm; mais de 24 h de impressão; não coube numa placa: 6 placas |
+| Dividir peça grande (ferramenta) | ímã | ⚠️ aviso | Bambu ✓ · Orca ✓ | 577 | 675,4 | 2 | – | o conjunto arrumado ocupa 418,0 × 150,0 mm: passa da mesa de 256 mm; não coube numa placa: 2 placas |
+| Dividir peça grande (ferramenta) | pino redondo (2 pedaços) | ⚠️ aviso | Bambu ✓ · Orca ✓ | 595 | 682,5 | 2 | – | o conjunto arrumado ocupa 418,0 × 168,0 mm: passa da mesa de 256 mm; não coube numa placa: 2 placas |
+| Dividir peça grande (ferramenta) | rabo de andorinha | ⚠️ aviso | Bambu ✓ · Orca ✓ | 637 | 701,3 | 2 | – | o conjunto arrumado ocupa 418,0 × 174,0 mm: passa da mesa de 256 mm; não coube numa placa: 2 placas |
+| Separar as cores de um arquivo (ferramenta) | corte com pino | ✅ ok | Bambu ✓ · Orca ✓ · Projeto Bambu ✓ | 96 | 24,6 | 1 | – | – |
+| Separar as cores de um arquivo (ferramenta) | material: corte em 3 partes | ⚠️ aviso | Bambu ✓ · Orca ✓ · Projeto Bambu ✓ | 555 | 164,7 | 1 | – | Orca: torre de purga passa da mesa na posição padrão do CLI (na tela, arraste a torre ou use Arrumar); Projeto Bambu: torre de purga passa da mesa na posição padrão do CLI (na tela, arraste a torre ou use Arrumar) |
+| Separar as cores de um arquivo (ferramenta) | material: só a região clicada | ✅ ok | Bambu ✓ · Orca ✓ · Projeto Bambu ✓ | 156 | 65,2 | 1 | – | – |
+| Separar as cores de um arquivo (ferramenta) | material: vaso 3 cores | ✅ ok | Bambu ✓ · Orca ✓ · Projeto Bambu ✓ | 534 | 160,7 | 1 | – | – |
+| Separar as cores de um arquivo (ferramenta) | máximo | ✅ ok | Bambu ✓ · Orca ✓ · Projeto Bambu ✓ | 15 | 5,7 | 1 | – | app: Tirei 1 fragmento minúsculo (menos de 4 mm³) que sobraram do corte: não imprimem e o fatiador recusaria o objeto. |
+| Separar as cores de um arquivo (ferramenta) | mínimo | ⚠️ aviso | Bambu ✓ · Orca ✓ · Projeto Bambu ✓ | 16 | 6,8 | 1 | – | Bambu: a cor 3 (#2563eb) não saiu no G-code (o app avisa); Orca: a cor 3 (#2563eb) não saiu no G-code (o app avisa); Projeto Bambu: a cor 3 (#2563eb) não saiu no G-code (o app avisa); app: Com 0,2 mm de profundidade, a cor pintada nas laterais fica mais fina que a linha do bico (0,4 mm) e some no fatiador: use 0,4 mm ou mais. |
+| Separar as cores de um arquivo (ferramenta) | padrão | ✅ ok | Bambu ✓ · Orca ✓ · Projeto Bambu ✓ | 85 | 21,5 | 1 | – | – |
 | Cortador de biscoito (ferramenta) | máximo | ⚠️ aviso | Bambu ✓ · Orca ✓ · Projeto Bambu ✓ | 133 | 128,1 | 1 | – | o conjunto arrumado ocupa 542,0 × 292,8 mm: passa da mesa de 256 mm; "Cortador" não cabe na mesa de 256 mm (286,0 × 292,8 × 40,0 mm); Bambu: a cor 1 (#2563eb) não saiu no G-code (o app avisa); Orca: a cor 1 (#2563eb) não saiu no G-code (o app avisa); Projeto Bambu: a cor 1 (#2563eb) não saiu no G-code (o app avisa); app: Sem desenho interno para o carimbo marcar: ele sai liso.; app: "Cortador" tem 286 × 293 × 40 mm e passa da mesa de 256 mm: diminua o tamanho. |
 | Cortador de biscoito (ferramenta) | mínimo | ✅ ok | Bambu ✓ · Orca ✓ · Projeto Bambu ✓ | 14 | 3,6 | 1 | – | app: Sem borda de apoio, a lâmina precisa de pelo menos 0,8 mm (2 filetes) para imprimir: saiu com 0,8 mm.; app: Sem desenho interno para o carimbo marcar: ele sai liso. |
 | Cortador de biscoito (ferramenta) | padrão | ✅ ok | Bambu ✓ · Orca ✓ · Projeto Bambu ✓ | 48 | 22,0 | 1 | – | app: Sem desenho interno para o carimbo marcar: ele sai liso. |
@@ -235,16 +235,16 @@ impressoras de mesa maior); sem o aviso do app, é **falha**.
 | Quadro por camadas (ferramenta) | máximo | ✅ ok | Bambu ✓ · Orca ✓ · Projeto Bambu ✓ | 313 | 406,2 | 1 | 5,00 / 7,24 | – |
 | Quadro por camadas (ferramenta) | mínimo | ✅ ok | Bambu ✓ · Orca ✓ · Projeto Bambu ✓ | 2 | 0,2 | 1 | 0,36 / 0,52 | – |
 | Quadro por camadas (ferramenta) | padrão | ✅ ok | Bambu ✓ · Orca ✓ · Projeto Bambu ✓ | 28 | 13,2 | 1 | 1,52 / 2,24 | – |
-| Miolo leve (ferramenta) | bloco de giroide | ✅ ok | Bambu ✓ · Orca ✓ | 143 | 21,5 | 1 | – | – |
-| Miolo leve (ferramenta) | bloco de treliça | ⚠️ aviso | Bambu ✓ · Orca ✓ | 23 | 2,0 | 1 | – | "Bloco de treliça": parede/traço < 0,4 mm em Z 3,0, 9,0, 15,0, 21,0, 27,0 mm |
-| Miolo leve (ferramenta) | giroide | ✅ ok | Bambu ✓ · Orca ✓ | 39 | 7,9 | 1 | – | – |
-| Miolo leve (ferramenta) | treliça cúbica | ✅ ok | Bambu ✓ · Orca ✓ | 30 | 6,5 | 1 | – | – |
-| Miolo leve (ferramenta) | voronoi | ✅ ok | Bambu ✓ · Orca ✓ | 36 | 8,4 | 1 | – | – |
+| Deixar a peça mais leve (ferramenta) | bloco de giroide | ✅ ok | Bambu ✓ · Orca ✓ | 143 | 21,5 | 1 | – | – |
+| Deixar a peça mais leve (ferramenta) | bloco de treliça | ⚠️ aviso | Bambu ✓ · Orca ✓ | 23 | 2,0 | 1 | – | "Bloco de treliça": parede/traço < 0,4 mm em Z 3,0, 9,0, 15,0, 21,0, 27,0 mm |
+| Deixar a peça mais leve (ferramenta) | giroide | ✅ ok | Bambu ✓ · Orca ✓ | 39 | 7,9 | 1 | – | – |
+| Deixar a peça mais leve (ferramenta) | treliça cúbica | ✅ ok | Bambu ✓ · Orca ✓ | 30 | 6,5 | 1 | – | – |
+| Deixar a peça mais leve (ferramenta) | voronoi | ✅ ok | Bambu ✓ · Orca ✓ | 36 | 8,4 | 1 | – | – |
 | Litofania (ferramenta) | caixa | ✅ ok | Bambu ✓ · Orca ✓ | 162 | 81,5 | 1 | – | – |
 | Litofania (ferramenta) | cilindro | ✅ ok | Bambu ✓ · Orca ✓ | 108 | 63,5 | 1 | – | – |
-| Litofania (ferramenta) | cilindro com base e tampa | ✅ ok | Bambu ✓ · Orca ✓ · Projeto Bambu ✓ | 654 | 263,0 | 1 | – | – |
+| Litofania (ferramenta) | cilindro com base e tampa | ✅ ok | Bambu ✓ · Orca ✓ · Projeto Bambu ✓ | 653 | 263,0 | 1 | – | – |
 | Litofania (ferramenta) | cilindro com fita e pilhas | ✅ ok | Bambu ✓ · Orca ✓ · Projeto Bambu ✓ | 614 | 237,7 | 1 | – | – |
-| Litofania (ferramenta) | cilindro máximo | ⚠️ aviso | Bambu ✓ · Orca ✓ · Projeto Bambu ✓ | 2348 | 989,9 | 4 | – | o conjunto arrumado ocupa 162,0 × 705,5 mm: passa da mesa de 256 mm; mais de 24 h de impressão; não coube numa placa: 4 placas |
+| Litofania (ferramenta) | cilindro máximo | ⚠️ aviso | Bambu ✓ · Orca ✓ · Projeto Bambu ✓ | 2349 | 989,9 | 4 | – | o conjunto arrumado ocupa 162,0 × 705,5 mm: passa da mesa de 256 mm; mais de 24 h de impressão; não coube numa placa: 4 placas |
 | Litofania (ferramenta) | cilindro mínimo | ✅ ok | Bambu ✓ · Orca ✓ | 28 | 3,0 | 1 | – | – |
 | Litofania (ferramenta) | círculo | ✅ ok | Bambu ✓ · Orca ✓ | 79 | 14,1 | 1 | – | – |
 | Litofania (ferramenta) | círculo com fita e pilhas | ✅ ok | Bambu ✓ · Orca ✓ · Projeto Bambu ✓ | 440 | 124,7 | 1 | – | – |
@@ -275,7 +275,7 @@ impressoras de mesa maior); sem o aviso do app, é **falha**.
 | Mosaico (ferramenta) | peças: mínimo | ⚠️ aviso | Bambu ✓ · Orca ✓ · Projeto Bambu ✓ | 81 | 26,7 | 1 | – | o conjunto arrumado ocupa 691,5 × 17,9 mm: passa da mesa de 256 mm; app: São 3 mesas de peças. O arquivo traz uma ao lado da outra (em grade): no fatiador, use "Organizar" para distribuir em mesas ou imprima uma de cada vez. |
 | Mosaico (ferramenta) | peças: multicor com AMS | ⚠️ aviso | Bambu ✓ · Orca ✓ · Projeto Bambu ✓ | – | – | – | – | o conjunto arrumado ocupa 834,3 × 242,3 mm: passa da mesa de 256 mm; Bambu: torre de purga em cima de uma peça depois do --arrange do CLI (na tela, arraste a torre ou use Arrumar); Orca: torre de purga em cima de uma peça depois do --arrange do CLI (na tela, arraste a torre ou use Arrumar); Projeto Bambu: torre de purga em cima de uma peça depois do --arrange do CLI (na tela, arraste a torre ou use Arrumar); app: São 3 mesas de peças. O arquivo traz uma ao lado da outra (em grade): no fatiador, use "Organizar" para distribuir em mesas ou imprima uma de cada vez. |
 | Mosaico (ferramenta) | peças: só as do desenho (borboleta) | ⚠️ aviso | Bambu ✓ · Orca ✓ · Projeto Bambu ✓ | 167 | 80,1 | 1 | – | o conjunto arrumado ocupa 834,3 × 38,3 mm: passa da mesa de 256 mm; app: São 3 mesas de peças. O arquivo traz uma ao lado da outra (em grade): no fatiador, use "Organizar" para distribuir em mesas ou imprima uma de cada vez. |
-| Mosaico (ferramenta) | peças: uma cor por mesa | ⚠️ aviso | Bambu ✓ · Orca ✓ · Projeto Bambu ✓ | 1248 | 689,1 | 8 | – | o conjunto arrumado ocupa 1130,3 × 456,7 mm: passa da mesa de 256 mm; 8 cores: mais que os 4 do AMS lite; não coube numa placa: 8 placas; app: São 8 mesas de peças. O arquivo traz uma ao lado da outra (em grade): no fatiador, use "Organizar" para distribuir em mesas ou imprima uma de cada vez. |
+| Mosaico (ferramenta) | peças: uma cor por mesa | ⚠️ aviso | Bambu ✓ · Orca ✓ · Projeto Bambu ✓ | 1249 | 689,1 | 8 | – | o conjunto arrumado ocupa 1130,3 × 456,7 mm: passa da mesa de 256 mm; 8 cores: mais que os 4 do AMS lite; não coube numa placa: 8 placas; app: São 8 mesas de peças. O arquivo traz uma ao lado da outra (em grade): no fatiador, use "Organizar" para distribuir em mesas ou imprima uma de cada vez. |
 | Mosaico (ferramenta) | pote máximo | ⚠️ aviso | Bambu ✓ · Orca ✓ | 858 | 930,4 | 2 | – | o conjunto arrumado ocupa 538,2 × 244,4 mm: passa da mesa de 256 mm; não coube numa placa: 2 placas |
 | Mosaico (ferramenta) | pote mínimo | ✅ ok | Bambu ✓ · Orca ✓ | 37 | 30,6 | 1 | – | – |
 | Mosaico (ferramenta) | pote redondo com tampa | ⚠️ aviso | Bambu ✓ · Orca ✓ | 275 | 272,3 | 2 | – | o conjunto arrumado ocupa 497,9 × 203,8 mm: passa da mesa de 256 mm; não coube numa placa: 2 placas |
@@ -288,19 +288,19 @@ impressoras de mesa maior); sem o aviso do app, é **falha**.
 | Decal em modelo próprio (ferramenta) | copo: gravado curvo | ✅ ok | Bambu ✓ · Orca ✓ | 62 | 63,7 | 1 | – | – |
 | Decal em modelo próprio (ferramenta) | copo: relevo curvo | ✅ ok | Bambu ✓ · Orca ✓ · Projeto Bambu ✓ | 176 | 95,8 | 1 | – | – |
 | Decal em modelo próprio (ferramenta) | embutido | ✅ ok | Bambu ✓ · Orca ✓ · Projeto Bambu ✓ | 136 | 53,5 | 1 | – | – |
-| Decal em modelo próprio (ferramenta) | esfera: embutido curvo | ✅ ok | Bambu ✓ · Orca ✓ · Projeto Bambu ✓ | 119 | 70,2 | 1 | – | – |
+| Decal em modelo próprio (ferramenta) | esfera: embutido curvo | ✅ ok | Bambu ✓ · Orca ✓ · Projeto Bambu ✓ | 120 | 70,2 | 1 | – | – |
 | Decal em modelo próprio (ferramenta) | garrafa: enrolar relevo | ✅ ok | Bambu ✓ · Orca ✓ · Projeto Bambu ✓ | 217 | 146,6 | 1 | – | – |
 | Decal em modelo próprio (ferramenta) | relevo | ✅ ok | Bambu ✓ · Orca ✓ · Projeto Bambu ✓ | 135 | 53,4 | 1 | – | – |
-| Corte parcial (ferramenta) | cilindro | ✅ ok | Bambu ✓ · Orca ✓ | 36 | 17,2 | 1 | – | app: A região corta a peça pelo lado (a borda dela atravessa o material acima do plano): aumente o raio. |
-| Corte parcial (ferramenta) | dois cortes | ✅ ok | Bambu ✓ · Orca ✓ | 37 | 19,2 | 1 | – | – |
-| Corte parcial (ferramenta) | dois cortes em cores | ⚠️ aviso | Bambu ✓ · Orca ✓ · Projeto Bambu ✓ | 292 | 73,6 | 1 | – | Orca: torre de purga passa da mesa na posição padrão do CLI (na tela, arraste a torre ou use Arrumar); Projeto Bambu: torre de purga passa da mesa na posição padrão do CLI (na tela, arraste a torre ou use Arrumar) |
-| Corte parcial (ferramenta) | esfera | ✅ ok | Bambu ✓ · Orca ✓ | 36 | 18,2 | 1 | – | app: A região corta a peça pelo lado (a borda dela atravessa o material acima do plano): aumente o raio. |
-| Corte parcial (ferramenta) | inclinado | ✅ ok | Bambu ✓ · Orca ✓ | 36 | 17,8 | 1 | – | – |
-| Corte parcial (ferramenta) | padrão | ✅ ok | Bambu ✓ · Orca ✓ | 34 | 17,1 | 1 | – | – |
-| Corte parcial (ferramenta) | personagem e árvore | ✅ ok | Bambu ✓ · Orca ✓ | 38 | 13,7 | 1 | – | – |
-| Corte parcial (ferramenta) | pino fixo | ✅ ok | Bambu ✓ · Orca ✓ | 32 | 16,5 | 1 | – | – |
-| Corte parcial (ferramenta) | sem encaixe | ✅ ok | Bambu ✓ · Orca ✓ | 30 | 15,7 | 1 | – | – |
-| Corte parcial (ferramenta) | sugestão para menos suporte | ✅ ok | Bambu ✓ · Orca ✓ | 28 | 9,1 | 1 | – | – |
+| Cortar um pedaço com encaixe (ferramenta) | cilindro | ✅ ok | Bambu ✓ · Orca ✓ | 36 | 17,2 | 1 | – | app: A região corta a peça pelo lado (a borda dela atravessa o material acima do plano): aumente o raio. |
+| Cortar um pedaço com encaixe (ferramenta) | dois cortes | ✅ ok | Bambu ✓ · Orca ✓ | 37 | 19,2 | 1 | – | – |
+| Cortar um pedaço com encaixe (ferramenta) | dois cortes em cores | ⚠️ aviso | Bambu ✓ · Orca ✓ · Projeto Bambu ✓ | 292 | 73,6 | 1 | – | Orca: torre de purga passa da mesa na posição padrão do CLI (na tela, arraste a torre ou use Arrumar); Projeto Bambu: torre de purga passa da mesa na posição padrão do CLI (na tela, arraste a torre ou use Arrumar) |
+| Cortar um pedaço com encaixe (ferramenta) | esfera | ✅ ok | Bambu ✓ · Orca ✓ | 36 | 18,2 | 1 | – | app: A região corta a peça pelo lado (a borda dela atravessa o material acima do plano): aumente o raio. |
+| Cortar um pedaço com encaixe (ferramenta) | inclinado | ✅ ok | Bambu ✓ · Orca ✓ | 36 | 17,8 | 1 | – | – |
+| Cortar um pedaço com encaixe (ferramenta) | padrão | ✅ ok | Bambu ✓ · Orca ✓ | 34 | 17,1 | 1 | – | – |
+| Cortar um pedaço com encaixe (ferramenta) | personagem e árvore | ✅ ok | Bambu ✓ · Orca ✓ | 38 | 13,7 | 1 | – | – |
+| Cortar um pedaço com encaixe (ferramenta) | pino fixo | ✅ ok | Bambu ✓ · Orca ✓ | 32 | 16,5 | 1 | – | – |
+| Cortar um pedaço com encaixe (ferramenta) | sem encaixe | ✅ ok | Bambu ✓ · Orca ✓ | 30 | 15,7 | 1 | – | – |
+| Cortar um pedaço com encaixe (ferramenta) | sugestão para menos suporte | ✅ ok | Bambu ✓ · Orca ✓ | 28 | 9,1 | 1 | – | – |
 | QR Code (ferramenta) | degraus | ✅ ok | Bambu ✓ · Orca ✓ · Projeto Bambu ✓ | 63 | 27,8 | 1 | – | app: Código esculpido: de cima ele lê como o plano, mas sombras de luz lateral podem atrapalhar. Teste com o celular antes de dar ou vender, e use luz difusa. |
 | QR Code (ferramenta) | máximo | ⚠️ aviso | Bambu ✓ · Orca ✓ · Projeto Bambu ✓ | – | – | – | – | Bambu: torre de purga em cima de uma peça depois do --arrange do CLI (na tela, arraste a torre ou use Arrumar); Orca: torre de purga em cima de uma peça depois do --arrange do CLI (na tela, arraste a torre ou use Arrumar); Projeto Bambu: torre de purga em cima de uma peça depois do --arrange do CLI (na tela, arraste a torre ou use Arrumar) |
 | QR Code (ferramenta) | mínimo | ✅ ok | Bambu ✓ · Orca ✓ · Projeto Bambu ✓ | 4 | 0,8 | 1 | – | app: Cada módulo ficou com 0,56 mm: aumente a placa ou encurte o texto (mínimo recomendado 1,2 mm). |
@@ -326,26 +326,46 @@ impressoras de mesa maior); sem o aviso do app, é **falha**.
 | Kit de testes (ferramenta) | par de engrenagens | ✅ ok | Bambu ✓ · Orca ✓ | 66 | 20,9 | 1 | – | – |
 | Kit de testes (ferramenta) | rosca do estojo e do aromatizador | ✅ ok | Bambu ✓ · Orca ✓ | 83 | 28,9 | 1 | – | – |
 | Kit de testes (ferramenta) | trava de encaixe | ✅ ok | Bambu ✓ · Orca ✓ | 32 | 13,2 | 1 | – | – |
-| Textura no seu modelo (ferramenta) | carbono para fora | ✅ ok | Bambu ✓ · Orca ✓ | 85 | 52,6 | 1 | – | – |
-| Textura no seu modelo (ferramenta) | couro para dentro, cilíndrica | ✅ ok | Bambu ✓ · Orca ✓ | 164 | 40,1 | 1 | – | – |
-| Textura no seu modelo (ferramenta) | knurling nas laterais | ✅ ok | Bambu ✓ · Orca ✓ | 100 | 48,5 | 1 | – | – |
-| Textura no seu modelo (ferramenta) | pincel numa faixa | ✅ ok | Bambu ✓ · Orca ✓ | 60 | 46,9 | 1 | – | – |
-| Caixinha termoformada: molde (ferramenta) | bola de Natal | ✅ ok | Bambu ✓ · Orca ✓ | 44 | 21,7 | 1 | – | – |
-| Caixinha termoformada: molde (ferramenta) | coração | ✅ ok | Bambu ✓ · Orca ✓ | 32 | 17,0 | 1 | – | – |
-| Caixinha termoformada: molde (ferramenta) | coração maciço 100% | ✅ ok | Bambu ✓ · Orca ✓ | 38 | 29,9 | 1 | – | – |
-| Caixinha termoformada: molde (ferramenta) | coração maciço 8% | ✅ ok | Bambu ✓ · Orca ✓ | 23 | 14,7 | 1 | – | – |
-| Caixinha termoformada: molde (ferramenta) | estrela | ✅ ok | Bambu ✓ · Orca ✓ | 30 | 15,1 | 1 | – | – |
-| Caixinha termoformada: molde (ferramenta) | flor | ✅ ok | Bambu ✓ · Orca ✓ | 40 | 19,8 | 1 | – | – |
-| Caixinha termoformada: molde (ferramenta) | maciço | ✅ ok | Bambu ✓ · Orca ✓ | 24 | 14,5 | 1 | – | app: Havia traços do desenho mais finos que o bico da impressora e eu os engrossei para a tela sair inteira. |
-| Caixinha termoformada: molde (ferramenta) | máximo | ✅ ok | Bambu ✓ · Orca ✓ | 358 | 181,9 | 1 | – | – |
-| Caixinha termoformada: molde (ferramenta) | mínimo | ✅ ok | Bambu ✓ · Orca ✓ | 16 | 8,8 | 1 | – | app: Havia traços do desenho mais finos que o bico da impressora e eu os engrossei para a tela sair inteira. |
-| Caixinha termoformada: telas (ferramenta) | bola de Natal com faixa | ✅ ok | Bambu ✓ · Orca ✓ · Projeto Bambu ✓ | 47 | 10,3 | 1 | – | – |
-| Caixinha termoformada: telas (ferramenta) | círculo losango | ✅ ok | Bambu ✓ · Orca ✓ · Projeto Bambu ✓ | 35 | 6,4 | 1 | – | app: Havia traços do desenho mais finos que o bico da impressora e eu os engrossei para a tela sair inteira. |
-| Caixinha termoformada: telas (ferramenta) | coração | ✅ ok | Bambu ✓ · Orca ✓ · Projeto Bambu ✓ | 35 | 6,7 | 1 | – | – |
-| Caixinha termoformada: telas (ferramenta) | estrela | ✅ ok | Bambu ✓ · Orca ✓ · Projeto Bambu ✓ | 34 | 6,4 | 1 | – | – |
-| Caixinha termoformada: telas (ferramenta) | flor | ✅ ok | Bambu ✓ · Orca ✓ · Projeto Bambu ✓ | 41 | 7,4 | 1 | – | – |
-| Caixinha termoformada: telas (ferramenta) | máximo | ✅ ok | Bambu ✓ · Orca ✓ · Projeto Bambu ✓ | 109 | 35,3 | 1 | – | – |
-| Caixinha termoformada: telas (ferramenta) | mínimo | ✅ ok | Bambu ✓ · Orca ✓ · Projeto Bambu ✓ | 18 | 3,0 | 1 | – | app: Havia traços do desenho mais finos que o bico da impressora e eu os engrossei para a tela sair inteira. |
+| Textura na peça (ferramenta) | carbono para fora | ✅ ok | Bambu ✓ · Orca ✓ | 85 | 52,6 | 1 | – | – |
+| Textura na peça (ferramenta) | couro para dentro, cilíndrica | ✅ ok | Bambu ✓ · Orca ✓ | 164 | 40,1 | 1 | – | – |
+| Textura na peça (ferramenta) | knurling nas laterais | ✅ ok | Bambu ✓ · Orca ✓ | 100 | 48,5 | 1 | – | – |
+| Textura na peça (ferramenta) | pincel numa faixa | ✅ ok | Bambu ✓ · Orca ✓ | 60 | 46,9 | 1 | – | – |
+| Caixinha termoformada: clipe e tampa (ferramenta) | clipe | ✅ ok | Bambu ✓ · Orca ✓ | 2 | 0,2 | 1 | – | – |
+| Caixinha termoformada: clipe e tampa (ferramenta) | tampa com pino curto e fino | ✅ ok | Bambu ✓ · Orca ✓ | 8 | 1,4 | 1 | – | app: Havia traços do desenho mais finos que o bico da impressora e eu os engrossei para a tela sair inteira. |
+| Caixinha termoformada: clipe e tampa (ferramenta) | tampa rosqueada | ✅ ok | Bambu ✓ · Orca ✓ | 10 | 2,0 | 1 | – | – |
+| Caixinha termoformada: moldes macho e fêmea (ferramenta) | bola de Natal | ✅ ok | Bambu ✓ · Orca ✓ | 68 | 45,9 | 1 | – | – |
+| Caixinha termoformada: moldes macho e fêmea (ferramenta) | coração | ✅ ok | Bambu ✓ · Orca ✓ | 54 | 36,4 | 1 | – | – |
+| Caixinha termoformada: moldes macho e fêmea (ferramenta) | coração maciço 100% | ✅ ok | Bambu ✓ · Orca ✓ | 86 | 67,4 | 1 | – | – |
+| Caixinha termoformada: moldes macho e fêmea (ferramenta) | coração maciço 8% | ✅ ok | Bambu ✓ · Orca ✓ | 47 | 34,8 | 1 | – | – |
+| Caixinha termoformada: moldes macho e fêmea (ferramenta) | estrela | ✅ ok | Bambu ✓ · Orca ✓ | 52 | 35,2 | 1 | – | – |
+| Caixinha termoformada: moldes macho e fêmea (ferramenta) | flor | ✅ ok | Bambu ✓ · Orca ✓ | 63 | 42,6 | 1 | – | – |
+| Caixinha termoformada: moldes macho e fêmea (ferramenta) | folga 0,4 mm | ✅ ok | Bambu ✓ · Orca ✓ | 54 | 36,5 | 1 | – | – |
+| Caixinha termoformada: moldes macho e fêmea (ferramenta) | maciço | ✅ ok | Bambu ✓ · Orca ✓ | 46 | 34,3 | 1 | – | app: Havia traços do desenho mais finos que o bico da impressora e eu os engrossei para a tela sair inteira. |
+| Caixinha termoformada: moldes macho e fêmea (ferramenta) | máximo | ⚠️ aviso | Bambu ✓ · Orca ✓ | 467 | 326,0 | 2 | – | o conjunto arrumado ocupa 294,0 × 185,8 mm: passa da mesa de 256 mm; não coube numa placa: 2 placas |
+| Caixinha termoformada: moldes macho e fêmea (ferramenta) | mínimo | ✅ ok | Bambu ✓ · Orca ✓ | 28 | 19,3 | 1 | – | app: Havia traços do desenho mais finos que o bico da impressora e eu os engrossei para a tela sair inteira. |
+| Caixinha termoformada: telas e bases (ferramenta) | bola de Natal com faixa | ✅ ok | Bambu ✓ · Orca ✓ · Projeto Bambu ✓ | 79 | 27,9 | 1 | – | – |
+| Caixinha termoformada: telas e bases (ferramenta) | círculo losango | ✅ ok | Bambu ✓ · Orca ✓ · Projeto Bambu ✓ | 60 | 18,9 | 1 | – | app: Havia traços do desenho mais finos que o bico da impressora e eu os engrossei para a tela sair inteira. |
+| Caixinha termoformada: telas e bases (ferramenta) | coração | ✅ ok | Bambu ✓ · Orca ✓ · Projeto Bambu ✓ | 56 | 18,5 | 1 | – | – |
+| Caixinha termoformada: telas e bases (ferramenta) | coração com tampa rosqueada | ⚠️ aviso | Bambu ✓ · Orca ✓ · Projeto Bambu ✓ | 59 | 19,0 | 1 | – | "Base 1": parede/traço < 0,4 mm em Z 4,0 mm; "Base 2": parede/traço < 0,4 mm em Z 4,0 mm |
+| Caixinha termoformada: telas e bases (ferramenta) | estrela | ✅ ok | Bambu ✓ · Orca ✓ · Projeto Bambu ✓ | 54 | 17,4 | 1 | – | – |
+| Caixinha termoformada: telas e bases (ferramenta) | flor | ✅ ok | Bambu ✓ · Orca ✓ · Projeto Bambu ✓ | 66 | 22,2 | 1 | – | – |
+| Caixinha termoformada: telas e bases (ferramenta) | flor com uma base | ✅ ok | Bambu ✓ · Orca ✓ · Projeto Bambu ✓ | 58 | 15,3 | 1 | – | – |
+| Caixinha termoformada: telas e bases (ferramenta) | máximo | ⚠️ aviso | Bambu ✓ · Orca ✓ · Projeto Bambu ✓ | 150 | 76,2 | 1 | – | o conjunto arrumado ocupa 210,0 × 286,4 mm: passa da mesa de 256 mm; Orca: torre de purga em cima de uma peça depois do --arrange do CLI (na tela, arraste a torre ou use Arrumar) |
+| Caixinha termoformada: telas e bases (ferramenta) | mínimo | ✅ ok | Bambu ✓ · Orca ✓ · Projeto Bambu ✓ | 32 | 10,1 | 1 | – | app: Havia traços do desenho mais finos que o bico da impressora e eu os engrossei para a tela sair inteira. |
+| Caixinha termoformada: telas e bases (ferramenta) | ovo sem base | ✅ ok | Bambu ✓ · Orca ✓ · Projeto Bambu ✓ | 64 | 9,8 | 1 | – | – |
+| Pote, cesto e pulseira termoformados: disco e tira (ferramenta) | cesto favo | ✅ ok | Bambu ✓ · Orca ✓ | 134 | 28,4 | 1 | – | – |
+| Pote, cesto e pulseira termoformados: disco e tira (ferramenta) | cesto losango sem fundo sólido | ✅ ok | Bambu ✓ · Orca ✓ | 157 | 24,4 | 1 | – | – |
+| Pote, cesto e pulseira termoformados: disco e tira (ferramenta) | pote | ✅ ok | Bambu ✓ · Orca ✓ | 40 | 40,1 | 1 | – | – |
+| Pote, cesto e pulseira termoformados: disco e tira (ferramenta) | pote mínimo | ✅ ok | Bambu ✓ · Orca ✓ | 9 | 6,7 | 1 | – | – |
+| Pote, cesto e pulseira termoformados: disco e tira (ferramenta) | pulseira em favo | ✅ ok | Bambu ✓ · Orca ✓ | 20 | 3,3 | 1 | – | – |
+| Pote, cesto e pulseira termoformados: disco e tira (ferramenta) | pulseira inteira | ✅ ok | Bambu ✓ · Orca ✓ | 8 | 5,2 | 1 | – | – |
+| Pote, cesto e pulseira termoformados: disco e tira (ferramenta) | pulseira sobreposta | ✅ ok | Bambu ✓ · Orca ✓ | 13 | 9,5 | 1 | – | app: As pontas se sobrepõem: a pulseira passa de uma volta. Aqueça devagar e enrole sem apertar demais para ela ainda abrir. |
+| Pote, cesto e pulseira termoformados: moldes e mandril (ferramenta) | fêmea do pote | ✅ ok | Bambu ✓ · Orca ✓ | 90 | 92,3 | 1 | – | – |
+| Pote, cesto e pulseira termoformados: moldes e mandril (ferramenta) | macho alto | ✅ ok | Bambu ✓ · Orca ✓ | 77 | 75,8 | 1 | – | – |
+| Pote, cesto e pulseira termoformados: moldes e mandril (ferramenta) | macho do pote | ✅ ok | Bambu ✓ · Orca ✓ | 62 | 65,7 | 1 | – | – |
+| Pote, cesto e pulseira termoformados: moldes e mandril (ferramenta) | mandril | ✅ ok | Bambu ✓ · Orca ✓ | 26 | 25,7 | 1 | – | – |
+| Pote, cesto e pulseira termoformados: moldes e mandril (ferramenta) | mandril largo | ✅ ok | Bambu ✓ · Orca ✓ | 50 | 54,3 | 1 | – | – |
+| Pote, cesto e pulseira termoformados: moldes e mandril (ferramenta) | par do cesto | ✅ ok | Bambu ✓ · Orca ✓ | 197 | 207,1 | 1 | – | – |
 
 ## Torno
 
@@ -410,14 +430,14 @@ impressoras de mesa maior); sem o aviso do app, é **falha**.
 | Gridfinity: base (gridBase) | máximo | ⚠️ aviso | Bambu ✓ · Orca ✓ | 916 | 554,9 | 16 | – | o conjunto arrumado ocupa 870,0 × 870,0 mm: passa da mesa de 256 mm; não coube numa placa: 16 placas; app: Base de 20×20 casas não cabe inteira na mesa: saiu em 16 pedaços cortados nas divisas das casas. |
 | Gridfinity: base (gridBase) | mínimo | ✅ ok | Bambu ✓ · Orca ✓ | 3 | 1,6 | 1 | – | – |
 | Gridfinity: base (gridBase) | padrão | ✅ ok | Bambu ✓ · Orca ✓ | 27 | 16,9 | 1 | – | – |
-| Gridfinity: caixinha (gridBin) | máximo | ⚠️ aviso | Bambu ✓ · Orca ✓ · Projeto Bambu ✓ | 2436 | 2309,2 | 2 | – | o conjunto arrumado ocupa 251,5 × 270,5 mm: passa da mesa de 256 mm; mais de 24 h de impressão; não coube numa placa: 2 placas; app: Parede mais grossa que a borda empilhável: a borda fica com degrau por dentro.; app: As 2 peças não cabem juntas na mesa de 256 mm: o fatiador vai usar mais de uma mesa (ou imprima uma de cada vez). |
+| Gridfinity: caixinha (gridBin) | máximo | ⚠️ aviso | Bambu ✓ · Orca ✓ · Projeto Bambu ✓ | 2435 | 2309,2 | 2 | – | o conjunto arrumado ocupa 251,5 × 270,5 mm: passa da mesa de 256 mm; mais de 24 h de impressão; não coube numa placa: 2 placas; app: Parede mais grossa que a borda empilhável: a borda fica com degrau por dentro.; app: As 2 peças não cabem juntas na mesa de 256 mm: o fatiador vai usar mais de uma mesa (ou imprima uma de cada vez). |
 | Gridfinity: caixinha (gridBin) | mínimo | ✅ ok | Bambu ✓ · Orca ✓ · Projeto Bambu ✓ | 35 | 14,5 | 1 | – | – |
 | Gridfinity: caixinha (gridBin) | padrão | ✅ ok | Bambu ✓ · Orca ✓ · Projeto Bambu ✓ | 52 | 28,1 | 1 | – | – |
 | Gridfinity: base pela gaveta (gridDrawerBase) | máximo | ⚠️ aviso | Bambu ✓ · Orca ✓ | 1500 | 924,0 | 25 | – | o conjunto arrumado ocupa 1039,0 × 1039,0 mm: passa da mesa de 256 mm; mais de 24 h de impressão; não coube numa placa: 25 placas; app: Cabem 23 × 23 casas; margem 16,5 mm de cada lado na largura e 16,5 mm de cada lado na profundidade. Caixinhas de até 41 unidades (291,4 mm). A base sai em 25 pedaços.; app: As 25 peças não cabem juntas na mesa de 256 mm: o fatiador vai usar mais de uma mesa (ou imprima uma de cada vez). |
 | Gridfinity: base pela gaveta (gridDrawerBase) | mínimo | ✅ ok | Bambu ✓ · Orca ✓ | 6 | 3,8 | 1 | – | app: Cabem 1 × 1 casas; margem 3,5 mm de cada lado na largura e 3,5 mm de cada lado na profundidade. Caixinhas de até 1 unidade (11,4 mm). A base sai em 1 pedaço.; app: Gaveta baixa: a caixinha mais alta que cabe tem 1 unidade (o mínimo útil é 2). |
 | Gridfinity: base pela gaveta (gridDrawerBase) | padrão | ⚠️ aviso | Bambu ✓ · Orca ✓ | 365 | 236,8 | 6 | – | o conjunto arrumado ocupa 519,0 × 429,0 mm: passa da mesa de 256 mm; não coube numa placa: 6 placas; app: Cabem 11 × 9 casas; margem 18,5 mm de cada lado na largura e 20,5 mm de cada lado na profundidade. Caixinhas de até 10 unidades (74,4 mm). A base sai em 6 pedaços.; app: As 6 peças não cabem juntas na mesa de 256 mm: o fatiador vai usar mais de uma mesa (ou imprima uma de cada vez). |
 | Gridfinity: teste de encaixe (gridTest) | padrão | ✅ ok | Bambu ✓ · Orca ✓ | 17 | 10,3 | 1 | – | app: A caixinha deve entrar e sair da base sem forçar e sem folga de lado. Frouxa: a impressora está extrudando demais; não entra: de menos. Calibre o fluxo antes de imprimir a gaveta. |
-| Adaptador de mangueira ou aspirador (hoseAdapter) | máximo | ✅ ok | Bambu ✓ · Orca ✓ | 481 | 347,1 | 1 | – | – |
+| Adaptador de mangueira ou aspirador (hoseAdapter) | máximo | ✅ ok | Bambu ✓ · Orca ✓ | 480 | 347,1 | 1 | – | – |
 | Adaptador de mangueira ou aspirador (hoseAdapter) | mínimo | ✅ ok | Bambu ✓ · Orca ✓ | 7 | 0,8 | 1 | – | app: A parede do lado A ficou fina demais: o diâmetro externo subiu para 8.4 mm (parede mínima de 1.2 mm).; app: A parede do lado B ficou fina demais: o diâmetro externo subiu para 8.4 mm (parede mínima de 1.2 mm). |
 | Adaptador de mangueira ou aspirador (hoseAdapter) | padrão | ✅ ok | Bambu ✓ · Orca ✓ | 47 | 19,7 | 1 | – | – |
 | Tecla de teclado (keycap) | máximo | ✅ ok | Bambu ✓ · Orca ✓ · Projeto Bambu ✓ | 22 | 7,8 | 1 | – | app: Teclas de 2 u ou mais usam estabilizador: a haste do meio sai aqui, mas as hastes laterais não estão incluídas.; app: Haste MX com folga de 0,50 mm: teste numa tecla e ajuste (a cruz do interruptor tem 1,17 mm de braço). |
@@ -475,10 +495,10 @@ impressoras de mesa maior); sem o aviso do app, é **falha**.
 | O-ring (oring) | mínimo | ✅ ok | Bambu ✓ · Orca ✓ | 1 | 0,1 | 1 | – | app: Seção abaixo de 1,2 mm: o bico de 0,4 mm não faz bem. Imprima com bico menor ou compre o anel.; app: Peça impressa em TPU serve para poeira, respingo e reposição leve; não garante vedação para pressão, óleo quente ou gás. |
 | O-ring (oring) | padrão | ✅ ok | Bambu ✓ · Orca ✓ | 5 | 2,2 | 1 | – | app: Peça impressa em TPU serve para poeira, respingo e reposição leve; não garante vedação para pressão, óleo quente ou gás. |
 | O-ring (oring) | sem achatar | ✅ ok | Bambu ✓ · Orca ✓ | 6 | 2,6 | 1 | – | app: Peça impressa em TPU serve para poeira, respingo e reposição leve; não garante vedação para pressão, óleo quente ou gás. |
-| Cumbuca no contorno (outlineBowl) | máximo | ✅ ok | Bambu ✓ · Orca ✓ · Projeto Bambu ✓ | 781 | 530,5 | 1 | – | – |
+| Cumbuca no contorno (outlineBowl) | máximo | ✅ ok | Bambu ✓ · Orca ✓ · Projeto Bambu ✓ | 780 | 530,5 | 1 | – | – |
 | Cumbuca no contorno (outlineBowl) | mínimo | ✅ ok | Bambu ✓ · Orca ✓ · Projeto Bambu ✓ | 11 | 2,5 | 1 | – | – |
 | Cumbuca no contorno (outlineBowl) | padrão | ✅ ok | Bambu ✓ · Orca ✓ · Projeto Bambu ✓ | 54 | 33,8 | 1 | – | – |
-| Clipe de papel (paperClip) | máximo | ✅ ok | Bambu ✓ · Orca ✓ · Projeto Bambu ✓ | 22 | 10,9 | 1 | – | – |
+| Clipe de papel (paperClip) | máximo | ✅ ok | Bambu ✓ · Orca ✓ · Projeto Bambu ✓ | 21 | 10,9 | 1 | – | – |
 | Clipe de papel (paperClip) | mínimo | ✅ ok | Bambu ✓ · Orca ✓ · Projeto Bambu ✓ | 5 | 1,6 | 1 | – | – |
 | Clipe de papel (paperClip) | padrão | ✅ ok | Bambu ✓ · Orca ✓ · Projeto Bambu ✓ | 8 | 3,2 | 1 | – | – |
 | Porta-caneta (pen) | máximo | ✅ ok | Bambu ✓ · Orca ✓ · Projeto Bambu ✓ | 687 | 430,1 | 1 | – | – |
@@ -538,7 +558,7 @@ impressoras de mesa maior); sem o aviso do app, é **falha**.
 | Suporte de carretel (spoolHolder) | eixo em 2 partes | ✅ ok | Bambu ✓ · Orca ✓ · Projeto Bambu ✓ | 1013 | 419,4 | 1 | – | app: Eixo oco em 2 partes que rosqueiam: ≈ 129 g de PLA (parede de 3,5 mm; um eixo maciço seria ≈ 258 g). |
 | Suporte de carretel (spoolHolder) | máximo | ⚠️ aviso | Bambu ✓ · Orca ✓ · Projeto Bambu ✓ | 2188 | 949,0 | 1 | – | o conjunto arrumado ocupa 280,0 × 165,0 mm: passa da mesa de 256 mm; mais de 24 h de impressão; app: Eixo oco inteiro: ≈ 368 g de PLA (parede de 8,0 mm; um eixo maciço seria ≈ 875 g).; app: As 2 peças não cabem juntas na mesa de 256 mm: o fatiador vai usar mais de uma mesa (ou imprima uma de cada vez). |
 | Suporte de carretel (spoolHolder) | mínimo | ✅ ok | Bambu ✓ · Orca ✓ · Projeto Bambu ✓ | 612 | 197,9 | 1 | – | app: Eixo oco inteiro: ≈ 14 g de PLA (parede de 2,5 mm; um eixo maciço seria ≈ 20 g). |
-| Suporte de carretel (spoolHolder) | padrão | ✅ ok | Bambu ✓ · Orca ✓ · Projeto Bambu ✓ | 1215 | 465,2 | 1 | – | app: Eixo oco inteiro: ≈ 83 g de PLA (parede de 3,5 mm; um eixo maciço seria ≈ 258 g). |
+| Suporte de carretel (spoolHolder) | padrão | ✅ ok | Bambu ✓ · Orca ✓ · Projeto Bambu ✓ | 1214 | 465,2 | 1 | – | app: Eixo oco inteiro: ≈ 83 g de PLA (parede de 3,5 mm; um eixo maciço seria ≈ 258 g). |
 | Suporte de carretel (spoolHolder) | parede grossa | ✅ ok | Bambu ✓ · Orca ✓ · Projeto Bambu ✓ | 1245 | 479,6 | 1 | – | app: Eixo oco inteiro: ≈ 154 g de PLA (parede de 8,0 mm; um eixo maciço seria ≈ 258 g). |
 | Molde para carimbo de EVA (stampMold) | máximo | ⚠️ aviso | Bambu ✓ · Orca ✓ | 15 | 6,3 | 1 | – | o conjunto arrumado ocupa 386,9 × 340,0 mm: passa da mesa de 256 mm; "Molde" não cabe na mesa de 256 mm (331,9 × 340,0 × 10,0 mm); app: O molde tem 340 mm: passa da mesa de 256 mm. |
 | Molde para carimbo de EVA (stampMold) | mínimo | ✅ ok | Bambu ✓ · Orca ✓ | 14 | 5,9 | 1 | – | – |

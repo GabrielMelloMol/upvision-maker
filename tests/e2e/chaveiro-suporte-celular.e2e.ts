@@ -1,13 +1,11 @@
 import type { Page } from "@playwright/test";
-import { expect, go, openApp, test, toastWith } from "./tauri";
+import { expect, openApp, pickModel, test, toastWith } from "./tauri";
 
 const idle = (page: Page) => expect(page.locator(".viewer .overlay.busy")).toHaveCount(0, { timeout: 60_000 });
 
 test("chaveiro suporte de celular: abridor de lata + fenda inclinada na medida do aparelho, avisos e 3MF (#192)", async ({ page, tauri }) => {
   await openApp(page);
-  await go(page, "Modelos prontos");
-  await page.getByRole("searchbox", { name: "Buscar modelo" }).fill("Chaveiro suporte de celular");
-  await page.getByRole("group", { name: "Modelo" }).getByRole("button", { name: "Chaveiro suporte de celular", exact: true }).click();
+  await pickModel(page, "Chaveiro suporte de celular", "Chaveiro suporte de celular", { exact: true });
   await idle(page);
   await expect(page.locator(".legend")).toContainText("Arte");
   await expect(page.getByText(/inclinado 65° para o lado da argola/)).toBeVisible();

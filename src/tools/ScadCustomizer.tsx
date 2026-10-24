@@ -38,7 +38,7 @@ const fromSaved = (d: SavedScad): ScadState => ({ scad: { name: d.name, text: d.
  */
 export default function ScadCustomizer() {
   const tool = useToolState("scad", initialState, {
-    label: "Modelo personalizável (OpenSCAD)",
+    label: "Modelo do OpenSCAD (avançado)",
     save: (s) => ({ ...s, imports: Object.fromEntries(Object.entries(s.imports).map(([k, v]) => [k, storeBytes(v)])) }),
     load: (raw) => {
       const r = raw as Omit<ScadState, "imports"> & { imports?: Record<string, string | null> };
@@ -159,7 +159,7 @@ export default function ScadCustomizer() {
 
   return (
     <div className="page">
-      <h1>Modelo personalizável (OpenSCAD)</h1>
+      <h1>Modelo do OpenSCAD (avançado)</h1>
       <p className="lead">Arquivo .scad do Customizer vira formulário e 3MF.</p>
       <ToolSessionBar tool={tool} />
       <div className="tool-layout">

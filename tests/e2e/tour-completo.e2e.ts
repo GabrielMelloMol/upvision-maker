@@ -11,7 +11,7 @@ const TELAS: Record<string, string> = {
   create: "Criar",
   models: "Modelos prontos",
   keychain: "Chaveiros",
-  lithophane: "Foto em relevo",
+  lithophane: "Litofania",
   organizers: "Organizadores",
   calculator: "Calculadora",
   orders: "Pedidos",

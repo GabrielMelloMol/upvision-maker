@@ -182,7 +182,7 @@ export default function ColorSplit() {
 
   return (
     <div className="page">
-      <h1>Separar cores de um 3MF</h1>
+      <h1>Separar as cores de um arquivo</h1>
       <p className="lead">3MF colorido vira uma peça sólida por cor.</p>
       <ToolSessionBar tool={tool} />
       <div className="tool-layout">

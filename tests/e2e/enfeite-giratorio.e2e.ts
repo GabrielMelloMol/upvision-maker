@@ -1,5 +1,5 @@
 import type { Page } from "@playwright/test";
-import { expect, go, openApp, test } from "./tauri";
+import { expect, go, openApp, pickModel, test } from "./tauri";
 
 const hud = (page: Page) => page.locator(".viewer .hud");
 const idle = (page: Page) => expect(page.locator(".viewer .overlay.busy")).toHaveCount(0, { timeout: 60_000 });
@@ -7,9 +7,7 @@ const ART = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"><circle
 
 test("enfeite giratório: texto curvo, enfeites no aro, arte colorida do disco e coleção Natal (#107)", async ({ page }) => {
   await openApp(page);
-  await go(page, "Modelos prontos");
-  await page.getByRole("searchbox", { name: "Buscar modelo" }).fill("giratório");
-  await page.getByRole("group", { name: "Modelo" }).getByRole("button", { name: "Enfeite giratório", exact: true }).click();
+  await pickModel(page, "giratório", "Enfeite giratório", { exact: true });
   await idle(page);
   // aro de 60 mm + olhal do gancho em cima; 3 cores (aro, disco, texto)
   await expect(hud(page)).toContainText("mm", { timeout: 60_000 });
@@ -29,7 +27,7 @@ test("enfeite giratório: texto curvo, enfeites no aro, arte colorida do disco e
   await expect(page.locator(".viewer .legend span")).toHaveCount(4);
 
   // entra na coleção Natal
-  await page.getByRole("searchbox", { name: "Buscar modelo" }).fill("");
+  await go(page, "Criar");
   await page.getByRole("group", { name: "Ocasião" }).getByRole("button", { name: "Natal" }).click();
-  await expect(page.getByRole("group", { name: "Modelo" }).getByRole("button", { name: "Enfeite giratório", exact: true })).toBeVisible();
+  await expect(page.locator(".create-products a").filter({ hasText: "Enfeite de Natal" })).toBeVisible();
 });

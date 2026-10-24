@@ -59,7 +59,7 @@ function spotMarker(spot: SurfaceSpot, color: string): Model {
  */
 export default function OwnDecal() {
   const tool = useToolState("owndecal", initialState, {
-    label: "Nome ou logo no seu modelo",
+    label: "Nome ou logo na peça",
     save: (s) => ({ ...s, file: s.file && { name: s.file.name, bytes: storeBytes(s.file.bytes) } }),
     load: (raw) => {
       const r = raw as Omit<OwnState, "file"> & { file: { name: string; bytes: string | null } | null };
@@ -170,7 +170,7 @@ export default function OwnDecal() {
 
   return (
     <div className="page">
-      <h1>Nome ou logo no seu modelo</h1>
+      <h1>Nome ou logo na peça</h1>
       <p className="lead">Nome ou logo em qualquer superfície, curva ou plana.</p>
       <ToolSessionBar tool={tool} />
       <div className="tool-layout">

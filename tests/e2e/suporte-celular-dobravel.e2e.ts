@@ -1,14 +1,12 @@
 import AxeBuilder from "@axe-core/playwright";
 import type { Page } from "@playwright/test";
-import { expect, go, openApp, test, toastWith } from "./tauri";
+import { expect, openApp, pickModel, test, toastWith } from "./tauri";
 
 const idle = (page: Page) => expect(page.locator(".viewer .overlay.busy")).toHaveCount(0, { timeout: 60_000 });
 
 test("suporte de celular dobrável: variação do suporte, folga das dobradiças, travas e prévia montada (#195)", async ({ page, tauri }) => {
   await openApp(page);
-  await go(page, "Modelos prontos");
-  await page.getByRole("searchbox", { name: "Buscar modelo" }).fill("celular");
-  await page.getByRole("group", { name: "Modelo" }).getByRole("button", { name: "Suporte de celular e tablet", exact: true }).click();
+  await pickModel(page, "celular", "Suporte de celular e tablet", { exact: true });
   await idle(page);
   // é uma variação do suporte: o fixo e o dobrável ficam lado a lado
   await page.getByRole("button", { name: "Dobrável", exact: true }).click();
@@ -55,9 +53,7 @@ for (const scheme of ["light", "dark"] as const) {
 
       test("a tela do suporte dobrável não transborda e passa no axe, com contraste", async ({ page }) => {
         await openApp(page);
-        await go(page, "Modelos prontos");
-        await page.getByRole("searchbox", { name: "Buscar modelo" }).fill("celular");
-        await page.getByRole("group", { name: "Modelo" }).getByRole("button", { name: "Suporte de celular e tablet", exact: true }).click();
+        await pickModel(page, "celular", "Suporte de celular e tablet", { exact: true });
         await page.getByRole("button", { name: "Dobrável", exact: true }).click();
         await idle(page);
         await expect(page.getByLabel(/^Folga das dobradiças/)).toBeVisible();

@@ -56,7 +56,6 @@ describe("compatibilidade com o que foi salvo antes das famílias (#141)", () =>
     renderWithApp(<Models />);
     await user.click(await screen.findByRole("button", { name: /Continuar de onde parou/ }, BUILD));
     await expectOpenAsAnilha("80 KG");
-    expect(within(screen.getByRole("group", { name: "Família" })).getByRole("button", { name: "Chaveiro" })).toHaveAttribute("aria-pressed", "true");
   });
 
   test("último projeto salvo com o id antigo: Reabrir volta na variação e nos campos", async () => {

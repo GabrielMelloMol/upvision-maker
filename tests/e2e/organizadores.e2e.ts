@@ -1,6 +1,6 @@
 import AxeBuilder from "@axe-core/playwright";
 import type { Page } from "@playwright/test";
-import { expect, go, openApp, test } from "./tauri";
+import { expect, go, openApp, pickModel, test } from "./tauri";
 
 /**
  * Organizadores (gaveta, foto das ferramentas e Gridfinity avulso numa ferramenta só): a escolha inicial, as abas e os caminhos antigos.
@@ -14,9 +14,7 @@ const LOAD = { timeout: 60_000 }; // a ferramenta de dentro carrega sob demanda 
 test("escolha inicial: três pontos de partida, cada um abre a aba com a ferramenta", async ({ page }) => {
   test.slow();
   await openApp(page);
-  await go(page, "Criar");
-  // a galeria Criar mostra uma ferramenta só
-  await page.getByRole("link", { name: /^Organizadores/ }).click();
+  await go(page, "Organizadores"); // dentro do produto "Caixinhas modulares para gaveta"; pela busca
   await expect(page.getByRole("heading", { level: 1, name: "Organizadores" })).toBeVisible();
   const choices = page.getByRole("list", { name: "Como organizar" });
   await expect(choices.getByRole("button")).toHaveCount(3);
@@ -36,8 +34,7 @@ test("escolha inicial: três pontos de partida, cada um abre a aba com a ferrame
 
   // a última aba fica lembrada; "Ver as opções" volta à escolha
   await go(page, "Início");
-  await go(page, "Criar");
-  await page.getByRole("link", { name: /^Organizadores/ }).click();
+  await go(page, "Organizadores");
   await expect(tab(page, "Caixinhas avulsas")).toHaveAttribute("aria-selected", "true");
   await page.getByRole("button", { name: "Ver as opções" }).click();
   await expect(page.getByRole("list", { name: "Como organizar" })).toBeVisible();
@@ -50,9 +47,7 @@ test("os nomes e caminhos antigos levam à aba certa: busca ⌘K e atalho da fam
   await expect(tab(page, "Pela medida da gaveta")).toHaveAttribute("aria-selected", "true");
   await go(page, "Organizador pela foto");
   await expect(tab(page, "Pela foto das ferramentas")).toHaveAttribute("aria-selected", "true");
-  await go(page, "Modelos prontos");
-  await page.getByRole("searchbox", { name: "Buscar modelo" }).fill("gridfinity");
-  await page.getByRole("group", { name: "Modelo" }).getByRole("button", { name: "Gridfinity: caixinha" }).click();
+  await pickModel(page, "gridfinity", "Gridfinity: caixinha");
   // os atalhos "Na gaveta" e "Pela foto" da família abrem as abas
   await page.getByRole("button", { name: "Na gaveta" }).click();
   await expect(tab(page, "Pela medida da gaveta")).toHaveAttribute("aria-selected", "true");
@@ -89,7 +84,7 @@ for (const scheme of ["light", "dark"] as const) {
         test.slow();
         await openApp(page);
         await go(page, "Criar");
-        await page.getByRole("link", { name: /^Organizadores/ }).click();
+        await go(page, "Organizadores");
         const check = async (label: string) => {
           const sideScroll = await page.evaluate(() => document.scrollingElement!.scrollWidth > document.scrollingElement!.clientWidth + 1);
           expect(sideScroll, `${label}: a página rola para o lado`).toBe(false);
