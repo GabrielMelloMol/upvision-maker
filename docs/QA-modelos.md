@@ -333,16 +333,16 @@ impressoras de mesa maior); sem o aviso do app, é **falha**.
 | Caixinha termoformada: clipe e tampa (ferramenta) | clipe | ✅ ok | Bambu ✓ · Orca ✓ | 2 | 0,2 | 1 | – | – |
 | Caixinha termoformada: clipe e tampa (ferramenta) | tampa com pino curto e fino | ✅ ok | Bambu ✓ · Orca ✓ | 8 | 1,4 | 1 | – | app: Havia traços do desenho mais finos que o bico da impressora e eu os engrossei para a tela sair inteira. |
 | Caixinha termoformada: clipe e tampa (ferramenta) | tampa rosqueada | ✅ ok | Bambu ✓ · Orca ✓ | 10 | 2,0 | 1 | – | – |
-| Caixinha termoformada: moldes macho e fêmea (ferramenta) | bola de Natal | ✅ ok | Bambu ✓ · Orca ✓ | 73 | 47,7 | 1 | – | – |
-| Caixinha termoformada: moldes macho e fêmea (ferramenta) | coração | ✅ ok | Bambu ✓ · Orca ✓ | 56 | 37,9 | 1 | – | – |
-| Caixinha termoformada: moldes macho e fêmea (ferramenta) | coração maciço 100% | ✅ ok | Bambu ✓ · Orca ✓ | 88 | 70,7 | 1 | – | – |
-| Caixinha termoformada: moldes macho e fêmea (ferramenta) | coração maciço 8% | ✅ ok | Bambu ✓ · Orca ✓ | 50 | 35,7 | 1 | – | – |
-| Caixinha termoformada: moldes macho e fêmea (ferramenta) | estrela | ✅ ok | Bambu ✓ · Orca ✓ | 54 | 36,1 | 1 | – | – |
-| Caixinha termoformada: moldes macho e fêmea (ferramenta) | flor | ✅ ok | Bambu ✓ · Orca ✓ | 68 | 44,4 | 1 | – | – |
-| Caixinha termoformada: moldes macho e fêmea (ferramenta) | folga 0,4 mm | ✅ ok | Bambu ✓ · Orca ✓ | 56 | 37,8 | 1 | – | – |
-| Caixinha termoformada: moldes macho e fêmea (ferramenta) | maciço | ✅ ok | Bambu ✓ · Orca ✓ | 48 | 35,2 | 1 | – | app: Havia traços do desenho mais finos que o bico da impressora e eu os engrossei para a tela sair inteira. |
-| Caixinha termoformada: moldes macho e fêmea (ferramenta) | máximo | ⚠️ aviso | Bambu ✓ · Orca ✓ | 490 | 333,6 | 2 | – | o conjunto arrumado ocupa 294,0 × 185,8 mm: passa da mesa de 256 mm; não coube numa placa: 2 placas |
-| Caixinha termoformada: moldes macho e fêmea (ferramenta) | mínimo | ✅ ok | Bambu ✓ · Orca ✓ | 30 | 20,2 | 1 | – | app: Havia traços do desenho mais finos que o bico da impressora e eu os engrossei para a tela sair inteira. |
+| Caixinha termoformada: moldes macho e fêmea (ferramenta) | bola de Natal | ✅ ok | Bambu ✓ · Orca ✓ | 68 | 45,9 | 1 | – | – |
+| Caixinha termoformada: moldes macho e fêmea (ferramenta) | coração | ✅ ok | Bambu ✓ · Orca ✓ | 54 | 36,4 | 1 | – | – |
+| Caixinha termoformada: moldes macho e fêmea (ferramenta) | coração maciço 100% | ✅ ok | Bambu ✓ · Orca ✓ | 86 | 67,4 | 1 | – | – |
+| Caixinha termoformada: moldes macho e fêmea (ferramenta) | coração maciço 8% | ✅ ok | Bambu ✓ · Orca ✓ | 47 | 34,8 | 1 | – | – |
+| Caixinha termoformada: moldes macho e fêmea (ferramenta) | estrela | ✅ ok | Bambu ✓ · Orca ✓ | 52 | 35,2 | 1 | – | – |
+| Caixinha termoformada: moldes macho e fêmea (ferramenta) | flor | ✅ ok | Bambu ✓ · Orca ✓ | 63 | 42,6 | 1 | – | – |
+| Caixinha termoformada: moldes macho e fêmea (ferramenta) | folga 0,4 mm | ✅ ok | Bambu ✓ · Orca ✓ | 54 | 36,5 | 1 | – | – |
+| Caixinha termoformada: moldes macho e fêmea (ferramenta) | maciço | ✅ ok | Bambu ✓ · Orca ✓ | 46 | 34,3 | 1 | – | app: Havia traços do desenho mais finos que o bico da impressora e eu os engrossei para a tela sair inteira. |
+| Caixinha termoformada: moldes macho e fêmea (ferramenta) | máximo | ⚠️ aviso | Bambu ✓ · Orca ✓ | 467 | 326,0 | 2 | – | o conjunto arrumado ocupa 294,0 × 185,8 mm: passa da mesa de 256 mm; não coube numa placa: 2 placas |
+| Caixinha termoformada: moldes macho e fêmea (ferramenta) | mínimo | ✅ ok | Bambu ✓ · Orca ✓ | 28 | 19,3 | 1 | – | app: Havia traços do desenho mais finos que o bico da impressora e eu os engrossei para a tela sair inteira. |
 | Caixinha termoformada: telas e bases (ferramenta) | bola de Natal com faixa | ✅ ok | Bambu ✓ · Orca ✓ · Projeto Bambu ✓ | 79 | 27,9 | 1 | – | – |
 | Caixinha termoformada: telas e bases (ferramenta) | círculo losango | ✅ ok | Bambu ✓ · Orca ✓ · Projeto Bambu ✓ | 60 | 18,9 | 1 | – | app: Havia traços do desenho mais finos que o bico da impressora e eu os engrossei para a tela sair inteira. |
 | Caixinha termoformada: telas e bases (ferramenta) | coração | ✅ ok | Bambu ✓ · Orca ✓ · Projeto Bambu ✓ | 56 | 18,5 | 1 | – | – |
