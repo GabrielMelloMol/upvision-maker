@@ -79,7 +79,8 @@ describe("App", () => {
       expect(within(nav()).getByRole("button", { name: p.label })).toHaveAttribute("aria-current", "page");
       await waitFor(() => expect(document.querySelector(".view h1")?.textContent, p.id).toBeTruthy());
     }
-  }, 30_000);
+    // abre todas as páginas (~17 s sozinho); no CI com a suíte inteira em paralelo passava de 30 s
+  }, 60_000);
 
   test("⌘⌥S / Ctrl+Alt+S recolhe a barra lateral e o app lembra (#139)", async () => {
     await seenIntro();
