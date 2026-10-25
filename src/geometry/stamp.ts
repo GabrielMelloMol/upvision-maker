@@ -144,7 +144,7 @@ function reliefSolid(M: ManifoldToplevel, art: CS, p: StampParams, k: K): Solid 
  * profundidade (altura d + papel), mais a folga do papel em volta. Cada degrau usa o degrau mais largo do relevo
  * que passa por ali, então o relevo nunca encosta na parede.
  */
-function cavitySolid(M: ManifoldToplevel, art: CS, p: StampParams, T: number, k: K): Solid {
+function cavitySolid(M: ManifoldToplevel, art: CS, p: StampParams, T: number, outline: CS, k: K): Solid {
   const n = sliceCount(p.relief);
   const dz = p.relief / n;
   const slices = Array.from({ length: n }, (_, i) => {
@@ -154,7 +154,10 @@ function cavitySolid(M: ManifoldToplevel, art: CS, p: StampParams, T: number, k:
     const nz = nozzleMm();
     const plain = k(prof.offset(p.paper, "Round"));
     const closed = k(k(prof.offset(p.paper + nz / 2, "Round")).offset(-nz / 2, "Round"));
-    const wide = k(plain.add(closed)); // a união garante que o fechamento só acrescenta (arcos em polígonos comem frações de µm)
+    const united = k(plain.add(closed)); // a união garante que o fechamento só acrescenta (arcos em polígonos comem frações de µm)
+    // ilha de material mais fina que 2 bicos (miolo de letra pequena): o fatiador pula ou sai um espeto frágil; vira cavidade
+    const thin = k(outline.subtract(united)).decompose().map(k).filter((c) => k(c.offset(-nz, "Round")).isEmpty());
+    const wide = thin.length ? k(M.CrossSection.union([united, ...thin])) : united;
     const top = T - i * dz; // face em T
     return k(k(wide.extrude(dz + (i === 0 ? 0.05 : 0.001))).translate([0, 0, top - dz]));
   });
@@ -212,8 +215,8 @@ export function stampPlates(M: ManifoldToplevel, art: CS, p: StampParams, k: K):
 
   // placa da cavidade: o relevo espelhado, mais a folga do papel
   const artMirror = k(art.mirror([1, 0]));
-  let bottom = flat(plateOutline(M, p, edge, k));
-  bottom = k(bottom.subtract(cavitySolid(M, artMirror, p, T, k)));
+  let bottom = flat(outline);
+  bottom = k(bottom.subtract(cavitySolid(M, artMirror, p, T, outline, k)));
   if (p.align === "magnets") {
     const pocket = magnetPocket(M, p, k);
     bottom = k(bottom.subtract(k(M.Manifold.union(pts.map((q) => k(pocket.translate([-q[0], q[1], 0])))))));

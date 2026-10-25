@@ -319,3 +319,17 @@ describe("traço fino", () => {
       expect(t).toMatchObject({ thin: false, fixed: false });
     }));
 });
+
+describe("placa de cavidade imprimível (#284)", () => {
+  test("selo com texto em arco: nenhuma ilha de material na cavidade mais fina que 2 bicos", () =>
+    scoped((k) => {
+      const p = P({ shape: "round", w: 45, h: 45, paper: 0.6, relief: 1.2, align: "magnets" });
+      const { art } = buildStampArt(M, { ...DEFAULT_ART, shape: "round", w: 45, h: 45, logo: null, lines: ["A & B"], font, frame: "seal", arcTop: "ANA & BRUNO", arcBottom: "12 · 10 · 2027" });
+      k(art);
+      const { bottom, T } = stampPlates(M, art, p, k);
+      for (let z = T - 0.1; z > T - p.relief; z -= 0.2) {
+        const thin = k(bottom.slice(z)).decompose().map(k).filter((c) => k(c.offset(-0.4, "Round")).isEmpty());
+        expect(thin.map((c) => Math.round(c.area() * 100) / 100), `z = ${z.toFixed(1)}`).toEqual([]);
+      }
+    }));
+});
