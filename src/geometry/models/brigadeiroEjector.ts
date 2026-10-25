@@ -30,7 +30,8 @@ const GAP = 8;
 
 /**
  * Ejetor de brigadeiro: forma no contorno do desenho (tubo com aba) e êmbolo que desliza dentro dela,
- * com haste e botão. A forma imprime com a aba na mesa; o êmbolo com a placa na mesa.
+ * com haste e botão. A forma imprime com a aba na mesa; o êmbolo com a placa na mesa (fundo plano) ou de cabeça para
+ * baixo, com o botão na mesa (fundo curvo: a curva fica virada para cima e sai sem suporte).
  */
 export type EjectorOptions = {
   /** Marca (desenho ou texto) gravada no rosto do êmbolo: o doce sai com ela em relevo. Sem espelhar: o app espelha. */
@@ -78,9 +79,16 @@ export function buildEjector({ M, art }: ModelCtx, p: EjectorParams, opts: Eject
     if (mark) ejector = k(ejector.subtract(k(mark.extrude(opts.stampDepth ?? STAMP_DEPTH))));
     const bottom = p.bottom ?? "flat";
     if (bottom !== "flat") {
-      const face = bottom === "round" ? roundEdge(M, plate, p.radius ?? 3) : (bottom === "scale" ? scaleDome : dome)(M, plate, p.domeHeight ?? 4, p.smooth ?? 0.7);
-      ejector = k(ejector.add(k(k(face).translate([0, 0, PLATE_H]))));
+      // a curva vai na face do doce (z = 0, para baixo); um cone de 45° sob a placa segura a placa quando o êmbolo
+      // imprime de cabeça para baixo, com o botão na mesa
+      const face = k(bottom === "round" ? roundEdge(M, plate, p.radius ?? 3) : (bottom === "scale" ? scaleDome : dome)(M, plate, p.domeHeight ?? 4, p.smooth ?? 0.7));
+      const far = Math.max(...plate.toPolygons().flat().map(([x, y]) => Math.hypot(x - c[0], y - c[1]))); // cobre até a ponta mais longe
+      const coneH = Math.max(0, Math.min(far - STEM_R, stemH - 1));
+      const cone = k(k(k(M.Manifold.cylinder(coneH, STEM_R + coneH, STEM_R, 64)).translate([c[0], c[1], PLATE_H])).intersect(k(k(plate.extrude(coneH)).translate([0, 0, PLATE_H]))));
+      ejector = k(k(M.Manifold.union([ejector, cone, k(face.mirror([0, 0, 1]))])).rotate([180, 0, 0])); // (x, y, z) → (x, −y, −z): sem espelhar o desenho
+      ejector = k(ejector.translate([0, 2 * c[1], -ejector.boundingBox().min[2]]));
       warnings.push("Fundo arredondado: imprima o êmbolo com altura de camada de 0,08 a 0,12 mm para a curva sair lisa.");
+      if (far - STEM_R > coneH) warnings.push("Forma larga para a altura: o apoio sob a placa do êmbolo não chega à borda. Ative suporte no fatiador ou aumente a altura da forma.");
       if (hasSharpFeatures(plate, bottom === "round" ? (p.radius ?? 3) : 2)) warnings.push("Esta forma tem ponta fina ou reentrância funda: ali o arredondado deforma. Prefira um desenho mais cheio ou raio menor.");
     }
     const fb = frame.boundingBox();
