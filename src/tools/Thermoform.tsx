@@ -310,7 +310,7 @@ export default function Thermoform() {
             </div>
             <label>
               Fecho
-              <select value={sc.closure} onChange={(e) => setScreen("closure")(e.target.value as Closure)}>
+              <select aria-label="Fecho" value={sc.closure} onChange={(e) => setScreen("closure")(e.target.value as Closure)}>
                 {CLOSURES.map(([v, l]) => (
                   <option key={v} value={v}>{l}</option>
                 ))}

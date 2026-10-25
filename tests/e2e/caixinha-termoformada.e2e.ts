@@ -42,7 +42,7 @@ function discPng(size = 160): Buffer {
 }
 
 
-test("caixinha termoformada: telas e bases, fecho e moldes macho e fêmea em arquivos separados, com o resumo e o passo a passo", async ({ page, tauri }) => {
+test("caixinha termoformada: telas, conector e porca, e moldes macho e fêmea em arquivos separados, com o resumo e o passo a passo", async ({ page, tauri }) => {
   test.setTimeout(180_000);
   await openApp(page);
   await go(page, "Caixinha termoformada");
@@ -63,11 +63,12 @@ test("caixinha termoformada: telas e bases, fecho e moldes macho e fêmea em arq
   await expect.poll(() => [...tauri.files.keys()].some((f) => /caixinha-fecho.*\.3mf$/.test(f))).toBe(true);
   await saves.nth(2).click();
   await expect.poll(() => [...tauri.files.keys()].some((f) => /caixinha-molde.*\.3mf$/.test(f))).toBe(true);
-  await expect(page.locator(".legend")).toContainText("Base");
+  await expect(page.locator(".legend")).toContainText("Porca");
+  await expect(page.locator(".legend")).not.toContainText("Base");
   await expect(page.locator(".legend")).toContainText("Molde fêmea");
 
   // fecho por faixa e malha em losango: continua gerando
-  await page.getByRole("button", { name: "Faixa colada" }).click();
+  await page.getByLabel("Fecho", { exact: true }).selectOption("ring");
   await page.getByRole("button", { name: "Losango" }).click();
   await idle(page);
   await expect(page.locator(".legend")).toContainText("Faixa");
@@ -78,7 +79,7 @@ test("caixinha termoformada: tampa rosqueada, prévias montada e casca, água qu
   await openApp(page);
   await go(page, "Caixinha termoformada");
   await idle(page);
-  await page.getByRole("button", { name: "Tampa rosqueada" }).click();
+  await page.getByLabel("Fecho", { exact: true }).selectOption("cap");
   await idle(page);
   await expect(page.getByRole("heading", { name: /Tampa rosqueada \(PLA, 0,16 mm\)/ })).toBeVisible();
   await expect(page.locator(".legend")).toContainText("Tampa");
@@ -87,6 +88,11 @@ test("caixinha termoformada: tampa rosqueada, prévias montada e casca, água qu
   await page.getByRole("button", { name: "Montada (não imprime)" }).click();
   await idle(page);
   await expect(page.locator(".viewer .hud")).toContainText("mm", { timeout: 90_000 });
+  // dobradiça e trava (#273): montada, as cascas nos dois aros
+  await page.getByLabel("Fecho", { exact: true }).selectOption("hinge");
+  await idle(page);
+  await expect(page.locator(".legend")).toContainText("Aro de cima", { timeout: 90_000 });
+  await expect(page.locator(".legend")).toContainText("Aro de baixo");
   await page.getByRole("button", { name: "Casca prensada (não imprime)" }).click();
   await idle(page);
   await expect(page.getByText(/Uma casca já prensada, de perto/)).toBeVisible();
@@ -135,12 +141,12 @@ test("caixinha termoformada: a mesa tem uma placa por arquivo com o que há nela
   await idle(page);
   await expect(page.locator(".viewer .hud")).toContainText("mm", { timeout: 90_000 });
   const legend = page.locator(".legend");
-  await expect(legend).toContainText("Placa 1 · Tela (aquecer e prensar) e bases · PLA 0,20 mm");
-  await expect(legend).toContainText("Placa 2 · Clipe · PLA 0,16 mm");
+  await expect(legend).toContainText("Placa 1 · Telas (aquecer e prensar) · PLA 0,20 mm");
+  await expect(legend).toContainText("Placa 2 · Conector e Porca · PLA 0,16 mm");
   await expect(legend).toContainText("Molde fêmea (de baixo)");
   await expect(legend).toContainText("Molde macho (de cima)");
   // clicar na placa aproxima a câmera dela
-  await legend.getByText(/Placa 2 · Clipe/).click();
+  await legend.getByText(/Placa 2 · Conector/).click();
 
   await page.getByRole("button", { name: "Como prensar (não imprime)" }).click();
   await idle(page);
