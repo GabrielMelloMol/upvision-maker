@@ -1,4 +1,6 @@
 import * as THREE from "three";
+import { toCreasedNormals } from "three/addons/utils/BufferGeometryUtils.js";
+import type { Mesh } from "../../geometry/types";
 
 /*
  * Peças que não são impressas, só enfeitam a cena da foto (#251): argola e corrente de metal, fita da medalha, parafusos
@@ -116,4 +118,13 @@ export function hardwareAt(points: [number, number][], z: number): THREE.Group {
     g.add(m);
   });
   return g;
+}
+
+/** Biscoito assado (massa fosca, sem linhas de camada): a malha já no chão e centrada, em mm. */
+export function bakedGood(mesh: Mesh, color: string): THREE.Mesh {
+  let g = new THREE.BufferGeometry();
+  g.setAttribute("position", new THREE.BufferAttribute(mesh.positions, 3));
+  g.setIndex(new THREE.BufferAttribute(mesh.indices, 1));
+  g = toCreasedNormals(g, Math.PI / 5);
+  return new THREE.Mesh(g, new THREE.MeshPhysicalMaterial({ color: new THREE.Color(color), roughness: 0.92, metalness: 0, sheen: 0.15, sheenColor: new THREE.Color(0xe8c08a) }));
 }

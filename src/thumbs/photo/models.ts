@@ -20,7 +20,7 @@ import type { Params } from "../../tools/models/defs";
 import { buildModels, showcaseColors } from "../renderThumb";
 import { bevelModels } from "./bevel";
 import { boundsOf, grounded, placeModels, type Pose } from "./compose";
-import { dowelRack, hangingRibbon, hardwareAt, ringAndChain } from "./extras";
+import { bakedGood, dowelRack, hangingRibbon, hardwareAt, ringAndChain } from "./extras";
 import { AZIMUTH_DEG, type PhotoItem, type PhotoScene } from "./render";
 
 /*
@@ -330,13 +330,13 @@ async function ejectors(o: SceneOpts): Promise<PhotoScene> {
 }
 
 // cortador de biscoito (#285): cortador e carimbo atrás e dois biscoitos assados na frente, com o nome marcado
-const COOKIE_COLOR = "#d49a55";
+const COOKIE_COLOR = "#b57234";
 
 async function cookieCutters(o: SceneOpts): Promise<PhotoScene> {
   const M = await getManifold();
   const font = await loadFont("hanken");
   const heart = presetSilhouette(M, "heart", 60);
-  const text = centered(textToCrossSection(M, font, "ANA", 13));
+  const text = centered(textToCrossSection(M, font, "ANA", 10)); // 10 mm: não encosta no contorno (encostando, vira parte dele e sai do carimbo)
   const ring = heart.subtract(heart.offset(-1.6, "Round"));
   const design = ring.add(text.translate([0, 2]));
   // o app espelha o desenho: o carimbo marca a massa e o nome sai certo no biscoito
@@ -344,12 +344,14 @@ async function cookieCutters(o: SceneOpts): Promise<PhotoScene> {
   const cookie = heart.extrude(7).subtract(text.translate([0, 2]).extrude(2).translate([0, 0, 5.5]));
   const cookieModel: Model = { name: "Biscoito", parts: [{ name: "Biscoito", color: COOKIE_COLOR, mesh: { positions: cookie.getMesh().vertProperties, indices: cookie.getMesh().triVerts } }] };
   for (const c of [heart, text, ring, design, cookie]) c.delete();
+  // o biscoito é adereço (massa, sem linhas de camada); o quadro segue o cortador, a peça principal
+  const baked = (await bevelModels(grounded([cookieModel])))[0].parts[0].mesh;
   return sceneOf([
-    place(await maybeBevel(grounded([cookieModel]), o), [], at(-20, -30, 8)),
-    place(await maybeBevel(grounded([cookieModel]), o), [], at(52, -42, -16)),
-    place(await maybeBevel(grounded([cutter]), o), [], at(-48, 50, -6)),
-    place(await maybeBevel(grounded([stamp]), o), [], at(34, 52, 10)),
-  ], { darkTable: true, elevation: 50, heroPad: 0.55 });
+    place(await maybeBevel(grounded([cutter]), o), [], at(-6, 6, -6)),
+    place(await maybeBevel(grounded([{ ...stamp, parts: stamp.parts.map((q) => ({ ...q, color: cutter.parts[0].color })) }]), o), [], at(66, 44, 10)), // mesma cor do cortador: laranja some perto do biscoito
+    place([], [bakedGood(baked, COOKIE_COLOR)], at(-62, -44, 12)),
+    place([], [bakedGood(baked, COOKIE_COLOR)], at(28, -58, -16)),
+  ], { darkTable: true, elevation: 50, heroPad: 0.6 });
 }
 
 export async function photoScene(id: PhotoId, o: SceneOpts = {}): Promise<PhotoScene> {
