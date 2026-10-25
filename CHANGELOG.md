@@ -3,6 +3,11 @@
 Cada versão aparece para a usuária na tela "O que há de novo" depois da atualização.
 Formato: `## <versão> — <data>` e itens `- …` em linguagem simples.
 
+## 0.15.4 — 2026-10-25
+- **Carimbo seco sem pedacinhos soltos no desenho (#284)**: no miolo das letras pequenas sobravam ilhas de material finas demais, que o fatiador pulava ou deixava como espeto. Agora elas viram cavidade, e o desenho sai inteiro no papel.
+- **Foto do Cortador de biscoito (#285)**: o cartão ganhou foto, com o cortador, o carimbo e dois biscoitos marcados.
+- **Setinha no atalho do Carimbo seco (#286)**: um selo pequeno no canto da foto avisa que ele abre outra tela.
+
 ## 0.15.3 — 2026-10-25
 - **Ejetor de brigadeiro com o fundo do lado certo (#281)**: o formato do fundo (domo, borda arredondada ou escala até um ponto) saía do lado do cabo, e o doce ficava sempre reto. Agora ele fica na face que encosta no doce. O êmbolo de fundo curvo sai virado, com o botão na mesa, para imprimir sem suporte. Em formas muito largas e baixas, o app avisa quando vai precisar de suporte.
 - **Fotos novas (#280)**: o Carimbo seco ganhou foto no lugar da setinha, e a foto do Ejetor mostra os 3 tipos de fundo.
