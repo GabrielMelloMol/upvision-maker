@@ -21,7 +21,7 @@ import { AZIMUTH_DEG, type PhotoItem, type PhotoScene } from "./render";
  * As cenas da foto realista (#251, rodada 2): cada peça montada como se usa e em 3 a 4 cópias com nomes e cores
  * diferentes, espalhadas na mesa. `bevel` arredonda as quinas (0,4 mm) antes de montar a cena.
  */
-export const PHOTO_IDS = ["keychain", "organizer", "medal", "pix", "thermo", "vessel", "pixel", "micHolder"] as const;
+export const PHOTO_IDS = ["keychain", "organizer", "medal", "pix", "thermo", "vessel", "pixel", "micHolder", "stampMold"] as const;
 export type PhotoId = (typeof PHOTO_IDS)[number];
 export type SceneOpts = { bevel?: boolean };
 
@@ -269,6 +269,13 @@ async function micHolders(o: SceneOpts): Promise<PhotoScene> {
   return sceneOf(placed, { heroPad: 0.12 });
 }
 
+// molde de EVA (#252): na frente a forma para massinha com as costas ao lado; atrás, a placa para prensar com o apoio
+async function stampMolds(o: SceneOpts): Promise<PhotoScene> {
+  const clay = await buildModels("stampMold", { kind: "clay", color: "#f472b6" });
+  const plate = await buildModels("stampMold", { color: "#0ea5e9" });
+  return sceneOf([place(await maybeBevel(grounded(clay), o), [], { x: 0, y: -40, rotZ: 6 }), place(await maybeBevel(grounded(plate), o), [], { x: -15, y: 55, rotZ: -8 })], { heroPad: 0, elevation: 38 });
+}
+
 export async function photoScene(id: PhotoId, o: SceneOpts = {}): Promise<PhotoScene> {
   switch (id) {
     case "keychain":
@@ -287,6 +294,8 @@ export async function photoScene(id: PhotoId, o: SceneOpts = {}): Promise<PhotoS
       return pixels(o);
     case "micHolder":
       return micHolders(o);
+    case "stampMold":
+      return stampMolds(o);
   }
 }
 

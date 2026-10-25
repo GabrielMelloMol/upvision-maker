@@ -8388,6 +8388,73 @@
   "plates": 1
  },
  {
+  "key": "stampMold:forma no máximo",
+  "owner": "Torno",
+  "group": "home",
+  "label": "Molde para carimbo de EVA (stampMold)",
+  "variant": "forma no máximo",
+  "status": "aviso",
+  "reasons": [
+   "o conjunto arrumado ocupa 705,5 × 348,6 mm: passa da mesa de 256 mm",
+   "\"Forma\" não cabe na mesa de 256 mm (340,5 × 348,6 × 7,6 mm)",
+   "\"Costas\" não cabe na mesa de 256 mm (332,5 × 340,6 × 29,4 mm)",
+   "Bambu recusa na mesa de 256 mm do A1 (o app avisa)",
+   "Orca recusa na mesa de 256 mm do A1 (o app avisa)",
+   "app: Passe spray antiaderente na forma, encha com massinha de EVA apertando bem nos cantos, alise rente à borda e deixe secar de 1 a 2 dias antes de desenformar. Depois cole as costas no carimbo com cola de EVA ou cola quente.",
+   "app: A forma tem 349 mm: passa da mesa de 256 mm."
+  ],
+  "date": "2026-10-25",
+  "slicers": "Bambu ✓ · Orca ✓"
+ },
+ {
+  "key": "stampMold:forma no mínimo",
+  "owner": "Torno",
+  "group": "home",
+  "label": "Molde para carimbo de EVA (stampMold)",
+  "variant": "forma no mínimo",
+  "status": "ok",
+  "reasons": [
+   "app: Passe spray antiaderente na forma, encha com massinha de EVA apertando bem nos cantos, alise rente à borda e deixe secar de 1 a 2 dias antes de desenformar. Depois cole as costas no carimbo com cola de EVA ou cola quente."
+  ],
+  "date": "2026-10-25",
+  "slicers": "Bambu ✓ · Orca ✓",
+  "minutes": 19,
+  "grams": 8.5,
+  "plates": 1
+ },
+ {
+  "key": "stampMold:forma para massinha",
+  "owner": "Torno",
+  "group": "home",
+  "label": "Molde para carimbo de EVA (stampMold)",
+  "variant": "forma para massinha",
+  "status": "ok",
+  "reasons": [
+   "app: Passe spray antiaderente na forma, encha com massinha de EVA apertando bem nos cantos, alise rente à borda e deixe secar de 1 a 2 dias antes de desenformar. Depois cole as costas no carimbo com cola de EVA ou cola quente."
+  ],
+  "date": "2026-10-25",
+  "slicers": "Bambu ✓ · Orca ✓",
+  "minutes": 48,
+  "grams": 32.2,
+  "plates": 1
+ },
+ {
+  "key": "stampMold:forma para massinha invertida, sem saída",
+  "owner": "Torno",
+  "group": "home",
+  "label": "Molde para carimbo de EVA (stampMold)",
+  "variant": "forma para massinha invertida, sem saída",
+  "status": "ok",
+  "reasons": [
+   "app: Passe spray antiaderente na forma, encha com massinha de EVA apertando bem nos cantos, alise rente à borda e deixe secar de 1 a 2 dias antes de desenformar. Depois cole as costas no carimbo com cola de EVA ou cola quente."
+  ],
+  "date": "2026-10-25",
+  "slicers": "Bambu ✓ · Orca ✓",
+  "minutes": 51,
+  "grams": 33.5,
+  "plates": 1
+ },
+ {
   "key": "stampMold:máximo",
   "owner": "Torno",
   "group": "home",
@@ -8399,7 +8466,7 @@
    "\"Molde\" não cabe na mesa de 256 mm (331,9 × 340,0 × 10,0 mm)",
    "app: O molde tem 340 mm: passa da mesa de 256 mm."
   ],
-  "date": "2026-10-16",
+  "date": "2026-10-25",
   "slicers": "Bambu ✓ · Orca ✓",
   "minutes": 15,
   "grams": 6.3,
@@ -8413,7 +8480,7 @@
   "variant": "mínimo",
   "status": "ok",
   "reasons": [],
-  "date": "2026-10-16",
+  "date": "2026-10-25",
   "slicers": "Bambu ✓ · Orca ✓",
   "minutes": 14,
   "grams": 5.9,
@@ -8427,7 +8494,7 @@
   "variant": "padrão",
   "status": "ok",
   "reasons": [],
-  "date": "2026-10-16",
+  "date": "2026-10-25",
   "slicers": "Bambu ✓ · Orca ✓",
   "minutes": 40,
   "grams": 26.1,

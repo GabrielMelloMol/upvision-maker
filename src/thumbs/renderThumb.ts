@@ -26,7 +26,7 @@ const MIN_LIGHTNESS = 0.06; // preto vira grafite escuro (continua preto); o rim
 
 /** Entradas que alguns modelos exigem para não abrir vazios. */
 /** Modelos em que o texto é o destaque: a miniatura mostra o texto padrão, não o desenho de exemplo. */
-const TEXT_THUMBS = new Set(["gymDumbbell", "gymKettlebell", "paperClip", "bookThumb", "bookStand"]);
+const TEXT_THUMBS = new Set(["gymDumbbell", "gymKettlebell", "paperClip", "bookThumb", "bookStand", "stampMold"]);
 const INPUTS: Record<string, Params> = { organizerBox: { boxColor: "#0f9d8a", lidColor: "#fbf3df", decorColor: "#0f9d8a" },  pix: { key: "loja@upvision.app", name: "Minha Loja", city: "Sao Paulo" }, coaster: { faceDown: false, text: "Café", borderWidth: 2 }, musicCard: { code: "qr", codeLink: "https://open.spotify.com/track/11dFghVXANMlKmJXsNCbNl", codeSize: 40 }, phoneStandFold: { layout: "assembled", text: "Ana", bodyColor: "#7c8ea6" }, bigFrame: { artW: 150, artH: 190, width: 22, claws: false, back: "none", bodyColor: "#8b5a2b" }, micHolder: { handleColor: "#1c1c1e" } };
 
 export async function buildModels(id: string, patch: Params = {}, view = "closed"): Promise<Model[]> {

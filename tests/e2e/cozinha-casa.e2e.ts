@@ -62,6 +62,20 @@ test("molde para carimbo de EVA (#73): abre com o texto, apoio separado, inverte
   await save3mf(page, tauri.files);
 });
 
+test("forma para massinha de EVA (#252): cavidade, costas com apoio, aviso de secagem e Como usar", async ({ page, tauri }) => {
+  await openModel(page, "Molde para carimbo de EVA");
+  await page.getByRole("button", { name: "Forma para massinha de EVA" }).click();
+  await idle(page);
+  await expect(page.locator(".legend")).toContainText("Costas");
+  await expect(page.getByText(/deixe secar de 1 a 2 dias/)).toBeVisible();
+  await page.getByLabel(/^Ângulo de saída/).fill("3");
+  await idle(page);
+  await expect(page.locator(".viewer .overlay")).toHaveCount(0);
+  await save3mf(page, tauri.files);
+  await page.getByText("Como usar").click();
+  await expect(page.getByText(/Quanto tempo a massinha leva para secar/)).toBeVisible();
+});
+
 test("estojo com tampa de rosca (#59): corpo e tampa, nome, mosaico e orelha; 3MF", async ({ page, tauri }) => {
   await openModel(page, "Estojo com tampa de rosca");
   await expect(page.locator(".legend")).toContainText("Tampa");

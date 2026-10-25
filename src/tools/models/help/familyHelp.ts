@@ -192,8 +192,16 @@ export const FAMILY_HELP: Record<string, GuideHelp> = {
   stamps: {
     use: ["Carimbo de EVA, molde de carimbo, rolo de textura e carimbos de biscoito."],
     avoid: ["Texto espelhado errado: confira a prévia antes de imprimir; o carimbo precisa sair invertido."],
-    tips: ["Superfície lisa e altura de relevo de 1 a 2 mm funcionam bem.", "Lave com água e sabão neutro."],
-    faq: [{ q: "O desenho saiu ao contrário no papel.", a: "O carimbo deve ser impresso espelhado: use o modo que inverte o desenho." }],
+    tips: [
+      "Superfície lisa e altura de relevo de 1 a 2 mm funcionam bem.",
+      "Forma para massinha de EVA: passe spray antiaderente, encha apertando nos cantos e alise rente à borda com uma espátula.",
+      "Lave com água e sabão neutro.",
+    ],
+    faq: [
+      { q: "O desenho saiu ao contrário no papel.", a: "O carimbo deve ser impresso espelhado: use o modo que inverte o desenho." },
+      { q: "Quanto tempo a massinha leva para secar na forma?", a: "De 1 a 2 dias, conforme a espessura e o tempo. Desenforme só quando a massinha estiver firme; depois cole as costas com cola de EVA ou cola quente." },
+      { q: "Placa para prensar ou forma para massinha?", a: "A placa marca uma folha de EVA aquecida e prensada. A forma é uma cavidade: a massinha de EVA seca dentro dela e já sai como carimbo, com o desenho em relevo." },
+    ],
   },
   cutters: {
     use: ["Cortador de biscoito ou massa com carimbo, em grade, ou ejetor de brigadeiro."],

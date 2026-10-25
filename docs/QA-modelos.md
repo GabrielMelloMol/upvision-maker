@@ -22,7 +22,8 @@ Para cada modelo: valores **padrão**, todos os campos numéricos no **mínimo**
 Peça maior que a mesa de 256 mm do A1 conta como **aviso** quando o app avisa na tela (os campos vão além para
 impressoras de mesa maior); sem o aviso do app, é **falha**.
 
-**Total:** 620 casos · 462 ok · 158 com aviso · 0 com falha · 0 n/a
+
+**Total:** 624 casos · 465 ok · 159 com aviso · 0 com falha · 0 n/a
 
 ## Forja
 
@@ -566,6 +567,10 @@ impressoras de mesa maior); sem o aviso do app, é **falha**.
 | Suporte de carretel (spoolHolder) | mínimo | ✅ ok | Bambu ✓ · Orca ✓ · Projeto Bambu ✓ | 612 | 197,9 | 1 | – | app: Eixo oco inteiro: ≈ 14 g de PLA (parede de 2,5 mm; um eixo maciço seria ≈ 20 g). |
 | Suporte de carretel (spoolHolder) | padrão | ✅ ok | Bambu ✓ · Orca ✓ · Projeto Bambu ✓ | 1214 | 465,2 | 1 | – | app: Eixo oco inteiro: ≈ 83 g de PLA (parede de 3,5 mm; um eixo maciço seria ≈ 258 g). |
 | Suporte de carretel (spoolHolder) | parede grossa | ✅ ok | Bambu ✓ · Orca ✓ · Projeto Bambu ✓ | 1245 | 479,6 | 1 | – | app: Eixo oco inteiro: ≈ 154 g de PLA (parede de 8,0 mm; um eixo maciço seria ≈ 258 g). |
+| Molde para carimbo de EVA (stampMold) | forma no máximo | ⚠️ aviso | Bambu ✓ · Orca ✓ | – | – | – | – | o conjunto arrumado ocupa 705,5 × 348,6 mm: passa da mesa de 256 mm; "Forma" não cabe na mesa de 256 mm (340,5 × 348,6 × 7,6 mm); "Costas" não cabe na mesa de 256 mm (332,5 × 340,6 × 29,4 mm); Bambu recusa na mesa de 256 mm do A1 (o app avisa); Orca recusa na mesa de 256 mm do A1 (o app avisa); app: Passe spray antiaderente na forma, encha com massinha de EVA apertando bem nos cantos, alise rente à borda e deixe secar de 1 a 2 dias antes de desenformar. Depois cole as costas no carimbo com cola de EVA ou cola quente.; app: A forma tem 349 mm: passa da mesa de 256 mm. |
+| Molde para carimbo de EVA (stampMold) | forma no mínimo | ✅ ok | Bambu ✓ · Orca ✓ | 19 | 8,5 | 1 | – | app: Passe spray antiaderente na forma, encha com massinha de EVA apertando bem nos cantos, alise rente à borda e deixe secar de 1 a 2 dias antes de desenformar. Depois cole as costas no carimbo com cola de EVA ou cola quente. |
+| Molde para carimbo de EVA (stampMold) | forma para massinha | ✅ ok | Bambu ✓ · Orca ✓ | 48 | 32,2 | 1 | – | app: Passe spray antiaderente na forma, encha com massinha de EVA apertando bem nos cantos, alise rente à borda e deixe secar de 1 a 2 dias antes de desenformar. Depois cole as costas no carimbo com cola de EVA ou cola quente. |
+| Molde para carimbo de EVA (stampMold) | forma para massinha invertida, sem saída | ✅ ok | Bambu ✓ · Orca ✓ | 51 | 33,5 | 1 | – | app: Passe spray antiaderente na forma, encha com massinha de EVA apertando bem nos cantos, alise rente à borda e deixe secar de 1 a 2 dias antes de desenformar. Depois cole as costas no carimbo com cola de EVA ou cola quente. |
 | Molde para carimbo de EVA (stampMold) | máximo | ⚠️ aviso | Bambu ✓ · Orca ✓ | 15 | 6,3 | 1 | – | o conjunto arrumado ocupa 386,9 × 340,0 mm: passa da mesa de 256 mm; "Molde" não cabe na mesa de 256 mm (331,9 × 340,0 × 10,0 mm); app: O molde tem 340 mm: passa da mesa de 256 mm. |
 | Molde para carimbo de EVA (stampMold) | mínimo | ✅ ok | Bambu ✓ · Orca ✓ | 14 | 5,9 | 1 | – | – |
 | Molde para carimbo de EVA (stampMold) | padrão | ✅ ok | Bambu ✓ · Orca ✓ | 40 | 26,1 | 1 | – | – |

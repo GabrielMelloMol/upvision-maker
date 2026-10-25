@@ -268,7 +268,7 @@ export const HOME_PROJECT_MODELS: ModelDef[] = [
     id: "stampMold",
     category: "home",
     label: "Molde para carimbo de EVA",
-    blurb: "Aqueça o EVA (ou use massinha) e prense no molde: o carimbo sai com o desenho e carimba do jeito certo.",
+    blurb: "Placa para prensar EVA aquecido ou forma para encher de massinha de EVA: o carimbo sai com o desenho e carimba do jeito certo.",
     icon: Stamp,
     font: true,
     art: "Desenho do carimbo (opcional)",
@@ -277,19 +277,33 @@ export const HOME_PROJECT_MODELS: ModelDef[] = [
       {
         title: "Desenho",
         fields: [
+          choice("kind", "Tipo", [["plate", "Placa para prensar EVA"], ["clay", "Forma para massinha de EVA"]], { hint: "A forma para massinha é uma cavidade: encha, deixe secar e o carimbo sai pronto." }),
           text("text", "Texto (se não enviar desenho)", 20),
           num("size", "Tamanho do desenho", 40, 300, { step: 1, hint: "Lado maior." }),
-          bool("invert", "Inverter: desenho em relevo (carimba o fundo)"),
+          bool("invert", "Inverter: carimba o espaço em volta do desenho"),
           num("bridge", "Ligar partes soltas", 0, 5, { step: 0.5, hint: "Fecha vãos de até o dobro deste valor entre letras e pedaços soltos." }),
         ],
       },
       {
-        title: "Molde e apoio",
+        title: "Placa",
+        when: { k: "kind", is: "plate" },
+        fields: [num("depth", "Profundidade", 0.6, 5), num("thickness", "Espessura da placa", 3, 10), num("margin", "Margem", 2, 20, { step: 1 })],
+      },
+      {
+        title: "Forma para massinha",
+        when: { k: "kind", is: "clay" },
         fields: [
-          num("depth", "Profundidade", 0.6, 5),
-          num("thickness", "Espessura da placa", 3, 10),
-          num("margin", "Margem", 2, 20, { step: 1 }),
-          bool("thumb", "Apoio de polegar (peça que encaixa atrás)"),
+          num("cavity", "Profundidade da forma", 3, 6, { step: 0.5, hint: "É a espessura do carimbo pronto." }),
+          num("clayRelief", "Altura do desenho no carimbo", 0.6, 3, { hint: "Quanto o desenho fica mais fundo que a base." }),
+          num("border", "Borda em volta do desenho", 2, 20, { step: 1, hint: "A base do carimbo: liga as letras e partes soltas." }),
+          num("wall", "Parede", 1.2, 4),
+          num("draft", "Ângulo de saída", 0, 3, { step: 0.5, unit: "°", hint: "Parede um pouco aberta: o carimbo seco sai sem rasgar." }),
+        ],
+      },
+      {
+        title: "Apoio e cor",
+        fields: [
+          bool("thumb", "Apoio de polegar (atrás da placa ou nas costas da forma)"),
           num("thumbSize", "Tamanho do apoio", 15, 45, { step: 1 }),
           num("thumbX", "Posição do apoio (→)", -140, 140, { step: 1 }),
           num("thumbY", "Posição do apoio (↑)", -140, 140, { step: 1 }),
