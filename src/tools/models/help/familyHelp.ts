@@ -255,13 +255,13 @@ export const FAMILY_HELP: Record<string, GuideHelp> = {
       "Formato fino demais: abaixo de 40 mm de largura o meio fica estreito para o microfone e o desenho perde a cara.",
     ],
     tips: [
-      "Comece pelo anel de teste (uns 10 minutos): é o mesmo encaixe das costas. O microfone deve passar pela janela sem forçar e o clipe abraçar a travessa. Ajuste a folga e só então imprima a canopla.",
-      "As duas metades saem deitadas com o corte na mesa: não precisam de suporte. A travessa das costas é uma ponte curta; ventilação no máximo ajuda.",
-      "Monte com os pinos e uma gota de cola nas metades. As costas são abertas: o microfone entra pela janela grande, sobe até o clipe abraçar a travessa e o cabo, encaixado por baixo, segura ele lá em cima. A luz e o botão ficam à vista.",
+      "Comece pelo anel de teste (uns 10 minutos): é o mesmo encaixe das costas. O microfone deitado deve entrar sem forçar, com o clipe por cima da travessa, e sair puxando para trás. Ajuste a folga e só então imprima a canopla.",
+      "As duas metades saem deitadas com o corte na mesa: não precisam de suporte. Nas costas a abertura atravessa a peça; na frente o fundo do bolso é uma ponte curta.",
+      "Monte com os pinos e uma gota de cola nas metades e encaixe o cabo por baixo (ele fica fixo). O microfone entra por trás, deitado: empurre para dentro com o clipe por cima da travessa. A luz e o botão ficam à vista.",
       "Com AMS, o meio e o relevo da frente saem em cores diferentes. Cabo de outra cor: mande ele para outra placa no fatiador, senão a troca de filamento acontece em toda camada e a impressão dobra de tempo.",
     ],
     faq: [
-      { q: "Como tiro o microfone para carregar?", a: "Puxe o cabo um pouco, desça o microfone e tire pela janela das costas. As metades ficam coladas." },
+      { q: "Como tiro o microfone para carregar?", a: "Puxe ele para trás pela abertura das costas. Não precisa mexer no cabo nem usar ferramenta." },
       { q: "Qual espuma uso?", a: "Espuma de mini microfone, de uns 30 mm. Meça o furo dela e ponha o pescoço 1 a 2 mm maior para ela ficar presa." },
       { q: "Posso usar o meu desenho no formato?", a: "Sim: escolha Meu desenho e envie o SVG ou a imagem. O app fecha o contorno, põe o microfone no meio e avisa se ficar estreito." },
       { q: "Posso vender?", a: "Sim. A peça é gerada pelo app, com formato e medidas próprias; não usa arquivo de terceiros." },

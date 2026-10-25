@@ -50,7 +50,7 @@ export const MODEL_PROFILES: Record<string, PrintProfile> = {
   radiusGauge: { walls: 2, infill: 100 },
   labelJig: { walls: 2, infill: 100 },
   slingshot: { walls: 5, infill: 100, notes: ["Imprima deitado, em PETG ou ABS. Para segurar o elástico, amarre pelos furos das pontas. Troque a peça se aparecer trinca."] },
-  micHolder: { walls: 3, infill: 15, notes: ["Imprima antes o anel de teste (o mesmo encaixe das costas) e experimente o microfone com o clipe. As metades saem deitadas, com o corte na mesa, sem suporte; o cabo sai em pé. Monte com os pinos e cola."] },
+  micHolder: { walls: 3, infill: 15, notes: ["Imprima antes o anel de teste (o mesmo encaixe das costas) e experimente o microfone com o clipe por cima da travessa. As metades saem deitadas, com o corte na mesa, sem suporte; o cabo sai em pé. Monte com os pinos e cola."] },
   phoneCase: { walls: 2, infill: 20, notes: ["TPU 95A, devagar (20 a 30 mm/s), sem retração, bico entre 220 e 235 °C. Imprima antes a peça de teste e experimente no aparelho: a capa só encaixa se as medidas forem as do seu aparelho."] },
   opener: { walls: 4, infill: 40, notes: ["Faz força: PETG aguenta mais que PLA."] },
   openerImage: { walls: 4, infill: 40, notes: ["Faz força: PETG aguenta mais que PLA. Base, relevo e borda têm cores diferentes: troque o filamento na camada em que o relevo começa."] },

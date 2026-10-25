@@ -286,9 +286,9 @@ export const PLATE_MODELS: ModelDef[] = [
       {
         title: "O microfone (confira com o seu)",
         fields: [
-          num("micW", "Largura do transmissor", 15, 45, { step: 0.1, hint: "De pé, visto de frente. As sugestões vêm das fichas dos fabricantes, sem o ímã ou o clipe: meça o seu com paquímetro." }),
-          num("micH", "Altura do transmissor", 10, 45, { step: 0.1 }),
-          num("micT", "Espessura do transmissor", 5, 22, { step: 0.1, hint: "Com o ímã ou o clipe que vai ficar preso nele." }),
+          num("micW", "Largura do transmissor", 15, 45, { step: 0.1, hint: "Ele fica deitado, entrando por trás. As sugestões vêm das fichas dos fabricantes, sem o clipe: meça o seu com paquímetro." }),
+          num("micH", "Comprimento do transmissor", 10, 45, { step: 0.1, hint: "De trás para a frente, no sentido em que ele entra." }),
+          num("micT", "Espessura do transmissor", 5, 22, { step: 0.1, hint: "Sem o clipe: o clipe passa por cima da travessa, numa janela própria." }),
           bool("micRound", "Redondo (formato de botão)"),
           num("clearance", "Folga em volta do microfone", 0.1, 1.2, { step: 0.05, hint: "Vem do Kit de testes. Se o anel de teste apertar, aumente de 0,05 em 0,05." }),
         ],

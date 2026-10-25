@@ -7,9 +7,12 @@ test("canopla de microfone (#274): microfone pronto, tema, largura mínima, anel
   await pickModel(page, "canopla microfone", "Canopla de microfone", { exact: true });
   await idle(page);
   await expect(page.getByText(/Duas metades: ponha os pinos/)).toBeVisible();
-  await page.getByRole("button", { name: "Costas", exact: true }).click(); // #291: costas abertas com o transmissor
-  await idle(page);
-  await expect(page.getByText(/janelas das costas/)).toBeVisible();
+  // #291: o transmissor entra por trás, deitado: fora, entrando e dentro
+  for (const [view, note] of [["1. Fora", /na frente da abertura/], ["2. Entrando", /O cabo não sai do lugar/], ["3. Dentro", /puxe para trás/]] as const) {
+    await page.getByRole("button", { name: view, exact: true }).click();
+    await idle(page);
+    await expect(page.getByText(note)).toBeVisible();
+  }
   await page.getByRole("button", { name: "Hollyland Lark A1" }).click();
   await idle(page);
   await expect(page.getByLabel(/^Largura do transmissor/)).toHaveValue("30");
