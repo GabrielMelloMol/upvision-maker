@@ -30,7 +30,7 @@ test("fotos realistas dos modelos", async ({ page }) => {
     warm: Number(process.env.PHOTO_WARM ?? 1),
     extra: JSON.parse(process.env.PHOTO_OPTS ?? "{}"),
     all,
-    special: ["keychain", "organizer", "medal", "pix", "thermo", "vessel", "pixel", "micHolder", "stampMold", "dryStamp"],
+    special: ["keychain", "organizer", "medal", "pix", "thermo", "vessel", "pixel", "micHolder", "stampMold", "dryStamp", "ejector"],
   };
   const tag = process.env.PHOTO_TAG ?? `${arg.filament}-${arg.backdrop}`;
   const times: Record<string, unknown> = {};

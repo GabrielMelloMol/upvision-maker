@@ -3,6 +3,9 @@ import { loadFont } from "../../geometry/fonts";
 import { buildKeychain, DEFAULT_KEYCHAIN } from "../../geometry/keychain";
 import { getManifold, type CS } from "../../geometry/manifold";
 import { buildMedal, DEFAULT_MEDAL } from "../../geometry/medal";
+import { buildEjector, DEFAULT_EJECTOR } from "../../geometry/models/brigadeiroEjector";
+import type { EjectorBottom } from "../../geometry/models/ejectorBottom";
+import { testArt } from "../../geometry/models/sampleArt";
 import { buildPixelArt, DEFAULT_PIXEL_OPTIONS } from "../../geometry/pixelArt";
 import { buildStamp, DEFAULT_STAMP } from "../../geometry/stamp";
 import { buildStampArt, DEFAULT_ART } from "../../geometry/stampArt";
@@ -23,7 +26,7 @@ import { AZIMUTH_DEG, type PhotoItem, type PhotoScene } from "./render";
  * As cenas da foto realista (#251, rodada 2): cada peça montada como se usa e em 3 a 4 cópias com nomes e cores
  * diferentes, espalhadas na mesa. `bevel` arredonda as quinas (0,4 mm) antes de montar a cena.
  */
-export const PHOTO_IDS = ["keychain", "organizer", "medal", "pix", "thermo", "vessel", "pixel", "micHolder", "stampMold", "dryStamp"] as const;
+export const PHOTO_IDS = ["keychain", "organizer", "medal", "pix", "thermo", "vessel", "pixel", "micHolder", "stampMold", "dryStamp", "ejector"] as const;
 export type PhotoId = (typeof PHOTO_IDS)[number];
 export type SceneOpts = { bevel?: boolean };
 
@@ -297,6 +300,33 @@ async function dryStamps(o: SceneOpts): Promise<PhotoScene> {
   ], { darkTable: true, elevation: 48, heroPad: 0.3 });
 }
 
+// ejetor (#280): os três fundos lado a lado, com o êmbolo de face para cima (a que encosta no doce) e a forma atrás
+const EJECTORS: { bottom: EjectorBottom; round: boolean; frame: string }[] = [
+  { bottom: "dome", round: false, frame: "#f472b6" },
+  { bottom: "flat", round: false, frame: "#0ea5e9" },
+  { bottom: "scale", round: true, frame: "#f59e0b" }, // escala até um ponto: só para forma redonda e simples
+];
+const EJECTOR_GAP_MM = 48;
+
+async function ejectors(o: SceneOpts): Promise<PhotoScene> {
+  const M = await getManifold();
+  const a = (AZIMUTH_DEG * Math.PI) / 180;
+  const at = (side: number, depth: number, rotZ: number): Pose => ({ x: side * Math.cos(a) - depth * Math.sin(a), y: side * Math.sin(a) + depth * Math.cos(a), rotZ: AZIMUTH_DEG + rotZ });
+  const placed: Placed[] = [];
+  const back: Placed[] = [];
+  for (const [i, v] of [1, 0, 2].map((k) => [k, EJECTORS[k]] as const)) {
+    const art = v.round ? M.CrossSection.circle(15, 96) : testArt(M);
+    const [frame, plunger] = buildEjector({ M, art, text: () => null }, { ...DEFAULT_EJECTOR, bottom: v.bottom, domeHeight: 5, frameColor: v.frame, ejectorColor: v.frame }).models;
+    art.delete();
+    // o fundo plano imprime com a face na mesa: vira para a face aparecer como as outras (fundo curvo já sai virado)
+    const up = grounded(v.bottom === "flat" ? placeModels([plunger], { rotX: 180 }) : [plunger]);
+    const side = (i - 1) * EJECTOR_GAP_MM;
+    placed.push(place(up, [], at(side, 0, 180))); // virado no eixo X: gira para o desenho olhar como a forma; sem arredondar: os degraus mostram a curva
+    back.push(place(await maybeBevel(grounded([frame]), o), [], at(side + 4, 60, 10)));
+  }
+  return sceneOf([...placed, ...back], { elevation: 52, heroPad: 0.75 });
+}
+
 export async function photoScene(id: PhotoId, o: SceneOpts = {}): Promise<PhotoScene> {
   switch (id) {
     case "keychain":
@@ -319,6 +349,8 @@ export async function photoScene(id: PhotoId, o: SceneOpts = {}): Promise<PhotoS
       return stampMolds(o);
     case "dryStamp":
       return dryStamps(o);
+    case "ejector":
+      return ejectors(o);
   }
 }
 
