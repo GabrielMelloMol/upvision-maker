@@ -1,4 +1,5 @@
 import * as THREE from "three";
+import { buildCutter, DEFAULT_CUTTER } from "../../geometry/cutter";
 import { loadFont } from "../../geometry/fonts";
 import { buildKeychain, DEFAULT_KEYCHAIN } from "../../geometry/keychain";
 import { getManifold, type CS } from "../../geometry/manifold";
@@ -19,14 +20,14 @@ import type { Params } from "../../tools/models/defs";
 import { buildModels, showcaseColors } from "../renderThumb";
 import { bevelModels } from "./bevel";
 import { boundsOf, grounded, placeModels, type Pose } from "./compose";
-import { dowelRack, hangingRibbon, hardwareAt, ringAndChain } from "./extras";
+import { bakedGood, dowelRack, hangingRibbon, hardwareAt, ringAndChain } from "./extras";
 import { AZIMUTH_DEG, type PhotoItem, type PhotoScene } from "./render";
 
 /*
  * As cenas da foto realista (#251, rodada 2): cada peça montada como se usa e em 3 a 4 cópias com nomes e cores
  * diferentes, espalhadas na mesa. `bevel` arredonda as quinas (0,4 mm) antes de montar a cena.
  */
-export const PHOTO_IDS = ["keychain", "organizer", "medal", "pix", "thermo", "vessel", "pixel", "micHolder", "stampMold", "dryStamp", "ejector"] as const;
+export const PHOTO_IDS = ["keychain", "organizer", "medal", "pix", "thermo", "vessel", "pixel", "micHolder", "stampMold", "dryStamp", "ejector", "cookieCutter"] as const;
 export type PhotoId = (typeof PHOTO_IDS)[number];
 export type SceneOpts = { bevel?: boolean };
 
@@ -51,6 +52,11 @@ function place(models: Model[], extras: THREE.Object3D[], pose: Pose, filament?:
     return holder;
   });
   return { item: { models: placeModels(models, pose), filament }, extras: wrapped };
+}
+/** Pose pelo que a câmera vê: `side` para a direita, `depth` para o fundo, `rotZ` além do giro que encara a câmera. */
+function at(side: number, depth: number, rotZ: number): Pose {
+  const a = (AZIMUTH_DEG * Math.PI) / 180;
+  return { x: side * Math.cos(a) - depth * Math.sin(a), y: side * Math.sin(a) + depth * Math.cos(a), rotZ: AZIMUTH_DEG + rotZ };
 }
 const sceneOf = (placed: Placed[], more: Partial<PhotoScene> = {}): PhotoScene => ({ items: placed.map((p) => p.item), extras: placed.flatMap((p) => p.extras), hero: 0, ...more }); // a primeira peça é a principal (a da frente)
 const maybeBevel = (models: Model[], o: SceneOpts) => (o.bevel ? bevelModels(models) : Promise.resolve(models));
@@ -291,8 +297,6 @@ async function dryStamps(o: SceneOpts): Promise<PhotoScene> {
   const models = buildStamp(M, art, p).models;
   art.delete();
   const byName = (n: string) => grounded([models.find((m) => m.name.startsWith(n))!]);
-  const a = (AZIMUTH_DEG * Math.PI) / 180;
-  const at = (side: number, depth: number, rotZ: number): Pose => ({ x: side * Math.cos(a) - depth * Math.sin(a), y: side * Math.sin(a) + depth * Math.cos(a), rotZ: AZIMUTH_DEG + rotZ }); // lado e fundo vistos da câmera
   return sceneOf([
     place(await maybeBevel(byName("Placa com relevo"), o), [], at(0, 0, -8)),
     place(byName("Papel"), [], at(-40, -40, 10)), // sem arredondar: no papel fino o relevo derrete
@@ -310,8 +314,6 @@ const EJECTOR_GAP_MM = 48;
 
 async function ejectors(o: SceneOpts): Promise<PhotoScene> {
   const M = await getManifold();
-  const a = (AZIMUTH_DEG * Math.PI) / 180;
-  const at = (side: number, depth: number, rotZ: number): Pose => ({ x: side * Math.cos(a) - depth * Math.sin(a), y: side * Math.sin(a) + depth * Math.cos(a), rotZ: AZIMUTH_DEG + rotZ });
   const placed: Placed[] = [];
   const back: Placed[] = [];
   for (const [i, v] of [1, 0, 2].map((k) => [k, EJECTORS[k]] as const)) {
@@ -325,6 +327,31 @@ async function ejectors(o: SceneOpts): Promise<PhotoScene> {
     back.push(place(await maybeBevel(grounded([frame]), o), [], at(side + 4, 60, 10)));
   }
   return sceneOf([...placed, ...back], { elevation: 52, heroPad: 0.75 });
+}
+
+// cortador de biscoito (#285): cortador e carimbo atrás e dois biscoitos assados na frente, com o nome marcado
+const COOKIE_COLOR = "#b57234";
+
+async function cookieCutters(o: SceneOpts): Promise<PhotoScene> {
+  const M = await getManifold();
+  const font = await loadFont("hanken");
+  const heart = presetSilhouette(M, "heart", 60);
+  const text = centered(textToCrossSection(M, font, "ANA", 10)); // 10 mm: não encosta no contorno (encostando, vira parte dele e sai do carimbo)
+  const ring = heart.subtract(heart.offset(-1.6, "Round"));
+  const design = ring.add(text.translate([0, 2]));
+  // o app espelha o desenho: o carimbo marca a massa e o nome sai certo no biscoito
+  const [cutter, stamp] = buildCutter(M, design.mirror([1, 0]), DEFAULT_CUTTER).models;
+  const cookie = heart.extrude(7).subtract(text.translate([0, 2]).extrude(2).translate([0, 0, 5.5]));
+  const cookieModel: Model = { name: "Biscoito", parts: [{ name: "Biscoito", color: COOKIE_COLOR, mesh: { positions: cookie.getMesh().vertProperties, indices: cookie.getMesh().triVerts } }] };
+  for (const c of [heart, text, ring, design, cookie]) c.delete();
+  // o biscoito é adereço (massa, sem linhas de camada); o quadro segue o cortador, a peça principal
+  const baked = (await bevelModels(grounded([cookieModel])))[0].parts[0].mesh;
+  return sceneOf([
+    place(await maybeBevel(grounded([cutter]), o), [], at(-6, 6, -6)),
+    place(await maybeBevel(grounded([{ ...stamp, parts: stamp.parts.map((q) => ({ ...q, color: cutter.parts[0].color })) }]), o), [], at(66, 44, 10)), // mesma cor do cortador: laranja some perto do biscoito
+    place([], [bakedGood(baked, COOKIE_COLOR)], at(-62, -44, 12)),
+    place([], [bakedGood(baked, COOKIE_COLOR)], at(28, -58, -16)),
+  ], { darkTable: true, elevation: 50, heroPad: 0.6 });
 }
 
 export async function photoScene(id: PhotoId, o: SceneOpts = {}): Promise<PhotoScene> {
@@ -351,6 +378,8 @@ export async function photoScene(id: PhotoId, o: SceneOpts = {}): Promise<PhotoS
       return dryStamps(o);
     case "ejector":
       return ejectors(o);
+    case "cookieCutter":
+      return cookieCutters(o);
   }
 }
 
