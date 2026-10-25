@@ -1,3 +1,5 @@
+import type { Closure } from "../geometry/thermo/screen";
+
 /** Passo a passo da termoformagem, com o jeito de aquecer (soprador ou água quente). Os números vêm de fontes de fora e são aproximados. */
 export type HeatMode = "air" | "water";
 export type StepKind = "box" | "vessel" | "band";
@@ -21,7 +23,7 @@ const heat = (mode: HeatMode, what: string): string =>
 const SANDWICH =
   "Monte o sanduíche, de baixo para cima (veja a figura): 1 o molde fêmea, com a cavidade para cima; 2 a tela plana de PLA, que é a única peça que esquenta; 3 o molde macho, virado com o domo para baixo, que desce e prensa a tela dentro da fêmea.";
 
-export function thermoSteps(kind: StepKind, mode: HeatMode, o: { closure?: "clip" | "ring" | "cap" | "none"; bases?: boolean; pair?: boolean } = {}): string[] {
+export function thermoSteps(kind: StepKind, mode: HeatMode, o: { closure?: Closure; bases?: boolean; pair?: boolean } = {}): string[] {
   if (kind === "vessel" && o.pair)
     return [
       `${SANDWICH} Imprima os dois moldes em PETG (o PLA quente não gruda nele) e o disco em PLA, deitado.`,
@@ -49,10 +51,12 @@ export function thermoSteps(kind: StepKind, mode: HeatMode, o: { closure?: "clip
       "Tire do mandril girando de leve. Ela ainda abre um pouco para entrar no pulso; se ficar justa demais, reaqueça e abra com o dedo.",
     ];
   const closing =
-    o.closure === "cap" ? "Cole as duas bases pelo lado liso (as metades do pino formam o pino inteiro) e enrosque a tampa: ela é o pendurador, e a fita passa pelo furo."
+    o.closure === "connector" ? "Encha a caixinha, junte as duas metades borda com borda (as orelhas uma sobre a outra), passe o conector pelos dois furos, de baixo para cima, e enrosque a porca: a argola dela é o pendurador. Para abrir, desenrosque a porca."
+    : o.closure === "hinge" ? "Cole cada casca no rebaixo do seu aro com cola instantânea em gel, só na borda sólida. Os aros já saem da impressora unidos pela dobradiça: dobre devagar até fechar e aperte a frente até a trava estalar. Para abrir, puxe a ponta da trava para fora."
+    : o.closure === "cap" ? "Cole as duas bases pelo lado liso (as metades do pino formam o pino inteiro) e enrosque a tampa: ela é o pendurador, e a fita passa pelo furo."
     : o.closure === "ring" ? "Cole a faixa por fora da emenda das duas metades."
     : o.closure === "clip" ? "Passe as pontas do clipe pelos furos das duas orelhas: ele funciona como dobradiça."
-    : "Cole as duas metades pela borda.";
+    : "As duas metades ficam soltas, borda com borda: encha e amarre com uma fita, ou cole pela borda se for um enfeite fechado.";
   return [
     `${SANDWICH} Imprima os moldes em PETG (o PLA quente não gruda nele) e as telas, as bases e o fecho em PLA.`,
     "Apoie a fêmea numa superfície que aguente calor, com a cavidade para cima. Os moldes ficam frios: só a tela esquenta.",

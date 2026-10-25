@@ -10,7 +10,10 @@ const fmt = (v: number) => v.toFixed(2).replace(".", ",");
 const part = (name: string, s: Solid) => ({ name, color: COLOR_KIT, mesh: solidMesh(s) });
 
 // ---------------------------------------------------------------- dobradiça
-const KR = 3.5, PIN_R = 1.5, KLEN = 6, AX_GAP = 0.4, LEAF_T = 3, LEAF_Y = 14, NECK = 4.2;
+/** Medidas da dobradiça de pino impressa montada (raio do nó, raio do pino, largura de cada nó e folga entre eles): a caixinha termoformada usa as mesmas (#273). */
+export const KIT_HINGE = { kr: 3.5, pinR: 1.5, klen: 6, axGap: 0.4 } as const;
+const { kr: KR, pinR: PIN_R, klen: KLEN, axGap: AX_GAP } = KIT_HINGE;
+const LEAF_T = 3, LEAF_Y = 14, NECK = 4.2;
 const KNUCKLES = { a1: 0, b: KLEN + AX_GAP, a2: 2 * (KLEN + AX_GAP) };
 const LEN = KNUCKLES.a2 + KLEN;
 

@@ -1,11 +1,12 @@
 import { openUrl } from "@tauri-apps/plugin-opener";
+import type { Closure } from "../geometry/thermo/screen";
 import { useState } from "react";
 import Segmented from "../ui/Segmented";
 import { errorText, useToast } from "../ui/Toast";
 import PressDiagram from "./PressDiagram";
 import { HEAT_MODES, STEP_SOURCES, STEPS_NOTE, thermoSteps, type HeatMode, type StepKind } from "./heatSteps";
 
-type Props = { kind: StepKind; closure?: "clip" | "ring" | "cap" | "none"; bases?: boolean; /** Com o par de moldes (macho e fêmea): o primeiro passo mostra o sanduíche. */ pair?: boolean };
+type Props = { kind: StepKind; closure?: Closure; bases?: boolean; /** Com o par de moldes (macho e fêmea): o primeiro passo mostra o sanduíche. */ pair?: boolean };
 
 /** Passo a passo da termoformagem na tela, com o jeito de aquecer escolhido (soprador ou água quente) e as fontes dos números. */
 export default function ThermoSteps({ kind, closure, bases, pair }: Props) {

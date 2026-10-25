@@ -11,6 +11,7 @@ import { layoutPlates } from "../geometry/thermo/layout";
 import { PRESS_VIEWS, type PressMorph, type PressView } from "../geometry/thermo/press";
 import PressPlayer from "./PressPlayer";
 import { CLEARANCE_RANGE } from "../geometry/thermo/mold";
+import type { Closure } from "../geometry/thermo/screen";
 import { ASYMMETRY_WARN, asymmetry, presetSilhouette, SHAPE_LABELS, silhouetteFromDesign, symmetrize, type SymSide, type ThermoShape } from "../geometry/thermo/shapes";
 import { hasEmoji, textToCrossSection } from "../geometry/text";
 import { splitLines, stackLines } from "../geometry/keychain";
@@ -42,7 +43,16 @@ import { useToolState } from "./useToolState";
 type Source = "shape" | "image" | "text";
 const SOURCES = [["shape", "Formato pronto"], ["image", "Imagem ou SVG"], ["text", "Texto"]] as const;
 const MESHES = [["honeycomb", "Favo"], ["diamond", "Losango"]] as const;
-const CLOSURES = [["clip", "Clipe"], ["ring", "Faixa colada"], ["cap", "Tampa rosqueada"], ["none", "Sem fecho"]] as const;
+const CLOSURES = [["connector", "Conector com porca"], ["hinge", "Dobradiça e trava"], ["none", "Sem fecho (cascas soltas)"], ["clip", "Clipe"], ["ring", "Faixa colada"], ["cap", "Tampa rosqueada"]] as const;
+const CLOSURE_HINTS: Record<Closure, string> = {
+  connector: "As orelhas das duas cascas ficam juntas, o conector passa pelos furos e a porca enrosca por cima. A argola da porca é o pendurador; para encher, desenrosque.",
+  hinge: "Cada casca é colada num aro firme. Os dois aros saem da impressora já unidos pela dobradiça e fecham com a trava da frente: abre e fecha como uma Pokébola.",
+  none: "As duas cascas ficam soltas, borda com borda: encha e amarre com uma fita.",
+  clip: "O clipe passa pelo furo da orelha das duas telas e funciona como dobradiça. Fica no eixo de simetria para as duas metades se encontrarem.",
+  ring: "Uma faixa em pé em volta da emenda, para colar por fora das duas metades (o aro).",
+  cap: "Cada base leva metade de um pino rosqueado no eixo de simetria; as duas metades formam o pino e a tampa enrosca nele. A tampa tem um furo para a fita: ela é o pendurador.",
+};
+const SIDE_LABELS: Partial<Record<Closure, string>> = { connector: "Onde fica o conector (e o pendurador)", hinge: "Onde fica a dobradiça (a trava fica do outro lado)", clip: "Onde fica a dobradiça", cap: "Onde fica o pendurador" };
 const BASES = [["both", "Nas duas metades"], ["one", "Numa metade"], ["none", "Sem base"]] as const;
 const SHOWS = [["table", "Mesa (o que imprime)"], ["press", "Como prensar (não imprime)"], ["assembled", "Montada (não imprime)"], ["shell", "Casca prensada (não imprime)"]] as const;
 type Show = (typeof SHOWS)[number][0];
@@ -184,7 +194,7 @@ export default function Thermoform() {
         const bed = [out.screens, out.closure, out.molds].flatMap((g) => bedWarnings(g, warn));
         const table = layoutPlates(
           [
-            { label: "Tela (aquecer e prensar) e bases · PLA 0,20 mm", models: out.screens },
+            { label: `Telas (aquecer e prensar)${out.info.bases === "none" ? "" : " e bases"} · PLA 0,20 mm`, models: out.screens },
             { label: `${out.closure.map((m) => m.name).join(" e ")} · PLA 0,16 mm`, models: out.closure },
             { label: "Moldes fêmea e macho · PETG 0,24 mm", models: out.molds },
           ],
@@ -298,26 +308,24 @@ export default function Thermoform() {
               <NumField label="Espessura da tela" value={sc.t} onChange={setScreen("t")} min={0.6} max={2} step={0.1} />
               <NumField label="Borda sólida" value={sc.border} onChange={setScreen("border")} min={2} max={8} step={0.5} />
             </div>
-            <span className="field-label">Fecho</span>
-            <Segmented label="Fecho" value={sc.closure} options={CLOSURES} onChange={setScreen("closure")} full />
-            {sc.closure === "clip" && (
+            <label>
+              Fecho
+              <select value={sc.closure} onChange={(e) => setScreen("closure")(e.target.value as Closure)}>
+                {CLOSURES.map(([v, l]) => (
+                  <option key={v} value={v}>{l}</option>
+                ))}
+              </select>
+            </label>
+            <span className="hint">{CLOSURE_HINTS[sc.closure]}</span>
+            {SIDE_LABELS[sc.closure] && (
               <>
-                <span className="field-label">Onde fica a dobradiça</span>
+                <span className="field-label">{SIDE_LABELS[sc.closure]}</span>
                 <Segmented label="Posição do fecho" value={sc.side} options={SIDES} onChange={setScreen("side")} full />
-                <span className="hint">O clipe passa pelo furo da orelha das duas telas e funciona como dobradiça. Fica no eixo de simetria para as duas metades se encontrarem.</span>
-              </>
-            )}
-            {sc.closure === "ring" && <span className="hint">Uma faixa em pé em volta da emenda, para colar por fora das duas metades (o aro).</span>}
-            {sc.closure === "cap" && (
-              <>
-                <span className="field-label">Onde fica o pendurador</span>
-                <Segmented label="Posição do pino" value={sc.side} options={SIDES} onChange={setScreen("side")} full />
-                <span className="hint">Cada base leva metade de um pino rosqueado no eixo de simetria; as duas metades formam o pino e a tampa enrosca nele. A tampa tem um furo para a fita: ela é o pendurador.</span>
               </>
             )}
             <span className="field-label">Placas de base</span>
-            <Segmented label="Placas de base" value={sc.closure === "cap" ? "both" : p.bases} options={BASES} onChange={(v: BaseMode) => setP("bases")(v)} full />
-            <span className="hint">A base fecha o fundo de cada casca. Nas duas metades vira um enfeite oco; numa só, uma caixinha com tampa de malha. O clipe e o pino saem da base quando ela existe.</span>
+            <Segmented label="Placas de base" value={sc.closure === "cap" ? "both" : sc.closure === "hinge" ? "none" : p.bases} options={BASES} onChange={(v: BaseMode) => setP("bases")(v)} full />
+            <span className="hint">Sem base, as cascas encostam borda com borda e fica oco por dentro, para balas e enfeites. A base fecha o fundo de cada casca: nas duas metades vira um enfeite fechado; numa só, uma caixinha com tampa de malha. A dobradiça dispensa a base; a tampa rosqueada precisa das duas.</span>
             <label className="check">
               <input type="checkbox" checked={p.baseArt} onChange={(e) => setP("baseArt")(e.target.checked)} /> Desenho também na base, visto através da malha
             </label>
@@ -355,7 +363,7 @@ export default function Thermoform() {
           </div>
           {(view?.closure.length ?? 0) > 0 && (
             <div className="card stack">
-              <h3>{sc.closure === "cap" ? "Tampa rosqueada (PLA, 0,16 mm)" : "Clipe (PLA, 0,16 mm)"}</h3>
+              <h3>{CLOSURES.find(([v]) => v === sc.closure)?.[1]} (PLA, 0,16 mm)</h3>
               <ExportButtons models={view?.closure ?? []} name={`caixinha-fecho-${lines[0] ?? "termoformada"}`} busy={busy} profile={THERMO_CLOSURE_PROFILE} onSaved={tool.exported} />
             </div>
           )}

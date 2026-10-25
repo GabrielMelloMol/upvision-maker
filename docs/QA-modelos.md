@@ -23,7 +23,7 @@ Peça maior que a mesa de 256 mm do A1 conta como **aviso** quando o app avisa n
 impressoras de mesa maior); sem o aviso do app, é **falha**.
 
 
-**Total:** 613 casos · 454 ok · 159 com aviso · 0 com falha · 0 n/a
+**Total:** 617 casos · 459 ok · 158 com aviso · 0 com falha · 0 n/a
 
 ## Forja
 
@@ -330,9 +330,12 @@ impressoras de mesa maior); sem o aviso do app, é **falha**.
 | Textura na peça (ferramenta) | couro para dentro, cilíndrica | ✅ ok | Bambu ✓ · Orca ✓ | 164 | 40,1 | 1 | – | – |
 | Textura na peça (ferramenta) | knurling nas laterais | ✅ ok | Bambu ✓ · Orca ✓ | 100 | 48,5 | 1 | – | – |
 | Textura na peça (ferramenta) | pincel numa faixa | ✅ ok | Bambu ✓ · Orca ✓ | 60 | 46,9 | 1 | – | – |
-| Caixinha termoformada: clipe e tampa (ferramenta) | clipe | ✅ ok | Bambu ✓ · Orca ✓ | 2 | 0,2 | 1 | – | – |
-| Caixinha termoformada: clipe e tampa (ferramenta) | tampa com pino curto e fino | ✅ ok | Bambu ✓ · Orca ✓ | 8 | 1,4 | 1 | – | app: Havia traços do desenho mais finos que o bico da impressora e eu os engrossei para a tela sair inteira. |
-| Caixinha termoformada: clipe e tampa (ferramenta) | tampa rosqueada | ✅ ok | Bambu ✓ · Orca ✓ | 10 | 2,0 | 1 | – | – |
+| Caixinha termoformada: fechos (ferramenta) | clipe | ✅ ok | Bambu ✓ · Orca ✓ | 2 | 0,2 | 1 | – | – |
+| Caixinha termoformada: fechos (ferramenta) | conector e porca | ✅ ok | Bambu ✓ · Orca ✓ | 9 | 1,5 | 1 | – | – |
+| Caixinha termoformada: fechos (ferramenta) | dobradiça e trava (coração, dobradiça em cima) | ✅ ok | Bambu ✓ · Orca ✓ | 25 | 9,4 | 1 | – | – |
+| Caixinha termoformada: fechos (ferramenta) | dobradiça e trava (ovo, dobradiça embaixo) | ✅ ok | Bambu ✓ · Orca ✓ | 26 | 10,3 | 1 | – | – |
+| Caixinha termoformada: fechos (ferramenta) | tampa com pino curto e fino | ✅ ok | Bambu ✓ · Orca ✓ | 8 | 1,4 | 1 | – | app: Havia traços do desenho mais finos que o bico da impressora e eu os engrossei para a tela sair inteira.; app: A tampa rosqueada precisa das bases nas duas metades (cada base leva metade do pino): liguei as duas bases. |
+| Caixinha termoformada: fechos (ferramenta) | tampa rosqueada | ✅ ok | Bambu ✓ · Orca ✓ | 10 | 2,0 | 1 | – | app: A tampa rosqueada precisa das bases nas duas metades (cada base leva metade do pino): liguei as duas bases. |
 | Caixinha termoformada: moldes macho e fêmea (ferramenta) | bola de Natal | ✅ ok | Bambu ✓ · Orca ✓ | 68 | 45,9 | 1 | – | – |
 | Caixinha termoformada: moldes macho e fêmea (ferramenta) | coração | ✅ ok | Bambu ✓ · Orca ✓ | 54 | 36,4 | 1 | – | – |
 | Caixinha termoformada: moldes macho e fêmea (ferramenta) | coração maciço 100% | ✅ ok | Bambu ✓ · Orca ✓ | 86 | 67,4 | 1 | – | – |
@@ -343,16 +346,17 @@ impressoras de mesa maior); sem o aviso do app, é **falha**.
 | Caixinha termoformada: moldes macho e fêmea (ferramenta) | maciço | ✅ ok | Bambu ✓ · Orca ✓ | 46 | 34,3 | 1 | – | app: Havia traços do desenho mais finos que o bico da impressora e eu os engrossei para a tela sair inteira. |
 | Caixinha termoformada: moldes macho e fêmea (ferramenta) | máximo | ⚠️ aviso | Bambu ✓ · Orca ✓ | 467 | 326,0 | 2 | – | o conjunto arrumado ocupa 294,0 × 185,8 mm: passa da mesa de 256 mm; não coube numa placa: 2 placas |
 | Caixinha termoformada: moldes macho e fêmea (ferramenta) | mínimo | ✅ ok | Bambu ✓ · Orca ✓ | 28 | 19,3 | 1 | – | app: Havia traços do desenho mais finos que o bico da impressora e eu os engrossei para a tela sair inteira. |
-| Caixinha termoformada: telas e bases (ferramenta) | bola de Natal com faixa | ✅ ok | Bambu ✓ · Orca ✓ · Projeto Bambu ✓ | 79 | 27,9 | 1 | – | – |
-| Caixinha termoformada: telas e bases (ferramenta) | círculo losango | ✅ ok | Bambu ✓ · Orca ✓ · Projeto Bambu ✓ | 60 | 18,9 | 1 | – | app: Havia traços do desenho mais finos que o bico da impressora e eu os engrossei para a tela sair inteira. |
-| Caixinha termoformada: telas e bases (ferramenta) | coração | ✅ ok | Bambu ✓ · Orca ✓ · Projeto Bambu ✓ | 56 | 18,5 | 1 | – | – |
-| Caixinha termoformada: telas e bases (ferramenta) | coração com tampa rosqueada | ⚠️ aviso | Bambu ✓ · Orca ✓ · Projeto Bambu ✓ | 59 | 19,0 | 1 | – | "Base 1": parede/traço < 0,4 mm em Z 4,0 mm; "Base 2": parede/traço < 0,4 mm em Z 4,0 mm |
-| Caixinha termoformada: telas e bases (ferramenta) | estrela | ✅ ok | Bambu ✓ · Orca ✓ · Projeto Bambu ✓ | 54 | 17,4 | 1 | – | – |
-| Caixinha termoformada: telas e bases (ferramenta) | flor | ✅ ok | Bambu ✓ · Orca ✓ · Projeto Bambu ✓ | 66 | 22,2 | 1 | – | – |
-| Caixinha termoformada: telas e bases (ferramenta) | flor com uma base | ✅ ok | Bambu ✓ · Orca ✓ · Projeto Bambu ✓ | 58 | 15,3 | 1 | – | – |
-| Caixinha termoformada: telas e bases (ferramenta) | máximo | ⚠️ aviso | Bambu ✓ · Orca ✓ · Projeto Bambu ✓ | 150 | 76,2 | 1 | – | o conjunto arrumado ocupa 210,0 × 286,4 mm: passa da mesa de 256 mm; Orca: torre de purga em cima de uma peça depois do --arrange do CLI (na tela, arraste a torre ou use Arrumar) |
-| Caixinha termoformada: telas e bases (ferramenta) | mínimo | ✅ ok | Bambu ✓ · Orca ✓ · Projeto Bambu ✓ | 32 | 10,1 | 1 | – | app: Havia traços do desenho mais finos que o bico da impressora e eu os engrossei para a tela sair inteira. |
-| Caixinha termoformada: telas e bases (ferramenta) | ovo sem base | ✅ ok | Bambu ✓ · Orca ✓ · Projeto Bambu ✓ | 64 | 9,8 | 1 | – | – |
+| Caixinha termoformada: telas e bases (ferramenta) | bola de Natal com faixa | ✅ ok | Bambu ✓ · Orca ✓ · Projeto Bambu ✓ | 55 | 10,8 | 1 | – | – |
+| Caixinha termoformada: telas e bases (ferramenta) | círculo losango | ✅ ok | Bambu ✓ · Orca ✓ · Projeto Bambu ✓ | 45 | 6,8 | 1 | – | app: Havia traços do desenho mais finos que o bico da impressora e eu os engrossei para a tela sair inteira. |
+| Caixinha termoformada: telas e bases (ferramenta) | coração | ✅ ok | Bambu ✓ · Orca ✓ · Projeto Bambu ✓ | 40 | 6,9 | 1 | – | – |
+| Caixinha termoformada: telas e bases (ferramenta) | coração com as duas bases | ✅ ok | Bambu ✓ · Orca ✓ · Projeto Bambu ✓ | 56 | 18,6 | 1 | – | – |
+| Caixinha termoformada: telas e bases (ferramenta) | coração com tampa rosqueada | ⚠️ aviso | Bambu ✓ · Orca ✓ · Projeto Bambu ✓ | 59 | 19,0 | 1 | – | "Base 1": parede/traço < 0,4 mm em Z 4,0 mm; "Base 2": parede/traço < 0,4 mm em Z 4,0 mm; app: A tampa rosqueada precisa das bases nas duas metades (cada base leva metade do pino): liguei as duas bases. |
+| Caixinha termoformada: telas e bases (ferramenta) | estrela | ✅ ok | Bambu ✓ · Orca ✓ · Projeto Bambu ✓ | 38 | 6,6 | 1 | – | – |
+| Caixinha termoformada: telas e bases (ferramenta) | flor | ✅ ok | Bambu ✓ · Orca ✓ · Projeto Bambu ✓ | 47 | 7,7 | 1 | – | – |
+| Caixinha termoformada: telas e bases (ferramenta) | flor com uma base | ✅ ok | Bambu ✓ · Orca ✓ · Projeto Bambu ✓ | 58 | 15,4 | 1 | – | – |
+| Caixinha termoformada: telas e bases (ferramenta) | máximo | ✅ ok | Bambu ✓ · Orca ✓ · Projeto Bambu ✓ | 110 | 35,3 | 1 | – | – |
+| Caixinha termoformada: telas e bases (ferramenta) | mínimo | ✅ ok | Bambu ✓ · Orca ✓ · Projeto Bambu ✓ | 22 | 3,1 | 1 | – | app: Havia traços do desenho mais finos que o bico da impressora e eu os engrossei para a tela sair inteira. |
+| Caixinha termoformada: telas e bases (ferramenta) | ovo sem base, sem fecho | ✅ ok | Bambu ✓ · Orca ✓ · Projeto Bambu ✓ | 64 | 9,6 | 1 | – | – |
 | Pote, cesto e pulseira termoformados: disco e tira (ferramenta) | cesto favo | ✅ ok | Bambu ✓ · Orca ✓ | 134 | 28,4 | 1 | – | – |
 | Pote, cesto e pulseira termoformados: disco e tira (ferramenta) | cesto losango sem fundo sólido | ✅ ok | Bambu ✓ · Orca ✓ | 157 | 24,4 | 1 | – | – |
 | Pote, cesto e pulseira termoformados: disco e tira (ferramenta) | pote | ✅ ok | Bambu ✓ · Orca ✓ | 40 | 40,1 | 1 | – | – |

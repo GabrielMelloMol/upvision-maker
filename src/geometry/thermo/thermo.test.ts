@@ -305,6 +305,24 @@ describe("caixinha completa", () => {
       expect(modelSize(named(out.screens, "Tela 1"))[1]).toBeCloseTo(70, 0);
     }));
 
+  test("dobradiça e trava: telas sem orelha, os dois aros numa peça só e, montada, as cascas nos aros sem placa no meio", () =>
+    scoped((k) => {
+      const hinge = { ...DEFAULT_SCREEN, closure: "hinge" as const };
+      const out = buildThermo(M, sil(k), null, P({ screen: hinge }));
+      expect(out.screens.map((m) => m.name)).toEqual(["Tela 1", "Tela 2"]);
+      expect(modelSize(named(out.screens, "Tela 1"))[1]).toBeCloseTo(modelSize(named(quick(M, sil(k), null, P({ screen: { ...DEFAULT_SCREEN, closure: "none" } })).screens, "Tela 1"))[1], 3);
+      expect(out.closure.map((m) => m.name)).toEqual(["Aros com dobradiça"]);
+      expect(out.closure[0].parts.map((x) => x.name)).toEqual(["Aro de cima", "Aro de baixo"]);
+      const names = out.assembled.parts.map((x) => x.name);
+      expect(names).toEqual(expect.arrayContaining(["Borda", "Malha", "Aro de cima", "Aro de baixo"]));
+      expect(names).not.toContain("Base");
+      expect(out.warnings.join(" ")).not.toMatch(/bases não entram/);
+      // pedir base junto com a dobradiça avisa e desliga
+      const withBase = quick(M, sil(k), null, P({ bases: "both", screen: hinge }));
+      expect(withBase.warnings.join(" ")).toMatch(/as bases não entram/);
+      expect(withBase.info.bases).toBe("none");
+    }));
+
   test("o clipe vai nas bases quando elas existem (a orelha sai da placa, não da tela) e na tela quando não há base", () =>
     scoped((k) => {
       const withBase = quick(M, sil(k, "circle"), null, P({ bases: "both", screen: { ...DEFAULT_SCREEN, closure: "clip" } }));

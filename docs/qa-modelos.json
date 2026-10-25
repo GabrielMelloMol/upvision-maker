@@ -4673,27 +4673,70 @@
   "key": "thermoClosure:clipe",
   "owner": "Forja",
   "group": "tools",
-  "label": "Caixinha termoformada: clipe e tampa (ferramenta)",
+  "label": "Caixinha termoformada: fechos (ferramenta)",
   "variant": "clipe",
   "status": "ok",
   "reasons": [],
-  "date": "2026-10-24",
+  "date": "2026-10-25",
   "slicers": "Bambu ✓ · Orca ✓",
   "minutes": 2,
   "grams": 0.2,
   "plates": 1
  },
  {
+  "key": "thermoClosure:conector e porca",
+  "owner": "Forja",
+  "group": "tools",
+  "label": "Caixinha termoformada: fechos (ferramenta)",
+  "variant": "conector e porca",
+  "status": "ok",
+  "reasons": [],
+  "date": "2026-10-25",
+  "slicers": "Bambu ✓ · Orca ✓",
+  "minutes": 9,
+  "grams": 1.5,
+  "plates": 1
+ },
+ {
+  "key": "thermoClosure:dobradiça e trava (coração, dobradiça em cima)",
+  "owner": "Forja",
+  "group": "tools",
+  "label": "Caixinha termoformada: fechos (ferramenta)",
+  "variant": "dobradiça e trava (coração, dobradiça em cima)",
+  "status": "ok",
+  "reasons": [],
+  "date": "2026-10-25",
+  "slicers": "Bambu ✓ · Orca ✓",
+  "minutes": 25,
+  "grams": 9.4,
+  "plates": 1
+ },
+ {
+  "key": "thermoClosure:dobradiça e trava (ovo, dobradiça embaixo)",
+  "owner": "Forja",
+  "group": "tools",
+  "label": "Caixinha termoformada: fechos (ferramenta)",
+  "variant": "dobradiça e trava (ovo, dobradiça embaixo)",
+  "status": "ok",
+  "reasons": [],
+  "date": "2026-10-25",
+  "slicers": "Bambu ✓ · Orca ✓",
+  "minutes": 26,
+  "grams": 10.3,
+  "plates": 1
+ },
+ {
   "key": "thermoClosure:tampa com pino curto e fino",
   "owner": "Forja",
   "group": "tools",
-  "label": "Caixinha termoformada: clipe e tampa (ferramenta)",
+  "label": "Caixinha termoformada: fechos (ferramenta)",
   "variant": "tampa com pino curto e fino",
   "status": "ok",
   "reasons": [
-   "app: Havia traços do desenho mais finos que o bico da impressora e eu os engrossei para a tela sair inteira."
+   "app: Havia traços do desenho mais finos que o bico da impressora e eu os engrossei para a tela sair inteira.",
+   "app: A tampa rosqueada precisa das bases nas duas metades (cada base leva metade do pino): liguei as duas bases."
   ],
-  "date": "2026-10-24",
+  "date": "2026-10-25",
   "slicers": "Bambu ✓ · Orca ✓",
   "minutes": 8,
   "grams": 1.4,
@@ -4703,11 +4746,13 @@
   "key": "thermoClosure:tampa rosqueada",
   "owner": "Forja",
   "group": "tools",
-  "label": "Caixinha termoformada: clipe e tampa (ferramenta)",
+  "label": "Caixinha termoformada: fechos (ferramenta)",
   "variant": "tampa rosqueada",
   "status": "ok",
-  "reasons": [],
-  "date": "2026-10-24",
+  "reasons": [
+   "app: A tampa rosqueada precisa das bases nas duas metades (cada base leva metade do pino): liguei as duas bases."
+  ],
+  "date": "2026-10-25",
   "slicers": "Bambu ✓ · Orca ✓",
   "minutes": 10,
   "grams": 2,
@@ -4868,10 +4913,10 @@
   "variant": "bola de Natal com faixa",
   "status": "ok",
   "reasons": [],
-  "date": "2026-10-24",
+  "date": "2026-10-25",
   "slicers": "Bambu ✓ · Orca ✓ · Projeto Bambu ✓",
-  "minutes": 79,
-  "grams": 27.9,
+  "minutes": 55,
+  "grams": 10.8,
   "plates": 1
  },
  {
@@ -4884,10 +4929,10 @@
   "reasons": [
    "app: Havia traços do desenho mais finos que o bico da impressora e eu os engrossei para a tela sair inteira."
   ],
-  "date": "2026-10-24",
+  "date": "2026-10-25",
   "slicers": "Bambu ✓ · Orca ✓ · Projeto Bambu ✓",
-  "minutes": 60,
-  "grams": 18.9,
+  "minutes": 45,
+  "grams": 6.8,
   "plates": 1
  },
  {
@@ -4898,10 +4943,24 @@
   "variant": "coração",
   "status": "ok",
   "reasons": [],
-  "date": "2026-10-24",
+  "date": "2026-10-25",
+  "slicers": "Bambu ✓ · Orca ✓ · Projeto Bambu ✓",
+  "minutes": 40,
+  "grams": 6.9,
+  "plates": 1
+ },
+ {
+  "key": "thermoScreens:coração com as duas bases",
+  "owner": "Forja",
+  "group": "tools",
+  "label": "Caixinha termoformada: telas e bases (ferramenta)",
+  "variant": "coração com as duas bases",
+  "status": "ok",
+  "reasons": [],
+  "date": "2026-10-25",
   "slicers": "Bambu ✓ · Orca ✓ · Projeto Bambu ✓",
   "minutes": 56,
-  "grams": 18.5,
+  "grams": 18.6,
   "plates": 1
  },
  {
@@ -4913,9 +4972,10 @@
   "status": "aviso",
   "reasons": [
    "\"Base 1\": parede/traço < 0,4 mm em Z 4,0 mm",
-   "\"Base 2\": parede/traço < 0,4 mm em Z 4,0 mm"
+   "\"Base 2\": parede/traço < 0,4 mm em Z 4,0 mm",
+   "app: A tampa rosqueada precisa das bases nas duas metades (cada base leva metade do pino): liguei as duas bases."
   ],
-  "date": "2026-10-24",
+  "date": "2026-10-25",
   "slicers": "Bambu ✓ · Orca ✓ · Projeto Bambu ✓",
   "minutes": 59,
   "grams": 19,
@@ -4929,10 +4989,10 @@
   "variant": "estrela",
   "status": "ok",
   "reasons": [],
-  "date": "2026-10-24",
+  "date": "2026-10-25",
   "slicers": "Bambu ✓ · Orca ✓ · Projeto Bambu ✓",
-  "minutes": 54,
-  "grams": 17.4,
+  "minutes": 38,
+  "grams": 6.6,
   "plates": 1
  },
  {
@@ -4943,10 +5003,10 @@
   "variant": "flor",
   "status": "ok",
   "reasons": [],
-  "date": "2026-10-24",
+  "date": "2026-10-25",
   "slicers": "Bambu ✓ · Orca ✓ · Projeto Bambu ✓",
-  "minutes": 66,
-  "grams": 22.2,
+  "minutes": 47,
+  "grams": 7.7,
   "plates": 1
  },
  {
@@ -4957,10 +5017,10 @@
   "variant": "flor com uma base",
   "status": "ok",
   "reasons": [],
-  "date": "2026-10-24",
+  "date": "2026-10-25",
   "slicers": "Bambu ✓ · Orca ✓ · Projeto Bambu ✓",
   "minutes": 58,
-  "grams": 15.3,
+  "grams": 15.4,
   "plates": 1
  },
  {
@@ -4969,15 +5029,12 @@
   "group": "tools",
   "label": "Caixinha termoformada: telas e bases (ferramenta)",
   "variant": "máximo",
-  "status": "aviso",
-  "reasons": [
-   "o conjunto arrumado ocupa 210,0 × 286,4 mm: passa da mesa de 256 mm",
-   "Orca: torre de purga em cima de uma peça depois do --arrange do CLI (na tela, arraste a torre ou use Arrumar)"
-  ],
-  "date": "2026-10-24",
+  "status": "ok",
+  "reasons": [],
+  "date": "2026-10-25",
   "slicers": "Bambu ✓ · Orca ✓ · Projeto Bambu ✓",
-  "minutes": 150,
-  "grams": 76.2,
+  "minutes": 110,
+  "grams": 35.3,
   "plates": 1
  },
  {
@@ -4990,24 +5047,24 @@
   "reasons": [
    "app: Havia traços do desenho mais finos que o bico da impressora e eu os engrossei para a tela sair inteira."
   ],
-  "date": "2026-10-24",
+  "date": "2026-10-25",
   "slicers": "Bambu ✓ · Orca ✓ · Projeto Bambu ✓",
-  "minutes": 32,
-  "grams": 10.1,
+  "minutes": 22,
+  "grams": 3.1,
   "plates": 1
  },
  {
-  "key": "thermoScreens:ovo sem base",
+  "key": "thermoScreens:ovo sem base, sem fecho",
   "owner": "Forja",
   "group": "tools",
   "label": "Caixinha termoformada: telas e bases (ferramenta)",
-  "variant": "ovo sem base",
+  "variant": "ovo sem base, sem fecho",
   "status": "ok",
   "reasons": [],
-  "date": "2026-10-24",
+  "date": "2026-10-25",
   "slicers": "Bambu ✓ · Orca ✓ · Projeto Bambu ✓",
   "minutes": 64,
-  "grams": 9.8,
+  "grams": 9.6,
   "plates": 1
  },
  {

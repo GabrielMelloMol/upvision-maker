@@ -10,6 +10,7 @@ import { buildFemaleSolid, buildMoldSolid, DEFAULT_MOLD, moldGap, type MoldParam
 import { domeWarp, mergeMeshes, REFINE_MM, warpOntoDome } from "./preview";
 import { pressModel, pressMorph, pressStage, pressTravel, type PressFrame, type PressMorph } from "./press";
 import { boltSolid, connectorHole, connectorSpec, nutSolid } from "./connector";
+import { buildRims } from "./hinge";
 import { clipRegion, DEFAULT_SCREEN, earHoleY, earOf, postTabOf, ringRegion, screenRegions, type ScreenParams, type ScreenRegions } from "./screen";
 import { capSolid, DEFAULT_CAP, halfPost, postWidth, type CapSpec } from "./thread";
 import { fitValue } from "../fits";
@@ -173,8 +174,11 @@ export function buildThermo(M: ManifoldToplevel, sil: CS, design: CS | null, p: 
     const fit = { ...DEFAULT_FIT, ...p.fit }; // sessões salvas antes do #273 não têm as folgas
     const cap = p.screen.closure === "cap";
     const connector = p.screen.closure === "connector";
-    const bases: BaseMode = cap ? "both" : p.bases;
+    const hinge = p.screen.closure === "hinge";
+    const bases: BaseMode = cap ? "both" : hinge ? "none" : p.bases;
     if (cap && p.bases !== "both") warnings.push("A tampa rosqueada precisa das bases nas duas metades (cada base leva metade do pino): liguei as duas bases.");
+    if (hinge && p.bases !== "none") warnings.push("Na dobradiça, cada casca é colada no seu aro pela borda: as bases não entram.");
+    const rims = hinge ? buildRims(M, k, sil, { t, border: p.screen.border, side: p.screen.side, hinge: fit.hinge, latch: fit.latch }) : null;
     const hasPlate = [bases !== "none", bases === "both"];
     const clip = p.screen.closure === "clip";
     const hole = connectorHole(fit.thread);
@@ -216,6 +220,7 @@ export function buildThermo(M: ManifoldToplevel, sil: CS, design: CS | null, p: 
     const closure: Model[] = [];
     if (clip) closure.push({ name: "Clipe", parts: solidPart("Clipe", c.clip, extruded(clipRegion(M, p.screen, k), p.screen.clipT, k)) });
     if (cap) closure.push({ name: "Tampa", parts: solidPart("Tampa", c.clip, k(capSolid(M, k, p.cap))) });
+    if (rims) closure.push({ name: "Aros com dobradiça", parts: [...solidPart("Aro de cima", c.clip, rims.printA), ...solidPart("Aro de baixo", c.clip, rims.printB)] });
     if (conn) closure.push({ name: "Conector", parts: solidPart("Conector", c.clip, k(boltSolid(M, k, conn))) }, { name: "Porca", parts: solidPart("Porca", c.clip, k(nutSolid(M, k, conn))) });
     if (p.screen.closure === "ring") rows.push([{ name: "Faixa externa", parts: solidPart("Faixa", c.clip, extruded(ringRegion(sil, p.screen, k), p.screen.ringH, k)) }]);
     const screens = layoutRows(rows, GAP);
@@ -258,6 +263,7 @@ export function buildThermo(M: ManifoldToplevel, sil: CS, design: CS | null, p: 
         const onPin = k(k(k(capSolid(M, k, p.cap)).rotate([90, 0, 0])).translate([0, tab.start + p.cap.thread.length + p.cap.floor, 0]));
         assembledParts.push(...solidPart("Tampa", c.clip, tab.s > 0 ? onPin : k(onPin.rotate([0, 0, 180]))));
       }
+      if (rims) assembledParts.push(...solidPart("Aro de cima", c.clip, rims.a), ...solidPart("Aro de baixo", c.clip, rims.b));
       if (conn) {
         // a cabeça do parafuso por baixo da metade de baixo; a porca, de boca para baixo, por cima, com a argola para fora
         const y = earHoleY(M, sil, earScreen, k);
