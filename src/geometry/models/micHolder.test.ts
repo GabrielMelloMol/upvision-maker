@@ -3,7 +3,7 @@ import { meshBounds } from "../bounds";
 import { getManifold, type ManifoldToplevel, type Solid } from "../manifold";
 import type { Mesh, Model } from "../types";
 import type { ModelCtx } from "./common";
-import { BAR_T, buildMicHolder, DEFAULT_MIC_HOLDER, MIC_SHAPES, MIC_SHAPE_WIDTH, MIC_WALL, micLayout, PIN_D, TENON_FIT, type MicHolderParams } from "./micHolder";
+import { BAR_T, buildMicHolder, CLIP_GAP, DEFAULT_MIC_HOLDER, MIC_SHAPES, MIC_SHAPE_WIDTH, MIC_WALL, micLayout, PIN_D, TENON_FIT, type MicHolderParams } from "./micHolder";
 
 let M: ManifoldToplevel;
 beforeAll(async () => {
@@ -14,41 +14,51 @@ const build = (p: Partial<MicHolderParams> = {}, art = false) => buildMicHolder(
 const solid = (m: Mesh) => M.Manifold.ofMesh(new M.Mesh({ numProp: 3, vertProperties: m.positions, triVerts: m.indices }));
 const byName = (ms: Model[], n: string) => ms.find((m) => m.name === n)!;
 const P = DEFAULT_MIC_HOLDER;
+type Out = ReturnType<typeof build>;
 
-/** A metade sem o relevo, de volta com o eixo do microfone em x = 0 (o `spread` só anda em X; frente e costas são simétricas). */
+/** A metade deitada sem o relevo, de volta com o eixo do microfone em x = 0 (o `spread` só anda em X; frente e costas são simétricas). */
 function half(ms: Model[], name: string): Solid {
   const m = byName(ms, name).parts[0].mesh;
   const b = meshBounds([m])!;
-  const s = solid(m);
-  return s.translate([-(b.min[0] + b.max[0]) / 2, 0, 0]);
+  return solid(m).translate([-(b.min[0] + b.max[0]) / 2, 0, 0]);
 }
-/** O microfone (bloco do tamanho da ficha), de pé com o centro em y = cy, só a parte da metade (z de 0 a micT/2). */
-function micHalf(p: MicHolderParams, cy: number, grow = 0): Solid {
-  const L = micLayout({ ...p, clearance: 0 });
-  const cs = M.CrossSection.square([p.micW + 2 * grow, p.micH + 2 * grow], true).offset(-Math.min(L.radius, p.micW / 2 - 0.01), "Round").offset(Math.min(L.radius, p.micW / 2 - 0.01), "Round");
-  return cs.extrude(p.micT / 2 + grow).translate([0, cy, 0]);
+/** As duas metades montadas, como na vista "Montada": x = largura, +y = para trás, z = altura. */
+const body = (o: Out) => M.Manifold.union(["Frente", "Costas"].map((n) => solid(byName(o.views!.find((v) => v.id === "closed")!.models, n).parts[0].mesh)));
+/** Caixa de x0..x1, y0..y1, z0..z1. */
+const box = (x0: number, x1: number, y0: number, y1: number, z0: number, z1: number) => M.Manifold.cube([x1 - x0, y1 - y0, z1 - z0]).translate([x0, y0, z0]);
+/** Onde fica o bolso na peça montada: fundo (frente) e boca (costas) em y, chão em z. */
+function pocketAt(o: Out, p: MicHolderParams) {
+  const L = micLayout(p);
+  const T = o.layout!.thickness;
+  return { L, T, yFront: T / 2 - L.cl, yBack: T / 2, zFloor: o.layout!.cy - L.ch / 2 };
+}
+/** O transmissor (bloco do tamanho da ficha) deitado no bolso, encostado na frente; `grow` engorda, `back` estica para trás (o caminho de saída). */
+function tx(o: Out, p: MicHolderParams, grow = 0, back = 0): Solid {
+  const { yFront, zFloor } = pocketAt(o, p);
+  const [y0, z0] = [yFront + p.clearance, zFloor + p.clearance];
+  return box(-p.micW / 2 - grow, p.micW / 2 + grow, y0 - grow, y0 + p.micH + grow + back, z0 - grow, z0 + p.micT + grow);
 }
 
-describe("canopla de microfone (#274)", { timeout: 60_000 }, () => {
-  test("o Lark M2 cabe no berço com a folga e sem encostar; um microfone maior que a folga bate na parede", () => {
+describe("canopla de microfone (#274)", { timeout: 120_000 }, () => {
+  test("o Lark M2 cabe deitado no bolso com a folga e sem encostar; um microfone maior que a folga bate na parede", () => {
     const o = build();
-    const cy = o.layout!.cy;
-    for (const n of ["Frente", "Costas"]) {
-      const h = half(o.models, n);
-      expect(h.intersect(micHalf(P, cy)).volume()).toBeLessThan(0.01);
-      expect(h.intersect(micHalf(P, cy, P.clearance + 0.3)).volume()).toBeGreaterThan(1);
-    }
+    const b = body(o);
+    expect(b.intersect(tx(o, P)).volume()).toBeLessThan(0.01);
+    expect(b.intersect(tx(o, P, P.clearance + 0.3)).volume()).toBeGreaterThan(1);
   });
 
-  test("o encaixe do cabo entra no canal com folga justa e para logo abaixo do microfone", () => {
+  test("o encaixe do cabo entra justo num furo cego embaixo, separado do bolso por um fundo (o cabo fica fixo)", () => {
     const o = build();
     const L = micLayout(P);
     expect(L.tenon[0]).toBeCloseTo(L.cw - 2 * TENON_FIT);
     expect(L.tenon[1]).toBeCloseTo(L.cd - 2 * TENON_FIT);
     const h = meshBounds([byName(o.models, "Cabo").parts[0].mesh])!;
     expect(h.max[2] - h.min[2]).toBeCloseTo(P.handleL + o.layout!.tenonL, 1);
-    expect(o.layout!.tenonL).toBeCloseTo(o.layout!.cy - L.ch / 2 + L.slide, 5); // sobe até o microfone, já empurrado contra a travessa
     expect(o.layout!.tenonL).toBeGreaterThanOrEqual(8);
+    const { zFloor } = pocketAt(o, P);
+    expect(zFloor - o.layout!.tenonL).toBeGreaterThanOrEqual(2);
+    const floor = box(-L.cw / 2 + 0.5, L.cw / 2 - 0.5, -L.cd / 2 + 0.5, L.cd / 2 - 0.5, o.layout!.tenonL + 0.05, zFloor - 0.05);
+    expect(body(o).intersect(floor).volume()).toBeCloseTo(floor.volume(), 1);
   });
 
   test("dois pinos simétricos, furo nas duas metades no mesmo lugar e pino menor que os dois furos juntos", () => {
@@ -71,11 +81,10 @@ describe("canopla de microfone (#274)", { timeout: 60_000 }, () => {
     expect(new Set(o.models.flatMap((m) => m.parts.map((p) => p.color))).size).toBe(2);
   });
 
-  test("largura abaixo do mínimo avisa e o berço continua inteiro", () => {
+  test("largura abaixo do mínimo avisa e o bolso continua inteiro", () => {
     const o = build({ shape: "heart", width: 34 });
     expect(o.warnings!.some((w) => w.includes("estreito"))).toBe(true);
-    const h = half(o.models, "Frente");
-    expect(h.intersect(micHalf(P, o.layout!.cy, P.clearance + 0.3)).volume()).toBeGreaterThan(1);
+    expect(body(o).intersect(tx(o, P, P.clearance + 0.3)).volume()).toBeGreaterThan(1);
     expect(build({ shape: "heart", width: MIC_SHAPE_WIDTH.heart }).warnings!.some((w) => w.includes("estreito"))).toBe(false);
   });
 
@@ -90,29 +99,30 @@ describe("canopla de microfone (#274)", { timeout: 60_000 }, () => {
   });
 
   test("Lark A1 (retangular) e DJI Mic Mini (grosso): a espessura sobe se precisar e o microfone cabe", () => {
-    const a1 = { micW: 30, micH: 16.3, micT: 8.8, micRound: false };
-    const o = build({ shape: "heart", width: 62, ...a1 });
-    expect(half(o.models, "Frente").intersect(micHalf({ ...P, ...a1 }, o.layout!.cy)).volume()).toBeLessThan(0.01);
+    const a1 = { ...P, micW: 30, micH: 16.3, micT: 8.8, micRound: false };
+    const o = build({ ...a1, shape: "heart", width: 62 });
+    expect(body(o).intersect(tx(o, a1)).volume()).toBeLessThan(0.01);
     const dji = build({ shape: "star", width: 66, thickness: 18, micW: 26.55, micH: 26.06, micT: 15.96, micRound: false });
     expect(dji.layout!.thickness).toBeGreaterThan(18);
     expect(dji.warnings!.some((w) => w.includes("espessura"))).toBe(true);
   });
 
-  test("anel de teste: uma peça só, com a mesma janela e a mesma travessa das costas", () => {
+  test("anel de teste: uma peça só, com o mesmo bolso, a mesma travessa e a mesma janela das costas", () => {
     const o = build({ print: "test" });
     expect(o.models).toHaveLength(1);
     const L = micLayout(P);
     const ring = solid(o.models[0].parts[0].mesh);
     const b = meshBounds([o.models[0].parts[0].mesh])!;
-    const cx = (b.min[0] + b.max[0]) / 2, y0 = (b.min[1] + b.max[1]) / 2 - L.ch / 2;
-    expect(b.max[2] - b.min[2]).toBeCloseTo(L.cd + BAR_T, 1);
-    // o microfone (com folga) passa pela janela de baixo, de cima a baixo da peça
-    const r = L.radius - 0.05;
-    const pass = M.CrossSection.square([L.cw - 0.1 - 2 * r, L.win - 0.1 - 2 * r], true).offset(r, "Round").extrude(40).translate([cx, y0 + L.win / 2, -5]);
-    expect(ring.intersect(pass).volume()).toBeLessThan(0.01);
-    // a travessa fica no topo, do mesmo tamanho da das costas
-    const bar = M.Manifold.cube([L.cw - 2, L.bar - 0.2, BAR_T - 0.2], true).translate([cx, y0 + L.win + L.bar / 2, L.cd + BAR_T / 2]);
+    const [cx, cy] = [(b.min[0] + b.max[0]) / 2, (b.min[1] + b.max[1]) / 2];
+    expect(b.max[2] - b.min[2]).toBeCloseTo(L.cl + MIC_WALL, 1);
+    const y0 = cy - L.ch / 2; // chão do bolso; aqui o fundo do bolso é z = MIC_WALL e a boca fica em cima
+    // o microfone deitado (na peça, de pé no z) desce até o fundo e sai por cima sem bater
+    const mic = box(cx - P.micW / 2, cx + P.micW / 2, y0 + P.clearance, y0 + P.clearance + P.micT, MIC_WALL + P.clearance, 80);
+    expect(ring.intersect(mic).volume()).toBeLessThan(0.01);
+    const bar = box(cx - L.cw / 2 + 1.1, cx + L.cw / 2 - 1.1, y0 + L.cd + 0.05, y0 + L.cd + BAR_T - 0.05, MIC_WALL + 0.05, b.max[2] - 0.05);
     expect(ring.intersect(bar).volume()).toBeCloseTo(bar.volume(), 1);
+    const clip = box(cx - 5, cx + 5, y0 + L.ch - CLIP_GAP + 0.1, y0 + L.ch - 0.1, MIC_WALL + 0.05, 80);
+    expect(ring.intersect(clip).volume()).toBeLessThan(0.01);
   });
 
   test("texto vazio pede o texto; frente com desenho sem desenho pede o desenho", () => {
@@ -125,74 +135,65 @@ describe("canopla de microfone (#274)", { timeout: 60_000 }, () => {
     const o = build({ shape: "cylinder" });
     const fr = byName(o.models, "Frente").parts;
     expect(fr).toHaveLength(2);
-    expect(meshBounds([fr[1].mesh])!.max[2]).toBeCloseTo(P.width / 2 + P.relief, 0);
-    expect(meshBounds([fr[0].mesh])!.max[2]).toBeLessThanOrEqual(P.width / 2 + 1e-3); // nada fura a curva
+    const R = o.layout!.thickness / 2;
+    expect(meshBounds([fr[1].mesh])!.max[2]).toBeCloseTo(R + P.relief, 0);
+    expect(meshBounds([fr[0].mesh])!.max[2]).toBeLessThanOrEqual(R + 1e-3); // nada fura a curva
     const thin = build({ shape: "cylinder", width: 30 });
-    expect(half(thin.models, "Frente").intersect(micHalf(P, thin.layout!.cy)).volume()).toBeLessThan(0.01);
-    expect(half(thin.models, "Frente").intersect(micHalf(P, thin.layout!.cy, P.clearance + 0.3)).volume()).toBeGreaterThan(1);
+    expect(body(thin).intersect(tx(thin, P)).volume()).toBeLessThan(0.01);
+    expect(body(thin).intersect(tx(thin, P, P.clearance + 0.3)).volume()).toBeGreaterThan(1);
   });
 
-  describe("costas abertas (#291)", () => {
-    /** A metade como saiu do molde (corte em z = 0, eixo do microfone em x = 0), lida da vista montada (que não é espalhada). */
-    const local = (o: ReturnType<typeof build>, name: "Frente" | "Costas") => {
-      const m = o.views!.find((v) => v.id === "closed")!.models.find((x) => x.name === name)!.parts[0].mesh;
-      const q = m.positions.slice();
-      for (let i = 0; i < q.length; i += 3) [q[i + 1], q[i + 2]] = name === "Costas" ? [q[i + 2], q[i + 1]] : [q[i + 2], -q[i + 1]];
-      // a troca de eixos espelha: inverte a ordem dos triângulos para o sólido continuar com a face para fora
-      const t = m.indices.slice();
-      for (let i = 0; i < t.length; i += 3) [t[i + 1], t[i + 2]] = [t[i + 2], t[i + 1]];
-      return solid({ positions: q, indices: name === "Costas" ? t : m.indices });
-    };
-    /** O microfone com a folga, na posição de entrada (embaixo do bolso), atravessando a metade inteira. */
-    const through = (p: MicHolderParams, cy: number) => {
-      const L = micLayout(p);
-      return micHalf({ ...p, micT: 200 }, cy - L.slide / 2, 0).translate([0, 0, -50]);
-    };
-    test.each(MIC_SHAPES.map(([s]) => s))("%s: janela nas costas por onde o microfone passa, travessa inteira, frente fechada", (shape) => {
+  describe("entra e sai por trás, deitado (#291, revisão do Gabriel)", () => {
+    test.each(MIC_SHAPES.map(([s]) => s))("%s: o transmissor sai para trás sem bater, o clipe corre por cima da travessa, frente e paredes inteiras", (shape) => {
       const p = { ...P, shape, width: MIC_SHAPE_WIDTH[shape], front: shape === "art" ? ("art" as const) : ("text" as const) };
       const o = build(p, shape === "art");
-      const L = micLayout(p);
-      const cy = o.layout!.cy;
-      const back = local(o, "Costas");
-      expect(back.intersect(through(p, cy)).volume(), "o microfone passa pela janela").toBeLessThan(0.01);
-      expect(local(o, "Frente").intersect(through(p, cy)).volume(), "frente fechada").toBeGreaterThan(50);
-      // travessa: cruza o bolso de lado a lado, logo atrás do microfone, com a espessura mínima de parede
-      const yBar = cy - L.ch / 2 + L.win;
-      const bar = M.Manifold.cube([L.cw, L.bar - 0.2, BAR_T - 0.2], true).translate([0, yBar + L.bar / 2, L.cd / 2 + BAR_T / 2]);
-      expect(back.intersect(bar).volume()).toBeCloseTo(bar.volume(), 1);
+      const b = body(o);
+      const { L, T, yFront, yBack, zFloor } = pocketAt(o, p);
+      // caminho de saída: do lugar dele até bem atrás da peça, sem tocar em nada (e sem passar pelo cabo)
+      expect(b.intersect(tx(o, p, 0, 60)).volume(), "o transmissor passa pela abertura das costas").toBeLessThan(0.01);
+      const zClip = zFloor + L.cd + BAR_T;
+      expect(b.intersect(box(-5, 5, yBack - p.micH * 0.7, yBack + 60, zClip + 0.1, zClip + CLIP_GAP - 0.1)).volume(), "a perna do clipe corre na janela").toBeLessThan(0.01);
+      // travessa inteira entre o bolso e a janela, do fundo até as costas (no cilindro, até onde a curva deixa)
+      const yEnd = shape === "cylinder" ? Math.sqrt((T / 2) ** 2 - (L.cw / 2) ** 2) - 0.3 : yBack - 0.05;
+      const bar = box(-L.cw / 2 + 1.1, L.cw / 2 - 1.1, yFront + 0.05, yEnd, zFloor + L.cd + 0.05, zClip - 0.05);
+      expect(b.intersect(bar).volume(), "travessa").toBeCloseTo(bar.volume(), 1);
       expect(BAR_T).toBeGreaterThanOrEqual(MIC_WALL);
-      // janela de cima: aberta acima da travessa (mostra o clipe)
-      const up = M.Manifold.cube([6, L.slide - L.bar - 2, 50], true).translate([0, yBar + L.bar + (L.slide - L.bar) / 2, 25]);
-      expect(back.intersect(up).volume()).toBeLessThan(0.01);
-      // paredes dos lados do bolso continuam com o mínimo nas duas metades
-      for (const n of ["Frente", "Costas"]) {
-        const h = local(o, n as "Frente" | "Costas");
-        for (const sx of [-1, 1]) {
-          const pinHoles = M.Manifold.union(o.layout!.pins.map(([x, y]) => M.Manifold.cylinder(50, PIN_D / 2 + 0.2, PIN_D / 2 + 0.2, 24).translate([x, y, -1])));
-          const wall = M.Manifold.cube([MIC_WALL - 0.1, L.ch * 0.6, L.cd / 2], false).translate([sx > 0 ? L.cw / 2 + 0.05 : -L.cw / 2 - MIC_WALL + 0.05, cy - L.ch * 0.3, 0]).subtract(pinHoles);
-          expect(h.intersect(wall).volume(), `${n} parede`).toBeCloseTo(wall.volume(), 0);
-        }
+      // a frente fecha o bolso com a parede mínima
+      const front = box(-L.cw / 2 + 1.1, L.cw / 2 - 1.1, yFront - MIC_WALL + 0.05, yFront - 0.05, zFloor + 1.1, zFloor + L.cd - 1.1);
+      expect(b.intersect(front).volume(), "frente fechada").toBeCloseTo(front.volume(), 1);
+      // paredes dos lados do bolso com o mínimo (sem contar os furos dos pinos)
+      const yWall = shape === "cylinder" ? Math.sqrt((T / 2) ** 2 - (L.coreW / 2) ** 2) - 0.3 : yBack - 0.1;
+      const pinHoles = M.Manifold.union(o.layout!.pins.flatMap(([x, y]) => [-x, x].map((px) => box(px - PIN_D, px + PIN_D, -20, 20, y - PIN_D, y + PIN_D))));
+      for (const sx of [-1, 1]) {
+        const x0 = sx > 0 ? L.cw / 2 + 0.05 : -L.cw / 2 - MIC_WALL + 0.05;
+        const wall = box(x0, x0 + MIC_WALL - 0.1, yFront + 0.1, yWall, zFloor + 0.1, zFloor + L.ch - 0.1).subtract(pinHoles);
+        expect(b.intersect(wall).volume(), "parede").toBeCloseTo(wall.volume(), 0);
       }
     });
 
-    test("metade das costas imprime sem suporte: só a travessa fica no ar, apoiada nas duas pontas", () => {
+    test("imprime sem suporte: nas costas a abertura atravessa a metade sem teto; na frente o bolso só entra do corte para cima", () => {
       const o = build();
-      const L = micLayout(P);
-      const back = local(o, "Costas");
-      // acima do bolso (z > cd/2), dentro da área do bolso, só existe a travessa
+      const { L, T } = pocketAt(o, P);
       const cy = o.layout!.cy;
-      const r = L.radius - 0.1;
-      const over = M.CrossSection.square([L.cw - 0.1 - 2 * r, L.ch - 0.1 - 2 * r], true).offset(r, "Round").extrude(50).translate([0, cy, L.cd / 2 + 0.01]);
-      const bar = M.Manifold.cube([L.cw, L.bar, BAR_T]).translate([-L.cw / 2, cy - L.ch / 2 + L.win, L.cd / 2]);
-      expect(back.intersect(over).intersect(bar).volume()).toBeGreaterThan(L.bar * BAR_T * 10);
-      expect(back.intersect(over).subtract(bar).volume()).toBeLessThan(0.01);
+      const y0 = cy - L.ch / 2;
+      const prism = (z0: number, z1: number) => M.Manifold.union([box(-L.cw / 2 + 1.1, L.cw / 2 - 1.1, y0 + 0.05, y0 + L.cd - 0.05, z0, z1), box(-L.cw / 2 + 1.1, L.cw / 2 - 1.1, y0 + L.ch - CLIP_GAP + 0.05, y0 + L.ch - 0.05, z0, z1)]);
+      expect(half(o.models, "Costas").intersect(prism(Math.max(0, T / 2 - L.cl) + 0.01, T)).volume()).toBeLessThan(0.01);
+      expect(L.cl).toBeGreaterThan(T / 2); // o cubo padrão é fino o bastante para o bolso passar do corte
+      expect(half(o.models, "Frente").intersect(prism(0.01, L.cl - T / 2 - 0.01)).volume()).toBeLessThan(0.01);
+      expect(L.cd).toBeLessThanOrEqual(15); // teto do bolso na frente: ponte curta
     });
 
-    test("a prévia tem a vista de costas com o transmissor dentro, que não vai para o arquivo", () => {
+    test("a prévia mostra fora, entrando e dentro; o transmissor anda para a frente, fica sem encostar e não vai para o arquivo", () => {
       const o = build();
-      const v = o.views!.find((x) => x.id === "back")!;
-      expect(v).toBeTruthy();
-      expect(v.models.some((m) => m.name === "Transmissor")).toBe(true);
+      const ids = ["out", "in", "back"];
+      const ys = ids.map((id) => {
+        const v = o.views!.find((x) => x.id === id)!;
+        return meshBounds([byName(v.models, "Transmissor").parts[0].mesh])!.min[1];
+      });
+      expect(ys[0]).toBeLessThan(ys[1]); // de costas (girada): para trás é -y
+      expect(ys[1]).toBeLessThan(ys[2]);
+      const inside = solid(byName(o.views!.find((x) => x.id === "closed")!.models, "Transmissor").parts[0].mesh);
+      expect(body(o).intersect(inside).volume()).toBeLessThan(0.01);
       expect(o.models.some((m) => m.name === "Transmissor")).toBe(false);
     });
   });

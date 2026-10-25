@@ -31,7 +31,7 @@ export type MicHolderParams = {
   shape: MicShape;
   width: number;
   thickness: number; // cubo e cilindro usam a largura
-  micW: number; // medidas do transmissor, de pé, visto de frente
+  micW: number; // medidas do transmissor deitado no bolso, visto de trás: largura, comprimento (de trás para a frente) e espessura
   micH: number;
   micT: number;
   micRound: boolean;
@@ -71,10 +71,8 @@ export const DEFAULT_MIC_HOLDER: MicHolderParams = {
 };
 
 export const MIC_WALL = 2.4; // parede em volta do berço
-export const BAR_T = MIC_WALL; // travessa das costas: fina para o clipe do transmissor abraçar (#291)
-const BAR_H = 4;
-const UPPER_WIN = 6; // janela de cima, entre a travessa e o topo do bolso: mostra o clipe
-const RECESS = 6; // quanto o rebaixo das costas passa do bolso, de cada lado
+export const BAR_T = MIC_WALL; // travessa entre o bolso e a janela do clipe: fina para o clipe do transmissor abraçar (#291)
+export const CLIP_GAP = 5; // janela do clipe, acima da travessa: a perna do clipe desliza nela
 const MIC_COLOR = "#141416"; // transmissor da prévia: preto como o Lark M2, contrasta com o meio claro
 export const MIN_WIDTH = 40;
 export const TENON_FIT = 0.15; // o encaixe do cabo entra justo no canal (por lado)
@@ -90,17 +88,18 @@ const PIN_DEPTH = 5;
 const SEG = 64;
 const FOAM_COLOR = "#2b2b2b";
 
-/** Medidas que saem dos parâmetros: berço (com folga), canal, centro do microfone e encaixe do cabo. */
+/**
+ * Medidas que saem dos parâmetros (#291, revisão do Gabriel): o transmissor fica deitado num bolso que atravessa as
+ * costas e entra empurrado de trás para a frente; o clipe dele desliza por cima da travessa, na janela de cima.
+ * cw × cd = boca do bolso, cl = fundo (até a parede da frente), ch = altura da abertura inteira (bolso + travessa + janela).
+ */
 export function micLayout(p: Pick<MicHolderParams, "micW" | "micH" | "micT" | "clearance" | "micRound">) {
   const cw = p.micW + 2 * p.clearance;
-  // #291: o bolso é mais alto que o microfone (win). Ele entra pela janela de baixo das costas e sobe `slide` até o
-  // clipe abraçar a travessa; o encaixe do cabo sobe junto e segura ele lá em cima.
-  const win = p.micH + 2 * p.clearance;
-  const slide = BAR_H + UPPER_WIN;
-  const ch = win + slide;
   const cd = p.micT + 2 * p.clearance;
+  const cl = p.micH + 2 * p.clearance;
+  const ch = cd + BAR_T + CLIP_GAP;
   const coreW = cw + 2 * MIC_WALL;
-  return { cw, ch, cd, coreW, win, slide, bar: BAR_H, radius: p.micRound ? Math.min(cw, win) / 2 : Math.min(2, cw / 4), tenon: [cw - 2 * TENON_FIT, cd - 2 * TENON_FIT] as const };
+  return { cw, ch, cd, cl, coreW, radius: p.micRound ? Math.min(p.micW, p.micH) / 2 : Math.min(2, p.micW / 4), tenon: [cw - 2 * TENON_FIT, cd - 2 * TENON_FIT] as const };
 }
 
 /** Onde ficaram as coisas (para os testes e a vista montada): centro do microfone, topo do pescoço, encaixe e pinos. */
@@ -154,41 +153,40 @@ function outline(M: ManifoldToplevel, k: K, ctx: ModelCtx, shape: MicShape, w: n
 const inside = (M: ManifoldToplevel, k: K, cs: CS, x: number, y: number) => !k(k(k(M.CrossSection.circle(0.01, 8)).translate([x, y])).intersect(cs)).isEmpty();
 
 /**
- * Canopla para microfone sem fio (#274): o meio no formato escolhido, oco, com o microfone de pé dentro. Sai em 2 metades
- * (frente e costas) cortadas ao meio da espessura, deitadas com o corte na mesa (sem suporte), unidas por pinos soltos.
- * O microfone entra por baixo e o cabo, peça à parte, encaixa no mesmo canal e segura o microfone. O pescoço redondo
- * no topo recebe a espuma. "Anel de teste": só o berço, para conferir a medida antes da peça inteira.
+ * Canopla para microfone sem fio (#274): o meio no formato escolhido, oco, com o pescoço da espuma em cima e o cabo
+ * embaixo. Sai em 2 metades (frente e costas) cortadas ao meio da espessura, deitadas com o corte na mesa (sem suporte),
+ * unidas por pinos soltos. #291: o transmissor entra e sai por trás, deitado, sem mexer no cabo (que fica fixo); o clipe
+ * dele abraça a travessa. "Anel de teste": só esse encaixe, para conferir a medida antes da peça inteira.
  */
 export function buildMicHolder(ctx: ModelCtx, p: MicHolderParams): MicHolderOutput {
   const { M } = ctx;
   const L = micLayout(p);
   const warnings: string[] = [];
   if (p.print === "test") {
-    // o mesmo encaixe das costas (#291): moldura do bolso, da espessura do microfone, com a travessa por cima (ponte curta)
+    // o mesmo encaixe das costas, com a parede da frente na mesa e a abertura para cima (sem ponte)
     const ring = scoped((k) => {
-      const frame = k(k(k(roundedRect(M, L.cw + 2 * MIC_WALL, L.ch + 2 * MIC_WALL, MIC_WALL + 1)).subtract(k(pocket(M, L)))).extrude(L.cd + BAR_T));
-      const bar = k(k(M.Manifold.cube([L.cw + MIC_WALL, BAR_H, BAR_T])).translate([-(L.cw + MIC_WALL) / 2, -L.ch / 2 + L.win, L.cd]));
-      return toMesh(k(frame.add(bar)));
+      const block = k(k(roundedRect(M, L.coreW, L.ch + 2 * MIC_WALL, MIC_WALL)).extrude(L.cl + MIC_WALL));
+      return toMesh(k(block.subtract(k(k(k(opening(M, L)).extrude(L.cl + 1)).translate([0, 0, MIC_WALL])))));
     });
     return {
       layout: null,
       models: [{ name: "Anel de teste", parts: [{ name: "Anel", color: p.bodyColor, mesh: ring }] }],
-      warnings: ["Anel de teste: é o mesmo encaixe das costas. O microfone (com o ímã ou clipe que você vai usar) entra pela janela grande, sobe e o clipe abraça a travessa. Deve passar sem forçar e sem folga grande. Apertado: aumente a folga; solto: diminua. Depois imprima a peça inteira."],
+      warnings: ["Anel de teste: é o mesmo encaixe das costas. Empurre o microfone deitado para dentro do bolso, com o clipe por cima da travessa: deve entrar sem forçar, ficar preso e sair puxando para trás. Apertado: aumente a folga; solto: diminua. Depois imprima a peça inteira."],
     };
   }
   const round = p.shape === "cylinder";
-  // cilindro estreito: o raio cresce até o berço ter parede na altura do bolso (a largura no corte é a do miolo)
-  const R = round ? Math.max(p.width / 2, Math.hypot(L.coreW / 2, L.cd / 2)) : 0;
+  // cilindro estreito: o raio cresce até o bolso deitado ter parede dos lados em boa parte do fundo
+  const R = round ? Math.max(p.width / 2, Math.hypot(L.coreW / 2, L.cl / 2)) : 0;
   const T0 = p.shape === "cube" ? p.width : round ? 2 * R : p.thickness;
-  const T = Math.max(T0, L.cd + 2 * FLOOR);
-  if (T > T0) warnings.push(`A espessura subiu para ${fmt(T)} mm para o microfone caber com parede atrás.`);
+  const T = Math.max(T0, L.cl + MIC_WALL);
+  if (T > T0) warnings.push(`A espessura subiu para ${fmt(T)} mm para o microfone caber deitado, com parede na frente.`);
   const elements: ElementBox[] = [];
   const out = scoped((k) => {
     const S0 = outline(M, k, ctx, p.shape, p.width);
-    // o miolo (berço + parede, de y_b até o topo) sobe pelo formato até caber inteiro nele: assim a ponta do coração vira
+    // o miolo (abertura + parede, de y_b até o topo) sobe pelo formato até caber inteiro nele: assim a ponta do coração vira
     // base reta e não sobra bloco para fora. Com folga, o microfone fica no centro do formato.
     const s0 = boxOf(S0);
-    const cyMin = L.ch / 2 + TENON_MIN;
+    const cyMin = L.ch / 2 + FLOOR + TENON_MIN;
     // acima do microfone o pescoço já cobre o miolo (o vão do coração, a ponta da estrela)
     const outside = (yb: number, cy: number) => {
       const neck = k(k(M.CrossSection.square([p.neckD, 1e3])).translate([-p.neckD / 2, yb + cy]));
@@ -212,8 +210,20 @@ export function buildMicHolder(ctx: ModelCtx, p: MicHolderParams): MicHolderOutp
     if (p.width < MIN_WIDTH || extra > core.area() * 0.03) warnings.push(`O formato ficou estreito para o microfone (largura mínima de uns ${MIN_WIDTH} mm): o app engrossou a parte em volta dele. Aumente a largura para o desenho aparecer inteiro.`);
     const sb = boxOf(S);
     const top = Math.max(sb[3], coreTop) + p.neckH;
-    // berço + canal do cabo (de baixo até o centro) + canal do som (até o topo do pescoço)
-    const cavity = k(M.CrossSection.union([k(k(pocket(M, L)).translate([0, cy])), k(k(M.CrossSection.square([L.cw, cy])).translate([-L.cw / 2, 0])), k(k(M.CrossSection.square([SOUND_W, top - cy + 1])).translate([-SOUND_W / 2, cy]))]));
+    // encaixe do cabo: furo cego embaixo, com um fundo entre ele e o bolso (o cabo fica fixo, não segura o microfone)
+    const tenonL = cy - L.ch / 2 - FLOOR;
+    const socket = k(k(M.CrossSection.square([L.cw, tenonL + 1])).translate([-L.cw / 2, -1]));
+    // abertura (bolso + janela do clipe), do fundo do bolso até atravessar as costas; z = 0 é o corte, +z vai para trás
+    const zBack = T / 2 - L.cl;
+    const openTop = cy + L.ch / 2;
+    const cut = [k(k(k(k(opening(M, L)).translate([0, cy])).extrude(L.cl + 1)).translate([0, 0, zBack]))];
+    // canal do som: da janela do clipe até o topo do pescoço, por dentro dele
+    const sound = k(k(M.CrossSection.square([SOUND_W, top - openTop + 2])).translate([-SOUND_W / 2, openTop - 1]));
+    const [za, zb] = [Math.max(zBack, -(p.neckD / 2 - MIC_WALL)), Math.min(zBack + L.cd, p.neckD / 2 - MIC_WALL)];
+    if (zb > za) cut.push(k(k(sound.extrude(zb - za)).translate([0, 0, za])));
+    const hollow = k(M.Manifold.union(cut));
+    // tudo o que é oco visto de frente (os pinos fogem disso)
+    const cavity = k(M.CrossSection.union([k(k(opening(M, L)).translate([0, cy])), socket, sound]));
     // pinos: o primeiro par simétrico (dos lados do berço) que fica inteiro no formato, com parede
     const pr = PIN_D / 2 + PIN_FIT;
     const safe = k(k(body2d.offset(-(pr + PIN_WALL), "Round")).subtract(k(cavity.offset(pr + PIN_WALL, "Round"))));
@@ -236,17 +246,10 @@ export function buildMicHolder(ctx: ModelCtx, p: MicHolderParams): MicHolderOutp
       } else s = k(body2d.extrude(T / 2));
       const neck = k(k(k(k(M.Manifold.cylinder(top - cy - L.ch / 2, p.neckD / 2, p.neckD / 2, SEG)).rotate([-90, 0, 0])).translate([0, cy + L.ch / 2, 0])).trimByPlane([0, 0, 1], 0));
       s = k(s.add(neck));
-      s = k(s.subtract(k(k(cavity.extrude(L.cd / 2 + 0.01)).translate([0, 0, -0.01]))));
+      s = k(s.subtract(k(k(socket.extrude(L.cd / 2 + 0.01)).translate([0, 0, -0.01]))));
+      // a frente é a metade espelhada: o fundo do bolso só entra nela se ele passar do corte (ponte curta no teto)
+      s = k(s.subtract(back ? hollow : k(hollow.mirror([0, 0, 1]))));
       for (const [x, y] of spots) s = k(s.subtract(k(k(M.Manifold.cylinder(depth + 0.4, pr, pr, 32)).translate([x, y, -0.01]))));
-      if (back) {
-        // costas abertas (#291): o bolso atravessa a parede e só fica a travessa, logo atrás do microfone. Deitada,
-        // ela é uma ponte curta presa nas paredes dos lados (sem suporte); o recorte segue o berço, não o formato.
-        const bar = k(k(k(M.Manifold.cube([L.coreW + 2, BAR_H, BAR_T])).translate([-(L.coreW + 2) / 2, cy - L.ch / 2 + L.win, L.cd / 2])).intersect(s));
-        s = k(k(s.subtract(k(k(k(pocket(M, L)).translate([0, cy])).extrude(T)))).add(bar));
-        // por fora da travessa, um rebaixo mais largo que o bolso: em peça grossa a janela não vira túnel e o botão fica à mão
-        const recess = k(k(k(roundedRect(M, L.cw + 2 * RECESS, L.ch, 3)).translate([0, cy])).intersect(k(body2d.offset(-MIC_WALL, "Round"))));
-        s = k(s.subtract(k(k(recess.extrude(T)).translate([0, 0, L.cd / 2 + BAR_T]))));
-      }
       return s;
     };
     const front = halfShell(false);
@@ -272,8 +275,7 @@ export function buildMicHolder(ctx: ModelCtx, p: MicHolderParams): MicHolderOutp
         frontParts.push({ name: "Frente (relevo)", color: p.artColor, mesh: toMesh(k(k(placed.extrude(R + p.relief)).intersect(skin))) });
       } else frontParts.push(...artParts(p.front === "art" ? ctx : { ...ctx, art: null, artLayers: null }, placed, p.artColor, "Frente (relevo)", p.relief, T / 2));
     }
-    // cabo de pé: afina para baixo; o encaixe no topo entra no canal e segura o microfone
-    const tenonL = cy - L.ch / 2 + L.slide;
+    // cabo de pé: afina para baixo; o encaixe no topo entra no furo de baixo
     const handle = k(k(M.Manifold.cylinder(p.handleL, HANDLE_BOTTOM / 2, HANDLE_TOP / 2, SEG)).add(k(k(k(roundedRect(M, L.tenon[0], L.tenon[1], 1)).extrude(tenonL)).translate([0, 0, p.handleL]))));
     const pinLen = 2 * depth - 0.4;
     const pins = spots.map((_, i) => k(k(M.Manifold.cylinder(pinLen, PIN_D / 2, PIN_D / 2, 32)).translate([i * (PIN_D + 4), 0, 0])));
@@ -289,9 +291,14 @@ export function buildMicHolder(ctx: ModelCtx, p: MicHolderParams): MicHolderOutp
       for (let i = 0; i < q.length; i += 3) [q[i], q[i + 1], q[i + 2]] = f(q[i], q[i + 1], q[i + 2]);
       return { positions: q, indices: m.indices };
     };
-    // transmissor no lugar de uso: no alto do bolso, preso na travessa (de pé, a face para a frente)
-    const tx = k(k(k(roundedRect(M, p.micW, p.micH, Math.min(L.radius, p.micW / 2 - 0.01))).extrude(p.micT)).translate([0, 0, -p.micT / 2]));
-    const transmitter = k(k(tx.rotate([90, 0, 0])).translate([0, 0, cy + L.slide / 2]));
+    // transmissor (só na prévia): deitado no bolso, encostado na frente dele, com o clipe por cima da travessa
+    const yFront = zBack + p.clearance; // na vista montada, +Y é para trás
+    const zDisk = cy - L.ch / 2 + p.clearance;
+    const disk = k(k(k(roundedRect(M, p.micW, p.micH, L.radius)).extrude(p.micT)).translate([0, yFront + p.micH / 2, zDisk]));
+    const [clipW, clipL, zClip] = [Math.min(12, p.micW * 0.45), p.micH * 0.7, openTop - CLIP_GAP / 2 - 0.75];
+    const clip = k(k(M.Manifold.cube([clipW, clipL + 1.5, 1.5])).translate([-clipW / 2, T / 2 + 1.5 - clipL - 1.5, zClip]));
+    const hinge = k(k(M.Manifold.cube([clipW, 1.5, zClip + 1.5 - zDisk - p.micT + 0.5])).translate([-clipW / 2, T / 2, zDisk + p.micT - 0.5]));
+    const txMesh = toMesh(k(M.Manifold.union([disk, clip, hinge])));
     const foamR = p.neckD / 2 + 5;
     const foam = k(k(k(M.Manifold.sphere(1, SEG)).scale([foamR, foamR, foamR * 1.15])).translate([0, 0, top - p.neckH * 0.3]));
     const assembled: Model[] = [
@@ -299,24 +306,27 @@ export function buildMicHolder(ctx: ModelCtx, p: MicHolderParams): MicHolderOutp
       { name: "Costas", parts: [{ name: "Costas", color: p.bodyColor, mesh: stand(models[1].parts[0].mesh, (a, b, c) => [-a, c, b]) }] },
       { name: "Cabo", parts: [{ name: "Cabo", color: p.handleColor, mesh: moveMesh(models[2].parts[0].mesh, 0, 0, -p.handleL) }] },
       { name: "Espuma", parts: [{ name: "Espuma (só na prévia)", color: FOAM_COLOR, mesh: toMesh(foam) }] },
-      { name: "Transmissor", parts: [{ name: "Transmissor (só na prévia)", color: MIC_COLOR, mesh: toMesh(transmitter) }] },
     ];
-    return { models: spread(models), assembled, cy, top, tenonL, depth, spots };
+    // fora, entrando e dentro: o transmissor andando de trás para a frente (o cabo não se mexe)
+    const steps = [L.cl + 15, L.cl * 0.55, 0].map((dy) => [...assembled, { name: "Transmissor", parts: [{ name: "Transmissor (só na prévia)", color: MIC_COLOR, mesh: moveMesh(txMesh, 0, dy, 0) }] }]);
+    return { models: spread(models), steps, cy, top, tenonL, depth, spots };
   });
-  warnings.push("Duas metades: ponha os pinos, passe cola e una a frente e as costas. O microfone entra pela janela grande das costas e sobe até o clipe abraçar a travessa; o cabo encaixa por baixo e segura ele lá em cima. Para carregar, puxe o cabo, desça o microfone e tire pela janela. A espuma veste o pescoço.");
-  // de costas: a mesma montagem girada meia volta, para ver as janelas e o transmissor
+  warnings.push("Duas metades: ponha os pinos, passe cola e una a frente e as costas; o cabo encaixa por baixo e fica fixo. O microfone entra por trás, deitado: empurre para dentro com o clipe por cima da travessa. Para carregar, puxe para trás. A espuma veste o pescoço.");
+  // de costas: a mesma montagem girada meia volta, para ver a abertura e o transmissor
   const turn = (ms: Model[]) => ms.map((m) => ({ ...m, parts: m.parts.map((x) => { const q = x.mesh.positions.slice(); for (let i = 0; i < q.length; i += 3) [q[i], q[i + 1]] = [-q[i], -q[i + 1]]; return { ...x, mesh: { ...x.mesh, positions: q } }; }) }));
   const views = [
-    { id: "closed", label: "Montada", models: out.assembled, note: "Como fica pronta, com a espuma e o transmissor (que não vão para o arquivo)." },
-    { id: "back", label: "Costas", models: turn(out.assembled), note: "As janelas das costas: o transmissor fica à vista para ligar, ver a luz e tirar para carregar." },
+    { id: "closed", label: "Montada", models: out.steps[2], note: "Como fica pronta, com a espuma e o transmissor (que não vão para o arquivo)." },
+    { id: "out", label: "1. Fora", models: turn(out.steps[0]), note: "Costas: o transmissor deitado, com o clipe para cima, na frente da abertura." },
+    { id: "in", label: "2. Entrando", models: turn(out.steps[1]), note: "Empurre para a frente: o corpo desliza no bolso e o clipe por cima da travessa. O cabo não sai do lugar." },
+    { id: "back", label: "3. Dentro", models: turn(out.steps[2]), note: "Preso: o clipe abraça a travessa e a luz fica à vista. Para tirar e carregar, puxe para trás." },
     { id: "bed", label: "Mesa", models: out.models },
   ];
   return { models: out.models, views, elements, warnings, layout: { cy: out.cy, top: out.top, tenonL: out.tenonL, pinDepth: out.depth, pins: out.spots, thickness: T } };
 }
 
-/** Bolso do microfone, centrado na origem: redondo em cima (onde o microfone fica), reto embaixo (por onde ele sobe). */
-function pocket(M: ManifoldToplevel, L: ReturnType<typeof micLayout>): CS {
-  return scoped((k) => k(roundedRect(M, L.cw, L.ch, L.radius)).add(k(k(M.CrossSection.square([L.cw, L.ch / 2])).translate([-L.cw / 2, -L.ch / 2]))));
+/** Abertura das costas, centrada na origem: o bolso do transmissor embaixo e a janela do clipe em cima; entre eles fica a travessa. */
+function opening(M: ManifoldToplevel, L: ReturnType<typeof micLayout>): CS {
+  return scoped((k) => k(k(roundedRect(M, L.cw, L.cd, 1)).translate([0, (L.cd - L.ch) / 2])).add(k(k(roundedRect(M, L.cw, CLIP_GAP, 1)).translate([0, (L.ch - CLIP_GAP) / 2]))));
 }
 
 const fmt = (n: number) => n.toFixed(1).replace(".", ",");
