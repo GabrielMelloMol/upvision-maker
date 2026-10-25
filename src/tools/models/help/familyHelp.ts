@@ -250,7 +250,7 @@ export const FAMILY_HELP: Record<string, GuideHelp> = {
       "Comece pelo anel de teste (uns 10 minutos): o microfone deve passar sem forçar. Ajuste a folga e só então imprima a canopla.",
       "As duas metades saem deitadas com o corte na mesa: não precisam de suporte. O teto do berço é uma ponte curta; ventilação no máximo ajuda.",
       "Monte com os pinos e uma gota de cola nas metades. O microfone entra por baixo e o cabo encaixa no mesmo canal, segurando ele.",
-      "Com AMS, o meio e o relevo da frente saem em cores diferentes; o cabo pode ir na cor do relevo.",
+      "Com AMS, o meio e o relevo da frente saem em cores diferentes. Cabo de outra cor: mande ele para outra placa no fatiador, senão a troca de filamento acontece em toda camada e a impressão dobra de tempo.",
     ],
     faq: [
       { q: "Como tiro o microfone para carregar?", a: "Puxe o cabo: o microfone desce pelo mesmo canal. As metades ficam coladas." },

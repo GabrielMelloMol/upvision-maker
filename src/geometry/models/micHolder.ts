@@ -67,7 +67,7 @@ export const DEFAULT_MIC_HOLDER: MicHolderParams = {
   print: "full",
   bodyColor: "#f8f8f6",
   artColor: "#1c1c1e",
-  handleColor: "#1c1c1e",
+  handleColor: "#f8f8f6", // na cor do meio: cabo de outra cor sobe junto e troca o filamento em toda camada
 };
 
 export const MIC_WALL = 2.4; // parede em volta do berço
