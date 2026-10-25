@@ -76,3 +76,17 @@ test("Dicas de impressão aparecem uma vez só e a tabela do Como usar não tem 
   const fits = await help.locator(".gen-help-scroll").evaluate((el) => el.scrollWidth <= el.clientWidth + 1);
   expect(fits).toBe(true);
 });
+
+test("Como usar: dica longa ocupa a largura da tabela, sem coluna espremida (#277)", async ({ page }) => {
+  test.slow();
+  await openApp(page);
+  await pickModel(page, "canopla microfone", "Canopla de microfone", { exact: true });
+  const help = page.locator("details.gen-help").first();
+  await help.locator("summary").first().click();
+  const hint = help.locator(".gen-hint td").first();
+  await expect(hint).toBeVisible();
+  const [cell, table] = await Promise.all([hint.boundingBox(), help.locator("table").boundingBox()]);
+  expect(cell!.width).toBeGreaterThan(table!.width * 0.9);
+  const fits = await help.locator(".gen-help-scroll").evaluate((el) => el.scrollWidth <= el.clientWidth + 1);
+  expect(fits).toBe(true);
+});

@@ -42,7 +42,8 @@ describe("GeneratorHelp", () => {
     const row = (name: string) => within(within(table).getByRole("rowheader", { name })).getByText(name).closest("tr")!;
     expect(within(row("Largura")).getByText("60 a 300 mm")).toBeInTheDocument();
     expect(within(row("Largura")).getByText("180 mm")).toBeInTheDocument();
-    expect(within(row("Largura")).getByText("Por dentro: 176 mm")).toBeInTheDocument();
+    // a dica fica numa linha inteira logo abaixo do campo, no mesmo grupo (#277)
+    expect(within(row("Largura").closest("tbody")!).getByText("Por dentro: 176 mm").closest("td")).toHaveAttribute("colspan", "3");
     expect(within(row("Parede")).getByText("1,2 a 4 mm")).toBeInTheDocument();
     expect(within(row("Parede")).getByText("2,4 mm")).toBeInTheDocument();
     expect(within(row("Tampa")).getByText("Dobradiça, Sem tampa")).toBeInTheDocument();
@@ -54,10 +55,11 @@ describe("GeneratorHelp", () => {
     expect(screen.getByText("Imprima em PETG")).toBeInTheDocument();
   });
 
-  test("sem nenhuma frase de ajuda nos campos, a coluna Dica some", () => {
+  test("sem coluna Dica: a tabela tem só campo, faixa e padrão; campo sem frase de ajuda não ganha linha vazia", () => {
     const bare: ModelDef = { ...base, sections: [{ title: "Medidas", fields: [num("width", "Largura", 60, 300, { step: 1 })] }] };
-    render(<GeneratorHelp def={bare} />);
+    const { container } = render(<GeneratorHelp def={bare} />);
     expect(screen.queryByRole("columnheader", { name: "Dica" })).toBeNull();
+    expect(container.querySelectorAll(".gen-hint")).toHaveLength(0);
     expect(screen.getByRole("columnheader", { name: "Faixa" })).toBeInTheDocument();
   });
 });
