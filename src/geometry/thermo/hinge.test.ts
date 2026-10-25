@@ -3,7 +3,7 @@ import { getManifold, type ManifoldToplevel, type Solid } from "../manifold";
 import { scoped } from "../shape2d";
 import { KIT_HINGE } from "../testKit/hingeLatch";
 import { inradius } from "./dome";
-import { buildRims, RIM_T } from "./hinge";
+import { buildRims, RIM_OUT, RIM_T } from "./hinge";
 import { warpOntoDome } from "./preview";
 import { presetSilhouette, type ThermoShape } from "./shapes";
 
@@ -55,6 +55,15 @@ describe("dobradiça e trava da caixinha", () => {
         const pulled = k(r.b.translate([0, 0, -0.5]));
         expect(vol(k, r.latch, r.b)).toBeLessThan(1e-3);
         expect(vol(k, r.latch, pulled)).toBeGreaterThan(0.5);
+      }
+    }));
+
+  test("a trava acompanha a borda: não passa mais de 2,1 mm além do aro (nada de língua comprida na ponta)", () =>
+    scoped((k) => {
+      for (const [shape, side] of [["heart", "top"], ["heart", "bottom"], ["egg", "bottom"]] as const) {
+        const { sil, r } = rims(k, shape, opts(side));
+        const outline = k(k(sil.offset(RIM_OUT + 2.1, "Round")).extrude(40));
+        expect(k(r.latch.subtract(k(outline.translate([0, 0, -20])))).volume(), `${shape} ${side}`).toBeLessThan(1e-3);
       }
     }));
 
