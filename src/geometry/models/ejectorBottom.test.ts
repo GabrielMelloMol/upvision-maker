@@ -1,5 +1,7 @@
 import { beforeAll, describe, expect, test } from "vitest";
 import { meshBounds } from "../bounds";
+import { overhangArea } from "../cutSuggest";
+import type { Mesh } from "../types";
 import { getManifold, type ManifoldToplevel } from "../manifold";
 import { sq } from "../testUtil";
 import { buildEjector, DEFAULT_EJECTOR } from "./brigadeiroEjector";
@@ -71,7 +73,7 @@ describe("fundo arredondado do ejetor (#62)", { timeout: 30_000 }, () => {
     const round = buildEjector(ctx, { ...DEFAULT_EJECTOR, bottom: "round", radius: 3 });
     const domed = buildEjector(ctx, { ...DEFAULT_EJECTOR, bottom: "dome", domeHeight: 5 });
     const scaled = buildEjector(ctx, { ...DEFAULT_EJECTOR, bottom: "scale", domeHeight: 5 });
-    expect(h(round)).toBeCloseTo(h(flat), 5); // o cabo continua sendo o ponto mais alto
+    expect(h(round)).toBeCloseTo(h(flat) + 3, 5); // a borda (raio 3) cresce na face do doce, além do cabo (#281)
     expect(round.warnings!.join(" ")).toMatch(/0,08 a 0,12 mm/);
     expect(domed.warnings!.join(" ")).not.toMatch(/ponta fina/);
     expect(scaled.warnings!.join(" ")).toMatch(/0,08 a 0,12 mm/);
@@ -82,4 +84,42 @@ describe("fundo arredondado do ejetor (#62)", { timeout: 30_000 }, () => {
       expect(s.volume()).toBeGreaterThan(f.volume() + 10);
     }
   });
+
+  test("o fundo fica na face que encosta no doce (a oposta ao cabo), nos 4 tipos (#281)", () => {
+    const ctx = { M, art: disc(), text: () => null };
+    const plunger = (bottom: "flat" | "round" | "dome" | "scale") => buildEjector(ctx, { ...DEFAULT_EJECTOR, bottom, radius: 3, domeHeight: 5 }).models[1].parts[0].mesh;
+    expect(recess(plunger("flat"), 0)).toBeCloseTo(0, 1);
+    expect(recess(plunger("dome"), 0)).toBeCloseTo(5, 0);
+    expect(recess(plunger("scale"), 0)).toBeCloseTo(5, 0);
+    expect(recess(plunger("round"), 0)).toBeCloseTo(3, 1); // miolo plano, recuado do raio
+    expect(recess(plunger("round"), 14)).toBeLessThan(2.5); // perto da parede (raio do êmbolo 14,6) a curva desce
+    // de cabeça para baixo (botão na mesa) imprime sem suporte; forma larga e baixa demais avisa
+    const heart = M.CrossSection.union([M.CrossSection.circle(6, 64).translate([-4.2, 0]), M.CrossSection.circle(6, 64).translate([4.2, 0]), M.CrossSection.square([12, 12], true).rotate(45).translate([0, -5])]);
+    for (const art of [disc(), heart]) for (const bottom of ["flat", "round", "dome", "scale"] as const) expect(overhangArea([buildEjector({ ...ctx, art }, { ...DEFAULT_EJECTOR, bottom }).models[1].parts[0].mesh])).toBeLessThan(2);
+    expect(buildEjector(ctx, { ...DEFAULT_EJECTOR, bottom: "dome", size: 60, height: 8 }).warnings!.join(" ")).toMatch(/suporte no fatiador/);
+  });
 });
+
+/** Quanto a face do doce afunda (mm) na reta vertical a `dx` do centro, medido da ponta do doce: a mais larga (a outra é o botão). */
+function recess(mesh: Mesh, dx: number): number {
+  const b = meshBounds([mesh])!;
+  const v = mesh.positions, ix = mesh.indices;
+  const span = (z: number) => {
+    let lo = Infinity, hi = -Infinity;
+    for (let i = 0; i < v.length; i += 3) if (Math.abs(v[i + 2] - z) < 0.3) [lo, hi] = [Math.min(lo, v[i]), Math.max(hi, v[i])];
+    return hi - lo;
+  };
+  const candyUp = span(b.max[2]) > span(b.min[2]);
+  const x = (b.min[0] + b.max[0]) / 2 + dx, y = (b.min[1] + b.max[1]) / 2;
+  const hits: number[] = [];
+  for (let t = 0; t < ix.length; t += 3) {
+    const [a, c, d] = [ix[t] * 3, ix[t + 1] * 3, ix[t + 2] * 3];
+    const area = (v[c] - v[a]) * (v[d + 1] - v[a + 1]) - (v[c + 1] - v[a + 1]) * (v[d] - v[a]);
+    if (Math.abs(area) < 1e-9) continue;
+    const w0 = ((v[c] - x) * (v[d + 1] - y) - (v[c + 1] - y) * (v[d] - x)) / area;
+    const w1 = ((v[d] - x) * (v[a + 1] - y) - (v[d + 1] - y) * (v[a] - x)) / area;
+    if (w0 < 0 || w1 < 0 || w0 + w1 > 1) continue;
+    hits.push(w0 * v[a + 2] + w1 * v[c + 2] + (1 - w0 - w1) * v[d + 2]);
+  }
+  return candyUp ? b.max[2] - Math.max(...hits) : Math.min(...hits) - b.min[2];
+}

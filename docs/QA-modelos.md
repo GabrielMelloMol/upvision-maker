@@ -619,7 +619,7 @@ impressoras de mesa maior); sem o aviso do app, é **falha**.
 | Tampa de ralo (drainCover) | mínimo | ✅ ok | Bambu ✓ · Orca ✓ | 14 | 4,5 | 1 | – | app: Folga pequena: o pino pode não entrar no ralo (ralo de plástico varia). Teste num pedaço do pino antes. |
 | Tampa de ralo (drainCover) | padrão | ✅ ok | Bambu ✓ · Orca ✓ | 41 | 31,3 | 1 | – | – |
 | Tampa de ralo (drainCover) | só cobre | ✅ ok | Bambu ✓ · Orca ✓ | 19 | 11,1 | 1 | – | – |
-| Ejetor de brigadeiro (ejector) | escala até um ponto | ✅ ok | Bambu ✓ · Orca ✓ · Projeto Bambu ✓ | 172 | 42,7 | 1 | – | app: Fundo arredondado: imprima o êmbolo com altura de camada de 0,08 a 0,12 mm para a curva sair lisa. |
+| Ejetor de brigadeiro (ejector) | escala até um ponto | ✅ ok | Bambu ✓ · Orca ✓ · Projeto Bambu ✓ | 175 | 44,3 | 1 | – | app: Fundo arredondado: imprima o êmbolo com altura de camada de 0,08 a 0,12 mm para a curva sair lisa. |
 | Ejetor de brigadeiro (ejector) | máximo | ✅ ok | Bambu ✓ · Orca ✓ · Projeto Bambu ✓ | 395 | 114,4 | 1 | – | – |
 | Ejetor de brigadeiro (ejector) | mínimo | ✅ ok | Bambu ✓ · Orca ✓ · Projeto Bambu ✓ | 79 | 18,4 | 1 | – | – |
 | Ejetor de brigadeiro (ejector) | padrão | ✅ ok | Bambu ✓ · Orca ✓ · Projeto Bambu ✓ | 169 | 41,8 | 1 | – | – |
