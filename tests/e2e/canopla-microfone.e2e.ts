@@ -8,7 +8,7 @@ test("canopla de microfone (#274): microfone pronto, tema, largura mínima, anel
   await idle(page);
   await expect(page.getByText(/Duas metades: ponha os pinos/)).toBeVisible();
   // #291: o transmissor entra por trás, deitado: fora, entrando e dentro
-  for (const [view, note] of [["1. Fora", /na frente da abertura/], ["2. Entrando", /O cabo não sai do lugar/], ["3. Dentro", /puxe para trás/]] as const) {
+  for (const [view, note] of [["1. Fora", /na frente da abertura/], ["2. Entrando", /O cabo não sai do lugar/], ["3. Dentro", /o clipe abraça a travessa e a luz/]] as const) {
     await page.getByRole("button", { name: view, exact: true }).click();
     await idle(page);
     await expect(page.getByText(note)).toBeVisible();
