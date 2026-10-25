@@ -12,7 +12,7 @@ import { loadFavorites } from "../tools/models/favorites";
 import { modelOf } from "../tools/models/families";
 import OccasionChips, { type Occasion } from "../tools/models/OccasionChips";
 import { defaultEntry, FILE_TOOL_GROUPS, productsIn, TABS, typesOf, type Entry, type Product, type Tab } from "../tools/models/products";
-import { PRODUCT_THUMBS, THUMBS } from "../tools/models/thumbs";
+import { PRODUCT_THUMBS, THUMBS, TOOL_THUMBS } from "../tools/models/thumbs";
 import { COLLECTIONS } from "../tools/models/variants";
 import EmptyState from "../ui/EmptyState";
 import OccasionCard from "../ui/OccasionCard";
@@ -91,7 +91,7 @@ export default function Create({ go }: { go: Go }) {
     const model = entry.kind === "model" ? modelOf(entry.id) : undefined;
     const title = model?.label ?? (product && page && page.label !== entry.label ? `${page.label} · ${entry.label}` : (page?.label ?? ""));
     const Icon = model?.icon ?? page?.icon ?? Shapes;
-    const thumb = model ? THUMBS[model.id] : undefined;
+    const thumb = model ? THUMBS[model.id] : entry.kind === "tool" ? TOOL_THUMBS[entry.page] : undefined;
     const key = `${product?.id ?? "arquivo"}-${entry.kind === "model" ? entry.id : `${entry.page}-${entry.label}`}`;
     return (
       <li key={key}>

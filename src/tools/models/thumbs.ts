@@ -10,5 +10,7 @@ const photos = byId(import.meta.glob("../../assets/model-photos/*.{webp,jpg,png}
 const productRenders = byId(import.meta.glob("../../assets/product-thumbs/*.webp", { eager: true, query: "?url", import: "default" }) as Record<string, string>);
 /** Foto realista do cartão (#270, `npm run photos`): `src/assets/product-photos/<id do produto>.webp`; quando existe, vence o desenho. */
 const productPhotos = byId(import.meta.glob("../../assets/product-photos/*.{webp,jpg,png}", { eager: true, query: "?url", import: "default" }) as Record<string, string>);
+/** Foto realista do atalho de ferramenta dentro de uma família (#280): `src/assets/tool-photos/<página>.webp`; sem ela, a setinha. */
+export const TOOL_THUMBS = byId(import.meta.glob("../../assets/tool-photos/*.{webp,jpg,png}", { eager: true, query: "?url", import: "default" }) as Record<string, string>);
 export const PRODUCT_THUMBS: Record<string, string> = { ...productRenders, ...productPhotos };
 export const THUMBS: Record<string, string> = { ...renders, ...photos };

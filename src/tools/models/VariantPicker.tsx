@@ -2,7 +2,7 @@ import { ArrowUpRight } from "lucide-react";
 import { openWith } from "../intent";
 import { requestNavigate } from "../../ui/navigate";
 import { familyOf, modelOf, type FamilyVariant } from "./families";
-import { THUMBS } from "./thumbs";
+import { THUMBS, TOOL_THUMBS } from "./thumbs";
 
 type Props = { id: string; onPick: (id: string) => void; /** Só estas variações (a ferramenta Organizadores mostra um pedaço da família); sem atalhos para outras ferramentas. */ only?: readonly string[] };
 
@@ -30,9 +30,7 @@ export default function VariantPicker({ id, onPick, only }: Props) {
   };
   const tool = (t: (typeof tools)[number]) => (
     <button key={t.label} type="button" className="model-variant-tool" title={`Abre a ferramenta ${TOOL_NAMES[t.page] ?? t.label}, em outra tela`} onClick={() => { if (t.intent !== undefined) openWith(t.page, t.intent); requestNavigate(t.page); }}>
-      <span className="model-variant-thumb">
-        <ArrowUpRight aria-hidden />
-      </span>
+      <span className="model-variant-thumb">{TOOL_THUMBS[t.page] ? <img src={TOOL_THUMBS[t.page]} alt="" loading="lazy" /> : <ArrowUpRight aria-hidden />}</span>
       <span className="model-variant-label">{t.label}</span>
     </button>
   );

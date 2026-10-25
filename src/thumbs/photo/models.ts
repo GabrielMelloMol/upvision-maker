@@ -3,7 +3,12 @@ import { loadFont } from "../../geometry/fonts";
 import { buildKeychain, DEFAULT_KEYCHAIN } from "../../geometry/keychain";
 import { getManifold, type CS } from "../../geometry/manifold";
 import { buildMedal, DEFAULT_MEDAL } from "../../geometry/medal";
+import { buildEjector, DEFAULT_EJECTOR } from "../../geometry/models/brigadeiroEjector";
+import type { EjectorBottom } from "../../geometry/models/ejectorBottom";
+import { testArt } from "../../geometry/models/sampleArt";
 import { buildPixelArt, DEFAULT_PIXEL_OPTIONS } from "../../geometry/pixelArt";
+import { buildStamp, DEFAULT_STAMP } from "../../geometry/stamp";
+import { buildStampArt, DEFAULT_ART } from "../../geometry/stampArt";
 import { buildBand, DEFAULT_BAND } from "../../geometry/thermo/band";
 import { buildThermo, thermoDefaults } from "../../geometry/thermo/build";
 import { presetSilhouette, type ThermoShape } from "../../geometry/thermo/shapes";
@@ -21,7 +26,7 @@ import { AZIMUTH_DEG, type PhotoItem, type PhotoScene } from "./render";
  * As cenas da foto realista (#251, rodada 2): cada peça montada como se usa e em 3 a 4 cópias com nomes e cores
  * diferentes, espalhadas na mesa. `bevel` arredonda as quinas (0,4 mm) antes de montar a cena.
  */
-export const PHOTO_IDS = ["keychain", "organizer", "medal", "pix", "thermo", "vessel", "pixel", "micHolder", "stampMold"] as const;
+export const PHOTO_IDS = ["keychain", "organizer", "medal", "pix", "thermo", "vessel", "pixel", "micHolder", "stampMold", "dryStamp", "ejector"] as const;
 export type PhotoId = (typeof PHOTO_IDS)[number];
 export type SceneOpts = { bevel?: boolean };
 
@@ -276,6 +281,52 @@ async function stampMolds(o: SceneOpts): Promise<PhotoScene> {
   return sceneOf([place(await maybeBevel(grounded(clay), o), [], { x: 0, y: -40, rotZ: 6 }), place(await maybeBevel(grounded(plate), o), [], { x: -15, y: 55, rotZ: -8 })], { heroPad: 0, elevation: 38 });
 }
 
+// carimbo seco (cartão da ferramenta, #280): a placa com relevo no meio, o papel gravado na frente e a de cavidade virada atrás
+async function dryStamps(o: SceneOpts): Promise<PhotoScene> {
+  const M = await getManifold();
+  const font = await loadFont("great-vibes");
+  const arcFont = await loadFont("montserrat");
+  const p = { ...DEFAULT_STAMP, shape: "round" as const, w: 45, h: 45, paper: 0.6, relief: 1.2, align: "magnets" as const, topColor: "#1f2a44", bottomColor: "#1f2a44" };
+  const { art } = buildStampArt(M, { ...DEFAULT_ART, shape: "round", w: 45, h: 45, logo: null, lines: ["A & B"], font, arcFont, frame: "seal", arcTop: "ANA & BRUNO", arcBottom: "12 · 10 · 2027" });
+  const models = buildStamp(M, art, p).models;
+  art.delete();
+  const byName = (n: string) => grounded([models.find((m) => m.name.startsWith(n))!]);
+  const a = (AZIMUTH_DEG * Math.PI) / 180;
+  const at = (side: number, depth: number, rotZ: number): Pose => ({ x: side * Math.cos(a) - depth * Math.sin(a), y: side * Math.sin(a) + depth * Math.cos(a), rotZ: AZIMUTH_DEG + rotZ }); // lado e fundo vistos da câmera
+  return sceneOf([
+    place(await maybeBevel(byName("Placa com relevo"), o), [], at(0, 0, -8)),
+    place(byName("Papel"), [], at(-40, -40, 10)), // sem arredondar: no papel fino o relevo derrete
+    place(await maybeBevel(grounded(placeModels(byName("Placa com cavidade"), { rotX: 180 })), o), [], at(54, 34, 14)),
+  ], { darkTable: true, elevation: 48, heroPad: 0.3 });
+}
+
+// ejetor (#280): os três fundos lado a lado, com o êmbolo de face para cima (a que encosta no doce) e a forma atrás
+const EJECTORS: { bottom: EjectorBottom; round: boolean; frame: string }[] = [
+  { bottom: "dome", round: false, frame: "#f472b6" },
+  { bottom: "flat", round: false, frame: "#0ea5e9" },
+  { bottom: "scale", round: true, frame: "#f59e0b" }, // escala até um ponto: só para forma redonda e simples
+];
+const EJECTOR_GAP_MM = 48;
+
+async function ejectors(o: SceneOpts): Promise<PhotoScene> {
+  const M = await getManifold();
+  const a = (AZIMUTH_DEG * Math.PI) / 180;
+  const at = (side: number, depth: number, rotZ: number): Pose => ({ x: side * Math.cos(a) - depth * Math.sin(a), y: side * Math.sin(a) + depth * Math.cos(a), rotZ: AZIMUTH_DEG + rotZ });
+  const placed: Placed[] = [];
+  const back: Placed[] = [];
+  for (const [i, v] of [1, 0, 2].map((k) => [k, EJECTORS[k]] as const)) {
+    const art = v.round ? M.CrossSection.circle(15, 96) : testArt(M);
+    const [frame, plunger] = buildEjector({ M, art, text: () => null }, { ...DEFAULT_EJECTOR, bottom: v.bottom, domeHeight: 5, frameColor: v.frame, ejectorColor: v.frame }).models;
+    art.delete();
+    // o fundo plano imprime com a face na mesa: vira para a face aparecer como as outras (fundo curvo já sai virado)
+    const up = grounded(v.bottom === "flat" ? placeModels([plunger], { rotX: 180 }) : [plunger]);
+    const side = (i - 1) * EJECTOR_GAP_MM;
+    placed.push(place(up, [], at(side, 0, 180))); // virado no eixo X: gira para o desenho olhar como a forma; sem arredondar: os degraus mostram a curva
+    back.push(place(await maybeBevel(grounded([frame]), o), [], at(side + 4, 60, 10)));
+  }
+  return sceneOf([...placed, ...back], { elevation: 52, heroPad: 0.75 });
+}
+
 export async function photoScene(id: PhotoId, o: SceneOpts = {}): Promise<PhotoScene> {
   switch (id) {
     case "keychain":
@@ -296,6 +347,10 @@ export async function photoScene(id: PhotoId, o: SceneOpts = {}): Promise<PhotoS
       return micHolders(o);
     case "stampMold":
       return stampMolds(o);
+    case "dryStamp":
+      return dryStamps(o);
+    case "ejector":
+      return ejectors(o);
   }
 }
 

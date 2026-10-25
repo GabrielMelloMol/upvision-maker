@@ -22,3 +22,12 @@ test("foto de cartão de ferramenta só para cartão que existe, e ela vence o d
   expect(photos.filter((id) => !ids.includes(id))).toEqual([]);
   for (const id of photos) expect(PRODUCT_THUMBS[id]).toContain("product-photos");
 });
+
+test("foto de atalho de ferramenta só para atalho que existe numa família (#280)", async () => {
+  const { TOOL_THUMBS } = await import("./thumbs");
+  const { FAMILIES } = await import("./families");
+  const pages = FAMILIES.flatMap((f) => (f.tools ?? []).map((t) => t.page));
+  const photos = readdirSync(join(__dirname, "../../assets/tool-photos")).map((f) => f.replace(/\.\w+$/, ""));
+  expect(photos.filter((p) => !pages.includes(p))).toEqual([]);
+  expect(TOOL_THUMBS.stamp).toContain("tool-photos");
+});
