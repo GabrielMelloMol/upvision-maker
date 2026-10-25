@@ -3,7 +3,7 @@
 Cada versão aparece para a usuária na tela "O que há de novo" depois da atualização.
 Formato: `## <versão> — <data>` e itens `- …` em linguagem simples.
 
-## 0.15.0 — 2026-10-25
+## 0.15.1 — 2026-10-25
 - **Canopla de microfone personalizada (#274)**: novo modelo em Criar. Mini microfone para o transmissor sem fio (Hollyland Lark M2, Lark A1, DJI Mic Mini ou qualquer outro, digitando a medida). O meio pode ter formato de cubo, cilindro, coração, estrela, flor ou nuvem, de um tema (casa para arquiteto, halter para academia, cruz para saúde, balão de fala para podcast, livro para professor) ou do seu próprio desenho. Na frente vai texto, logo ou ícone em relevo. Imprime em 2 metades sem suporte, com o cabo à parte. Imprima antes o anel de teste para conferir o encaixe do microfone.
 - **Caixinha termoformada oca, com três fechos novos (#273)**: as duas cascas agora encostam borda com borda, ocas por dentro para balas e enfeites (as placas de base deixaram de ser o padrão). Escolha o fecho: **Conector com porca** (o novo padrão: a porca tem argola e vira o pendurador), **Dobradiça e trava** (como uma Pokébola: a casca é colada num aro e os aros saem prontos, já unidos pela dobradiça) ou **Sem fecho**. As folgas vêm do seu Kit de testes.
 
