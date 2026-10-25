@@ -71,6 +71,9 @@ export const DEFAULT_MIC_HOLDER: MicHolderParams = {
 };
 
 export const MIC_WALL = 2.4; // parede em volta do berço
+export const BAR_T = MIC_WALL; // travessa das costas: fina para o clipe do transmissor abraçar (#291)
+const BAR_H = 4;
+const UPPER_WIN = 6; // janela de cima, entre a travessa e o topo do bolso: mostra o clipe
 export const MIN_WIDTH = 40;
 export const TENON_FIT = 0.15; // o encaixe do cabo entra justo no canal (por lado)
 const TENON_MIN = 8; // o canal abaixo do microfone, onde o encaixe do cabo entra
@@ -82,17 +85,20 @@ export const PIN_D = 4;
 const PIN_FIT = 0.15;
 const PIN_WALL = 1.6;
 const PIN_DEPTH = 5;
-const RING_H = 12;
 const SEG = 64;
 const FOAM_COLOR = "#2b2b2b";
 
 /** Medidas que saem dos parâmetros: berço (com folga), canal, centro do microfone e encaixe do cabo. */
 export function micLayout(p: Pick<MicHolderParams, "micW" | "micH" | "micT" | "clearance" | "micRound">) {
   const cw = p.micW + 2 * p.clearance;
-  const ch = p.micH + 2 * p.clearance;
+  // #291: o bolso é mais alto que o microfone (win). Ele entra pela janela de baixo das costas e sobe `slide` até o
+  // clipe abraçar a travessa; o encaixe do cabo sobe junto e segura ele lá em cima.
+  const win = p.micH + 2 * p.clearance;
+  const slide = BAR_H + UPPER_WIN;
+  const ch = win + slide;
   const cd = p.micT + 2 * p.clearance;
   const coreW = cw + 2 * MIC_WALL;
-  return { cw, ch, cd, coreW, radius: p.micRound ? Math.min(cw, ch) / 2 : Math.min(2, cw / 4), tenon: [cw - 2 * TENON_FIT, cd - 2 * TENON_FIT] as const };
+  return { cw, ch, cd, coreW, win, slide, bar: BAR_H, radius: p.micRound ? Math.min(cw, win) / 2 : Math.min(2, cw / 4), tenon: [cw - 2 * TENON_FIT, cd - 2 * TENON_FIT] as const };
 }
 
 /** Onde ficaram as coisas (para os testes e a vista montada): centro do microfone, topo do pescoço, encaixe e pinos. */
@@ -156,11 +162,16 @@ export function buildMicHolder(ctx: ModelCtx, p: MicHolderParams): MicHolderOutp
   const L = micLayout(p);
   const warnings: string[] = [];
   if (p.print === "test") {
-    const ring = scoped((k) => toMesh(k(k(k(roundedRect(M, L.cw + 2 * MIC_WALL, L.cd + 2 * MIC_WALL, MIC_WALL + 1)).subtract(k(roundedRect(M, L.cw, L.cd, 1)))).extrude(RING_H))));
+    // o mesmo encaixe das costas (#291): moldura do bolso, da espessura do microfone, com a travessa por cima (ponte curta)
+    const ring = scoped((k) => {
+      const frame = k(k(k(roundedRect(M, L.cw + 2 * MIC_WALL, L.ch + 2 * MIC_WALL, MIC_WALL + 1)).subtract(k(pocket(M, L)))).extrude(L.cd + BAR_T));
+      const bar = k(k(M.Manifold.cube([L.cw + MIC_WALL, BAR_H, BAR_T])).translate([-(L.cw + MIC_WALL) / 2, -L.ch / 2 + L.win, L.cd]));
+      return toMesh(k(frame.add(bar)));
+    });
     return {
       layout: null,
       models: [{ name: "Anel de teste", parts: [{ name: "Anel", color: p.bodyColor, mesh: ring }] }],
-      warnings: ["Anel de teste: o microfone (com o ímã ou clipe que você vai usar) deve passar pela abertura sem forçar e sem folga grande. Apertado: aumente a folga; solto: diminua. Depois imprima a peça inteira."],
+      warnings: ["Anel de teste: é o mesmo encaixe das costas. O microfone (com o ímã ou clipe que você vai usar) entra pela janela grande, sobe e o clipe abraça a travessa. Deve passar sem forçar e sem folga grande. Apertado: aumente a folga; solto: diminua. Depois imprima a peça inteira."],
     };
   }
   const round = p.shape === "cylinder";
@@ -200,7 +211,7 @@ export function buildMicHolder(ctx: ModelCtx, p: MicHolderParams): MicHolderOutp
     const sb = boxOf(S);
     const top = Math.max(sb[3], coreTop) + p.neckH;
     // berço + canal do cabo (de baixo até o centro) + canal do som (até o topo do pescoço)
-    const cavity = k(M.CrossSection.union([k(k(roundedRect(M, L.cw, L.ch, L.radius)).translate([0, cy])), k(k(M.CrossSection.square([L.cw, cy])).translate([-L.cw / 2, 0])), k(k(M.CrossSection.square([SOUND_W, top - cy + 1])).translate([-SOUND_W / 2, cy]))]));
+    const cavity = k(M.CrossSection.union([k(k(pocket(M, L)).translate([0, cy])), k(k(M.CrossSection.square([L.cw, cy])).translate([-L.cw / 2, 0])), k(k(M.CrossSection.square([SOUND_W, top - cy + 1])).translate([-SOUND_W / 2, cy]))]));
     // pinos: o primeiro par simétrico (dos lados do berço) que fica inteiro no formato, com parede
     const pr = PIN_D / 2 + PIN_FIT;
     const safe = k(k(body2d.offset(-(pr + PIN_WALL), "Round")).subtract(k(cavity.offset(pr + PIN_WALL, "Round"))));
@@ -215,7 +226,7 @@ export function buildMicHolder(ctx: ModelCtx, p: MicHolderParams): MicHolderOutp
     if (!spots.length) warnings.push("Não coube pino entre as metades: alinhe pela borda e cole.");
     const depth = Math.min(PIN_DEPTH, T / 2 - FLOOR);
     // metade sem a arte, com o corte em z = 0 (fica na mesa)
-    const halfShell = (): Solid => {
+    const halfShell = (back: boolean): Solid => {
       let s: Solid;
       if (round) {
         const cyl = k(k(k(M.Manifold.cylinder(sb[3] - sb[1], R, R, SEG * 2)).rotate([-90, 0, 0])).translate([0, sb[1], 0]));
@@ -225,10 +236,16 @@ export function buildMicHolder(ctx: ModelCtx, p: MicHolderParams): MicHolderOutp
       s = k(s.add(neck));
       s = k(s.subtract(k(k(cavity.extrude(L.cd / 2 + 0.01)).translate([0, 0, -0.01]))));
       for (const [x, y] of spots) s = k(s.subtract(k(k(M.Manifold.cylinder(depth + 0.4, pr, pr, 32)).translate([x, y, -0.01]))));
+      if (back) {
+        // costas abertas (#291): o bolso atravessa a parede e só fica a travessa, logo atrás do microfone. Deitada,
+        // ela é uma ponte curta presa nas paredes dos lados (sem suporte); o recorte segue o berço, não o formato.
+        const bar = k(k(k(M.Manifold.cube([L.coreW + 2, BAR_H, BAR_T])).translate([-(L.coreW + 2) / 2, cy - L.ch / 2 + L.win, L.cd / 2])).intersect(s));
+        s = k(k(s.subtract(k(k(k(pocket(M, L)).translate([0, cy])).extrude(T)))).add(bar));
+      }
       return s;
     };
-    const front = halfShell();
-    const back = k(halfShell().mirror([1, 0, 0]));
+    const front = halfShell(false);
+    const back = k(halfShell(true).mirror([1, 0, 0]));
     const frontParts: Part[] = [{ name: "Frente", color: p.bodyColor, mesh: toMesh(front) }];
     // o que vai na frente: texto, desenho/ícone ou nada, em relevo de outra cor
     let deco: CS | null = null;
@@ -251,7 +268,7 @@ export function buildMicHolder(ctx: ModelCtx, p: MicHolderParams): MicHolderOutp
       } else frontParts.push(...artParts(p.front === "art" ? ctx : { ...ctx, art: null, artLayers: null }, placed, p.artColor, "Frente (relevo)", p.relief, T / 2));
     }
     // cabo de pé: afina para baixo; o encaixe no topo entra no canal e segura o microfone
-    const tenonL = cy - L.ch / 2;
+    const tenonL = cy - L.ch / 2 + L.slide;
     const handle = k(k(M.Manifold.cylinder(p.handleL, HANDLE_BOTTOM / 2, HANDLE_TOP / 2, SEG)).add(k(k(k(roundedRect(M, L.tenon[0], L.tenon[1], 1)).extrude(tenonL)).translate([0, 0, p.handleL]))));
     const pinLen = 2 * depth - 0.4;
     const pins = spots.map((_, i) => k(k(M.Manifold.cylinder(pinLen, PIN_D / 2, PIN_D / 2, 32)).translate([i * (PIN_D + 4), 0, 0])));
@@ -267,6 +284,9 @@ export function buildMicHolder(ctx: ModelCtx, p: MicHolderParams): MicHolderOutp
       for (let i = 0; i < q.length; i += 3) [q[i], q[i + 1], q[i + 2]] = f(q[i], q[i + 1], q[i + 2]);
       return { positions: q, indices: m.indices };
     };
+    // transmissor no lugar de uso: no alto do bolso, preso na travessa (de pé, a face para a frente)
+    const tx = k(k(k(roundedRect(M, p.micW, p.micH, Math.min(L.radius, p.micW / 2 - 0.01))).extrude(p.micT)).translate([0, 0, -p.micT / 2]));
+    const transmitter = k(k(tx.rotate([90, 0, 0])).translate([0, 0, cy + L.slide / 2]));
     const foamR = p.neckD / 2 + 5;
     const foam = k(k(k(M.Manifold.sphere(1, SEG)).scale([foamR, foamR, foamR * 1.15])).translate([0, 0, top - p.neckH * 0.3]));
     const assembled: Model[] = [
@@ -274,15 +294,24 @@ export function buildMicHolder(ctx: ModelCtx, p: MicHolderParams): MicHolderOutp
       { name: "Costas", parts: [{ name: "Costas", color: p.bodyColor, mesh: stand(models[1].parts[0].mesh, (a, b, c) => [-a, c, b]) }] },
       { name: "Cabo", parts: [{ name: "Cabo", color: p.handleColor, mesh: moveMesh(models[2].parts[0].mesh, 0, 0, -p.handleL) }] },
       { name: "Espuma", parts: [{ name: "Espuma (só na prévia)", color: FOAM_COLOR, mesh: toMesh(foam) }] },
+      { name: "Transmissor", parts: [{ name: "Transmissor (só na prévia)", color: FOAM_COLOR, mesh: toMesh(transmitter) }] },
     ];
     return { models: spread(models), assembled, cy, top, tenonL, depth, spots };
   });
-  warnings.push("Duas metades: ponha os pinos, passe cola e una a frente e as costas. O microfone entra por baixo e o cabo encaixa no mesmo canal, segurando ele. A espuma veste o pescoço.");
+  warnings.push("Duas metades: ponha os pinos, passe cola e una a frente e as costas. O microfone entra pela janela grande das costas e sobe até o clipe abraçar a travessa; o cabo encaixa por baixo e segura ele lá em cima. Para carregar, puxe o cabo, desça o microfone e tire pela janela. A espuma veste o pescoço.");
+  // de costas: a mesma montagem girada meia volta, para ver as janelas e o transmissor
+  const turn = (ms: Model[]) => ms.map((m) => ({ ...m, parts: m.parts.map((x) => { const q = x.mesh.positions.slice(); for (let i = 0; i < q.length; i += 3) [q[i], q[i + 1]] = [-q[i], -q[i + 1]]; return { ...x, mesh: { ...x.mesh, positions: q } }; }) }));
   const views = [
-    { id: "closed", label: "Montada", models: out.assembled, note: "Como fica pronta, com a espuma (que não vai para o arquivo)." },
+    { id: "closed", label: "Montada", models: out.assembled, note: "Como fica pronta, com a espuma e o transmissor (que não vão para o arquivo)." },
+    { id: "back", label: "Costas", models: turn(out.assembled), note: "As janelas das costas: o transmissor fica à vista para ligar, ver a luz e tirar para carregar." },
     { id: "bed", label: "Mesa", models: out.models },
   ];
   return { models: out.models, views, elements, warnings, layout: { cy: out.cy, top: out.top, tenonL: out.tenonL, pinDepth: out.depth, pins: out.spots, thickness: T } };
+}
+
+/** Bolso do microfone, centrado na origem: redondo em cima (onde o microfone fica), reto embaixo (por onde ele sobe). */
+function pocket(M: ManifoldToplevel, L: ReturnType<typeof micLayout>): CS {
+  return scoped((k) => k(roundedRect(M, L.cw, L.ch, L.radius)).add(k(k(M.CrossSection.square([L.cw, L.ch / 2])).translate([-L.cw / 2, -L.ch / 2]))));
 }
 
 const fmt = (n: number) => n.toFixed(1).replace(".", ",");
