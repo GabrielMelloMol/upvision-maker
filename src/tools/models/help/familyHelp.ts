@@ -237,6 +237,28 @@ export const FAMILY_HELP: Record<string, GuideHelp> = {
     tips: ["Meça o ralo por dentro com paquímetro ou régua e confira com uma peça de teste.", "PETG aguenta melhor a água; lave sem água muito quente."],
     faq: [{ q: "A tampa não entra no ralo.", a: "O pino usa uma folga de 0,4 mm. Se o ralo for de plástico mole ou irregular, teste com 0,6 mm." }],
   },
+  micHolder: {
+    use: [
+      "Transformar o microfone de lapela sem fio num mini microfone de mão para entrevista, reportagem, podcast, igreja ou evento.",
+      "Brinde de profissão: o meio tem o formato do tema (casa, halter, cruz, balão, livro) ou do desenho da pessoa, com o nome ou a logo na frente.",
+    ],
+    avoid: [
+      "Microfone que você não tem para medir: as medidas prontas são das fichas e não contam o ímã ou o clipe. Imprima o anel de teste antes de vender.",
+      "Formato fino demais: abaixo de 40 mm de largura o meio fica estreito para o microfone e o desenho perde a cara.",
+    ],
+    tips: [
+      "Comece pelo anel de teste (uns 10 minutos): o microfone deve passar sem forçar. Ajuste a folga e só então imprima a canopla.",
+      "As duas metades saem deitadas com o corte na mesa: não precisam de suporte. O teto do berço é uma ponte curta; ventilação no máximo ajuda.",
+      "Monte com os pinos e uma gota de cola nas metades. O microfone entra por baixo e o cabo encaixa no mesmo canal, segurando ele.",
+      "Com AMS, o meio e o relevo da frente saem em cores diferentes; o cabo pode ir na cor do relevo.",
+    ],
+    faq: [
+      { q: "Como tiro o microfone para carregar?", a: "Puxe o cabo: o microfone desce pelo mesmo canal. As metades ficam coladas." },
+      { q: "Qual espuma uso?", a: "Espuma de mini microfone, de uns 30 mm. Meça o furo dela e ponha o pescoço 1 a 2 mm maior para ela ficar presa." },
+      { q: "Posso usar o meu desenho no formato?", a: "Sim: escolha Meu desenho e envie o SVG ou a imagem. O app fecha o contorno, põe o microfone no meio e avisa se ficar estreito." },
+      { q: "Posso vender?", a: "Sim. A peça é gerada pelo app, com formato e medidas próprias; não usa arquivo de terceiros." },
+    ],
+  },
   jigs: {
     use: ["Gabaritos de oficina: furação com guia de broca, gabarito de raio e régua de marcação."],
     avoid: ["Tolerância de precisão industrial: a peça impressa serve para marcar e guiar, não para medir micrômetros."],

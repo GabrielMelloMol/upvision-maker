@@ -1,8 +1,9 @@
-import { BriefcaseBusiness, Disc3, Frame, IdCard, LayoutGrid, Palette, QrCode, RadioTower, Shield, Signpost, Sparkles, Users } from "lucide-react";
+import { BriefcaseBusiness, Disc3, Mic, Frame, IdCard, LayoutGrid, Palette, QrCode, RadioTower, Shield, Signpost, Sparkles, Users } from "lucide-react";
 import { nozzleMm } from "../../../geometry/bed";
 import { buildBusinessCard, DEFAULT_BUSINESS_CARD } from "../../../geometry/models/businessCard";
 import { buildColoringTile, DEFAULT_COLORING_TILE } from "../../../geometry/models/coloringTile";
 import { buildLogoPlate, DEFAULT_ADAPTIVE_PLATE } from "../../../geometry/models/logoPlate";
+import { buildMicHolder, DEFAULT_MIC_HOLDER, MIC_SHAPE_WIDTH, MIC_SHAPES, type MicShape } from "../../../geometry/models/micHolder";
 import { buildMolleTag, DEFAULT_MOLLE_TAG } from "../../../geometry/models/molleTag";
 import { buildMusicCard, DEFAULT_MUSIC_CARD } from "../../../geometry/models/musicCard";
 import { buildNamesPanel, DEFAULT_NAMES_PANEL } from "../../../geometry/models/namesPanel";
@@ -13,6 +14,8 @@ import { buildQrList, buildQrPlate, DEFAULT_QR_LIST, DEFAULT_QR_PLATE } from "..
 import { buildStarMap, DEFAULT_STAR_MAP } from "../../../geometry/models/starMap";
 import { buildSignPlate, DEFAULT_SIGN_PLATE } from "../../../geometry/models/signPlate";
 import { parseMoney } from "../../../ui/parse";
+import { fitDefaults } from "../fitDefaults";
+import { MIC_GUIDE } from "../micGuide";
 import { as, bool, choice, color, logoFields, nfcFields, num, place, resinFields, starPrint, text, textureFields, type ModelDef } from "../fields";
 
 /** Modelos prontos da categoria Placas. */
@@ -263,6 +266,64 @@ export const PLATE_MODELS: ModelDef[] = [
       },
     ],
     build: (ctx, p) => buildProfessionPlaque(ctx, as(p)),
+  },
+  {
+    id: "micHolder",
+    category: "gifts",
+    label: "Canopla de microfone",
+    blurb: "Mini microfone para o transmissor sem fio (Lark M2, Lark A1, DJI Mic Mini ou o seu): o meio no formato do tema, com texto ou logo na frente, pescoço para a espuma e cabo. Imprima antes o anel de teste.",
+    icon: Mic,
+    font: true,
+    fontSection: 2,
+    art: "Desenho ou ícone da frente (em Meu desenho, ele vira o formato do meio)",
+    artSection: 2,
+    iconPicker: true,
+    defaults: DEFAULT_MIC_HOLDER,
+    liveDefaults: () => fitDefaults({ clearance: "boardClearance" }), // a folga validada no Kit de testes (#247)
+    guide: MIC_GUIDE,
+    derive: (changed, value) => (changed === "shape" ? { width: MIC_SHAPE_WIDTH[value as MicShape] } : undefined),
+    sections: [
+      {
+        title: "O microfone (confira com o seu)",
+        fields: [
+          num("micW", "Largura do transmissor", 15, 45, { step: 0.1, hint: "De pé, visto de frente. As sugestões vêm das fichas dos fabricantes, sem o ímã ou o clipe: meça o seu com paquímetro." }),
+          num("micH", "Altura do transmissor", 10, 45, { step: 0.1 }),
+          num("micT", "Espessura do transmissor", 5, 22, { step: 0.1, hint: "Com o ímã ou o clipe que vai ficar preso nele." }),
+          bool("micRound", "Redondo (formato de botão)"),
+          num("clearance", "Folga em volta do microfone", 0.1, 1.2, { step: 0.05, hint: "Vem do Kit de testes. Se o anel de teste apertar, aumente de 0,05 em 0,05." }),
+        ],
+      },
+      {
+        title: "Formato do meio",
+        fields: [
+          choice("shape", "Formato", MIC_SHAPES, true),
+          num("width", "Largura", 30, 120, { step: 1, hint: "Menos de 40 mm fica estreito para o microfone: o app avisa e engrossa a parte em volta dele." }),
+          num("thickness", "Espessura", 16, 60, { step: 1, hint: "Cubo e cilindro usam a largura." }),
+        ],
+      },
+      {
+        title: "Frente",
+        fields: [choice("front", "Na frente", [["text", "Texto"], ["art", "Desenho ou ícone"], ["none", "Nada"]]), text("text", "Texto", 20), num("relief", "Relevo", 0.4, 3)],
+      },
+      {
+        title: "Espuma e cabo",
+        fields: [
+          num("neckD", "Diâmetro do pescoço da espuma", 16, 40, { step: 0.5, hint: "Meça por dentro da espuma: o pescoço fica 1 a 2 mm maior para ela não sair." }),
+          num("neckH", "Altura do pescoço", 6, 30, { step: 1 }),
+          num("handleL", "Comprimento do cabo", 30, 150, { step: 1 }),
+        ],
+      },
+      {
+        title: "Imprimir e cores",
+        fields: [
+          choice("print", "Imprimir", [["full", "Canopla inteira"], ["test", "Só o anel de teste"]]),
+          color("bodyColor", "Meio"),
+          color("artColor", "Frente (relevo)"),
+          color("handleColor", "Cabo"),
+        ],
+      },
+    ],
+    build: (ctx, p) => buildMicHolder(ctx, as(p)),
   },
   {
     id: "businessCard",
