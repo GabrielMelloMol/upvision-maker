@@ -415,8 +415,9 @@ td.best-name { max-width: 0; width: 30%; overflow: hidden; text-overflow: ellips
 .gen-help-body > * { min-width: 0; }
 .gen-help-scroll { overflow-x: auto; max-width: 100%; }
 .gen-help table { width: 100%; border-collapse: collapse; }
-.gen-help td:last-child { overflow-wrap: anywhere; }
-.gen-help :is(th, td) { text-align: left; vertical-align: top; padding: 4px 8px; border-bottom: 1px solid var(--border-strong); }
+.gen-help :is(th, td) { text-align: left; vertical-align: top; padding: 4px 8px; border-bottom: 0; }
+.gen-help tbody { border-bottom: 1px solid var(--border-strong); }
+.gen-help .gen-hint td { padding-top: 0; color: var(--muted); }
 .gen-help thead th { color: var(--muted); font-weight: 600; }
 .gen-faq { padding: 2px 0; }
 .gen-faq > summary { cursor: pointer; min-height: 24px; }
