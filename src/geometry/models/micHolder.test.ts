@@ -121,5 +121,9 @@ describe("canopla de microfone (#274)", { timeout: 60_000 }, () => {
     const fr = byName(o.models, "Frente").parts;
     expect(fr).toHaveLength(2);
     expect(meshBounds([fr[1].mesh])!.max[2]).toBeCloseTo(P.width / 2 + P.relief, 0);
+    expect(meshBounds([fr[0].mesh])!.max[2]).toBeLessThanOrEqual(P.width / 2 + 1e-3); // nada fura a curva
+    const thin = build({ shape: "cylinder", width: 30 });
+    expect(half(thin.models, "Frente").intersect(micHalf(P, thin.layout!.cy)).volume()).toBeLessThan(0.01);
+    expect(half(thin.models, "Frente").intersect(micHalf(P, thin.layout!.cy, P.clearance + 0.3)).volume()).toBeGreaterThan(1);
   });
 });

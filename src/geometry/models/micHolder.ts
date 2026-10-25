@@ -164,7 +164,9 @@ export function buildMicHolder(ctx: ModelCtx, p: MicHolderParams): MicHolderOutp
     };
   }
   const round = p.shape === "cylinder";
-  const T0 = p.shape === "cube" || round ? p.width : p.thickness;
+  // cilindro estreito: o raio cresce até o berço ter parede na altura do bolso (a largura no corte é a do miolo)
+  const R = round ? Math.max(p.width / 2, Math.hypot(L.coreW / 2, L.cd / 2)) : 0;
+  const T0 = p.shape === "cube" ? p.width : round ? 2 * R : p.thickness;
   const T = Math.max(T0, L.cd + 2 * FLOOR);
   if (T > T0) warnings.push(`A espessura subiu para ${fmt(T)} mm para o microfone caber com parede atrás.`);
   const elements: ElementBox[] = [];
@@ -216,9 +218,8 @@ export function buildMicHolder(ctx: ModelCtx, p: MicHolderParams): MicHolderOutp
     const halfShell = (): Solid => {
       let s: Solid;
       if (round) {
-        const R = p.width / 2;
         const cyl = k(k(k(M.Manifold.cylinder(sb[3] - sb[1], R, R, SEG * 2)).rotate([-90, 0, 0])).translate([0, sb[1], 0]));
-        s = k(k(cyl.trimByPlane([0, 0, 1], 0)).add(k(core.extrude(T / 2 - 1)))); // o miolo garante o berço se o cilindro for estreito
+        s = k(cyl.trimByPlane([0, 0, 1], 0));
       } else s = k(body2d.extrude(T / 2));
       const neck = k(k(k(k(M.Manifold.cylinder(top - cy - L.ch / 2, p.neckD / 2, p.neckD / 2, SEG)).rotate([-90, 0, 0])).translate([0, cy + L.ch / 2, 0])).trimByPlane([0, 0, 1], 0));
       s = k(s.add(neck));
@@ -244,7 +245,6 @@ export function buildMicHolder(ctx: ModelCtx, p: MicHolderParams): MicHolderOutp
       const db = boxOf(placed);
       elements.push({ id: "front", label: "Frente", box: db });
       if (round) {
-        const R = p.width / 2;
         const shell = (r: number) => k(k(k(M.Manifold.cylinder(sb[3] - sb[1], r, r, SEG * 2)).rotate([-90, 0, 0])).translate([0, sb[1], 0]));
         const skin = k(shell(R + p.relief).subtract(shell(R)));
         frontParts.push({ name: "Frente (relevo)", color: p.artColor, mesh: toMesh(k(k(placed.extrude(R + p.relief)).intersect(skin))) });
