@@ -40,6 +40,7 @@ export const PRODUCT_BLURB: Record<string, string> = {
   phoneStand: "Suporte de celular e tablet fixo ou dobrável",
   bookHolder: "Apoio para livro, de mesa ou de polegar",
   bookmark: "Marca-página e clipe de papel personalizados",
+  micHolder: "Mini microfone para o transmissor sem fio, no formato do tema da pessoa",
   keycap: "Tecla de teclado mecânico com sua arte",
   keyHolder: "Porta-chave de parede com ganchos",
   utilities: "Arruela, botão, pente de cabos e peças de reparo",

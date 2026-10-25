@@ -65,6 +65,7 @@ export const FAMILIES: Family[] = [
   { id: "phoneStand", label: "Suporte de celular e tablet", category: "organize", variants: [{ id: "phoneStand", label: "Fixo" }, { id: "phoneStandFold", label: "Dobrável" }] },
   { id: "bookHolder", label: "Suporte de livro", category: "home", variants: [{ id: "bookThumb", label: "De polegar" }, { id: "bookStand", label: "De mesa" }] },
   { id: "bookmark", label: "Marca-página", category: "gifts", variants: [{ id: "bookmark", label: "Marca-página" }, { id: "paperClip", label: "Clipe de papel" }] },
+  { id: "micHolder", label: "Canopla de microfone", category: "gifts", variants: [{ id: "micHolder", label: "Canopla de microfone" }] },
   { id: "keycap", label: "Tecla de teclado", category: "organize", variants: [{ id: "keycap", label: "Tecla de teclado" }] },
   { id: "keyHolder", label: "Porta-chave de parede", category: "organize", variants: [{ id: "keyHolder", label: "Porta-chave de parede" }] },
   { id: "utilities", label: "Utilitários", category: "organize", variants: [{ id: "spacer", label: "Arruela" }, { id: "plantMarker", label: "Marcador" }, { id: "cableComb", label: "Pente de cabos" }, { id: "knob", label: "Botão" }, { id: "hoseAdapter", label: "Mangueira" }, { id: "oring", label: "O-ring" }, { id: "seal", label: "Retentor" }, { id: "spoolHolder", label: "Carretel" }] },

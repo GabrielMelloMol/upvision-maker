@@ -8,7 +8,7 @@ test("cada modelo aparece em exatamente uma família; nenhuma variação aponta 
   expect(new Set(ids).size).toBe(ids.length);
   expect([...ids].sort()).toEqual(MODELS.map((m) => m.id).sort());
   expect(FAMILIES.length).toBeGreaterThanOrEqual(24);
-  expect(FAMILIES.length).toBeLessThanOrEqual(38);
+  expect(FAMILIES.length).toBeLessThanOrEqual(39); // a canopla de microfone (#274) entrou como família própria
 });
 
 test("famílias por categoria cobrem todas as categorias; atalhos apontam para telas que existem", () => {
@@ -62,7 +62,7 @@ test("legendas das variações são curtas e padronizadas: até 14 letras, sem p
 test("categorias dos Modelos prontos (onde fica): Presentes, Casa e decoração e Organização e utilidades", () => {
   const names = (c: Parameters<typeof familiesIn>[0]) => familiesIn(c).map((f) => f.label);
   expect(CATEGORIES.map(([, label]) => label)).toEqual(["Chaveiros", "Placas", "Presentes e lembrancinhas", "Festa e esporte", "Casa e decoração", "Organização e utilidades", "Cozinha"]);
-  expect(names("gifts")).toEqual(["Mapa estelar", "Cartão de música", "Lembrancinhas", "Kits de montar", "Porta-copos", "Marca-página"]);
+  expect(names("gifts")).toEqual(["Mapa estelar", "Cartão de música", "Lembrancinhas", "Kits de montar", "Porta-copos", "Marca-página", "Canopla de microfone"]);
   expect(familiesIn("gifts").find((f) => f.id === "souvenirs")!.variants.map((v) => v.id)).toEqual(["fridgeMagnet", "shirtPrint", "outlineBowl"]);
   expect(names("home")).toEqual(["Moldura", "Luminárias e abajures", "Quadro e desenho", "Vaso", "Brinquedos", "Suporte de livro"]);
   expect(names("organize")).toEqual(["Painel perfurado", "Potes e organizadores", "Caixinhas modulares para gaveta", "Suporte de celular e tablet", "Tecla de teclado", "Porta-chave de parede", "Utilitários", "Peças mecânicas", "Gabaritos de oficina"]);

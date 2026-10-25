@@ -147,6 +147,56 @@
   "plates": 1
  },
  {
+  "key": "micHolder:máximo",
+  "owner": "Forja",
+  "group": "gifts",
+  "label": "Canopla de microfone (micHolder)",
+  "variant": "máximo",
+  "status": "ok",
+  "reasons": [
+   "app: Duas metades: ponha os pinos, passe cola e una a frente e as costas. O microfone entra por baixo e o cabo encaixa no mesmo canal, segurando ele. A espuma veste o pescoço."
+  ],
+  "date": "2026-10-25",
+  "slicers": "Bambu ✓ · Orca ✓ · Projeto Bambu ✓",
+  "minutes": 558,
+  "grams": 512.9,
+  "plates": 1
+ },
+ {
+  "key": "micHolder:mínimo",
+  "owner": "Forja",
+  "group": "gifts",
+  "label": "Canopla de microfone (micHolder)",
+  "variant": "mínimo",
+  "status": "ok",
+  "reasons": [
+   "app: O formato ficou estreito para o microfone (largura mínima de uns 40 mm): o app engrossou a parte em volta dele. Aumente a largura para o desenho aparecer inteiro.",
+   "app: Não coube pino entre as metades: alinhe pela borda e cole.",
+   "app: Duas metades: ponha os pinos, passe cola e una a frente e as costas. O microfone entra por baixo e o cabo encaixa no mesmo canal, segurando ele. A espuma veste o pescoço."
+  ],
+  "date": "2026-10-25",
+  "slicers": "Bambu ✓ · Orca ✓ · Projeto Bambu ✓",
+  "minutes": 47,
+  "grams": 23.3,
+  "plates": 1
+ },
+ {
+  "key": "micHolder:padrão",
+  "owner": "Forja",
+  "group": "gifts",
+  "label": "Canopla de microfone (micHolder)",
+  "variant": "padrão",
+  "status": "ok",
+  "reasons": [
+   "app: Duas metades: ponha os pinos, passe cola e una a frente e as costas. O microfone entra por baixo e o cabo encaixa no mesmo canal, segurando ele. A espuma veste o pescoço."
+  ],
+  "date": "2026-10-25",
+  "slicers": "Bambu ✓ · Orca ✓ · Projeto Bambu ✓",
+  "minutes": 123,
+  "grams": 71.7,
+  "plates": 1
+ },
+ {
   "key": "aroma:coração",
   "owner": "Forja",
   "group": "keychains",

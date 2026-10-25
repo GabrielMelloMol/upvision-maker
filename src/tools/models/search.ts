@@ -88,6 +88,7 @@ export const MODEL_ALIASES: Record<string, string> = {
   labelJig: "gabarito etiqueta moldura colar posição adesivo rótulo",
   slingshot: "estilingue bodoque atiradeira funda forquilha brinquedo nome",
   phoneCase: "capa celular smartphone iphone samsung galaxy tpu case proteção nome",
+  micHolder: "canopla microfone mic mini microfone lapela sem fio hollyland lark m2 a1 dji mic mini podcast entrevista reporter espuma logo",
   opener: "abridor garrafa lata chaveiro",
   openerImage: "abridor garrafa lata chaveiro imagem foto desenho contorno recorte silhueta gato logo personalizado argola",
   spinner: "giratório gira chaveiro fidget",

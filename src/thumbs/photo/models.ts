@@ -21,7 +21,7 @@ import { AZIMUTH_DEG, type PhotoItem, type PhotoScene } from "./render";
  * As cenas da foto realista (#251, rodada 2): cada peça montada como se usa e em 3 a 4 cópias com nomes e cores
  * diferentes, espalhadas na mesa. `bevel` arredonda as quinas (0,4 mm) antes de montar a cena.
  */
-export const PHOTO_IDS = ["keychain", "organizer", "medal", "pix", "thermo", "vessel", "pixel"] as const;
+export const PHOTO_IDS = ["keychain", "organizer", "medal", "pix", "thermo", "vessel", "pixel", "micHolder"] as const;
 export type PhotoId = (typeof PHOTO_IDS)[number];
 export type SceneOpts = { bevel?: boolean };
 
@@ -250,6 +250,25 @@ async function pixels(o: SceneOpts): Promise<PhotoScene> {
   return sceneOf(placed, { view: "top", darkTable: true });
 }
 
+// canopla (#274): três temas lado a lado, numa fila virada para a câmera, para mostrar que o meio muda com a profissão
+const MIC_THEMES = [
+  { shape: "house", width: 56, text: "ARQ", bodyColor: "#1f4fd1", artColor: "#ffffff" },
+  { shape: "dumbbell", width: 84, text: "GYM", bodyColor: "#1c1c1e", artColor: "#f97316" },
+  { shape: "heart", width: 78, text: "AMOR", bodyColor: "#ec4899", artColor: "#ffffff" },
+];
+const MIC_GAP_MM = 96;
+
+async function micHolders(o: SceneOpts): Promise<PhotoScene> {
+  const a = (AZIMUTH_DEG * Math.PI) / 180;
+  const placed: Placed[] = [];
+  for (const [i, t] of [1, 0, 2].map((k) => [k, MIC_THEMES[k]] as const)) {
+    const models = await buildModels("micHolder", { ...t, front: "text", handleColor: "#2b2b2b" });
+    const d = (i - 1) * MIC_GAP_MM;
+    placed.push(place(await maybeBevel(grounded(models), o), [], { x: d * Math.cos(a), y: d * Math.sin(a), rotZ: AZIMUTH_DEG }));
+  }
+  return sceneOf(placed, { heroPad: 0.12 });
+}
+
 export async function photoScene(id: PhotoId, o: SceneOpts = {}): Promise<PhotoScene> {
   switch (id) {
     case "keychain":
@@ -266,6 +285,8 @@ export async function photoScene(id: PhotoId, o: SceneOpts = {}): Promise<PhotoS
       return vessels(o);
     case "pixel":
       return pixels(o);
+    case "micHolder":
+      return micHolders(o);
   }
 }
 
