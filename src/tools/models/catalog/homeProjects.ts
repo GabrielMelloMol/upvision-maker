@@ -280,7 +280,7 @@ export const HOME_PROJECT_MODELS: ModelDef[] = [
           choice("kind", "Tipo", [["plate", "Placa para prensar EVA"], ["clay", "Forma para massinha de EVA"]], { hint: "A forma para massinha é uma cavidade: encha, deixe secar e o carimbo sai pronto." }),
           text("text", "Texto (se não enviar desenho)", 20),
           num("size", "Tamanho do desenho", 40, 300, { step: 1, hint: "Lado maior." }),
-          bool("invert", "Inverter: carimba o espaço em volta do desenho"),
+          bool("invert", "Inverter (carimba em volta)"),
           num("bridge", "Ligar partes soltas", 0, 5, { step: 0.5, hint: "Fecha vãos de até o dobro deste valor entre letras e pedaços soltos." }),
         ],
       },

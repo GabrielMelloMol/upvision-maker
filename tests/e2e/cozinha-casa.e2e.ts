@@ -68,6 +68,7 @@ test("forma para massinha de EVA (#252): cavidade, costas com apoio, aviso de se
   await idle(page);
   await expect(page.locator(".legend")).toContainText("Costas");
   await expect(page.getByText(/deixe secar de 1 a 2 dias/)).toBeVisible();
+  await page.locator(".controls .card").first().screenshot({ path: "test-results/252-forma.png" });
   await page.getByLabel(/^Ângulo de saída/).fill("3");
   await idle(page);
   await expect(page.locator(".viewer .overlay")).toHaveCount(0);
