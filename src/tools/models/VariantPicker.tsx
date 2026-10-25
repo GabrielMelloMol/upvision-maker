@@ -30,7 +30,19 @@ export default function VariantPicker({ id, onPick, only }: Props) {
   };
   const tool = (t: (typeof tools)[number]) => (
     <button key={t.label} type="button" className="model-variant-tool" title={`Abre a ferramenta ${TOOL_NAMES[t.page] ?? t.label}, em outra tela`} onClick={() => { if (t.intent !== undefined) openWith(t.page, t.intent); requestNavigate(t.page); }}>
-      <span className="model-variant-thumb">{TOOL_THUMBS[t.page] ? <img src={TOOL_THUMBS[t.page]} alt="" loading="lazy" /> : <ArrowUpRight aria-hidden />}</span>
+      <span className="model-variant-thumb">
+        {TOOL_THUMBS[t.page] ? (
+          <>
+            <img src={TOOL_THUMBS[t.page]} alt="" loading="lazy" />
+            {/* com foto, a seta vira selo no canto: continua dizendo que abre outra tela (#286) */}
+            <span className="model-variant-badge">
+              <ArrowUpRight aria-hidden />
+            </span>
+          </>
+        ) : (
+          <ArrowUpRight aria-hidden />
+        )}
+      </span>
       <span className="model-variant-label">{t.label}</span>
     </button>
   );

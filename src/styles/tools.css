@@ -227,6 +227,9 @@ details.advanced[open] > .stack, details.advanced[open] > .grid { margin-top: va
 .model-variant-row button[aria-pressed="true"] > .model-variant-label { font-weight: 600; }
 .model-variant-row button:focus-visible { outline: 2px solid var(--focus-ring); outline-offset: 2px; }
 .model-variant-tool .model-variant-thumb { color: var(--accent-text); }
+.model-variant-tool .model-variant-thumb { position: relative; }
+.model-variant-badge { position: absolute; top: 3px; right: 3px; display: grid; place-items: center; width: 16px; height: 16px; border-radius: 50%; background: var(--surface); box-shadow: 0 1px 2px rgb(0 0 0 / 0.3); }
+.model-variant-thumb .model-variant-badge svg { width: 11px; height: 11px; }
 
 /* polimento: dropzone sozinha num card vira o próprio grupo (sem card dentro de card) */
 .controls > .card:has(> .dropzone:first-child) { padding: 0; background: none; box-shadow: none; }
