@@ -3,6 +3,9 @@
 Cada versão aparece para a usuária na tela "O que há de novo" depois da atualização.
 Formato: `## <versão> — <data>` e itens `- …` em linguagem simples.
 
+## Próxima versão (ainda não lançada)
+- **Caixinha termoformada oca, com três fechos novos (#273)**: as duas cascas agora encostam borda com borda, ocas por dentro para balas e enfeites (as placas de base deixaram de ser o padrão). Escolha o fecho: **Conector com porca** (o novo padrão: a porca tem argola e vira o pendurador), **Dobradiça e trava** (como uma Pokébola: a casca é colada num aro e os aros saem prontos, já unidos pela dobradiça) ou **Sem fecho**. As folgas vêm do seu Kit de testes.
+
 ## 0.14.1 — 2026-10-24
 - **Animação da prensagem na termoformagem (#270)**: em "Como prensar", a caixinha e o cesto/pote abrem em Animação: o molde de cima desce, a tela vira casca e o molde volta. Tem botão de tocar/pausar e uma barra para ver passo a passo.
 - **Fotos realistas da termoformagem (#270)**: Caixinha, Pote/cesto/pulseira e Pixel art ganharam foto de peça impressa na Criar.

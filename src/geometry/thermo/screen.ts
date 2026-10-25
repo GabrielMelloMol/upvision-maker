@@ -4,7 +4,8 @@ import type { CS, ManifoldToplevel } from "../manifold";
 type K = <D extends { delete(): void }>(o: D) => D;
 
 type MeshStyle = "honeycomb" | "diamond";
-type Closure = "clip" | "ring" | "cap" | "none";
+/** Fecho da caixinha: conector com porca (padrão), dobradiça com trava, clipe, faixa colada, tampa rosqueada ou nenhum (cascas soltas). */
+export type Closure = "connector" | "hinge" | "clip" | "ring" | "cap" | "none";
 type ClosureSide = "top" | "bottom";
 
 export type ScreenParams = {
@@ -39,7 +40,7 @@ export const DEFAULT_SCREEN: ScreenParams = {
   mesh: "honeycomb",
   aperture: 1.8,
   wire: 0.84,
-  closure: "clip",
+  closure: "connector",
   side: "top",
   earW: 9,
   earLen: 9,
@@ -113,7 +114,7 @@ export function screenRegions(M: ManifoldToplevel, sil: CS, design: CS | null, p
 }
 
 /** Onde o contorno encontra o eixo de simetria (x = 0) no lado escolhido: a borda no eixo e o ponto mais alto do formato (no sentido do lado). */
-function axisReach(M: ManifoldToplevel, sil: CS, side: ClosureSide, k: K): { s: 1 | -1; edge: number; reach: number } {
+export function axisReach(M: ManifoldToplevel, sil: CS, side: ClosureSide, k: K): { s: 1 | -1; edge: number; reach: number } {
   const b = sil.bounds();
   const strip = k(k(M.CrossSection.square([0.2, b.max[1] - b.min[1] + 4], true)).translate([0, (b.max[1] + b.min[1]) / 2]));
   const onAxis = k(sil.intersect(strip)).bounds();
@@ -121,15 +122,23 @@ function axisReach(M: ManifoldToplevel, sil: CS, side: ClosureSide, k: K): { s: 
   return { s, edge: s * (s > 0 ? onAxis.max[1] : onAxis.min[1]), reach: s * (s > 0 ? b.max[1] : b.min[1]) };
 }
 
-/** Orelha do fecho: aba que sai da silhueta no eixo de simetria (em cima ou embaixo), com o furo do clipe. */
+/** Orelha do fecho: aba que sai da silhueta no eixo de simetria (em cima ou embaixo), com o furo do clipe ou do conector. */
 export function earOf(M: ManifoldToplevel, sil: CS, p: ScreenParams, k: K): CS {
+  const { s, edge, tip, holeY } = earGeom(M, sil, p, k);
+  const len = tip - edge + EAR_OVERLAP;
+  const tab = k(rrect(M, p.earW, len, EAR_ROUND, k).translate([0, s * (edge - EAR_OVERLAP + len / 2)]));
+  const hole = k(k(M.CrossSection.circle(p.hole / 2, 32)).translate([0, holeY]));
+  return k(tab.subtract(hole));
+}
+
+/** Centro (y) do furo da orelha: onde passa o clipe ou o parafuso do conector. */
+export const earHoleY = (M: ManifoldToplevel, sil: CS, p: ScreenParams, k: K): number => earGeom(M, sil, p, k).holeY;
+
+function earGeom(M: ManifoldToplevel, sil: CS, p: ScreenParams, k: K) {
   const { s, edge, reach } = axisReach(M, sil, p.side, k); // reach: ponto mais alto do formato (coração: passa do vão entre os lóbulos)
   const holeR = p.hole / 2;
   const tip = Math.max(edge + p.earLen, reach + holeR + HOLE_MARGIN + EAR_END);
-  const len = tip - edge + EAR_OVERLAP;
-  const tab = k(rrect(M, p.earW, len, EAR_ROUND, k).translate([0, s * (edge - EAR_OVERLAP + len / 2)]));
-  const hole = k(k(M.CrossSection.circle(holeR, 32)).translate([0, s * (tip - EAR_END - holeR)]));
-  return k(tab.subtract(hole));
+  return { s, edge, tip, holeY: s * (tip - EAR_END - holeR) };
 }
 
 const POST_GAP = 1; // o pino começa um pouco além do ponto mais alto do formato (fora da faixa colada e dos lóbulos)

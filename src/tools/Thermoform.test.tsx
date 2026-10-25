@@ -13,6 +13,8 @@ vi.mock("../ui/viewerScene", () => ({ createViewer: () => ({ setModels() {}, dis
 const t = setupTauri();
 const BUILD = { timeout: 40_000 };
 // um "L" deitado: só a metade esquerda é larga (silhueta assimétrica)
+// uma caixa de presente com laço, simétrica pelo eixo vertical
+const GIFT = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 40 40"><path d="M6 14h28v22H6z M20 14c-4-8-12-8-10-2 1 2 6 2 10 2c4 0 9 0 10-2 2-6-6-6-10 2z"/></svg>';
 const L_SHAPE = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 30 30"><polygon points="0,0 30,0 30,10 10,10 10,30 0,30"/></svg>';
 
 beforeAll(() => {
@@ -27,25 +29,26 @@ const saveButtons = () => screen.getAllByRole("button", { name: /Salvar 3MF/ });
 const ready = () => waitFor(() => expect(saveButtons()[0]).toBeEnabled(), BUILD);
 
 describe("Caixinha termoformada", () => {
-  test("padrão: telas e bases num arquivo, clipe em outro e os moldes macho e fêmea num terceiro; peso e tempo de cada peça e o passo a passo", async () => {
+  test("padrão (#273): as duas telas sem base num arquivo, conector e porca em outro e os moldes macho e fêmea num terceiro; peso e tempo de cada peça e o passo a passo", async () => {
     const user = userEvent.setup();
     renderWithApp(<Thermoform />);
     await ready();
     expect(screen.getByRole("heading", { name: "Passo a passo da termoformagem" })).toBeInTheDocument();
     const summary = await screen.findByRole("region", { name: "Resumo da termoformagem" }, BUILD);
     expect(within(summary).getByText(/Tela 1: ≈/)).toBeInTheDocument();
-    expect(within(summary).getByText(/Base 2: ≈/)).toBeInTheDocument();
-    expect(within(summary).getByText(/Clipe: ≈/)).toBeInTheDocument();
+    expect(within(summary).queryByText(/Base 2: ≈/)).not.toBeInTheDocument();
+    expect(within(summary).getByText(/Conector: ≈/)).toBeInTheDocument();
+    expect(within(summary).getByText(/Porca: ≈/)).toBeInTheDocument();
     expect(within(summary).getByText(/Molde macho \(PETG\): ≈/)).toBeInTheDocument();
     expect(within(summary).getByText(/Molde fêmea \(PETG\): ≈/)).toBeInTheDocument();
     expect(within(summary).getByText(/A tela estica cerca de/)).toBeInTheDocument();
     expect(within(summary).getByText(/Folga do molde fêmea/)).toBeInTheDocument();
     await user.click(saveButtons()[0]);
     await waitFor(() => expect([...t.files.keys()].some((f) => /caixinha-telas.*\.3mf$/.test(f))).toBe(true));
-    expect(objects(t.files.get([...t.files.keys()].find((f) => /caixinha-telas.*\.3mf$/.test(f))!)!)).toBe(4); // Tela 1 e 2, Base 1 e 2
+    expect(objects(t.files.get([...t.files.keys()].find((f) => /caixinha-telas.*\.3mf$/.test(f))!)!)).toBe(2); // Tela 1 e 2, sem base
     await user.click(saveButtons()[1]);
     await waitFor(() => expect([...t.files.keys()].some((f) => /caixinha-fecho.*\.3mf$/.test(f))).toBe(true));
-    expect(objects(t.files.get([...t.files.keys()].find((f) => /caixinha-fecho.*\.3mf$/.test(f))!)!)).toBe(1);
+    expect(objects(t.files.get([...t.files.keys()].find((f) => /caixinha-fecho.*\.3mf$/.test(f))!)!)).toBe(2); // conector e porca
     await user.click(saveButtons()[2]);
     await waitFor(() => expect([...t.files.keys()].some((f) => /caixinha-molde.*\.3mf$/.test(f))).toBe(true));
     expect(objects(t.files.get([...t.files.keys()].find((f) => /caixinha-molde.*\.3mf$/.test(f))!)!)).toBe(2);
@@ -55,10 +58,10 @@ describe("Caixinha termoformada", () => {
     const user = userEvent.setup();
     renderWithApp(<Thermoform />);
     await ready();
-    await user.click(screen.getByRole("button", { name: "Tampa rosqueada" }));
+    await user.selectOptions(screen.getByLabelText("Fecho"), "cap");
     expect(await screen.findByRole("heading", { name: /Tampa rosqueada \(PLA, 0,16 mm\)/ }, BUILD)).toBeInTheDocument();
     expect(screen.getByText(/Cada base leva metade de um pino rosqueado/)).toBeInTheDocument();
-    expect(screen.queryByText(/Onde fica a dobradiça/)).not.toBeInTheDocument();
+    expect(screen.getByText("Onde fica o pendurador")).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Nas duas metades" })).toHaveAttribute("aria-pressed", "true");
     await ready();
   }, 90_000);
@@ -127,10 +130,10 @@ describe("Caixinha termoformada", () => {
     await user.click(screen.getByRole("button", { name: "Montada (não imprime)" }));
     expect(screen.getByText(/Ela não vai para o arquivo/)).toBeInTheDocument();
     await ready(); // a prévia montada só é calculada quando se pede: salvar espera ela terminar
-    // salvar continua salvando só as peças de imprimir (telas + bases)
+    // salvar continua salvando só as peças de imprimir (as duas telas)
     await user.click(saveButtons()[0]);
     await waitFor(() => expect([...t.files.keys()].some((f) => /caixinha-telas.*\.3mf$/.test(f))).toBe(true));
-    expect(objects(t.files.get([...t.files.keys()].find((f) => /caixinha-telas.*\.3mf$/.test(f))!)!)).toBe(4);
+    expect(objects(t.files.get([...t.files.keys()].find((f) => /caixinha-telas.*\.3mf$/.test(f))!)!)).toBe(2);
     await user.click(screen.getByRole("button", { name: "Casca prensada (não imprime)" }));
     expect(screen.getByText(/Uma casca já prensada, de perto/)).toBeInTheDocument();
     await user.click(screen.getByRole("button", { name: "Mesa (o que imprime)" }));
@@ -144,14 +147,33 @@ describe("Caixinha termoformada", () => {
     expect(await screen.findByText("Envie a silhueta (SVG ou imagem) para ver a caixinha.")).toBeInTheDocument();
   });
 
-  test("fecho por faixa: sem as opções do clipe", async () => {
+  test("fecho por faixa: sem a escolha de onde fica o fecho", async () => {
     const user = userEvent.setup();
     renderWithApp(<Thermoform />);
-    expect(screen.getByText(/Onde fica a dobradiça/)).toBeInTheDocument();
-    await user.click(screen.getByRole("button", { name: "Faixa colada" }));
-    expect(screen.queryByText(/Onde fica a dobradiça/)).not.toBeInTheDocument();
+    expect(screen.getByText(/Onde fica o conector/)).toBeInTheDocument();
+    await user.selectOptions(screen.getByLabelText("Fecho"), "ring");
+    expect(screen.getByText(/Uma faixa em pé em volta da emenda/)).toBeInTheDocument();
+    expect(screen.queryByText(/Onde fica/)).not.toBeInTheDocument();
     await ready();
   }, 60_000);
+
+  test("SVG próprio simétrico como silhueta: os três fechos novos geram a caixinha (#273)", async () => {
+    const user = userEvent.setup();
+    const { container } = renderWithApp(<Thermoform />);
+    await user.click(screen.getByRole("button", { name: "Imagem ou SVG" }));
+    await user.upload(container.querySelector<HTMLInputElement>('input[type="file"]')!, new File([GIFT], "presente.svg", { type: "image/svg+xml" }));
+    await ready();
+    expect(screen.queryByText(/A silhueta não é simétrica/)).not.toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: /Conector com porca \(PLA, 0,16 mm\)/ })).toBeInTheDocument();
+    await user.selectOptions(screen.getByLabelText("Fecho"), "hinge");
+    expect(screen.getByText(/abre e fecha como uma Pokébola/)).toBeInTheDocument();
+    expect(await screen.findByRole("heading", { name: /Dobradiça e trava \(PLA, 0,16 mm\)/ }, BUILD)).toBeInTheDocument();
+    await ready();
+    await user.selectOptions(screen.getByLabelText("Fecho"), "none");
+    expect(screen.getByText(/As duas cascas ficam soltas/)).toBeInTheDocument();
+    await waitFor(() => expect(screen.queryByRole("heading", { name: /\(PLA, 0,16 mm\)/ })).not.toBeInTheDocument(), BUILD);
+    await ready();
+  }, 120_000);
 
   test("valor fora da faixa fica marcado e não gera", async () => {
     const user = userEvent.setup();

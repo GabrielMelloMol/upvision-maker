@@ -9,9 +9,12 @@ import { layoutRows } from "./layout";
 import { buildFemaleSolid, buildMoldSolid, DEFAULT_MOLD, moldGap, type MoldParams } from "./mold";
 import { domeWarp, mergeMeshes, REFINE_MM, warpOntoDome } from "./preview";
 import { pressModel, pressMorph, pressStage, pressTravel, type PressFrame, type PressMorph } from "./press";
-import { clipRegion, DEFAULT_SCREEN, earOf, postTabOf, ringRegion, screenRegions, type ScreenParams, type ScreenRegions } from "./screen";
+import { boltSolid, connectorHole, connectorSpec, nutSolid } from "./connector";
+import { buildRims } from "./hinge";
+import { clipRegion, DEFAULT_SCREEN, earHoleY, earOf, postTabOf, ringRegion, screenRegions, type ScreenParams, type ScreenRegions } from "./screen";
 import { capSolid, DEFAULT_CAP, halfPost, postWidth, type CapSpec } from "./thread";
 import { fitValue } from "../fits";
+import { fitOrDefault } from "../testKit/catalog";
 
 type K = <D extends { delete(): void }>(o: D) => D;
 
@@ -20,6 +23,10 @@ const DEFAULT_COLORS: ThermoColors = { sheet: "#1f7a4d", border: "#1f7a4d", desi
 
 /** Placas de base: "one" fecha o fundo de uma casca só (caixinha com tampa); "both" fecha as duas (enfeite oco). */
 export type BaseMode = "none" | "one" | "both";
+
+/** Folgas dos fechos, validadas no Kit de testes (#247): rosca do conector, pino da dobradiça e o avanço do gancho da trava. */
+export type ThermoFit = { thread: number; hinge: number; latch: number };
+const DEFAULT_FIT: ThermoFit = { thread: fitOrDefault({}, "threadClearance"), hinge: fitOrDefault({}, "hingeClearance"), latch: fitOrDefault({}, "latchReach") };
 
 export type ThermoParams = {
   /** Altura do domo do molde e curvatura (expoente da superelipse). */
@@ -39,12 +46,22 @@ export type ThermoParams = {
   /** O desenho também vai na base, visto através da malha. */
   baseArt: boolean;
   cap: CapSpec;
+  fit: ThermoFit;
 };
 
-export const DEFAULT_THERMO: ThermoParams = { domeH: 10, curve: 2.2, compensate: true, mold: DEFAULT_MOLD, screen: DEFAULT_SCREEN, colors: DEFAULT_COLORS, designOnBoth: true, thickenDesign: true, bases: "both", baseT: 1.6, baseArt: false, cap: DEFAULT_CAP };
+export const DEFAULT_THERMO: ThermoParams = { domeH: 10, curve: 2.2, compensate: true, mold: DEFAULT_MOLD, screen: DEFAULT_SCREEN, colors: DEFAULT_COLORS, designOnBoth: true, thickenDesign: true, bases: "none", baseT: 1.6, baseArt: false, cap: DEFAULT_CAP, fit: DEFAULT_FIT };
 
-/** Parâmetros de partida da caixinha: os de fábrica, com o furo da orelha do clipe que a pessoa validou no Kit de testes (#247). */
-export const thermoDefaults = (): ThermoParams => ({ ...DEFAULT_THERMO, screen: { ...DEFAULT_SCREEN, hole: fitValue("clipHole") }, colors: { ...DEFAULT_THERMO.colors }, mold: { ...DEFAULT_MOLD }, cap: { ...DEFAULT_CAP, thread: { ...DEFAULT_CAP.thread } } });
+/** Parâmetros de partida da caixinha: os de fábrica, com as folgas que a pessoa validou no Kit de testes (#247). */
+export const thermoDefaults = (): ThermoParams => ({
+  ...DEFAULT_THERMO,
+  screen: { ...DEFAULT_SCREEN, hole: fitValue("clipHole") },
+  colors: { ...DEFAULT_THERMO.colors },
+  mold: { ...DEFAULT_MOLD },
+  cap: { ...DEFAULT_CAP, thread: { ...DEFAULT_CAP.thread } },
+  fit: { thread: fitValue("threadClearance"), hinge: fitValue("hingeClearance"), latch: fitValue("latchReach") },
+});
+
+const EAR_RIM = 3; // material da orelha do conector em volta do furo
 
 export type ThermoInfo = {
   /** Quanto a tela estica (comprimento do perfil do domo ÷ distância da borda ao topo). */
@@ -153,13 +170,23 @@ export function buildThermo(M: ManifoldToplevel, sil: CS, design: CS | null, p: 
     const lost = design && flatDesign ? 1 - k(flatDesign.intersect(inner)).area() / Math.max(1e-9, flatDesign.area()) : 0;
     if (lost > DESIGN_LOSS_WARN) warnings.push("O desenho passa da área da tela e foi cortado na borda: diminua o desenho ou aumente a silhueta.");
 
-    // a tampa rosqueada precisa do meio-pino nas duas bases; o clipe e a faixa funcionam com ou sem base
+    // a tampa rosqueada precisa do meio-pino nas duas bases; o clipe, o conector e a faixa funcionam com ou sem base
+    const fit = { ...DEFAULT_FIT, ...p.fit }; // sessões salvas antes do #273 não têm as folgas
     const cap = p.screen.closure === "cap";
-    const bases: BaseMode = cap ? "both" : p.bases;
+    const connector = p.screen.closure === "connector";
+    const hinge = p.screen.closure === "hinge";
+    const bases: BaseMode = cap ? "both" : hinge ? "none" : p.bases;
     if (cap && p.bases !== "both") warnings.push("A tampa rosqueada precisa das bases nas duas metades (cada base leva metade do pino): liguei as duas bases.");
+    if (hinge && p.bases !== "none") warnings.push("Na dobradiça, cada casca é colada no seu aro pela borda: as bases não entram.");
+    const rims = hinge ? buildRims(M, k, sil, { t, border: p.screen.border, side: p.screen.side, hinge: fit.hinge, latch: fit.latch }) : null;
     const hasPlate = [bases !== "none", bases === "both"];
     const clip = p.screen.closure === "clip";
-    const ear = clip ? earOf(M, sil, p.screen, k) : null;
+    const hole = connectorHole(fit.thread);
+    const earScreen = connector ? { ...p.screen, hole, earW: hole + 2 * EAR_RIM } : p.screen;
+    const ear = clip || connector ? earOf(M, sil, earScreen, k) : null;
+    // o conector aperta as duas orelhas: cada uma é a tela ou, se houver, a base daquela metade
+    const holder = (i: number) => (hasPlate[i] ? p.baseT : t);
+    const conn = connector ? connectorSpec(fit.thread, holder(0) + holder(1)) : null;
     const tab = cap ? postTabOf(M, sil, p.screen, postWidth(p.cap.thread), k) : null;
     const wantDesign = [true, p.designOnBoth];
 
@@ -193,6 +220,8 @@ export function buildThermo(M: ManifoldToplevel, sil: CS, design: CS | null, p: 
     const closure: Model[] = [];
     if (clip) closure.push({ name: "Clipe", parts: solidPart("Clipe", c.clip, extruded(clipRegion(M, p.screen, k), p.screen.clipT, k)) });
     if (cap) closure.push({ name: "Tampa", parts: solidPart("Tampa", c.clip, k(capSolid(M, k, p.cap))) });
+    if (rims) closure.push({ name: "Aros com dobradiça", parts: [...solidPart("Aro de cima", c.clip, rims.printA), ...solidPart("Aro de baixo", c.clip, rims.printB)] });
+    if (conn) closure.push({ name: "Conector", parts: solidPart("Conector", c.clip, k(boltSolid(M, k, conn))) }, { name: "Porca", parts: solidPart("Porca", c.clip, k(nutSolid(M, k, conn))) });
     if (p.screen.closure === "ring") rows.push([{ name: "Faixa externa", parts: solidPart("Faixa", c.clip, extruded(ringRegion(sil, p.screen, k), p.screen.ringH, k)) }]);
     const screens = layoutRows(rows, GAP);
     const closureOut = layoutRows([closure], GAP);
@@ -233,6 +262,15 @@ export function buildThermo(M: ManifoldToplevel, sil: CS, design: CS | null, p: 
         // a tampa enroscada no pino: a abertura olha para a caixa e a alça sobe
         const onPin = k(k(k(capSolid(M, k, p.cap)).rotate([90, 0, 0])).translate([0, tab.start + p.cap.thread.length + p.cap.floor, 0]));
         assembledParts.push(...solidPart("Tampa", c.clip, tab.s > 0 ? onPin : k(onPin.rotate([0, 0, 180]))));
+      }
+      if (rims) assembledParts.push(...solidPart("Aro de cima", c.clip, rims.a), ...solidPart("Aro de baixo", c.clip, rims.b));
+      if (conn) {
+        // a cabeça do parafuso por baixo da metade de baixo; a porca, de boca para baixo, por cima, com a argola para fora
+        const y = earHoleY(M, sil, earScreen, k);
+        assembledParts.push(...solidPart("Conector", c.clip, k(k(boltSolid(M, k, conn)).translate([0, y, -(holder(1) + conn.headH)]))));
+        let nut = k(k(nutSolid(M, k, conn)).rotate([180, 0, 0]));
+        if (y > 0) nut = k(nut.rotate([0, 0, 180]));
+        assembledParts.push(...solidPart("Porca", c.clip, k(nut.translate([0, y, holder(0) - nut.boundingBox().min[2]]))));
       }
       assembled = { name: "Caixa montada (não imprime)", previewOnly: true, parts: assembledParts };
       shell = { name: "Casca prensada (não imprime)", previewOnly: true, parts: [...built[0].shell, ...built[0].plate.filter((q) => q.name !== "Arte")] }; // sem a arte da base: vista pela malha ela parece um desenho fantasma
