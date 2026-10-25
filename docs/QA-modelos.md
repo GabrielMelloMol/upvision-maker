@@ -332,8 +332,8 @@ impressoras de mesa maior); sem o aviso do app, é **falha**.
 | Textura na peça (ferramenta) | pincel numa faixa | ✅ ok | Bambu ✓ · Orca ✓ | 60 | 46,9 | 1 | – | – |
 | Caixinha termoformada: fechos (ferramenta) | clipe | ✅ ok | Bambu ✓ · Orca ✓ | 2 | 0,2 | 1 | – | – |
 | Caixinha termoformada: fechos (ferramenta) | conector e porca | ✅ ok | Bambu ✓ · Orca ✓ | 9 | 1,5 | 1 | – | – |
-| Caixinha termoformada: fechos (ferramenta) | dobradiça e trava (coração, dobradiça em cima) | ✅ ok | Bambu ✓ · Orca ✓ | 25 | 9,4 | 1 | – | – |
-| Caixinha termoformada: fechos (ferramenta) | dobradiça e trava (ovo, dobradiça embaixo) | ✅ ok | Bambu ✓ · Orca ✓ | 26 | 10,3 | 1 | – | – |
+| Caixinha termoformada: fechos (ferramenta) | dobradiça e trava (coração, dobradiça em cima) | ✅ ok | Bambu ✓ · Orca ✓ | 24 | 9,0 | 1 | – | – |
+| Caixinha termoformada: fechos (ferramenta) | dobradiça e trava (ovo, dobradiça embaixo) | ✅ ok | Bambu ✓ · Orca ✓ | 25 | 9,9 | 1 | – | – |
 | Caixinha termoformada: fechos (ferramenta) | tampa com pino curto e fino | ✅ ok | Bambu ✓ · Orca ✓ | 8 | 1,4 | 1 | – | app: Havia traços do desenho mais finos que o bico da impressora e eu os engrossei para a tela sair inteira.; app: A tampa rosqueada precisa das bases nas duas metades (cada base leva metade do pino): liguei as duas bases. |
 | Caixinha termoformada: fechos (ferramenta) | tampa rosqueada | ✅ ok | Bambu ✓ · Orca ✓ | 10 | 2,0 | 1 | – | app: A tampa rosqueada precisa das bases nas duas metades (cada base leva metade do pino): liguei as duas bases. |
 | Caixinha termoformada: moldes macho e fêmea (ferramenta) | bola de Natal | ✅ ok | Bambu ✓ · Orca ✓ | 68 | 45,9 | 1 | – | – |
