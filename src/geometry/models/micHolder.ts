@@ -74,6 +74,8 @@ export const MIC_WALL = 2.4; // parede em volta do berço
 export const BAR_T = MIC_WALL; // travessa das costas: fina para o clipe do transmissor abraçar (#291)
 const BAR_H = 4;
 const UPPER_WIN = 6; // janela de cima, entre a travessa e o topo do bolso: mostra o clipe
+const RECESS = 6; // quanto o rebaixo das costas passa do bolso, de cada lado
+const MIC_COLOR = "#5b6068"; // transmissor da prévia, mais claro que a espuma
 export const MIN_WIDTH = 40;
 export const TENON_FIT = 0.15; // o encaixe do cabo entra justo no canal (por lado)
 const TENON_MIN = 8; // o canal abaixo do microfone, onde o encaixe do cabo entra
@@ -241,6 +243,9 @@ export function buildMicHolder(ctx: ModelCtx, p: MicHolderParams): MicHolderOutp
         // ela é uma ponte curta presa nas paredes dos lados (sem suporte); o recorte segue o berço, não o formato.
         const bar = k(k(k(M.Manifold.cube([L.coreW + 2, BAR_H, BAR_T])).translate([-(L.coreW + 2) / 2, cy - L.ch / 2 + L.win, L.cd / 2])).intersect(s));
         s = k(k(s.subtract(k(k(k(pocket(M, L)).translate([0, cy])).extrude(T)))).add(bar));
+        // por fora da travessa, um rebaixo mais largo que o bolso: em peça grossa a janela não vira túnel e o botão fica à mão
+        const recess = k(k(k(roundedRect(M, L.cw + 2 * RECESS, L.ch, 3)).translate([0, cy])).intersect(k(body2d.offset(-MIC_WALL, "Round"))));
+        s = k(s.subtract(k(k(recess.extrude(T)).translate([0, 0, L.cd / 2 + BAR_T]))));
       }
       return s;
     };
@@ -294,7 +299,7 @@ export function buildMicHolder(ctx: ModelCtx, p: MicHolderParams): MicHolderOutp
       { name: "Costas", parts: [{ name: "Costas", color: p.bodyColor, mesh: stand(models[1].parts[0].mesh, (a, b, c) => [-a, c, b]) }] },
       { name: "Cabo", parts: [{ name: "Cabo", color: p.handleColor, mesh: moveMesh(models[2].parts[0].mesh, 0, 0, -p.handleL) }] },
       { name: "Espuma", parts: [{ name: "Espuma (só na prévia)", color: FOAM_COLOR, mesh: toMesh(foam) }] },
-      { name: "Transmissor", parts: [{ name: "Transmissor (só na prévia)", color: FOAM_COLOR, mesh: toMesh(transmitter) }] },
+      { name: "Transmissor", parts: [{ name: "Transmissor (só na prévia)", color: MIC_COLOR, mesh: toMesh(transmitter) }] },
     ];
     return { models: spread(models), assembled, cy, top, tenonL, depth, spots };
   });
