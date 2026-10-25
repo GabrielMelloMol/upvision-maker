@@ -87,6 +87,7 @@ test("Como usar: dica longa ocupa a largura da tabela, sem coluna espremida (#27
   await expect(hint).toBeVisible();
   const [cell, table] = await Promise.all([hint.boundingBox(), help.locator("table").boundingBox()]);
   expect(cell!.width).toBeGreaterThan(table!.width * 0.9);
+  await help.locator("table").screenshot({ path: "test-results/277-como-usar.png" });
   const fits = await help.locator(".gen-help-scroll").evaluate((el) => el.scrollWidth <= el.clientWidth + 1);
   expect(fits).toBe(true);
 });
