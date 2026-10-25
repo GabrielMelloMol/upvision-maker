@@ -3,7 +3,7 @@
 Cada versão aparece para a usuária na tela "O que há de novo" depois da atualização.
 Formato: `## <versão> — <data>` e itens `- …` em linguagem simples.
 
-## Próxima versão (ainda não lançada)
+## 0.15.2 — 2026-10-25
 - **Forma para massinha de EVA (#252)**: o Molde para carimbo de EVA ganhou o tipo **Forma para massinha**. É uma cavidade com o desenho mais fundo e uma borda que liga as letras: encha de massinha de EVA, deixe secar de 1 a 2 dias e o carimbo sai pronto. Tem parede com ângulo de saída para desenformar sem rasgar, inverter (carimba o espaço em volta) e as costas com apoio de polegar, que você cola no carimbo seco.
 - **Ejetor de brigadeiro com fundo por escala até um ponto (#252)**: nova opção no Fundo do doce. O desenho encolhe até o centro, camada por camada, e o doce fica arredondado mantendo as quinas e a proporção do desenho. Funciona melhor em formas simples e redondas.
 - **Como usar mais fácil de ler (#277)**: na tabela dos campos, a dica de cada campo agora ocupa a linha inteira embaixo dele, em vez de uma coluna estreita.
