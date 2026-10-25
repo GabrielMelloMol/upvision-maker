@@ -1,7 +1,7 @@
 import type { CS } from "../manifold";
 import { outerOnly, fitInto, scoped } from "../shape2d";
 import { moveMesh, requireArt, solidMesh, type ModelCtx, type ModelOutput } from "./common";
-import { dome, hasSharpFeatures, roundEdge, type EjectorBottom } from "./ejectorBottom";
+import { dome, hasSharpFeatures, roundEdge, scaleDome, type EjectorBottom } from "./ejectorBottom";
 
 export type EjectorParams = {
   size: number; // largura do desenho
@@ -78,7 +78,7 @@ export function buildEjector({ M, art }: ModelCtx, p: EjectorParams, opts: Eject
     if (mark) ejector = k(ejector.subtract(k(mark.extrude(opts.stampDepth ?? STAMP_DEPTH))));
     const bottom = p.bottom ?? "flat";
     if (bottom !== "flat") {
-      const face = bottom === "round" ? roundEdge(M, plate, p.radius ?? 3) : dome(M, plate, p.domeHeight ?? 4, p.smooth ?? 0.7);
+      const face = bottom === "round" ? roundEdge(M, plate, p.radius ?? 3) : (bottom === "scale" ? scaleDome : dome)(M, plate, p.domeHeight ?? 4, p.smooth ?? 0.7);
       ejector = k(ejector.add(k(k(face).translate([0, 0, PLATE_H]))));
       warnings.push("Fundo arredondado: imprima o êmbolo com altura de camada de 0,08 a 0,12 mm para a curva sair lisa.");
       if (hasSharpFeatures(plate, bottom === "round" ? (p.radius ?? 3) : 2)) warnings.push("Esta forma tem ponta fina ou reentrância funda: ali o arredondado deforma. Prefira um desenho mais cheio ou raio menor.");

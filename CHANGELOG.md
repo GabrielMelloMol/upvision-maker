@@ -5,6 +5,7 @@ Formato: `## <versão> — <data>` e itens `- …` em linguagem simples.
 
 ## Próxima versão (ainda não lançada)
 - **Forma para massinha de EVA (#252)**: o Molde para carimbo de EVA ganhou o tipo **Forma para massinha**. É uma cavidade com o desenho mais fundo e uma borda que liga as letras: encha de massinha de EVA, deixe secar de 1 a 2 dias e o carimbo sai pronto. Tem parede com ângulo de saída para desenformar sem rasgar, inverter (carimba o espaço em volta) e as costas com apoio de polegar, que você cola no carimbo seco.
+- **Ejetor de brigadeiro com fundo por escala até um ponto (#252)**: nova opção no Fundo do doce. O desenho encolhe até o centro, camada por camada, e o doce fica arredondado mantendo as quinas e a proporção do desenho. Funciona melhor em formas simples e redondas.
 
 ## 0.15.1 — 2026-10-25
 - **Canopla de microfone personalizada (#274)**: novo modelo em Criar. Mini microfone para o transmissor sem fio (Hollyland Lark M2, Lark A1, DJI Mic Mini ou qualquer outro, digitando a medida). O meio pode ter formato de cubo, cilindro, coração, estrela, flor ou nuvem, de um tema (casa para arquiteto, halter para academia, cruz para saúde, balão de fala para podcast, livro para professor) ou do seu próprio desenho. Na frente vai texto, logo ou ícone em relevo. Imprime em 2 metades sem suporte, com o cabo à parte. Imprima antes o anel de teste para conferir o encaixe do microfone.

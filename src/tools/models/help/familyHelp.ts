@@ -206,7 +206,7 @@ export const FAMILY_HELP: Record<string, GuideHelp> = {
   cutters: {
     use: ["Cortador de biscoito ou massa com carimbo, em grade, ou ejetor de brigadeiro."],
     avoid: ["Lâmina fina demais: com bico de 0,4, não passe de duas paredes de 0,4 e ligue \"Detectar paredes finas\"."],
-    tips: ["Imprima em PETG ou PLA e lave à mão.", "Use farinha na massa para o cortador não colar."],
+    tips: ["Imprima em PETG ou PLA e lave à mão.", "Use farinha na massa para o cortador não colar.", "Ejetor com fundo por escala até um ponto: escolha um desenho redondo e simples, sem pontas, e imprima o êmbolo com camada fina."],
     faq: [{ q: "A lâmina não saiu.", a: "No fatiador ligue \"Detectar paredes finas\"; o app mostra o aviso na prévia." }],
   },
   bagClip: {

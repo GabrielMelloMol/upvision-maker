@@ -8849,7 +8849,7 @@
   "reasons": [
    "app: Cavidade de 84,1 × 35,0 mm e 12 mm de altura = 33,3 cm³: cabe 40 g de doce a 1,20 g/cm³."
   ],
-  "date": "2026-10-16",
+  "date": "2026-10-25",
   "slicers": "Bambu ✓ · Orca ✓ · Projeto Bambu ✓",
   "minutes": 147,
   "grams": 42.1,
@@ -8865,7 +8865,7 @@
   "reasons": [
    "app: Cavidade de 54,1 × 51,6 mm e 14 mm de altura = 20,8 cm³: cabe 25 g de doce a 1,20 g/cm³."
   ],
-  "date": "2026-10-16",
+  "date": "2026-10-25",
   "slicers": "Bambu ✓ · Orca ✓ · Projeto Bambu ✓",
   "minutes": 162,
   "grams": 42.3,
@@ -8881,7 +8881,7 @@
   "reasons": [
    "app: Cavidade de 46,6 × 42,9 mm e 14 mm de altura = 20,8 cm³: cabe 25 g de doce a 1,20 g/cm³."
   ],
-  "date": "2026-10-16",
+  "date": "2026-10-25",
   "slicers": "Bambu ✓ · Orca ✓ · Projeto Bambu ✓",
   "minutes": 163,
   "grams": 41.1,
@@ -8897,7 +8897,7 @@
   "reasons": [
    "app: Forma de teste: cabe 10 cm³. Encha até a borda, sem apertar, e pese: densidade = gramas ÷ 10. Digite o resultado em \"Densidade do doce\"."
   ],
-  "date": "2026-10-16",
+  "date": "2026-10-25",
   "slicers": "Bambu ✓ · Orca ✓ · Projeto Bambu ✓",
   "minutes": 199,
   "grams": 48.1,
@@ -8913,7 +8913,7 @@
   "reasons": [
    "app: Cavidade de 55,0 × 49,7 mm e 30 mm de altura = 50,0 cm³: cabe 80 g de doce a 1,60 g/cm³."
   ],
-  "date": "2026-10-16",
+  "date": "2026-10-25",
   "slicers": "Bambu ✓ · Orca ✓ · Projeto Bambu ✓",
   "minutes": 312,
   "grams": 87.1,
@@ -8929,7 +8929,7 @@
   "reasons": [
    "app: Cavidade de 37,6 × 34,0 mm e 8 mm de altura = 6,3 cm³: cabe 5 g de doce a 0,80 g/cm³."
   ],
-  "date": "2026-10-16",
+  "date": "2026-10-25",
   "slicers": "Bambu ✓ · Orca ✓ · Projeto Bambu ✓",
   "minutes": 102,
   "grams": 25.2,
@@ -8945,7 +8945,7 @@
   "reasons": [
    "app: Cavidade de 51,9 × 47,0 mm e 14 mm de altura = 20,8 cm³: cabe 25 g de doce a 1,20 g/cm³."
   ],
-  "date": "2026-10-16",
+  "date": "2026-10-25",
   "slicers": "Bambu ✓ · Orca ✓ · Projeto Bambu ✓",
   "minutes": 160,
   "grams": 41.6,
@@ -9201,6 +9201,22 @@
   "plates": 1
  },
  {
+  "key": "ejector:escala até um ponto",
+  "owner": "Torno",
+  "group": "kitchen",
+  "label": "Ejetor de brigadeiro (ejector)",
+  "variant": "escala até um ponto",
+  "status": "ok",
+  "reasons": [
+   "app: Fundo arredondado: imprima o êmbolo com altura de camada de 0,08 a 0,12 mm para a curva sair lisa."
+  ],
+  "date": "2026-10-25",
+  "slicers": "Bambu ✓ · Orca ✓ · Projeto Bambu ✓",
+  "minutes": 172,
+  "grams": 42.7,
+  "plates": 1
+ },
+ {
   "key": "ejector:máximo",
   "owner": "Torno",
   "group": "kitchen",
@@ -9208,7 +9224,7 @@
   "variant": "máximo",
   "status": "ok",
   "reasons": [],
-  "date": "2026-10-16",
+  "date": "2026-10-25",
   "slicers": "Bambu ✓ · Orca ✓ · Projeto Bambu ✓",
   "minutes": 395,
   "grams": 114.4,
@@ -9222,7 +9238,7 @@
   "variant": "mínimo",
   "status": "ok",
   "reasons": [],
-  "date": "2026-10-16",
+  "date": "2026-10-25",
   "slicers": "Bambu ✓ · Orca ✓ · Projeto Bambu ✓",
   "minutes": 79,
   "grams": 18.4,
@@ -9236,7 +9252,7 @@
   "variant": "padrão",
   "status": "ok",
   "reasons": [],
-  "date": "2026-10-16",
+  "date": "2026-10-25",
   "slicers": "Bambu ✓ · Orca ✓ · Projeto Bambu ✓",
   "minutes": 169,
   "grams": 41.8,
