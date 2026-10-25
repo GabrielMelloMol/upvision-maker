@@ -7,7 +7,7 @@ test("canopla de microfone (#274): microfone pronto, tema, largura mínima, anel
   await pickModel(page, "canopla microfone", "Canopla de microfone", { exact: true });
   await idle(page);
   await expect(page.getByText(/Duas metades: ponha os pinos/)).toBeVisible();
-  await page.getByRole("button", { name: "Costas" }).click(); // #291: costas abertas com o transmissor
+  await page.getByRole("button", { name: "Costas", exact: true }).click(); // #291: costas abertas com o transmissor
   await idle(page);
   await expect(page.getByText(/janelas das costas/)).toBeVisible();
   await page.getByRole("button", { name: "Hollyland Lark A1" }).click();
