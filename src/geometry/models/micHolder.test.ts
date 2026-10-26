@@ -130,7 +130,7 @@ describe("canopla de microfone (#274, #293)", { timeout: 120_000 }, () => {
     for (const head of ["foam", "grille"] as const) {
       const s = solid(byName(build({ head }).models, "Bolinha").parts[0].mesh);
       let prev = Infinity;
-      for (let z = 0.2; z < (head === "foam" ? 24 : 32); z += 0.4) {
+      for (let z = 0.2; z < (head === "foam" ? 32 : 24); z += 0.4) {
         const r = s.slice(z).bounds().max[0];
         if (prev !== Infinity) expect(r - prev, `${head} z=${z.toFixed(1)}`).toBeLessThanOrEqual(0.4 + 0.15);
         prev = r;
@@ -140,7 +140,7 @@ describe("canopla de microfone (#274, #293)", { timeout: 120_000 }, () => {
     expect(DIMPLE.pitch - DIMPLE.d).toBeGreaterThanOrEqual(2 * 0.4 - 1e-9); // parede entre eles de 2 linhas
     const grille = solid(byName(build({ head: "grille" }).models, "Bolinha").parts[0].mesh);
     expect(grille.genus()).toBe(0); // furinhos rasos: a casca continua fechada
-    expect(grille.volume()).toBeGreaterThan(15000); // maciça como a da referência (19,9 cm³)
+    expect(grille.volume()).toBeGreaterThan(6500); // maciça como a da referência (7,4 cm³)
   });
 
   test("espuma comprada: furo no topo, que dá na janela do clipe, e nada acima do corpo", () => {

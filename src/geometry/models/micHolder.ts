@@ -109,13 +109,14 @@ export const RING_H = 2;
 export const FOAM_DEPTH = 5; // espuma comprada: quanto a base dela entra no furo do topo
 const SOUND_W = 8; // espuma comprada: canal do som, da janela do clipe até o furo
 const HANDLE_BAND = 32; // faixa embaixo do meio, em volta do cabo, onde o formato não desce
-// bolinhas medidas na referência (raio, altura a partir da base): FONE (lisa, 27,6 × 24,7) e a grade (Ø32 × 33,2)
-const FOAM_PROFILE: [number, number][] = [[9, 0], [9.4, 2.6], [10.1, 3.6], [11, 4.6], [12, 6.6], [13.6, 10.6], [13.8, 12.6], [12.7, 14.6], [10.8, 18.6], [8.2, 21.6], [5, 23.6], [0, 24.7]];
-const GRILLE_R = 16;
-const GRILLE_C = 17.2; // centro da cúpula
-const GRILLE_SKIRT: [number, number][] = [[13.1, 0], [13.7, 0.6], [14.3, 1.6], [14.7, 2.6], [15.2, 4.6], [15.5, 6.6], [16, 11.6]];
-export const BORE = { foam: 14.6, grille: 16.6 }; // furo da pecinha na base da bolinha
-// furinhos da grade: Ø1,6 com 0,8 mm de parede entre eles (2 linhas de um bico de 0,4); abaixo de 12 mm a saia fica lisa
+// bolinhas medidas na referência (raio, altura a partir da base). Grade = a "FONE" (27,6 × 24,7, furinhos na cúpula e a base de
+// Ø18 onde fica o anel); espuma = a "Merged Parts" (Ø32 × 33,2, lisa, que a referência imprime com pele texturizada)
+const GRILLE_PROFILE: [number, number][] = [[9, 0], [9.4, 2.6], [10.1, 3.6], [11, 4.6], [12, 6.6], [13.6, 10.6], [13.8, 12.6], [12.7, 14.6], [10.8, 18.6], [8.2, 21.6], [5, 23.6], [0, 24.7]];
+const FOAM_R = 16;
+const FOAM_C = 17.2; // centro da cúpula
+const FOAM_SKIRT: [number, number][] = [[13.1, 0], [13.7, 0.6], [14.3, 1.6], [14.7, 2.6], [15.2, 4.6], [15.5, 6.6], [16, 11.6]];
+export const BORE = { foam: 16.6, grille: 14.6 }; // furo da pecinha na base da bolinha
+// furinhos da grade: Ø1,6 com 0,8 mm de parede entre eles (2 linhas de um bico de 0,4); abaixo de 12 mm a base fica lisa
 export const DIMPLE = { d: 1.6, pitch: 2.4, depth: 0.6, from: 12 };
 const SEG = 64;
 const FOAM_COLOR = "#2b2b2b";
@@ -217,37 +218,39 @@ function smoothPath(pts: [number, number][], n = 6): [number, number][] {
 /** Bolinha de cima em pé, base em z = 0, com o furo da pecinha embaixo (teto em cone, sem ponte). */
 function buildHead(M: ManifoldToplevel, k: K, kind: "foam" | "grille"): Solid {
   let prof: [number, number][];
-  if (kind === "foam") prof = smoothPath(FOAM_PROFILE);
+  if (kind === "grille") prof = smoothPath(GRILLE_PROFILE);
   else {
     const dome: [number, number][] = [];
-    for (let i = 0; i <= 24; i++) {
+    for (let i = 1; i <= 24; i++) {
       const a = (i / 24) * (Math.PI / 2);
-      dome.push([GRILLE_R * Math.cos(a), GRILLE_C + GRILLE_R * Math.sin(a)]);
+      dome.push([FOAM_R * Math.cos(a), FOAM_C + FOAM_R * Math.sin(a)]);
     }
-    prof = [...smoothPath(GRILLE_SKIRT, 4), ...dome];
+    prof = [...smoothPath(FOAM_SKIRT, 4), [FOAM_R, FOAM_C], ...dome];
   }
   let s = k(k(new M.CrossSection([[[0, 0], ...prof.map(([r, h]) => [Math.max(0, r), h] as [number, number])]], "Positive")).revolve(SEG * 2));
   if (kind === "grille") {
-    // furinhos em fileiras: na saia de cima (cilindro) e na cúpula, cada fileira defasada meio passo da anterior
+    // furinhos em fileiras ao longo do perfil, de `from` até o topo, cada fileira defasada meio passo da anterior
     const { d, pitch, depth } = DIMPLE;
     const rd = d / 2;
-    const out = rd - depth; // centro do furinho um pouco fora da casca: ele entra `depth` nela
     const holes: Solid[] = [];
-    const ring = (r: number, nx: (a: number) => [number, number, number], row: number) => {
-      const n = Math.floor((2 * Math.PI * r) / pitch);
-      for (let i = 0; i < n; i++) {
-        const a = ((i + (row % 2) / 2) / n) * 2 * Math.PI;
-        const [x, y, z] = nx(a);
-        holes.push(k(k(M.Manifold.sphere(rd, 10)).translate([x, y, z])));
-      }
-    };
+    const len = prof.slice(1).map((q, i) => Math.hypot(q[0] - prof[i][0], q[1] - prof[i][1]));
+    const start = prof.findIndex((q) => q[1] >= DIMPLE.from);
     let row = 0;
-    for (let h = GRILLE_C - pitch; h >= DIMPLE.from; h -= pitch, row++) ring(GRILLE_R, (a) => [(GRILLE_R + out) * Math.cos(a), (GRILLE_R + out) * Math.sin(a), h], row);
-    for (let t = 0; t < Math.PI / 2 - pitch / GRILLE_R / 2; t += pitch / GRILLE_R, row++) {
-      const r = GRILLE_R * Math.cos(t);
-      ring(r, (a) => [(GRILLE_R + out) * Math.cos(t) * Math.cos(a), (GRILLE_R + out) * Math.cos(t) * Math.sin(a), GRILLE_C + (GRILLE_R + out) * Math.sin(t)], row);
+    for (let i = start, acc = pitch; i < prof.length - 1; i++) {
+      acc += len[i];
+      if (acc < pitch) continue;
+      acc = 0;
+      const [[r0, h0], [r1, h1]] = [prof[i], prof[i + 1]];
+      const n = [h1 - h0, -(r1 - r0)].map((v) => v / len[i]); // normal para fora
+      const [r, h] = [r0 + n[0] * (rd - depth), h0 + n[1] * (rd - depth)];
+      const count = Math.floor((2 * Math.PI * r0) / pitch);
+      if (count < 3) break;
+      for (let j = 0; j < count; j++) {
+        const a = ((j + (row % 2) / 2) / count) * 2 * Math.PI;
+        holes.push(k(k(M.Manifold.sphere(rd, 10)).translate([r * Math.cos(a), r * Math.sin(a), h])));
+      }
+      row++;
     }
-    holes.push(k(k(M.Manifold.sphere(rd, 10)).translate([0, 0, GRILLE_C + GRILLE_R + out])));
     s = k(s.subtract(k(M.Manifold.union(holes))));
   }
   const bore = BORE[kind];
