@@ -320,7 +320,7 @@ export function buildMicHolder(ctx: ModelCtx, p: MicHolderParams): MicHolderOutp
     const steps = [L.cl + 15, L.cl * 0.55, 0].map((dy) => [...assembled, { name: "Transmissor", parts: [{ name: "Transmissor (só na prévia)", color: MIC_COLOR, mesh: moveMesh(txMesh, 0, dy, 0) }] }]);
     return { models: spread(models), steps, cy, top, tenonL, depth, spots };
   });
-  warnings.push("Duas metades: ponha os pinos, passe cola e una a frente e as costas; o cabo encaixa por baixo e fica fixo. O microfone entra por trás, deitado: empurre para dentro com o clipe por cima da travessa e a haste dele no rasgo do meio. Para carregar, puxe para trás. A espuma veste o pescoço.");
+  warnings.push(`Duas metades: ${out.spots.length ? "ponha os pinos, " : ""}passe cola e una a frente e as costas; o cabo encaixa por baixo e fica fixo. O microfone entra por trás, deitado: empurre para dentro com o clipe por cima da travessa e a haste dele no rasgo do meio. Para carregar, puxe para trás. A espuma veste o pescoço.`);
   // de costas: a mesma montagem girada meia volta, para ver a abertura e o transmissor
   const turn = (ms: Model[]) => ms.map((m) => ({ ...m, parts: m.parts.map((x) => { const q = x.mesh.positions.slice(); for (let i = 0; i < q.length; i += 3) [q[i], q[i + 1]] = [-q[i], -q[i + 1]]; return { ...x, mesh: { ...x.mesh, positions: q } }; }) }));
   const views = [

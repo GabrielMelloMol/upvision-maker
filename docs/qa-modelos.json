@@ -154,12 +154,12 @@
   "variant": "máximo",
   "status": "ok",
   "reasons": [
-   "app: Duas metades: ponha os pinos, passe cola e una a frente e as costas; o cabo encaixa por baixo e fica fixo. O microfone entra por trás, deitado: empurre para dentro com o clipe por cima da travessa. Para carregar, puxe para trás. A espuma veste o pescoço."
+   "app: Duas metades: ponha os pinos, passe cola e una a frente e as costas; o cabo encaixa por baixo e fica fixo. O microfone entra por trás, deitado: empurre para dentro com o clipe por cima da travessa e a haste dele no rasgo do meio. Para carregar, puxe para trás. A espuma veste o pescoço."
   ],
-  "date": "2026-10-25",
+  "date": "2026-10-26",
   "slicers": "Bambu ✓ · Orca ✓ · Projeto Bambu ✓",
-  "minutes": 577,
-  "grams": 525.1,
+  "minutes": 570,
+  "grams": 517.5,
   "plates": 1
  },
  {
@@ -170,14 +170,13 @@
   "variant": "mínimo",
   "status": "ok",
   "reasons": [
-   "app: O formato ficou estreito para o microfone (largura mínima de uns 40 mm): o app engrossou a parte em volta dele. Aumente a largura para o desenho aparecer inteiro.",
-   "app: Não coube pino entre as metades: alinhe pela borda e cole.",
-   "app: Duas metades: ponha os pinos, passe cola e una a frente e as costas; o cabo encaixa por baixo e fica fixo. O microfone entra por trás, deitado: empurre para dentro com o clipe por cima da travessa. Para carregar, puxe para trás. A espuma veste o pescoço."
+   "app: Sem lugar para pinos entre as metades: elas se alinham pelo encaixe do cabo, que entra nas duas. Passe cola, una e encaixe o cabo antes de a cola secar.",
+   "app: Duas metades: passe cola e una a frente e as costas; o cabo encaixa por baixo e fica fixo. O microfone entra por trás, deitado: empurre para dentro com o clipe por cima da travessa e a haste dele no rasgo do meio. Para carregar, puxe para trás. A espuma veste o pescoço."
   ],
-  "date": "2026-10-25",
+  "date": "2026-10-26",
   "slicers": "Bambu ✓ · Orca ✓ · Projeto Bambu ✓",
   "minutes": 49,
-  "grams": 24.4,
+  "grams": 24.2,
   "plates": 1
  },
  {
@@ -188,12 +187,13 @@
   "variant": "padrão",
   "status": "ok",
   "reasons": [
-   "app: Duas metades: ponha os pinos, passe cola e una a frente e as costas; o cabo encaixa por baixo e fica fixo. O microfone entra por trás, deitado: empurre para dentro com o clipe por cima da travessa. Para carregar, puxe para trás. A espuma veste o pescoço."
+   "app: Sem lugar para pinos entre as metades: elas se alinham pelo encaixe do cabo, que entra nas duas. Passe cola, una e encaixe o cabo antes de a cola secar.",
+   "app: Duas metades: passe cola e una a frente e as costas; o cabo encaixa por baixo e fica fixo. O microfone entra por trás, deitado: empurre para dentro com o clipe por cima da travessa e a haste dele no rasgo do meio. Para carregar, puxe para trás. A espuma veste o pescoço."
   ],
-  "date": "2026-10-25",
+  "date": "2026-10-26",
   "slicers": "Bambu ✓ · Orca ✓ · Projeto Bambu ✓",
-  "minutes": 130,
-  "grams": 74.8,
+  "minutes": 94,
+  "grams": 43.2,
   "plates": 1
  },
  {
