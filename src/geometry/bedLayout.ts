@@ -15,6 +15,7 @@ const size = (ms: Model[]) => {
 };
 
 export function fitSetOnBed(models: Model[]): Model[] {
+  if (models.some((m) => m.plate)) return models; // o modelo já dividiu as peças em mesas (#293)
   if (models.length < 2 || size(models) <= bedMm() || models.some((m) => size([m]) > bedMm())) return models;
   const laid = layoutOnPlate(models, bedMm() - GAP_MM, GAP_MM);
   if (size(laid) > bedMm()) return models;
@@ -26,6 +27,10 @@ export function fitSetOnBed(models: Model[]): Model[] {
 
 /** Aviso quando as peças (cada uma cabendo) não cabem juntas na mesa: o fatiador usa mais de uma mesa. */
 export function setOnBedWarning(models: Model[]): string | null {
+  if (models.some((m) => m.plate)) {
+    const groups = [...new Set(models.map((m) => m.plate ?? 1))].map((n) => models.filter((m) => (m.plate ?? 1) === n));
+    return groups.map((g) => setOnBedWarning(g.map((m) => ({ ...m, plate: undefined })))).find(Boolean) ?? null;
+  }
   if (models.length < 2 || size(models) <= bedMm() || models.some((m) => size([m]) > bedMm())) return null;
   return `As ${models.length} peças não cabem juntas na mesa de ${bedMm()} mm: o fatiador vai usar mais de uma mesa (ou imprima uma de cada vez).`;
 }

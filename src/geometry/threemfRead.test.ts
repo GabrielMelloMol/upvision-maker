@@ -1,3 +1,4 @@
+import { strFromU8, unzipSync } from "fflate";
 import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
 import { afterEach, describe, expect, test } from "vitest";
@@ -63,6 +64,20 @@ describe("ler 3MF", () => {
     expect(center(write3mf(models))).toEqual([128, 128, 50, 0]); // A1: 256 × 256, origem no canto da mesa
     setBed({ x: 300, y: 200, z: 300 });
     expect(center(write3mf(models))).toEqual([150, 100, 50, 0]);
+  });
+
+  test("peças em duas mesas (#293): cada mesa centrada na sua placa do Bambu Studio e listada no model_settings.config", () => {
+    const cube = (x: number) => ({ positions: new Float32Array([x, 0, 0, x + 10, 0, 0, x, 10, 0, x, 0, 10]), indices: new Uint32Array([0, 2, 1, 0, 1, 3, 1, 2, 3, 0, 3, 2]) });
+    const models = [{ name: "A", plate: 1, parts: [{ name: "A", color: "#000000", mesh: cube(0) }] }, { name: "B", plate: 2, parts: [{ name: "B", color: "#ffffff", mesh: cube(40) }] }];
+    const bytes = write3mf(models);
+    const objs = read3mf(bytes).objects;
+    const cx = (i: number) => { const b = meshBounds(objs[i].parts.map((q) => q.mesh))!; return [(b.min[0] + b.max[0]) / 2, (b.min[1] + b.max[1]) / 2]; };
+    expect(cx(0)).toEqual([128, 128]);
+    expect(cx(1)[0]).toBeCloseTo(128 + 256 * 1.2); // a mesa 2 fica à direita da 1, a 1,2 × a largura (como o Bambu Studio arruma)
+    expect(cx(1)[1]).toBeCloseTo(128);
+    const cfg = strFromU8(unzipSync(bytes)["Metadata/model_settings.config"]);
+    expect([...cfg.matchAll(/<plate><metadata key="plater_id" value="(\d)"\/><model_instance><metadata key="object_id" value="(\d+)"/g)].map((m) => m[1])).toEqual(["1", "2"]);
+    expect(strFromU8(unzipSync(write3mf([models[0]]))["Metadata/model_settings.config"])).not.toContain("<plate>"); // uma mesa: como antes
   });
 
   test("arquivo que não é 3MF: erro claro", () => {

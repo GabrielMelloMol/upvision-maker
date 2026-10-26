@@ -10,6 +10,8 @@ export type Part = { name: string; color: string; mesh: Mesh; ghost?: boolean; l
 export type Model = {
   name: string;
   parts: Part[];
+  /** Mesa do fatiador (1, 2, …) quando o modelo pede mais de uma, como a referência da canopla (#293). Sem isto, mesa 1. */
+  plate?: number;
   /** Só aparece na prévia (ex.: o modelo montado ao lado do cartão): não vai para os arquivos nem entra na conta da mesa. */
   previewOnly?: boolean;
 };

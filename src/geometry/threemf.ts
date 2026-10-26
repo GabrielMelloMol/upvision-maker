@@ -60,7 +60,10 @@ export function filamentPlan(models: Model[], slots?: (string | null)[]): { extr
 export function write3mf(models: Model[], { pauses = [], profile, slots }: { pauses?: number[]; profile?: PrintProfile; slots?: (string | null)[] } = {}): Uint8Array {
   const objectSettings = profile ? bambuObjectSettings(profile).map(([k, v]) => `<metadata key="${k}" value="${esc(v)}"/>`).join("") : "";
   const extruder = filamentPlan(models, slots).extruderOf;
-  const at = bedTransform(models);
+  // peças com `plate` (#293): cada mesa centrada na sua placa do Bambu Studio / OrcaSlicer; sem isso, tudo na mesa 1
+  const plates = [...new Set(models.map((m) => m.plate ?? 1))].sort((a, b) => a - b);
+  const at = new Map(plates.map((n) => [n, bedTransform(models.filter((m) => (m.plate ?? 1) === n), plateOrigin(n, plates.at(-1)!))]));
+  const onPlate = new Map<number, number[]>();
   let id = 1;
   const objects: string[] = [];
   const items: string[] = [];
@@ -72,7 +75,8 @@ export function write3mf(models: Model[], { pauses = [], profile, slots }: { pau
     });
     const objId = id++;
     objects.push(`<object id="${objId}" name="${esc(m.name)}" type="model"><components>${partIds.map((p) => `<component objectid="${p}"/>`).join("")}</components></object>`);
-    items.push(`<item objectid="${objId}" transform="${at}" printable="1"/>`);
+    items.push(`<item objectid="${objId}" transform="${at.get(m.plate ?? 1)}" printable="1"/>`);
+    onPlate.set(m.plate ?? 1, [...(onPlate.get(m.plate ?? 1) ?? []), objId]);
     config.push(
       `<object id="${objId}"><metadata key="name" value="${esc(m.name)}"/><metadata key="extruder" value="${extruder(m.parts[0].color)}"/>${objectSettings}` +
         m.parts.map((p, i) => `<part id="${partIds[i]}" subtype="normal_part"><metadata key="name" value="${esc(p.name)}"/><metadata key="extruder" value="${extruder(p.color)}"/></part>`).join("") +
@@ -82,7 +86,7 @@ export function write3mf(models: Model[], { pauses = [], profile, slots }: { pau
   const model = `<?xml version="1.0" encoding="UTF-8"?>
 <model unit="millimeter" xml:lang="en-US" xmlns="http://schemas.microsoft.com/3dmanufacturing/core/2015/02"><metadata name="Application">UpVision Maker</metadata><resources>${objects.join("")}</resources><build>${items.join("")}</build></model>`;
   const settings = `<?xml version="1.0" encoding="UTF-8"?>
-<config>${config.join("")}</config>`;
+<config>${config.join("")}${plates.length > 1 ? plates.map((n) => plateXml(n, onPlate.get(n)!)).join("") : ""}</config>`;
   return zipSync({
     "[Content_Types].xml": strToU8(CONTENT_TYPES),
     "_rels/.rels": strToU8(RELS),
@@ -95,12 +99,26 @@ export function write3mf(models: Model[], { pauses = [], profile, slots }: { pau
 }
 
 /** Translação que leva o centro do conjunto ao centro da mesa (matriz 3×4 do 3MF, linha a linha). */
-function bedTransform(models: Model[]): string {
+function bedTransform(models: Model[], [ox, oy] = [0, 0]): string {
   const b = modelsBounds(models);
   const { x, y } = bed();
-  const dx = b ? x / 2 - (b.min[0] + b.max[0]) / 2 : x / 2, dy = b ? y / 2 - (b.min[1] + b.max[1]) / 2 : y / 2;
+  const dx = ox + (b ? x / 2 - (b.min[0] + b.max[0]) / 2 : x / 2), dy = oy + (b ? y / 2 - (b.min[1] + b.max[1]) / 2 : y / 2);
   return `1 0 0 0 1 0 0 0 1 ${num(dx)} ${num(dy)} 0`;
 }
+
+/**
+ * Canto da mesa `n` (1, 2, …) no espaço do projeto: o Bambu Studio e o OrcaSlicer põem as mesas em grade de
+ * ⌈√total⌉ colunas, uma a cada 1,2 × a largura da mesa (LOGICAL_PART_PLATE_GAP = 1/5), descendo em y a cada linha.
+ */
+export function plateOrigin(n: number, total: number): [number, number] {
+  const { x, y } = bed();
+  const cols = Math.ceil(Math.sqrt(total) - 1e-9);
+  return [((n - 1) % cols) * x * 1.2, -Math.floor((n - 1) / cols) * y * 1.2];
+}
+
+/** Uma mesa no model_settings.config do Bambu Studio / OrcaSlicer, com os objetos dela. */
+const plateXml = (n: number, ids: number[]) =>
+  `<plate><metadata key="plater_id" value="${n}"/>${ids.map((o) => `<model_instance><metadata key="object_id" value="${o}"/><metadata key="instance_id" value="0"/></model_instance>`).join("")}</plate>`;
 
 /** Formato do Bambu Studio / OrcaSlicer: type 1 = pausa (M400 U1 no firmware Bambu). */
 function pauseXml(pauses: number[]): string {
