@@ -2,6 +2,7 @@ import { existsSync, mkdirSync, readFileSync, rmSync, writeFileSync } from "node
 import { join, resolve } from "node:path";
 import { strFromU8, unzipSync } from "fflate";
 import { describe, expect, test } from "vitest";
+import { platesOf } from "../geometry/bambuProject";
 import { getManifold } from "../geometry/manifold";
 import { modelColors, write3mf } from "../geometry/threemf";
 import { modelCases, MissingInput, serveFontsFromDisk, type QaCase } from "./cases";
@@ -30,7 +31,7 @@ const Z_TOL = 0.21; // mm: pausa no G-code até uma camada de distância do Z pe
 
 const wanted = (id: string, group: string, owner: string) => (!IDS || IDS.includes(id)) && (!GROUPS || GROUPS.includes(group)) && (!OWNERS || OWNERS.includes(owner));
 
-type Built = { c: QaCase; row: QaRow; file?: string; colors: string[]; pauses: number[]; notes: string[]; bedWarned: boolean; colorWarned: boolean; lotsWarned?: boolean };
+type Built = { c: QaCase; row: QaRow; file?: string; colors: string[]; pauses: number[]; notes: string[]; bedWarned: boolean; colorWarned: boolean; lotsWarned?: boolean; plates?: Record<string, number> };
 
 async function build(c: QaCase): Promise<Built> {
   const M = await getManifold();
@@ -63,7 +64,7 @@ async function build(c: QaCase): Promise<Built> {
   mkdirSync(dir, { recursive: true });
   const file = join(dir, "modelo.3mf");
   writeFileSync(file, bytes);
-  return { c, row: { ...row, status: statusOf(fails, warns), reasons: [...fails, ...warns, ...notes] }, file, colors: [...colors], pauses: [...out.pauses].sort((a, b) => a - b), notes, bedWarned, colorWarned, lotsWarned };
+  return { c, row: { ...row, status: statusOf(fails, warns), reasons: [...fails, ...warns, ...notes] }, file, colors: [...colors], pauses: [...out.pauses].sort((a, b) => a - b), notes, bedWarned, colorWarned, lotsWarned, plates: platesOf(out.models) };
 }
 
 type Slices = { bambu?: SliceResult; orca?: SliceResult; project?: SliceResult };
@@ -126,7 +127,7 @@ async function sliceAll(b: Built, profiles: { bambu?: Profiles; orca?: Profiles 
   const bambu = profiles.bambu && (await slice(BAMBU, b.file!, join(dir, "bambu"), profiles.bambu, b.colors, b.pauses));
   const orca = profiles.orca && (await slice(ORCA, b.file!, join(dir, "orca"), profiles.orca, b.colors, b.pauses));
   const wantsProject = profiles.bambu && (b.colors.length > 1 || b.pauses.length > 0);
-  const project = wantsProject ? await sliceBambuProject(b.file!, dir, profiles.bambu!, b.colors, b.pauses) : undefined;
+  const project = wantsProject ? await sliceBambuProject(b.file!, dir, profiles.bambu!, b.colors, b.pauses, b.plates) : undefined;
   return { bambu, orca, project };
 }
 

@@ -26,8 +26,13 @@ export function checkModels(M: ManifoldToplevel, models: Model[]): Problem[] {
   if (!models.length || models.every((m) => !m.parts.length)) return [{ kind: "fail", msg: "não gerou nenhuma peça" }];
   const all = meshBounds(models.flatMap((m) => m.parts.map((p) => p.mesh)));
   if (!all) return [{ kind: "fail", msg: "malha vazia" }];
-  const set = [all.max[0] - all.min[0], all.max[1] - all.min[1]];
-  if (models.length > 1 && set.some((s) => s > BED_MM)) out.push({ kind: "warn", msg: `o conjunto arrumado ocupa ${set.map(mm).join(" × ")} mm: passa da mesa de ${BED_MM} mm` });
+  // cada mesa do modelo conta sozinha (#293: a canopla sai em duas, como a referência)
+  for (const n of new Set(models.map((m) => m.plate ?? 1))) {
+    const group = models.filter((m) => (m.plate ?? 1) === n);
+    const b = meshBounds(group.flatMap((m) => m.parts.map((p) => p.mesh)))!;
+    const set = [b.max[0] - b.min[0], b.max[1] - b.min[1]];
+    if (group.length > 1 && set.some((s) => s > BED_MM)) out.push({ kind: "warn", msg: `o conjunto arrumado ocupa ${set.map(mm).join(" × ")} mm: passa da mesa de ${BED_MM} mm` });
+  }
   if (all.min[2] < -EPS) out.push({ kind: "fail", msg: `abaixo da mesa (Z mín. ${mm(all.min[2])} mm)` });
   for (const m of models) {
     const b = meshBounds(m.parts.map((p) => p.mesh));

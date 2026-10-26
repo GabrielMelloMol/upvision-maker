@@ -1,7 +1,7 @@
 import { spawn } from "node:child_process";
 import { existsSync, mkdirSync, readdirSync, readFileSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
-import { withFilamentColors } from "../geometry/bambuProject";
+import { withFilamentColors, withPlates } from "../geometry/bambuProject";
 
 /**
  * Fatiamento real para a varredura de QA (#90): Bambu Studio CLI e OrcaSlicer CLI (o Orca é um fork do Bambu e tem o
@@ -172,7 +172,7 @@ const pauseJson = (pauses: number[], filaments: number) => ({
  * O caminho do botão "Projeto do Bambu Studio": o CLI importa o 3MF e exporta o projeto com as pausas (os mesmos
  * argumentos de src-tauri/src/bambu.rs), o app troca as cores (`withFilamentColors`) e a pessoa fatia o projeto.
  */
-export async function sliceBambuProject(file: string, out: string, p: Profiles, colors: string[], pauses: number[]): Promise<SliceResult> {
+export async function sliceBambuProject(file: string, out: string, p: Profiles, colors: string[], pauses: number[], plates: Record<string, number> = {}): Promise<SliceResult> {
   const exportDir = join(out, "projeto");
   mkdirSync(exportDir, { recursive: true });
   const fils = filamentFiles(p, exportDir, colors);
@@ -182,7 +182,7 @@ export async function sliceBambuProject(file: string, out: string, p: Profiles, 
   const project = join(exportDir, "projeto.3mf");
   if (!existsSync(project)) return fail(`Bambu Studio não exportou o projeto (código ${code})`);
   const withColors = join(exportDir, "projeto-cores.3mf");
-  writeFileSync(withColors, withFilamentColors(readFileSync(project), colors));
+  writeFileSync(withColors, withPlates(withFilamentColors(readFileSync(project), colors), plates));
   const sliced = join(out, "projeto-fatiado");
   mkdirSync(sliced, { recursive: true });
   return readOutput(BAMBU, sliced, await run(BAMBU, ["--slice", "0", "--outputdir", sliced, withColors]));
