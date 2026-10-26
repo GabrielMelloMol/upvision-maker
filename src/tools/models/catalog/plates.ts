@@ -271,7 +271,7 @@ export const PLATE_MODELS: ModelDef[] = [
     id: "micHolder",
     category: "gifts",
     label: "Canopla de microfone",
-    blurb: "Mini microfone para o transmissor sem fio (Lark M2, Lark A1, DJI Mic Mini ou o seu): o meio no formato do tema, com texto ou logo na frente, pescoço para a espuma e cabo. Imprima antes o anel de teste.",
+    blurb: "Mini microfone para o transmissor sem fio (Lark M2, Lark A1, DJI Mic Mini ou o seu): o meio no formato do tema, com texto ou logo na frente, furo para a espuma e cabo. Imprima antes o anel de teste.",
     icon: Mic,
     font: true,
     fontSection: 2,
@@ -297,7 +297,7 @@ export const PLATE_MODELS: ModelDef[] = [
         title: "Formato do meio",
         fields: [
           choice("shape", "Formato", MIC_SHAPES, true),
-          num("width", "Largura", 30, 120, { step: 1, hint: "Precisa do microfone mais 2,4 mm de parede de cada lado (uns 32 mm no Lark M2). Abaixo disso o app avisa e engrossa a parte em volta dele." }),
+          num("width", "Largura", 30, 120, { step: 1, hint: "Precisa do microfone mais 2,4 mm de parede de cada lado (uns 38 mm no Lark M2). Abaixo disso o app avisa e engrossa a parte em volta dele." }),
           num("thickness", "Espessura", 16, 60, { step: 1, hint: "Cubo e cilindro usam a largura." }),
         ],
       },
@@ -308,8 +308,7 @@ export const PLATE_MODELS: ModelDef[] = [
       {
         title: "Espuma e cabo",
         fields: [
-          num("neckD", "Diâmetro do pescoço da espuma", 16, 40, { step: 0.5, hint: "Meça por dentro da espuma: o pescoço fica 1 a 2 mm maior para ela não sair." }),
-          num("neckH", "Altura do pescoço", 6, 30, { step: 1 }),
+          num("neckD", "Furo da espuma", 10, 36, { step: 0.5, hint: "Meça a base da espuma por fora: o furo fica 1 a 2 mm menor para ela entrar apertada." }),
           num("handleL", "Comprimento do cabo", 30, 150, { step: 1 }),
         ],
       },

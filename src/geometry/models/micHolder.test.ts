@@ -3,7 +3,7 @@ import { meshBounds } from "../bounds";
 import { getManifold, type ManifoldToplevel, type Solid } from "../manifold";
 import type { Mesh, Model } from "../types";
 import type { ModelCtx } from "./common";
-import { BAR_T, buildMicHolder, DEFAULT_MIC_HOLDER, MIC_SHAPES, MIC_SHAPE_WIDTH, MIC_WALL, micLayout, PIN_D, TENON_FIT, type MicHolderParams } from "./micHolder";
+import { BAR_T, buildMicHolder, DEFAULT_MIC_HOLDER, MIC_SHAPES, MIC_SHAPE_WIDTH, MIC_WALL, micLayout, PIN_D, TENON_FIT, BOTTOM_WALL, PEG_D, PEG_H, FOAM_DEPTH, type MicHolderParams } from "./micHolder";
 
 let M: ManifoldToplevel;
 beforeAll(async () => {
@@ -47,18 +47,26 @@ describe("canopla de microfone (#274)", { timeout: 120_000 }, () => {
     expect(b.intersect(tx(o, P, P.clearance + 0.3)).volume()).toBeGreaterThan(1);
   });
 
-  test("o encaixe do cabo entra justo num furo cego embaixo, separado do bolso por um fundo (o cabo fica fixo)", () => {
+  test("o cabo cola num rebaixo raso embaixo, como a referência, sem tocar no bolso (o cabo fica fixo)", () => {
     const o = build();
     const L = micLayout(P);
-    expect(L.tenon[0]).toBeCloseTo(L.cw - 2 * TENON_FIT);
-    expect(L.tenon[1]).toBeCloseTo(L.cd - 2 * TENON_FIT);
+    expect(L.peg).toBeCloseTo(PEG_D - 2 * TENON_FIT);
+    expect(o.layout!.tenonL).toBeCloseTo(PEG_H);
     const h = meshBounds([byName(o.models, "Cabo").parts[0].mesh])!;
-    expect(h.max[2] - h.min[2]).toBeCloseTo(P.handleL + o.layout!.tenonL, 1);
-    expect(o.layout!.tenonL).toBeGreaterThanOrEqual(4 - 1e-9);
+    expect(h.max[2] - h.min[2]).toBeLessThan(P.handleL + PEG_H);
     const { zFloor } = pocketAt(o, P);
-    expect(zFloor - o.layout!.tenonL).toBeGreaterThanOrEqual(1.2);
-    const floor = box(-L.cw / 2 + 0.5, L.cw / 2 - 0.5, -L.cd / 2 + 0.5, L.cd / 2 - 0.5, o.layout!.tenonL + 0.05, zFloor - 0.05);
+    expect(zFloor).toBeCloseTo(BOTTOM_WALL, 5); // parede de baixo da abertura: 1 mm, como a referência
+    const floor = box(-PEG_D / 2, PEG_D / 2, -1, 1, PEG_H + 0.05, zFloor - 0.05);
     expect(body(o).intersect(floor).volume()).toBeCloseTo(floor.volume(), 1);
+  });
+
+  test("sem pescoço: a espuma entra apertada num furo no topo, que dá na janela do clipe", () => {
+    const o = build();
+    const b = body(o);
+    const top = o.layout!.top;
+    const hole = M.Manifold.cylinder(FOAM_DEPTH - 0.1, P.neckD / 2 - 0.1, P.neckD / 2 - 0.1, 48).translate([0, 0, top - FOAM_DEPTH + 0.05]);
+    expect(b.intersect(hole).volume()).toBeLessThan(0.01);
+    expect(meshBounds([byName(o.views!.find((v) => v.id === "closed")!.models, "Costas").parts[0].mesh])!.max[2]).toBeCloseTo(top, 1); // nada acima do corpo
   });
 
   test("dois pinos simétricos, furo nas duas metades no mesmo lugar e pino menor que os dois furos juntos", () => {
@@ -94,7 +102,7 @@ describe("canopla de microfone (#274)", { timeout: 120_000 }, () => {
       expect(o.warnings!.some((w) => w.includes("estreito")), shape).toBe(false);
       // o cubo é justo como a referência: sem lugar para pinos, as metades se alinham pelo encaixe do cabo
       expect(o.layout!.pins, shape).toHaveLength(shape === "cube" ? 0 : 2);
-      if (shape === "cube") expect(o.warnings!.some((w) => w.includes("encaixe do cabo, que entra nas duas"))).toBe(true);
+      if (shape === "cube") expect(o.warnings!.some((w) => w.includes("alinhe pelas bordas"))).toBe(true);
       const fb = meshBounds([byName(o.models, "Frente").parts[0].mesh])!;
       expect(fb.max[1] - fb.min[1], shape).toBeLessThan(256);
     }
@@ -189,6 +197,11 @@ describe("canopla de microfone (#274)", { timeout: 120_000 }, () => {
       expect(side).toBeGreaterThanOrEqual(MIC_WALL);
       expect(side).toBeLessThanOrEqual(3.5);
       expect(DEFAULT_MIC_HOLDER.width).toBe(MIC_SHAPE_WIDTH.cube);
+      // costas quase todas abertas: a abertura ocupa ~60 % da face de trás do cubo padrão (59 % na referência)
+      const o = build();
+      const face = meshBounds([byName(o.views!.find((v) => v.id === "closed")!.models, "Costas").parts[0].mesh])!;
+      const open = L.cw * L.cd + L.clipW * L.clipH + L.slotW * BAR_T;
+      expect(open / ((face.max[0] - face.min[0]) * (face.max[2] - face.min[2]))).toBeGreaterThan(0.55);
     });
 
     test("imprime sem suporte: nas costas a abertura atravessa a metade sem teto; na frente o bolso só entra do corte para cima", () => {

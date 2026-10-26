@@ -252,17 +252,17 @@ export const FAMILY_HELP: Record<string, GuideHelp> = {
     ],
     avoid: [
       "Microfone que você não tem para medir: as medidas prontas são das fichas e não contam o ímã ou o clipe. Imprima o anel de teste antes de vender.",
-      "Formato fino demais: mais estreito que o microfone com 2,4 mm de parede de cada lado (uns 32 mm no Lark M2), o meio fica estreito e o desenho perde a cara.",
+      "Formato fino demais: mais estreito que o microfone com 2,4 mm de parede de cada lado (uns 38 mm no Lark M2), o meio fica estreito e o desenho perde a cara.",
     ],
     tips: [
       "Comece pelo anel de teste (uns 10 minutos): é o mesmo encaixe das costas. O microfone deitado deve entrar sem forçar, com o clipe por cima da travessa, e sair puxando para trás. Ajuste a folga e só então imprima a canopla.",
       "As duas metades saem deitadas com o corte na mesa: não precisam de suporte. Nas costas a abertura atravessa a peça; na frente o fundo do bolso é uma ponte curta.",
-      "Monte com os pinos e uma gota de cola nas metades e encaixe o cabo por baixo (ele fica fixo). O microfone entra por trás, deitado: empurre para dentro com o clipe por cima da travessa e a haste dele no rasgo do meio. As costas ficam quase todas abertas: luz e botão à vista.",
+      "Cole as metades (com os pinos, quando o formato tem lugar para eles), cole o cabo no rebaixo de baixo e aperte a espuma no furo de cima. O microfone entra por trás, deitado: empurre para dentro com o clipe por cima da travessa e a haste dele no rasgo do meio. As costas ficam quase todas abertas: luz e botão à vista.",
       "Com AMS, o meio e o relevo da frente saem em cores diferentes. Cabo de outra cor: mande ele para outra placa no fatiador, senão a troca de filamento acontece em toda camada e a impressão dobra de tempo.",
     ],
     faq: [
       { q: "Como tiro o microfone para carregar?", a: "Puxe ele para trás pela abertura das costas. Não precisa mexer no cabo nem usar ferramenta." },
-      { q: "Qual espuma uso?", a: "Espuma de mini microfone, de uns 30 mm. Meça o furo dela e ponha o pescoço 1 a 2 mm maior para ela ficar presa." },
+      { q: "Qual espuma uso?", a: "Espuma de mini microfone, de uns 30 mm. Meça a base dela por fora e ponha o furo de cima 1 a 2 mm menor: ela entra apertada e não sai." },
       { q: "Posso usar o meu desenho no formato?", a: "Sim: escolha Meu desenho e envie o SVG ou a imagem. O app fecha o contorno, põe o microfone no meio e avisa se ficar estreito." },
       { q: "Posso vender?", a: "Sim. A peça é gerada pelo app, com formato e medidas próprias; não usa arquivo de terceiros." },
     ],
