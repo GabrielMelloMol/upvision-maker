@@ -54,9 +54,9 @@ describe("canopla de microfone (#274)", { timeout: 120_000 }, () => {
     expect(L.tenon[1]).toBeCloseTo(L.cd - 2 * TENON_FIT);
     const h = meshBounds([byName(o.models, "Cabo").parts[0].mesh])!;
     expect(h.max[2] - h.min[2]).toBeCloseTo(P.handleL + o.layout!.tenonL, 1);
-    expect(o.layout!.tenonL).toBeGreaterThanOrEqual(8);
+    expect(o.layout!.tenonL).toBeGreaterThanOrEqual(4 - 1e-9);
     const { zFloor } = pocketAt(o, P);
-    expect(zFloor - o.layout!.tenonL).toBeGreaterThanOrEqual(2);
+    expect(zFloor - o.layout!.tenonL).toBeGreaterThanOrEqual(1.2);
     const floor = box(-L.cw / 2 + 0.5, L.cw / 2 - 0.5, -L.cd / 2 + 0.5, L.cd / 2 - 0.5, o.layout!.tenonL + 0.05, zFloor - 0.05);
     expect(body(o).intersect(floor).volume()).toBeCloseTo(floor.volume(), 1);
   });

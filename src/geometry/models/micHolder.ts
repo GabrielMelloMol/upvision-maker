@@ -80,8 +80,9 @@ const SLOT_W = 9 / 33; // rasgo no meio da travessa, por onde passa a haste do c
 const SLOT_L = 29 / 35; // comprimento do rasgo, a partir das costas ÷ fundo do bolso
 const MIC_COLOR = "#141416"; // transmissor da prévia: preto como o Lark M2, contrasta com o meio claro
 export const TENON_FIT = 0.15; // o encaixe do cabo entra justo no canal (por lado)
-const TENON_MIN = 8; // o canal abaixo do microfone, onde o encaixe do cabo entra
-const FLOOR = 2; // fundo de cada metade atrás do bolso
+const TENON_MIN = 4; // o canal abaixo do microfone, onde o encaixe do cabo entra com cola (a referência só cola o cabo: curto para as costas ficarem quase todas abertas)
+const SOCKET_FLOOR = 1.2; // fundo entre o encaixe do cabo e o bolso (3 paredes de 0,4)
+const FLOOR = 2; // fundo de cada metade (furo dos pinos)
 const SOUND_W = 8; // canal do som, do microfone até o topo do pescoço
 const HANDLE_TOP = 30;
 const HANDLE_BOTTOM = 22;
@@ -113,7 +114,7 @@ export type MicHolderOutput = ModelOutput & { layout: { cy: number; top: number;
 type K = <D extends { delete(): void }>(o: D) => D;
 
 /** Contorno do formato centrado na origem, `w` de largura. */
-function outline(M: ManifoldToplevel, k: K, ctx: ModelCtx, shape: MicShape, w: number): CS {
+function outline(M: ManifoldToplevel, k: K, ctx: ModelCtx, shape: MicShape, w: number, cubeH = w): CS {
   const poly = (pts: [number, number][]) => k(new M.CrossSection([pts], "NonZero"));
   const circle = (r: number, x: number, y: number) => k(k(M.CrossSection.circle(r, SEG)).translate([x, y]));
   const rect = (rw: number, rh: number, x: number, y: number, r = 0) => k(k(roundedRect(M, rw, rh, r)).translate([x, y]));
@@ -121,8 +122,9 @@ function outline(M: ManifoldToplevel, k: K, ctx: ModelCtx, shape: MicShape, w: n
   let cs: CS;
   switch (shape) {
     case "cube":
+      return k(roundedRect(M, w, cubeH, 4));
     case "cylinder":
-      return k(roundedRect(M, w, w, shape === "cube" ? 4 : 0));
+      return k(roundedRect(M, w, w, 0));
     case "heart":
     case "star":
     case "flower":
@@ -188,11 +190,12 @@ export function buildMicHolder(ctx: ModelCtx, p: MicHolderParams): MicHolderOutp
   if (T > T0) warnings.push(`A espessura subiu para ${fmt(T)} mm para o microfone caber deitado, com parede na frente.`);
   const elements: ElementBox[] = [];
   const out = scoped((k) => {
-    const S0 = outline(M, k, ctx, p.shape, p.width);
+    // cubo justo como a referência (38 × 28,7): só a altura que o encaixe do cabo, a abertura e a parede de cima pedem
+    const S0 = outline(M, k, ctx, p.shape, p.width, Math.max(L.ch + SOCKET_FLOOR + TENON_MIN + MIC_WALL, p.width * (28.7 / 38)));
     // o miolo (abertura + parede, de y_b até o topo) sobe pelo formato até caber inteiro nele: assim a ponta do coração vira
     // base reta e não sobra bloco para fora. Com folga, o microfone fica no centro do formato.
     const s0 = boxOf(S0);
-    const cyMin = L.ch / 2 + FLOOR + TENON_MIN;
+    const cyMin = L.ch / 2 + SOCKET_FLOOR + TENON_MIN;
     // acima do microfone o pescoço já cobre o miolo (o vão do coração, a ponta da estrela)
     const outside = (yb: number, cy: number) => {
       const neck = k(k(M.CrossSection.square([p.neckD, 1e3])).translate([-p.neckD / 2, yb + cy]));
@@ -218,7 +221,7 @@ export function buildMicHolder(ctx: ModelCtx, p: MicHolderParams): MicHolderOutp
     const sb = boxOf(S);
     const top = Math.max(sb[3], coreTop) + p.neckH;
     // encaixe do cabo: furo cego embaixo, com um fundo entre ele e o bolso (o cabo fica fixo, não segura o microfone)
-    const tenonL = cy - L.ch / 2 - FLOOR;
+    const tenonL = cy - L.ch / 2 - SOCKET_FLOOR;
     const socket = k(k(M.CrossSection.square([L.cw, tenonL + 1])).translate([-L.cw / 2, -1]));
     // abertura (bolso + janela do clipe), do fundo do bolso até atravessar as costas; z = 0 é o corte, +z vai para trás
     const zBack = T / 2 - L.cl;
