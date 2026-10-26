@@ -3,6 +3,9 @@
 Cada versão aparece para a usuária na tela "O que há de novo" depois da atualização.
 Formato: `## <versão> — <data>` e itens `- …` em linguagem simples.
 
+## 0.15.5 — 2026-10-25
+- **Canopla de microfone aberta atrás, como as de verdade (#291)**: o transmissor entra e sai por trás, deitado: o clipe passa pelo rasgo e prende na travessa, e a luz fica à vista. Para tirar e carregar, é só puxar para trás, sem mexer no cabo. As medidas do Lark M2 (Ø31,7 × 12,3 mm) e o cubo de 38 mm vêm de um modelo feito com o microfone de verdade. A espuma agora encaixa num furo no topo. A prévia mostra o passo a passo: Fora, Entrando e Dentro. Imprima antes o anel de teste.
+
 ## 0.15.4 — 2026-10-25
 - **Carimbo seco sem pedacinhos soltos no desenho (#284)**: no miolo das letras pequenas sobravam ilhas de material finas demais, que o fatiador pulava ou deixava como espeto. Agora elas viram cavidade, e o desenho sai inteiro no papel.
 - **Foto do Cortador de biscoito (#285)**: o cartão ganhou foto, com o cortador, o carimbo e dois biscoitos marcados.
