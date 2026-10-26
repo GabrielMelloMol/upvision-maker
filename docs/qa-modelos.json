@@ -152,14 +152,15 @@
   "group": "gifts",
   "label": "Canopla de microfone (micHolder)",
   "variant": "máximo",
-  "status": "ok",
+  "status": "aviso",
   "reasons": [
+   "mais de 24 h de impressão",
    "app: Placa 1: a caixinha deitada, costas para baixo e o logo em cima, sem suporte. Placa 2: bolinha, anel, cabo e pecinha, em pé. Monte com cola: o cabo no rebaixo de baixo; a pecinha no rebaixo de cima; o anel passa pela pecinha e a bolinha encaixa nela. O microfone entra por trás, deitado, com o clipe por cima da travessa; para carregar, puxe para trás."
   ],
   "date": "2026-10-26",
   "slicers": "Bambu ✓ · Orca ✓ · Projeto Bambu ✓",
-  "minutes": 1438,
-  "grams": 619.5,
+  "minutes": 1443,
+  "grams": 623.8,
   "plates": 1
  },
  {
@@ -174,8 +175,8 @@
   ],
   "date": "2026-10-26",
   "slicers": "Bambu ✓ · Orca ✓ · Projeto Bambu ✓",
-  "minutes": 314,
-  "grams": 89.5,
+  "minutes": 320,
+  "grams": 93.8,
   "plates": 1
  },
  {
@@ -190,8 +191,8 @@
   ],
   "date": "2026-10-26",
   "slicers": "Bambu ✓ · Orca ✓ · Projeto Bambu ✓",
-  "minutes": 408,
-  "grams": 116.9,
+  "minutes": 414,
+  "grams": 121.2,
   "plates": 1
  },
  {
