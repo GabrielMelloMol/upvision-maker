@@ -154,12 +154,12 @@
   "variant": "máximo",
   "status": "ok",
   "reasons": [
-   "app: Duas metades: ponha os pinos, passe cola e una a frente e as costas; cole o cabo no rebaixo de baixo (ele fica fixo). O microfone entra por trás, deitado: empurre para dentro com o clipe por cima da travessa e a haste dele no rasgo do meio. Para carregar, puxe para trás. Aperte a base da espuma no furo de cima."
+   "app: Placa 1: a caixinha deitada, costas para baixo e o logo em cima, sem suporte. Placa 2: bolinha, anel, cabo e pecinha, em pé. Monte com cola: o cabo no rebaixo de baixo; a pecinha no rebaixo de cima; o anel passa pela pecinha e a bolinha encaixa nela. O microfone entra por trás, deitado, com o clipe por cima da travessa; para carregar, puxe para trás."
   ],
   "date": "2026-10-26",
   "slicers": "Bambu ✓ · Orca ✓ · Projeto Bambu ✓",
-  "minutes": 444,
-  "grams": 394.7,
+  "minutes": 1438,
+  "grams": 619.5,
   "plates": 1
  },
  {
@@ -170,13 +170,12 @@
   "variant": "mínimo",
   "status": "ok",
   "reasons": [
-   "app: Sem lugar para pinos entre as metades: alinhe pelas bordas, passe cola e prenda com fita até secar.",
-   "app: Duas metades: passe cola e una a frente e as costas; cole o cabo no rebaixo de baixo (ele fica fixo). O microfone entra por trás, deitado: empurre para dentro com o clipe por cima da travessa e a haste dele no rasgo do meio. Para carregar, puxe para trás. Aperte a base da espuma no furo de cima."
+   "app: Placa 1: a caixinha deitada, costas para baixo e o logo em cima, sem suporte. Placa 2: bolinha, anel, cabo e pecinha, em pé. Monte com cola: o cabo no rebaixo de baixo; a pecinha no rebaixo de cima; o anel passa pela pecinha e a bolinha encaixa nela. O microfone entra por trás, deitado, com o clipe por cima da travessa; para carregar, puxe para trás."
   ],
   "date": "2026-10-26",
   "slicers": "Bambu ✓ · Orca ✓ · Projeto Bambu ✓",
-  "minutes": 40,
-  "grams": 19.9,
+  "minutes": 314,
+  "grams": 89.5,
   "plates": 1
  },
  {
@@ -187,13 +186,12 @@
   "variant": "padrão",
   "status": "ok",
   "reasons": [
-   "app: Sem lugar para pinos entre as metades: alinhe pelas bordas, passe cola e prenda com fita até secar.",
-   "app: Duas metades: passe cola e una a frente e as costas; cole o cabo no rebaixo de baixo (ele fica fixo). O microfone entra por trás, deitado: empurre para dentro com o clipe por cima da travessa e a haste dele no rasgo do meio. Para carregar, puxe para trás. Aperte a base da espuma no furo de cima."
+   "app: Placa 1: a caixinha deitada, costas para baixo e o logo em cima, sem suporte. Placa 2: bolinha, anel, cabo e pecinha, em pé. Monte com cola: o cabo no rebaixo de baixo; a pecinha no rebaixo de cima; o anel passa pela pecinha e a bolinha encaixa nela. O microfone entra por trás, deitado, com o clipe por cima da travessa; para carregar, puxe para trás."
   ],
   "date": "2026-10-26",
   "slicers": "Bambu ✓ · Orca ✓ · Projeto Bambu ✓",
-  "minutes": 83,
-  "grams": 35.9,
+  "minutes": 408,
+  "grams": 116.9,
   "plates": 1
  },
  {

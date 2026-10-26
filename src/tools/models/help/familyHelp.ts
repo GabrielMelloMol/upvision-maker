@@ -256,10 +256,10 @@ export const FAMILY_HELP: Record<string, GuideHelp> = {
     ],
     tips: [
       "Comece pelo anel de teste (uns 10 minutos): é o mesmo encaixe das costas. O microfone deitado deve entrar sem forçar, com o clipe por cima da travessa, e sair puxando para trás. Ajuste a folga e só então imprima a canopla.",
-      "Mesa 1: a caixinha numa peça só, deitada, com as costas abertas na mesa e o logo em cima. Não precisa de suporte: o teto do bolso se fecha aos poucos, em meia-volta, e o resto é ponte curta.",
-      "Mesa 2: a bolinha, o anel, o cabo e a pecinha, em pé. A grade tem furinhos de 1,6 mm, feitos para bico de 0,4. Na espuma impressa, ligue a pele texturizada (fuzzy skin) no fatiador para ela parecer espuma.",
+      "Placa 1: a caixinha numa peça só, deitada, com as costas abertas para baixo e o logo em cima. Não precisa de suporte: o teto do bolso se fecha aos poucos, em meia-volta, e o resto é ponte curta.",
+      "Placa 2: a bolinha, o anel, o cabo e a pecinha, em pé. A grade tem furinhos de 1,6 mm, feitos para bico de 0,4. Na espuma impressa, ligue a pele texturizada (fuzzy skin) no fatiador para ela parecer espuma.",
       "Monte com cola: o cabo no rebaixo de baixo; a pecinha no rebaixo de cima; o anel passa pela pecinha e a bolinha encaixa nela. O microfone entra por trás, deitado: empurre para dentro com o clipe por cima da travessa e a haste dele no rasgo do meio. As costas ficam abertas: luz e botão à vista.",
-      "Com AMS, a caixinha e o relevo da frente saem em cores diferentes; na mesa 2, o anel prata é a única troca de cor (2 mm).",
+      "Com AMS, a caixinha e o relevo da frente saem em cores diferentes; na placa 2, o anel prata é a única troca de cor (2 mm).",
     ],
     faq: [
       { q: "Como tiro o microfone para carregar?", a: "Puxe ele para trás pela abertura das costas. Não precisa mexer no cabo nem usar ferramenta." },

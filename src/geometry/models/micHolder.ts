@@ -80,9 +80,9 @@ export const DEFAULT_MIC_HOLDER: MicHolderParams = {
   print: "full",
   bodyColor: "#f8f8f6",
   artColor: "#1c1c1e",
-  headColor: "#2b2b2b",
+  headColor: "#1c1c1e", // a cor do cabo: na placa 2 só o anel troca de filamento
   ringColor: "#b8bcc2", // anel prata, como a grade da referência
-  handleColor: "#1c1c1e", // o cabo vai na mesa 2, longe do meio: pode ter outra cor sem trocar filamento em toda camada
+  handleColor: "#1c1c1e", // o cabo vai na placa 2, longe da caixinha: pode ter outra cor sem trocar filamento em toda camada
 };
 
 export const MIC_WALL = 2.5; // parede dos lados do bolso (2,5 na referência)
@@ -259,7 +259,7 @@ function buildHead(M: ManifoldToplevel, k: K, kind: "foam" | "grille"): Solid {
 /**
  * Canopla para microfone sem fio (#274, #291, #293), igual à referência: a caixinha numa peça só, fechada em 5 faces e aberta
  * atrás, impressa deitada com as costas na mesa e a frente (com o logo de outra cor) para cima, sem suporte. O transmissor
- * entra e sai por trás, deitado, sem mexer no cabo; o clipe dele abraça a travessa. Na mesa 2: a bolinha de cima (espuma
+ * entra e sai por trás, deitado, sem mexer no cabo; o clipe dele abraça a travessa. Na placa 2: a bolinha de cima (espuma
  * impressa ou grade), o anel, o cabo e a pecinha que liga a caixinha à bolinha, tudo colado. "Anel de teste": só o encaixe.
  */
 export function buildMicHolder(ctx: ModelCtx, p: MicHolderParams): MicHolderOutput {
@@ -360,7 +360,7 @@ export function buildMicHolder(ctx: ModelCtx, p: MicHolderParams): MicHolderOutp
         boxParts.push({ name: "Frente (relevo)", color: p.artColor, mesh: toMesh(k(k(k(placed.extrude(R + p.relief)).translate([0, 0, R])).intersect(skin))) });
       } else boxParts.push(...artParts(p.front === "art" ? ctx : { ...ctx, art: null, artLayers: null }, placed, p.artColor, "Frente (relevo)", p.relief, T));
     }
-    // mesa 2, tudo em pé: cabo (chanfro embaixo), pecinha (chanfro em cima), anel e a bolinha
+    // placa 2, tudo em pé: cabo (chanfro embaixo), pecinha (chanfro em cima), anel e a bolinha
     const handle = k(k(M.Manifold.cylinder(1, L.handleD / 2 - 0.8, L.handleD / 2, SEG)).add(k(k(M.Manifold.cylinder(p.handleL - 1, L.handleD / 2, L.handleD / 2, SEG)).translate([0, 0, 1]))));
     const peg = k(k(M.Manifold.cylinder(PEG_L - 0.6, L.peg / 2, L.peg / 2, SEG)).add(k(k(M.Manifold.cylinder(0.6, L.peg / 2, L.peg / 2 - 0.6, SEG)).translate([0, 0, PEG_L - 0.6]))));
     const ringM = k(k(M.Manifold.cylinder(RING_H, RING_D / 2, RING_D / 2, SEG)).subtract(k(k(M.Manifold.cylinder(RING_H + 2, PEG_D / 2, PEG_D / 2, SEG)).translate([0, 0, -1]))));
@@ -413,8 +413,8 @@ export function buildMicHolder(ctx: ModelCtx, p: MicHolderParams): MicHolderOutp
   });
   warnings.push(
     printed
-      ? "Mesa 1: a caixinha deitada, costas na mesa e o logo em cima, sem suporte. Mesa 2: bolinha, anel, cabo e pecinha, em pé. Monte com cola: o cabo no rebaixo de baixo; a pecinha no rebaixo de cima; o anel passa pela pecinha e a bolinha encaixa nela. O microfone entra por trás, deitado, com o clipe por cima da travessa; para carregar, puxe para trás."
-      : "Mesa 1: a caixinha deitada, costas na mesa e o logo em cima, sem suporte. Mesa 2: o cabo, em pé. Cole o cabo no rebaixo de baixo e aperte a base da espuma no furo de cima. O microfone entra por trás, deitado, com o clipe por cima da travessa; para carregar, puxe para trás.",
+      ? "Placa 1: a caixinha deitada, costas para baixo e o logo em cima, sem suporte. Placa 2: bolinha, anel, cabo e pecinha, em pé. Monte com cola: o cabo no rebaixo de baixo; a pecinha no rebaixo de cima; o anel passa pela pecinha e a bolinha encaixa nela. O microfone entra por trás, deitado, com o clipe por cima da travessa; para carregar, puxe para trás."
+      : "Placa 1: a caixinha deitada, costas para baixo e o logo em cima, sem suporte. Placa 2: o cabo, em pé. Cole o cabo no rebaixo de baixo e aperte a base da espuma no furo de cima. O microfone entra por trás, deitado, com o clipe por cima da travessa; para carregar, puxe para trás.",
   );
   // de costas: a mesma montagem girada meia volta, para ver a abertura e o transmissor
   const turn = (ms: Model[]) => ms.map((m) => ({ ...m, parts: m.parts.map((x) => { const q = x.mesh.positions.slice(); for (let i = 0; i < q.length; i += 3) [q[i], q[i + 1]] = [-q[i], -q[i + 1]]; return { ...x, mesh: { ...x.mesh, positions: q } }; }) }));
@@ -423,7 +423,7 @@ export function buildMicHolder(ctx: ModelCtx, p: MicHolderParams): MicHolderOutp
     { id: "out", label: "1. Fora", models: turn(out.steps[0]), note: "Costas: o transmissor deitado, com o clipe para cima, na frente da abertura." },
     { id: "in", label: "2. Entrando", models: turn(out.steps[1]), note: "Empurre para a frente: o corpo desliza no bolso e o clipe por cima da travessa. O cabo não sai do lugar." },
     { id: "back", label: "3. Dentro", models: turn(out.steps[2]), note: "Preso: o clipe abraça a travessa e a luz fica à vista. Para tirar e carregar, puxe para trás." },
-    { id: "bed", label: "Mesas", models: out.bed, note: "Duas mesas, como a referência: a caixinha com o logo numa, o resto na outra." },
+    { id: "bed", label: "Placas", models: out.bed, note: "Duas placas, como a referência: a caixinha com o logo numa, o resto na outra." },
   ];
   return { models: out.models, views, elements, warnings, layout: { cy: out.cy, top: out.top, depth, thickness: T } };
 }
