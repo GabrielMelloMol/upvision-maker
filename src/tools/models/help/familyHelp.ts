@@ -252,12 +252,12 @@ export const FAMILY_HELP: Record<string, GuideHelp> = {
     ],
     avoid: [
       "Microfone que você não tem para medir: as medidas prontas são das fichas e não contam o ímã ou o clipe. Imprima o anel de teste antes de vender.",
-      "Formato fino demais: abaixo de 40 mm de largura o meio fica estreito para o microfone e o desenho perde a cara.",
+      "Formato fino demais: mais estreito que o microfone com 2,4 mm de parede de cada lado (uns 32 mm no Lark M2), o meio fica estreito e o desenho perde a cara.",
     ],
     tips: [
       "Comece pelo anel de teste (uns 10 minutos): é o mesmo encaixe das costas. O microfone deitado deve entrar sem forçar, com o clipe por cima da travessa, e sair puxando para trás. Ajuste a folga e só então imprima a canopla.",
       "As duas metades saem deitadas com o corte na mesa: não precisam de suporte. Nas costas a abertura atravessa a peça; na frente o fundo do bolso é uma ponte curta.",
-      "Monte com os pinos e uma gota de cola nas metades e encaixe o cabo por baixo (ele fica fixo). O microfone entra por trás, deitado: empurre para dentro com o clipe por cima da travessa. A luz e o botão ficam à vista.",
+      "Monte com os pinos e uma gota de cola nas metades e encaixe o cabo por baixo (ele fica fixo). O microfone entra por trás, deitado: empurre para dentro com o clipe por cima da travessa e a haste dele no rasgo do meio. As costas ficam quase todas abertas: luz e botão à vista.",
       "Com AMS, o meio e o relevo da frente saem em cores diferentes. Cabo de outra cor: mande ele para outra placa no fatiador, senão a troca de filamento acontece em toda camada e a impressão dobra de tempo.",
     ],
     faq: [

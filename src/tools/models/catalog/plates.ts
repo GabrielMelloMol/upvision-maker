@@ -297,7 +297,7 @@ export const PLATE_MODELS: ModelDef[] = [
         title: "Formato do meio",
         fields: [
           choice("shape", "Formato", MIC_SHAPES, true),
-          num("width", "Largura", 30, 120, { step: 1, hint: "Menos de 40 mm fica estreito para o microfone: o app avisa e engrossa a parte em volta dele." }),
+          num("width", "Largura", 30, 120, { step: 1, hint: "Precisa do microfone mais 2,4 mm de parede de cada lado (uns 32 mm no Lark M2). Abaixo disso o app avisa e engrossa a parte em volta dele." }),
           num("thickness", "Espessura", 16, 60, { step: 1, hint: "Cubo e cilindro usam a largura." }),
         ],
       },
