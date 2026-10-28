@@ -3,9 +3,10 @@
 Cada versão aparece para a usuária na tela "O que há de novo" depois da atualização.
 Formato: `## <versão> — <data>` e itens `- …` em linguagem simples.
 
-## Próxima versão
+## 0.15.6 — 2026-10-28
 - **Orçamento com a cara da sua empresa (#296)**: em Dados da empresa há o campo **Cor da marca**, sugerido a partir do logo. Ela vai no título, na linha do cabeçalho e no total do orçamento, do pedido, do contrato, da reposição e do catálogo; se for clara demais, o PDF escurece um pouco para dar leitura. A tela de Orçamentos avisa quando falta logo, nome ou contato da empresa e leva direto para completar. Os PDFs ganharam o WhatsApp e o Instagram no rodapé, letras maiores nos dados da empresa e no Pix, e o nome do produto no catálogo não encosta mais no preço.
 - **Logo da empresa salvo na hora (#295)**: ao escolher o logo em Dados da empresa, ele já fica gravado. Antes ele só aparecia na prévia e sumia se você saísse da tela sem clicar em "Salvar dados", e por isso não saía no orçamento. Se a imagem não puder ir para o PDF, o app avisa na hora. Erro em qualquer campo agora aparece na tela.
+- **Canopla igual às de verdade (#293)**: a caixinha agora sai numa peça só, fechada e aberta só atrás. A bolinha de cima é impressa e colada, com 3 opções: espuma impressa (lisa), grade de microfone com anel ou espuma comprada. O cabo e a pecinha de encaixe saem à parte. No Projeto do Bambu Studio vêm 2 mesas: a caixinha com o logo numa, e o resto na outra.
 
 ## 0.15.5 — 2026-10-25
 - **Canopla de microfone aberta atrás, como as de verdade (#291)**: o transmissor entra e sai por trás, deitado: o clipe passa pelo rasgo e prende na travessa, e a luz fica à vista. Para tirar e carregar, é só puxar para trás, sem mexer no cabo. As medidas do Lark M2 (Ø31,7 × 12,3 mm) e o cubo de 38 mm vêm de um modelo feito com o microfone de verdade. A espuma agora encaixa num furo no topo. A prévia mostra o passo a passo: Fora, Entrando e Dentro. Imprima antes o anel de teste.
