@@ -33,7 +33,7 @@ export function totalsBlock(pdf: Pdf, items: Line[], freight: number) {
   const row = (label: string, value: string, strong = false) => {
     pdf.ensure(18);
     pdf.at(label, totalsX, pdf.y - 11, { size: strong ? 12 : 9.5, font: strong ? "bold" : "regular", color: strong ? COLOR.text : COLOR.muted });
-    pdf.at(value, A4.w - MARGIN, pdf.y - 11, { size: strong ? 12 : 9.5, font: strong ? "bold" : "semibold", align: "right" });
+    pdf.at(value, A4.w - MARGIN, pdf.y - 11, { size: strong ? 12 : 9.5, font: strong ? "bold" : "semibold", color: strong ? pdf.accent : COLOR.text, align: "right" });
     pdf.gap(strong ? 20 : 15);
   };
   row("Subtotal", moneyBr(t.subtotal));
@@ -70,7 +70,7 @@ export function pixBox(pdf: Pdf, company: Company, amount: number, txid: string)
     pdf.y = top - QR_PAD;
     const x = MARGIN + QR_SIZE + 2 * QR_PAD + 6;
     pdf.text(`Pague com Pix: ${moneyBr(amount)}`, { x, size: 12, font: "bold" });
-    pdf.text("Abra o app do banco, escolha Pix › Ler QR code. Ou use o Pix copia e cola:", { x, size: 8.5, color: COLOR.muted });
+    pdf.text("Abra o app do banco, escolha Pix › Ler QR code. Ou use o Pix copia e cola:", { x, size: 9.5, color: COLOR.muted });
     pdf.text(payload, { x, size: 7, color: COLOR.muted });
     pdf.y = top - QR_SIZE - 2 * QR_PAD - 6;
     return null;

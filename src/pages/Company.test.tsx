@@ -1,5 +1,5 @@
 // @vitest-environment happy-dom
-import { screen, waitFor } from "@testing-library/react";
+import { fireEvent, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, test, vi } from "vitest";
 import { renderWithApp, setupTauri } from "../test/harness";
@@ -8,6 +8,7 @@ import CompanyPage from "./Company";
 const logo = vi.hoisted(() => ({ fail: false, url: "" }));
 const PNG = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==";
 vi.mock("../ui/photo", () => ({
+  logoColor: async () => "#C8285A",
   logoToDataUrl: async () => {
     if (logo.fail) throw new Error("Foto maior que 25 MB.");
     return logo.url || "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==";
@@ -119,7 +120,7 @@ describe("Dados da empresa", () => {
     await user.type(await screen.findByLabelText("Nome fantasia"), "Rascunho");
     await user.upload(container.querySelector<HTMLInputElement>('input[type="file"]')!, new File(["x"], "logo.png", { type: "image/png" }));
     expect(await screen.findByText("Logo salvo.")).toBeInTheDocument();
-    expect(await saved()).toMatchObject({ name: "Loja", tradeName: "", logo: PNG }); // só o logo: o resto do formulário espera o Salvar
+    expect(await saved()).toMatchObject({ name: "Loja", tradeName: "", logo: PNG, brandColor: "#C8285A" }); // só o logo (e a cor dele): o resto espera o Salvar
     await user.click(screen.getByRole("button", { name: "Remover logo" }));
     expect(await screen.findByText("Logo removido.")).toBeInTheDocument();
     expect((await saved()).logo).toBe("");
@@ -145,6 +146,21 @@ describe("Dados da empresa", () => {
     await user.type(site, "x".repeat(121));
     await user.click(screen.getByRole("button", { name: "Salvar dados" }));
     expect(await screen.findByText(/Não foi possível salvar.*No máximo 120 caracteres/)).toBeInTheDocument();
+  });
+
+  test("cor da marca (#296): vem do logo, dá para trocar e mostra quando o PDF escurece", async () => {
+    t.raw.exec(`INSERT INTO company (id, data) VALUES (1, '{"name":"Loja","logo":"${PNG}"}')`);
+    const user = userEvent.setup();
+    renderWithApp(<CompanyPage />);
+    const color = await screen.findByLabelText("Cor da marca");
+    expect(color).toHaveValue("#2563eb"); // sem cor salva: a padrão
+    await user.click(screen.getByRole("button", { name: "Usar a cor do logo" }));
+    expect(color).toHaveValue("#c8285a");
+    fireEvent.input(color, { target: { value: "#ffd400" } });
+    expect(screen.getByText("Fica um pouco mais escura no PDF, para ler bem.")).toBeInTheDocument();
+    await user.click(screen.getByRole("button", { name: "Salvar dados" }));
+    await screen.findByText("Dados da empresa salvos.");
+    expect((await saved()).brandColor).toBe("#ffd400");
   });
 
   test("erro ao gravar aparece no formulário", async () => {

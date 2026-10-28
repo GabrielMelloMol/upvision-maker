@@ -1,5 +1,5 @@
 // @vitest-environment happy-dom
-import { screen, waitFor, within } from "@testing-library/react";
+import { cleanup, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
@@ -141,12 +141,25 @@ describe("Orçamentos", () => {
     seed('{"pixKey":"52998224725"}');
     insertQuote();
     const { user, go } = setup();
-    // sem nome da empresa: dica leva aos Dados da empresa
-    await user.click(await screen.findByRole("button", { name: "Dados da empresa" }));
+    // sem logo, nome e contato: o aviso diz o que falta e leva aos Dados da empresa (#296)
+    expect(await screen.findByText(/O PDF vai sair sem logo, nome e contato da empresa/)).toBeInTheDocument();
+    await user.click(screen.getByRole("button", { name: "Completar em Dados da empresa" }));
     expect(go).toHaveBeenCalledWith("company");
     await user.click(within(screen.getByRole("row", { name: /Ana Souza/ })).getByRole("button", { name: "PDF" }));
     expect(await screen.findByText(/PDF salvo sem o QR Pix \(Informe o nome de quem recebe o Pix\.\) em \/saida\/ORC-2026-001/)).toBeInTheDocument();
     expect(pdfs()).toHaveLength(1);
+  });
+
+  test("empresa completa: sem aviso; só o que falta aparece (#296)", async () => {
+    seed(`{"name":"Loja","phone":"21 9999-0000"}`);
+    setup();
+    expect(await screen.findByText(/O PDF vai sair sem logo da empresa\./)).toBeInTheDocument();
+    t.raw.exec(`UPDATE company SET data = '{"name":"Loja","phone":"21 9999-0000","logo":"data:image/png;base64,iVBORw0KGgo="}'`);
+    cleanup();
+    setup();
+    await screen.findByRole("button", { name: "Novo orçamento" });
+    await screen.findByText("Nenhum orçamento ainda");
+    expect(screen.queryByText(/O PDF vai sair sem/)).not.toBeInTheDocument();
   });
 
   test("erro ao gerar PDF vira aviso", async () => {

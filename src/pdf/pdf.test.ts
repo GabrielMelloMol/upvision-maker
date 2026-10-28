@@ -156,3 +156,22 @@ test("imagem que o PDF não aceita dá erro claro em vez de sumir (#295)", async
   await expect(checkPdfImage("data:image/webp;base64,UklGRg==")).rejects.toThrow("formato que o PDF não aceita");
   await expect(checkPdfImage("data:image/png;base64,TE9HTw==")).rejects.toThrow();
 });
+
+test("marca no PDF (#296): cor da marca legível, rodapé com contato e legenda cortada com reticências", async () => {
+  const { companyHeader, companyFooter } = await import("./header");
+  const { Pdf } = await import("./doc");
+  const { readableOnWhite } = await import("../domain/brandColor");
+  const pdf = await Pdf.create(fonts, "t");
+  await companyHeader(pdf, { ...company, brandColor: "#FFD400" }, "Orçamento", []);
+  const [r, g, b] = [1, 3, 5].map((i) => parseInt(readableOnWhite("#FFD400").slice(i, i + 2), 16) / 255);
+  expect(pdf.accent).toMatchObject({ red: r, green: g, blue: b });
+
+  expect(companyFooter({ ...company, instagram: "@lua3d" }, "orçamento ORC-1")).toBe("UpVision 3D · 21 99999-0000 · @lua3d · orçamento ORC-1");
+  expect(companyFooter(DEFAULT_COMPANY, "pedido 3")).toBe("pedido 3"); // sem nome: sem " · " solto no começo
+
+  const q = quote(1);
+  const long = { ...q, items: [{ ...q.items[0], productId: 1, description: "Medalha de corrida 7 cm com fita azul" }] };
+  const t = (await quotePdf(fonts, company, long, null, { 1: PNG })).trace;
+  expect(t.some((l) => /^Medalha.*…$/.test(l))).toBe(true);
+  expect(t).toContain("UpVision 3D · 21 99999-0000 · orçamento ORC-2026-007");
+});

@@ -1,6 +1,6 @@
 import type { Company } from "../domain/customers";
 import { A4, COLOR, MARGIN, moneyBr, Pdf, type PdfFonts } from "./doc";
-import { companyHeader } from "./header";
+import { companyFooter, companyHeader } from "./header";
 
 export type CatalogItem = { name: string; price: number; photo?: string; sku?: string };
 const COLS = 3;
@@ -35,10 +35,11 @@ export async function catalogPdf(fonts: PdfFonts, company: Company, items: Catal
         // foto inválida: fica o espaço vazio
       }
     } else pdf.page.drawRectangle({ x: x + 6, y: yTop - 6 - photoH, width: cellW - 12, height: photoH, color: COLOR.soft });
-    const name = pdf.wrap(it.name, 9.5, pdf.fonts.semibold, cellW - 12).slice(0, 2);
+    const price = moneyBr(it.price);
+    // o nome não passa por baixo do preço, que fica no canto da 2ª linha
+    const name = pdf.wrap(it.name, 9.5, pdf.fonts.semibold, cellW - 20 - pdf.fonts.bold.widthOfTextAtSize(price, 11)).slice(0, 2);
     name.forEach((l, k) => pdf.at(l, x + 6, yTop - photoH - 20 - k * 11, { size: 9.5, font: "semibold" }));
-    pdf.at(moneyBr(it.price), x + cellW - 6, yTop - cellH + 8, { size: 11, font: "bold", color: COLOR.accent, align: "right" });
+    pdf.at(price, x + cellW - 6, yTop - cellH + 8, { size: 11, font: "bold", color: pdf.accent, align: "right" });
   }
-  const contact = [company.phone, company.instagram && `@${company.instagram.replace(/^@/, "")}`].filter(Boolean).join(" · ");
-  return { bytes: await pdf.save(contact || company.tradeName || company.name), trace: pdf.trace };
+  return { bytes: await pdf.save(companyFooter(company)), trace: pdf.trace };
 }

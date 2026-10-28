@@ -1,7 +1,7 @@
 import type { Company, Customer } from "../domain/customers";
 import { quoteNumber, type Quote } from "../domain/quotes";
 import { COLOR, dateBr, MARGIN, Pdf, type PdfFonts } from "./doc";
-import { companyHeader } from "./header";
+import { companyFooter, companyHeader } from "./header";
 import { factsRow, itemsTable, pixBox, totalsBlock } from "./orderParts";
 
 /** Orçamento em A4: itens, descontos, frete, total, validade, condições e QR Pix com o valor exato. */
@@ -37,10 +37,19 @@ export async function quotePdf(fonts: PdfFonts, company: Company, q: Quote, cust
   }
 
   const pixError = pixBox(pdf, company, t.total, `ORC${q.id}`);
-  return { bytes: await pdf.save(`${company.tradeName || company.name} · orçamento ${num}`), trace: pdf.trace, pixError };
+  return { bytes: await pdf.save(companyFooter(company, `orçamento ${num}`)), trace: pdf.trace, pixError };
 }
 
 const THUMB = 92;
+
+/** Primeira linha do texto que cabe na largura, com "…" se cortou. */
+function oneLine(pdf: Pdf, text: string, size: number, width: number) {
+  const lines = pdf.wrap(text, size, pdf.fonts.regular, width);
+  if (lines.length < 2) return lines[0] ?? "";
+  let l = lines[0];
+  while (l && pdf.fonts.regular.widthOfTextAtSize(`${l}…`, size) > width) l = l.slice(0, -1);
+  return `${l.trimEnd()}…`;
+}
 const THUMB_GAP = 10;
 
 /** Fotos reais das peças do orçamento (#162): uma por produto com capa, numa faixa com o nome embaixo. */
@@ -62,7 +71,7 @@ async function photoStrip(pdf: Pdf, q: Quote, photos: Record<number, string>) {
       } catch {
         pdf.page.drawRectangle({ x, y: top - THUMB, width: THUMB, height: THUMB, color: COLOR.soft }); // foto que o PDF não lê
       }
-      const name = pdf.wrap(it.description, 8, pdf.fonts.regular, THUMB)[0] ?? "";
+      const name = oneLine(pdf, it.description, 8, THUMB);
       pdf.at(name, x, top - THUMB - 11, { size: 8, color: COLOR.muted });
     }
     pdf.gap(THUMB + 18);

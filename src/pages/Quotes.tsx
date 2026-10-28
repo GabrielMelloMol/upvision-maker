@@ -27,6 +27,8 @@ import { clearOpenQuoteDraft, clearQuoteDraft, peekOpenQuoteDraft, peekQuoteDraf
 
 const dateBr = (iso: string) => iso.slice(0, 10).split("-").reverse().join("/");
 
+const listBr = (xs: string[]) => (xs.length > 1 ? `${xs.slice(0, -1).join(", ")} e ${xs[xs.length - 1]}` : xs[0]);
+
 export default function Quotes({ go }: { go: Go }) {
   const [data, reload, loading, error] = useData(loadQuotesData, EMPTY_QUOTES);
   const [draft, setDraft] = useState(peekQuoteDraft);
@@ -37,6 +39,9 @@ export default function Quotes({ go }: { go: Go }) {
   const today = todayIso();
   const soon = data.consignments.filter((c) => c.active && restockStatus(c, today).soon);
   const num = (q: Quote) => quoteNumber(q, data.company.quotePrefix);
+  const c = data.company;
+  // o que deixa o PDF com cara de outra empresa (#296); só depois de ler o banco, para não piscar
+  const missing = loading ? [] : ([!c.logo && "logo", !c.name && !c.tradeName && "nome", !c.phone && !c.email && !c.instagram && "contato"].filter(Boolean) as string[]);
 
   async function pdf(q: Quote) {
     try {
@@ -90,10 +95,13 @@ export default function Quotes({ go }: { go: Go }) {
           </Button>
         </div>
       </div>
-      {!data.company.name && !data.company.tradeName && (
-        <p className="hint">
-          Dica: preencha os <button className="link" onClick={() => go("company")}>Dados da empresa</button> (logo, contatos e chave Pix) para o PDF sair completo.
-        </p>
+      {missing.length > 0 && (
+        <Alert kind="warn">
+          O PDF vai sair sem {listBr(missing)} da empresa.{" "}
+          <button className="link" onClick={() => go("company")}>
+            Completar em Dados da empresa
+          </button>
+        </Alert>
       )}
       {soon.length > 0 && sheet !== "consignments" && (
         <Alert kind="info">

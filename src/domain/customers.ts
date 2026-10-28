@@ -67,6 +67,8 @@ export const CompanyInput = z.object({
   instagram: text(60),
   website: text(120),
   ...address,
+  /** Cor da marca nos PDFs (#296); vazia = a padrão. O contraste é garantido na hora de desenhar. */
+  brandColor: z.string().regex(/^(#[0-9a-fA-F]{6})?$/, "Cor inválida."),
   logo: z.string().refine((v) => v === "" || /^data:image\/(png|jpeg|webp);base64,/.test(v), "Logo inválido."),
   pixKey: text(120).transform((v, ctx) => {
     if (!v) return "";
@@ -101,6 +103,7 @@ export const DEFAULT_COMPANY: Company = {
   district: "",
   city: "",
   uf: "",
+  brandColor: "",
   logo: "",
   pixKey: "",
   pixName: "",

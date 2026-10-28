@@ -20,7 +20,7 @@ export async function fileCertificatePdf(fonts: PdfFonts, c: Certificate, compan
     pdf.gap(8);
   } else {
     pdf.text("Certificado de integridade de arquivo", { size: 20, font: "bold" });
-    pdf.text(`Código ${proofCode(c.sha256)}`, { size: 11, font: "semibold", color: COLOR.accent });
+    pdf.text(`Código ${proofCode(c.sha256)}`, { size: 11, font: "semibold", color: pdf.accent });
     pdf.gap(8);
     pdf.rule();
     pdf.gap(10);

@@ -1,7 +1,7 @@
 import { restockTotal, type Consignment, type ConsignmentItem } from "../domain/consignments";
 import { oneLineAddress, type Company, type Customer } from "../domain/customers";
 import { COLOR, dateBr, moneyBr, Pdf, type PdfFonts } from "./doc";
-import { companyHeader } from "./header";
+import { companyFooter, companyHeader } from "./header";
 
 /**
  * Termo de reposição de consignado (#184), para a loja assinar: o que está sendo reposto agora (com o repasse), colunas em
@@ -45,5 +45,5 @@ export async function restockPdf(fonts: PdfFonts, company: Company, c: Consignme
   }
   pdf.y = y - 40;
   pdf.text("Modelo simples gerado pelo UpVision Maker. Não substitui orientação jurídica: revise para o seu caso.", { size: 7.5, color: COLOR.muted });
-  return { bytes: await pdf.save(`${company.tradeName || company.name} · reposição`), trace: pdf.trace };
+  return { bytes: await pdf.save(companyFooter(company, "reposição")), trace: pdf.trace };
 }

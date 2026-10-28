@@ -1,3 +1,5 @@
+import { suggestBrandColor } from "../domain/brandColor";
+
 const MAX_SIDE = 1024;
 const QUALITY = 0.82;
 const MAX_INPUT_BYTES = 25 * 1024 * 1024;
@@ -35,4 +37,17 @@ async function toDataUrl(file: File, maxSide: number, type: "image/jpeg" | "imag
   ctx.drawImage(bmp, 0, 0, c.width, c.height);
   bmp.close();
   return c.toDataURL(type, QUALITY);
+}
+
+/** Cor sugerida para a marca a partir do logo (#296), lida numa miniatura de 64 px. */
+export async function logoColor(dataUrl: string): Promise<string | null> {
+  const bmp = await createImageBitmap(await (await fetch(dataUrl)).blob());
+  const s = Math.min(1, 64 / Math.max(bmp.width, bmp.height));
+  const c = document.createElement("canvas");
+  c.width = Math.max(1, Math.round(bmp.width * s));
+  c.height = Math.max(1, Math.round(bmp.height * s));
+  const ctx = c.getContext("2d", { willReadFrequently: true })!;
+  ctx.drawImage(bmp, 0, 0, c.width, c.height);
+  bmp.close();
+  return suggestBrandColor(ctx.getImageData(0, 0, c.width, c.height).data);
 }

@@ -7,7 +7,7 @@ export const A4 = { w: 595.28, h: 841.89 };
 export const MARGIN = 42;
 export const mm = (v: number) => (v * 72) / 25.4;
 
-const hex = (h: string): RGB => rgb(parseInt(h.slice(1, 3), 16) / 255, parseInt(h.slice(3, 5), 16) / 255, parseInt(h.slice(5, 7), 16) / 255);
+export const hex = (h: string): RGB => rgb(parseInt(h.slice(1, 3), 16) / 255, parseInt(h.slice(3, 5), 16) / 255, parseInt(h.slice(5, 7), 16) / 255);
 export const COLOR = { text: hex("#111827"), muted: hex("#6B7280"), line: hex("#E5E7EB"), accent: hex("#2563EB"), soft: hex("#F3F4F6"), white: rgb(1, 1, 1) };
 
 type TextOpts = { size?: number; font?: "regular" | "semibold" | "bold"; color?: RGB; x?: number; width?: number; align?: "left" | "right" | "center"; lineGap?: number };
@@ -20,6 +20,8 @@ export type Column = { title: string; width: number; align?: "left" | "right" };
 export class Pdf {
   page!: PDFPage;
   y = 0;
+  /** Cor dos destaques (título, linha do cabeçalho, preços): a da marca, posta pelo `companyHeader` (#296). */
+  accent = COLOR.accent;
   readonly trace: string[] = [];
   private constructor(
     readonly doc: PDFDocument,
@@ -170,6 +172,7 @@ export class Pdf {
 
   /** Numera as páginas ("1 / 3") e devolve o arquivo. */
   async save(footer?: string): Promise<Uint8Array> {
+    if (footer) this.trace.push(footer);
     const pages = this.doc.getPages();
     pages.forEach((p, i) => {
       const label = `${i + 1} / ${pages.length}`;

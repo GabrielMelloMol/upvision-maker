@@ -2,6 +2,7 @@ import { Building2, ImagePlus } from "lucide-react";
 import { useState } from "react";
 import { getDb } from "../db";
 import { loadCompany, saveCompany } from "../db/customersRepo";
+import { BRAND_DEFAULT, readableOnWhite } from "../domain/brandColor";
 import { CompanyInput, type Company } from "../domain/customers";
 import { pixPayload, validPixKey } from "../domain/pix";
 import { qrSvg } from "../domain/qr";
@@ -9,7 +10,7 @@ import { checkPdfImage } from "../pdf/doc";
 import Alert from "../ui/Alert";
 import Button from "../ui/Button";
 import { fieldErrors } from "../ui/fieldErrors";
-import { logoToDataUrl } from "../ui/photo";
+import { logoColor, logoToDataUrl } from "../ui/photo";
 import { errorText, useToast } from "../ui/Toast";
 import { useData } from "../ui/useData";
 import AddressFields from "./customers/AddressFields";
@@ -42,8 +43,17 @@ function CompanyForm({ initial }: { initial: Company }) {
   /** O logo é gravado na hora (só ele): antes ficava só na prévia e sumia ao sair da tela sem "Salvar dados" (#295). */
   async function storeLogo(logo: string) {
     const db = await getDb();
-    await saveCompany(db, { ...(await loadCompany(db)), logo });
-    setV((cur) => ({ ...cur, logo }));
+    const stored = await loadCompany(db);
+    // primeira vez com logo e sem cor escolhida: a cor da marca vem do logo (#296)
+    const brandColor = stored.brandColor || v.brandColor || (logo && (await logoColor(logo).catch(() => null))) || "";
+    await saveCompany(db, { ...stored, logo, brandColor });
+    setV((cur) => ({ ...cur, logo, brandColor }));
+  }
+
+  async function colorFromLogo() {
+    const c = await logoColor(v.logo).catch(() => null);
+    if (c) setV({ ...v, brandColor: c });
+    else toast("O logo não tem uma cor forte (só preto, branco ou cinza). Escolha a cor à mão.", "error");
   }
 
   async function onLogo(files: FileList | null) {
@@ -120,6 +130,23 @@ function CompanyForm({ initial }: { initial: Company }) {
             </Button>
           )}
           </div>
+        </div>
+        <div className="row-control">
+          <label className="row-label" htmlFor="brand-color">Cor da marca</label>
+          <span className="hint">Título e destaques do orçamento, pedido, contrato e catálogo.</span>
+          <div className="row" style={{ alignItems: "center" }}>
+            <input id="brand-color" type="color" value={v.brandColor || BRAND_DEFAULT} onChange={set("brandColor")} />
+            <span className="small" style={{ color: readableOnWhite(v.brandColor), fontWeight: 700 }}>
+              Orçamento
+            </span>
+            {v.brandColor && readableOnWhite(v.brandColor) !== v.brandColor.toUpperCase() && <span className="hint">Fica um pouco mais escura no PDF, para ler bem.</span>}
+            {v.logo && (
+              <Button variant="link" onClick={colorFromLogo}>
+                Usar a cor do logo
+              </Button>
+            )}
+          </div>
+          {err("brandColor")}
         </div>
         <div className="grid">
           <label>Nome / razão social<input value={v.name} maxLength={120} onChange={set("name")} /></label>

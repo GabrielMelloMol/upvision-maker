@@ -1,7 +1,7 @@
 import type { Company, Customer } from "../domain/customers";
 import { customCopies, paymentOf, PAYMENT_LABEL, type Order } from "../domain/orders";
 import { COLOR, dateBr, moneyBr, Pdf, type PdfFonts } from "./doc";
-import { companyHeader } from "./header";
+import { companyFooter, companyHeader } from "./header";
 import { factsRow, itemsTable, pixBox, totalsBlock } from "./orderParts";
 
 /**
@@ -28,7 +28,7 @@ export async function orderConfirmationPdf(fonts: PdfFonts, company: Company, or
   factsRow(pdf, [order.dueDate && ["Prazo de entrega", dateBr(order.dueDate)], order.paymentMethod && ["Forma de pagamento", order.paymentMethod]]);
   factsRow(pdf, [["Situação do pagamento", PAYMENT_LABEL[pay.state]], pay.paid > 0 && ["Já recebido", moneyBr(pay.paid)]]);
   if (pay.due > 0) pdf.text(`Falta pagar: ${moneyBr(pay.due)}`, { size: 12, font: "bold" });
-  else if (totals.total > 0) pdf.text("Pagamento em dia. Obrigado!", { size: 10.5, font: "semibold", color: COLOR.accent });
+  else if (totals.total > 0) pdf.text("Pagamento em dia. Obrigado!", { size: 10.5, font: "semibold", color: pdf.accent });
 
   if (order.notes) {
     pdf.gap(6);
@@ -37,5 +37,5 @@ export async function orderConfirmationPdf(fonts: PdfFonts, company: Company, or
   }
 
   const pixError = pixBox(pdf, company, pay.due, `PED${order.id}`);
-  return { bytes: await pdf.save(`${company.tradeName || company.name} · pedido ${order.id}`), trace: pdf.trace, pixError };
+  return { bytes: await pdf.save(companyFooter(company, `pedido ${order.id}`)), trace: pdf.trace, pixError };
 }

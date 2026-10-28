@@ -1,6 +1,6 @@
 import { formatDocument, oneLineAddress, type Company, type Customer } from "../domain/customers";
 import { COLOR, dateBr, moneyBr, Pdf, type PdfFonts } from "./doc";
-import { companyHeader } from "./header";
+import { companyFooter, companyHeader } from "./header";
 
 export type ContractItem = { name: string; qty: number; transferPrice: number; salePrice: number };
 export type ContractTerms = { date: string; periodDays: number; settlement: string; losses: string; returns: string; commissionNote: string };
@@ -63,5 +63,5 @@ export async function contractPdf(fonts: PdfFonts, company: Company, customer: C
   }
   pdf.y = y - 40;
   pdf.text("Modelo simples gerado pelo UpVision Maker. Não substitui orientação jurídica: revise as cláusulas para o seu caso.", { size: 7.5, color: COLOR.muted });
-  return { bytes: await pdf.save(`${company.tradeName || company.name} · consignação`), trace: pdf.trace };
+  return { bytes: await pdf.save(companyFooter(company, "consignação")), trace: pdf.trace };
 }
