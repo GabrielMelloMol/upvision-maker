@@ -62,6 +62,9 @@
 .alert.info > svg { color: var(--accent-text); }
 .alert.ok { background: var(--ok-soft); }
 .alert.ok > svg { color: var(--ok); }
+/* aviso logo abaixo do cabeçalho da página: respiro dos botões e do cartão (#296) */
+.page > .alert { margin: var(--space-2) 0 var(--space-4); }
+.page > .alert button.link { margin-top: 0; }
 @keyframes fade-up { from { opacity: 0; transform: translateY(4px); } }
 
 /* Banner de atualização */

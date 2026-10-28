@@ -136,6 +136,7 @@ function CompanyForm({ initial }: { initial: Company }) {
           <span className="hint">Título e destaques do orçamento, pedido, contrato e catálogo.</span>
           <div className="row" style={{ alignItems: "center" }}>
             <input id="brand-color" type="color" value={v.brandColor || BRAND_DEFAULT} onChange={set("brandColor")} />
+            <span className="hint">Prévia:</span>
             <span className="small" style={{ color: readableOnWhite(v.brandColor), fontWeight: 700 }}>
               Orçamento
             </span>
@@ -159,11 +160,11 @@ function CompanyForm({ initial }: { initial: Company }) {
           <label>WhatsApp / telefone<input inputMode="tel" value={v.phone} maxLength={30} onChange={set("phone")} /></label>
           <label>
             E-mail
-            <input type="email" value={v.email} maxLength={120} aria-invalid={!!errors.email} onChange={set("email")} />
+            <input type="email" spellCheck={false} autoCapitalize="none" autoCorrect="off" value={v.email} maxLength={120} aria-invalid={!!errors.email} onChange={set("email")} />
             {err("email")}
           </label>
-          <label>Instagram<input value={v.instagram} maxLength={60} onChange={set("instagram")} /></label>
-          <label>Site<input value={v.website} maxLength={120} onChange={set("website")} /></label>
+          <label>Instagram<input spellCheck={false} autoCapitalize="none" autoCorrect="off" value={v.instagram} maxLength={60} onChange={set("instagram")} /></label>
+          <label>Site<input spellCheck={false} autoCapitalize="none" autoCorrect="off" value={v.website} maxLength={120} onChange={set("website")} /></label>
         </div>
         </div>
       </section>
