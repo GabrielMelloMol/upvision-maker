@@ -248,7 +248,7 @@ export const FAMILY_HELP: Record<string, GuideHelp> = {
   micHolder: {
     use: [
       "Transformar o microfone de lapela sem fio num mini microfone de mão para entrevista, reportagem, podcast, igreja ou evento.",
-      "Brinde de profissão: o meio tem o formato do tema (casa, halter, cruz, balão, livro) ou do desenho da pessoa, com o nome ou a logo na frente.",
+      "Brinde de profissão: a caixinha tem o formato do tema (casa, halter, cruz, balão, livro) ou do desenho da pessoa, com o nome ou a logo na frente.",
     ],
     avoid: [
       "Microfone que você não tem para medir: as medidas prontas são das fichas e não contam o ímã ou o clipe. Imprima o anel de teste antes de vender.",
@@ -256,13 +256,14 @@ export const FAMILY_HELP: Record<string, GuideHelp> = {
     ],
     tips: [
       "Comece pelo anel de teste (uns 10 minutos): é o mesmo encaixe das costas. O microfone deitado deve entrar sem forçar, com o clipe por cima da travessa, e sair puxando para trás. Ajuste a folga e só então imprima a canopla.",
-      "As duas metades saem deitadas com o corte na mesa: não precisam de suporte. Nas costas a abertura atravessa a peça; na frente o fundo do bolso é uma ponte curta.",
-      "Cole as metades (com os pinos, quando o formato tem lugar para eles), cole o cabo no rebaixo de baixo e aperte a espuma no furo de cima. O microfone entra por trás, deitado: empurre para dentro com o clipe por cima da travessa e a haste dele no rasgo do meio. As costas ficam quase todas abertas: luz e botão à vista.",
-      "Com AMS, o meio e o relevo da frente saem em cores diferentes. Cabo de outra cor: mande ele para outra placa no fatiador, senão a troca de filamento acontece em toda camada e a impressão dobra de tempo.",
+      "Placa 1: a caixinha numa peça só, deitada, com as costas abertas para baixo e o logo em cima. Não precisa de suporte: o teto do bolso se fecha aos poucos, em meia-volta, e o resto é ponte curta.",
+      "Placa 2: a bolinha, o anel, o cabo e a pecinha, em pé. A grade tem furinhos de 1,6 mm, feitos para bico de 0,4. Na espuma impressa, ligue a pele texturizada (fuzzy skin) no fatiador para ela parecer espuma.",
+      "Monte com cola: o cabo no rebaixo de baixo; a pecinha no rebaixo de cima; o anel passa pela pecinha e a bolinha encaixa nela. O microfone entra por trás, deitado: empurre para dentro com o clipe por cima da travessa e a haste dele no rasgo do meio. As costas ficam abertas: luz e botão à vista.",
+      "Com AMS, a caixinha e o relevo da frente saem em cores diferentes; na placa 2, o anel prata é a única troca de cor (2 mm).",
     ],
     faq: [
       { q: "Como tiro o microfone para carregar?", a: "Puxe ele para trás pela abertura das costas. Não precisa mexer no cabo nem usar ferramenta." },
-      { q: "Qual espuma uso?", a: "Espuma de mini microfone, de uns 30 mm. Meça a base dela por fora e ponha o furo de cima 1 a 2 mm menor: ela entra apertada e não sai." },
+      { q: "Espuma impressa, grade ou espuma comprada?", a: "A espuma impressa é lisa e sai em qualquer cor. A grade parece microfone de palco, com o anel prata. Para a espuma comprada (de mini microfone, uns 30 mm), escolha Espuma comprada: o topo ganha um furo onde a base dela entra apertada." },
       { q: "Posso usar o meu desenho no formato?", a: "Sim: escolha Meu desenho e envie o SVG ou a imagem. O app fecha o contorno, põe o microfone no meio e avisa se ficar estreito." },
       { q: "Posso vender?", a: "Sim. A peça é gerada pelo app, com formato e medidas próprias; não usa arquivo de terceiros." },
     ],

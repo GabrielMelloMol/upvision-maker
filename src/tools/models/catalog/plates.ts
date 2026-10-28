@@ -3,7 +3,7 @@ import { nozzleMm } from "../../../geometry/bed";
 import { buildBusinessCard, DEFAULT_BUSINESS_CARD } from "../../../geometry/models/businessCard";
 import { buildColoringTile, DEFAULT_COLORING_TILE } from "../../../geometry/models/coloringTile";
 import { buildLogoPlate, DEFAULT_ADAPTIVE_PLATE } from "../../../geometry/models/logoPlate";
-import { buildMicHolder, DEFAULT_MIC_HOLDER, MIC_SHAPE_WIDTH, MIC_SHAPES, type MicShape } from "../../../geometry/models/micHolder";
+import { buildMicHolder, DEFAULT_MIC_HOLDER, MIC_HEADS, MIC_SHAPE_WIDTH, MIC_SHAPES, type MicShape } from "../../../geometry/models/micHolder";
 import { buildMolleTag, DEFAULT_MOLLE_TAG } from "../../../geometry/models/molleTag";
 import { buildMusicCard, DEFAULT_MUSIC_CARD } from "../../../geometry/models/musicCard";
 import { buildNamesPanel, DEFAULT_NAMES_PANEL } from "../../../geometry/models/namesPanel";
@@ -271,7 +271,7 @@ export const PLATE_MODELS: ModelDef[] = [
     id: "micHolder",
     category: "gifts",
     label: "Canopla de microfone",
-    blurb: "Mini microfone para o transmissor sem fio (Lark M2, Lark A1, DJI Mic Mini ou o seu): o meio no formato do tema, com texto ou logo na frente, furo para a espuma e cabo. Imprima antes o anel de teste.",
+    blurb: "Mini microfone para o transmissor sem fio (Lark M2, Lark A1, DJI Mic Mini ou o seu): a caixinha no formato do tema, com texto ou logo na frente, a bolinha de cima (espuma ou grade impressa) e o cabo. Imprima antes o anel de teste.",
     icon: Mic,
     font: true,
     fontSection: 2,
@@ -294,7 +294,7 @@ export const PLATE_MODELS: ModelDef[] = [
         ],
       },
       {
-        title: "Formato do meio",
+        title: "Formato da caixinha",
         fields: [
           choice("shape", "Formato", MIC_SHAPES, true),
           num("width", "Largura", 30, 120, { step: 1, hint: "Precisa do microfone mais 2,4 mm de parede de cada lado (uns 38 mm no Lark M2). Abaixo disso o app avisa e engrossa a parte em volta dele." }),
@@ -306,19 +306,26 @@ export const PLATE_MODELS: ModelDef[] = [
         fields: [choice("front", "Na frente", [["text", "Texto"], ["art", "Desenho ou ícone"], ["none", "Nada"]]), text("text", "Texto", 20), num("relief", "Relevo", 0.4, 3)],
       },
       {
-        title: "Espuma e cabo",
+        title: "Bolinha de cima e cabo",
         fields: [
-          num("neckD", "Furo da espuma", 10, 36, { step: 0.5, hint: "Meça a base da espuma por fora: o furo fica 1 a 2 mm menor para ela entrar apertada." }),
+          choice("head", "Bolinha", MIC_HEADS),
           num("handleL", "Comprimento do cabo", 30, 150, { step: 1 }),
         ],
+      },
+      {
+        title: "Espuma comprada",
+        when: { k: "head", is: "bought" },
+        fields: [num("neckD", "Furo da espuma", 10, 36, { step: 0.5, hint: "Meça a base da espuma por fora: o furo fica 1 a 2 mm menor para ela entrar apertada." })],
       },
       {
         title: "Imprimir e cores",
         fields: [
           choice("print", "Imprimir", [["full", "Canopla inteira"], ["test", "Só o anel de teste"]]),
-          color("bodyColor", "Meio"),
+          color("bodyColor", "Caixinha"),
           color("artColor", "Frente (relevo)"),
-          color("handleColor", "Cabo"),
+          color("headColor", "Bolinha"),
+          color("ringColor", "Anel"),
+          color("handleColor", "Cabo e pecinha"),
         ],
       },
     ],

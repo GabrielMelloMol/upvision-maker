@@ -1,10 +1,13 @@
 import type { CS, ManifoldToplevel, Solid } from "../manifold";
+import { bedMm } from "../bed";
+import { modelsBounds } from "../bounds";
 import { toMesh } from "../mesh";
 import { spread } from "../planeCut";
+import { layoutPlates } from "../thermo/layout";
 import { fitInto, scoped } from "../shape2d";
 import { presetSilhouette, silhouetteFromDesign } from "../thermo/shapes";
 import type { Mesh, Model, Part } from "../types";
-import { artParts, boxOf, MissingInput, moveMesh, placeIn, requireArt, roundedRect, type ElementBox, type ModelCtx, type ModelOutput } from "./common";
+import { artParts, boxOf, MissingInput, moveMesh, moveModel, placeIn, requireArt, roundedRect, type ElementBox, type ModelCtx, type ModelOutput } from "./common";
 
 /** Formato do meio (#274): básicos, temas por profissão e o desenho da pessoa. */
 export type MicShape = "cube" | "cylinder" | "heart" | "star" | "flower" | "cloud" | "house" | "dumbbell" | "medical" | "podcast" | "book" | "art";
@@ -27,6 +30,14 @@ export const MIC_SHAPES: readonly (readonly [MicShape, string])[] = [
 /** Largura que cada formato pede para o desenho aparecer inteiro em volta do microfone (o `derive` do campo usa). */
 export const MIC_SHAPE_WIDTH: Record<MicShape, number> = { cube: 38, cylinder: 50, heart: 62, star: 66, flower: 62, cloud: 64, house: 56, dumbbell: 84, medical: 60, podcast: 58, book: 68, art: 60 };
 
+export type MicHead = "foam" | "grille" | "bought";
+
+export const MIC_HEADS: readonly (readonly [MicHead, string])[] = [
+  ["foam", "Espuma impressa (lisa)"],
+  ["grille", "Grade de microfone, com anel"],
+  ["bought", "Espuma comprada (furo)"],
+];
+
 export type MicHolderParams = {
   shape: MicShape;
   width: number;
@@ -36,7 +47,8 @@ export type MicHolderParams = {
   micT: number;
   micRound: boolean;
   clearance: number; // folga em volta do microfone (Kit de testes)
-  neckD: number; // furo no topo onde a base da espuma entra apertada (como a referência, sem pescoço)
+  head: MicHead; // bolinha de cima (#293)
+  neckD: number; // espuma comprada: furo no topo onde a base dela entra apertada
   handleL: number;
   front: "text" | "art" | "none";
   text: string;
@@ -44,6 +56,8 @@ export type MicHolderParams = {
   print: "full" | "test";
   bodyColor: string;
   artColor: string;
+  headColor: string;
+  ringColor: string;
   handleColor: string;
 };
 
@@ -57,61 +71,73 @@ export const DEFAULT_MIC_HOLDER: MicHolderParams = {
   micT: 12.3,
   micRound: true,
   clearance: 0.5,
+  head: "foam",
   neckD: 28,
-  handleL: 75,
+  handleL: 57, // o cabo da referência: Ø14,9 × 56,7
   front: "text",
   text: "UPVISION",
   relief: 1,
   print: "full",
   bodyColor: "#f8f8f6",
   artColor: "#1c1c1e",
-  handleColor: "#f8f8f6", // na cor do meio: cabo de outra cor sobe junto e troca o filamento em toda camada
+  headColor: "#1c1c1e", // a cor do cabo: na placa 2 só o anel troca de filamento
+  ringColor: "#b8bcc2", // anel prata, como a grade da referência
+  handleColor: "#1c1c1e", // o cabo vai na placa 2, longe da caixinha: pode ter outra cor sem trocar filamento em toda camada
 };
 
 export const MIC_WALL = 2.5; // parede dos lados do bolso (2,5 na referência)
+export const FRONT_WALL = 2.2; // parede da frente, o teto do bolso na impressão (2,2 na referência)
 // Costas (#291 v3): proporções medidas na canopla de referência (cubo de 38 × 28,7 × 38, bolso de Ø32,7 × 13,3 mm), relativas
 // ao bolso do transmissor. Só as medidas; a forma é nossa.
 export const BAR_T = 2; // travessa (prateleira) entre o bolso e a janela do clipe: 2 mm na referência
 const CLIP_H = 10 / 13.3; // altura da janela de cima ÷ altura do bolso
 const CLIP_W = 19 / 33; // largura da janela de cima ÷ largura do bolso
 const SLOT_W = 9 / 33; // rasgo no meio da travessa, por onde passa a haste do clipe ÷ largura do bolso
-const SLOT_L = 29 / 35; // comprimento do rasgo, a partir das costas ÷ fundo do bolso
+export const SLOT_L = 29 / 35; // comprimento do rasgo, a partir das costas ÷ fundo do bolso
 const MIC_COLOR = "#141416"; // transmissor da prévia: preto como o Lark M2, contrasta com o meio claro
-export const TENON_FIT = 0.15; // o pino do cabo entra justo no rebaixo de baixo (por lado)
-// como a referência: parede de 1 mm embaixo da abertura e 2 mm em cima; o cabo e a espuma são colados/encaixados em rebaixos
+export const TENON_FIT = 0.15; // pecinha e cabo entram justos nos rebaixos (por lado), com cola
+// como a referência (#293): parede de 1 mm embaixo da abertura e 2 mm em cima; rebaixo Ø11,6 em cima para a pecinha que
+// segura a bolinha e Ø15 embaixo para o cabo (Ø14,9)
 export const BOTTOM_WALL = 1;
 const TOP_WALL = 2;
-export const PEG_D = 11.6; // rebaixo do cabo embaixo (Ø11,6 × 0,45 na referência)
+export const PEG_D = 11.6;
 export const PEG_H = 0.45;
-export const FOAM_DEPTH = 5; // quanto a base da espuma entra no furo do topo
-const FLOOR = 2; // fundo de cada metade (furo dos pinos)
-const SOUND_W = 8; // canal do som, do microfone até o topo do pescoço
-const HANDLE_TOP = 30;
-const HANDLE_BOTTOM = 22;
-export const PIN_D = 4;
-const PIN_FIT = 0.15;
-const PIN_WALL = 1.6;
-const PIN_DEPTH = 5;
+export const PEG_L = 15; // pecinha de encaixe (CABO_Boolean da referência): Ø11,5 × 15
+export const HANDLE_RECESS = 15;
+export const RING_D = 18; // anel (Genérico-Toro da referência): Ø18 × 2, passa pela pecinha
+export const RING_H = 2;
+export const FOAM_DEPTH = 5; // espuma comprada: quanto a base dela entra no furo do topo
+const SOUND_W = 8; // espuma comprada: canal do som, da janela do clipe até o furo
+const HANDLE_BAND = 32; // faixa embaixo do meio, em volta do cabo, onde o formato não desce
+// bolinhas medidas na referência (raio, altura a partir da base). Grade = a "FONE" (27,6 × 24,7, furinhos na cúpula e a base de
+// Ø18 onde fica o anel); espuma = a "Merged Parts" (Ø32 × 33,2, lisa, que a referência imprime com pele texturizada)
+const GRILLE_PROFILE: [number, number][] = [[9, 0], [9.4, 2.6], [10.1, 3.6], [11, 4.6], [12, 6.6], [13.6, 10.6], [13.8, 12.6], [12.7, 14.6], [10.8, 18.6], [8.2, 21.6], [5, 23.6], [0, 24.7]];
+const FOAM_R = 16;
+const FOAM_C = 17.2; // centro da cúpula
+const FOAM_SKIRT: [number, number][] = [[13.1, 0], [13.7, 0.6], [14.3, 1.6], [14.7, 2.6], [15.2, 4.6], [15.5, 6.6], [16, 11.6]];
+export const BORE = { foam: 16.6, grille: 14.6 }; // furo da pecinha na base da bolinha
+// furinhos da grade: Ø1,6 com 0,8 mm de parede entre eles (2 linhas de um bico de 0,4); abaixo de 12 mm a base fica lisa
+export const DIMPLE = { d: 1.6, pitch: 2.4, depth: 0.6, from: 12 };
 const SEG = 64;
 const FOAM_COLOR = "#2b2b2b";
 
 /**
  * Medidas que saem dos parâmetros (#291, revisão do Gabriel): o transmissor fica deitado num bolso que atravessa as
  * costas e entra empurrado de trás para a frente; o clipe dele desliza por cima da travessa, na janela de cima.
- * cw × cd = boca do bolso, cl = fundo (até a parede da frente), ch = altura da abertura inteira (bolso + travessa + janela).
+ * cw × cd = boca do bolso, cl = microfone + folga (de trás para a frente), ch = altura da abertura inteira (bolso + travessa + janela).
  */
 export function micLayout(p: Pick<MicHolderParams, "micW" | "micH" | "micT" | "clearance" | "micRound">) {
   const cw = p.micW + 2 * p.clearance;
   const cd = p.micT + 2 * p.clearance;
   const cl = p.micH + 2 * p.clearance;
-  const [clipW, clipH, slotW, slotL] = [cw * CLIP_W, cd * CLIP_H, cw * SLOT_W, cl * SLOT_L];
+  const [clipW, clipH, slotW] = [cw * CLIP_W, cd * CLIP_H, cw * SLOT_W];
   const ch = cd + BAR_T + clipH;
   const coreW = cw + 2 * MIC_WALL;
-  return { cw, ch, cd, cl, coreW, clipW, clipH, slotW, slotL, radius: p.micRound ? Math.min(p.micW, p.micH) / 2 : Math.min(2, p.micW / 4), peg: PEG_D - 2 * TENON_FIT };
+  return { cw, ch, cd, cl, coreW, clipW, clipH, slotW, round: p.micRound, radius: p.micRound ? Math.min(p.micW, p.micH) / 2 : Math.min(2, p.micW / 4), peg: PEG_D - 2 * TENON_FIT, handleD: HANDLE_RECESS - 2 * TENON_FIT };
 }
 
-/** Onde ficaram as coisas (para os testes e a vista montada): centro do microfone, topo do pescoço, encaixe e pinos. */
-export type MicHolderOutput = ModelOutput & { layout: { cy: number; top: number; tenonL: number; pinDepth: number; pins: [number, number][]; thickness: number } | null };
+/** Onde ficaram as coisas (para os testes e a vista montada): centro do microfone, topo do meio, fundo do bolso e espessura. */
+export type MicHolderOutput = ModelOutput & { layout: { cy: number; top: number; depth: number; thickness: number } | null };
 
 type K = <D extends { delete(): void }>(o: D) => D;
 
@@ -158,38 +184,112 @@ function outline(M: ManifoldToplevel, k: K, ctx: ModelCtx, shape: MicShape, w: n
   return k(k(cs.translate([-(b.min[0] + b.max[0]) / 2, -(b.min[1] + b.max[1]) / 2])).scale(w / (b.max[0] - b.min[0])));
 }
 
-/** Ponto dentro da região? (sonda pequena) */
-const inside = (M: ManifoldToplevel, k: K, cs: CS, x: number, y: number) => !k(k(k(M.CrossSection.circle(0.01, 8)).translate([x, y])).intersect(cs)).isEmpty();
+/**
+ * Abertura das costas (#291) no sistema da impressão (#293): x = largura, y = altura de uso (centro da abertura em y = 0),
+ * z = de trás (z = 0, na mesa) para a frente; o bolso vai até z = `depth`. Bolso embaixo, travessa e janela do clipe em cima.
+ * Microfone redondo: a frente do bolso e da janela é meia-volta (como a referência), o teto se fecha aos poucos na impressão.
+ */
+function openingSolid(M: ManifoldToplevel, k: K, L: ReturnType<typeof micLayout>, depth: number): Solid {
+  // planta (x, z) virada prisma de altura h a partir de y0
+  const prism = (fp: CS, y0: number, h: number) => k(k(k(k(fp.mirror([0, 1])).extrude(h)).rotate([-90, 0, 0])).translate([0, y0, 0]));
+  const plan = (w: number, d: number) => {
+    const back = k(k(M.CrossSection.square([w, d + 1 - (L.round ? w / 2 : 0)])).translate([-w / 2, -1]));
+    return L.round ? k(back.add(k(k(M.CrossSection.circle(w / 2, SEG)).translate([0, d - w / 2])))) : k(k(roundedRect(M, w, d + 4, Math.min(1, L.radius))).translate([0, (d - 4) / 2]));
+  };
+  const y0 = -L.ch / 2;
+  return k(M.Manifold.union([prism(plan(L.cw, depth), y0, L.cd), prism(plan(L.clipW, depth), L.ch / 2 - L.clipH, L.clipH), prism(k(k(M.CrossSection.square([L.slotW, depth * SLOT_L + 1])).translate([-L.slotW / 2, -1])), y0 + L.cd - 0.1, BAR_T + 0.2)]));
+}
+
+/** Curva suave pelos pontos (Catmull-Rom), para a bolinha não sair facetada. */
+function smoothPath(pts: [number, number][], n = 6): [number, number][] {
+  const out: [number, number][] = [];
+  for (let i = 0; i < pts.length - 1; i++) {
+    const [p0, p1, p2, p3] = [pts[Math.max(0, i - 1)], pts[i], pts[i + 1], pts[Math.min(pts.length - 1, i + 2)]];
+    for (let j = 0; j < n; j++) {
+      const t = j / n, t2 = t * t, t3 = t2 * t;
+      const f = (a: number, b: number, c: number, d: number) => 0.5 * (2 * b + (c - a) * t + (2 * a - 5 * b + 4 * c - d) * t2 + (3 * b - a - 3 * c + d) * t3);
+      out.push([f(p0[0], p1[0], p2[0], p3[0]), f(p0[1], p1[1], p2[1], p3[1])]);
+    }
+  }
+  out.push(pts[pts.length - 1]);
+  return out;
+}
+
+/** Bolinha de cima em pé, base em z = 0, com o furo da pecinha embaixo (teto em cone, sem ponte). */
+function buildHead(M: ManifoldToplevel, k: K, kind: "foam" | "grille"): Solid {
+  let prof: [number, number][];
+  if (kind === "grille") prof = smoothPath(GRILLE_PROFILE);
+  else {
+    const dome: [number, number][] = [];
+    for (let i = 1; i <= 24; i++) {
+      const a = (i / 24) * (Math.PI / 2);
+      dome.push([FOAM_R * Math.cos(a), FOAM_C + FOAM_R * Math.sin(a)]);
+    }
+    prof = [...smoothPath(FOAM_SKIRT, 4), [FOAM_R, FOAM_C], ...dome];
+  }
+  let s = k(k(new M.CrossSection([[[0, 0], ...prof.map(([r, h]) => [Math.max(0, r), h] as [number, number])]], "Positive")).revolve(SEG * 2));
+  if (kind === "grille") {
+    // furinhos em fileiras ao longo do perfil, de `from` até o topo, cada fileira defasada meio passo da anterior
+    const { d, pitch, depth } = DIMPLE;
+    const rd = d / 2;
+    const holes: Solid[] = [];
+    const len = prof.slice(1).map((q, i) => Math.hypot(q[0] - prof[i][0], q[1] - prof[i][1]));
+    const start = prof.findIndex((q) => q[1] >= DIMPLE.from);
+    let row = 0;
+    for (let i = start, acc = pitch; i < prof.length - 1; i++) {
+      acc += len[i];
+      if (acc < pitch) continue;
+      acc = 0;
+      const [[r0, h0], [r1, h1]] = [prof[i], prof[i + 1]];
+      const n = [h1 - h0, -(r1 - r0)].map((v) => v / len[i]); // normal para fora
+      const [r, h] = [r0 + n[0] * (rd - depth), h0 + n[1] * (rd - depth)];
+      const count = Math.floor((2 * Math.PI * r0) / pitch);
+      if (count < 3) break;
+      for (let j = 0; j < count; j++) {
+        const a = ((j + (row % 2) / 2) / count) * 2 * Math.PI;
+        holes.push(k(k(M.Manifold.sphere(rd, 10)).translate([r * Math.cos(a), r * Math.sin(a), h])));
+      }
+      row++;
+    }
+    s = k(s.subtract(k(M.Manifold.union(holes))));
+  }
+  const bore = BORE[kind];
+  const r = PEG_D / 2;
+  const hole = k(k(M.Manifold.cylinder(bore, r, r, SEG)).translate([0, 0, -0.01]).add(k(k(M.Manifold.cylinder(r, r, 0, SEG)).translate([0, 0, bore - 0.01]))));
+  return k(s.subtract(hole));
+}
 
 /**
- * Canopla para microfone sem fio (#274): o meio no formato escolhido, oco, com o furo da espuma em cima e o cabo
- * embaixo. Sai em 2 metades (frente e costas) cortadas ao meio da espessura, deitadas com o corte na mesa (sem suporte),
- * unidas por pinos soltos. #291: o transmissor entra e sai por trás, deitado, sem mexer no cabo (que fica fixo); o clipe
- * dele abraça a travessa. "Anel de teste": só esse encaixe, para conferir a medida antes da peça inteira.
+ * Canopla para microfone sem fio (#274, #291, #293), igual à referência: a caixinha numa peça só, fechada em 5 faces e aberta
+ * atrás, impressa deitada com as costas na mesa e a frente (com o logo de outra cor) para cima, sem suporte. O transmissor
+ * entra e sai por trás, deitado, sem mexer no cabo; o clipe dele abraça a travessa. Na placa 2: a bolinha de cima (espuma
+ * impressa ou grade), o anel, o cabo e a pecinha que liga a caixinha à bolinha, tudo colado. "Anel de teste": só o encaixe.
  */
 export function buildMicHolder(ctx: ModelCtx, p: MicHolderParams): MicHolderOutput {
   const { M } = ctx;
   const L = micLayout(p);
   const warnings: string[] = [];
   if (p.print === "test") {
-    // o mesmo encaixe das costas, com a parede da frente na mesa e a abertura para cima (sem ponte)
+    // o mesmo encaixe, impresso como a canopla: a boca na mesa e a parede da frente em cima (a mesma ponte do teto)
     const ring = scoped((k) => {
-      const block = k(k(roundedRect(M, L.coreW, L.ch + 2 * MIC_WALL, MIC_WALL)).extrude(L.cl + MIC_WALL));
-      const hole = k(M.Manifold.union([k(k(k(opening(M, L)).extrude(L.cl + 1)).translate([0, 0, MIC_WALL])), k(k(k(slot(M, L)).extrude(L.slotL + 1)).translate([0, 0, MIC_WALL + L.cl - L.slotL]))]));
-      return toMesh(k(block.subtract(hole)));
+      const block = k(k(roundedRect(M, L.coreW, L.ch + 2 * MIC_WALL, MIC_WALL)).extrude(L.cl + FRONT_WALL));
+      return toMesh(k(block.subtract(openingSolid(M, k, L, L.cl))));
     });
     return {
       layout: null,
       models: [{ name: "Anel de teste", parts: [{ name: "Anel", color: p.bodyColor, mesh: ring }] }],
-      warnings: ["Anel de teste: é o mesmo encaixe das costas. Empurre o microfone deitado para dentro do bolso, com o clipe por cima da travessa: deve entrar sem forçar, ficar preso e sair puxando para trás. Apertado: aumente a folga; solto: diminua. Depois imprima a peça inteira."],
+      warnings: ["Anel de teste: é o mesmo encaixe das costas, impresso do mesmo jeito (a boca na mesa). Empurre o microfone deitado para dentro do bolso, com o clipe por cima da travessa: deve entrar sem forçar, ficar preso e sair puxando para trás. Apertado: aumente a folga; solto: diminua. Depois imprima a peça inteira."],
     };
   }
   const round = p.shape === "cylinder";
-  // cilindro estreito: o raio cresce até o bolso deitado ter parede dos lados em boa parte do fundo
-  const R = round ? Math.max(p.width / 2, Math.hypot(L.coreW / 2, L.cl / 2)) : 0;
+  // cilindro estreito: o raio cresce até o bolso deitado ter parede dos lados e na frente
+  const R = round ? Math.max(p.width / 2, FRONT_WALL + L.cw / 2, L.coreW / 2, (L.cl + FRONT_WALL) / 2) : 0;
   const T0 = p.shape === "cube" ? p.width : round ? 2 * R : p.thickness;
-  const T = Math.max(T0, L.cl + MIC_WALL);
+  const T = Math.max(T0, L.cl + FRONT_WALL);
   if (T > T0) warnings.push(`A espessura subiu para ${fmt(T)} mm para o microfone caber deitado, com parede na frente.`);
+  const depth = T - FRONT_WALL; // o microfone entra até encostar na parede da frente, como a referência
+  const zc = T / 2;
+  const printed = p.head !== "bought";
   const elements: ElementBox[] = [];
   const out = scoped((k) => {
     // cubo justo como a referência (38 × 28,7): só a altura que a abertura e as paredes de cima e de baixo pedem
@@ -198,9 +298,9 @@ export function buildMicHolder(ctx: ModelCtx, p: MicHolderParams): MicHolderOutp
     // base reta e não sobra bloco para fora. Com folga, o microfone fica no centro do formato.
     const s0 = boxOf(S0);
     const cyMin = L.ch / 2 + BOTTOM_WALL;
-    // acima do microfone o pescoço já cobre o miolo (o vão do coração, a ponta da estrela)
+    const neckW = printed ? RING_D : p.neckD; // acima do microfone a bolinha já cobre o miolo (o vão do coração, a ponta da estrela)
     const outside = (yb: number, cy: number) => {
-      const neck = k(k(M.CrossSection.square([p.neckD, 1e3])).translate([-p.neckD / 2, yb + cy]));
+      const neck = k(k(M.CrossSection.square([neckW, 1e3])).translate([-neckW / 2, yb + cy]));
       return k(k(k(k(M.CrossSection.square([L.coreW, cy + L.ch / 2 + TOP_WALL])).translate([-L.coreW / 2, yb])).subtract(S0)).subtract(neck)).area();
     };
     const tol = L.coreW * (cyMin + L.ch / 2 + TOP_WALL) * 0.01;
@@ -214,7 +314,7 @@ export function buildMicHolder(ctx: ModelCtx, p: MicHolderParams): MicHolderOutp
     }
     const cy = p.shape !== "cube" && -yb > cyMin && outside(yb, -yb) <= tol ? -yb : cyMin;
     // o formato não desce na faixa do cabo (as pernas da estrela e os anilhas do halter ficam ao lado dele)
-    const S = k(k(S0.translate([0, -yb])).subtract(k(k(M.CrossSection.square([HANDLE_TOP + 2, 1e3], true)).translate([0, -500]))));
+    const S = k(k(S0.translate([0, -yb])).subtract(k(k(M.CrossSection.square([HANDLE_BAND, 1e3], true)).translate([0, -500]))));
     const coreTop = cy + L.ch / 2 + TOP_WALL;
     const core = k(k(M.CrossSection.square([L.coreW, coreTop])).translate([-L.coreW / 2, 0]));
     const body2d = k(S.add(core));
@@ -222,55 +322,29 @@ export function buildMicHolder(ctx: ModelCtx, p: MicHolderParams): MicHolderOutp
     const minW = Math.ceil(L.coreW);
     if (p.width < minW || extra > core.area() * 0.03) warnings.push(`O formato ficou estreito para o microfone (largura mínima de uns ${minW} mm): o app engrossou a parte em volta dele. Aumente a largura para o desenho aparecer inteiro.`);
     const sb = boxOf(S);
-    // topo no meio (onde a espuma entra): a altura do corpo em x = 0
+    // topo no meio (onde a bolinha fica): a altura do corpo em x = 0
     const top = boxOf(k(body2d.intersect(k(M.CrossSection.square([1, 1e3], true)))))[3];
-    const tenonL = PEG_H; // rebaixo raso embaixo: o cabo é colado, como na referência
-    const socket = k(k(M.CrossSection.square([PEG_D, PEG_H + 1])).translate([-PEG_D / 2, -1]));
-    const foamHole = k(k(M.CrossSection.square([p.neckD, FOAM_DEPTH + 1])).translate([-p.neckD / 2, top - FOAM_DEPTH]));
-    // abertura (bolso + janela do clipe), do fundo do bolso até atravessar as costas; z = 0 é o corte, +z vai para trás
-    const zBack = T / 2 - L.cl;
+    // caixinha inteira, no sistema da impressão: costas em z = 0 (na mesa), frente em z = T (em cima, com o logo)
+    let box: Solid;
+    if (round) {
+      // cilindro com as costas retas: a frente redonda vira o teto da peça deitada (cada camada menor que a de baixo)
+      const h = sb[3] - sb[1];
+      const cyl = k(k(k(M.Manifold.cylinder(h, R, R, SEG * 2)).rotate([-90, 0, 0])).translate([0, sb[1], R]));
+      box = k(cyl.add(k(k(M.Manifold.cube([2 * R, h, R])).translate([-R, sb[1], 0]))));
+    } else box = k(body2d.extrude(T));
+    const vcyl = (y0: number, h: number, d: number) => k(k(k(M.Manifold.cylinder(h, d / 2, d / 2, SEG)).rotate([-90, 0, 0])).translate([0, y0, zc]));
+    const cuts: Solid[] = [k(openingSolid(M, k, L, depth).translate([0, cy, 0])), vcyl(-1, PEG_H + 1, HANDLE_RECESS)];
     const openTop = cy + L.ch / 2;
-    const cut = [k(k(k(k(opening(M, L)).translate([0, cy])).extrude(L.cl + 1)).translate([0, 0, zBack])), k(k(k(slot(M, L)).extrude(L.slotL + 1)).translate([0, cy, T / 2 - L.slotL]))];
-    // canal do som: da janela do clipe até o topo do pescoço, por dentro dele
-    const sound = k(k(M.CrossSection.square([SOUND_W, top - openTop + 2])).translate([-SOUND_W / 2, openTop - 1]));
-    const [za, zb] = [Math.max(zBack, -(p.neckD / 2 - MIC_WALL)), Math.min(zBack + L.cd, p.neckD / 2 - MIC_WALL)];
-    if (zb > za) cut.push(k(k(sound.extrude(zb - za)).translate([0, 0, za])));
-    const hollow = k(M.Manifold.union(cut));
-    // tudo o que é oco visto de frente (os pinos fogem disso)
-    const cavity = k(M.CrossSection.union([k(k(opening(M, L)).translate([0, cy])), socket, sound, foamHole]));
-    // pinos: o primeiro par simétrico (dos lados do berço) que fica inteiro no formato, com parede
-    const pr = PIN_D / 2 + PIN_FIT;
-    const safe = k(k(body2d.offset(-(pr + PIN_WALL), "Round")).subtract(k(cavity.offset(pr + PIN_WALL, "Round"))));
-    const xs = L.cw / 2 + PIN_WALL + pr + 0.5;
-    const ys = [cy, cy + L.ch / 2, cy - L.ch / 4, coreTop, cy + L.ch];
-    const xsAll = [xs, xs + 4, xs + 8];
-    let spots: [number, number][] = [];
-    for (const y of ys) {
-      for (const x of xsAll) if (inside(M, k, safe, x, y) && inside(M, k, safe, -x, y)) { spots = [[-x, y], [x, y]]; break; }
-      if (spots.length) break;
+    if (printed) cuts.push(vcyl(top - PEG_H, PEG_H + 1, PEG_D));
+    else {
+      cuts.push(vcyl(top - FOAM_DEPTH, FOAM_DEPTH + 1, p.neckD));
+      // canal do som: da janela do clipe até o furo da espuma, por dentro dele
+      const [za, zb] = [Math.max(0, zc - (p.neckD / 2 - MIC_WALL)), Math.min(depth - L.clipW / 2, zc + (p.neckD / 2 - MIC_WALL))];
+      if (zb > za) cuts.push(k(k(M.Manifold.cube([SOUND_W, top - openTop + 2, zb - za])).translate([-SOUND_W / 2, openTop - 1, za])));
     }
-    if (!spots.length) warnings.push("Sem lugar para pinos entre as metades: alinhe pelas bordas, passe cola e prenda com fita até secar.");
-    const depth = Math.min(PIN_DEPTH, T / 2 - FLOOR);
-    // metade sem a arte, com o corte em z = 0 (fica na mesa)
-    const halfShell = (back: boolean): Solid => {
-      let s: Solid;
-      if (round) {
-        const cyl = k(k(k(M.Manifold.cylinder(sb[3] - sb[1], R, R, SEG * 2)).rotate([-90, 0, 0])).translate([0, sb[1], 0]));
-        s = k(cyl.trimByPlane([0, 0, 1], 0));
-      } else s = k(body2d.extrude(T / 2));
-      // rebaixo do cabo embaixo e furo da espuma no topo, redondos e centrados no corte
-      const vcyl = (y0: number, h: number, d: number) => k(k(k(M.Manifold.cylinder(h, d / 2, d / 2, SEG)).rotate([-90, 0, 0])).translate([0, y0, 0]));
-      s = k(s.subtract(vcyl(-1, PEG_H + 1, PEG_D)));
-      s = k(s.subtract(vcyl(top - FOAM_DEPTH, FOAM_DEPTH + 1, p.neckD)));
-      // a frente é a metade espelhada: o fundo do bolso só entra nela se ele passar do corte (ponte curta no teto)
-      s = k(s.subtract(back ? hollow : k(hollow.mirror([0, 0, 1]))));
-      for (const [x, y] of spots) s = k(s.subtract(k(k(M.Manifold.cylinder(depth + 0.4, pr, pr, 32)).translate([x, y, -0.01]))));
-      return s;
-    };
-    const front = halfShell(false);
-    const back = k(halfShell(true).mirror([1, 0, 0]));
-    const frontParts: Part[] = [{ name: "Frente", color: p.bodyColor, mesh: toMesh(front) }];
-    // o que vai na frente: texto, desenho/ícone ou nada, em relevo de outra cor
+    box = k(box.subtract(k(M.Manifold.union(cuts))));
+    const boxParts: Part[] = [{ name: "Caixinha", color: p.bodyColor, mesh: toMesh(box) }];
+    // o que vai na frente: texto, desenho/ícone ou nada, em relevo de outra cor na face de cima
     let deco: CS | null = null;
     const area: [number, number, number, number] = [sb[0], sb[1], sb[2], sb[3]];
     const [aw, ah] = [(sb[2] - sb[0]) * 0.66, (sb[3] - sb[1]) * 0.5];
@@ -282,32 +356,31 @@ export function buildMicHolder(ctx: ModelCtx, p: MicHolderParams): MicHolderOutp
     if (deco) {
       const [dx, dy] = placeIn(ctx, "front", boxOf(deco), area);
       const placed = k(k(deco.translate([dx, dy])).intersect(k(S.offset(-1.5, "Round"))));
-      const db = boxOf(placed);
-      elements.push({ id: "front", label: "Frente", box: db });
+      elements.push({ id: "front", label: "Frente", box: boxOf(placed) });
       if (round) {
-        const shell = (r: number) => k(k(k(M.Manifold.cylinder(sb[3] - sb[1], r, r, SEG * 2)).rotate([-90, 0, 0])).translate([0, sb[1], 0]));
+        const shell = (r: number) => k(k(k(M.Manifold.cylinder(sb[3] - sb[1], r, r, SEG * 2)).rotate([-90, 0, 0])).translate([0, sb[1], R]));
         const skin = k(shell(R + p.relief).subtract(shell(R)));
-        frontParts.push({ name: "Frente (relevo)", color: p.artColor, mesh: toMesh(k(k(placed.extrude(R + p.relief)).intersect(skin))) });
-      } else frontParts.push(...artParts(p.front === "art" ? ctx : { ...ctx, art: null, artLayers: null }, placed, p.artColor, "Frente (relevo)", p.relief, T / 2));
+        boxParts.push({ name: "Frente (relevo)", color: p.artColor, mesh: toMesh(k(k(k(placed.extrude(R + p.relief)).translate([0, 0, R])).intersect(skin))) });
+      } else boxParts.push(...artParts(p.front === "art" ? ctx : { ...ctx, art: null, artLayers: null }, placed, p.artColor, "Frente (relevo)", p.relief, T));
     }
-    // cabo de pé: afina para baixo; o encaixe no topo entra no furo de baixo
-    const handle = k(k(M.Manifold.cylinder(p.handleL, HANDLE_BOTTOM / 2, HANDLE_TOP / 2, SEG)).add(k(k(M.Manifold.cylinder(PEG_H - 0.05, L.peg / 2, L.peg / 2, SEG)).translate([0, 0, p.handleL]))));
-    const pinLen = 2 * depth - 0.4;
-    const pins = spots.map((_, i) => k(k(M.Manifold.cylinder(pinLen, PIN_D / 2, PIN_D / 2, 32)).translate([i * (PIN_D + 4), 0, 0])));
-    const models: Model[] = [
-      { name: "Frente", parts: frontParts },
-      { name: "Costas", parts: [{ name: "Costas", color: p.bodyColor, mesh: toMesh(back) }] },
+    // placa 2, tudo em pé: cabo (chanfro embaixo), pecinha (chanfro em cima), anel e a bolinha
+    const handle = k(k(M.Manifold.cylinder(1, L.handleD / 2 - 0.8, L.handleD / 2, SEG)).add(k(k(M.Manifold.cylinder(p.handleL - 1, L.handleD / 2, L.handleD / 2, SEG)).translate([0, 0, 1]))));
+    const peg = k(k(M.Manifold.cylinder(PEG_L - 0.6, L.peg / 2, L.peg / 2, SEG)).add(k(k(M.Manifold.cylinder(0.6, L.peg / 2, L.peg / 2 - 0.6, SEG)).translate([0, 0, PEG_L - 0.6]))));
+    const ringM = k(k(M.Manifold.cylinder(RING_H, RING_D / 2, RING_D / 2, SEG)).subtract(k(k(M.Manifold.cylinder(RING_H + 2, PEG_D / 2, PEG_D / 2, SEG)).translate([0, 0, -1]))));
+    const head = printed ? toMesh(buildHead(M, k, p.head as "foam" | "grille")) : null;
+    const plate2: Model[] = [
+      ...(head ? [{ name: "Bolinha", parts: [{ name: p.head === "grille" ? "Grade" : "Espuma", color: p.headColor, mesh: head }] }, { name: "Anel", parts: [{ name: "Anel", color: p.ringColor, mesh: toMesh(ringM) }] }] : []),
       { name: "Cabo", parts: [{ name: "Cabo", color: p.handleColor, mesh: toMesh(handle) }] },
-      ...(pins.length ? [{ name: "Pinos", parts: [{ name: "Pinos", color: p.bodyColor, mesh: toMesh(k(M.Manifold.union(pins))) }] }] : []),
+      ...(printed ? [{ name: "Pecinha", parts: [{ name: "Pecinha de encaixe", color: p.handleColor, mesh: toMesh(peg) }] }] : []),
     ];
-    // vista montada (prévia e foto do cartão): de pé, frente para -Y, o cabo embaixo e a espuma no furo de cima
-    const stand = (m: Mesh, f: (x: number, y: number, z: number) => [number, number, number]): Mesh => {
+    // vista montada (prévia e foto do cartão): de pé, frente para -Y, o cabo embaixo e a bolinha em cima
+    const stand = (m: Mesh): Mesh => {
       const q = m.positions.slice();
-      for (let i = 0; i < q.length; i += 3) [q[i], q[i + 1], q[i + 2]] = f(q[i], q[i + 1], q[i + 2]);
+      for (let i = 0; i < q.length; i += 3) [q[i + 1], q[i + 2]] = [zc - q[i + 2], q[i + 1]];
       return { positions: q, indices: m.indices };
     };
     // transmissor (só na prévia): deitado no bolso, encostado na frente dele, com o clipe por cima da travessa
-    const yFront = zBack + p.clearance; // na vista montada, +Y é para trás
+    const yFront = zc - depth + p.clearance; // na vista montada, +Y é para trás
     const zDisk = cy - L.ch / 2 + p.clearance;
     const disk = k(k(k(roundedRect(M, p.micW, p.micH, L.radius)).extrude(p.micT)).translate([0, yFront + p.micH / 2, zDisk]));
     // clipe: haste no meio do transmissor, subindo pelo rasgo da travessa, e a perna deitada na janela de cima
@@ -316,40 +389,46 @@ export function buildMicHolder(ctx: ModelCtx, p: MicHolderParams): MicHolderOutp
     const clip = k(k(M.Manifold.cube([legW, legL, 1.5])).translate([-legW / 2, yMid - legL / 2, zLeg]));
     const hinge = k(k(M.Manifold.cube([stemW, 4, zLeg + 1.5 - zDisk - p.micT + 0.5])).translate([-stemW / 2, yMid - 2, zDisk + p.micT - 0.5]));
     const txMesh = toMesh(k(M.Manifold.union([disk, clip, hinge])));
-    // espuma com a base apertada no furo do topo
-    const foamR = p.neckD / 2 + 1;
-    const foam = k(k(k(M.Manifold.sphere(1, SEG)).scale([foamR, foamR, foamR * 1.15])).translate([0, 0, top - FOAM_DEPTH + foamR * 1.15 - 1]));
+    const byName = (n: string) => plate2.find((m) => m.name === n)!;
+    const foamR = p.neckD / 2 + 1; // espuma comprada (só na prévia), com a base apertada no furo do topo
+    const up: Model[] = printed
+      ? [
+          { name: "Pecinha", parts: byName("Pecinha").parts.map((x) => ({ ...x, mesh: moveMesh(x.mesh, 0, 0, top - PEG_H) })) },
+          { name: "Anel", parts: byName("Anel").parts.map((x) => ({ ...x, mesh: moveMesh(x.mesh, 0, 0, top) })) },
+          { name: "Bolinha", parts: byName("Bolinha").parts.map((x) => ({ ...x, mesh: moveMesh(x.mesh, 0, 0, top + RING_H) })) },
+        ]
+      : [{ name: "Espuma", parts: [{ name: "Espuma (só na prévia)", color: FOAM_COLOR, mesh: toMesh(k(k(k(M.Manifold.sphere(1, SEG)).scale([foamR, foamR, foamR * 1.15])).translate([0, 0, top - FOAM_DEPTH + foamR * 1.15 - 1]))) }] }];
     const assembled: Model[] = [
-      { name: "Frente", parts: frontParts.map((x) => ({ ...x, mesh: stand(x.mesh, (a, b, c) => [a, -c, b]) })) },
-      { name: "Costas", parts: [{ name: "Costas", color: p.bodyColor, mesh: stand(models[1].parts[0].mesh, (a, b, c) => [-a, c, b]) }] },
-      { name: "Cabo", parts: [{ name: "Cabo", color: p.handleColor, mesh: moveMesh(models[2].parts[0].mesh, 0, 0, -p.handleL) }] },
-      { name: "Espuma", parts: [{ name: "Espuma (só na prévia)", color: FOAM_COLOR, mesh: toMesh(foam) }] },
+      { name: "Caixinha", parts: boxParts.map((x) => ({ ...x, mesh: stand(x.mesh) })) },
+      { name: "Cabo", parts: byName("Cabo").parts.map((x) => ({ ...x, mesh: moveMesh(x.mesh, 0, 0, PEG_H - p.handleL) })) },
+      ...up,
     ];
     // fora, entrando e dentro: o transmissor andando de trás para a frente (o cabo não se mexe)
-    const steps = [L.cl + 15, L.cl * 0.55, 0].map((dy) => [...assembled, { name: "Transmissor", parts: [{ name: "Transmissor (só na prévia)", color: MIC_COLOR, mesh: moveMesh(txMesh, 0, dy, 0) }] }]);
-    return { models: spread(models), steps, cy, top, tenonL, depth, spots };
+    const steps = [depth + 15, depth * 0.55, 0].map((dy) => [...assembled, { name: "Transmissor", parts: [{ name: "Transmissor (só na prévia)", color: MIC_COLOR, mesh: moveMesh(txMesh, 0, dy, 0) }] }]);
+    // duas mesas como a referência: 1 = caixinha e logo; 2 = bolinha, anel, cabo e pecinha
+    const plate1: Model[] = [{ name: "Caixinha", parts: boxParts, plate: 1 }];
+    const p2 = spread(plate2);
+    const b1 = modelsBounds(plate1)!, b2 = modelsBounds(p2)!;
+    const dx = b1.max[0] + bedMm() * 0.2 + (b1.max[0] - b1.min[0]) / 2 - b2.min[0];
+    const models = [...plate1, ...p2.map((m) => ({ ...moveModel(m, dx, (b1.min[1] + b1.max[1]) / 2 - (b2.min[1] + b2.max[1]) / 2), plate: 2 }))];
+    const bed = layoutPlates([{ label: "Caixinha e logo", models: plate1 }, { label: printed ? "Bolinha, anel, cabo e pecinha" : "Cabo", models: p2 }], bedMm());
+    return { models, bed, steps, cy, top };
   });
-  warnings.push(`Duas metades: ${out.spots.length ? "ponha os pinos, " : ""}passe cola e una a frente e as costas; cole o cabo no rebaixo de baixo (ele fica fixo). O microfone entra por trás, deitado: empurre para dentro com o clipe por cima da travessa e a haste dele no rasgo do meio. Para carregar, puxe para trás. Aperte a base da espuma no furo de cima.`);
+  warnings.push(
+    printed
+      ? "Placa 1: a caixinha deitada, costas para baixo e o logo em cima, sem suporte. Placa 2: bolinha, anel, cabo e pecinha, em pé. Monte com cola: o cabo no rebaixo de baixo; a pecinha no rebaixo de cima; o anel passa pela pecinha e a bolinha encaixa nela. O microfone entra por trás, deitado, com o clipe por cima da travessa; para carregar, puxe para trás."
+      : "Placa 1: a caixinha deitada, costas para baixo e o logo em cima, sem suporte. Placa 2: o cabo, em pé. Cole o cabo no rebaixo de baixo e aperte a base da espuma no furo de cima. O microfone entra por trás, deitado, com o clipe por cima da travessa; para carregar, puxe para trás.",
+  );
   // de costas: a mesma montagem girada meia volta, para ver a abertura e o transmissor
   const turn = (ms: Model[]) => ms.map((m) => ({ ...m, parts: m.parts.map((x) => { const q = x.mesh.positions.slice(); for (let i = 0; i < q.length; i += 3) [q[i], q[i + 1]] = [-q[i], -q[i + 1]]; return { ...x, mesh: { ...x.mesh, positions: q } }; }) }));
   const views = [
-    { id: "closed", label: "Montada", models: out.steps[2], note: "Como fica pronta, com a espuma e o transmissor (que não vão para o arquivo)." },
+    { id: "closed", label: "Montada", models: out.steps[2], note: printed ? "Como fica pronta, com o transmissor (que não vai para o arquivo)." : "Como fica pronta, com a espuma e o transmissor (que não vão para o arquivo)." },
     { id: "out", label: "1. Fora", models: turn(out.steps[0]), note: "Costas: o transmissor deitado, com o clipe para cima, na frente da abertura." },
     { id: "in", label: "2. Entrando", models: turn(out.steps[1]), note: "Empurre para a frente: o corpo desliza no bolso e o clipe por cima da travessa. O cabo não sai do lugar." },
     { id: "back", label: "3. Dentro", models: turn(out.steps[2]), note: "Preso: o clipe abraça a travessa e a luz fica à vista. Para tirar e carregar, puxe para trás." },
-    { id: "bed", label: "Mesa", models: out.models },
+    { id: "bed", label: "Placas", models: out.bed, note: "Duas placas, como a referência: a caixinha com o logo numa, o resto na outra." },
   ];
-  return { models: out.models, views, elements, warnings, layout: { cy: out.cy, top: out.top, tenonL: out.tenonL, pinDepth: out.depth, pins: out.spots, thickness: T } };
-}
-
-/** Abertura das costas, centrada na origem: o bolso do transmissor embaixo e a janela do clipe em cima; entre eles fica a travessa. */
-function opening(M: ManifoldToplevel, L: ReturnType<typeof micLayout>): CS {
-  return scoped((k) => k(k(roundedRect(M, L.cw, L.cd, 1)).translate([0, (L.cd - L.ch) / 2])).add(k(k(roundedRect(M, L.clipW, L.clipH, 1)).translate([0, (L.ch - L.clipH) / 2]))));
-}
-
-/** Rasgo no meio da travessa (mesma origem da abertura): liga as duas janelas e deixa a haste do clipe passar. */
-function slot(M: ManifoldToplevel, L: ReturnType<typeof micLayout>): CS {
-  return scoped((k) => k(M.CrossSection.square([L.slotW, BAR_T + 0.2], true)).translate([0, -L.ch / 2 + L.cd + BAR_T / 2]));
+  return { models: out.models, views, elements, warnings, layout: { cy: out.cy, top: out.top, depth, thickness: T } };
 }
 
 const fmt = (n: number) => n.toFixed(1).replace(".", ",");
