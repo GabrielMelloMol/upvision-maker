@@ -78,7 +78,7 @@ test("onde fica: os nomes novos das ferramentas e os antigos continuam achando a
   await openApp(page);
   await page.keyboard.press("Control+k");
   const palette = page.getByRole("dialog", { name: "Buscar" });
-  for (const [typed, shown] of [["svg", "Imagem em vetor"], ["imagem para svg", "Imagem em vetor"], ["3mf", "Separar as cores de um arquivo"], ["separar 3mf por cor", "Separar as cores de um arquivo"], ["thingiverse", "Buscar modelos na internet"], ["extrusão", "Imagem em relevo 3D"], ["decal", "Nome ou logo na peça"]] as const) {
+  for (const [typed, shown] of [["svg", "Imagem em SVG"], ["imagem para svg", "Imagem em SVG"], ["3mf", "Separar as cores de um arquivo"], ["separar 3mf por cor", "Separar as cores de um arquivo"], ["thingiverse", "Buscar modelos na internet"], ["extrusão", "Imagem em relevo 3D"], ["decal", "Nome ou logo na peça"]] as const) {
     await palette.getByRole("combobox").fill(typed);
     await expect(palette.getByRole("option", { name: new RegExp(shown.replace(/[()]/g, "\\$&")) }).first()).toBeVisible();
   }

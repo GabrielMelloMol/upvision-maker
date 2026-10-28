@@ -131,7 +131,7 @@ export default function Stamp() {
     <div className="page">
       <h1>Carimbo seco</h1>
       <p className="lead">Duas placas que gravam o desenho em relevo, sem tinta.</p>
-      <SeeAlso items={[{ label: "Imagem em vetor", page: "svg" }, { label: "Medalhas", page: "medal" }]} />
+      <SeeAlso items={[{ label: "Imagem em SVG", page: "svg" }, { label: "Medalhas", page: "medal" }]} />
       <ToolSessionBar tool={tool} />
       <div className="tool-layout">
         <div className="controls">

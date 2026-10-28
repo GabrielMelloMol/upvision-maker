@@ -81,7 +81,7 @@ const ALL: PageDef[] = [
   { id: "home", section: "home", label: "Início", group: "", icon: House, render: (go) => <Home go={go} /> },
   { id: "create", section: "create", label: "Criar", group: "", icon: Sparkle, render: (go) => <Create go={go} /> },
   { id: "projects", section: "create", label: "Meus projetos", group: "", icon: FolderOpen, blurb: "Tudo o que você criou, para abrir ou fazer de novo.", render: (go) => <MyProjects go={go} /> },
-  { id: "svg", section: "create", label: "Imagem em vetor", group: "Ferramentas", icon: ImageUp, blurb: "Vetoriza logo ou desenho em 1 a 4 cores, em mm: para logo e arte.", render: (go) => <ImageToSvg go={go} /> },
+  { id: "svg", section: "create", label: "Imagem em SVG", group: "Ferramentas", icon: ImageUp, blurb: "Vetoriza logo ou desenho em 1 a 4 cores, em mm: para logo e arte.", render: (go) => <ImageToSvg go={go} /> },
   { id: "cutter", section: "create", label: "Cortador de biscoito", group: "Ferramentas", icon: Cookie, blurb: "Lâmina + carimbo a partir do desenho.", render: () => <CookieCutter /> },
   { id: "keychain", section: "create", label: "Chaveiros", group: "Ferramentas", icon: KeyRound, blurb: "Nome + logo em 2 cores, também em lote.", render: () => <Keychain /> },
   { id: "medal", section: "create", label: "Medalhas", group: "Ferramentas", icon: Award, blurb: "Formato, texto, imagem e alça para fita.", render: () => <Medal /> },

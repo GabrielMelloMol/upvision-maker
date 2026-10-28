@@ -2,7 +2,7 @@ import AxeBuilder from "@axe-core/playwright";
 import { expect, go, openApp, pickModel, settleColors, test } from "./tauri";
 
 // "Litofania" abre numa escolha de tipo; o Como usar aparece na tela do gerador escolhido
-const TOOLS = ["Imagem em vetor", "Cortador de biscoito", "Chaveiros", "Medalhas", "Carimbo seco", "Caixinha termoformada", "Imagem em relevo 3D", "QR Code e Pix", "Etiquetas de rolo", "Pixel art", "Separar as cores de um arquivo", "Nome ou logo na peça", "Cortar um pedaço com encaixe"];
+const TOOLS = ["Imagem em SVG", "Cortador de biscoito", "Chaveiros", "Medalhas", "Carimbo seco", "Caixinha termoformada", "Imagem em relevo 3D", "QR Code e Pix", "Etiquetas de rolo", "Pixel art", "Separar as cores de um arquivo", "Nome ou logo na peça", "Cortar um pedaço com encaixe"];
 
 test("toda ferramenta com tela própria tem o bloco Como usar (quando usar, dicas e perguntas) (#209)", async ({ page }) => {
   test.slow();

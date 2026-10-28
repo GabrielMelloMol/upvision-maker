@@ -18,7 +18,7 @@ const SIZES =
 const suffix = (scale: number) => (scale === 1 ? "" : `@${scale * 100}`);
 const PAGES = [
   ["inicio", "Início"],
-  ["svg", "Imagem em vetor"],
+  ["svg", "Imagem em SVG"],
   ["cortador", "Cortador de biscoito"],
   ["chaveiros", "Chaveiros"],
   ["medalhas", "Medalhas"],
