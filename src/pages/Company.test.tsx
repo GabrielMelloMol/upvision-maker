@@ -5,11 +5,12 @@ import { describe, expect, test, vi } from "vitest";
 import { renderWithApp, setupTauri } from "../test/harness";
 import CompanyPage from "./Company";
 
-const logo = vi.hoisted(() => ({ fail: false }));
+const logo = vi.hoisted(() => ({ fail: false, url: "" }));
+const PNG = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==";
 vi.mock("../ui/photo", () => ({
   logoToDataUrl: async () => {
     if (logo.fail) throw new Error("Foto maior que 25 MB.");
-    return "data:image/png;base64,TE9HTw==";
+    return logo.url || "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==";
   },
 }));
 
@@ -96,11 +97,11 @@ describe("Dados da empresa", () => {
     await screen.findByText("Sem logo");
     const input = () => container.querySelector<HTMLInputElement>('input[type="file"]')!;
     await user.upload(input(), new File(["x"], "logo.png", { type: "image/png" }));
-    expect(await screen.findByAltText("Logo da empresa")).toHaveAttribute("src", "data:image/png;base64,TE9HTw==");
+    expect(await screen.findByAltText("Logo da empresa")).toHaveAttribute("src", PNG);
     expect(screen.getByText("Trocar logo")).toBeInTheDocument();
     await user.click(screen.getByRole("button", { name: "Salvar dados" }));
     await screen.findByText("Dados da empresa salvos.");
-    expect((await saved()).logo).toBe("data:image/png;base64,TE9HTw==");
+    expect((await saved()).logo).toBe(PNG);
 
     await user.click(screen.getByRole("button", { name: "Remover logo" }));
     expect(screen.getByText("Sem logo")).toBeInTheDocument();
@@ -109,6 +110,41 @@ describe("Dados da empresa", () => {
     await user.upload(input(), new File(["x"], "grande.png", { type: "image/png" }));
     expect(await screen.findByText("Foto maior que 25 MB.")).toBeInTheDocument();
     logo.fail = false;
+  });
+
+  test("logo é gravado assim que é enviado, sem precisar de Salvar (#295)", async () => {
+    t.raw.exec(`INSERT INTO company (id, data) VALUES (1, '{"name":"Loja"}')`);
+    const user = userEvent.setup();
+    const { container } = renderWithApp(<CompanyPage />);
+    await user.type(await screen.findByLabelText("Nome fantasia"), "Rascunho");
+    await user.upload(container.querySelector<HTMLInputElement>('input[type="file"]')!, new File(["x"], "logo.png", { type: "image/png" }));
+    expect(await screen.findByText("Logo salvo.")).toBeInTheDocument();
+    expect(await saved()).toMatchObject({ name: "Loja", tradeName: "", logo: PNG }); // só o logo: o resto do formulário espera o Salvar
+    await user.click(screen.getByRole("button", { name: "Remover logo" }));
+    expect(await screen.findByText("Logo removido.")).toBeInTheDocument();
+    expect((await saved()).logo).toBe("");
+  });
+
+  test("logo que o PDF não consegue desenhar é recusado com aviso (#295)", async () => {
+    const user = userEvent.setup();
+    const { container } = renderWithApp(<CompanyPage />);
+    await screen.findByText("Sem logo");
+    logo.url = "data:image/png;base64,TE9HTw==";
+    await user.upload(container.querySelector<HTMLInputElement>('input[type="file"]')!, new File(["x"], "logo.png", { type: "image/png" }));
+    expect(await screen.findByText(/não dá para usar no PDF/)).toBeInTheDocument();
+    expect(screen.getByText("Sem logo")).toBeInTheDocument();
+    logo.url = "";
+  });
+
+  test("erro em campo sem mensagem própria não some calado (#295)", async () => {
+    t.raw.exec(`INSERT INTO company (id, data) VALUES (1, '{"name":"Loja"}')`);
+    const user = userEvent.setup();
+    renderWithApp(<CompanyPage />);
+    const site = await screen.findByLabelText("Site");
+    site.removeAttribute("maxlength");
+    await user.type(site, "x".repeat(121));
+    await user.click(screen.getByRole("button", { name: "Salvar dados" }));
+    expect(await screen.findByText(/Não foi possível salvar.*No máximo 120 caracteres/)).toBeInTheDocument();
   });
 
   test("erro ao gravar aparece no formulário", async () => {

@@ -1,4 +1,5 @@
 import { formatDocument, oneLineAddress, type Company } from "../domain/customers";
+import { logError } from "../diagnostics/log";
 import { A4, COLOR, MARGIN, type Pdf } from "./doc";
 
 const LOGO_W = 110;
@@ -12,8 +13,8 @@ export async function companyHeader(pdf: Pdf, c: Company, title: string, right: 
     try {
       pdf.drawContain(await pdf.image(c.logo), MARGIN, top - LOGO_H, LOGO_W, LOGO_H);
       x = MARGIN + LOGO_W + 14;
-    } catch {
-      // logo corrompido não impede o documento
+    } catch (e) {
+      logError("logo no PDF", e, "warn"); // logo ruim não impede o documento; a tela de Dados da empresa já recusa no envio (#295)
     }
   }
   const name = c.tradeName || c.name || "Sua empresa";

@@ -5,6 +5,7 @@ import { loadCompany, saveCompany } from "../db/customersRepo";
 import { CompanyInput, type Company } from "../domain/customers";
 import { pixPayload, validPixKey } from "../domain/pix";
 import { qrSvg } from "../domain/qr";
+import { checkPdfImage } from "../pdf/doc";
 import Alert from "../ui/Alert";
 import Button from "../ui/Button";
 import { fieldErrors } from "../ui/fieldErrors";
@@ -38,11 +39,34 @@ function CompanyForm({ initial }: { initial: Company }) {
     }
   }
 
+  /** O logo é gravado na hora (só ele): antes ficava só na prévia e sumia ao sair da tela sem "Salvar dados" (#295). */
+  async function storeLogo(logo: string) {
+    const db = await getDb();
+    await saveCompany(db, { ...(await loadCompany(db)), logo });
+    setV((cur) => ({ ...cur, logo }));
+  }
+
   async function onLogo(files: FileList | null) {
     const f = files?.[0];
     if (!f) return;
     try {
-      setV({ ...v, logo: await logoToDataUrl(f) });
+      const logo = await logoToDataUrl(f);
+      try {
+        await checkPdfImage(logo);
+      } catch (e) {
+        throw new Error(`Este logo não dá para usar no PDF (${errorText(e)}). Tente salvar a imagem de novo em PNG.`, { cause: e });
+      }
+      await storeLogo(logo);
+      toast("Logo salvo.");
+    } catch (e) {
+      toast(errorText(e), "error");
+    }
+  }
+
+  async function removeLogo() {
+    try {
+      await storeLogo("");
+      toast("Logo removido.");
     } catch (e) {
       toast(errorText(e), "error");
     }
@@ -56,7 +80,10 @@ function CompanyForm({ initial }: { initial: Company }) {
       setErrors({});
       toast("Dados da empresa salvos.");
     } catch (err) {
-      setErrors(fieldErrors(err));
+      const errs = fieldErrors(err);
+      setErrors(errs);
+      // só alguns campos mostram o erro embaixo; o toast garante que nenhum erro some calado (#295)
+      toast(`Não foi possível salvar: ${Object.values(errs)[0]}`, "error");
     }
   }
 
@@ -88,7 +115,7 @@ function CompanyForm({ initial }: { initial: Company }) {
             <input type="file" accept="image/png,image/jpeg,image/webp" hidden onChange={(e) => onLogo(e.target.files)} />
           </label>
           {v.logo && (
-            <Button variant="link" className="danger" onClick={() => setV({ ...v, logo: "" })}>
+            <Button variant="link" className="danger" onClick={removeLogo}>
               Remover logo
             </Button>
           )}

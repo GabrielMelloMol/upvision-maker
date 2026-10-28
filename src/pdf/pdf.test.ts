@@ -149,3 +149,10 @@ test("termo de reposição: partes, peças repostas com repasse, colunas do acer
   expect(t).toMatch(/Não substitui orientação jurídica/);
   expect(await pages(r.bytes)).toHaveLength(1);
 });
+
+test("imagem que o PDF não aceita dá erro claro em vez de sumir (#295)", async () => {
+  const { checkPdfImage } = await import("./doc");
+  await expect(checkPdfImage(PNG)).resolves.toBeUndefined();
+  await expect(checkPdfImage("data:image/webp;base64,UklGRg==")).rejects.toThrow("formato que o PDF não aceita");
+  await expect(checkPdfImage("data:image/png;base64,TE9HTw==")).rejects.toThrow();
+});

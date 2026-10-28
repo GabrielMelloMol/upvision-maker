@@ -146,9 +146,8 @@ export class Pdf {
     }
   }
 
-  async image(dataUrl: string): Promise<PDFImage> {
-    const bytes = Uint8Array.from(atob(dataUrl.split(",")[1]), (c) => c.charCodeAt(0));
-    return dataUrl.startsWith("data:image/png") ? this.doc.embedPng(bytes) : this.doc.embedJpg(bytes);
+  image(dataUrl: string): Promise<PDFImage> {
+    return embedImage(this.doc, dataUrl);
   }
 
   /** Imagem encaixada (contain) numa caixa com canto inferior esquerdo em (x, y). */
@@ -180,6 +179,19 @@ export class Pdf {
     });
     return this.doc.save();
   }
+}
+
+/** O PDF só aceita PNG e JPEG (pdf-lib): WebP e afins dão erro aqui, não em silêncio. */
+function embedImage(doc: PDFDocument, dataUrl: string): Promise<PDFImage> {
+  const bytes = Uint8Array.from(atob(dataUrl.split(",")[1] ?? ""), (c) => c.charCodeAt(0));
+  if (dataUrl.startsWith("data:image/png")) return doc.embedPng(bytes);
+  if (dataUrl.startsWith("data:image/jpeg")) return doc.embedJpg(bytes);
+  return Promise.reject(new Error("formato que o PDF não aceita (use PNG ou JPG)"));
+}
+
+/** Confere se a imagem entra no PDF (ex.: o logo ao ser enviado, #295). Lança o erro do pdf-lib se não entrar. */
+export async function checkPdfImage(dataUrl: string): Promise<void> {
+  await embedImage(await PDFDocument.create(), dataUrl);
 }
 
 export const moneyBr = (n: number) => n.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
