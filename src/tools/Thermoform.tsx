@@ -221,7 +221,7 @@ export default function Thermoform() {
     <div className="page">
       <h1>Caixinha termoformada</h1>
       <p className="lead">Tela de PLA em malha, prensada a quente num molde.</p>
-      <SeeAlso items={[{ label: "Imagem em vetor", page: "svg" }, { label: "Carimbo seco", page: "stamp" }]} />
+      <SeeAlso items={[{ label: "Imagem em SVG", page: "svg" }, { label: "Carimbo seco", page: "stamp" }]} />
       <ToolSessionBar tool={tool} />
       <div className="tool-layout">
         <div className="controls">

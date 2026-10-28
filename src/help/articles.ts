@@ -24,7 +24,7 @@ export const ARTICLES: HelpArticle[] = [
   },
   {
     id: "svg",
-    title: "Imagem em vetor",
+    title: "Imagem em SVG",
     intro: "Transforma um logo, desenho ou foto num contorno limpo, já no tamanho de impressão em mm.",
     steps: ["Arraste a imagem (PNG, JPG, WebP…).", "Escolha Logo / desenho (fundo liso) ou Silhueta (foto de pessoa, pet ou objeto).", "Em Cores, escolha de 1 a 4: cada cor vira uma camada que encaixa na outra.", "Ajuste a Largura final e clique em Aplicar alterações.", "Salve o SVG ou mande direto para o Cortador ou a Extrusão."],
     tips: ["Trechos em vermelho ficam com menos de 0,4 mm: use Engrossar traços finos ou aumente a largura."],
