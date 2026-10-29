@@ -115,10 +115,12 @@ describe("Orçamentos", () => {
     const until = within(sheet).getByLabelText("Válido até");
     await user.clear(until);
     await user.type(until, "2099-12-31");
+    await user.type(within(sheet).getByLabelText("Cor"), "Dourado"); // referência do projeto (#301): orçamento antigo, sem os campos
+    await user.type(within(sheet).getByLabelText("Tamanho"), "25 cm");
     await user.click(within(sheet).getByRole("button", { name: "Salvar orçamento" }));
     expect(await screen.findByText("Orçamento atualizado.")).toBeInTheDocument();
     await waitFor(() => expect(screen.getByRole("row", { name: /Ana Souza/ })).toHaveTextContent("aberto"));
-    expect(JSON.parse((t.raw.prepare("SELECT data FROM quotes").get() as { data: string }).data).validUntil).toBe("2099-12-31");
+    expect(JSON.parse((t.raw.prepare("SELECT data FROM quotes").get() as { data: string }).data)).toMatchObject({ validUntil: "2099-12-31", refColor: "Dourado", refSize: "25 cm", refImage: "" });
   });
 
   test("PDF com Pix é salvo com nome do cliente; cancelar o 'Salvar como' não grava", async () => {

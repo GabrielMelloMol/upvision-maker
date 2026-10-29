@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { imageUrl } from "./customers";
 import { round2 } from "./format";
 import { CONSUMER, OrderInput, RESALE, todayIso, type OrderItem } from "./orders";
 import { PRICE_NAMES } from "./pricing";
@@ -6,6 +7,10 @@ import { PRICE_NAMES } from "./pricing";
 export const QuoteInput = OrderInput.extend({
   validUntil: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "Data inválida"),
   terms: z.string().trim().max(2000),
+  /** Seção "Referência do projeto 3D" do PDF (#301); tudo vazio = a seção não aparece. Default: orçamentos antigos não têm. */
+  refImage: imageUrl("Imagem inválida.").default(""),
+  refColor: z.string().trim().max(60).default(""),
+  refSize: z.string().trim().max(60).default(""),
 });
 export type QuoteInput = z.infer<typeof QuoteInput>;
 /** year/seq: número do orçamento no ano (#36); null só em dado antigo que ainda não foi numerado. */
@@ -25,10 +30,7 @@ export const isExpired = (q: Pick<Quote, "validUntil" | "convertedOrderId">, tod
 
 /** O pedido herda cliente, canal, itens, frete, prazo e observações; validade e condições ficam no orçamento. */
 export function quoteToOrderInput(q: QuoteInput): OrderInput {
-  const { validUntil: _v, terms: _t, ...order } = q;
-  void _v;
-  void _t;
-  return OrderInput.parse(order);
+  return OrderInput.parse(q); // o zod descarta validade, condições e referência
 }
 
 /** Item avulso vindo da calculadora (#28): a mesa vira `pieces` unidades com custo e minutos de máquina por peça. */

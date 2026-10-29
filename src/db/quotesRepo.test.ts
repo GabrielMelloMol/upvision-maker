@@ -1,4 +1,5 @@
 import { beforeEach, expect, test } from "vitest";
+import type { z } from "zod";
 import { addDays, isExpired, quoteNumber, type QuoteInput } from "../domain/quotes";
 import { MIGRATIONS } from "./migrations";
 import { migrate } from "./migrations";
@@ -13,7 +14,8 @@ beforeEach(async () => {
   await migrate(db);
 });
 
-const quote: QuoteInput = {
+// sem os campos da referência (#301), como os orçamentos gravados antes deles
+const quote: z.input<typeof QuoteInput> = {
   customerId: null,
   customerName: "Ana",
   channel: "Consumidor final",
@@ -29,6 +31,7 @@ const quote: QuoteInput = {
 test("converte em pedido uma única vez, levando itens, frete e prazo", async () => {
   const id = await quotesRepo.create(db, quote, "2026-09-28 10:00:00");
   const [q] = await quotesRepo.list(db);
+  expect(q).toMatchObject({ refImage: "", refColor: "", refSize: "" });
   const orderId = await quotesRepo.convert(db, q);
   const [o] = await ordersRepo.list(db);
   expect(o.id).toBe(orderId);

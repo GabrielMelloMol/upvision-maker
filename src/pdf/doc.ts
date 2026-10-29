@@ -53,7 +53,7 @@ export class Pdf {
 
   /** Garante espaço vertical; se não couber, vai para a próxima página. */
   ensure(h: number) {
-    if (this.y - h < MARGIN + 18) this.addPage();
+    if (this.y - h < MARGIN + 24) this.addPage(); // 24: espaço do rodapé com linha (#301)
   }
 
   wrap(text: string, size: number, font: PDFFont, width: number): string[] {
@@ -133,7 +133,7 @@ export class Pdf {
     for (const row of rows) {
       const cells = row.map((cell, i) => this.wrap(cell, size, this.fonts.regular, columns[i].width - 2 * pad));
       const h = Math.max(...cells.map((c) => c.length)) * size * 1.35 + 2 * pad - 2;
-      if (this.y - h < MARGIN + 18) {
+      if (this.y - h < MARGIN + 24) {
         this.addPage();
         header();
       }
@@ -170,15 +170,23 @@ export class Pdf {
     );
   }
 
-  /** Numera as páginas ("1 / 3") e devolve o arquivo. */
-  async save(footer?: string): Promise<Uint8Array> {
+  /**
+   * Numera as páginas ("1 / 3") e devolve o arquivo. Com `brand` (orçamento e pedido, #301): linha, nome da empresa
+   * em destaque e o `ref` do documento junto do número da página.
+   */
+  async save(footer?: string, brand?: { name: string; ref: string }): Promise<Uint8Array> {
     if (footer) this.trace.push(footer);
+    if (brand?.name) this.trace.push(brand.name);
     const pages = this.doc.getPages();
+    const f = this.fonts.regular;
     pages.forEach((p, i) => {
-      const label = `${i + 1} / ${pages.length}`;
-      const f = this.fonts.regular;
+      const label = brand ? `${brand.ref}  |  ${i + 1} / ${pages.length}` : `${i + 1} / ${pages.length}`;
       p.drawText(label, { x: A4.w - MARGIN - f.widthOfTextAtSize(label, 8), y: 22, size: 8, font: f, color: COLOR.muted });
       if (footer) p.drawText(footer, { x: MARGIN, y: 22, size: 8, font: f, color: COLOR.muted });
+      if (brand) {
+        p.drawLine({ start: { x: MARGIN, y: 54 }, end: { x: A4.w - MARGIN, y: 54 }, thickness: 0.8, color: COLOR.line });
+        if (brand.name) p.drawText(brand.name, { x: MARGIN, y: 35, size: 10.5, font: this.fonts.bold, color: this.accent });
+      }
     });
     return this.doc.save();
   }

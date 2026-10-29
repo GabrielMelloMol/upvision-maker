@@ -21,6 +21,8 @@ export default function CompanyPage() {
 }
 
 const QR_PREVIEW_MM = 40;
+const ACCENT_SUGGESTION = "#F97316";
+type LogoKey = "logo" | "logoDark";
 
 function CompanyForm({ initial }: { initial: Company }) {
   const [v, setV] = useState<Company>(initial);
@@ -40,15 +42,21 @@ function CompanyForm({ initial }: { initial: Company }) {
     }
   }
 
-  /** O logo é gravado na hora (só ele): antes ficava só na prévia e sumia ao sair da tela sem "Salvar dados" (#295). */
-  async function storeLogo(logo: string) {
+  /** Imagens são gravadas na hora (só elas): antes ficavam só na prévia e sumiam ao sair da tela sem "Salvar dados" (#295). */
+  async function storeImages(patch: Partial<Company>) {
     const db = await getDb();
-    const stored = await loadCompany(db);
+    await saveCompany(db, { ...(await loadCompany(db)), ...patch });
+    setV((cur) => ({ ...cur, ...patch }));
+  }
+
+  async function storeLogo(logo: string) {
+    const stored = await loadCompany(await getDb());
     // primeira vez com logo e sem cor escolhida: a cor da marca vem do logo (#296)
     const brandColor = stored.brandColor || v.brandColor || (logo && (await logoColor(logo).catch(() => null))) || "";
-    await saveCompany(db, { ...stored, logo, brandColor });
-    setV((cur) => ({ ...cur, logo, brandColor }));
+    await storeImages({ logo, brandColor });
   }
+
+  const storeImage = (key: LogoKey, img: string) => (key === "logo" ? storeLogo(img) : storeImages({ logoDark: img }));
 
   async function colorFromLogo() {
     const c = await logoColor(v.logo).catch(() => null);
@@ -56,7 +64,7 @@ function CompanyForm({ initial }: { initial: Company }) {
     else toast("O logo não tem uma cor forte (só preto, branco ou cinza). Escolha a cor à mão.", "error");
   }
 
-  async function onLogo(files: FileList | null) {
+  async function onLogo(files: FileList | null, key: LogoKey = "logo") {
     const f = files?.[0];
     if (!f) return;
     try {
@@ -66,16 +74,16 @@ function CompanyForm({ initial }: { initial: Company }) {
       } catch (e) {
         throw new Error(`Este logo não dá para usar no PDF (${errorText(e)}). Tente salvar a imagem de novo em PNG.`, { cause: e });
       }
-      await storeLogo(logo);
+      await storeImage(key, logo);
       toast("Logo salvo.");
     } catch (e) {
       toast(errorText(e), "error");
     }
   }
 
-  async function removeLogo() {
+  async function removeLogo(key: LogoKey = "logo") {
     try {
-      await storeLogo("");
+      await storeImage(key, "");
       toast("Logo removido.");
     } catch (e) {
       toast(errorText(e), "error");
@@ -125,7 +133,7 @@ function CompanyForm({ initial }: { initial: Company }) {
             <input type="file" accept="image/png,image/jpeg,image/webp" hidden onChange={(e) => onLogo(e.target.files)} />
           </label>
           {v.logo && (
-            <Button variant="link" className="danger" onClick={removeLogo}>
+            <Button variant="link" className="danger" onClick={() => removeLogo()}>
               Remover logo
             </Button>
           )}
@@ -149,6 +157,43 @@ function CompanyForm({ initial }: { initial: Company }) {
           </div>
           {err("brandColor")}
         </div>
+        <div className="row-control">
+          <span className="row-label">Logo para fundo escuro</span>
+          <span className="hint">Opcional. Vai na faixa colorida do orçamento e do pedido: use a versão branca do logo. Sem ela, o logo normal vai num quadro branco.</span>
+          <div className="row" style={{ alignItems: "center" }}>
+            {v.logoDark ? <img className="logo-preview" style={{ background: readableOnWhite(v.brandColor), padding: 6, borderRadius: 6 }} src={v.logoDark} alt="Logo para fundo escuro" /> : <span className="muted small">Sem logo para fundo escuro</span>}
+            <label className="button-like">
+              <span className="btn-inline">
+                <ImagePlus size={16} aria-hidden /> {v.logoDark ? "Trocar" : "Enviar logo para fundo escuro"}
+              </span>
+              <input type="file" accept="image/png,image/jpeg,image/webp" hidden onChange={(e) => onLogo(e.target.files, "logoDark")} />
+            </label>
+            {v.logoDark && (
+              <Button variant="link" className="danger" onClick={() => removeLogo("logoDark")}>
+                Remover
+              </Button>
+            )}
+          </div>
+        </div>
+        <div className="row-control">
+          <label className="row-label" htmlFor="accent-color">Cor de destaque</label>
+          <span className="hint">Opcional. Linha fina embaixo da faixa do orçamento e do pedido.</span>
+          <div className="row" style={{ alignItems: "center" }}>
+            {v.accentColor ? (
+              <>
+                <input id="accent-color" type="color" value={v.accentColor} onChange={set("accentColor")} />
+                <Button variant="link" className="danger" onClick={() => setV({ ...v, accentColor: "" })}>
+                  Tirar a linha
+                </Button>
+              </>
+            ) : (
+              <Button variant="link" onClick={() => setV({ ...v, accentColor: ACCENT_SUGGESTION })}>
+                Pôr linha de destaque
+              </Button>
+            )}
+          </div>
+          {err("accentColor")}
+        </div>
         <div className="grid">
           <label>Nome / razão social<input value={v.name} maxLength={120} onChange={set("name")} /></label>
           <label>Nome fantasia<input value={v.tradeName} maxLength={120} onChange={set("tradeName")} /></label>
@@ -165,6 +210,11 @@ function CompanyForm({ initial }: { initial: Company }) {
           </label>
           <label>Instagram<input spellCheck={false} autoCapitalize="none" autoCorrect="off" value={v.instagram} maxLength={60} onChange={set("instagram")} /></label>
           <label>Site<input spellCheck={false} autoCapitalize="none" autoCorrect="off" value={v.website} maxLength={120} onChange={set("website")} /></label>
+          <label className="span2">
+            Frase da empresa
+            <input value={v.slogan} maxLength={80} placeholder="Ex.: Impressão 3D e personalizados" onChange={set("slogan")} />
+            <span className="hint">Embaixo do logo e no rodapé do orçamento e do pedido.</span>
+          </label>
         </div>
         </div>
       </section>

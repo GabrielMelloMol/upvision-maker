@@ -20,7 +20,7 @@ export const quotesRepo = {
       // M16: não some da lista (a numeração pareceria pular): fica marcado e só dá para excluir
       return {
         customerId: null, customerName: "(cliente ilegível)", channel: "", dueDate: null, paymentMethod: "", notes: "", freight: 0,
-        items: [], validUntil: "9999-12-31", terms: "", ...meta,
+        items: [], validUntil: "9999-12-31", terms: "", refImage: "", refColor: "", refSize: "", ...meta,
         unreadable: "Este orçamento não pôde ser lido (dado antigo ou estragado). Exclua-o e refaça se precisar.",
       };
     });
