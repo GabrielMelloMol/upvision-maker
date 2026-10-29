@@ -3,6 +3,10 @@
 Cada versão aparece para a usuária na tela "O que há de novo" depois da atualização.
 Formato: `## <versão> — <data>` e itens `- …` em linguagem simples.
 
+## Próxima versão
+- **Orçamento mais bonito, no modelo da Bia (#301)**: o orçamento e a confirmação do pedido ganharam uma faixa na cor da marca com o logo, "PREPARADO PARA" com o nome do cliente em destaque, uma tabela mais limpa, o total numa caixa colorida com a forma de pagamento ao lado e um rodapé com o nome da empresa. No orçamento há uma seção nova, **Referência do projeto 3D**: escolha uma imagem e preencha a cor e o tamanho, e eles saem grandes no PDF (vazios, a seção não aparece). Em Dados da empresa há três campos novos, todos opcionais: **Logo para fundo escuro** (use a versão branca; sem ela, o logo vai num quadro branco dentro da faixa), **Cor de destaque** (uma linha fina embaixo da faixa) e **Frase da empresa** (embaixo do logo e no rodapé).
+- **"Imagem em SVG"**: a ferramenta que transforma imagem em vetor voltou a ter esse nome, em Criar → Do seu arquivo.
+
 ## 0.15.6 — 2026-10-28
 - **Orçamento com a cara da sua empresa (#296)**: em Dados da empresa há o campo **Cor da marca**, sugerido a partir do logo. Ela vai no título, na linha do cabeçalho e no total do orçamento, do pedido, do contrato, da reposição e do catálogo; se for clara demais, o PDF escurece um pouco para dar leitura. A tela de Orçamentos avisa quando falta logo, nome ou contato da empresa e leva direto para completar. Os PDFs ganharam o WhatsApp e o Instagram no rodapé, letras maiores nos dados da empresa e no Pix, e o nome do produto no catálogo não encosta mais no preço.
 - **Logo da empresa salvo na hora (#295)**: ao escolher o logo em Dados da empresa, ele já fica gravado. Antes ele só aparecia na prévia e sumia se você saísse da tela sem clicar em "Salvar dados", e por isso não saía no orçamento. Se a imagem não puder ir para o PDF, o app avisa na hora. Erro em qualquer campo agora aparece na tela.

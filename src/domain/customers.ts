@@ -58,6 +58,9 @@ export const EMPTY_CUSTOMER: CustomerInput = {
   notes: "",
 };
 
+/** Imagem guardada como data URL (logo, imagem de referência). */
+export const imageUrl = (msg: string) => z.string().refine((v) => v === "" || /^data:image\/(png|jpeg|webp);base64,/.test(v), msg);
+
 export const CompanyInput = z.object({
   name: text(120),
   tradeName: text(120),
@@ -69,7 +72,13 @@ export const CompanyInput = z.object({
   ...address,
   /** Cor da marca nos PDFs (#296); vazia = a padrão. O contraste é garantido na hora de desenhar. */
   brandColor: z.string().regex(/^(#[0-9a-fA-F]{6})?$/, "Cor inválida."),
-  logo: z.string().refine((v) => v === "" || /^data:image\/(png|jpeg|webp);base64,/.test(v), "Logo inválido."),
+  /** Segunda cor, da linha embaixo da faixa do orçamento e do pedido (#301); vazia = sem linha. */
+  accentColor: z.string().regex(/^(#[0-9a-fA-F]{6})?$/, "Cor inválida."),
+  logo: imageUrl("Logo inválido."),
+  /** Versão do logo para a faixa colorida (#301), normalmente a branca; vazia = o logo normal num quadro branco. */
+  logoDark: imageUrl("Logo inválido."),
+  /** Frase curta embaixo do logo e no rodapé (#301), ex.: "Impressão 3D e personalizados". */
+  slogan: text(80),
   pixKey: text(120).transform((v, ctx) => {
     if (!v) return "";
     try {
@@ -104,7 +113,10 @@ export const DEFAULT_COMPANY: Company = {
   city: "",
   uf: "",
   brandColor: "",
+  accentColor: "",
   logo: "",
+  logoDark: "",
+  slogan: "",
   pixKey: "",
   pixName: "",
   pixCity: "",
