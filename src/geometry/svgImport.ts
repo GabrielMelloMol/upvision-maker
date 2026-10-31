@@ -45,29 +45,45 @@ const hexOf = (c: string | number | undefined, fallback: Color) => {
   }
 };
 
-/** Cada preenchimento e cada traço do SVG vira uma região 2D com a sua cor, em ordem de pintura. */
-function svgPieces(M: ManifoldToplevel, svg: string): Piece[] {
+type Line = { pts: Contour; closed: boolean };
+
+/** Lê o SVG e devolve, por caminho, o estilo e os contornos (fechados sem o ponto repetido no fim). */
+function svgPaths(svg: string): { style: Record<string, string | number | undefined>; color: Color; contours: Line[] }[] {
   if (svg.length > MAX_BYTES) throw new Error("SVG maior que 5 MB.");
   if (/<!ENTITY/i.test(svg)) throw new Error("SVG com declarações ENTITY não é aceito.");
   const data = new SVGLoader().parse(normalizeSvg(svg)); // o que o leitor deixa de fora vira o que o navegador desenha (#183)
-  const pieces: Piece[] = [];
-  for (const path of data.paths) {
-    const style = (path.userData?.style ?? {}) as Record<string, string | number | undefined>;
-    const contours = path.subPaths.map((sp) => {
+  return data.paths.map((path) => ({
+    style: (path.userData?.style ?? {}) as Record<string, string | number | undefined>,
+    color: path.color,
+    contours: path.subPaths.map((sp) => {
       const pts = sp.getPoints(CURVE_DIVISIONS).map((v) => [v.x, v.y] as Contour[number]);
       const closed = sp.autoClose || (pts.length > 2 && close(pts[0], pts[pts.length - 1]));
       if (pts.length > 1 && close(pts[0], pts[pts.length - 1])) pts.pop();
       return { pts, closed };
-    });
+    }),
+  }));
+}
+
+/** Linhas do SVG para a caneta (#303): cada contorno e cada traço vira uma linha, pelo meio (sem engrossar). Unidades do SVG, Y para baixo. */
+export function svgLines(svg: string): Line[] {
+  const lines = svgPaths(svg).flatMap((p) => p.contours.filter((c) => c.pts.length >= 2));
+  if (!lines.length) emptyError();
+  return lines;
+}
+
+/** Cada preenchimento e cada traço do SVG vira uma região 2D com a sua cor, em ordem de pintura. */
+function svgPieces(M: ManifoldToplevel, svg: string): Piece[] {
+  const pieces: Piece[] = [];
+  for (const { style, color: pathColor, contours } of svgPaths(svg)) {
     const filled = style.fill !== "none" && style.fill !== "transparent" && style.fillOpacity !== 0;
     if (filled) {
       const polys = contours.map((c) => c.pts).filter((p) => p.length >= 3);
-      if (polys.length) pieces.push({ color: hexOf(style.fill, path.color), cs: new M.CrossSection(polys, style.fillRule === "evenodd" ? "EvenOdd" : "NonZero") });
+      if (polys.length) pieces.push({ color: hexOf(style.fill, pathColor), cs: new M.CrossSection(polys, style.fillRule === "evenodd" ? "EvenOdd" : "NonZero") });
     }
     const sw = Number(style.strokeWidth ?? 0);
     // ponytail: largura do traço não acompanha scale() do transform; bom para SVGs de ilustrador comuns
     if (style.stroke && style.stroke !== "none" && sw > 0) {
-      const color = hexOf(style.stroke, path.color);
+      const color = hexOf(style.stroke, pathColor);
       for (const c of contours) if (c.pts.length >= 2) pieces.push({ color, cs: strokeOf(M, c.pts, c.closed, sw) });
     }
   }

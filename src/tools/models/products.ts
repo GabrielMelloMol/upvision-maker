@@ -70,7 +70,7 @@ const TOOL_PRODUCTS: Product[] = [
 
 /** Ferramentas para quem já tem um arquivo ou imagem, em 3 grupos (de 24 cartões soltos, #250). */
 export const FILE_TOOL_GROUPS: { id: "image" | "files" | "help"; title: string; tab: "file" | "help"; pages: string[] }[] = [
-  { id: "image", title: "Da imagem para a peça", tab: "file", pages: ["svg", "extrude"] },
+  { id: "image", title: "Da imagem para a peça", tab: "file", pages: ["svg", "extrude", "plotter"] },
   { id: "files", title: "Mexer num arquivo 3D seu", tab: "file", pages: ["owndecal", "texturize", "bedcut", "partialcut", "mold", "lighten", "colorsplit", "protect"] },
   { id: "help", title: "Não achou?", tab: "help", pages: ["search3d", "ai", "scad"] },
 ];

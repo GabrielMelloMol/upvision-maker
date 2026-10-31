@@ -141,6 +141,14 @@ export const ARTICLES: HelpArticle[] = [
     steps: ["Arraste o 3MF colorido (Bambu Studio, OrcaSlicer, PrusaSlicer, Blender…).", "Se o arquivo pinta por material, ajuste a tolerância entre cores e escolha quais viram peça separada; na vista Original, clique numa cor para separar só a região que toca ou todas as áreas dela.", "Escolha partes (multicor) ou objetos separados, com a posição original se quiser.", "Se quiser, corte em até 6 partes iguais com pino de encaixe em cada junta.", "Salve as peças e cole ou encaixe depois de imprimir."],
   },
   {
+    id: "plotter",
+    title: "Desenhar com caneta",
+    intro: "A impressora vira uma plotter: desenha com uma caneta presa no cabeçote, sem filamento e sem aquecer.",
+    steps: ["Imprima e prenda um suporte de caneta no cabeçote (procure \"pen holder\" para o seu modelo).", "Envie um desenho, imagem ou escreva um texto e ajuste a Largura.", "Deixe \"Testar no ar\" ligado, salve o G-code e rode: a caneta passa 10 mm acima do papel.", "Se o caminho estiver certo, desligue o teste, salve de novo e rode com a caneta encostando."],
+    tips: ["O arquivo zera os eixos sem a caneta e espera 30 s para você prender o suporte.", "Não deixe a impressora sozinha enquanto desenha."],
+    example: "Usar um coração de exemplo",
+  },
+  {
     id: "bedcut",
     title: "Dividir peça grande",
     intro: "O STL ou 3MF é maior que a mesa da impressora: o app corta em pedaços iguais, faz o encaixe entre eles e numera cada junta nas duas faces.",

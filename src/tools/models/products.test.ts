@@ -16,7 +16,7 @@ test("nenhuma ferramenta da Criar fica só em 'Tudo': cada uma é entrada de um 
   const both = createTools().filter((id) => inProducts.has(id) && FILE_TOOLS.includes(id));
   expect(both, "ferramenta em dois lugares").toEqual([]);
   expect(FILE_TOOLS.filter((id) => !PAGES.some((p) => p.id === id))).toEqual([]); // grupo apontando para tela que não existe
-  expect(FILE_TOOLS).toHaveLength(13);
+  expect(FILE_TOOLS).toHaveLength(14);
 });
 
 test("nenhuma família nem produto fica sem aba: toda categoria tem aba, e toda família e produto tem categoria e frase", () => {

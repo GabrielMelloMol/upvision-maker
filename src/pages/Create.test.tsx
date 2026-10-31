@@ -20,7 +20,7 @@ test("Criar (#250): produtos com foto primeiro, ferramentas de arquivo em 3 grup
   // os produtos vêm antes de qualquer ferramenta
   expect(sections.slice(0, 7)).toEqual(["Chaveiros", "Placas", "Presentes e lembrancinhas", "Festa e esporte", "Casa e decoração", "Organização e utilidades", "Cozinha"]);
   expect(sections.slice(7)).toEqual(["Da imagem para a peça", "Mexer num arquivo 3D seu", "Não achou?"]);
-  expect(container.querySelectorAll(".create-tools > li")).toHaveLength(13); // de 24 ferramentas soltas para 13
+  expect(container.querySelectorAll(".create-tools > li")).toHaveLength(14); // de 24 ferramentas soltas para 13 (+ caneta, #303)
   // cada cartão tem o que resolve e quantos tipos
   const chaveiro = within(screen.getAllByRole("link").find((a) => a.getAttribute("data-product") === "keychain")!);
   expect(chaveiro.getByText("Chaveiro")).toBeInTheDocument();
@@ -33,7 +33,7 @@ test("Criar: abas por categoria, 'Do seu arquivo' e 'Não achou?'; nenhuma ferra
   renderWithApp(<Create go={vi.fn()} />);
   expect(tabs().getAllByRole("button").map((b) => b.textContent)).toEqual(["Tudo", "Chaveiros", "Placas", "Presentes e lembrancinhas", "Festa e esporte", "Casa e decoração", "Organização e utilidades", "Cozinha", "Do seu arquivo", "Não achou?"]);
   await user.click(tabs().getByRole("button", { name: "Do seu arquivo" }));
-  expect(fileTools().map((a) => a.getAttribute("data-page"))).toEqual(FILE_TOOL_GROUPS.filter((g) => g.tab === "file").flatMap((g) => g.pages).slice(2));
+  expect(fileTools().map((a) => a.getAttribute("data-page"))).toEqual(FILE_TOOL_GROUPS.find((g) => g.id === "files")!.pages);
   await user.click(tabs().getByRole("button", { name: "Não achou?" }));
   expect(within(screen.getByRole("region", { name: "Não achou?" })).getAllByRole("link").map((a) => a.getAttribute("data-page"))).toEqual(["search3d", "ai", "scad"]);
   await user.click(tabs().getByRole("button", { name: "Cozinha" }));

@@ -18,6 +18,7 @@ export const PAGE_ALIASES: Record<string, string> = {
   pixel: "pixel art mosaico 8 bits quebra cabeça ímã imã",
   organizers: "organizador organizadores gaveta caixinhas divisória medir gridfinity ferramenta foto encaixe contorno bandeja caixa avulsa",
   colorsplit: "separar 3mf por cor dividir cores 3mf cor separar pintado bambu material blender meshy tolerancia regiao cortar partes",
+  plotter: "plotter caneta desenhar escrever cartão à mão pen plotter gcode g-code bambuplot letra caligrafia traço",
   bedcut: "cortar stl grande mesa pedaços dividir caber encaixe numerado ímã rabo de andorinha pino maior que a mesa fatiar peça grande",
   texturize: "textura texturizar relevo carbono couro madeira knurling serrilhado colmeia felpudo fuzzy estria acabamento superfície stl 3mf pincel frase imagem",
   partialcut: "corte parcial cortar pedaço cabeça região caixa plano fatiar dividir stl 3mf pino encaixe separar parte",
