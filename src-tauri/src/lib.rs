@@ -5,6 +5,7 @@ mod diagnostics;
 mod ipc;
 mod keychain;
 mod lan;
+mod mcp;
 mod reveal;
 mod bambu;
 mod slicer;
@@ -24,6 +25,7 @@ pub fn run() {
         .plugin(tauri_plugin_notification::init())
         .plugin(tauri_plugin_updater::Builder::new().build())
         .manage(lan::Lan::default())
+        .manage(mcp::Mcp::default())
         .setup(|app| {
             diagnostics::install_panic_hook(app.handle());
             // o banco (onde fica a chave da IA no Mac) só para o usuário, antes de o plugin abri-lo (B26)
@@ -65,6 +67,10 @@ pub fn run() {
             lan::lan_new_code,
             lan::lan_disconnect_all,
             lan::lan_respond,
+            mcp::mcp_start,
+            mcp::mcp_stop,
+            mcp::mcp_status,
+            mcp::mcp_respond,
             diagnostics::log_append,
             diagnostics::log_read,
             bambu::bambu_project,

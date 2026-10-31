@@ -22,7 +22,7 @@ const OPEN: OrderStatus[] = ["pending", "production", "done"];
 const FINISHABLE: OrderStatus[] = ["pending", "production"];
 const ConsumeBody = z.object({ grams: z.number().positive("A quantidade precisa ser maior que zero.").max(10_000, "Quantidade grande demais.") });
 
-async function summary(db: Db): Promise<PhoneSummary> {
+export async function summary(db: Db): Promise<PhoneSummary> {
   const data = await loadOrdersData(db);
   const today = todayIso();
   const orders = data.orders

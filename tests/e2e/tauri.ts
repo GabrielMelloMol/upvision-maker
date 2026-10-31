@@ -246,6 +246,10 @@ function handler(m: TauriMock, cmd: string, a: Record<string, unknown> | null, h
     case "lan_disconnect_all":
       m.lan = { ...m.lan, phones: 0, code: "654321" };
       return m.lan;
+    case "mcp_start":
+      return { running: true, url: "http://127.0.0.1:47821/mcp" };
+    case "mcp_stop":
+      return null;
     case "device_name":
       return "ESTE-PC";
     case "backup_read": {

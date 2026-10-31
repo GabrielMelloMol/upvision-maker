@@ -16,6 +16,7 @@ import BedPrinterCard from "./preferences/BedPrinterCard";
 import AppearanceCard from "../ui/AppearanceCard";
 import BackupSettingsCard from "../backup/BackupSettingsCard";
 import PhoneSettingsCard from "../phone/PhoneSettingsCard";
+import McpSettingsCard from "../mcp/McpSettingsCard";
 import MoneyField from "../ui/MoneyField";
 import SmartField from "../ui/SmartField";
 import Field from "../ui/Field";
@@ -76,7 +77,7 @@ export default function Preferences() {
         <div className="prefs-body">
           {data ? <PreferencesForm initial={data.settings} materials={data.materials} section={section} onSection={pick} onFlagged={setFlagged} /> : <span className="skeleton" style={{ height: 180, borderRadius: 16, marginBottom: 16 }} />}
           {panel("look", <AppearanceCard />)}
-          {panel("data", <><BackupSettingsCard /><PhoneSettingsCard /></>)}
+          {panel("data", <><BackupSettingsCard /><PhoneSettingsCard /><McpSettingsCard /></>)}
           {panel("tools", <><AiSettingsCard /><BedPrinterCard /><AmsCard /><SlicerCard /></>)}
         </div>
       </div>
