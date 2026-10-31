@@ -117,8 +117,8 @@ export default function PenPlot() {
               <input type="checkbox" checked={s.pen.airTest} onChange={(e) => setPen("airTest")(e.target.checked)} /> Testar no ar (caneta {AIR_MM} mm acima do papel)
             </label>
             <div className="grid two">
-              <NumField label="Altura ao desenhar" value={s.pen.zDraw} onChange={setPen("zDraw")} min={0} max={10} step={0.1} hint="Z em que a ponta encosta de leve no papel." />
-              <NumField label="Altura ao subir" value={s.pen.zLift} onChange={setPen("zLift")} min={2} max={30} step={0.5} hint="Z entre um traço e outro." />
+              <NumField label="Altura ao desenhar" value={s.pen.zDraw} onChange={setPen("zDraw")} min={3} max={6} step={0.1} hint="5 = a ponta só encosta (é onde você ajustou a caneta). Traço fraco ou falhando: diminua de 0,1 em 0,1. Rasgando o papel: aumente." />
+              <NumField label="Altura ao subir" value={s.pen.zLift} onChange={setPen("zLift")} min={7} max={30} step={0.5} hint="Z entre um traço e outro." />
               <NumField label="Velocidade de desenho" value={s.pen.drawFeed} onChange={setPen("drawFeed")} min={100} max={6000} step={100} unit="mm/min" />
               <NumField label="Velocidade do Z" value={s.pen.zFeed} onChange={setPen("zFeed")} min={60} max={1200} step={10} unit="mm/min" />
               <NumField label="Pausa depois de mexer o Z" value={s.pen.settleMs} onChange={setPen("settleMs")} min={0} max={2000} step={10} unit="ms" />
@@ -129,7 +129,7 @@ export default function PenPlot() {
             <button className="action" disabled={!job} onClick={onSave}>
               <Download aria-hidden /> Salvar G-code
             </button>
-            <p className="hint">Copie o .gcode para o cartão de memória ou pendrive da impressora.</p>
+            <p className="hint">Copie o .gcode para o cartão microSD da impressora e escolha o arquivo na tela dela (não precisa abrir no Bambu Studio).</p>
           </div>
           <GeneratorHelp help={TOOL_HELP.plotter} showTips />
         </div>
@@ -137,7 +137,7 @@ export default function PenPlot() {
         <div className="preview-col">
           <Alert kind="warn">
             <p>
-              <strong>Fique de olho na impressora.</strong> Rode primeiro com “Testar no ar”. O arquivo zera os eixos sem a caneta e espera 30 s para você prender o suporte.
+              <strong>Fique de olho na impressora.</strong> Comece sempre <strong>sem a caneta</strong>: a impressora zera, leva o bico ao meio da folha e pausa. Aí prenda o suporte, desça a caneta até a ponta encostar no papel, aperte e toque em Continuar na tela. Rode primeiro com “Testar no ar”.
               Ponha uma folha de plástico por baixo do papel para não riscar a mesa.
             </p>
           </Alert>
