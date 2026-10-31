@@ -53,7 +53,7 @@ describe("Desenhar com caneta", () => {
     expect(screen.getByRole("button", { name: /Salvar G-code/ })).toBeDisabled();
   });
 
-  test("altura ao subir abaixo da de desenhar: mensagem e nada para salvar", async () => {
+  test("altura ao desenhar fora do limite: mensagem e nada para salvar", async () => {
     const user = userEvent.setup();
     const { container } = renderWithApp(<PenPlot />);
     await user.upload(container.querySelector<HTMLInputElement>('input[type="file"]')!, svgFile());
@@ -61,7 +61,7 @@ describe("Desenhar com caneta", () => {
     const z = screen.getByLabelText(/^Altura ao desenhar/);
     await user.clear(z);
     await user.type(z, "9");
-    expect(await screen.findByText(/pelo menos 1 mm acima/)).toBeInTheDocument();
+    expect(await screen.findByText(/no máximo 6 mm/)).toBeInTheDocument();
     expect(screen.getByRole("button", { name: /Salvar G-code/ })).toBeDisabled();
   });
 

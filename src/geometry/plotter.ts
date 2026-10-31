@@ -8,26 +8,29 @@ export type Pt = [number, number];
 /** Linha em mm; a fechada repete o primeiro ponto no fim. */
 export type Stroke = Pt[];
 
-export const PEN_DEFAULTS = { zDraw: 0.5, zLift: 8, drawFeed: 1500, zFeed: 600, settleMs: 120, airTest: true };
+/**
+ * Altura do bico na pausa de montar a caneta: a ponta é ajustada para encostar no papel com o bico aqui, 5 mm acima
+ * (folga para a folha de plástico e o papel). "Altura ao desenhar" abaixo disso = a caneta aperta o papel.
+ */
+export const CAL_Z = 5;
 
-export const PenSettings = z
-  .object({
-    zDraw: z.number().min(0).max(10),
-    zLift: z.number().min(2).max(30),
-    drawFeed: z.number().min(100).max(6000),
-    zFeed: z.number().min(60).max(1200),
-    settleMs: z.number().int().min(0).max(2000),
-    airTest: z.boolean(),
-  })
-  .refine((p) => p.zLift >= p.zDraw + 1, "A altura ao subir precisa ficar pelo menos 1 mm acima da altura de desenhar.");
+export const PEN_DEFAULTS = { zDraw: 4.6, zLift: 10, drawFeed: 1500, zFeed: 600, settleMs: 120, airTest: true };
+
+export const PenSettings = z.object({
+  zDraw: z.number().min(3, "Altura ao desenhar: no mínimo 3 mm (abaixo disso a caneta aperta demais).").max(CAL_Z + 1, `Altura ao desenhar: no máximo ${CAL_Z + 1} mm (acima disso a caneta não encosta).`),
+  // sempre acima da de desenhar (ela vai no máximo a CAL_Z + 1)
+  zLift: z.number().min(CAL_Z + 2, `Altura ao subir: no mínimo ${CAL_Z + 2} mm.`).max(30),
+  drawFeed: z.number().min(100).max(6000),
+  zFeed: z.number().min(60).max(1200),
+  settleMs: z.number().int().min(0).max(2000),
+  airTest: z.boolean(),
+  });
 export type Pen = z.infer<typeof PenSettings>;
 
 /** Quanto o "testar no ar" sobe tudo. */
 export const AIR_MM = 10;
 export const MARGIN_MM = 5;
 const TRAVEL_FEED = 6000;
-/** Tempo para prender o suporte da caneta depois do G28 (a A1 encosta o bico na mesa ao zerar). */
-const MOUNT_S = 30;
 /** Teto de pontos: acima disso o arquivo fica enorme e a impressora engasga. */
 const MAX_POINTS = 200_000;
 
@@ -98,9 +101,11 @@ export function penGcode(strokes: Stroke[], pen: Pen, bed: { x: number; y: numbe
     p.airTest ? `; TESTE NO AR: a caneta fica ${AIR_MM} mm acima do papel` : "; Supervisione: faça antes o teste no ar",
     "G90 ; coordenadas absolutas",
     "G21 ; milímetros",
-    "G28 ; zera os eixos (sem a caneta)",
+    "G28 ; zera os eixos (sem a caneta: a A1 encosta o bico na mesa ao zerar)",
     `G1 Z${f(up + AIR_MM)} F${p.zFeed}`,
-    `G4 S${MOUNT_S} ; prenda o suporte da caneta agora`,
+    `G0 X${f(bed.x / 2)} Y${f(bed.y / 2)} F${TRAVEL_FEED}`,
+    `G1 Z${f(CAL_Z)} F${p.zFeed}`,
+    "M400 U1 ; pausa: prenda o suporte, desça a caneta até encostar no papel e toque em Continuar",
     `G1 Z${f(up)} F${p.zFeed}`,
   ];
   let lengthMm = 0;

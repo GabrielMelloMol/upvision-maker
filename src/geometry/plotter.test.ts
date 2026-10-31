@@ -1,6 +1,6 @@
 // @vitest-environment happy-dom
 import { expect, test } from "vitest";
-import { AIR_MM, orderStrokes, PEN_DEFAULTS, penGcode, placeOnBed, type Stroke } from "./plotter";
+import { AIR_MM, CAL_Z, orderStrokes, PEN_DEFAULTS, penGcode, placeOnBed, type Stroke } from "./plotter";
 import { svgLines } from "./svgImport";
 
 const BED = { x: 256, y: 256 };
@@ -48,9 +48,22 @@ test("G-code: sem extrusão nem aquecimento, Z sobe antes de qualquer XY e tudo 
   expect(job.lengthMm).toBeGreaterThan(0);
 });
 
-test("testar no ar: a caneta nunca desce abaixo de Z de desenho + 10 mm", () => {
+test("zera sem a caneta, para no meio da mesa a 5 mm e pausa até tocar Continuar, antes de desenhar", () => {
+  const lines = penGcode(placeOnBed([square], 50, BED), pen, BED).gcode.split("\n");
+  const g28 = lines.findIndex((l) => l.startsWith("G28"));
+  const pause = lines.findIndex((l) => l.startsWith("M400 U1"));
+  expect(g28).toBeGreaterThan(-1);
+  expect(pause).toBeGreaterThan(g28);
+  expect(lines.slice(g28, pause).join("\n")).toContain(`G0 X128.00 Y128.00`);
+  expect(zOf(lines[pause - 1])).toBe(CAL_Z);
+  expect(lines.slice(0, pause).filter((l) => /^G1 X/.test(l))).toEqual([]); // nada desenhado antes da caneta
+  expect(pen.zDraw).toBeLessThan(CAL_Z); // padrão: a caneta aperta um pouco o papel
+});
+
+test("testar no ar: depois da pausa a caneta nunca desce abaixo de Z de desenho + 10 mm", () => {
   const job = penGcode(placeOnBed([square], 50, BED), { ...pen, airTest: true }, BED);
-  const zs = job.gcode.split("\n").filter((l) => /^G1 Z/.test(l)).map(zOf);
+  const after = job.gcode.split("\n");
+  const zs = after.slice(after.findIndex((l) => l.startsWith("M400 U1"))).filter((l) => /^G1 Z/.test(l)).map(zOf);
   expect(Math.min(...zs)).toBe(pen.zDraw + AIR_MM);
   expect(job.gcode).toContain("TESTE NO AR");
 });
@@ -58,7 +71,7 @@ test("testar no ar: a caneta nunca desce abaixo de Z de desenho + 10 mm", () => 
 test("ponto fora da mesa e ajustes fora do limite não geram nada", () => {
   const outside: Stroke[] = [[[10, 10], [300, 10]]];
   expect(() => penGcode(outside, pen, BED)).toThrow(/fora da mesa/);
-  expect(() => penGcode(placeOnBed([square], 50, BED), { ...pen, zDraw: 8, zLift: 8 }, BED)).toThrow();
+  expect(() => penGcode(placeOnBed([square], 50, BED), { ...pen, zDraw: 8 }, BED)).toThrow();
   expect(() => penGcode(placeOnBed([square], 50, BED), { ...pen, drawFeed: 99999 }, BED)).toThrow();
 });
 

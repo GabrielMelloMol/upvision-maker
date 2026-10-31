@@ -144,8 +144,14 @@ export const ARTICLES: HelpArticle[] = [
     id: "plotter",
     title: "Desenhar com caneta",
     intro: "A impressora vira uma plotter: desenha com uma caneta presa no cabeçote, sem filamento e sem aquecer.",
-    steps: ["Imprima e prenda um suporte de caneta no cabeçote (procure \"pen holder\" para o seu modelo).", "Envie um desenho, imagem ou escreva um texto e ajuste a Largura.", "Deixe \"Testar no ar\" ligado, salve o G-code e rode: a caneta passa 10 mm acima do papel.", "Se o caminho estiver certo, desligue o teste, salve de novo e rode com a caneta encostando."],
-    tips: ["O arquivo zera os eixos sem a caneta e espera 30 s para você prender o suporte.", "Não deixe a impressora sozinha enquanto desenha."],
+    steps: [
+      "Imprima um suporte de caneta para o seu cabeçote (no MakerWorld, procure \"A1 pen holder\" ou o nome da sua impressora).",
+      "Prenda a folha na mesa com ímãs ou fita, com uma folha de plástico fino por baixo para não riscar a mesa.",
+      "Envie um desenho, imagem ou escreva um texto, ajuste a Largura e salve o G-code com \"Testar no ar\" ligado. Copie para o cartão microSD.",
+      "Comece sem a caneta e escolha o arquivo na tela da impressora. Ela zera, leva o bico ao meio da folha (5 mm acima) e pausa: prenda o suporte, desça a caneta até a ponta encostar no papel, aperte e toque em Continuar.",
+      "No teste ela desenha 10 mm acima do papel. Caminho certo? Desligue o teste, salve de novo, tire a caneta e rode o passo 4 outra vez.",
+    ],
+    tips: ["Traço fraco ou falhando: diminua a Altura ao desenhar de 0,1 em 0,1. Rasgando o papel: aumente.", "Tire a caneta antes de começar de novo: ao zerar, o bico encosta na mesa.", "Não deixe a impressora sozinha enquanto desenha."],
     example: "Usar um coração de exemplo",
   },
   {
