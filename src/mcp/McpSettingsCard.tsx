@@ -15,6 +15,8 @@ export const claudeCodeCommand = (token: string) => `claude mcp add --transport 
 export const desktopConfig = (token: string) =>
   JSON.stringify({ mcpServers: { upvision: { command: "npx", args: ["-y", "mcp-remote", URL, "--header", `Authorization: Bearer ${token}`] } } }, null, 2);
 
+export const codexConfig = (token: string) => `[mcp_servers.upvision]\nurl = "${URL}"\nhttp_headers = { Authorization = "Bearer ${token}" }`;
+
 /** Na abertura do app: se o conector estava ligado, liga de novo (a IA configurada continua funcionando). */
 export async function startMcpIfOn(): Promise<void> {
   const token = await getSecret(await getDb(), KEY);
@@ -86,6 +88,11 @@ export default function McpSettingsCard() {
             <code className="path">{desktopConfig(token)}</code>
             <button type="button" className="link" onClick={() => copy(desktopConfig(token))}>
               Copiar configuração
+            </button>
+            <span className="field-label">Codex (OpenAI): cole no fim do arquivo config.toml da pasta .codex (no Mac, ~/.codex; no Windows, C:\Users\seu-nome\.codex) e abra o Codex de novo</span>
+            <code className="path">{codexConfig(token)}</code>
+            <button type="button" className="link" onClick={() => copy(codexConfig(token))}>
+              Copiar para o Codex
             </button>
             <span className="hint">A chave é como uma senha: não mande para ninguém. Se vazou, gere outra; a antiga para de valer na hora.</span>
             <button type="button" className="link danger" disabled={busy} onClick={() => turn(true, true)}>
