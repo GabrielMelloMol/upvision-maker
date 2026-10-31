@@ -1,6 +1,6 @@
 import { Award, Bot, Container, Gift, Stamp as StampIcon, Calculator as CalcIcon, Cookie, Cylinder, KeyRound, Layers, House, ImageUp, Package, Palette, Printer, Settings, ShoppingBag, Users, Building2, ClipboardList, FileText, LayoutDashboard, LineChart, Receipt, QrCode as QrIcon, Scissors, Split, Puzzle, MailOpen, SquareSplitHorizontal, Brush, BookOpenText } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
-import { ShieldCheck, Boxes, Braces, FolderOpen, ChartNoAxesColumn, Globe, Grid3x3, LayoutGrid, Shapes, Sparkle, Sun, Tag, Sticker, Wallet, Feather, Ruler } from "lucide-react";
+import { PenTool, ShieldCheck, Boxes, Braces, FolderOpen, ChartNoAxesColumn, Globe, Grid3x3, LayoutGrid, Shapes, Sparkle, Sun, Tag, Sticker, Wallet, Feather, Ruler } from "lucide-react";
 import { lazy, type ReactNode } from "react";
 import Home from "./pages/Home";
 
@@ -41,6 +41,7 @@ const OwnDecal = lazy(() => import("./tools/OwnDecal"));
 const PartialCut = lazy(() => import("./tools/PartialCut"));
 const Mold = lazy(() => import("./tools/Mold"));
 const BedCut = lazy(() => import("./tools/BedCut"));
+const PenPlot = lazy(() => import("./tools/PenPlot"));
 const Texturize = lazy(() => import("./tools/Texturize"));
 const Lighten = lazy(() => import("./tools/Lighten"));
 const TestKit = lazy(() => import("./tools/TestKit"));
@@ -89,6 +90,7 @@ const ALL: PageDef[] = [
   { id: "invite", section: "create", label: "Convite envelope", group: "Ferramentas", icon: MailOpen, blurb: "Renda vazada sobre tule, abas de envelope, borboleta em relevo e cartão transparente.", render: () => <Invite /> },
   { id: "thermoform", section: "create", label: "Caixinha termoformada", group: "Ferramentas", icon: Gift, blurb: "Tela de PLA em malha prensada a quente num molde: caixinha de presente.", render: () => <Thermoform /> },
   { id: "thermoware", section: "create", label: "Pote, cesto e pulseira termoformados", group: "Ferramentas", icon: Container, blurb: "Disco ou tira de PLA formados a quente num molde macho ou fêmea de PETG.", render: () => <ThermoWare /> },
+  { id: "plotter", section: "create", label: "Desenhar com caneta", group: "Ferramentas", icon: PenTool, blurb: "A impressora desenha com caneta: desenho, imagem ou texto viram G-code.", render: () => <PenPlot /> },
   { id: "extrude", section: "create", label: "Imagem em relevo 3D", group: "Ferramentas", icon: Layers, blurb: "Seu desenho (SVG) vira uma peça 3D, com base opcional.", render: () => <Extrude /> },
   { id: "qr", section: "create", label: "QR Code e Pix", group: "Ferramentas", icon: QrIcon, blurb: "Pix com valor, link ou Wi-Fi; SVG e 3MF em 2 cores.", render: () => <QrCode /> },
   { id: "models", section: "create", label: "Modelos prontos", group: "Ferramentas", icon: Shapes, blurb: "Placa Pix, topo de bolo, carimbo, troféu, chaveiro NFC…", render: () => <Models /> },

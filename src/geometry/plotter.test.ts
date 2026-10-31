@@ -33,8 +33,10 @@ test("G-code: sem extrusão nem aquecimento, Z sobe antes de qualquer XY e tudo 
   for (const l of lines) {
     const x = /X(-?[\d.]+)/.exec(l);
     const y = /Y(-?[\d.]+)/.exec(l);
-    if (x) expect(Number(x[1])).toBeGreaterThanOrEqual(0) && expect(Number(x[1])).toBeLessThanOrEqual(BED.x);
-    if (y) expect(Number(y[1])).toBeGreaterThanOrEqual(0) && expect(Number(y[1])).toBeLessThanOrEqual(BED.y);
+    if (x) expect(Number(x[1])).toBeGreaterThanOrEqual(0);
+    if (x) expect(Number(x[1])).toBeLessThanOrEqual(BED.x);
+    if (y) expect(Number(y[1])).toBeGreaterThanOrEqual(0);
+    if (y) expect(Number(y[1])).toBeLessThanOrEqual(BED.y);
   }
   // antes de cada viagem (G0) a caneta está no alto
   lines.forEach((l, i) => {
