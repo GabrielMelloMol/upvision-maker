@@ -1,6 +1,6 @@
 // @vitest-environment happy-dom
 import { expect, test } from "vitest";
-import { AIR_MM, CAL_Z, orderStrokes, PEN_DEFAULTS, penGcode, placeOnBed, type Stroke } from "./plotter";
+import { AIR_MM, CAL_Z, hatch, orderStrokes, reach, withFill, PEN_DEFAULTS, penGcode, placeOnBed, type Stroke } from "./plotter";
 import { svgLines } from "./svgImport";
 
 const BED = { x: 256, y: 256 };
@@ -70,7 +70,7 @@ test("testar no ar: depois da pausa a caneta nunca desce abaixo de Z de desenho 
 
 test("ponto fora da mesa e ajustes fora do limite não geram nada", () => {
   const outside: Stroke[] = [[[10, 10], [300, 10]]];
-  expect(() => penGcode(outside, pen, BED)).toThrow(/fora da mesa/);
+  expect(() => penGcode(outside, pen, BED)).toThrow(/não alcança/);
   expect(() => penGcode(placeOnBed([square], 50, BED), { ...pen, zDraw: 8 }, BED)).toThrow();
   expect(() => penGcode(placeOnBed([square], 50, BED), { ...pen, drawFeed: 99999 }, BED)).toThrow();
 });
@@ -87,4 +87,63 @@ test("SVG: traço aberto vira uma linha só, pelo meio", () => {
   const lines = svgLines('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 10 10"><path d="M0 0 L10 10" stroke="black" fill="none"/><rect x="1" y="1" width="2" height="2"/></svg>');
   expect(lines).toHaveLength(2);
   expect(lines.find((l) => !l.closed)?.pts).toHaveLength(2);
+});
+
+test("deslocamento: o G-code move o bico (ponta − deslocamento), a pausa põe a ponta no meio do que ela alcança e nada sai da mesa", () => {
+  const off = { ...pen, offX: -40, offY: 20 };
+  const a = reach(BED, off);
+  expect(a).toEqual({ x0: 0, y0: 20, x1: 216, y1: 256 });
+  const strokes = placeOnBed([square], 100, BED, off);
+  expect(strokes[0][0]).toEqual([58, 88]); // centrado na área alcançada
+  const lines = penGcode(strokes, off, BED).gcode.split("\n");
+  expect(lines.find((l) => l.includes("ponta da caneta no meio"))).toContain("G0 X148.00 Y118.00");
+  expect(lines.find((l) => l.startsWith("G0 X98.00 Y68.00"))).toBeTruthy(); // ponta (58, 88) → bico (98, 68)
+  for (const l of lines) {
+    const x = /X(-?[\d.]+)/.exec(l);
+    const y = /Y(-?[\d.]+)/.exec(l);
+    if (x) expect(Number(x[1])).toBeGreaterThanOrEqual(0);
+    if (x) expect(Number(x[1])).toBeLessThanOrEqual(BED.x);
+    if (y) expect(Number(y[1])).toBeGreaterThanOrEqual(0);
+    if (y) expect(Number(y[1])).toBeLessThanOrEqual(BED.y);
+  }
+  expect(() => penGcode([[[230, 100], [240, 100]]], off, BED)).toThrow(/não alcança/); // fora da área da ponta
+  expect(() => placeOnBed([square], 240, BED, off)).toThrow(/alcança/);
+  expect(() => penGcode(strokes, { ...pen, offX: 90 }, BED)).toThrow();
+});
+
+test("cabeçalho que a tela da Bambu lê, com o tempo estimado", () => {
+  const g = penGcode(placeOnBed([square], 50, BED), pen, BED).gcode;
+  expect(g.startsWith("; HEADER_BLOCK_START")).toBe(true);
+  expect(g).toMatch(/total estimated time: \d+m/);
+});
+
+const ring = (r: number, n = 64): Stroke => {
+  const pts = Array.from({ length: n }, (_, i): [number, number] => [100 + r * Math.cos((2 * Math.PI * i) / n), 100 + r * Math.sin((2 * Math.PI * i) / n)]);
+  return [...pts, pts[0]];
+};
+
+test("preenchimento: linhas paralelas só dentro da forma, furo vazio (par-ímpar), no ângulo e espaçamento pedidos", () => {
+  const lines = hatch([ring(20), ring(10)], 1, 0);
+  expect(lines.length).toBeGreaterThan(30);
+  for (const [p, q] of lines) {
+    expect(Math.abs(p[1] - q[1])).toBeLessThan(1e-9); // horizontais
+    const mid: [number, number] = [(p[0] + q[0]) / 2, (p[1] + q[1]) / 2];
+    const r = Math.hypot(mid[0] - 100, mid[1] - 100);
+    expect(r).toBeGreaterThan(9.5); // nada no furo
+    expect(r).toBeLessThan(20.1);
+  }
+  const diag = hatch([ring(20)], 2, 45);
+  for (const [p, q] of diag) expect(Math.abs(q[1] - p[1] - (q[0] - p[0]))).toBeLessThan(1e-6);
+  expect(hatch([[[0, 0], [10, 0]]], 1, 0)).toEqual([]); // linha aberta não tem dentro
+});
+
+test("só contorno, contorno + preenchimento e só preenchimento (traço aberto continua)", () => {
+  const shapes = [ring(20), [[0, 0], [10, 0]] as Stroke];
+  const base = { spacing: 2, angle: 0 as const, cross: false };
+  expect(withFill(shapes, { ...base, mode: "outline" })).toEqual(shapes);
+  const both = withFill(shapes, { ...base, mode: "both" });
+  const only = withFill(shapes, { ...base, mode: "fill" });
+  expect(both.length).toBe(only.length + 1); // sem o contorno fechado
+  expect(only).toContainEqual(shapes[1]);
+  expect(withFill(shapes, { ...base, mode: "fill", cross: true }).length).toBeGreaterThan(only.length);
 });
