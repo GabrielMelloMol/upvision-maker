@@ -84,7 +84,7 @@ pub fn pair_code(header: Option<&str>) -> String {
 /// Trava um Mutex mesmo se outra thread entrou em pânico segurando-o (B14): o estado aqui são só sessões, o código
 /// de pareamento e os pedidos pendentes, que seguem consistentes; com `unwrap()` um pânico derrubava o acesso do
 /// celular para sempre, sem mensagem.
-fn lock<T>(m: &Mutex<T>) -> MutexGuard<'_, T> {
+pub(crate) fn lock<T>(m: &Mutex<T>) -> MutexGuard<'_, T> {
     m.lock().unwrap_or_else(|e| e.into_inner())
 }
 
@@ -117,7 +117,7 @@ fn random_code() -> String {
 }
 
 /// Comparação em tempo constante (não vaza quantos dígitos acertou).
-fn same(a: &str, b: &str) -> bool {
+pub(crate) fn same(a: &str, b: &str) -> bool {
     a.len() == b.len() && a.bytes().zip(b.bytes()).fold(0u8, |acc, (x, y)| acc | (x ^ y)) == 0
 }
 
@@ -208,7 +208,7 @@ fn lan_ip() -> IpAddr {
 
 // ---------- servidor ----------
 
-fn header<'a>(req: &'a Request, name: &'static str) -> Option<&'a str> {
+pub(crate) fn header<'a>(req: &'a Request, name: &'static str) -> Option<&'a str> {
     req.headers().iter().find(|h| h.field.equiv(name)).map(|h| h.value.as_str())
 }
 
@@ -231,11 +231,11 @@ fn send(req: Request, status: u16, content_type: &str, body: Vec<u8>, extra: Vec
     let _ = req.respond(res);
 }
 
-fn json(req: Request, status: u16, body: &str) {
+pub(crate) fn json(req: Request, status: u16, body: &str) {
     send(req, status, "application/json; charset=utf-8", body.as_bytes().to_vec(), vec![]);
 }
 
-fn error(req: Request, status: u16, message: &str) {
+pub(crate) fn error(req: Request, status: u16, message: &str) {
     json(req, status, &serde_json::json!({ "error": message }).to_string());
 }
 

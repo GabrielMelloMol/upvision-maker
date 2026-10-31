@@ -9,6 +9,9 @@ import { notifyBackupDone } from "./backup/BackupSettingsCard";
 import SuggestDialog from "./feedback/SuggestDialog";
 import SyncBanner from "./sync/SyncBanner";
 import { installPhoneBridge } from "./phone/api";
+import { installMcpBridge } from "./mcp/server";
+import { logError } from "./diagnostics/log";
+import { startMcpIfOn } from "./mcp/McpSettingsCard";
 import { CHANGELOG, useWhatsNewAfterUpdate, WhatsNewModal } from "./whatsnew/WhatsNew";
 import { useFirstRun } from "./onboarding/firstRun";
 // só na primeira abertura: fora do carregamento inicial (#88)
@@ -99,6 +102,11 @@ export default function App() {
     return () => window.removeEventListener(NAVIGATE_EVENT, onGo);
   }); // tempo de abertura para o Copiar informações (#88)
   useEffect(() => installPhoneBridge(), []); // respostas para o celular na rede de casa (#16)
+  useEffect(() => {
+    const off = installMcpBridge(); // conector de IA (#304)
+    startMcpIfOn().catch((e) => logError("conector de IA", e));
+    return off;
+  }, []);
   // app montado: a abertura some (src/splash.ts)
   useEffect(() => (window as unknown as { upvisionSplashDone?: () => void }).upvisionSplashDone?.(), []);
   const sidebar = useSidebarRail();
