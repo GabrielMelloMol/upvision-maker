@@ -70,6 +70,8 @@ type Props = {
   duplicate?: (values: Record<string, string>) => Record<string, string>;
   /** Botões extras no topo da página, ao lado de "Adicionar". */
   actions?: ReactNode;
+  /** Bloco entre o título e a lista (ex.: impressoras ao vivo, #15). */
+  intro?: ReactNode;
 };
 
 const SKELETON_ROWS = 3;
@@ -99,7 +101,7 @@ function show(f: Field, r: Row) {
 /** Texto do campo ao editar um registro existente. */
 const toText = (f: Field, v: unknown) => (v == null ? "" : f.kind === "money" ? formatMoneyInput(String(v)) : String(v));
 
-export default function CrudPage({ pageId, title, singular, lead, repo, fields, defaults, sticky = [], empty, isLow, restock, catalog, duplicate, actions }: Props) {
+export default function CrudPage({ pageId, title, singular, lead, repo, fields, defaults, sticky = [], empty, isLow, restock, catalog, duplicate, actions, intro }: Props) {
   const [rows, reload, loading, loadError] = useData((db) => repo.list(db), [] as Row[]);
   const [form, setForm] = useState(defaults);
   const [editing, setEditing] = useState<number | null>(null);
@@ -333,6 +335,7 @@ export default function CrudPage({ pageId, title, singular, lead, repo, fields, 
           </Button>
         </div>
       </div>
+      {intro}
       {formOpen && (
         <Sheet
           wide

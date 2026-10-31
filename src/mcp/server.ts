@@ -14,6 +14,7 @@ import { financeSummary, periodRange } from "../domain/finance";
 import { CONSUMER, orderTotals, todayIso } from "../domain/orders";
 import { addDays, isExpired, quoteNumber } from "../domain/quotes";
 import { oneAtATime, summary } from "../phone/api";
+import { printersNow } from "../printers/live";
 
 /**
  * Conector de IA (MCP, #304): JSON-RPC 2.0 do Model Context Protocol, respondido pela janela do app.
@@ -50,6 +51,9 @@ const NewQuote = z.object({
 
 export const TOOLS: Tool[] = [
   tool("pedidos_e_estoque", "Pedidos em aberto (com prazo e atraso) e estoque de cada filamento.", true, z.object({}), obj({}), (db) => summary(db)),
+  tool("impressoras_agora", "O que cada impressora Bambu conectada em Impressoras → Acompanhar pela rede está fazendo agora: estado, peça, %, tempo restante e filamentos carregados.", true, z.object({}), obj({}), async () =>
+    printersNow().map((p) => ({ nome: p.link.name || p.link.serial, conectada: p.online, ...(p.now && { estado: p.now.label, peca: p.now.job, porcentagem: p.now.percent, faltam_min: p.now.remainingMin, filamentos: p.now.trays }) })),
+  ),
   tool(
     "buscar_clientes",
     "Procura clientes pelo nome, telefone ou Instagram. Sem busca, lista os 20 primeiros.",

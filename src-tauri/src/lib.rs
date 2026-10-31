@@ -6,6 +6,7 @@ mod ipc;
 mod keychain;
 mod lan;
 mod mcp;
+mod printer;
 mod reveal;
 mod bambu;
 mod slicer;
@@ -26,6 +27,7 @@ pub fn run() {
         .plugin(tauri_plugin_updater::Builder::new().build())
         .manage(lan::Lan::default())
         .manage(mcp::Mcp::default())
+        .manage(printer::Printers::default())
         .setup(|app| {
             diagnostics::install_panic_hook(app.handle());
             // o banco (onde fica a chave da IA no Mac) só para o usuário, antes de o plugin abri-lo (B26)
@@ -71,6 +73,9 @@ pub fn run() {
             mcp::mcp_stop,
             mcp::mcp_status,
             mcp::mcp_respond,
+            printer::printer_discover,
+            printer::printer_watch,
+            printer::printer_unwatch,
             diagnostics::log_append,
             diagnostics::log_read,
             bambu::bambu_project,
