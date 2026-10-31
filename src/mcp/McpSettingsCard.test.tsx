@@ -19,6 +19,7 @@ test("liga com uma chave nova guardada, mostra o comando, troca a chave e deslig
   expect(started[0]).toMatch(/^[0-9a-f]{64}$/);
   expect(await getSecret(t.db, "mcp_token")).toBe(started[0]);
   expect(await screen.findByText(new RegExp(`claude mcp add .*Bearer ${started[0]}`))).toBeTruthy();
+  expect(screen.getByText(new RegExp(`\\[mcp_servers\\.upvision\\][\\s\\S]*Bearer ${started[0]}`))).toBeTruthy();
 
   await startMcpIfOn(); // reabrir o app religa com a mesma chave
   expect(started[1]).toBe(started[0]);
