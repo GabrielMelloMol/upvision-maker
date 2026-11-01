@@ -6,7 +6,9 @@ const SHOTS = process.env.SHOTS;
 
 /** Desenha no quadro com o mouse; pontos de 0 a 100. */
 async function draw(page: Page, name: string | RegExp, strokes: [number, number][][]) {
-  const box = (await page.getByRole("img", { name }).boundingBox())!;
+  const pad = page.getByRole("img", { name });
+  await pad.scrollIntoViewIfNeeded();
+  const box = (await pad.boundingBox())!;
   for (const s of strokes) {
     const at = ([x, y]: [number, number]) => [box.x + (x / 100) * box.width, box.y + (y / 100) * box.height] as const;
     await page.mouse.move(...at(s[0]));
@@ -39,7 +41,9 @@ test("minha letra: desenha O, i e a, e o texto sai com elas; à mão livre vira 
   await expect(page.locator(".plot-preview polyline").first()).toBeAttached();
   if (SHOTS) await page.screenshot({ path: `${SHOTS}/texto.png`, fullPage: true });
 
+  // #320: a mão livre entra como outra camada, junto do texto
+  const before = await page.locator(".plot-preview polyline").count();
   await page.getByRole("button", { name: "À mão livre" }).click();
   await draw(page, /mão livre/, [[[10, 80], [30, 30], [50, 70], [70, 20], [90, 80]]]);
-  await expect(page.locator(".plot-preview polyline")).toHaveCount(1);
+  await expect(page.locator(".plot-preview polyline")).toHaveCount(before + 1);
 });

@@ -1,4 +1,4 @@
-import { ArrowDown, ArrowUp, Copy, Download, Eye, EyeOff, Files, Trash2 } from "lucide-react";
+import { Copy, Download, Eye, EyeOff, Files, Trash2 } from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { PRINTER_CATALOG, printerLabel } from "../domain/catalog/printers";
 import { bed, parseVolume, type Bed } from "../geometry/bed";
@@ -95,15 +95,6 @@ export default function PenPlot() {
     const it = { ...newItem(kind, { x: cx, y: cy, w, rot: 0 }), ...patch };
     setItems((list) => [...list, it], "add", it.id);
   }
-  const moveItem = (id: string, by: -1 | 1) =>
-    setItems((list) => {
-      const i = list.findIndex((x) => x.id === id);
-      const j = i + by;
-      if (i < 0 || j < 0 || j >= list.length) return list;
-      const next = [...list];
-      [next[i], next[j]] = [next[j], next[i]];
-      return next;
-    }, "order");
   const duplicate = (it: PlotItem) => {
     const copy = { ...it, id: crypto.randomUUID(), x: it.x + 10, y: it.y - 10 };
     setItems((list) => [...list, copy], "add", copy.id);
@@ -262,15 +253,15 @@ export default function PenPlot() {
             {items.length > 0 && (
               <ul className="stack" aria-label="Camadas" style={{ listStyle: "none", padding: 0, margin: 0, gap: 4 }}>
                 {[...items].reverse().map((it) => (
-                  <li key={it.id} className="row" style={{ alignItems: "center", gap: 4 }}>
-                    <button type="button" aria-pressed={it.id === s.selected} onClick={() => select(it.id)} style={{ flex: 1, justifyContent: "flex-start", opacity: it.hidden ? 0.5 : 1 }}>
+                  <li key={it.id} className="row" style={{ alignItems: "center", gap: 4, flexWrap: "nowrap" }}>
+                    <button
+                      type="button"
+                      aria-pressed={it.id === s.selected}
+                      onClick={() => select(it.id)}
+                      title={itemName(it)}
+                      style={{ flex: "1 1 0", width: 0, minWidth: 0, justifyContent: "flex-start", textAlign: "left", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", display: "block", opacity: it.hidden ? 0.5 : 1, ...(it.id === s.selected ? { background: "var(--accent-soft)", color: "var(--accent-text)", fontWeight: 600 } : {}) }}
+                    >
                       {itemName(it)}
-                    </button>
-                    <button type="button" className="icon-button" aria-label={`Subir ${itemName(it)}`} onClick={() => moveItem(it.id, 1)}>
-                      <ArrowUp aria-hidden />
-                    </button>
-                    <button type="button" className="icon-button" aria-label={`Descer ${itemName(it)}`} onClick={() => moveItem(it.id, -1)}>
-                      <ArrowDown aria-hidden />
                     </button>
                     <button type="button" className="icon-button" aria-pressed={!!it.hidden} aria-label={`Esconder ${itemName(it)}`} onClick={() => setItem(it.id, { hidden: !it.hidden }, "hidden")}>
                       {it.hidden ? <EyeOff aria-hidden /> : <Eye aria-hidden />}
@@ -285,7 +276,7 @@ export default function PenPlot() {
                 ))}
               </ul>
             )}
-            {items.length > 1 && <p className="hint">A camada de cima da lista fica na frente na prévia. No papel a ordem não muda nada: a impressora faz o caminho mais curto entre todos os traços. Camada escondida não sai no G-code.</p>}
+            {items.length > 1 && <p className="hint">A impressora faz o caminho mais curto entre todos os traços, de todas as camadas. Camada escondida não sai no G-code.</p>}
           </div>
           {sel && (
             <div className="card stack">
@@ -395,7 +386,7 @@ export default function PenPlot() {
             {job && gcodeLines && (
               <details>
                 <summary>Ver o G-code ({gcodeLines.length} linhas)</summary>
-                <textarea readOnly aria-label="G-code" rows={12} style={{ width: "100%", fontFamily: "ui-monospace, monospace", fontSize: 12 }} value={gcodeLines.slice(0, GCODE_PREVIEW_LINES).join("\n") + (gcodeLines.length > GCODE_PREVIEW_LINES ? `\n… mais ${gcodeLines.length - GCODE_PREVIEW_LINES} linhas no arquivo` : "")} />
+                <textarea readOnly wrap="off" aria-label="G-code" rows={12} style={{ width: "100%", fontFamily: "ui-monospace, monospace", fontSize: 12 }} value={gcodeLines.slice(0, GCODE_PREVIEW_LINES).join("\n") + (gcodeLines.length > GCODE_PREVIEW_LINES ? `\n… mais ${gcodeLines.length - GCODE_PREVIEW_LINES} linhas no arquivo` : "")} />
               </details>
             )}
             <h4>Como mandar para a impressora</h4>

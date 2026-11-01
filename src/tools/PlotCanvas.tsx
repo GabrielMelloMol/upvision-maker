@@ -102,7 +102,8 @@ export default function PlotCanvas({ bed, area, sheet, items, selected, onSelect
         </g>
         {/* faixas que a caneta não alcança (o bico sairia da mesa) */}
         <path d={`M0 0H${bed.x}V${bed.y}H0Z M${area.x0} ${area.y0}V${area.y1}H${area.x1}V${area.y0}Z`} fill="#c9cbd6" fillOpacity={0.6} fillRule="evenodd" aria-hidden />
-        {sheet && <rect x={sheet.x0} y={sheet.y0} width={sheet.x1 - sheet.x0} height={sheet.y1 - sheet.y0} fill="#fff" fillOpacity={0.85} stroke="#9aa3c7" strokeWidth={0.6} aria-hidden />}
+        {/* folha maior que a mesa (A4 numa A1): mostra só a parte em cima da mesa, sem cobrir as réguas */}
+        {sheet && <rect x={Math.max(0, sheet.x0)} y={Math.max(0, sheet.y0)} width={Math.min(bed.x, sheet.x1) - Math.max(0, sheet.x0)} height={Math.min(bed.y, sheet.y1) - Math.max(0, sheet.y0)} fill="#fff" fillOpacity={0.85} stroke="#9aa3c7" strokeWidth={0.6} aria-hidden />}
         {sheet && <path d={`M${(sheet.x0 + sheet.x1) / 2 - 4} ${(sheet.y0 + sheet.y1) / 2}h8M${(sheet.x0 + sheet.x1) / 2} ${(sheet.y0 + sheet.y1) / 2 - 4}v8`} stroke="#9aa3c7" strokeWidth={0.5} aria-hidden />}
         {items.map((it) => (
           <g key={it.id}>

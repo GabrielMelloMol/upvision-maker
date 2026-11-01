@@ -23,7 +23,9 @@ test("desenhar com caneta: imagem vira traços na mesa e o G-code sai como teste
   await expect(page.locator(".plot-preview polyline").nth(5)).toBeAttached();
   if (SHOTS) await page.screenshot({ path: `${SHOTS}/texto-traco-unico.png`, fullPage: true });
 
-  await page.getByRole("button", { name: "Desenho ou imagem" }).click();
+  // #320: o texto virou outra camada; volta para a imagem pela lista
+  await page.getByRole("button", { name: "Apagar Obrigada, Valéria" }).click();
+  await page.getByRole("list", { name: "Camadas" }).getByRole("button", { name: "logo", exact: true }).click();
   await page.getByRole("button", { name: "Contorno + preencher" }).click();
   await page.getByRole("button", { name: "Mesa toda" }).click();
   await page.getByRole("button", { name: "À esquerda" }).click();
