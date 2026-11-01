@@ -151,7 +151,7 @@ export const ARTICLES: HelpArticle[] = [
       "Comece sem a caneta e escolha o arquivo na tela da impressora. Ela zera, leva o bico ao meio da folha (5 mm acima) e pausa: prenda o suporte, desça a caneta até a ponta encostar no papel, aperte e toque em Continuar.",
       "No teste ela desenha 10 mm acima do papel. Caminho certo? Desligue o teste, salve de novo, tire a caneta e rode o passo 4 outra vez.",
     ],
-    tips: ["Traço fraco ou falhando: diminua a Altura ao desenhar de 0,1 em 0,1. Rasgando o papel: aumente.", "A faixa cinza da prévia é onde a caneta não chega: o bico sairia da mesa.", "Tire a caneta antes de começar de novo: ao zerar, o bico encosta na mesa.", "Não deixe a impressora sozinha enquanto desenha."],
+    tips: ["Traço fraco ou falhando: diminua a Altura ao desenhar de 0,1 em 0,1. Rasgando o papel: aumente.", "A faixa cinza da prévia é onde a caneta não chega: o bico sairia da mesa.", "Tire a caneta antes de começar de novo: ao zerar, o bico encosta na mesa.", "Em Texto → Minha letra, desenhe cada letra uma vez (ou até 3 versões) e o app escreve com a sua letra; em À mão livre, rabisque direto no quadro.", "Não deixe a impressora sozinha enquanto desenha."],
     example: "Usar um coração de exemplo",
   },
   {

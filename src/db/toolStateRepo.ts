@@ -60,7 +60,8 @@ export const toolState = {
   },
   remove: (db: Db, id: string) => db.execute("DELETE FROM tool_state WHERE id = ?", [id]),
   /** Rascunhos mais recentes primeiro (só id e data), para o "Continuar" do Início (#139). */
-  recent: (db: Db, limit = 3) => db.select<{ id: string; updatedAt: string }>("SELECT id, updatedAt FROM tool_state ORDER BY updatedAt DESC LIMIT ?", [limit]),
+  // ids com ":" são dados guardados de uma ferramenta (ex.: "plotter:alfabeto", #314), não rascunhos
+  recent: (db: Db, limit = 3) => db.select<{ id: string; updatedAt: string }>("SELECT id, updatedAt FROM tool_state WHERE id NOT LIKE '%:%' ORDER BY updatedAt DESC LIMIT ?", [limit]),
 };
 
 const NEWEST = "ORDER BY at DESC, id DESC";
