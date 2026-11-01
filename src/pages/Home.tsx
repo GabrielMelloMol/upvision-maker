@@ -1,5 +1,6 @@
 import { Award, Cake, Calculator, ChevronRight, ClipboardList, Cookie, FileText, KeyRound, QrCode, Search, Sun } from "lucide-react";
 import { useState, type FormEvent } from "react";
+import { navKey, ResultList, useSearchResults } from "../ui/CommandPalette";
 import { openWith } from "../tools/intent";
 import { openModel } from "../tools/modelPlaces";
 import { ordersRepo } from "../db/ordersRepo";
@@ -11,7 +12,7 @@ import { money } from "../domain/format";
 import { isLate, orderTotals, STATUS_LABEL, todayIso, type Order } from "../domain/orders";
 import { addDays } from "../domain/quotes";
 import { PAGES, type Go } from "../pages";
-import { setPendingOpen } from "../ui/search";
+import { pickSearchItem, setPendingOpen, type SearchItem } from "../ui/search";
 import { useData } from "../ui/useData";
 import { errorText, useToast } from "../ui/Toast";
 import OccasionCard from "../ui/OccasionCard";
@@ -88,6 +89,13 @@ export default function Home({ go }: { go: Go }) {
     }
   };
   const [find, setFind] = useState("");
+  // sugestões enquanto digita, as mesmas do ⌘K (#316); nada marcado = Enter faz o Procurar
+  const [suggest, setSuggest] = useState(false);
+  const [active, setActive] = useState(-1);
+  const results = useSearchResults(PAGES, find, find.trim() !== "").slice(0, 8);
+  const shown = suggest && find.trim() !== "";
+  const current = Math.min(active, results.length - 1);
+  const pick = (item: SearchItem) => (setSuggest(false), pickSearchItem(item));
   const run = (a: Shortcut) => go(a.model ? openModel(a.model) : a.page!);
   const search = (e: FormEvent) => {
     e.preventDefault();
@@ -118,7 +126,31 @@ export default function Home({ go }: { go: Go }) {
         <form className="home-search" role="search" onSubmit={search}>
           <label className="affix has-prefix">
             <Search aria-hidden className="prefix" />
-            <input type="search" aria-label="O que você quer criar?" placeholder="O que você quer criar? Ex.: chaveiro com nome, placa Pix, topo de bolo" value={find} onChange={(e) => setFind(e.target.value)} />
+            <input
+              type="search"
+              role="combobox"
+              aria-label="O que você quer criar?"
+              aria-autocomplete="list"
+              aria-expanded={shown}
+              aria-controls="home-suggest"
+              aria-activedescendant={shown && results[current] ? `home-${results[current].id}` : undefined}
+              placeholder="O que você quer criar? Ex.: chaveiro com nome, placa Pix, topo de bolo"
+              value={find}
+              onChange={(e) => (setFind(e.target.value), setSuggest(true), setActive(-1))}
+              onFocus={() => setSuggest(true)}
+              onBlur={() => setSuggest(false)}
+              onKeyDown={(e) => {
+                if (e.key === "Escape" && shown) {
+                  e.preventDefault(); // não apaga o texto (o input de busca limpa no Esc)
+                  setSuggest(false);
+                } else if (shown) navKey(e, results, current, setActive, pick);
+              }}
+            />
+            {shown && (
+              <div className="palette home-suggest">
+                <ResultList id="home-suggest" prefix="home" results={results} current={current} q={find} setActive={setActive} onPick={pick} />
+              </div>
+            )}
           </label>
           <button type="submit" className="primary">
             Procurar

@@ -29,13 +29,13 @@ test("busca ⌘K acha artigos e termos; ⓘ nos campos técnicos (#84)", async (
   test.slow(); // abre telas carregadas sob demanda (chunk frio no servidor de desenvolvimento): com a máquina em carga passa dos 5 s do expect
   await openApp(page);
   await page.keyboard.press("Control+k");
-  await page.getByRole("combobox").fill("folga");
+  await page.getByRole("combobox", { name: "Buscar telas e registros" }).fill("folga");
   await page.getByRole("option", { name: /O que é Folga\?/ }).click();
   await expect(page.getByRole("dialog", { name: "Termos técnicos" }).locator("[data-highlight]")).toContainText("Folga");
   await page.getByRole("button", { name: "Entendi" }).click();
 
   await page.keyboard.press("Control+k");
-  await page.getByRole("combobox").fill("foto em relevo");
+  await page.getByRole("combobox", { name: "Buscar telas e registros" }).fill("foto em relevo");
   await page.getByRole("option", { name: /Como usar: Litofania/ }).click();
   await expect(page.getByRole("heading", { name: "Litofania", level: 1 })).toBeVisible({ timeout: 30_000 });
   await expect(page.getByRole("dialog", { name: "Litofania" })).toBeVisible({ timeout: 30_000 });

@@ -9,7 +9,7 @@ test("Início: sem a impressora animada, com busca e atalhos que abrem direto", 
   await expect(page.locator(".printer-panel, .printer-stage")).toHaveCount(0);
   await expect(page.getByRole("list", { name: "Criar" }).getByRole("button")).toHaveCount(6);
   await expect(page.getByRole("list", { name: "Vender" }).getByRole("button")).toHaveCount(3);
-  const find = page.getByRole("searchbox", { name: "O que você quer criar?" });
+  const find = page.getByRole("combobox", { name: "O que você quer criar?" });
   await expect(find).toHaveAttribute("placeholder", /chaveiro com nome, placa Pix, topo de bolo/);
   await find.fill("topo de bolo");
   await find.press("Enter");

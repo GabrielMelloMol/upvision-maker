@@ -32,7 +32,7 @@ import { installZoomGuard, takeZoomHint } from "./ui/zoomGuard";
 import Sidebar from "./ui/Sidebar";
 import Toolbar from "./ui/Toolbar";
 import CommandPalette from "./ui/CommandPalette";
-import { setPendingOpen, type SearchItem } from "./ui/search";
+import { setPendingOpen, setSearchPicker, type SearchItem } from "./ui/search";
 import { installShortcuts, modKey } from "./ui/shortcuts";
 import { useSidebarRail } from "./ui/useSidebarRail";
 import { toggleTheme } from "./ui/theme";
@@ -127,6 +127,8 @@ export default function App() {
     }
     if (item.help) openHelp(item.help);
   }
+
+  useEffect(() => setSearchPicker(pick)); // a caixa do Início abre o resultado como o ⌘K (#316)
 
   function navigate(requested: string) {
     // tela que virou parte de outra (ex.: Organizador de gaveta → Organizadores): vai para a nova, já na aba certa
