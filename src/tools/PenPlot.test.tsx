@@ -56,14 +56,16 @@ describe("Desenhar com caneta", () => {
     const w = screen.getByLabelText(/^Largura/);
     await user.clear(w);
     await user.type(w, "200");
-    const off = screen.getByLabelText(/^Caneta à direita do bico/);
+    await user.click(screen.getByRole("button", { name: "Mesa toda" }));
+    await user.click(screen.getByRole("button", { name: "À esquerda" }));
+    const off = screen.getByLabelText(/^Distância para o lado/);
     await user.clear(off);
-    await user.type(off, "-60");
+    await user.type(off, "60");
     expect(await screen.findByText(/não cabe na área que a caneta alcança/)).toBeInTheDocument();
     expect(screen.getByRole("button", { name: /Salvar G-code/ })).toBeDisabled();
   });
 
-  test("desenho alto que passa da mesa: erro e nada para salvar", async () => {
+  test("desenho alto que passa da folha: erro e nada para salvar", async () => {
     const user = userEvent.setup();
     const { container } = renderWithApp(<PenPlot />);
     await user.upload(container.querySelector<HTMLInputElement>('input[type="file"]')!, svgFile(TALL_SVG));
@@ -71,7 +73,7 @@ describe("Desenhar com caneta", () => {
     const w = screen.getByLabelText(/^Largura/);
     await user.clear(w);
     await user.type(w, "200");
-    expect(await screen.findByText(/não cabe na mesa/)).toBeInTheDocument();
+    expect(await screen.findByText(/não cabe na folha/)).toBeInTheDocument();
     expect(screen.getByRole("button", { name: /Salvar G-code/ })).toBeDisabled();
   });
 
@@ -97,4 +99,27 @@ describe("Desenhar com caneta", () => {
     await waitFor(() => expect(screen.getByText(/caneta passa no contorno das letras/)).toBeInTheDocument());
     await waitFor(() => expect(container.querySelectorAll(".plot-preview polyline").length).toBeGreaterThan(3), { timeout: 15_000 });
   });
+});
+
+test("caneta na frente do bico: a direção vira Y negativo; a folha aparece na prévia; simular troca o botão (#317)", async () => {
+  const user = userEvent.setup();
+  const { container } = renderWithApp(<PenPlot />);
+  await user.upload(container.querySelector<HTMLInputElement>('input[type="file"]')!, svgFile());
+  await waitFor(() => expect(container.querySelectorAll(".plot-preview polyline")).toHaveLength(1));
+  expect(screen.getByText(/Folha de 148 × 210 mm/)).toBeInTheDocument();
+  await user.click(screen.getByLabelText("Folha deitada"));
+  expect(await screen.findByText(/Folha de 210 × 148 mm/)).toBeInTheDocument();
+  const d = screen.getByLabelText(/^Distância para a frente ou para trás/);
+  await user.clear(d);
+  await user.type(d, "30");
+  expect(await screen.findByRole("img", { name: /30 mm para a frente do bico/ })).toBeInTheDocument();
+  await user.click(screen.getByRole("button", { name: "Atrás" }));
+  expect(await screen.findByRole("img", { name: /30 mm para trás do bico/ })).toBeInTheDocument();
+  await user.click(screen.getByRole("button", { name: "À esquerda" }));
+  const side = screen.getByLabelText(/^Distância para o lado/);
+  await user.clear(side);
+  await user.type(side, "12");
+  expect(await screen.findByRole("img", { name: /12 mm à esquerda/ })).toBeInTheDocument();
+  await user.click(screen.getByRole("button", { name: "Simular o desenho" }));
+  expect(screen.getByRole("button", { name: "Pausar" })).toBeInTheDocument();
 });

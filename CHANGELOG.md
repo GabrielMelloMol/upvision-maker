@@ -5,6 +5,7 @@ Formato: `## <versão> — <data>` e itens `- …` em linguagem simples.
 
 ## Próxima versão
 - **Busca do Início com sugestões (#316)**: ao digitar na caixa "O que você quer criar?", aparecem na hora as telas, modelos prontos e registros que combinam, como no Buscar (⌘K). Use as setas e Enter, ou clique; Esc fecha a lista. Enter sem escolher continua procurando em Criar.
+- **Desenhar com caneta mais fácil de configurar (#317)**: escolha a **folha** (A4, A5, A6, 10 × 15 ou outra; deitada ou em pé) e a prévia mostra a folha na mesa, com o meio marcado; o desenho fica dentro dela (A4 não cabe inteira numa A1 e o app avisa). **Simular o desenho** mostra a caneta desenhando, na ordem certa, em 5×, 20× ou 60×. A caneta agora se configura por direção (na frente ou atrás, à esquerda ou à direita, e a distância), com desenhos de lado e de cima que mudam com os números. Junto do botão Salvar há o passo a passo de mandar para a impressora (cartão microSD → Arquivos na tela), e a tela indica que caneta usar e qual suporte imprimir.
 
 ## 0.15.11 — 2026-10-31
 - **Desenhar com a sua letra (#314)**: em Desenhar com caneta → Texto → **Minha letra**, desenhe cada letra no quadro com o mouse, a caneta do tablet ou o dedo (até 3 versões de cada, que o app sorteia para letras repetidas não ficarem iguais) e a impressora escreve com a sua letra. As letras que faltarem saem na cursiva. Em **À mão livre**, rabisque direto no quadro e mande desenhar.
