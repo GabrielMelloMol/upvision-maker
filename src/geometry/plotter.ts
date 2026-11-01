@@ -14,7 +14,7 @@ export type Stroke = Pt[];
  */
 export const CAL_Z = 5;
 
-export const PEN_DEFAULTS = { zDraw: 4.6, zLift: 10, drawFeed: 1500, zFeed: 600, settleMs: 120, airTest: true };
+export const PEN_DEFAULTS = { zDraw: 4.6, zLift: 10, drawFeed: 1500, zFeed: 600, settleMs: 120, airTest: true, offX: 0, offY: 0 };
 
 export const PenSettings = z.object({
   zDraw: z.number().min(3, "Altura ao desenhar: no mínimo 3 mm (abaixo disso a caneta aperta demais).").max(CAL_Z + 1, `Altura ao desenhar: no máximo ${CAL_Z + 1} mm (acima disso a caneta não encosta).`),
@@ -24,8 +24,11 @@ export const PenSettings = z.object({
   zFeed: z.number().min(60).max(1200),
   settleMs: z.number().int().min(0).max(2000),
   airTest: z.boolean(),
-  });
-export type Pen = z.infer<typeof PenSettings>;
+  /** Ponta da caneta = bico + deslocamento (o suporte prende a caneta ao lado do bico). */
+  offX: z.number().min(-80, "Deslocamento X: no máximo 80 mm.").max(80, "Deslocamento X: no máximo 80 mm.").default(0),
+  offY: z.number().min(-80, "Deslocamento Y: no máximo 80 mm.").max(80, "Deslocamento Y: no máximo 80 mm.").default(0),
+});
+export type Pen = z.input<typeof PenSettings>;
 
 /** Quanto o "testar no ar" sobe tudo. */
 export const AIR_MM = 10;
@@ -34,8 +37,16 @@ const TRAVEL_FEED = 6000;
 /** Teto de pontos: acima disso o arquivo fica enorme e a impressora engasga. */
 const MAX_POINTS = 200_000;
 
-/** Linhas (Y para cima) escaladas para `widthMm` de largura e centradas na mesa. Erro se não couber com a margem. */
-export function placeOnBed(lines: { pts: Pt[]; closed: boolean }[], widthMm: number, bed: { x: number; y: number }): Stroke[] {
+export type Area = { x0: number; y0: number; x1: number; y1: number };
+
+/** Onde a PONTA da caneta alcança: a mesa, menos a faixa em que o bico sairia dela por causa do deslocamento. */
+export const reach = (bed: { x: number; y: number }, off: { offX?: number; offY?: number } = {}): Area => {
+  const [ox, oy] = [off.offX ?? 0, off.offY ?? 0];
+  return { x0: Math.max(0, ox), y0: Math.max(0, oy), x1: Math.min(bed.x, bed.x + ox), y1: Math.min(bed.y, bed.y + oy) };
+};
+
+/** Linhas (Y para cima) escaladas para `widthMm` de largura e centradas onde a caneta alcança. Erro se não couber com a margem. */
+export function placeOnBed(lines: { pts: Pt[]; closed: boolean }[], widthMm: number, bed: { x: number; y: number }, off: { offX?: number; offY?: number } = {}): Stroke[] {
   const all = lines.flatMap((l) => l.pts);
   if (!all.length) throw new Error("Nenhum traço no desenho.");
   if (all.length > MAX_POINTS) throw new Error("Desenho com detalhe demais para a caneta. Diminua o Detalhe na Imagem em SVG.");
@@ -44,11 +55,13 @@ export function placeOnBed(lines: { pts: Pt[]; closed: boolean }[], widthMm: num
   if (x1 - x0 <= 0) throw new Error("O desenho não tem largura.");
   const s = widthMm / (x1 - x0);
   const h = (y1 - y0) * s;
-  const [maxW, maxH] = [bed.x - 2 * MARGIN_MM, bed.y - 2 * MARGIN_MM];
+  const a = reach(bed, off);
+  const [maxW, maxH] = [a.x1 - a.x0 - 2 * MARGIN_MM, a.y1 - a.y0 - 2 * MARGIN_MM];
   if (widthMm > maxW || h > maxH) {
-    throw new Error(`O desenho (${Math.round(widthMm)} × ${Math.round(h)} mm) não cabe na mesa de ${bed.x} × ${bed.y} mm com ${MARGIN_MM} mm de margem. Diminua a largura.`);
+    const where = a.x1 - a.x0 < bed.x || a.y1 - a.y0 < bed.y ? `na área que a caneta alcança (${Math.round(a.x1 - a.x0)} × ${Math.round(a.y1 - a.y0)} mm)` : `na mesa de ${bed.x} × ${bed.y} mm`;
+    throw new Error(`O desenho (${Math.round(widthMm)} × ${Math.round(h)} mm) não cabe ${where} com ${MARGIN_MM} mm de margem. Diminua a largura.`);
   }
-  const [ox, oy] = [(bed.x - widthMm) / 2, (bed.y - h) / 2];
+  const [ox, oy] = [a.x0 + (a.x1 - a.x0 - widthMm) / 2, a.y0 + (a.y1 - a.y0 - h) / 2];
   return lines
     .filter((l) => l.pts.length >= 2)
     .map((l) => {
@@ -82,6 +95,53 @@ export function orderStrokes(strokes: Stroke[]): Stroke[] {
   return out;
 }
 
+export const FILL_MODES = ["outline", "both", "fill"] as const;
+export type FillMode = (typeof FILL_MODES)[number];
+export const FillSettings = z.object({
+  mode: z.enum(FILL_MODES),
+  spacing: z.number().min(0.2, "Espaço entre as linhas: no mínimo 0,2 mm.").max(5, "Espaço entre as linhas: no máximo 5 mm."),
+  angle: z.union([z.literal(0), z.literal(45), z.literal(90), z.literal(135)]),
+  cross: z.boolean(),
+});
+export type Fill = z.infer<typeof FillSettings>;
+export const FILL_DEFAULTS: Fill = { mode: "outline", spacing: 0.6, angle: 45, cross: false };
+
+/**
+ * Linhas paralelas dentro das formas fechadas (regra par-ímpar: o furo de um "O" fica vazio), a cada `spacing` mm,
+ * no ângulo dado. Linhas abertas (traço único) não têm dentro e ficam de fora.
+ */
+// shortcut: cada linha de varredura testa todas as arestas (arestas × linhas); trocar por tabela de arestas ordenada se ficar lento em imagens grandes
+export function hatch(strokes: Stroke[], spacing: number, angleDeg: number): Stroke[] {
+  const a = (angleDeg * Math.PI) / 180;
+  const [c, s] = [Math.cos(a), Math.sin(a)];
+  const rot = ([x, y]: Pt): Pt => [x * c + y * s, -x * s + y * c];
+  const back = ([x, y]: Pt): Pt => [x * c - y * s, x * s + y * c];
+  const closed = strokes.filter((st) => st.length > 3 && dist(st[0], st[st.length - 1]) < 1e-9);
+  const edges = closed.flatMap((st) => {
+    const r = st.map(rot);
+    return r.slice(1).map((q, i) => [r[i], q] as const);
+  });
+  if (!edges.length) return [];
+  let [y0, y1] = [Infinity, -Infinity]; // laço, não Math.min(...): imagem grande estoura a pilha
+  for (const [p, q] of edges) [y0, y1] = [Math.min(y0, p[1], q[1]), Math.max(y1, p[1], q[1])];
+  const out: Stroke[] = [];
+  for (let y = y0 + spacing / 2; y < y1; y += spacing) {
+    const xs = edges
+      .filter(([p, q]) => p[1] <= y !== q[1] <= y)
+      .map(([p, q]) => p[0] + ((y - p[1]) * (q[0] - p[0])) / (q[1] - p[1]))
+      .sort((m, n) => m - n);
+    for (let i = 0; i + 1 < xs.length; i += 2) if (xs[i + 1] - xs[i] > 1e-6) out.push([back([xs[i], y]), back([xs[i + 1], y])]);
+  }
+  return out;
+}
+
+/** Contorno, preenchimento ou os dois, conforme a escolha. */
+export function withFill(strokes: Stroke[], fill: Fill): Stroke[] {
+  if (fill.mode === "outline") return strokes;
+  const lines = [...hatch(strokes, fill.spacing, fill.angle), ...(fill.cross ? hatch(strokes, fill.spacing, fill.angle + 90) : [])];
+  return fill.mode === "fill" ? [...lines, ...strokes.filter((st) => dist(st[0], st[st.length - 1]) >= 1e-9)] : [...strokes, ...lines];
+}
+
 const f = (n: number) => n.toFixed(2);
 
 export type PenJob = { gcode: string; strokes: number; lengthMm: number; minutes: number };
@@ -90,34 +150,43 @@ export type PenJob = { gcode: string; strokes: number; lengthMm: number; minutes
 export function penGcode(strokes: Stroke[], pen: Pen, bed: { x: number; y: number }): PenJob {
   const p = PenSettings.parse(pen);
   if (!strokes.length) throw new Error("Nenhum traço no desenho.");
+  const a = reach(bed, p);
   for (const s of strokes)
     for (const [x, y] of s)
-      if (!(x >= 0 && x <= bed.x && y >= 0 && y <= bed.y)) throw new Error(`Ponto fora da mesa (${f(x)}, ${f(y)}): nada foi gerado.`);
+      if (!(x >= a.x0 && x <= a.x1 && y >= a.y0 && y <= a.y1)) throw new Error(`A caneta não alcança o ponto (${f(x)}, ${f(y)}): nada foi gerado.`);
+  // o G-code move o BICO: ponta − deslocamento
+  const nx = (x: number) => f(x - p.offX);
+  const ny = (y: number) => f(y - p.offY);
   const air = p.airTest ? AIR_MM : 0;
   const [down, up] = [p.zDraw + air, p.zLift + air];
   const settle = p.settleMs > 0 ? [`G4 P${p.settleMs}`] : [];
+  const lengthMm = strokes.reduce((t, s) => t + s.slice(1).reduce((u, q, i) => u + dist(s[i], q), 0), 0);
+  const minutes = lengthMm / p.drawFeed + (strokes.length * 2 * p.settleMs) / 60000;
   const lines = [
+    // cabeçalho que a tela das Bambu lê (tempo e camadas); o resto são comentários
+    "; HEADER_BLOCK_START",
+    `; model printing time: ${Math.ceil(minutes)}m; total estimated time: ${Math.ceil(minutes)}m`,
+    "; total layer number: 1",
+    "; HEADER_BLOCK_END",
     "; UpVision Maker - desenho com caneta",
     p.airTest ? `; TESTE NO AR: a caneta fica ${AIR_MM} mm acima do papel` : "; Supervisione: faça antes o teste no ar",
     "G90 ; coordenadas absolutas",
     "G21 ; milímetros",
     "G28 ; zera os eixos (sem a caneta: a A1 encosta o bico na mesa ao zerar)",
     `G1 Z${f(up + AIR_MM)} F${p.zFeed}`,
-    `G0 X${f(bed.x / 2)} Y${f(bed.y / 2)} F${TRAVEL_FEED}`,
+    `G0 X${nx((a.x0 + a.x1) / 2)} Y${ny((a.y0 + a.y1) / 2)} F${TRAVEL_FEED} ; ponta da caneta no meio da folha`,
     `G1 Z${f(CAL_Z)} F${p.zFeed}`,
     "M400 U1 ; pausa: prenda o suporte, desça a caneta até encostar no papel e toque em Continuar",
     `G1 Z${f(up)} F${p.zFeed}`,
   ];
-  let lengthMm = 0;
   for (const s of strokes) {
-    lines.push(`G0 X${f(s[0][0])} Y${f(s[0][1])} F${TRAVEL_FEED}`, `G1 Z${f(down)} F${p.zFeed}`, ...settle);
+    lines.push(`G0 X${nx(s[0][0])} Y${ny(s[0][1])} F${TRAVEL_FEED}`, `G1 Z${f(down)} F${p.zFeed}`, ...settle);
     for (let i = 1; i < s.length; i++) {
-      lengthMm += dist(s[i - 1], s[i]);
-      lines.push(`G1 X${f(s[i][0])} Y${f(s[i][1])} F${p.drawFeed}`);
+      lines.push(`G1 X${nx(s[i][0])} Y${ny(s[i][1])} F${p.drawFeed}`);
     }
     lines.push(`G1 Z${f(up)} F${p.zFeed}`, ...settle);
   }
   // fim: caneta bem alta e cabeçote no canto, longe do papel
   lines.push(`G1 Z${f(up + AIR_MM)} F${p.zFeed}`, `G0 X0 Y${f(bed.y)} F${TRAVEL_FEED}`, "");
-  return { gcode: lines.join("\n"), strokes: strokes.length, lengthMm, minutes: lengthMm / p.drawFeed + (strokes.length * 2 * p.settleMs) / 60000 };
+  return { gcode: lines.join("\n"), strokes: strokes.length, lengthMm, minutes };
 }

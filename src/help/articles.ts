@@ -145,13 +145,13 @@ export const ARTICLES: HelpArticle[] = [
     title: "Desenhar com caneta",
     intro: "A impressora vira uma plotter: desenha com uma caneta presa no cabeçote, sem filamento e sem aquecer.",
     steps: [
-      "Imprima um suporte de caneta para o seu cabeçote (no MakerWorld, procure \"A1 pen holder\" ou o nome da sua impressora).",
+      "Imprima um suporte de caneta para o seu cabeçote (no MakerWorld, procure \"A1 pen holder\") e meça com a régua do bico até a ponta da caneta: preencha em \"Onde a caneta fica\".",
       "Prenda a folha na mesa com ímãs ou fita, com uma folha de plástico fino por baixo para não riscar a mesa.",
-      "Envie um desenho, imagem ou escreva um texto, ajuste a Largura e salve o G-code com \"Testar no ar\" ligado. Copie para o cartão microSD.",
+      "Envie um desenho, imagem ou escreva um texto (Traço único parece escrita à mão), escolha se preenche e ajuste a Largura. Salve com \"Testar no ar\" ligado e copie o .gcode.3mf para o cartão microSD.",
       "Comece sem a caneta e escolha o arquivo na tela da impressora. Ela zera, leva o bico ao meio da folha (5 mm acima) e pausa: prenda o suporte, desça a caneta até a ponta encostar no papel, aperte e toque em Continuar.",
       "No teste ela desenha 10 mm acima do papel. Caminho certo? Desligue o teste, salve de novo, tire a caneta e rode o passo 4 outra vez.",
     ],
-    tips: ["Traço fraco ou falhando: diminua a Altura ao desenhar de 0,1 em 0,1. Rasgando o papel: aumente.", "Tire a caneta antes de começar de novo: ao zerar, o bico encosta na mesa.", "Não deixe a impressora sozinha enquanto desenha."],
+    tips: ["Traço fraco ou falhando: diminua a Altura ao desenhar de 0,1 em 0,1. Rasgando o papel: aumente.", "A faixa cinza da prévia é onde a caneta não chega: o bico sairia da mesa.", "Tire a caneta antes de começar de novo: ao zerar, o bico encosta na mesa.", "Não deixe a impressora sozinha enquanto desenha."],
     example: "Usar um coração de exemplo",
   },
   {

@@ -1,6 +1,7 @@
 // @vitest-environment happy-dom
 import { screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
+import { strFromU8, unzipSync } from "fflate";
 import { readFileSync } from "node:fs";
 import opentype from "opentype.js";
 import { describe, expect, test, vi } from "vitest";
@@ -28,17 +29,38 @@ describe("Desenhar com caneta", () => {
     expect(screen.getByText(/Fique de olho na impressora/)).toBeInTheDocument();
   });
 
-  test("SVG enviado: prévia na mesa e G-code salvo como teste no ar (padrão)", async () => {
+  test("SVG enviado: prévia na mesa e .gcode.3mf salvo como teste no ar (padrão); .gcode simples na outra opção", async () => {
     const user = userEvent.setup();
     const { container } = renderWithApp(<PenPlot />);
     await user.upload(container.querySelector<HTMLInputElement>('input[type="file"]')!, svgFile());
     await waitFor(() => expect(container.querySelectorAll(".plot-preview polyline")).toHaveLength(1));
     expect(screen.getByLabelText(/^Largura/)).toHaveValue(40);
     await user.click(screen.getByRole("button", { name: /Salvar G-code/ }));
-    expect(await screen.findByText("G-code salvo em /saida/placa-teste-no-ar.gcode")).toBeInTheDocument();
-    const g = text("/saida/placa-teste-no-ar.gcode");
+    expect(await screen.findByText("G-code salvo em /saida/placa-teste-no-ar.gcode.3mf")).toBeInTheDocument();
+    const g = strFromU8(unzipSync(t.files.get("/saida/placa-teste-no-ar.gcode.3mf")!)["Metadata/plate_1.gcode"]);
     expect(g).toContain("TESTE NO AR");
     expect(g).toContain("G28");
+    await user.click(screen.getByRole("button", { name: ".gcode (outras)" }));
+    await user.click(screen.getByRole("button", { name: /Salvar G-code/ }));
+    expect(await screen.findByText("G-code salvo em /saida/placa-teste-no-ar.gcode")).toBeInTheDocument();
+    expect(text("/saida/placa-teste-no-ar.gcode")).toBe(g);
+  });
+
+  test("preencher: a forma ganha linhas por dentro; caneta deslocada demais para o desenho dá erro", async () => {
+    const user = userEvent.setup();
+    const { container } = renderWithApp(<PenPlot />);
+    await user.upload(container.querySelector<HTMLInputElement>('input[type="file"]')!, svgFile());
+    await waitFor(() => expect(container.querySelectorAll(".plot-preview polyline")).toHaveLength(1));
+    await user.click(screen.getByRole("button", { name: "Contorno + preencher" }));
+    await waitFor(() => expect(container.querySelectorAll(".plot-preview polyline").length).toBeGreaterThan(20));
+    const w = screen.getByLabelText(/^Largura/);
+    await user.clear(w);
+    await user.type(w, "200");
+    const off = screen.getByLabelText(/^Caneta à direita do bico/);
+    await user.clear(off);
+    await user.type(off, "-60");
+    expect(await screen.findByText(/não cabe na área que a caneta alcança/)).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /Salvar G-code/ })).toBeDisabled();
   });
 
   test("desenho alto que passa da mesa: erro e nada para salvar", async () => {
@@ -65,11 +87,14 @@ describe("Desenhar com caneta", () => {
     expect(screen.getByRole("button", { name: /Salvar G-code/ })).toBeDisabled();
   });
 
-  test("texto: as letras viram traços na mesa", async () => {
+  test("texto: traço único por padrão; contorno de fonte na outra opção", async () => {
     const user = userEvent.setup();
     const { container } = renderWithApp(<PenPlot />);
     await user.click(screen.getByRole("button", { name: "Texto" }));
     await waitFor(() => expect(container.querySelectorAll(".plot-preview polyline").length).toBeGreaterThan(3), { timeout: 15_000 });
     expect(screen.getByRole("button", { name: /Salvar G-code/ })).toBeEnabled();
+    await user.click(screen.getByRole("button", { name: "Contorno de uma fonte" }));
+    await waitFor(() => expect(screen.getByText(/caneta passa no contorno das letras/)).toBeInTheDocument());
+    await waitFor(() => expect(container.querySelectorAll(".plot-preview polyline").length).toBeGreaterThan(3), { timeout: 15_000 });
   });
 });
