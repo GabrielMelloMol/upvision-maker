@@ -3,6 +3,9 @@
 Cada versão aparece para a usuária na tela "O que há de novo" depois da atualização.
 Formato: `## <versão> — <data>` e itens `- …` em linguagem simples.
 
+## Próxima versão
+- **Desenhar com caneta mais completo (#311)**: letra de **traço único** (cursiva, passa uma vez em cada letra, com acentos e ç), **preenchimento** com linhas (contorno, contorno + preencher ou só preencher, no ângulo e espaço que você escolher), campo **Onde a caneta fica** para o suporte que prende a caneta ao lado do bico (a prévia mostra em cinza onde ela não alcança) e o arquivo agora sai como **.gcode.3mf**, o formato que as Bambu leem pelo cartão (o .gcode simples continua como opção).
+
 ## 0.15.9 — 2026-10-31
 - **Desenhar com caneta mais fácil de acertar (#307)**: depois de zerar, a impressora leva o bico ao meio da folha e **pausa até você tocar em Continuar** na tela. Nessa pausa você prende o suporte e desce a caneta até a ponta encostar no papel. O passo a passo novo está na tela e na ajuda.
 - **Conector de IA também no Codex (#308)**: em Preferências → Seus dados → IA no app, o botão **Copiar para o Codex** dá o trecho pronto para o Codex (OpenAI).
