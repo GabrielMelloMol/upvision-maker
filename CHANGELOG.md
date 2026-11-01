@@ -3,7 +3,7 @@
 Cada versão aparece para a usuária na tela "O que há de novo" depois da atualização.
 Formato: `## <versão> — <data>` e itens `- …` em linguagem simples.
 
-## Próxima versão
+## 0.15.11 — 2026-10-31
 - **Desenhar com a sua letra (#314)**: em Desenhar com caneta → Texto → **Minha letra**, desenhe cada letra no quadro com o mouse, a caneta do tablet ou o dedo (até 3 versões de cada, que o app sorteia para letras repetidas não ficarem iguais) e a impressora escreve com a sua letra. As letras que faltarem saem na cursiva. Em **À mão livre**, rabisque direto no quadro e mande desenhar.
 
 ## 0.15.10 — 2026-10-31
