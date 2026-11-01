@@ -4,12 +4,15 @@ import { bed } from "../geometry/bed";
 import { loadFont, type FontId } from "../geometry/fonts";
 import { getManifold } from "../geometry/manifold";
 import { gcode3mf } from "../geometry/gcode3mf";
+import { handLines, myLines, type Strokes } from "../geometry/handwriting";
 import { hersheyLines } from "../geometry/hershey";
 import { AIR_MM, FILL_DEFAULTS, FillSettings, MARGIN_MM, orderStrokes, PEN_DEFAULTS, penGcode, PenSettings, placeOnBed, reach, withFill, type Fill, type Pen, type PenJob, type Stroke } from "../geometry/plotter";
 import { svgLines } from "../geometry/svgImport";
 import { textToCrossSection } from "../geometry/text";
 import { exampleFile, useExample } from "../help/helpStore";
+import type { Alphabet } from "../geometry/handwriting";
 import Alert from "../ui/Alert";
+import Button from "../ui/Button";
 import Dropzone from "../ui/Dropzone";
 import FontPicker from "../ui/FontPicker";
 import NumField from "../ui/NumField";
@@ -17,28 +20,32 @@ import { saveFile, slug } from "../ui/saveFile";
 import Segmented from "../ui/Segmented";
 import { errorText, useToast } from "../ui/Toast";
 import { DESIGN_ACCEPT } from "./designInput";
+import DrawPad from "./DrawPad";
+import MyLettersSheet, { useAlphabet } from "./MyLetters";
 import GeneratorHelp from "./models/guide/GeneratorHelp";
 import { TOOL_HELP } from "./models/help/toolHelp";
 import ToolSessionBar from "./ToolSessionBar";
 import { initialDesign, useDesignInput } from "./useDesignInput";
 import { useToolState } from "./useToolState";
 
-type Source = "design" | "text";
-const SOURCES = [["design", "Desenho ou imagem"], ["text", "Texto"]] as const;
-type Lettering = "single" | "font";
-const LETTERING = [["single", "Traço único"], ["font", "Contorno de uma fonte"]] as const;
+type Source = "design" | "text" | "hand";
+const SOURCES = [["design", "Desenho ou imagem"], ["text", "Texto"], ["hand", "À mão livre"]] as const;
+type Lettering = "single" | "mine" | "font";
+const LETTERING = [["single", "Cursiva"], ["mine", "Minha letra"], ["font", "Contorno de uma fonte"]] as const;
 const FILL_LABELS = [["outline", "Só contorno"], ["both", "Contorno + preencher"], ["fill", "Só preencher"]] as const;
 const ANGLES = [["0", "0°"], ["45", "45°"], ["90", "90°"], ["135", "135°"]] as const;
 type Format = "3mf" | "gcode";
 const FORMATS = [["3mf", ".gcode.3mf (Bambu)"], ["gcode", ".gcode (outras)"]] as const;
 
-const initial = () => ({ ...initialDesign(100), source: "design" as Source, text: "Obrigada!", lettering: "single" as Lettering, font: "sacramento" as FontId, pen: PEN_DEFAULTS as Pen, fill: FILL_DEFAULTS, format: "3mf" as Format });
+const initial = () => ({ ...initialDesign(100), source: "design" as Source, text: "Obrigada!", lettering: "single" as Lettering, font: "sacramento" as FontId, pen: PEN_DEFAULTS as Pen, fill: FILL_DEFAULTS, format: "3mf" as Format, hand: [] as Strokes, variation: 0.5 });
 
 /** Linhas do desenho ou do texto, Y para cima (o SVG vem com Y para baixo). */
-async function linesOf(source: Source, svgText: string | null, text: string, lettering: Lettering, font: FontId) {
+async function linesOf(source: Source, svgText: string | null, text: string, lettering: Lettering, font: FontId, mine: { alphabet: Alphabet; variation: number; hand: Strokes }) {
+  if (source === "hand") return mine.hand.length ? handLines(mine.hand) : null;
   if (source === "design") return svgText ? svgLines(svgText).map((l) => ({ ...l, pts: l.pts.map(([x, y]): [number, number] => [x, -y]) })) : null;
   if (!text.trim()) return null;
   if (lettering === "single") return hersheyLines(text);
+  if (lettering === "mine") return myLines(text, mine.alphabet, mine.variation);
   const M = await getManifold();
   const cs = textToCrossSection(M, await loadFont(font), text, 10);
   try {
@@ -57,6 +64,10 @@ export default function PenPlot() {
   const setFill = <K extends keyof Fill>(k: K) => (v: Fill[K]) => tool.set((cur) => ({ ...cur, fill: { ...(cur.fill ?? FILL_DEFAULTS), [k]: v } }), `fill.${k}`);
   const lettering = s.lettering ?? "single";
   const format = s.format ?? "3mf";
+  const hand = s.hand ?? []; // projetos salvos antes da mão livre (#314) não têm os campos
+  const variation = s.variation ?? 0.5;
+  const [alphabet, saveAlphabet] = useAlphabet();
+  const [lettersOpen, setLettersOpen] = useState(false);
   useExample("plotter", () => void exampleFile("heart").then(onFile)); // "Usar exemplo" da ajuda (#84)
   const toast = useToast();
   const b = bed();
@@ -69,7 +80,7 @@ export default function PenPlot() {
   const { strokes, error } = built;
   useEffect(() => {
     let alive = true;
-    linesOf(s.source, svg?.text ?? null, s.text, lettering, s.font)
+    linesOf(s.source, svg?.text ?? null, s.text, lettering, s.font, { alphabet, variation, hand })
       .then((lines) => {
         if (!alive) return;
         const placed = lines && placeOnBed(lines, width, b, off);
@@ -80,7 +91,7 @@ export default function PenPlot() {
       alive = false;
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps -- off e fillCheck mudam de objeto a cada render; os valores estão nas dependências
-  }, [s.source, svg, s.text, lettering, s.font, width, b, off.offX, off.offY, fillCheck.success, fill.mode, fill.spacing, fill.angle, fill.cross]);
+  }, [s.source, svg, s.text, lettering, s.font, alphabet, variation, hand, width, b, off.offX, off.offY, fillCheck.success, fill.mode, fill.spacing, fill.angle, fill.cross]);
 
   const job: PenJob | null = useMemo(() => {
     if (!strokes || !penCheck.success) return null;
@@ -91,7 +102,7 @@ export default function PenPlot() {
     }
   }, [strokes, penCheck.success, penCheck.data, b]);
 
-  const name = slug(s.source === "text" ? s.text : (svg?.name ?? "desenho"));
+  const name = slug(s.source === "text" ? s.text : s.source === "hand" ? "mao-livre" : (svg?.name ?? "desenho"));
   async function onSave() {
     if (!job) return;
     try {
@@ -118,7 +129,20 @@ export default function PenPlot() {
         <div className="controls">
           <div className="card stack">
             <Segmented label="O que desenhar" value={s.source} options={SOURCES} onChange={tool.field("source")} full />
-            {s.source === "design" ? (
+            {s.source === "hand" ? (
+              <>
+                <DrawPad strokes={hand} onChange={(v) => tool.set((cur) => ({ ...cur, hand: v }), "hand")} label="Quadro para desenhar à mão livre" size={300} />
+                <div className="row">
+                  <Button disabled={!hand.length} onClick={() => tool.set((cur) => ({ ...cur, hand: hand.slice(0, -1) }), "hand")}>
+                    Desfazer traço
+                  </Button>
+                  <Button disabled={!hand.length} onClick={() => tool.set((cur) => ({ ...cur, hand: [] }), "hand")}>
+                    Limpar
+                  </Button>
+                </div>
+                <p className="hint">Desenhe com o mouse, a caneta do tablet ou o dedo. A Largura abaixo define o tamanho no papel.</p>
+              </>
+            ) : s.source === "design" ? (
               <>
                 <Dropzone accept={DESIGN_ACCEPT} label={svg ? svg.name : "Arraste um SVG ou imagem"} hint="Imagens são vetorizadas automaticamente; a caneta passa no contorno." onFile={onFile} />
                 {loading && <Alert kind="info">Lendo o desenho…</Alert>}
@@ -133,6 +157,13 @@ export default function PenPlot() {
                 <Segmented label="Letra" value={lettering} options={LETTERING} onChange={tool.field("lettering")} full />
                 {lettering === "single" ? (
                   <p className="hint">Letra cursiva de uma linha só, como escrita à mão: a caneta passa uma vez em cada letra. Aceita acentos e ç.</p>
+                ) : lettering === "mine" ? (
+                  <>
+                    <Button onClick={() => setLettersOpen(true)}>{Object.keys(alphabet).length ? "Desenhar mais letras" : "Desenhar a minha letra"}</Button>
+                    <NumField label="Variação entre as letras" value={variation} onChange={(v) => tool.set((cur) => ({ ...cur, variation: v }), "variation")} min={0} max={1} step={0.1} unit="" hint="0 = todas alinhadas; 1 = cada letra sobe, desce e anda um pouco, como escrita de verdade." />
+                    <p className="hint">{Object.keys(alphabet).length} letras desenhadas; as que faltam saem na cursiva.</p>
+                    {lettersOpen && <MyLettersSheet alphabet={alphabet} onSave={saveAlphabet} onClose={() => setLettersOpen(false)} />}
+                  </>
                 ) : (
                   <>
                     <FontPicker value={s.font} onChange={tool.field("font")} sample={s.text} />
