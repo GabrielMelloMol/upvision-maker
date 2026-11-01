@@ -147,3 +147,21 @@ test("só contorno, contorno + preenchimento e só preenchimento (traço aberto 
   expect(only).toContainEqual(shapes[1]);
   expect(withFill(shapes, { ...base, mode: "fill", cross: true }).length).toBeGreaterThan(only.length);
 });
+
+test("folha: centrada onde a caneta alcança; A4 numa mesa de 256 é cortada; desenho maior que a folha dá erro (#317)", async () => {
+  const { drawArea, PAPER_DEFAULT } = await import("./plotter");
+  const a5 = drawArea(BED, {}, PAPER_DEFAULT);
+  expect(a5.sheet).toEqual({ x0: 54, y0: 23, x1: 202, y1: 233 });
+  expect(a5.cut).toBe(false);
+  const a4 = drawArea(BED, {}, { ...PAPER_DEFAULT, size: "a4" });
+  expect(a4.cut).toBe(true);
+  expect(a4.area).toEqual({ x0: 23, y0: 0, x1: 233, y1: 256 });
+  expect(drawArea(BED, {}, { ...PAPER_DEFAULT, landscape: true }).sheet).toEqual({ x0: 23, y0: 54, x1: 233, y1: 202 });
+  expect(drawArea(BED, {}, { ...PAPER_DEFAULT, size: "bed" }).sheet).toBeNull();
+  // caneta 40 mm na frente: o meio da folha acompanha o meio de onde a caneta alcança
+  const front = drawArea(BED, { offY: -40 }, PAPER_DEFAULT);
+  expect((front.sheet!.y0 + front.sheet!.y1) / 2).toBe(108);
+  expect(() => placeOnBed([square], 140, BED, {}, PAPER_DEFAULT)).toThrow(/não cabe na folha/);
+  const [s] = placeOnBed([square], 100, BED, {}, PAPER_DEFAULT);
+  expect(s[0]).toEqual([78, 78]);
+});

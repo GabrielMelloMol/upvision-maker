@@ -25,7 +25,9 @@ test("desenhar com caneta: imagem vira traços na mesa e o G-code sai como teste
 
   await page.getByRole("button", { name: "Desenho ou imagem" }).click();
   await page.getByRole("button", { name: "Contorno + preencher" }).click();
-  await page.getByLabel(/^Caneta à direita do bico/).fill("-40");
+  await page.getByRole("button", { name: "Mesa toda" }).click();
+  await page.getByRole("button", { name: "À esquerda" }).click();
+  await page.getByLabel(/^Distância para o lado/).fill("40");
   await expect(page.locator(".plot-preview polyline").nth(40)).toBeAttached();
   if (SHOTS) await page.screenshot({ path: `${SHOTS}/preenchido-deslocado.png`, fullPage: true });
 });

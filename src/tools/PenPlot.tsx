@@ -6,7 +6,7 @@ import { getManifold } from "../geometry/manifold";
 import { gcode3mf } from "../geometry/gcode3mf";
 import { handLines, myLines, type Strokes } from "../geometry/handwriting";
 import { hersheyLines } from "../geometry/hershey";
-import { AIR_MM, FILL_DEFAULTS, FillSettings, MARGIN_MM, orderStrokes, PEN_DEFAULTS, penGcode, PenSettings, placeOnBed, reach, withFill, type Fill, type Pen, type PenJob, type Stroke } from "../geometry/plotter";
+import { AIR_MM, FILL_DEFAULTS, FillSettings, MARGIN_MM, orderStrokes, PEN_DEFAULTS, penGcode, PenSettings, placeOnBed, drawArea, PAPER_DEFAULT, PaperSchema, reach, withFill, type Fill, type Paper, type Pen, type PenJob, type Stroke } from "../geometry/plotter";
 import { svgLines } from "../geometry/svgImport";
 import { textToCrossSection } from "../geometry/text";
 import { exampleFile, useExample } from "../help/helpStore";
@@ -21,6 +21,8 @@ import Segmented from "../ui/Segmented";
 import { errorText, useToast } from "../ui/Toast";
 import { DESIGN_ACCEPT } from "./designInput";
 import DrawPad from "./DrawPad";
+import { SideView, TopView } from "./PenDiagram";
+import { usePlotSim } from "./PlotSim";
 import MyLettersSheet, { useAlphabet } from "./MyLetters";
 import GeneratorHelp from "./models/guide/GeneratorHelp";
 import { TOOL_HELP } from "./models/help/toolHelp";
@@ -35,9 +37,10 @@ const LETTERING = [["single", "Cursiva"], ["mine", "Minha letra"], ["font", "Con
 const FILL_LABELS = [["outline", "Só contorno"], ["both", "Contorno + preencher"], ["fill", "Só preencher"]] as const;
 const ANGLES = [["0", "0°"], ["45", "45°"], ["90", "90°"], ["135", "135°"]] as const;
 type Format = "3mf" | "gcode";
+const PAPER_OPTIONS = [["a4", "A4"], ["a5", "A5"], ["a6", "A6"], ["card", "10 × 15"], ["custom", "Outro"], ["bed", "Mesa toda"]] as const;
 const FORMATS = [["3mf", ".gcode.3mf (Bambu)"], ["gcode", ".gcode (outras)"]] as const;
 
-const initial = () => ({ ...initialDesign(100), source: "design" as Source, text: "Obrigada!", lettering: "single" as Lettering, font: "sacramento" as FontId, pen: PEN_DEFAULTS as Pen, fill: FILL_DEFAULTS, format: "3mf" as Format, hand: [] as Strokes, variation: 0.5 });
+const initial = () => ({ ...initialDesign(100), source: "design" as Source, text: "Obrigada!", lettering: "single" as Lettering, font: "sacramento" as FontId, pen: PEN_DEFAULTS as Pen, fill: FILL_DEFAULTS, format: "3mf" as Format, paper: PAPER_DEFAULT as Paper, penBack: false as boolean | undefined, penLeft: false as boolean | undefined, hand: [] as Strokes, variation: 0.5 });
 
 /** Linhas do desenho ou do texto, Y para cima (o SVG vem com Y para baixo). */
 async function linesOf(source: Source, svgText: string | null, text: string, lettering: Lettering, font: FontId, mine: { alphabet: Alphabet; variation: number; hand: Strokes }) {
@@ -75,7 +78,12 @@ export default function PenPlot() {
   const penCheck = PenSettings.safeParse(s.pen);
   const fillCheck = FillSettings.safeParse(fill);
   const off = penCheck.success ? penCheck.data : { offX: 0, offY: 0 };
+  const paper: Paper = s.paper ?? PAPER_DEFAULT; // projetos de antes do papel (#317)
+  const paperCheck = PaperSchema.safeParse(paper);
+  const setPaper = (patch: Partial<Paper>) => tool.set((cur) => ({ ...cur, paper: { ...(cur.paper ?? PAPER_DEFAULT), ...patch } }), "paper");
+  const sheetOk = paperCheck.success ? paperCheck.data : null;
   const area = reach(b, off);
+  const { area: usable, sheet, cut } = drawArea(b, off, sheetOk);
   const [built, setBuilt] = useState<{ strokes: Stroke[] | null; error: string | null }>({ strokes: null, error: null });
   const { strokes, error } = built;
   useEffect(() => {
@@ -83,7 +91,7 @@ export default function PenPlot() {
     linesOf(s.source, svg?.text ?? null, s.text, lettering, s.font, { alphabet, variation, hand })
       .then((lines) => {
         if (!alive) return;
-        const placed = lines && placeOnBed(lines, width, b, off);
+        const placed = lines && placeOnBed(lines, width, b, off, sheetOk);
         setBuilt({ strokes: placed && orderStrokes(fillCheck.success ? withFill(placed, fillCheck.data) : placed), error: null });
       })
       .catch((e) => alive && setBuilt({ strokes: null, error: errorText(e) }));
@@ -91,7 +99,16 @@ export default function PenPlot() {
       alive = false;
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps -- off e fillCheck mudam de objeto a cada render; os valores estão nas dependências
-  }, [s.source, svg, s.text, lettering, s.font, alphabet, variation, hand, width, b, off.offX, off.offY, fillCheck.success, fill.mode, fill.spacing, fill.angle, fill.cross]);
+  }, [s.source, svg, s.text, lettering, s.font, alphabet, variation, hand, width, b, off.offX, off.offY, fillCheck.success, fill.mode, fill.spacing, fill.angle, fill.cross, sheetOk?.size, sheetOk?.w, sheetOk?.h, sheetOk?.landscape]);
+  const sim = usePlotSim(strokes, penCheck.success ? penCheck.data.drawFeed : 1500);
+  // a caneta: direção + distância na tela; com sinal no estado (X + = direita, Y + = para trás)
+  const offX = s.pen.offX ?? 0;
+  const offY = s.pen.offY ?? 0;
+  // a direção fica guardada à parte: com distância 0 o sinal se perde
+  const back = s.penBack ?? offY > 0;
+  const left = s.penLeft ?? offX < 0;
+  const setDir = (k: "penBack" | "penLeft", v: boolean) =>
+    tool.set((cur) => ({ ...cur, [k]: v, pen: { ...cur.pen, ...(k === "penBack" ? { offY: Math.abs(cur.pen.offY ?? 0) * (v ? 1 : -1) } : { offX: Math.abs(cur.pen.offX ?? 0) * (v ? -1 : 1) }) } }), k);
 
   const job: PenJob | null = useMemo(() => {
     if (!strokes || !penCheck.success) return null;
@@ -185,10 +202,32 @@ export default function PenPlot() {
               </div>
             )}
             {!fillCheck.success && <Alert kind="error">{fillCheck.error.issues[0]?.message}</Alert>}
-            <NumField label="Largura" value={width} onChange={setWidth} min={10} max={b.x - 2 * MARGIN_MM} step={1} hint={`Largura do desenho no papel; fica no meio de onde a caneta alcança na mesa de ${b.x} × ${b.y} mm${b.name ? ` (${b.name})` : ""}.`} />
+            <NumField label="Largura" value={width} onChange={setWidth} min={10} max={Math.max(10, Math.floor(usable.x1 - usable.x0 - 2 * MARGIN_MM))} step={1} hint={`Largura do desenho; ele fica no meio da ${sheet ? "folha" : "mesa"}. Cabe até ${Math.floor(usable.x1 - usable.x0 - 2 * MARGIN_MM)} × ${Math.floor(usable.y1 - usable.y0 - 2 * MARGIN_MM)} mm.`} />
+          </div>
+          <div className="card stack">
+            <h3>Folha</h3>
+            <Segmented label="Tamanho da folha" value={paper.size} options={PAPER_OPTIONS} onChange={(v) => setPaper({ size: v })} full />
+            {paper.size === "custom" && (
+              <div className="grid two">
+                <NumField label="Largura da folha" value={paper.w} onChange={(v) => setPaper({ w: v })} min={20} max={500} step={1} />
+                <NumField label="Altura da folha" value={paper.h} onChange={(v) => setPaper({ h: v })} min={20} max={500} step={1} />
+              </div>
+            )}
+            {paper.size !== "bed" && (
+              <label className="check">
+                <input type="checkbox" checked={paper.landscape} onChange={(e) => setPaper({ landscape: e.target.checked })} /> Folha deitada
+              </label>
+            )}
+            {!paperCheck.success && <Alert kind="error">{paperCheck.error.issues[0]?.message}</Alert>}
+            {cut && <Alert kind="warn">A folha é maior que a área que a caneta alcança na mesa de {b.x} × {b.y} mm: o desenho fica só na parte do meio dela (a área branca da prévia).</Alert>}
+            {sheet && <p className="hint">Para centralizar: dobre a folha ao meio nos dois sentidos e marque o centro. Na pausa do começo, a ponta da caneta para no meio da mesa: ponha o centro da folha embaixo dela e prenda com fita ou ímãs.</p>}
           </div>
           <div className="card stack">
             <h3>Caneta</h3>
+            <p className="hint">
+              Use caneta de ponta fina que escreve com pouca força: <strong>caneta hidrográfica fina ou fineliner</strong> (tipo Stabilo Point 88 ou Faber-Castell Fine Pen 0,4). Esferográfica (BIC) também serve, mas precisa apertar mais e falha mais. Gel borra se a velocidade for alta.
+            </p>
+            <SideView zDraw={s.pen.zDraw} zLift={s.pen.zLift} air={s.pen.airTest} />
             <label className="check">
               <input type="checkbox" checked={s.pen.airTest} onChange={(e) => setPen("airTest")(e.target.checked)} /> Testar no ar (caneta {AIR_MM} mm acima do papel)
             </label>
@@ -200,10 +239,19 @@ export default function PenPlot() {
               <NumField label="Pausa depois de mexer o Z" value={s.pen.settleMs} onChange={setPen("settleMs")} min={0} max={2000} step={10} unit="ms" />
             </div>
             <h4>Onde a caneta fica</h4>
-            <p className="hint">O suporte prende a caneta ao lado do bico. Com a régua, meça do centro do bico até a ponta da caneta, olhando a impressora de frente.</p>
+            <p className="hint">
+              O suporte prende a caneta perto do bico (na maioria, <strong>na frente</strong> dele). Com a caneta no suporte, olhe a impressora de frente e meça com a régua do centro do bico até a ponta da caneta: quanto ela está para a frente (ou para trás) e quanto para o lado. Assim o app desenha no lugar certo.
+            </p>
+            <TopView offX={offX} offY={offY} />
             <div className="grid two">
-              <NumField label="Caneta à direita do bico" value={s.pen.offX ?? 0} onChange={setPen("offX")} min={-80} max={80} step={0.5} hint="Negativo = à esquerda." />
-              <NumField label="Caneta para trás do bico" value={s.pen.offY ?? 0} onChange={setPen("offY")} min={-80} max={80} step={0.5} hint="Negativo = para a frente." />
+              <div className="stack">
+                <Segmented label="Frente ou trás" value={back ? "back" : "front"} options={[["front", "Na frente"], ["back", "Atrás"]] as const} onChange={(v) => setDir("penBack", v === "back")} />
+                <NumField label="Distância para a frente ou para trás" value={Math.abs(offY)} onChange={(v) => setPen("offY")(v * (back ? 1 : -1))} min={0} max={80} step={0.5} hint="0 = na mesma linha do bico." />
+              </div>
+              <div className="stack">
+                <Segmented label="Lado" value={left ? "left" : "right"} options={[["left", "À esquerda"], ["right", "À direita"]] as const} onChange={(v) => setDir("penLeft", v === "left")} />
+                <NumField label="Distância para o lado" value={Math.abs(offX)} onChange={(v) => setPen("offX")(v * (left ? -1 : 1))} min={0} max={80} step={0.5} hint="0 = bem no meio do bico." />
+              </div>
             </div>
             {!penCheck.success && <Alert kind="error">{penCheck.error.issues[0]?.message}</Alert>}
           </div>
@@ -212,7 +260,13 @@ export default function PenPlot() {
             <button className="action" disabled={!job} onClick={onSave}>
               <Download aria-hidden /> Salvar G-code
             </button>
-            <p className="hint">Copie o arquivo para o cartão microSD da impressora e escolha-o na tela dela (não precisa abrir no Bambu Studio). As Bambu leem o .gcode.3mf; outras marcas, o .gcode.</p>
+            <h4>Como mandar para a impressora</h4>
+            <ol className="hint" style={{ paddingLeft: 18, margin: 0, display: "grid", gap: 4 }}>
+              <li>Salve o arquivo e copie para o <strong>cartão microSD</strong> da impressora (na A1, ele fica na frente, embaixo da tela). Use um leitor de cartão no computador.</li>
+              <li>Ponha o cartão de volta, toque no ícone de <strong>pasta (Arquivos)</strong> na tela da impressora e escolha o arquivo.</li>
+              <li>Toque em Imprimir. A impressora não aquece nem puxa filamento: só zera, leva o bico ao meio e pausa para você prender a caneta.</li>
+            </ol>
+            <p className="hint">Não precisa abrir no Bambu Studio. As Bambu leem o .gcode.3mf; outras marcas, o .gcode.</p>
           </div>
           <GeneratorHelp help={TOOL_HELP.plotter} showTips />
         </div>
@@ -227,18 +281,23 @@ export default function PenPlot() {
           {error && <Alert kind="error">{error}</Alert>}
           <figure>
             <figcaption>Mesa de {b.x} × {b.y} mm</figcaption>
-            <svg className="plot-preview" viewBox={`0 0 ${b.x} ${b.y}`} role="img" aria-label="Prévia do desenho na mesa" style={{ width: "100%", maxHeight: "60vh", background: "#fff", border: "1px solid var(--line, #ccc)" }}>
+            <svg className="plot-preview" viewBox={`0 0 ${b.x} ${b.y}`} role="img" aria-label="Prévia do desenho na mesa" style={{ width: "100%", maxHeight: "60vh", background: "#f3f4f8", border: "1px solid var(--line, #ccc)" }}>
               {/* Y da impressora para cima, Y da tela para baixo */}
               <g transform={`translate(0 ${b.y}) scale(1 -1)`}>
                 {/* faixas que a caneta não alcança (o bico sairia da mesa) */}
                 <path d={`M0 0H${b.x}V${b.y}H0Z M${area.x0} ${area.y0}V${area.y1}H${area.x1}V${area.y0}Z`} fill="#e9e9ee" fillRule="evenodd" aria-hidden />
-                <rect x={area.x0 + MARGIN_MM} y={area.y0 + MARGIN_MM} width={area.x1 - area.x0 - 2 * MARGIN_MM} height={area.y1 - area.y0 - 2 * MARGIN_MM} fill="none" stroke="#ccc" strokeDasharray="3 3" strokeWidth={0.5} />
+                {sheet && <rect x={sheet.x0} y={sheet.y0} width={sheet.x1 - sheet.x0} height={sheet.y1 - sheet.y0} fill="#fff" stroke="#9aa3c7" strokeWidth={0.6} aria-hidden />}
+                {sheet && <path d={`M${(sheet.x0 + sheet.x1) / 2 - 4} ${(sheet.y0 + sheet.y1) / 2}h8M${(sheet.x0 + sheet.x1) / 2} ${(sheet.y0 + sheet.y1) / 2 - 4}v8`} stroke="#9aa3c7" strokeWidth={0.5} aria-hidden />}
+                <rect x={usable.x0 + MARGIN_MM} y={usable.y0 + MARGIN_MM} width={usable.x1 - usable.x0 - 2 * MARGIN_MM} height={usable.y1 - usable.y0 - 2 * MARGIN_MM} fill="none" stroke="#ccc" strokeDasharray="3 3" strokeWidth={0.5} />
                 {strokes?.map((st, i) => (
-                  <polyline key={i} points={st.map((p) => p.join(",")).join(" ")} fill="none" stroke="#0B1F66" strokeWidth={0.4} strokeLinejoin="round" />
+                  <polyline key={i} points={st.map((p) => p.join(",")).join(" ")} fill="none" stroke={sim.simulating ? "#c9cde0" : "#0B1F66"} strokeWidth={0.4} strokeLinejoin="round" />
                 ))}
+                {sim.layer}
               </g>
             </svg>
+            <figcaption>{sheet ? `Folha de ${Math.round(sheet.x1 - sheet.x0)} × ${Math.round(sheet.y1 - sheet.y0)} mm; a cruz é o meio, onde a caneta para no começo.` : "A área cinza é onde a caneta não alcança."}</figcaption>
           </figure>
+          {sim.controls}
           {job && (
             <div className="metrics" aria-live="polite">
               <span>

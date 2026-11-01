@@ -45,8 +45,35 @@ export const reach = (bed: { x: number; y: number }, off: { offX?: number; offY?
   return { x0: Math.max(0, ox), y0: Math.max(0, oy), x1: Math.min(bed.x, bed.x + ox), y1: Math.min(bed.y, bed.y + oy) };
 };
 
-/** Linhas (Y para cima) escaladas para `widthMm` de largura e centradas onde a caneta alcança. Erro se não couber com a margem. */
-export function placeOnBed(lines: { pts: Pt[]; closed: boolean }[], widthMm: number, bed: { x: number; y: number }, off: { offX?: number; offY?: number } = {}): Stroke[] {
+/** Folhas comuns (mm, em pé). */
+export const PAPERS = { a4: [210, 297], a5: [148, 210], a6: [105, 148], card: [100, 150] } as const;
+export type Paper = { size: keyof typeof PAPERS | "bed" | "custom"; w: number; h: number; landscape: boolean };
+export const PaperSchema = z.object({ size: z.enum(["a4", "a5", "a6", "card", "bed", "custom"]), w: z.number().min(20, "Folha: no mínimo 20 mm.").max(500, "Folha: no máximo 500 mm."), h: z.number().min(20, "Folha: no mínimo 20 mm.").max(500, "Folha: no máximo 500 mm."), landscape: z.boolean() });
+export const PAPER_DEFAULT: Paper = { size: "a5", w: 148, h: 210, landscape: false };
+
+/** Medidas da folha (deitada troca largura e altura); "bed" = sem folha, a mesa toda. */
+export function paperSize(p: Paper): [number, number] | null {
+  if (p.size === "bed") return null;
+  const [w, h] = p.size === "custom" ? [p.w, p.h] : PAPERS[p.size];
+  return p.landscape ? [h, w] : [w, h];
+}
+
+/**
+ * Onde dá para desenhar: a folha centrada no ponto da pausa (o meio de onde a caneta alcança), cortada pelo que a
+ * caneta alcança. `cut` = a folha é maior que isso (ex.: A4 numa mesa de 256 mm).
+ */
+export function drawArea(bed: { x: number; y: number }, off: { offX?: number; offY?: number }, paper: Paper | null): { area: Area; sheet: Area | null; cut: boolean } {
+  const a = reach(bed, off);
+  const size = paper && paperSize(paper);
+  if (!size) return { area: a, sheet: null, cut: false };
+  const [cx, cy] = [(a.x0 + a.x1) / 2, (a.y0 + a.y1) / 2];
+  const sheet = { x0: cx - size[0] / 2, y0: cy - size[1] / 2, x1: cx + size[0] / 2, y1: cy + size[1] / 2 };
+  const area = { x0: Math.max(a.x0, sheet.x0), y0: Math.max(a.y0, sheet.y0), x1: Math.min(a.x1, sheet.x1), y1: Math.min(a.y1, sheet.y1) };
+  return { area, sheet, cut: area.x1 - area.x0 < size[0] - 0.01 || area.y1 - area.y0 < size[1] - 0.01 };
+}
+
+/** Linhas (Y para cima) escaladas para `widthMm` de largura e centradas na folha (ou onde a caneta alcança). Erro se não couber com a margem. */
+export function placeOnBed(lines: { pts: Pt[]; closed: boolean }[], widthMm: number, bed: { x: number; y: number }, off: { offX?: number; offY?: number } = {}, paper: Paper | null = null): Stroke[] {
   const all = lines.flatMap((l) => l.pts);
   if (!all.length) throw new Error("Nenhum traço no desenho.");
   if (all.length > MAX_POINTS) throw new Error("Desenho com detalhe demais para a caneta. Diminua o Detalhe na Imagem em SVG.");
@@ -55,10 +82,10 @@ export function placeOnBed(lines: { pts: Pt[]; closed: boolean }[], widthMm: num
   if (x1 - x0 <= 0) throw new Error("O desenho não tem largura.");
   const s = widthMm / (x1 - x0);
   const h = (y1 - y0) * s;
-  const a = reach(bed, off);
+  const { area: a, sheet } = drawArea(bed, off, paper);
   const [maxW, maxH] = [a.x1 - a.x0 - 2 * MARGIN_MM, a.y1 - a.y0 - 2 * MARGIN_MM];
   if (widthMm > maxW || h > maxH) {
-    const where = a.x1 - a.x0 < bed.x || a.y1 - a.y0 < bed.y ? `na área que a caneta alcança (${Math.round(a.x1 - a.x0)} × ${Math.round(a.y1 - a.y0)} mm)` : `na mesa de ${bed.x} × ${bed.y} mm`;
+    const where = sheet ? `na folha (${Math.round(a.x1 - a.x0)} × ${Math.round(a.y1 - a.y0)} mm que dá para usar)` : a.x1 - a.x0 < bed.x || a.y1 - a.y0 < bed.y ? `na área que a caneta alcança (${Math.round(a.x1 - a.x0)} × ${Math.round(a.y1 - a.y0)} mm)` : `na mesa de ${bed.x} × ${bed.y} mm`;
     throw new Error(`O desenho (${Math.round(widthMm)} × ${Math.round(h)} mm) não cabe ${where} com ${MARGIN_MM} mm de margem. Diminua a largura.`);
   }
   const [ox, oy] = [a.x0 + (a.x1 - a.x0 - widthMm) / 2, a.y0 + (a.y1 - a.y0 - h) / 2];
