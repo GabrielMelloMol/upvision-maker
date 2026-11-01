@@ -15,7 +15,7 @@ describe("conector de IA (MCP, #304)", () => {
     expect((await rpc("initialize", { protocolVersion: "2025-03-26" })).result).toMatchObject({ protocolVersion: "2025-03-26", capabilities: { tools: {} }, serverInfo: { name: "upvision" } });
     expect((await rpc("initialize", { protocolVersion: "1999-01-01" })).result.protocolVersion).toBe("2025-06-18");
     const tools = (await rpc("tools/list")).result.tools as { name: string; annotations: { readOnlyHint: boolean } }[];
-    expect(tools.map((x) => x.name)).toEqual(["pedidos_e_estoque", "buscar_clientes", "listar_orcamentos", "resultado_financeiro", "criar_cliente", "criar_orcamento"]);
+    expect(tools.map((x) => x.name)).toEqual(["pedidos_e_estoque", "impressoras_agora", "buscar_clientes", "listar_orcamentos", "resultado_financeiro", "criar_cliente", "criar_orcamento"]);
     expect(tools.filter((x) => !x.annotations.readOnlyHint).map((x) => x.name)).toEqual(["criar_cliente", "criar_orcamento"]);
   });
 

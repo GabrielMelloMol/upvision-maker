@@ -4,6 +4,7 @@ import { useState } from "react";
 import { findCatalogPrinter, MEASURE_TIP, PRINTER_CATALOG_ITEMS, printerFromCatalog } from "../domain/catalog/printers";
 import PlugSheet from "./calculator/PlugSheet";
 import CrudPage from "../ui/CrudPage";
+import PrinterLiveCard from "../printers/PrinterLiveCard";
 
 const DEFAULTS = { name: "", watts: "", nozzle: "0,4", price: "0", lifeHours: "5000", upkeepPerHour: "0" };
 const NOZZLES = ["0,2", "0,4", "0,6", "0,8"];
@@ -32,6 +33,7 @@ export default function Printers() {
       lead="A potência média entra no custo de energia; o preço e a vida útil viram o custo de máquina por hora."
       empty={{ icon: Printer, text: "Cadastre sua impressora e a potência média dela para a calculadora incluir a energia no preço." }}
       repo={printers}
+      intro={<PrinterLiveCard />}
       fields={[
         { key: "name", label: "Nome", kind: "text", placeholder: "Ex.: Bambu Lab A1" },
         { key: "watts", label: "Potência média (W)", kind: "number", placeholder: "Ex.: 120", hint: `Média imprimindo PLA, não a máxima da fonte. ${MEASURE_TIP}`,

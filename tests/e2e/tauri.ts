@@ -35,6 +35,8 @@ export type TauriMock = {
   autoBackups: Map<string, Map<string, string>>;
   /** Acesso do celular na rede de casa (lan.rs, #16). */
   lan: { running: boolean; url: string; code: string; phones: number; locked: boolean };
+  /** Quem escuta cada evento do Rust (para o teste disparar). */
+  listeners?: { event: string; handler: number }[];
   /** Resposta do comando window_style (material nativo). */
   windowStyle: { effect: "mica" | "sidebar" | "none"; overlayTitlebar: boolean };
   /** Fatiadores "instalados" (slicer.rs, #160) e o que o app mandou abrir neles. */
@@ -163,6 +165,8 @@ function handler(m: TauriMock, cmd: string, a: Record<string, unknown> | null, h
     case "window_style":
       return m.windowStyle;
     case "plugin:event|listen":
+      // guarda quem escuta cada evento, para o teste disparar eventos do Rust (ex.: printer-report)
+      (m.listeners ??= []).push({ event: String(args.event), handler: Number(args.handler) });
       return 1;
     case "plugin:event|unlisten":
       return null;
@@ -246,6 +250,12 @@ function handler(m: TauriMock, cmd: string, a: Record<string, unknown> | null, h
     case "lan_disconnect_all":
       m.lan = { ...m.lan, phones: 0, code: "654321" };
       return m.lan;
+    case "printer_discover":
+      return [{ ip: "192.168.68.59", serial: "03900D611528416", model: "N2S", name: "A1 combo" }];
+    case "printer_watch":
+      return "b".repeat(64);
+    case "printer_unwatch":
+      return null;
     case "mcp_start":
       return { running: true, url: "http://127.0.0.1:47821/mcp" };
     case "mcp_stop":
