@@ -3,7 +3,7 @@
 Cada versão aparece para a usuária na tela "O que há de novo" depois da atualização.
 Formato: `## <versão> — <data>` e itens `- …` em linguagem simples.
 
-## Próxima versão
+## 0.15.10 — 2026-10-31
 - **Acompanhar a impressora pela rede (#15)**: em Impressoras → Acompanhar pela rede, toque em **Procurar na rede** (o app acha a sua Bambu sozinho) e digite o código de acesso da tela da impressora. Aparece na hora o que ela está imprimindo, quanto falta, a camada, as temperaturas e os filamentos do AMS, e o computador avisa quando a impressão termina, pausa ou para com erro. Só leitura: a impressora continua na nuvem e o app não manda nenhum comando.
 - **Desenhar com caneta mais completo (#311)**: letra de **traço único** (cursiva, passa uma vez em cada letra, com acentos e ç), **preenchimento** com linhas (contorno, contorno + preencher ou só preencher, no ângulo e espaço que você escolher), campo **Onde a caneta fica** para o suporte que prende a caneta ao lado do bico (a prévia mostra em cinza onde ela não alcança) e o arquivo agora sai como **.gcode.3mf**, o formato que as Bambu leem pelo cartão (o .gcode simples continua como opção).
 
