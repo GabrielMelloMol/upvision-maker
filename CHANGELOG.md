@@ -3,7 +3,7 @@
 Cada versão aparece para a usuária na tela "O que há de novo" depois da atualização.
 Formato: `## <versão> — <data>` e itens `- …` em linguagem simples.
 
-## Próxima versão
+## 0.15.13 — 2026-11-01
 - **Desenhar com caneta completo (#320)**: agora dá para pôr **várias camadas** na mesma folha (texto, forma pronta, desenho ou imagem, **peça 3D** vista de cima e à mão livre) e **arrastar, girar e mudar o tamanho** direto na prévia, que ganhou grade e réguas em mm. Formas prontas: círculo, retângulo, triângulo, polígono, estrela, coração, espiral, onda e linha. No texto, ajuste o espaço entre as letras e entre as linhas. Na caneta: velocidade de viagem, **espelhar** (se o teste sair invertido) e soltar os motores no fim. Escolha a impressora na própria tela. A simulação anda **traço a traço**, com barra de posição e onde a caneta está. Dá para copiar e ver o G-code, e **salvar o perfil** (caneta, folha e sua letra) num arquivo.
 
 ## 0.15.12 — 2026-11-01
