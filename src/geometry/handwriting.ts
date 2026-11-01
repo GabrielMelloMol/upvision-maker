@@ -3,7 +3,7 @@
  * 3 versões cada, sorteadas para letras repetidas não ficarem iguais. Letra sem desenho usa a cursiva de traço único.
  */
 import { z } from "zod";
-import { hersheyLines } from "./hershey";
+import { hersheyLines, type Spacing } from "./hershey";
 
 type Pt = [number, number];
 export type Strokes = Pt[][];
@@ -59,7 +59,7 @@ function bbox(lines: { pts: Pt[] }[]) {
  * Texto com a letra da pessoa, Y para cima (placeOnBed escala). `variation` de 0 a 1: quanto cada letra sobe, desce ou
  * anda de lado (até ~1,5 unidade, menos que a grossura de um traço numa letra de 1 cm).
  */
-export function myLines(text: string, alphabet: Alphabet, variation: number, seed = 1): { pts: Pt[]; closed: boolean }[] {
+export function myLines(text: string, alphabet: Alphabet, variation: number, seed = 1, { gap = 0, line: lineK = 1 }: Spacing = {}): { pts: Pt[]; closed: boolean }[] {
   const out: { pts: Pt[]; closed: boolean }[] = [];
   let n = 0;
   text.split("\n").forEach((line, row) => {
@@ -67,7 +67,7 @@ export function myLines(text: string, alphabet: Alphabet, variation: number, see
     for (const ch of line.normalize("NFC")) {
       n++;
       if (ch === " ") {
-        x += SPACE;
+        x += SPACE + gap;
         continue;
       }
       const versions = alphabet[ch];
@@ -77,9 +77,9 @@ export function myLines(text: string, alphabet: Alphabet, variation: number, see
       const b = bbox(glyph);
       if (!b) continue;
       const dx = x - b.x0 + (rand(seed * 31 + n) - 0.5) * 3 * variation;
-      const dy = -row * 32 + (rand(seed * 131 + n) - 0.5) * 3 * variation;
+      const dy = -row * 32 * lineK + (rand(seed * 131 + n) - 0.5) * 3 * variation;
       for (const g of glyph) out.push({ pts: g.pts.map(([px, py]): Pt => [px + dx, py + dy]), closed: false });
-      x += b.x1 - b.x0 + GAP;
+      x += b.x1 - b.x0 + GAP + gap;
     }
   });
   return out;

@@ -146,12 +146,12 @@ export const ARTICLES: HelpArticle[] = [
     intro: "A impressora vira uma plotter: desenha com uma caneta presa no cabeçote, sem filamento e sem aquecer.",
     steps: [
       "Imprima um suporte de caneta para o cabeçote (para a A1: \"Easy penholder A1 / A1 Mini\", no MakerWorld) e use caneta hidrográfica fina (fineliner). Meça onde a ponta fica em relação ao bico e preencha em Onde a caneta fica.",
-      "Escolha a folha (A5 cabe inteira na A1), envie um desenho ou escreva um texto e veja na Simulação a caneta desenhando.",
+      "Escolha a folha (A5 cabe inteira na A1) e adicione camadas: texto, forma, desenho, peça 3D (.3mf/.stl, vista de cima) ou à mão livre. Arraste, gire e mude o tamanho na prévia e veja na Simulação a caneta desenhando.",
       "Salve com \"Testar no ar\" ligado e copie o arquivo para o cartão microSD da impressora.",
       "Sem a caneta, escolha o arquivo na pasta (Arquivos) da tela da impressora. Ela zera, leva o bico ao meio da mesa e pausa: ponha o centro da folha embaixo da caneta, prenda o suporte, desça a caneta até encostar no papel e toque em Continuar.",
       "Caminho certo no ar? Desligue o teste, salve de novo, tire a caneta e rode o passo 4 outra vez.",
     ],
-    tips: ["Traço fraco ou falhando: diminua a Altura ao desenhar de 0,1 em 0,1. Rasgando o papel: aumente.", "A4 não cabe inteira numa mesa de 256 mm: o app usa só a parte do meio.", "Em Texto → Minha letra, desenhe cada letra uma vez (ou até 3 versões) e o app escreve com a sua letra; em À mão livre, rabisque direto no quadro.", "Não deixe a impressora sozinha enquanto desenha."],
+    tips: ["Traço fraco ou falhando: diminua a Altura ao desenhar de 0,1 em 0,1. Rasgando o papel: aumente.", "A4 não cabe inteira numa mesa de 256 mm: o app usa só a parte do meio.", "Em Texto → Minha letra, desenhe cada letra uma vez (ou até 3 versões) e o app escreve com a sua letra; em À mão livre, rabisque direto no quadro.", "Saiu invertido no teste? Marque Espelhar na horizontal ou na vertical e salve de novo.", "Salvar perfil guarda a caneta, a folha e a sua letra num arquivo para outro computador.", "Não deixe a impressora sozinha enquanto desenha."],
     example: "Usar um coração de exemplo",
   },
   {

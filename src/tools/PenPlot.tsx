@@ -1,106 +1,165 @@
-import { Download } from "lucide-react";
-import { useEffect, useMemo, useState } from "react";
-import { bed } from "../geometry/bed";
-import { loadFont, type FontId } from "../geometry/fonts";
-import { getManifold } from "../geometry/manifold";
+import { Copy, Download, Eye, EyeOff, Files, Trash2 } from "lucide-react";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { PRINTER_CATALOG, printerLabel } from "../domain/catalog/printers";
+import { bed, parseVolume, type Bed } from "../geometry/bed";
 import { gcode3mf } from "../geometry/gcode3mf";
-import { handLines, myLines, type Strokes } from "../geometry/handwriting";
-import { hersheyLines } from "../geometry/hershey";
-import { AIR_MM, FILL_DEFAULTS, FillSettings, MARGIN_MM, orderStrokes, PEN_DEFAULTS, penGcode, PenSettings, placeOnBed, drawArea, PAPER_DEFAULT, PaperSchema, reach, withFill, type Fill, type Paper, type Pen, type PenJob, type Stroke } from "../geometry/plotter";
-import { svgLines } from "../geometry/svgImport";
-import { textToCrossSection } from "../geometry/text";
+import { AlphabetSchema } from "../geometry/handwriting";
+import { contentKey, itemLines, itemName, legacyItems, newItem, type ItemKind, type Line, type PlotItem } from "../geometry/plotItems";
+import { AIR_MM, FillSettings, inside, orderStrokes, PEN_DEFAULTS, penGcode, PenSettings, placeLines, drawArea, PAPER_DEFAULT, PaperSchema, reach, withFill, type Paper, type Pen, type PenJob } from "../geometry/plotter";
 import { exampleFile, useExample } from "../help/helpStore";
-import type { Alphabet } from "../geometry/handwriting";
 import Alert from "../ui/Alert";
 import Button from "../ui/Button";
 import Dropzone from "../ui/Dropzone";
-import FontPicker from "../ui/FontPicker";
 import NumField from "../ui/NumField";
 import { saveFile, slug } from "../ui/saveFile";
 import Segmented from "../ui/Segmented";
 import { errorText, useToast } from "../ui/Toast";
 import { DESIGN_ACCEPT } from "./designInput";
-import DrawPad from "./DrawPad";
 import { SideView, TopView } from "./PenDiagram";
+import PlotCanvas, { type Placed } from "./PlotCanvas";
+import PlotItemEditor, { MODEL_ACCEPT, readPlotFile } from "./PlotItemEditor";
 import { usePlotSim } from "./PlotSim";
-import MyLettersSheet, { useAlphabet } from "./MyLetters";
+import { useAlphabet } from "./MyLetters";
 import GeneratorHelp from "./models/guide/GeneratorHelp";
 import { TOOL_HELP } from "./models/help/toolHelp";
 import ToolSessionBar from "./ToolSessionBar";
-import { initialDesign, useDesignInput } from "./useDesignInput";
+import { initialDesign } from "./useDesignInput";
 import { useToolState } from "./useToolState";
 
-type Source = "design" | "text" | "hand";
-const SOURCES = [["design", "Desenho ou imagem"], ["text", "Texto"], ["hand", "À mão livre"]] as const;
-type Lettering = "single" | "mine" | "font";
-const LETTERING = [["single", "Cursiva"], ["mine", "Minha letra"], ["font", "Contorno de uma fonte"]] as const;
-const FILL_LABELS = [["outline", "Só contorno"], ["both", "Contorno + preencher"], ["fill", "Só preencher"]] as const;
-const ANGLES = [["0", "0°"], ["45", "45°"], ["90", "90°"], ["135", "135°"]] as const;
 type Format = "3mf" | "gcode";
 const PAPER_OPTIONS = [["a4", "A4"], ["a5", "A5"], ["a6", "A6"], ["card", "10 × 15"], ["custom", "Outro"], ["bed", "Mesa toda"]] as const;
 const FORMATS = [["3mf", ".gcode.3mf (Bambu)"], ["gcode", ".gcode (outras)"]] as const;
+const ADD: [ItemKind, string][] = [["text", "Texto"], ["shape", "Forma"], ["design", "Desenho ou imagem"], ["model", "Peça 3D"], ["hand", "À mão livre"]];
+/** Linhas do G-code mostradas na tela (o arquivo inteiro pode ter centenas de milhares). */
+const GCODE_PREVIEW_LINES = 400;
+/** Perfil em arquivo (#320): caneta, folha, impressora e a minha letra, para levar a outro computador. */
+const PROFILE_APP = "upvision-caneta";
 
-const initial = () => ({ ...initialDesign(100), source: "design" as Source, text: "Obrigada!", lettering: "single" as Lettering, font: "sacramento" as FontId, pen: PEN_DEFAULTS as Pen, fill: FILL_DEFAULTS, format: "3mf" as Format, paper: PAPER_DEFAULT as Paper, penBack: false as boolean | undefined, penLeft: false as boolean | undefined, hand: [] as Strokes, variation: 0.5 });
+type State = { items: PlotItem[]; selected: string | null; pen: Pen; penBack?: boolean; penLeft?: boolean; format: Format; paper: Paper; /** id do catálogo; "" = a impressora das Preferências */ printer: string };
 
-/** Linhas do desenho ou do texto, Y para cima (o SVG vem com Y para baixo). */
-async function linesOf(source: Source, svgText: string | null, text: string, lettering: Lettering, font: FontId, mine: { alphabet: Alphabet; variation: number; hand: Strokes }) {
-  if (source === "hand") return mine.hand.length ? handLines(mine.hand) : null;
-  if (source === "design") return svgText ? svgLines(svgText).map((l) => ({ ...l, pts: l.pts.map(([x, y]): [number, number] => [x, -y]) })) : null;
-  if (!text.trim()) return null;
-  if (lettering === "single") return hersheyLines(text);
-  if (lettering === "mine") return myLines(text, mine.alphabet, mine.variation);
-  const M = await getManifold();
-  const cs = textToCrossSection(M, await loadFont(font), text, 10);
-  try {
-    return cs.toPolygons().map((p) => ({ pts: p.map(([x, y]): [number, number] => [x, y]), closed: true }));
-  } finally {
-    cs.delete();
-  }
+/** Meio de onde dá para desenhar (folha ou mesa): onde entra a camada nova. */
+function centerOf(b: Bed, pen: Pen, paper: Paper): [number, number] {
+  const { area } = drawArea(b, pen, PaperSchema.safeParse(paper).success ? paper : null);
+  return [(area.x0 + area.x1) / 2, (area.y0 + area.y1) / 2];
+}
+
+function initial(): State {
+  const d = initialDesign(100); // desenho vindo de Imagem → SVG
+  const [x, y] = centerOf(bed(), PEN_DEFAULTS, PAPER_DEFAULT);
+  const items = d.svg ? [{ ...newItem("design", { x, y, w: d.width, rot: 0 }), svg: d.svg }] : [];
+  return { items, selected: items[0]?.id ?? null, pen: PEN_DEFAULTS, penBack: false, penLeft: false, format: "3mf", paper: PAPER_DEFAULT, printer: "" };
+}
+
+/** Rascunho de antes das camadas (#320) vira uma camada só. */
+function load(raw: unknown): State | null {
+  if (!raw || typeof raw !== "object") return null;
+  const o = raw as Record<string, unknown>;
+  if (Array.isArray(o.items)) return { printer: "", ...o } as State;
+  const pen = (o.pen as Pen | undefined) ?? PEN_DEFAULTS;
+  const paper = (o.paper as Paper | undefined) ?? PAPER_DEFAULT;
+  const items = legacyItems(o, centerOf(bed(), pen, paper));
+  return { items, selected: items[0]?.id ?? null, pen, penBack: o.penBack as boolean | undefined, penLeft: o.penLeft as boolean | undefined, format: (o.format as Format | undefined) ?? "3mf", paper, printer: "" };
 }
 
 export default function PenPlot() {
-  const tool = useToolState("plotter", initial, { label: "Desenhar com caneta" });
+  const tool = useToolState<State>("plotter", initial, { label: "Desenhar com caneta", load });
   const s = tool.state;
-  const { svg, width, setWidth, loading, error: inputError, onFile } = useDesignInput(s, (patch, key) => tool.set((cur) => ({ ...cur, ...patch }), key));
+  const items = s.items;
+  const sel = items.find((i) => i.id === s.selected) ?? null;
   const setPen = <K extends keyof Pen>(k: K) => (v: Pen[K]) => tool.set((cur) => ({ ...cur, pen: { ...cur.pen, [k]: v } }), `pen.${k}`);
-  const fill: Fill = s.fill ?? FILL_DEFAULTS; // projetos salvos antes do preenchimento não têm o campo
-  const setFill = <K extends keyof Fill>(k: K) => (v: Fill[K]) => tool.set((cur) => ({ ...cur, fill: { ...(cur.fill ?? FILL_DEFAULTS), [k]: v } }), `fill.${k}`);
-  const lettering = s.lettering ?? "single";
-  const format = s.format ?? "3mf";
-  const hand = s.hand ?? []; // projetos salvos antes da mão livre (#314) não têm os campos
-  const variation = s.variation ?? 0.5;
   const [alphabet, saveAlphabet] = useAlphabet();
-  const [lettersOpen, setLettersOpen] = useState(false);
-  useExample("plotter", () => void exampleFile("heart").then(onFile)); // "Usar exemplo" da ajuda (#84)
   const toast = useToast();
-  const b = bed();
 
+  const cat = PRINTER_CATALOG.find((p) => p.id === s.printer);
+  const b: Bed = useMemo(() => {
+    const v = cat && parseVolume(cat.volume);
+    return cat && v ? { ...v, name: printerLabel(cat) } : bed();
+  }, [cat]);
   const penCheck = PenSettings.safeParse(s.pen);
-  const fillCheck = FillSettings.safeParse(fill);
   const off = penCheck.success ? penCheck.data : { offX: 0, offY: 0 };
-  const paper: Paper = s.paper ?? PAPER_DEFAULT; // projetos de antes do papel (#317)
+  const paper: Paper = s.paper ?? PAPER_DEFAULT;
   const paperCheck = PaperSchema.safeParse(paper);
   const setPaper = (patch: Partial<Paper>) => tool.set((cur) => ({ ...cur, paper: { ...(cur.paper ?? PAPER_DEFAULT), ...patch } }), "paper");
   const sheetOk = paperCheck.success ? paperCheck.data : null;
   const area = reach(b, off);
   const { area: usable, sheet, cut } = drawArea(b, off, sheetOk);
-  const [built, setBuilt] = useState<{ strokes: Stroke[] | null; error: string | null }>({ strokes: null, error: null });
-  const { strokes, error } = built;
+  const [cx, cy] = [(usable.x0 + usable.x1) / 2, (usable.y0 + usable.y1) / 2];
+  const where = sheet ? "na folha" : usable.x1 - usable.x0 < b.x || usable.y1 - usable.y0 < b.y ? "na área que a caneta alcança" : "na mesa";
+
+  // camadas
+  const setItems = (f: (list: PlotItem[]) => PlotItem[], key: string, selected?: string | null) => tool.set((cur) => ({ ...cur, items: f(cur.items), ...(selected !== undefined ? { selected } : {}) }), key);
+  const setItem = (id: string, patch: Partial<PlotItem>, key: string) => setItems((list) => list.map((i) => (i.id === id ? { ...i, ...patch } : i)), `${key}:${id}`);
+  const select = (id: string | null) => tool.set((cur) => ({ ...cur, selected: id }), "selected");
+  function add(kind: ItemKind, patch: Partial<PlotItem> = {}) {
+    const w = Math.max(10, Math.min(100, Math.floor(usable.x1 - usable.x0 - 10)));
+    const it = { ...newItem(kind, { x: cx, y: cy, w, rot: 0 }), ...patch };
+    setItems((list) => [...list, it], "add", it.id);
+  }
+  const duplicate = (it: PlotItem) => {
+    const copy = { ...it, id: crypto.randomUUID(), x: it.x + 10, y: it.y - 10 };
+    setItems((list) => [...list, copy], "add", copy.id);
+  };
+  const remove = (id: string) => setItems((list) => list.filter((x) => x.id !== id), "remove", s.selected === id ? null : s.selected);
+
+  const [addError, setAddError] = useState<string | null>(null);
+  async function addFile(f: File) {
+    setAddError(null);
+    try {
+      const patch = await readPlotFile(f);
+      add(patch.kind ?? "design", patch);
+    } catch (e) {
+      setAddError(errorText(e));
+    }
+  }
+  useExample("plotter", () => void exampleFile("heart").then(addFile)); // "Usar exemplo" da ajuda (#84)
+
+  // linhas de cada camada: só recalcula quando o conteúdo muda (mover e girar não)
+  const [built, setBuilt] = useState<Record<string, { key: string; lines: Line[] | null; error: string | null }>>({});
+  const pending = useRef(new Set<string>());
   useEffect(() => {
-    let alive = true;
-    linesOf(s.source, svg?.text ?? null, s.text, lettering, s.font, { alphabet, variation, hand })
-      .then((lines) => {
-        if (!alive) return;
-        const placed = lines && placeOnBed(lines, width, b, off, sheetOk);
-        setBuilt({ strokes: placed && orderStrokes(fillCheck.success ? withFill(placed, fillCheck.data) : placed), error: null });
-      })
-      .catch((e) => alive && setBuilt({ strokes: null, error: errorText(e) }));
-    return () => {
-      alive = false;
-    };
-    // eslint-disable-next-line react-hooks/exhaustive-deps -- off e fillCheck mudam de objeto a cada render; os valores estão nas dependências
-  }, [s.source, svg, s.text, lettering, s.font, alphabet, variation, hand, width, b, off.offX, off.offY, fillCheck.success, fill.mode, fill.spacing, fill.angle, fill.cross, sheetOk?.size, sheetOk?.w, sheetOk?.h, sheetOk?.landscape]);
+    for (const it of items) {
+      const key = contentKey(it, alphabet);
+      const job = `${it.id}|${key}`;
+      if (built[it.id]?.key === key || pending.current.has(job)) continue;
+      pending.current.add(job);
+      void itemLines(it, alphabet)
+        .then(
+          (lines) => ({ key, lines, error: null }),
+          (e: unknown) => ({ key, lines: null, error: errorText(e) }),
+        )
+        .then((r) => {
+          pending.current.delete(job);
+          setBuilt((cur) => ({ ...cur, [it.id]: r }));
+        });
+    }
+  }, [items, alphabet, built]);
+
+  const { placed, problems } = useMemo(() => {
+    const placed: Placed[] = [];
+    const problems: string[] = [];
+    for (const it of items) {
+      const r = built[it.id];
+      if (r?.error) problems.push(`${itemName(it)}: ${r.error}`);
+      if (it.hidden || !r?.lines) continue;
+      try {
+        const { strokes, w, h } = placeLines(r.lines, it);
+        const fill = FillSettings.safeParse(it.fill);
+        if (!fill.success) problems.push(`${itemName(it)}: ${fill.error.issues[0]?.message}`);
+        const all = fill.success ? withFill(strokes, fill.data) : strokes;
+        const out = !inside(all, usable);
+        if (out) problems.push(`“${itemName(it)}” não cabe ${where}. Diminua, mova ou gire até a caixa ficar laranja.`);
+        placed.push({ id: it.id, label: itemName(it), strokes: all, hw: Math.max(1.5, w / 2), hh: Math.max(1.5, h / 2), out, x: it.x, y: it.y, w: it.w, rot: it.rot });
+      } catch (e) {
+        problems.push(`${itemName(it)}: ${errorText(e)}`);
+      }
+    }
+    return { placed, problems };
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- usable muda de objeto a cada render; os valores estão nas dependências
+  }, [items, built, usable.x0, usable.y0, usable.x1, usable.y1, where]);
+
+  const strokes = useMemo(() => (placed.length && !problems.length ? orderStrokes(placed.flatMap((p) => p.strokes)) : null), [placed, problems]);
   const sim = usePlotSim(strokes, penCheck.success ? penCheck.data.drawFeed : 1500);
+
   // a caneta: direção + distância na tela; com sinal no estado (X + = direita, Y + = para trás)
   const offX = s.pen.offX ?? 0;
   const offY = s.pen.offY ?? 0;
@@ -119,13 +178,14 @@ export default function PenPlot() {
     }
   }, [strokes, penCheck.success, penCheck.data, b]);
 
-  const name = slug(s.source === "text" ? s.text : s.source === "hand" ? "mao-livre" : (svg?.name ?? "desenho"));
+  const first = items.find((i) => !i.hidden);
+  const name = slug(first ? itemName(first) : "desenho");
   async function onSave() {
     if (!job) return;
     try {
       const base = `${name}${s.pen.airTest ? "-teste-no-ar" : ""}`;
       const p =
-        format === "3mf"
+        s.format === "3mf"
           ? await saveFile(`${base}.gcode.3mf`, gcode3mf(job.gcode, { printerName: b.name, minutes: job.minutes }), "3mf", "G-code da Bambu")
           : await saveFile(`${base}.gcode`, job.gcode, "gcode", "G-code");
       if (p) {
@@ -136,6 +196,41 @@ export default function PenPlot() {
       toast(`Não foi possível salvar: ${errorText(e)}`, "error");
     }
   }
+  async function onCopy() {
+    if (!job) return;
+    try {
+      await navigator.clipboard.writeText(job.gcode);
+      toast("G-code copiado.");
+    } catch (e) {
+      toast(`Não foi possível copiar: ${errorText(e)}`, "error");
+    }
+  }
+  async function saveProfile() {
+    try {
+      const data = { app: PROFILE_APP, v: 1, pen: s.pen, penBack: back, penLeft: left, paper, printer: s.printer, alphabet };
+      const p = await saveFile("perfil-caneta.json", JSON.stringify(data, null, 2), "json", "Perfil da caneta");
+      if (p) toast(`Perfil salvo em ${p}`);
+    } catch (e) {
+      toast(`Não foi possível salvar: ${errorText(e)}`, "error");
+    }
+  }
+  async function openProfile(f: File) {
+    try {
+      const o = JSON.parse(await f.text()) as Record<string, unknown>;
+      if (o.app !== PROFILE_APP) throw new Error("Este arquivo não é um perfil da caneta.");
+      const pen = PenSettings.parse(o.pen);
+      const pp = PaperSchema.parse(o.paper);
+      const printer = typeof o.printer === "string" && PRINTER_CATALOG.some((p) => p.id === o.printer) ? o.printer : "";
+      const letters = o.alphabet && typeof o.alphabet === "object" && Object.keys(o.alphabet).length ? AlphabetSchema.parse(o.alphabet) : null;
+      tool.set((cur) => ({ ...cur, pen, paper: pp, printer, penBack: o.penBack === true, penLeft: o.penLeft === true }), "profile");
+      if (letters) await saveAlphabet(letters);
+      toast("Perfil aberto.");
+    } catch (e) {
+      toast(`Não foi possível abrir o perfil: ${errorText(e)}`, "error");
+    }
+  }
+  const gcodeLines = job?.gcode.split("\n");
+  const prefs = bed();
 
   return (
     <div className="page">
@@ -145,67 +240,76 @@ export default function PenPlot() {
       <div className="tool-layout">
         <div className="controls">
           <div className="card stack">
-            <Segmented label="O que desenhar" value={s.source} options={SOURCES} onChange={tool.field("source")} full />
-            {s.source === "hand" ? (
-              <>
-                <DrawPad strokes={hand} onChange={(v) => tool.set((cur) => ({ ...cur, hand: v }), "hand")} label="Quadro para desenhar à mão livre" size={300} />
-                <div className="row">
-                  <Button disabled={!hand.length} onClick={() => tool.set((cur) => ({ ...cur, hand: hand.slice(0, -1) }), "hand")}>
-                    Desfazer traço
-                  </Button>
-                  <Button disabled={!hand.length} onClick={() => tool.set((cur) => ({ ...cur, hand: [] }), "hand")}>
-                    Limpar
-                  </Button>
-                </div>
-                <p className="hint">Desenhe com o mouse, a caneta do tablet ou o dedo. A Largura abaixo define o tamanho no papel.</p>
-              </>
-            ) : s.source === "design" ? (
-              <>
-                <Dropzone accept={DESIGN_ACCEPT} label={svg ? svg.name : "Arraste um SVG ou imagem"} hint="Imagens são vetorizadas automaticamente; a caneta passa no contorno." onFile={onFile} />
-                {loading && <Alert kind="info">Lendo o desenho…</Alert>}
-                {inputError && <Alert kind="error">{inputError}</Alert>}
-              </>
-            ) : (
-              <>
-                <label>
-                  Texto
-                  <textarea rows={2} maxLength={200} value={s.text} onChange={(e) => tool.field("text")(e.target.value)} />
-                </label>
-                <Segmented label="Letra" value={lettering} options={LETTERING} onChange={tool.field("lettering")} full />
-                {lettering === "single" ? (
-                  <p className="hint">Letra cursiva de uma linha só, como escrita à mão: a caneta passa uma vez em cada letra. Aceita acentos e ç.</p>
-                ) : lettering === "mine" ? (
-                  <>
-                    <Button onClick={() => setLettersOpen(true)}>{Object.keys(alphabet).length ? "Desenhar mais letras" : "Desenhar a minha letra"}</Button>
-                    <NumField label="Variação entre as letras" value={variation} onChange={(v) => tool.set((cur) => ({ ...cur, variation: v }), "variation")} min={0} max={1} step={0.1} unit="" hint="0 = todas alinhadas; 1 = cada letra sobe, desce e anda um pouco, como escrita de verdade." />
-                    <p className="hint">{Object.keys(alphabet).length} letras desenhadas; as que faltam saem na cursiva.</p>
-                    {lettersOpen && <MyLettersSheet alphabet={alphabet} onSave={saveAlphabet} onClose={() => setLettersOpen(false)} />}
-                  </>
-                ) : (
-                  <>
-                    <FontPicker value={s.font} onChange={tool.field("font")} sample={s.text} />
-                    <p className="hint">A caneta passa no contorno das letras; para letra cheia, use Preencher abaixo.</p>
-                  </>
-                )}
-              </>
+            <h3>Camadas</h3>
+            <div className="row" role="group" aria-label="Adicionar à mesa" style={{ flexWrap: "wrap", gap: 6 }}>
+              {ADD.map(([k, l]) => (
+                <Button key={k} size="sm" onClick={() => add(k)}>
+                  {l}
+                </Button>
+              ))}
+            </div>
+            <Dropzone accept={`${DESIGN_ACCEPT},${MODEL_ACCEPT}`} label="Ou arraste um desenho, imagem ou peça 3D" hint="SVG, foto ou .3mf/.stl: vira uma camada nova no meio da folha." onFile={addFile} compact={items.length > 0} />
+            {addError && <Alert kind="error">{addError}</Alert>}
+            {items.length > 0 && (
+              <ul className="stack" aria-label="Camadas" style={{ listStyle: "none", padding: 0, margin: 0, gap: 4 }}>
+                {[...items].reverse().map((it) => (
+                  <li key={it.id} className="row" style={{ alignItems: "center", gap: 4, flexWrap: "nowrap" }}>
+                    <button
+                      type="button"
+                      aria-pressed={it.id === s.selected}
+                      onClick={() => select(it.id)}
+                      title={itemName(it)}
+                      style={{ flex: "1 1 0", width: 0, minWidth: 0, justifyContent: "flex-start", textAlign: "left", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", display: "block", opacity: it.hidden ? 0.5 : 1, ...(it.id === s.selected ? { background: "var(--accent-soft)", color: "var(--accent-text)", fontWeight: 600 } : {}) }}
+                    >
+                      {itemName(it)}
+                    </button>
+                    <button type="button" className="icon-button" aria-pressed={!!it.hidden} aria-label={`Esconder ${itemName(it)}`} onClick={() => setItem(it.id, { hidden: !it.hidden }, "hidden")}>
+                      {it.hidden ? <EyeOff aria-hidden /> : <Eye aria-hidden />}
+                    </button>
+                    <button type="button" className="icon-button" aria-label={`Duplicar ${itemName(it)}`} onClick={() => duplicate(it)}>
+                      <Files aria-hidden />
+                    </button>
+                    <button type="button" className="icon-button" aria-label={`Apagar ${itemName(it)}`} onClick={() => remove(it.id)}>
+                      <Trash2 aria-hidden />
+                    </button>
+                  </li>
+                ))}
+              </ul>
             )}
-            <Segmented label="Preenchimento" value={fill.mode} options={FILL_LABELS} onChange={setFill("mode")} full />
-            {fill.mode !== "outline" && (
-              <div className="grid two">
-                <NumField label="Espaço entre as linhas" value={fill.spacing} onChange={setFill("spacing")} min={0.2} max={5} step={0.1} hint="Menor = mais cheio (e mais demorado). Ponta de 0,5 mm: 0,5 a 0,7." />
-                <div className="stack">
-                  <Segmented label="Ângulo" value={String(fill.angle)} options={ANGLES} onChange={(v) => setFill("angle")(Number(v) as Fill["angle"])} />
-                  <label className="check">
-                    <input type="checkbox" checked={fill.cross} onChange={(e) => setFill("cross")(e.target.checked)} /> Cruzado (mais tinta)
-                  </label>
-                </div>
-              </div>
-            )}
-            {!fillCheck.success && <Alert kind="error">{fillCheck.error.issues[0]?.message}</Alert>}
-            <NumField label="Largura" value={width} onChange={setWidth} min={10} max={Math.max(10, Math.floor(usable.x1 - usable.x0 - 2 * MARGIN_MM))} step={1} hint={`Largura do desenho; ele fica no meio da ${sheet ? "folha" : "mesa"}. Cabe até ${Math.floor(usable.x1 - usable.x0 - 2 * MARGIN_MM)} × ${Math.floor(usable.y1 - usable.y0 - 2 * MARGIN_MM)} mm.`} />
+            {items.length > 1 && <p className="hint">A impressora faz o caminho mais curto entre todos os traços, de todas as camadas. Camada escondida não sai no G-code.</p>}
           </div>
+          {sel && (
+            <div className="card stack">
+              <h3>{itemName(sel)}</h3>
+              <PlotItemEditor key={sel.id} item={sel} set={(patch, key) => setItem(sel.id, patch, key)} alphabet={alphabet} saveAlphabet={saveAlphabet} />
+              <h4>Lugar na mesa</h4>
+              <div className="grid two">
+                <NumField label="Largura" value={sel.w} onChange={(v) => setItem(sel.id, { w: v }, "w")} min={2} max={500} step={1} />
+                <NumField label="Giro" value={sel.rot} onChange={(v) => setItem(sel.id, { rot: v }, "rot")} min={-180} max={180} step={1} unit="°" />
+                <NumField label="X do meio" value={sel.x} onChange={(v) => setItem(sel.id, { x: v }, "x")} min={-500} max={1000} step={1} hint="0 = canto esquerdo da mesa." />
+                <NumField label="Y do meio" value={sel.y} onChange={(v) => setItem(sel.id, { y: v }, "y")} min={-500} max={1000} step={1} hint="0 = frente da mesa." />
+              </div>
+              <Button onClick={() => setItem(sel.id, { x: Math.round(cx * 10) / 10, y: Math.round(cy * 10) / 10 }, "center")}>Centralizar {sheet ? "na folha" : "na mesa"}</Button>
+            </div>
+          )}
           <div className="card stack">
-            <h3>Folha</h3>
+            <h3>Impressora e folha</h3>
+            <label>
+              Impressora
+              <select value={s.printer} onChange={(e) => tool.set((cur) => ({ ...cur, printer: e.target.value }), "printer")}>
+                <option value="">
+                  A das Preferências{prefs.name ? ` (${prefs.name})` : ""}, {prefs.x} × {prefs.y} mm
+                </option>
+                {PRINTER_CATALOG.flatMap((p) => {
+                  const v = parseVolume(p.volume);
+                  return v ? [
+                    <option key={p.id} value={p.id}>
+                      {printerLabel(p)}, {v.x} × {v.y} mm
+                    </option>,
+                  ] : [];
+                })}
+              </select>
+            </label>
             <Segmented label="Tamanho da folha" value={paper.size} options={PAPER_OPTIONS} onChange={(v) => setPaper({ size: v })} full />
             {paper.size === "custom" && (
               <div className="grid two">
@@ -235,8 +339,9 @@ export default function PenPlot() {
               <NumField label="Altura ao desenhar" value={s.pen.zDraw} onChange={setPen("zDraw")} min={3} max={6} step={0.1} hint="5 = a ponta só encosta (é onde você ajustou a caneta). Traço fraco ou falhando: diminua de 0,1 em 0,1. Rasgando o papel: aumente." />
               <NumField label="Altura ao subir" value={s.pen.zLift} onChange={setPen("zLift")} min={7} max={30} step={0.5} hint="Z entre um traço e outro." />
               <NumField label="Velocidade de desenho" value={s.pen.drawFeed} onChange={setPen("drawFeed")} min={100} max={6000} step={100} unit="mm/min" />
+              <NumField label="Velocidade de viagem" value={s.pen.travelFeed ?? PEN_DEFAULTS.travelFeed} onChange={setPen("travelFeed")} min={600} max={12000} step={100} unit="mm/min" hint="Com a caneta no alto, de um traço ao outro." />
               <NumField label="Velocidade do Z" value={s.pen.zFeed} onChange={setPen("zFeed")} min={60} max={1200} step={10} unit="mm/min" />
-              <NumField label="Pausa depois de mexer o Z" value={s.pen.settleMs} onChange={setPen("settleMs")} min={0} max={2000} step={10} unit="ms" />
+              <NumField label="Pausa depois de mexer o Z" value={s.pen.settleMs} onChange={setPen("settleMs")} min={0} max={2000} step={10} unit="ms" hint="Espera a caneta subir ou descer de vez antes de andar. Risquinho sobrando entre os traços: aumente (150 a 250)." />
             </div>
             <h4>Onde a caneta fica</h4>
             <p className="hint">
@@ -253,13 +358,37 @@ export default function PenPlot() {
                 <NumField label="Distância para o lado" value={Math.abs(offX)} onChange={(v) => setPen("offX")(v * (left ? -1 : 1))} min={0} max={80} step={0.5} hint="0 = bem no meio do bico." />
               </div>
             </div>
+            <h4>Se o teste sair errado</h4>
+            <div className="row" style={{ flexWrap: "wrap", gap: 12 }}>
+              <label className="check">
+                <input type="checkbox" checked={!!s.pen.mirrorX} onChange={(e) => setPen("mirrorX")(e.target.checked)} /> Espelhar na horizontal
+              </label>
+              <label className="check">
+                <input type="checkbox" checked={!!s.pen.mirrorY} onChange={(e) => setPen("mirrorY")(e.target.checked)} /> Espelhar na vertical
+              </label>
+              <label className="check">
+                <input type="checkbox" checked={!!s.pen.motorsOff} onChange={(e) => setPen("motorsOff")(e.target.checked)} /> Soltar os motores no fim
+              </label>
+            </div>
+            <p className="hint">Se o teste no ar sair invertido (texto ao contrário), marque o espelhar do lado que inverteu e salve de novo. Soltar os motores deixa mover o cabeçote com a mão depois de desenhar.</p>
             {!penCheck.success && <Alert kind="error">{penCheck.error.issues[0]?.message}</Alert>}
           </div>
           <div className="card stack">
-            <Segmented label="Arquivo" value={format} options={FORMATS} onChange={tool.field("format")} full />
+            <Segmented label="Arquivo" value={s.format} options={FORMATS} onChange={(v) => tool.set((cur) => ({ ...cur, format: v }), "format")} full />
             <button className="action" disabled={!job} onClick={onSave}>
               <Download aria-hidden /> Salvar G-code
             </button>
+            <div className="row">
+              <Button icon={Copy} disabled={!job} onClick={onCopy}>
+                Copiar G-code
+              </Button>
+            </div>
+            {job && gcodeLines && (
+              <details>
+                <summary>Ver o G-code ({gcodeLines.length} linhas)</summary>
+                <textarea readOnly wrap="off" aria-label="G-code" rows={12} style={{ width: "100%", fontFamily: "ui-monospace, monospace", fontSize: 12 }} value={gcodeLines.slice(0, GCODE_PREVIEW_LINES).join("\n") + (gcodeLines.length > GCODE_PREVIEW_LINES ? `\n… mais ${gcodeLines.length - GCODE_PREVIEW_LINES} linhas no arquivo` : "")} />
+              </details>
+            )}
             <h4>Como mandar para a impressora</h4>
             <ol className="hint" style={{ paddingLeft: 18, margin: 0, display: "grid", gap: 4 }}>
               <li>Salve o arquivo e copie para o <strong>cartão microSD</strong> da impressora (na A1, ele fica na frente, embaixo da tela). Use um leitor de cartão no computador.</li>
@@ -267,6 +396,12 @@ export default function PenPlot() {
               <li>Toque em Imprimir. A impressora não aquece nem puxa filamento: só zera, leva o bico ao meio e pausa para você prender a caneta.</li>
             </ol>
             <p className="hint">Não precisa abrir no Bambu Studio. As Bambu leem o .gcode.3mf; outras marcas, o .gcode.</p>
+            <h4>Meu perfil</h4>
+            <p className="hint">Guarda a caneta, a folha, a impressora e a sua letra num arquivo, para usar em outro computador.</p>
+            <div className="row" style={{ flexWrap: "wrap", gap: 8 }}>
+              <Button onClick={saveProfile}>Salvar perfil</Button>
+              <Dropzone accept=".json,application/json" label="Abrir perfil" onFile={openProfile} compact />
+            </div>
           </div>
           <GeneratorHelp help={TOOL_HELP.plotter} showTips />
         </div>
@@ -278,33 +413,34 @@ export default function PenPlot() {
               Ponha uma folha de plástico por baixo do papel para não riscar a mesa.
             </p>
           </Alert>
-          {error && <Alert kind="error">{error}</Alert>}
+          {problems.map((p) => (
+            <Alert key={p} kind="error">
+              {p}
+            </Alert>
+          ))}
           <figure>
-            <figcaption>Mesa de {b.x} × {b.y} mm</figcaption>
-            <svg className="plot-preview" viewBox={`0 0 ${b.x} ${b.y}`} role="img" aria-label="Prévia do desenho na mesa" style={{ width: "100%", maxHeight: "60vh", background: "#f3f4f8", border: "1px solid var(--line, #ccc)" }}>
-              {/* Y da impressora para cima, Y da tela para baixo */}
-              <g transform={`translate(0 ${b.y}) scale(1 -1)`}>
-                {/* faixas que a caneta não alcança (o bico sairia da mesa) */}
-                <path d={`M0 0H${b.x}V${b.y}H0Z M${area.x0} ${area.y0}V${area.y1}H${area.x1}V${area.y0}Z`} fill="#e9e9ee" fillRule="evenodd" aria-hidden />
-                {sheet && <rect x={sheet.x0} y={sheet.y0} width={sheet.x1 - sheet.x0} height={sheet.y1 - sheet.y0} fill="#fff" stroke="#9aa3c7" strokeWidth={0.6} aria-hidden />}
-                {sheet && <path d={`M${(sheet.x0 + sheet.x1) / 2 - 4} ${(sheet.y0 + sheet.y1) / 2}h8M${(sheet.x0 + sheet.x1) / 2} ${(sheet.y0 + sheet.y1) / 2 - 4}v8`} stroke="#9aa3c7" strokeWidth={0.5} aria-hidden />}
-                <rect x={usable.x0 + MARGIN_MM} y={usable.y0 + MARGIN_MM} width={usable.x1 - usable.x0 - 2 * MARGIN_MM} height={usable.y1 - usable.y0 - 2 * MARGIN_MM} fill="none" stroke="#ccc" strokeDasharray="3 3" strokeWidth={0.5} />
-                {strokes?.map((st, i) => (
-                  <polyline key={i} points={st.map((p) => p.join(",")).join(" ")} fill="none" stroke={sim.simulating ? "#c9cde0" : "#0B1F66"} strokeWidth={0.4} strokeLinejoin="round" />
-                ))}
-                {sim.layer}
-              </g>
-            </svg>
-            <figcaption>{sheet ? `Folha de ${Math.round(sheet.x1 - sheet.x0)} × ${Math.round(sheet.y1 - sheet.y0)} mm; a cruz é o meio, onde a caneta para no começo.` : "A área cinza é onde a caneta não alcança."}</figcaption>
+            <figcaption>
+              {b.name ?? "Mesa"}: {b.x} × {b.y} mm
+            </figcaption>
+            <PlotCanvas bed={b} area={area} sheet={sheet} items={placed} selected={s.selected} onSelect={select} onPlace={(id, p, key) => setItem(id, p, key)} faded={sim.simulating}>
+              {sim.layer}
+            </PlotCanvas>
+            <figcaption>
+              {items.length ? "Clique para escolher · arraste para mover · quadradinho do canto muda o tamanho · bolinha de cima gira. " : "Adicione um texto, uma forma ou um desenho para começar. "}
+              {sheet ? `Folha de ${Math.round(sheet.x1 - sheet.x0)} × ${Math.round(sheet.y1 - sheet.y0)} mm; a cruz é o meio, onde a caneta para no começo.` : "A área cinza é onde a caneta não alcança."}
+            </figcaption>
           </figure>
           {sim.controls}
           {job && (
             <div className="metrics" aria-live="polite">
               <span>
+                Camadas <b>{placed.length}</b>
+              </span>
+              <span>
                 Traços <b>{job.strokes}</b>
               </span>
               <span>
-                Linha <b>{(job.lengthMm / 1000).toFixed(1)} m</b>
+                Tinta <b>{(job.lengthMm / 1000).toFixed(1)} m</b>
               </span>
               <span>
                 Tempo <b>~{Math.max(1, Math.round(job.minutes))} min</b>

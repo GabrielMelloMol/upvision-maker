@@ -1,11 +1,11 @@
-import { Pause, Play, RotateCcw } from "lucide-react";
+import { Pause, Play, RotateCcw, SkipForward } from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
 import type { Stroke } from "../geometry/plotter";
 import Button from "../ui/Button";
 import Segmented from "../ui/Segmented";
 
 type Pt = [number, number];
-const SPEEDS = [["5", "5×"], ["20", "20×"], ["60", "60×"]] as const;
+const SPEEDS = [["1", "1×"], ["5", "5×"], ["20", "20×"], ["60", "60×"]] as const;
 const dist = (a: Pt, b: Pt) => Math.hypot(a[0] - b[0], a[1] - b[1]);
 
 /** Até onde a caneta chegou depois de `done` mm de linha: os traços inteiros, o pedaço do atual e a ponta. */
@@ -36,7 +36,9 @@ export function progress(strokes: Stroke[], done: number): { lines: Pt[][]; tip:
  * Desenha dentro do <g> da prévia (Y para cima); os botões vão em `controls`.
  */
 export function usePlotSim(strokes: Stroke[] | null, feedMmMin: number) {
-  const total = useMemo(() => (strokes ?? []).reduce((t, s) => t + s.slice(1).reduce((u, p, i) => u + dist(s[i], p), 0), 0), [strokes]);
+  // onde cada traço termina, em mm de linha desde o começo (#320: passo a passo)
+  const ends = useMemo(() => (strokes ?? []).reduce<number[]>((acc, s) => [...acc, (acc[acc.length - 1] ?? 0) + s.slice(1).reduce((u, p, i) => u + dist(s[i], p), 0)], []), [strokes]);
+  const total = ends[ends.length - 1] ?? 0;
   // a simulação vale para um desenho só: mudou o desenho, volta a mostrar tudo
   const [run, setRun] = useState<{ of: Stroke[] | null; done: number | null; playing: boolean }>({ of: null, done: null, playing: false });
   const mine = run.of === strokes;
@@ -74,24 +76,41 @@ export function usePlotSim(strokes: Stroke[] | null, feedMmMin: number) {
     </g>
   );
   const pct = total ? Math.round(((done ?? 0) / total) * 100) : 0;
+  const at = done ?? total;
+  const strokeNo = Math.min(ends.length, ends.filter((e) => e < at - 1e-6).length + 1);
+  const step = () => {
+    setPlaying(false);
+    setDone(ends.find((e) => e > (done ?? -1) + 1e-6) ?? ends[0] ?? 0);
+  };
   const controls = strokes?.length ? (
-    <div className="row" style={{ alignItems: "center", gap: 8, flexWrap: "wrap" }}>
-      {playing ? (
-        <Button icon={Pause} onClick={() => setPlaying(false)}>
-          Pausar
+    <div className="stack" style={{ gap: 6 }}>
+      <div className="row" style={{ alignItems: "center", gap: 8, flexWrap: "wrap" }}>
+        {playing ? (
+          <Button icon={Pause} onClick={() => setPlaying(false)}>
+            Pausar
+          </Button>
+        ) : (
+          <Button icon={Play} onClick={() => (done === null || done >= total ? (setDone(0), setPlaying(true)) : setPlaying(true))}>
+            {done !== null && done < total ? "Continuar" : "Simular o desenho"}
+          </Button>
+        )}
+        <Button icon={SkipForward} onClick={step}>
+          Próximo traço
         </Button>
-      ) : (
-        <Button icon={Play} onClick={() => (done === null || done >= total ? (setDone(0), setPlaying(true)) : setPlaying(true))}>
-          {done !== null && done < total ? "Continuar" : "Simular o desenho"}
-        </Button>
-      )}
+        {done !== null && (
+          <Button icon={RotateCcw} onClick={() => (setDone(null), setPlaying(false))}>
+            Ver tudo
+          </Button>
+        )}
+        <Segmented label="Velocidade da simulação" value={speed} options={SPEEDS} onChange={setSpeed} />
+      </div>
+      <input type="range" aria-label="Posição da simulação" min={0} max={total} step="any" value={at} onChange={(e) => (setPlaying(false), setDone(Number(e.target.value)))} />
       {done !== null && (
-        <Button icon={RotateCcw} onClick={() => (setDone(null), setPlaying(false))}>
-          Ver tudo
-        </Button>
+        <span className="hint" aria-live="polite">
+          Traço {strokeNo} de {ends.length}
+          {view?.tip && ` · X ${view.tip[0].toFixed(1)} Y ${view.tip[1].toFixed(1)}`} · {pct}% desenhado
+        </span>
       )}
-      <Segmented label="Velocidade da simulação" value={speed} options={SPEEDS} onChange={setSpeed} />
-      {done !== null && <span className="hint" aria-live="polite">{pct}% desenhado</span>}
     </div>
   ) : null;
   return { layer, controls, simulating: done !== null };

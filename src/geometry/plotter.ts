@@ -14,7 +14,7 @@ export type Stroke = Pt[];
  */
 export const CAL_Z = 5;
 
-export const PEN_DEFAULTS = { zDraw: 4.6, zLift: 10, drawFeed: 1500, zFeed: 600, settleMs: 120, airTest: true, offX: 0, offY: 0 };
+export const PEN_DEFAULTS = { zDraw: 4.6, zLift: 10, drawFeed: 1500, zFeed: 600, settleMs: 120, airTest: true, offX: 0, offY: 0, travelFeed: 6000, mirrorX: false, mirrorY: false, motorsOff: false };
 
 export const PenSettings = z.object({
   zDraw: z.number().min(3, "Altura ao desenhar: no mínimo 3 mm (abaixo disso a caneta aperta demais).").max(CAL_Z + 1, `Altura ao desenhar: no máximo ${CAL_Z + 1} mm (acima disso a caneta não encosta).`),
@@ -27,13 +27,19 @@ export const PenSettings = z.object({
   /** Ponta da caneta = bico + deslocamento (o suporte prende a caneta ao lado do bico). */
   offX: z.number().min(-80, "Deslocamento X: no máximo 80 mm.").max(80, "Deslocamento X: no máximo 80 mm.").default(0),
   offY: z.number().min(-80, "Deslocamento Y: no máximo 80 mm.").max(80, "Deslocamento Y: no máximo 80 mm.").default(0),
+  // #320: os de antes não têm estes campos
+  travelFeed: z.number().min(600, "Velocidade de viagem: no mínimo 600 mm/min.").max(12000, "Velocidade de viagem: no máximo 12000 mm/min.").default(6000),
+  /** Espelha o desenho no G-code, para impressora que desenhou invertido no teste. */
+  mirrorX: z.boolean().default(false),
+  mirrorY: z.boolean().default(false),
+  /** M84 no fim: os motores soltam e dá para mexer o cabeçote com a mão. */
+  motorsOff: z.boolean().default(false),
 });
 export type Pen = z.input<typeof PenSettings>;
 
 /** Quanto o "testar no ar" sobe tudo. */
 export const AIR_MM = 10;
 export const MARGIN_MM = 5;
-const TRAVEL_FEED = 6000;
 /** Teto de pontos: acima disso o arquivo fica enorme e a impressora engasga. */
 const MAX_POINTS = 200_000;
 
@@ -72,30 +78,37 @@ export function drawArea(bed: { x: number; y: number }, off: { offX?: number; of
   return { area, sheet, cut: area.x1 - area.x0 < size[0] - 0.01 || area.y1 - area.y0 < size[1] - 0.01 };
 }
 
-/** Linhas (Y para cima) escaladas para `widthMm` de largura e centradas na folha (ou onde a caneta alcança). Erro se não couber com a margem. */
-export function placeOnBed(lines: { pts: Pt[]; closed: boolean }[], widthMm: number, bed: { x: number; y: number }, off: { offX?: number; offY?: number } = {}, paper: Paper | null = null): Stroke[] {
+/** Onde fica uma camada (#320): meio em (x, y) na mesa (mm, Y para cima), largura `w` mm e giro `rot` graus (anti-horário). */
+export type Place = { x: number; y: number; w: number; rot: number };
+
+/** Linhas (Y para cima) escaladas para a largura, giradas e com o meio no ponto. `w` × `h` = tamanho antes de girar. */
+export function placeLines(lines: { pts: Pt[]; closed: boolean }[], p: Place): { strokes: Stroke[]; w: number; h: number } {
   const all = lines.flatMap((l) => l.pts);
   if (!all.length) throw new Error("Nenhum traço no desenho.");
   if (all.length > MAX_POINTS) throw new Error("Desenho com detalhe demais para a caneta. Diminua o Detalhe na Imagem em SVG.");
   let [x0, x1, y0, y1] = [Infinity, -Infinity, Infinity, -Infinity];
   for (const [x, y] of all) [x0, x1, y0, y1] = [Math.min(x0, x), Math.max(x1, x), Math.min(y0, y), Math.max(y1, y)];
-  if (x1 - x0 <= 0) throw new Error("O desenho não tem largura.");
-  const s = widthMm / (x1 - x0);
-  const h = (y1 - y0) * s;
-  const { area: a, sheet } = drawArea(bed, off, paper);
-  const [maxW, maxH] = [a.x1 - a.x0 - 2 * MARGIN_MM, a.y1 - a.y0 - 2 * MARGIN_MM];
-  if (widthMm > maxW || h > maxH) {
-    const where = sheet ? `na folha (${Math.round(a.x1 - a.x0)} × ${Math.round(a.y1 - a.y0)} mm que dá para usar)` : a.x1 - a.x0 < bed.x || a.y1 - a.y0 < bed.y ? `na área que a caneta alcança (${Math.round(a.x1 - a.x0)} × ${Math.round(a.y1 - a.y0)} mm)` : `na mesa de ${bed.x} × ${bed.y} mm`;
-    throw new Error(`O desenho (${Math.round(widthMm)} × ${Math.round(h)} mm) não cabe ${where} com ${MARGIN_MM} mm de margem. Diminua a largura.`);
-  }
-  const [ox, oy] = [a.x0 + (a.x1 - a.x0 - widthMm) / 2, a.y0 + (a.y1 - a.y0 - h) / 2];
-  return lines
+  // traço reto em pé (sem largura): a "largura" vale para a altura
+  const span = x1 - x0 > 1e-9 ? x1 - x0 : y1 - y0;
+  if (span <= 1e-9) throw new Error("O desenho não tem tamanho.");
+  const s = p.w / span;
+  const [cx, cy] = [(x0 + x1) / 2, (y0 + y1) / 2];
+  const [c, n] = [Math.cos((p.rot * Math.PI) / 180), Math.sin((p.rot * Math.PI) / 180)];
+  const at = ([x, y]: Pt): Pt => {
+    const [u, v] = [(x - cx) * s, (y - cy) * s];
+    return [p.x + u * c - v * n, p.y + u * n + v * c];
+  };
+  const strokes = lines
     .filter((l) => l.pts.length >= 2)
     .map((l) => {
-      const pts = l.pts.map(([x, y]): Pt => [ox + (x - x0) * s, oy + (y - y0) * s]);
+      const pts = l.pts.map(at);
       return l.closed ? [...pts, pts[0]] : pts;
     });
+  return { strokes, w: (x1 - x0) * s, h: (y1 - y0) * s };
 }
+
+/** Todos os pontos dentro da área (folga de 0,01 mm para arredondamento). */
+export const inside = (strokes: Stroke[], a: Area) => strokes.every((st) => st.every(([x, y]) => x >= a.x0 - 0.01 && x <= a.x1 + 0.01 && y >= a.y0 - 0.01 && y <= a.y1 + 0.01));
 
 const dist = (a: Pt, b: Pt) => Math.hypot(a[0] - b[0], a[1] - b[1]);
 
@@ -181,14 +194,15 @@ export function penGcode(strokes: Stroke[], pen: Pen, bed: { x: number; y: numbe
   for (const s of strokes)
     for (const [x, y] of s)
       if (!(x >= a.x0 && x <= a.x1 && y >= a.y0 && y <= a.y1)) throw new Error(`A caneta não alcança o ponto (${f(x)}, ${f(y)}): nada foi gerado.`);
-  // o G-code move o BICO: ponta − deslocamento
-  const nx = (x: number) => f(x - p.offX);
-  const ny = (y: number) => f(y - p.offY);
+  // o G-code move o BICO: ponta − deslocamento; espelhar vira o desenho dentro da área que a ponta alcança
+  const nx = (x: number) => f((p.mirrorX ? a.x0 + a.x1 - x : x) - p.offX);
+  const ny = (y: number) => f((p.mirrorY ? a.y0 + a.y1 - y : y) - p.offY);
   const air = p.airTest ? AIR_MM : 0;
   const [down, up] = [p.zDraw + air, p.zLift + air];
   const settle = p.settleMs > 0 ? [`G4 P${p.settleMs}`] : [];
   const lengthMm = strokes.reduce((t, s) => t + s.slice(1).reduce((u, q, i) => u + dist(s[i], q), 0), 0);
-  const minutes = lengthMm / p.drawFeed + (strokes.length * 2 * p.settleMs) / 60000;
+  const travelMm = strokes.reduce((t, s, i) => t + (i ? dist(strokes[i - 1][strokes[i - 1].length - 1], s[0]) : 0), 0);
+  const minutes = lengthMm / p.drawFeed + travelMm / p.travelFeed + (strokes.length * 2 * p.settleMs) / 60000;
   const lines = [
     // cabeçalho que a tela das Bambu lê (tempo e camadas); o resto são comentários
     "; HEADER_BLOCK_START",
@@ -201,19 +215,19 @@ export function penGcode(strokes: Stroke[], pen: Pen, bed: { x: number; y: numbe
     "G21 ; milímetros",
     "G28 ; zera os eixos (sem a caneta: a A1 encosta o bico na mesa ao zerar)",
     `G1 Z${f(up + AIR_MM)} F${p.zFeed}`,
-    `G0 X${nx((a.x0 + a.x1) / 2)} Y${ny((a.y0 + a.y1) / 2)} F${TRAVEL_FEED} ; ponta da caneta no meio da folha`,
+    `G0 X${nx((a.x0 + a.x1) / 2)} Y${ny((a.y0 + a.y1) / 2)} F${p.travelFeed} ; ponta da caneta no meio da folha`,
     `G1 Z${f(CAL_Z)} F${p.zFeed}`,
     "M400 U1 ; pausa: prenda o suporte, desça a caneta até encostar no papel e toque em Continuar",
     `G1 Z${f(up)} F${p.zFeed}`,
   ];
   for (const s of strokes) {
-    lines.push(`G0 X${nx(s[0][0])} Y${ny(s[0][1])} F${TRAVEL_FEED}`, `G1 Z${f(down)} F${p.zFeed}`, ...settle);
+    lines.push(`G0 X${nx(s[0][0])} Y${ny(s[0][1])} F${p.travelFeed}`, `G1 Z${f(down)} F${p.zFeed}`, ...settle);
     for (let i = 1; i < s.length; i++) {
       lines.push(`G1 X${nx(s[i][0])} Y${ny(s[i][1])} F${p.drawFeed}`);
     }
     lines.push(`G1 Z${f(up)} F${p.zFeed}`, ...settle);
   }
   // fim: caneta bem alta e cabeçote no canto, longe do papel
-  lines.push(`G1 Z${f(up + AIR_MM)} F${p.zFeed}`, `G0 X0 Y${f(bed.y)} F${TRAVEL_FEED}`, "");
+  lines.push(`G1 Z${f(up + AIR_MM)} F${p.zFeed}`, `G0 X0 Y${f(bed.y)} F${p.travelFeed}`, ...(p.motorsOff ? ["M84 ; solta os motores"] : []), "");
   return { gcode: lines.join("\n"), strokes: strokes.length, lengthMm, minutes };
 }

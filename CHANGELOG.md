@@ -3,6 +3,9 @@
 Cada versão aparece para a usuária na tela "O que há de novo" depois da atualização.
 Formato: `## <versão> — <data>` e itens `- …` em linguagem simples.
 
+## Próxima versão
+- **Desenhar com caneta completo (#320)**: agora dá para pôr **várias camadas** na mesma folha (texto, forma pronta, desenho ou imagem, **peça 3D** vista de cima e à mão livre) e **arrastar, girar e mudar o tamanho** direto na prévia, que ganhou grade e réguas em mm. Formas prontas: círculo, retângulo, triângulo, polígono, estrela, coração, espiral, onda e linha. No texto, ajuste o espaço entre as letras e entre as linhas. Na caneta: velocidade de viagem, **espelhar** (se o teste sair invertido) e soltar os motores no fim. Escolha a impressora na própria tela. A simulação anda **traço a traço**, com barra de posição e onde a caneta está. Dá para copiar e ver o G-code, e **salvar o perfil** (caneta, folha e sua letra) num arquivo.
+
 ## 0.15.12 — 2026-11-01
 - **Busca do Início com sugestões (#316)**: ao digitar na caixa "O que você quer criar?", aparecem na hora as telas, modelos prontos e registros que combinam, como no Buscar (⌘K). Use as setas e Enter, ou clique; Esc fecha a lista. Enter sem escolher continua procurando em Criar.
 - **Desenhar com caneta mais fácil de configurar (#317)**: escolha a **folha** (A4, A5, A6, 10 × 15 ou outra; deitada ou em pé) e a prévia mostra a folha na mesa, com o meio marcado; o desenho fica dentro dela (A4 não cabe inteira numa A1 e o app avisa). **Simular o desenho** mostra a caneta desenhando, na ordem certa, em 5×, 20× ou 60×. A caneta agora se configura por direção (na frente ou atrás, à esquerda ou à direita, e a distância), com desenhos de lado e de cima que mudam com os números. Junto do botão Salvar há o passo a passo de mandar para a impressora (cartão microSD → Arquivos na tela), e a tela indica que caneta usar e qual suporte imprimir.
