@@ -59,7 +59,7 @@ for (const t of TASKS) {
     test(`achar: ${t.label}: 1 busca no Início`, async ({ page }) => {
       test.slow();
       await start(page);
-      await page.getByRole("searchbox", { name: "O que você quer criar?" }).fill(t.query);
+      await page.getByRole("combobox", { name: "O que você quer criar?" }).fill(t.query);
       await page.keyboard.press("Enter");
       await page.locator(".create-products a, .create-tools a").first().click();
       await t.check(page);

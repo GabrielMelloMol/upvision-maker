@@ -34,7 +34,7 @@ test("atalho antigo leva à aba certa: a busca ⌘K por shadowbox", async ({ pag
   await openApp(page);
   await go(page, "Início");
   await page.keyboard.press("Control+k");
-  await page.getByRole("combobox").fill("shadowbox");
+  await page.getByRole("combobox", { name: "Buscar telas e registros" }).fill("shadowbox");
   // o modelo entra na busca quando o catálogo termina de carregar: espera por ele (a tela "Litofania" também cita o Shadowbox e aparece antes)
   await page.locator("#pal-model-shadowbox").click();
   await expect(page.getByRole("heading", { name: "Litofania", level: 1 })).toBeVisible();

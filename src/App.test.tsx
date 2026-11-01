@@ -119,7 +119,7 @@ describe("App", () => {
     const user = userEvent.setup();
     renderWithApp(<App />);
     await user.keyboard("{Control>}k{/Control}");
-    await user.type(screen.getByRole("combobox"), "bambu");
+    await user.type(screen.getByRole("combobox", { name: "Buscar telas e registros" }), "bambu");
     await user.click(await screen.findByRole("option", { name: /Bambu A1/ }));
     expect(screen.queryByRole("dialog", { name: "Buscar" })).not.toBeInTheDocument();
     expect(await screen.findByRole("heading", { name: "Editar impressora" })).toBeInTheDocument();
@@ -130,7 +130,7 @@ describe("App", () => {
     const user = userEvent.setup();
     renderWithApp(<App />);
     await user.click(screen.getByRole("button", { name: /^Buscar(?! modelos)/ })); // não o "Buscar modelos na internet" da barra lateral
-    await user.type(screen.getByRole("combobox"), "calculadora{Enter}");
+    await user.type(screen.getByRole("combobox", { name: "Buscar telas e registros" }), "calculadora{Enter}");
     expect(await screen.findByRole("heading", { name: "Calculadora de preço", level: 1 })).toBeInTheDocument();
   });
 

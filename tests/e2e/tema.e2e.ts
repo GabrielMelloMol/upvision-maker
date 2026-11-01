@@ -11,7 +11,7 @@ test("claro/escuro (#152): sol/lua na barra lateral, ⌘⇧L, ⌘K e Ajustes →
 
   // a busca troca para Automático (a janela volta a seguir o sistema)
   await page.keyboard.press("ControlOrMeta+K");
-  await page.getByRole("combobox").fill("automática");
+  await page.getByRole("combobox", { name: "Buscar telas e registros" }).fill("automática");
   await page.getByRole("option", { name: /Aparência automática/ }).click();
   await expect.poll(() => tauri.theme).toBeNull();
 

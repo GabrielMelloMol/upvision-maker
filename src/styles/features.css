@@ -284,7 +284,10 @@ g:hover > .viz-hit { fill: var(--fill); }
 .home-hero h2 { margin: var(--space-5) 0 0; font-size: var(--title-3); font-weight: 650; }
 .home-hero .home-head h2 { margin: 0; }
 .home-search { margin-top: var(--space-2); display: flex; gap: var(--space-3); align-items: center; }
-.home-search .affix { flex: 1; min-width: 0; }
+.home-search .affix { flex: 1; min-width: 0; position: relative; }
+/* sugestões enquanto digita (#316): o mesmo visual do ⌘K, preso embaixo da caixa */
+.home-suggest { position: absolute; top: calc(100% + 6px); left: 0; right: 0; z-index: 20; max-height: min(60vh, 420px); overflow: auto; border-radius: var(--r-lg); background: var(--glass-fill-strong); -webkit-backdrop-filter: var(--glass-blur); backdrop-filter: var(--glass-blur); box-shadow: var(--glass-edge), var(--shadow-3); }
+.home-suggest ul { list-style: none; margin: 0; padding: 6px; }
 .home-search .prefix { width: 16px; height: 16px; }
 .home-hero .home-actions { grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); }
 .home-actions { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: var(--space-3); }

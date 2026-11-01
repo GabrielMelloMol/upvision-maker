@@ -99,6 +99,11 @@ export function rank(items: SearchItem[], query: string): SearchItem[] {
   return scored.sort((a, b) => a.score - b.score).map((s) => s.it);
 }
 
+let picker: (item: SearchItem) => void = () => {};
+/** Quem abre o item escolhido: o App registra (navega, abre registro, ajuda); a caixa do Início usa (#316). */
+export const setSearchPicker = (f: (item: SearchItem) => void) => void (picker = f);
+export const pickSearchItem = (item: SearchItem) => picker(item);
+
 let pending: { pageId: string; recordId: number } | null = null;
 /** A busca pede para abrir um registro; a página consome ao montar. */
 export const setPendingOpen = (p: { pageId: string; recordId: number } | null) => void (pending = p);
