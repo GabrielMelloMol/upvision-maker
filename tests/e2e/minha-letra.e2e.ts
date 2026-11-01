@@ -37,6 +37,7 @@ test("minha letra: desenha O, i e a, e o texto sai com elas; à mão livre vira 
   await page.getByRole("button", { name: "Guardar e ir para a próxima" }).click();
   await page.getByRole("button", { name: "Pronto" }).click();
   await page.getByRole("textbox", { name: "Texto" }).fill("Oi, Ana");
+  await page.getByRole("button", { name: "Adicionar à mesa" }).click();
   await expect(page.getByText("3 letras desenhadas; as que faltam saem na cursiva.")).toBeVisible();
   await expect(page.locator(".plot-preview polyline").first()).toBeAttached();
   if (SHOTS) await page.screenshot({ path: `${SHOTS}/texto.png`, fullPage: true });
@@ -45,5 +46,6 @@ test("minha letra: desenha O, i e a, e o texto sai com elas; à mão livre vira 
   const before = await page.locator(".plot-preview polyline").count();
   await page.getByRole("button", { name: "À mão livre" }).click();
   await draw(page, /mão livre/, [[[10, 80], [30, 30], [50, 70], [70, 20], [90, 80]]]);
+  await page.getByRole("button", { name: "Adicionar à mesa" }).click();
   await expect(page.locator(".plot-preview polyline")).toHaveCount(before + 1);
 });

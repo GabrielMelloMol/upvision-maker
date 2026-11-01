@@ -9,6 +9,7 @@ test("desenhar com caneta: imagem vira traços na mesa e o G-code sai como teste
   await go(page, "Desenhar com caneta");
   await expect(page.getByRole("heading", { name: "Desenhar com caneta" })).toBeVisible();
   await page.locator("input[type=file]").first().setInputFiles("tests/fixtures/logo.jpg");
+  await page.getByRole("button", { name: "Adicionar à mesa" }).click();
   await expect(page.locator(".plot-preview polyline").first()).toBeAttached({ timeout: 30_000 });
   await expect(page.getByText(/Traços/)).toBeVisible();
   if (SHOTS) await page.screenshot({ path: `${SHOTS}/imagem.png`, fullPage: true });
@@ -20,6 +21,7 @@ test("desenhar com caneta: imagem vira traços na mesa e o G-code sai como teste
 
   await page.getByRole("button", { name: "Texto", exact: true }).click();
   await page.getByLabel("Texto").fill("Obrigada, Valéria");
+  await page.getByRole("button", { name: "Adicionar à mesa" }).click();
   await expect(page.locator(".plot-preview polyline").nth(5)).toBeAttached();
   if (SHOTS) await page.screenshot({ path: `${SHOTS}/texto-traco-unico.png`, fullPage: true });
 
@@ -28,6 +30,7 @@ test("desenhar com caneta: imagem vira traços na mesa e o G-code sai como teste
   await page.getByRole("list", { name: "Camadas" }).getByRole("button", { name: "logo", exact: true }).click();
   await page.getByRole("button", { name: "Contorno + preencher" }).click();
   await page.getByRole("button", { name: "Mesa toda" }).click();
+  await page.getByText(/Desenho perto da borda da mesa/).click();
   await page.getByRole("button", { name: "À esquerda" }).click();
   await page.getByLabel(/^Distância para o lado/).fill("40");
   await expect(page.locator(".plot-preview polyline").nth(40)).toBeAttached();

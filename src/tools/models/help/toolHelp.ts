@@ -19,7 +19,7 @@ export const TOOL_HELP: Record<string, GuideHelp> = {
   plotter: {
     use: ["A impressora desenha com uma caneta presa no cabeçote: cartão escrito à mão para o pedido, nome na embalagem, marcação em papel.", "Precisa de um suporte de caneta para o seu cabeçote (procure \"pen holder\" no MakerWorld ou no Printables)."],
     avoid: ["Foto com sombras: a caneta só passa no contorno. Prefira desenho de linhas ou logo simples."],
-    tips: ["Sempre rode primeiro com \"Testar no ar\" e fique perto da impressora.", "Ajuste a Altura ao desenhar aos poucos (0,1 mm) até a ponta só encostar no papel.", "Prenda o papel com ímãs ou fita crepe e ponha uma folha de plástico por baixo."],
+    tips: ["Sempre rode primeiro com \"Testar no ar\" e fique perto da impressora.", "Ajuste Quanto a caneta aperta o papel aos poucos (0,1 mm) até o traço sair firme sem rasgar.", "Prenda o papel com ímãs ou fita crepe e ponha uma folha de plástico por baixo."],
     faq: [{ q: "Como mando o arquivo para a impressora?", a: "Copie o .gcode para o cartão de memória ou pendrive e escolha o arquivo na tela da impressora." }],
   },
   cutter: {

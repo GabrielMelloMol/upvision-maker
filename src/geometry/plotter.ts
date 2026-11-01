@@ -10,16 +10,16 @@ export type Stroke = Pt[];
 
 /**
  * Altura do bico na pausa de montar a caneta: a ponta é ajustada para encostar no papel com o bico aqui, 5 mm acima
- * (folga para a folha de plástico e o papel). "Altura ao desenhar" abaixo disso = a caneta aperta o papel.
+ * (folga para a folha de plástico e o papel). Desenhar abaixo disso = a caneta aperta o papel (a tela mostra CAL_Z − zDraw).
  */
 export const CAL_Z = 5;
 
 export const PEN_DEFAULTS = { zDraw: 4.6, zLift: 10, drawFeed: 1500, zFeed: 600, settleMs: 120, airTest: true, offX: 0, offY: 0, travelFeed: 6000, mirrorX: false, mirrorY: false, motorsOff: false };
 
 export const PenSettings = z.object({
-  zDraw: z.number().min(3, "Altura ao desenhar: no mínimo 3 mm (abaixo disso a caneta aperta demais).").max(CAL_Z + 1, `Altura ao desenhar: no máximo ${CAL_Z + 1} mm (acima disso a caneta não encosta).`),
+  zDraw: z.number().min(CAL_Z - 2, "Quanto a caneta aperta: no máximo 2 mm (mais que isso ela aperta demais).").max(CAL_Z + 1, "Quanto a caneta aperta: no mínimo −1 mm (menos que isso ela não encosta)."),
   // sempre acima da de desenhar (ela vai no máximo a CAL_Z + 1)
-  zLift: z.number().min(CAL_Z + 2, `Altura ao subir: no mínimo ${CAL_Z + 2} mm.`).max(30),
+  zLift: z.number().min(CAL_Z + 2, "Quanto sobe entre traços: no mínimo 2 mm.").max(CAL_Z + 25, "Quanto sobe entre traços: no máximo 25 mm."),
   drawFeed: z.number().min(100).max(6000),
   zFeed: z.number().min(60).max(1200),
   settleMs: z.number().int().min(0).max(2000),

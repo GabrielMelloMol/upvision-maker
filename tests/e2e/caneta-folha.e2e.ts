@@ -8,11 +8,13 @@ test("caneta: folha A5 na prévia, caneta na frente do bico e simulação desenh
   await go(page, "Desenhar com caneta");
   await page.getByRole("button", { name: "Texto", exact: true }).click();
   await page.getByRole("textbox", { name: "Texto" }).fill("Feliz aniversário, Bia!");
+  await page.getByRole("button", { name: "Adicionar à mesa" }).click();
+  await page.getByText(/Desenho perto da borda da mesa/).click();
   await expect(page.getByText(/Folha de 148 × 210 mm/)).toBeVisible();
   await page.getByLabel(/^Distância para a frente ou para trás/).fill("28");
   await page.getByLabel(/^Distância para o lado/).fill("0");
   await expect(page.getByRole("img", { name: /28 mm para a frente do bico/ })).toBeVisible();
-  if (SHOTS) await page.getByRole("img", { name: /De lado/ }).screenshot({ path: `${SHOTS}/de-lado.png` });
+  if (SHOTS) await page.getByRole("img", { name: /Como montar a caneta/ }).screenshot({ path: `${SHOTS}/montar.png` });
   if (SHOTS) await page.getByRole("img", { name: /De cima/ }).screenshot({ path: `${SHOTS}/de-cima.png` });
   await page.getByRole("button", { name: "À esquerda" }).click();
   await page.getByLabel(/^Distância para o lado/).fill("12");

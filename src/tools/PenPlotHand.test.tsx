@@ -25,7 +25,8 @@ test("à mão livre: o rabisco vira traço na mesa e dá para desfazer (#314)", 
   await user.click(screen.getByRole("button", { name: "À mão livre" }));
   draw(screen.getByRole("img", { name: /mão livre/ }), [[10, 10], [50, 50], [90, 20]]);
   await waitFor(() => expect(container.querySelectorAll(".plot-preview polyline")).toHaveLength(1));
-  expect(screen.getByRole("button", { name: /Salvar G-code/ })).toBeEnabled();
+  await user.click(screen.getByRole("button", { name: "Adicionar à mesa" })); // #322
+  await waitFor(() => expect(screen.getByRole("button", { name: /Salvar G-code/ })).toBeEnabled());
   await user.click(screen.getByRole("button", { name: "Desfazer traço" }));
   await waitFor(() => expect(container.querySelectorAll(".plot-preview polyline")).toHaveLength(0));
 });
