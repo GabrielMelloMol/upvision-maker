@@ -34,7 +34,7 @@ test("Criar: produtos com foto antes das ferramentas; cada cartão diz o que res
   await expect(keychain).toContainText("Chaveiro");
   await expect(keychain).toContainText(/Chaveiro com nome, logo, NFC ou academia/);
   await expect(keychain).toContainText("13 tipos");
-  await expect(page.locator(".create-tools > li")).toHaveCount(13);
+  await expect(page.locator(".create-tools > li")).toHaveCount(14);
 });
 
 test("Criar: nenhuma ferramenta fica só em Tudo; as abas Do seu arquivo e Não achou? têm as suas", async ({ page }) => {
@@ -42,7 +42,7 @@ test("Criar: nenhuma ferramenta fica só em Tudo; as abas Do seu arquivo e Não 
   await go(page, "Criar");
   const tabs = page.getByRole("group", { name: "Categoria" });
   await tabs.getByRole("button", { name: "Do seu arquivo" }).click();
-  await expect(page.locator(".create-tools > li")).toHaveCount(10);
+  await expect(page.locator(".create-tools > li")).toHaveCount(11);
   await expect(page.locator('.create-tools a[data-page="bedcut"]')).toContainText("Dividir peça grande");
   await tabs.getByRole("button", { name: "Não achou?" }).click();
   await expect(page.locator(".create-tools a").evaluateAll((els) => els.map((e) => e.getAttribute("data-page")))).resolves.toEqual(["search3d", "ai", "scad"]);
