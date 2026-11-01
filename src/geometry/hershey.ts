@@ -115,6 +115,8 @@ const ACCENT: Record<string, string> = { "\u0301": "acute", "\u0300": "grave", "
 
 const R = 82; // "R"
 const LINE = 32; // distância entre linhas, em unidades Hershey
+/** Espaçamento do texto: `gap` em unidades da letra (a maiúscula tem 21), `line` multiplica a distância entre linhas. */
+export type Spacing = { gap?: number; line?: number };
 
 function glyph(ch: string): { left: number; right: number; strokes: Pt[][] } {
   const g = GLYPHS[(ch.codePointAt(0) ?? 63) - 32] ?? GLYPHS[63 - 32]; // fora do ASCII vira "?"
@@ -127,7 +129,8 @@ function glyph(ch: string): { left: number; right: number; strokes: Pt[][] } {
 }
 
 /** Texto em traço único, Y para cima, nas unidades da fonte (placeOnBed escala para a largura). */
-export function hersheyLines(text: string): { pts: Pt[]; closed: boolean }[] {
+/** `gap` = espaço a mais entre letras e `line` = vezes a distância normal entre linhas (#320). */
+export function hersheyLines(text: string, { gap = 0, line: lineK = 1 }: Spacing = {}): { pts: Pt[]; closed: boolean }[] {
   const out: { pts: Pt[]; closed: boolean }[] = [];
   text.split("\n").forEach((line, row) => {
     let x = 0;
@@ -138,17 +141,17 @@ export function hersheyLines(text: string): { pts: Pt[]; closed: boolean }[] {
         // acento: em cima da letra anterior (já desenhada), centrado no topo dela
         const prev = last;
         if (!prev.length) continue;
-        const top = Math.min(...prev.map((p) => -p[1] - row * LINE));
+        const top = Math.min(...prev.map((p) => -p[1] - row * LINE * lineK));
         const cx = prev.reduce((s, p) => s + p[0], 0) / prev.length;
         const shapes = accent ? SHAPES[accent] : [[[0, 9], [1, 11], [-1, 13]] as Pt[]];
-        for (const s of shapes) out.push({ pts: s.map(([ax, ay]): Pt => [cx + ax, -((accent ? top - 2 : 0) + ay) - row * LINE]), closed: false });
+        for (const s of shapes) out.push({ pts: s.map(([ax, ay]): Pt => [cx + ax, -((accent ? top - 2 : 0) + ay) - row * LINE * lineK]), closed: false });
         continue;
       }
       const g = glyph(ch);
-      const placed = g.strokes.map((s) => s.map(([gx, gy]): Pt => [x - g.left + gx, -gy - row * LINE]));
+      const placed = g.strokes.map((s) => s.map(([gx, gy]): Pt => [x - g.left + gx, -gy - row * LINE * lineK]));
       for (const pts of placed) out.push({ pts, closed: false });
       last = placed.flat();
-      x += g.right - g.left;
+      x += g.right - g.left + gap;
     }
   });
   return out;

@@ -1,28 +1,53 @@
 // @vitest-environment happy-dom
 import { expect, test } from "vitest";
-import { AIR_MM, CAL_Z, hatch, orderStrokes, reach, withFill, PEN_DEFAULTS, penGcode, placeOnBed, type Stroke } from "./plotter";
+import { AIR_MM, CAL_Z, hatch, inside, orderStrokes, reach, withFill, PEN_DEFAULTS, penGcode, placeLines, type Stroke } from "./plotter";
 import { svgLines } from "./svgImport";
 
 const BED = { x: 256, y: 256 };
 const pen = { ...PEN_DEFAULTS, airTest: false };
 const square = { pts: [[0, 0], [10, 0], [10, 10], [0, 10]] as [number, number][], closed: true };
 const zOf = (l: string) => Number(/Z(-?[\d.]+)/.exec(l)?.[1]);
+const placeOnBed = (lines: { pts: [number, number][]; closed: boolean }[], w: number, x = 128, y = 128, rot = 0) => placeLines(lines, { x, y, w, rot }).strokes;
 
 test("escala para a largura, centraliza na mesa e fecha o contorno", () => {
-  const [s] = placeOnBed([square], 100, BED);
+  const [s] = placeOnBed([square], 100);
   expect(s).toHaveLength(5);
   expect(s[0]).toEqual([78, 78]);
   expect(s[2]).toEqual([178, 178]);
   expect(s[4]).toEqual(s[0]);
 });
 
-test("desenho maior que a mesa (com margem) dá erro em vez de sair da mesa", () => {
-  expect(() => placeOnBed([square], 250, BED)).toThrow(/não cabe/);
-  expect(() => placeOnBed([square], 100, { x: 180, y: 90 })).toThrow(/não cabe/);
+test("desenho maior que a mesa fica fora da área (a tela avisa e não gera)", () => {
+  expect(inside(placeOnBed([square], 250), reach(BED))).toBe(true);
+  expect(inside(placeOnBed([square], 260), reach(BED))).toBe(false);
+  expect(inside(placeOnBed([square], 100), reach({ x: 180, y: 90 }))).toBe(false);
+});
+
+test("camada girada 90° em volta do meio; traço em pé usa a largura como altura (#320)", () => {
+  const [s] = placeOnBed([square], 10, 50, 50, 90);
+  expect(s[0][0]).toBeCloseTo(55);
+  expect(s[0][1]).toBeCloseTo(45);
+  const { strokes, h } = placeLines([{ pts: [[0, 0], [0, 7]], closed: false }], { x: 20, y: 20, w: 14, rot: 0 });
+  expect(strokes[0]).toEqual([[20, 13], [20, 27]]);
+  expect(h).toBe(14);
+  expect(() => placeLines([{ pts: [[1, 1], [1, 1]], closed: false }], { x: 0, y: 0, w: 10, rot: 0 })).toThrow(/tamanho/);
+});
+
+test("espelhar X/Y vira o desenho dentro da área; M84 no fim só se pedir; viagem na velocidade escolhida (#320)", () => {
+  const st: Stroke[] = [[[10, 20], [30, 20]]];
+  const plain = penGcode(st, pen, BED).gcode;
+  expect(plain).toContain("G0 X10.00 Y20.00 F6000");
+  expect(plain).not.toContain("M84");
+  const g = penGcode(st, { ...pen, mirrorX: true, mirrorY: true, motorsOff: true, travelFeed: 9000 }, BED).gcode;
+  expect(g).toContain("G0 X246.00 Y236.00 F9000");
+  expect(g).toContain("G1 X226.00 Y236.00");
+  expect(g).toContain("G0 X128.00 Y128.00 F9000 ; ponta"); // o meio continua no meio
+  expect(g.trimEnd().split("\n").pop()).toMatch(/^M84/);
+  expect(() => penGcode(st, { ...pen, travelFeed: 50 }, BED)).toThrow();
 });
 
 test("G-code: sem extrusão nem aquecimento, Z sobe antes de qualquer XY e tudo dentro da mesa", () => {
-  const job = penGcode(orderStrokes(placeOnBed([square, { pts: [[20, 0], [30, 5]], closed: false }], 200, BED)), pen, BED);
+  const job = penGcode(orderStrokes(placeOnBed([square, { pts: [[20, 0], [30, 5]], closed: false }], 200)), pen, BED);
   const lines = job.gcode.split("\n").map((l) => l.replace(/;.*/, "").trim()).filter(Boolean);
   expect(lines.some((l) => /\bE-?\d/.test(l))).toBe(false);
   expect(lines.some((l) => /^M1(04|09|40|90)\b/.test(l))).toBe(false);
@@ -49,7 +74,7 @@ test("G-code: sem extrusão nem aquecimento, Z sobe antes de qualquer XY e tudo 
 });
 
 test("zera sem a caneta, para no meio da mesa a 5 mm e pausa até tocar Continuar, antes de desenhar", () => {
-  const lines = penGcode(placeOnBed([square], 50, BED), pen, BED).gcode.split("\n");
+  const lines = penGcode(placeOnBed([square], 50), pen, BED).gcode.split("\n");
   const g28 = lines.findIndex((l) => l.startsWith("G28"));
   const pause = lines.findIndex((l) => l.startsWith("M400 U1"));
   expect(g28).toBeGreaterThan(-1);
@@ -61,7 +86,7 @@ test("zera sem a caneta, para no meio da mesa a 5 mm e pausa até tocar Continua
 });
 
 test("testar no ar: depois da pausa a caneta nunca desce abaixo de Z de desenho + 10 mm", () => {
-  const job = penGcode(placeOnBed([square], 50, BED), { ...pen, airTest: true }, BED);
+  const job = penGcode(placeOnBed([square], 50), { ...pen, airTest: true }, BED);
   const after = job.gcode.split("\n");
   const zs = after.slice(after.findIndex((l) => l.startsWith("M400 U1"))).filter((l) => /^G1 Z/.test(l)).map(zOf);
   expect(Math.min(...zs)).toBe(pen.zDraw + AIR_MM);
@@ -71,8 +96,8 @@ test("testar no ar: depois da pausa a caneta nunca desce abaixo de Z de desenho 
 test("ponto fora da mesa e ajustes fora do limite não geram nada", () => {
   const outside: Stroke[] = [[[10, 10], [300, 10]]];
   expect(() => penGcode(outside, pen, BED)).toThrow(/não alcança/);
-  expect(() => penGcode(placeOnBed([square], 50, BED), { ...pen, zDraw: 8 }, BED)).toThrow();
-  expect(() => penGcode(placeOnBed([square], 50, BED), { ...pen, drawFeed: 99999 }, BED)).toThrow();
+  expect(() => penGcode(placeOnBed([square], 50), { ...pen, zDraw: 8 }, BED)).toThrow();
+  expect(() => penGcode(placeOnBed([square], 50), { ...pen, drawFeed: 99999 }, BED)).toThrow();
 });
 
 test("ordem: começa pela linha mais perto e inverte a linha quando a ponta de trás está mais perto", () => {
@@ -93,7 +118,7 @@ test("deslocamento: o G-code move o bico (ponta − deslocamento), a pausa põe 
   const off = { ...pen, offX: -40, offY: 20 };
   const a = reach(BED, off);
   expect(a).toEqual({ x0: 0, y0: 20, x1: 216, y1: 256 });
-  const strokes = placeOnBed([square], 100, BED, off);
+  const strokes = placeOnBed([square], 100, 108, 138);
   expect(strokes[0][0]).toEqual([58, 88]); // centrado na área alcançada
   const lines = penGcode(strokes, off, BED).gcode.split("\n");
   expect(lines.find((l) => l.includes("ponta da caneta no meio"))).toContain("G0 X148.00 Y118.00");
@@ -107,12 +132,12 @@ test("deslocamento: o G-code move o bico (ponta − deslocamento), a pausa põe 
     if (y) expect(Number(y[1])).toBeLessThanOrEqual(BED.y);
   }
   expect(() => penGcode([[[230, 100], [240, 100]]], off, BED)).toThrow(/não alcança/); // fora da área da ponta
-  expect(() => placeOnBed([square], 240, BED, off)).toThrow(/alcança/);
+  expect(inside(placeOnBed([square], 240, 108, 138), a)).toBe(false);
   expect(() => penGcode(strokes, { ...pen, offX: 90 }, BED)).toThrow();
 });
 
 test("cabeçalho que a tela da Bambu lê, com o tempo estimado", () => {
-  const g = penGcode(placeOnBed([square], 50, BED), pen, BED).gcode;
+  const g = penGcode(placeOnBed([square], 50), pen, BED).gcode;
   expect(g.startsWith("; HEADER_BLOCK_START")).toBe(true);
   expect(g).toMatch(/total estimated time: \d+m/);
 });
@@ -148,7 +173,7 @@ test("só contorno, contorno + preenchimento e só preenchimento (traço aberto 
   expect(withFill(shapes, { ...base, mode: "fill", cross: true }).length).toBeGreaterThan(only.length);
 });
 
-test("folha: centrada onde a caneta alcança; A4 numa mesa de 256 é cortada; desenho maior que a folha dá erro (#317)", async () => {
+test("folha: centrada onde a caneta alcança; A4 numa mesa de 256 é cortada; desenho maior que a folha fica fora (#317)", async () => {
   const { drawArea, PAPER_DEFAULT } = await import("./plotter");
   const a5 = drawArea(BED, {}, PAPER_DEFAULT);
   expect(a5.sheet).toEqual({ x0: 54, y0: 23, x1: 202, y1: 233 });
@@ -161,7 +186,6 @@ test("folha: centrada onde a caneta alcança; A4 numa mesa de 256 é cortada; de
   // caneta 40 mm na frente: o meio da folha acompanha o meio de onde a caneta alcança
   const front = drawArea(BED, { offY: -40 }, PAPER_DEFAULT);
   expect((front.sheet!.y0 + front.sheet!.y1) / 2).toBe(108);
-  expect(() => placeOnBed([square], 140, BED, {}, PAPER_DEFAULT)).toThrow(/não cabe na folha/);
-  const [s] = placeOnBed([square], 100, BED, {}, PAPER_DEFAULT);
-  expect(s[0]).toEqual([78, 78]);
+  expect(inside(placeOnBed([square], 150), a5.area)).toBe(false);
+  expect(inside(placeOnBed([square], 100), a5.area)).toBe(true);
 });
