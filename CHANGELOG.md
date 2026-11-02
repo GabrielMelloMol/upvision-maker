@@ -3,8 +3,9 @@
 Cada versão aparece para a usuária na tela "O que há de novo" depois da atualização.
 Formato: `## <versão> — <data>` e itens `- …` em linguagem simples.
 
-## Próxima versão
+## 0.15.15 — 2026-11-02
 - **Texto da caneta como no Canva (#324)**: digite o **tamanho da letra em mm** e a **largura da caixa**: escrever mais quebra a linha em vez de diminuir a letra. A alça do lado da caixa muda a largura; o quadradinho do canto aumenta tudo. **Alinhamento** à esquerda, no centro ou à direita. Todas as letras numa lista só, com **6 letras novas de traço** (bastão, bastão cheia, serifada, itálica, cursiva cheia e gótica), além da Minha letra e das fontes. **Clique duas vezes** numa camada da prévia para editar.
+- **Caneta: o arquivo .gcode.3mf abre no Bambu Studio (#326)**: antes dava "configuração inválida". Agora abre direto na Pré-visualização e dá para mandar para a impressora pela rede, em **Placa de impressão**, sem cartão.
 
 ## 0.15.14 — 2026-11-01
 - **Caneta mais fácil de usar (#322)**: **zoom** na prévia da mesa rolando o mouse (e arrastando o fundo para mover a vista). Clicar em Texto, Forma, Desenho… abre a camada nova para preencher e posicionar; ela só entra na mesa em **Adicionar à mesa**. O aviso de "não cabe" fica embaixo da mesa e não empurra mais a prévia enquanto você arrasta. **Montar a caneta sem medir nada**: a impressora para com o bico a 5 mm do papel, você solta a caneta até encostar e aperta; um desenho em 3 passos mostra isso. "Altura ao desenhar" virou **Quanto a caneta aperta o papel**, e a medida de onde a caneta fica virou opcional.
