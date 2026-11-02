@@ -15,7 +15,7 @@ test(".gcode.3mf: zip abre, traz o G-code intacto com MD5 maiúsculo e o modelo 
   const g = "; UpVision\nG28\nG1 Z5\n";
   const files = unzipSync(gcode3mf(g, { printerName: "Bambu Lab A1", minutes: 3.5 }));
   expect(Object.keys(files).sort()).toEqual(
-    ["3D/3dmodel.model", "Metadata/_rels/model_settings.config.rels", "Metadata/model_settings.config", "Metadata/plate_1.gcode", "Metadata/plate_1.gcode.md5", "Metadata/plate_1.json", "Metadata/slice_info.config", "[Content_Types].xml", "_rels/.rels"].sort(),
+    ["3D/3dmodel.model", "Metadata/_rels/model_settings.config.rels", "Metadata/project_settings.config", "Metadata/model_settings.config", "Metadata/plate_1.gcode", "Metadata/plate_1.gcode.md5", "Metadata/plate_1.json", "Metadata/slice_info.config", "[Content_Types].xml", "_rels/.rels"].sort(),
   );
   expect(strFromU8(files["Metadata/plate_1.gcode"])).toBe(g);
   expect(strFromU8(files["Metadata/plate_1.gcode.md5"])).toBe(createHash("md5").update(g).digest("hex").toUpperCase());
@@ -24,6 +24,9 @@ test(".gcode.3mf: zip abre, traz o G-code intacto com MD5 maiúsculo e o modelo 
   expect(info).toContain('key="prediction" value="210"');
   expect(info.indexOf("extruder_type")).toBeLessThan(info.indexOf("printer_model_id"));
   expect(strFromU8(files["Metadata/model_settings.config"])).toContain('value="Metadata/plate_1.gcode"');
+  // #326: sem estes dois o Bambu Studio diz "configuração inválida"
+  expect(strFromU8(files["3D/3dmodel.model"])).toMatch(/name="Application">BambuStudio-/);
+  expect(JSON.parse(strFromU8(files["Metadata/project_settings.config"]))).toMatchObject({ printer_model: "Bambu Lab A1", printer_settings_id: "Bambu Lab A1 0.4 nozzle" });
 });
 
 test("modelo da Bambu pelo nome; outra marca fica vazio", () => {

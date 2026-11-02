@@ -220,7 +220,7 @@ export default function PenPlot() {
       const base = `${name}${s.pen.airTest ? "-teste-no-ar" : ""}`;
       const p =
         s.format === "3mf"
-          ? await saveFile(`${base}.gcode.3mf`, gcode3mf(job.gcode, { printerName: b.name, minutes: job.minutes }), "3mf", "G-code da Bambu")
+          ? await saveFile(`${base}.gcode.3mf`, gcode3mf(job.gcode, { printerName: b.name, minutes: job.minutes, bed: b }), "3mf", "G-code da Bambu")
           : await saveFile(`${base}.gcode`, job.gcode, "gcode", "G-code");
       if (p) {
         toast(`G-code salvo em ${p}`);
