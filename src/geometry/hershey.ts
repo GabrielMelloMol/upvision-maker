@@ -3,6 +3,7 @@
  * Cada letra é uma linha só, como escrita à mão: a caneta não contorna, passa uma vez.
  * Formato Hershey: pares de letras, cada uma = coordenada − "R"; o 1º par é a margem esquerda/direita; " R" levanta a caneta.
  */
+import { STROKE_FONTS } from "./hersheyFonts";
 import type { Pt } from "./plotter";
 
 const GLYPHS = [
@@ -118,8 +119,13 @@ const LINE = 32; // distância entre linhas, em unidades Hershey
 /** Espaçamento do texto: `gap` em unidades da letra (a maiúscula tem 21), `line` multiplica a distância entre linhas. */
 export type Spacing = { gap?: number; line?: number };
 
-function glyph(ch: string): { left: number; right: number; strokes: Pt[][] } {
-  const g = GLYPHS[(ch.codePointAt(0) ?? 63) - 32] ?? GLYPHS[63 - 32]; // fora do ASCII vira "?"
+/** Letras de traço (#324): a cursiva daqui ("scripts") e as de hersheyFonts.ts. */
+export type StrokeFontId = "scripts" | keyof typeof STROKE_FONTS;
+export const STROKE_FONT_LIST: [StrokeFontId, string][] = [["scripts", "Cursiva"], ...Object.entries(STROKE_FONTS).map(([id, f]): [StrokeFontId, string] => [id as StrokeFontId, f.label])];
+
+function glyph(ch: string, font: StrokeFontId): { left: number; right: number; strokes: Pt[][] } {
+  const set: readonly string[] = font === "scripts" ? GLYPHS : (STROKE_FONTS[font]?.glyphs ?? GLYPHS);
+  const g = set[(ch.codePointAt(0) ?? 63) - 32] ?? set[63 - 32]; // fora do ASCII vira "?"
   const strokes: Pt[][] = [[]];
   for (let i = 2; i < g.length; i += 2) {
     if (g[i] === " ") strokes.push([]);
@@ -130,7 +136,7 @@ function glyph(ch: string): { left: number; right: number; strokes: Pt[][] } {
 
 /** Texto em traço único, Y para cima, nas unidades da fonte (placeOnBed escala para a largura). */
 /** `gap` = espaço a mais entre letras e `line` = vezes a distância normal entre linhas (#320). */
-export function hersheyLines(text: string, { gap = 0, line: lineK = 1 }: Spacing = {}): { pts: Pt[]; closed: boolean }[] {
+export function hersheyLines(text: string, { gap = 0, line: lineK = 1 }: Spacing = {}, font: StrokeFontId = "scripts"): { pts: Pt[]; closed: boolean }[] {
   const out: { pts: Pt[]; closed: boolean }[] = [];
   text.split("\n").forEach((line, row) => {
     let x = 0;
@@ -147,7 +153,7 @@ export function hersheyLines(text: string, { gap = 0, line: lineK = 1 }: Spacing
         for (const s of shapes) out.push({ pts: s.map(([ax, ay]): Pt => [cx + ax, -((accent ? top - 2 : 0) + ay) - row * LINE * lineK]), closed: false });
         continue;
       }
-      const g = glyph(ch);
+      const g = glyph(ch, font);
       const placed = g.strokes.map((s) => s.map(([gx, gy]): Pt => [x - g.left + gx, -gy - row * LINE * lineK]));
       for (const pts of placed) out.push({ pts, closed: false });
       last = placed.flat();

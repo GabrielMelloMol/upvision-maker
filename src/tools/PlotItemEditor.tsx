@@ -2,7 +2,8 @@ import { useState } from "react";
 import type { Alphabet } from "../geometry/handwriting";
 import { modelOutline } from "../geometry/modelOutline";
 import type { Fill } from "../geometry/plotter";
-import type { PlotItem } from "../geometry/plotItems";
+import { STROKE_FONT_LIST, type StrokeFontId } from "../geometry/hershey";
+import type { Align, PlotItem } from "../geometry/plotItems";
 import { SHAPES, SHAPE_DEFAULT, SHAPE_USES, type Shape } from "../geometry/plotShapes";
 import Alert from "../ui/Alert";
 import Button from "../ui/Button";
@@ -15,7 +16,7 @@ import { DESIGN_ACCEPT, fileToSvg, svgWidthMm } from "./designInput";
 import DrawPad from "./DrawPad";
 import MyLettersSheet from "./MyLetters";
 
-const LETTERING = [["single", "Cursiva"], ["mine", "Minha letra"], ["font", "Contorno de uma fonte"]] as const;
+const ALIGN = [["left", "Esquerda"], ["center", "Centro"], ["right", "Direita"]] as const;
 const FILL_LABELS = [["outline", "Só contorno"], ["both", "Contorno + preencher"], ["fill", "Só preencher"]] as const;
 const ANGLES = [["0", "0°"], ["45", "45°"], ["90", "90°"], ["135", "135°"]] as const;
 export const MODEL_ACCEPT = ".3mf,.stl";
@@ -103,10 +104,32 @@ export default function PlotItemEditor({ item, set, alphabet, saveAlphabet }: { 
         <>
           <label>
             Texto
-            <textarea rows={2} maxLength={200} value={item.text ?? ""} onChange={(e) => set({ text: e.target.value }, "text")} />
+            <textarea rows={3} maxLength={500} value={item.text ?? ""} onChange={(e) => set({ text: e.target.value }, "text")} />
           </label>
-          <Segmented label="Letra" value={lettering} options={LETTERING} onChange={(v) => set({ lettering: v }, "lettering")} full />
-          {lettering === "single" && <p className="hint">Letra cursiva de uma linha só, como escrita à mão: a caneta passa uma vez em cada letra. Aceita acentos e ç.</p>}
+          {/* #324: todas as letras numa lista só */}
+          <label>
+            Letra
+            <select
+              value={lettering === "single" ? `s:${item.stroke ?? "scripts"}` : lettering}
+              onChange={(e) => {
+                const v = e.target.value;
+                set(v.startsWith("s:") ? { lettering: "single", stroke: v.slice(2) as StrokeFontId } : { lettering: v as "mine" | "font" }, "lettering");
+              }}
+            >
+              <optgroup label="Traço único (a caneta passa uma vez)">
+                {STROKE_FONT_LIST.map(([id, l]) => (
+                  <option key={id} value={`s:${id}`}>
+                    {l}
+                  </option>
+                ))}
+              </optgroup>
+              <optgroup label="Outras">
+                <option value="mine">Minha letra (desenhada por você)</option>
+                <option value="font">Fonte da lista ou do computador (só o contorno)</option>
+              </optgroup>
+            </select>
+          </label>
+          {lettering === "single" && <p className="hint">A caneta passa uma vez em cada traço, como escrita à mão. As "cheias" têm traço duplo, mais grosso. Aceita acentos e ç.</p>}
           {lettering === "mine" && (
             <>
               <Button onClick={() => setLettersOpen(true)}>{Object.keys(alphabet).length ? "Desenhar mais letras" : "Desenhar a minha letra"}</Button>
@@ -120,12 +143,13 @@ export default function PlotItemEditor({ item, set, alphabet, saveAlphabet }: { 
               <FontPicker value={item.font ?? "sacramento"} onChange={(v) => set({ font: v }, "font")} sample={item.text ?? ""} />
               <p className="hint">A caneta passa no contorno das letras; para letra cheia, use Preencher abaixo.</p>
             </>
-          ) : (
-            <div className="grid two">
-              <NumField label="Espaço entre as letras" value={item.gap ?? 0} onChange={(v) => set({ gap: v }, "gap")} min={-5} max={20} step={0.5} unit="" hint="0 = normal; mais = letras mais separadas." />
-              <NumField label="Espaço entre as linhas" value={item.lineK ?? 1} onChange={(v) => set({ lineK: v }, "lineK")} min={0.6} max={3} step={0.1} unit="×" hint="1 = normal; 2 = o dobro." />
-            </div>
-          )}
+          ) : null}
+          <Segmented label="Alinhamento" value={item.align ?? "left"} options={ALIGN} onChange={(v) => set({ align: v as Align }, "align")} full />
+          <div className="grid two">
+            <NumField label="Tamanho da letra" value={item.size ?? 10} onChange={(v) => set({ size: v }, "size")} min={1} max={200} step={0.5} hint="Altura da maiúscula. Escrever mais não diminui a letra: a linha quebra na largura da caixa." />
+            {lettering !== "font" && <NumField label="Espaço entre as letras" value={item.gap ?? 0} onChange={(v) => set({ gap: v }, "gap")} min={-5} max={20} step={0.5} unit="" hint="0 = normal; mais = letras mais separadas." />}
+            <NumField label="Espaço entre as linhas" value={item.lineK ?? 1} onChange={(v) => set({ lineK: v }, "lineK")} min={0.6} max={3} step={0.1} unit="×" hint="1 = normal; 2 = o dobro." />
+          </div>
         </>
       )}
       <Segmented label="Preenchimento" value={fill.mode} options={FILL_LABELS} onChange={setFill("mode")} full />
