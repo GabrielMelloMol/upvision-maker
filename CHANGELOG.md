@@ -3,7 +3,7 @@
 Cada versão aparece para a usuária na tela "O que há de novo" depois da atualização.
 Formato: `## <versão> — <data>` e itens `- …` em linguagem simples.
 
-## Próxima versão
+## 0.15.14 — 2026-11-01
 - **Caneta mais fácil de usar (#322)**: **zoom** na prévia da mesa rolando o mouse (e arrastando o fundo para mover a vista). Clicar em Texto, Forma, Desenho… abre a camada nova para preencher e posicionar; ela só entra na mesa em **Adicionar à mesa**. O aviso de "não cabe" fica embaixo da mesa e não empurra mais a prévia enquanto você arrasta. **Montar a caneta sem medir nada**: a impressora para com o bico a 5 mm do papel, você solta a caneta até encostar e aperta; um desenho em 3 passos mostra isso. "Altura ao desenhar" virou **Quanto a caneta aperta o papel**, e a medida de onde a caneta fica virou opcional.
 
 ## 0.15.13 — 2026-11-01
