@@ -76,6 +76,17 @@ function glyphCommands(font: Font, text: string, fallback?: Font): Cmd[] {
   });
 }
 
+/**
+ * Contornos de uma linha de texto, Y para cima, sem escalar (#324: a caneta escala pela altura da maiúscula, `cap`,
+ * para todas as linhas terem a mesma letra). Linha sem letras desenháveis = lista vazia.
+ */
+export function textContours(font: Font, text: string): { contours: [number, number][][]; cap: number } {
+  const os2 = font.tables.os2 as { sCapHeight?: number } | undefined;
+  const cap = ((os2?.sCapHeight || font.unitsPerEm * 0.7) * UNITS) / font.unitsPerEm;
+  const contours = flatten(glyphCommands(font, text), MAX_SEG).map((ring) => ring.map(([x, y]): [number, number] => [x, -y]));
+  return { contours, cap };
+}
+
 /** Tem emoji: só então vale carregar a fonte reserva (loadEmojiFont). */
 export const hasEmoji = (s: string) => /\p{Extended_Pictographic}/u.test(s);
 

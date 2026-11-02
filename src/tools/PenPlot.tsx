@@ -148,13 +148,13 @@ export default function PenPlot() {
       if (r?.error) problems.push(`${itemName(it)}: ${r.error}`);
       if (it.hidden || !r?.lines) continue;
       try {
-        const { strokes, w, h } = placeLines(r.lines, it);
+        const { strokes, w, h } = placeLines(r.lines, it, it.kind === "text");
         const fill = FillSettings.safeParse(it.fill);
         if (!fill.success && !ghost) problems.push(`${itemName(it)}: ${fill.error.issues[0]?.message}`);
         const lines = fill.success ? withFill(strokes, fill.data) : strokes;
         const out = !inside(lines, usable);
         if (out && !ghost) problems.push(`“${itemName(it)}” não cabe ${where}. Diminua, mova ou gire até a caixa ficar laranja.`);
-        placed.push({ id: it.id, label: itemName(it), strokes: lines, hw: Math.max(1.5, w / 2), hh: Math.max(1.5, h / 2), out, ghost, x: it.x, y: it.y, w: it.w, rot: it.rot });
+        placed.push({ id: it.id, label: itemName(it), strokes: lines, hw: Math.max(1.5, w / 2), hh: Math.max(1.5, h / 2), out, ghost, box: it.kind === "text", x: it.x, y: it.y, w: it.w, rot: it.rot });
       } catch (e) {
         if (!ghost) problems.push(`${itemName(it)}: ${errorText(e)}`);
       }
@@ -168,6 +168,22 @@ export default function PenPlot() {
     return real.length && !problems.length ? orderStrokes(real.flatMap((p) => p.strokes)) : null;
   }, [placed, problems]);
   const editing = draft ?? sel;
+  // #324: no texto, o canto aumenta tudo (letra junto), como no Canva; a alça do lado só muda a caixa
+  const onPlace = (id: string, p: Partial<PlotItem>, key: string) => {
+    const it = draft?.id === id ? draft : items.find((i) => i.id === id);
+    if (!it) return;
+    const patch = it.kind === "text" && p.w && key.startsWith("size:") ? { ...p, size: Math.max(1, Math.round((it.size ?? 10) * (p.w / it.w) * 10) / 10) } : p;
+    if (draft?.id === id) setDraft({ ...draft, ...patch });
+    else setItem(id, patch, key);
+  };
+  // clique duplo na prévia: escolhe e leva até a edição
+  const editCard = useRef<HTMLDivElement>(null);
+  const [editAsk, setEditAsk] = useState(0);
+  useEffect(() => {
+    if (!editAsk) return;
+    editCard.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+    editCard.current?.querySelector<HTMLElement>("textarea, input, select")?.focus({ preventScroll: true });
+  }, [editAsk]);
   const setEditing = (patch: Partial<PlotItem>, key: string) => (draft ? setDraft({ ...draft, ...patch }) : sel && setItem(sel.id, patch, key));
   const draftBuilt = draft && built[draft.id];
   const draftError = draftBuilt?.error ?? null;
@@ -297,13 +313,13 @@ export default function PenPlot() {
             {items.length > 1 && <p className="hint">A impressora faz o caminho mais curto entre todos os traços, de todas as camadas. Camada escondida não sai no G-code.</p>}
           </div>
           {editing && (
-            <div className="card stack">
+            <div className="card stack" ref={editCard}>
               <h3>{draft ? `Nova camada: ${KIND_LABEL[draft.kind]}` : itemName(editing)}</h3>
               <PlotItemEditor key={editing.id} item={editing} set={setEditing} alphabet={alphabet} saveAlphabet={saveAlphabet} />
               {draftError && <Alert kind="error">{draftError}</Alert>}
               <h4>Lugar na mesa</h4>
               <div className="grid two">
-                <NumField label="Largura" value={editing.w} onChange={(v) => setEditing({ w: v }, "w")} min={2} max={500} step={1} />
+                <NumField label={editing.kind === "text" ? "Largura da caixa" : "Largura"} value={editing.w} onChange={(v) => setEditing({ w: v }, "w")} min={2} max={500} step={1} hint={editing.kind === "text" ? "As linhas quebram nesta largura." : undefined} />
                 <NumField label="Giro" value={editing.rot} onChange={(v) => setEditing({ rot: v }, "rot")} min={-180} max={180} step={1} unit="°" />
                 <NumField label="X do meio" value={editing.x} onChange={(v) => setEditing({ x: v }, "x")} min={-500} max={1000} step={1} hint="0 = canto esquerdo da mesa." />
                 <NumField label="Y do meio" value={editing.y} onChange={(v) => setEditing({ y: v }, "y")} min={-500} max={1000} step={1} hint="0 = frente da mesa." />
@@ -453,11 +469,11 @@ export default function PenPlot() {
             <figcaption>
               {b.name ?? "Mesa"}: {b.x} × {b.y} mm
             </figcaption>
-            <PlotCanvas bed={b} area={area} sheet={sheet} items={placed} selected={draft?.id ?? s.selected} onSelect={(id) => !draft && select(id)} onPlace={(id, p, key) => (draft?.id === id ? setDraft({ ...draft, ...p }) : setItem(id, p, key))} faded={sim.simulating}>
+            <PlotCanvas bed={b} area={area} sheet={sheet} items={placed} selected={draft?.id ?? s.selected} onSelect={(id) => !draft && select(id)} onPlace={onPlace} onEdit={(id) => { if (!draft) select(id); setEditAsk((n) => n + 1); }} faded={sim.simulating}>
               {sim.layer}
             </PlotCanvas>
             <figcaption>
-              {items.length ? "Clique para escolher · arraste para mover · quadradinho do canto muda o tamanho · bolinha de cima gira. " : "Adicione um texto, uma forma ou um desenho para começar. "}
+              {items.length ? "Clique para escolher · clique duas vezes para editar · arraste para mover · quadradinho do canto muda o tamanho · no texto, a alça do lado muda a largura da caixa · bolinha de cima gira. " : "Adicione um texto, uma forma ou um desenho para começar. "}
               {sheet ? `Folha de ${Math.round(sheet.x1 - sheet.x0)} × ${Math.round(sheet.y1 - sheet.y0)} mm; a cruz é o meio, onde a caneta para no começo.` : "A área cinza é onde a caneta não alcança."}
             </figcaption>
           </figure>

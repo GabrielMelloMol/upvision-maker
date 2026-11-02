@@ -22,7 +22,7 @@ test("minha letra: desenha O, i e a, e o texto sai com elas; à mão livre vira 
   await openApp(page);
   await go(page, "Desenhar com caneta");
   await page.getByRole("button", { name: "Texto", exact: true }).click();
-  await page.getByRole("button", { name: "Minha letra" }).click();
+  await page.getByRole("combobox", { name: "Letra" }).selectOption("mine");
   await page.getByRole("button", { name: "Desenhar a minha letra" }).click();
   await page.getByRole("group", { name: "Caracteres" }).getByRole("button", { name: "O", exact: true }).click();
   const ring = Array.from({ length: 25 }, (_, i) => [50 + 22 * Math.cos((i / 24) * 2 * Math.PI - 1.6), 45 + 25 * Math.sin((i / 24) * 2 * Math.PI - 1.6)] as [number, number]);

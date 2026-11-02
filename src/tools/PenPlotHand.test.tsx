@@ -35,7 +35,7 @@ test("minha letra: desenha o A, guarda no banco e o texto usa ela; o resto sai n
   const user = userEvent.setup();
   const { container } = renderWithApp(<PenPlot />);
   await user.click(screen.getByRole("button", { name: "Texto" }));
-  await user.click(screen.getByRole("button", { name: "Minha letra" }));
+  await user.selectOptions(screen.getByRole("combobox", { name: "Letra" }), "mine");
   await user.click(screen.getByRole("button", { name: "Desenhar a minha letra" }));
   draw(screen.getByRole("img", { name: "Quadro da letra A" }), [[20, 70], [50, 20], [80, 70]]);
   draw(screen.getByRole("img", { name: "Quadro da letra A" }), [[30, 50], [70, 50]]);
