@@ -2,6 +2,8 @@
  * G-code da caneta dentro de um .gcode.3mf (#311): as Bambu imprimem pela tela/cartão o formato "plate sliced" do
  * Bambu Studio (Metadata/plate_1.gcode + MD5 + configs da mesa), e um .gcode solto às vezes nem aparece na lista.
  * Estrutura mínima seguindo o bambox (github.com/estampo/bambox, docs/gcode-3mf-format.md).
+ * #326: para o Bambu Studio abrir (e mandar pela rede), o arquivo precisa do project_settings.config com a impressora
+ * e do 3dmodel.model marcado como do BambuStudio; sem um dos dois ele diz "configuração inválida". Testado no 02.08.
  */
 import { strToU8, zipSync } from "fflate";
 
@@ -14,8 +16,20 @@ export function bambuModelId(printerName = ""): string {
 
 const xml = (body: string) => `<?xml version="1.0" encoding="UTF-8"?>\n${body}\n`;
 
-export function gcode3mf(gcode: string, opts: { printerName?: string; minutes: number }): Uint8Array {
+const STUDIO = "02.08.02.61";
+
+/** Sufixo dos perfis de fábrica do Bambu Studio ("0.20mm Standard @BBL A1"); perfil desconhecido abre um aviso de "predefinição personalizada". */
+function presetSuffix(printer: string): string {
+  const n = printer.toLowerCase();
+  const map: [RegExp, string][] = [[/a1\s*mini/, "A1M"], [/\ba1\b/, "A1"], [/p1p/, "P1P"], [/x1|p1s/, "X1C"], [/h2d/, "H2D"], [/h2s/, "H2S"], [/p2s/, "P2S"]];
+  return map.find(([re]) => re.test(n))?.[1] ?? "A1";
+}
+
+export function gcode3mf(gcode: string, opts: { printerName?: string; minutes: number; bed?: { x: number; y: number; z: number } }): Uint8Array {
   const g = strToU8(gcode);
+  const printer = opts.printerName?.startsWith("Bambu Lab") ? opts.printerName : "Bambu Lab A1";
+  const bed = opts.bed ?? { x: 256, y: 256, z: 256 };
+  const suffix = presetSuffix(printer);
   const seconds = Math.round(opts.minutes * 60);
   const plate = (extra: string) => `  <plate>\n${extra}  </plate>`;
   return zipSync({
@@ -28,12 +42,16 @@ export function gcode3mf(gcode: string, opts: { printerName?: string; minutes: n
 </Types>`),
     ),
     "_rels/.rels": strToU8(xml(`<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">\n <Relationship Target="/3D/3dmodel.model" Id="rel-1" Type="http://schemas.microsoft.com/3dmanufacturing/2013/01/3dmodel"/>\n</Relationships>`)),
-    "3D/3dmodel.model": strToU8(xml(`<model unit="millimeter" xml:lang="en-US" xmlns="http://schemas.microsoft.com/3dmanufacturing/core/2015/02">\n <metadata name="Application">UpVision Maker</metadata>\n <resources/>\n <build/>\n</model>`)),
+    "3D/3dmodel.model": strToU8(
+      xml(`<model unit="millimeter" xml:lang="en-US" xmlns="http://schemas.microsoft.com/3dmanufacturing/core/2015/02" xmlns:BambuStudio="http://schemas.bambulab.com/package/2021">\n <metadata name="Application">BambuStudio-${STUDIO}</metadata>\n <metadata name="BambuStudio:3mfVersion">1</metadata>\n <metadata name="Designer">UpVision Maker</metadata>\n <resources/>\n <build/>\n</model>`),
+    ),
+    // só o que o Bambu Studio precisa para reconhecer a impressora; o resto ele completa com o padrão dela
+    "Metadata/project_settings.config": strToU8(JSON.stringify({ version: STUDIO, from: "project", printer_model: printer, printer_settings_id: `${printer} 0.4 nozzle`, print_settings_id: `0.20mm Standard @BBL ${suffix}`, filament_settings_id: [`Bambu PLA Basic @BBL ${suffix === "P1P" ? "X1C" : suffix}`], nozzle_diameter: ["0.4"], printable_area: ["0x0", `${bed.x}x0`, `${bed.x}x${bed.y}`, `0x${bed.y}`], printable_height: String(bed.z), curr_bed_type: "Textured PEI Plate" }, null, 4)),
     "Metadata/plate_1.gcode": g,
     "Metadata/plate_1.gcode.md5": strToU8(md5(g).toUpperCase()),
     "Metadata/model_settings.config": strToU8(
       xml(`<config>\n${plate(
-        ["plater_id\" value=\"1", "plater_name\" value=\"", "locked\" value=\"false", "gcode_file\" value=\"Metadata/plate_1.gcode", "thumbnail_file\" value=\"Metadata/plate_1.png", "pattern_bbox_file\" value=\"Metadata/plate_1.json"]
+        ["plater_id\" value=\"1", "plater_name\" value=\"", "locked\" value=\"false", "filament_map_mode\" value=\"Auto For Flush", "filament_maps\" value=\"1", "filament_volume_maps\" value=\"0", "gcode_file\" value=\"Metadata/plate_1.gcode", "thumbnail_file\" value=\"Metadata/plate_1.png", "pattern_bbox_file\" value=\"Metadata/plate_1.json"]
           .map((kv) => `    <metadata key="${kv}"/>\n`)
           .join(""),
       )}\n</config>`),
