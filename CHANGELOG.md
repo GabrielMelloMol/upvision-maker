@@ -3,6 +3,9 @@
 Cada versão aparece para a usuária na tela "O que há de novo" depois da atualização.
 Formato: `## <versão> — <data>` e itens `- …` em linguagem simples.
 
+## Próxima versão
+- **Caneta mais fácil de usar (#322)**: **zoom** na prévia da mesa rolando o mouse (e arrastando o fundo para mover a vista). Clicar em Texto, Forma, Desenho… abre a camada nova para preencher e posicionar; ela só entra na mesa em **Adicionar à mesa**. O aviso de "não cabe" fica embaixo da mesa e não empurra mais a prévia enquanto você arrasta. **Montar a caneta sem medir nada**: a impressora para com o bico a 5 mm do papel, você solta a caneta até encostar e aperta; um desenho em 3 passos mostra isso. "Altura ao desenhar" virou **Quanto a caneta aperta o papel**, e a medida de onde a caneta fica virou opcional.
+
 ## 0.15.13 — 2026-11-01
 - **Desenhar com caneta completo (#320)**: agora dá para pôr **várias camadas** na mesma folha (texto, forma pronta, desenho ou imagem, **peça 3D** vista de cima e à mão livre) e **arrastar, girar e mudar o tamanho** direto na prévia, que ganhou grade e réguas em mm. Formas prontas: círculo, retângulo, triângulo, polígono, estrela, coração, espiral, onda e linha. No texto, ajuste o espaço entre as letras e entre as linhas. Na caneta: velocidade de viagem, **espelhar** (se o teste sair invertido) e soltar os motores no fim. Escolha a impressora na própria tela. A simulação anda **traço a traço**, com barra de posição e onde a caneta está. Dá para copiar e ver o G-code, e **salvar o perfil** (caneta, folha e sua letra) num arquivo.
 

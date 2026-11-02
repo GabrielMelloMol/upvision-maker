@@ -10,53 +10,55 @@ function Dim({ x1, y1, x2, y2, color = MUTED }: { x1: number; y1: number; x2: nu
   return <line x1={x1} y1={y1} x2={x2} y2={y2} stroke={color} strokeWidth={1.2} markerStart="url(#pd-arrow)" markerEnd="url(#pd-arrow)" />;
 }
 
-/** Cabeçote com o bico e a caneta ao lado; `tipY` = onde fica a ponta da caneta, `noz` = ponta do bico. */
-function Head({ x, noz, tipY, dashed }: { x: number; noz: number; tipY: number; dashed?: boolean }) {
-  const style = dashed ? { opacity: 0.55 } : undefined;
-  return (
-    <g style={style}>
-      <rect x={x} y={noz - 52} width={44} height={36} rx={4} fill="#eef0f6" stroke={MUTED} />
-      <path d={`M${x + 14} ${noz - 16}h16l-6 16h-4z`} fill={MUTED} />
-      <rect x={x + 50} y={tipY - 78} width={12} height={70} rx={2} fill={INK} />
-      <path d={`M${x + 50} ${tipY - 8}h12l-6 8z`} fill={INK} />
-    </g>
-  );
-}
-
 /**
- * Vista de lado (#317), em dois momentos: desenhando (a ponta encosta no papel, o bico fica acima) e entre um traço e
- * outro (tudo sobe). Fora de escala de propósito: alturas de 4 a 10 mm sumiriam.
+ * Montar a caneta sem medir nada (#322), em 3 quadros: a impressora para com o bico a 5 mm do papel; solta-se a caneta
+ * no suporte até a ponta encostar; aperta-se o parafuso. Fora de escala de propósito (5 mm sumiria).
  */
-export function SideView({ zDraw, zLift, air }: { zDraw: number; zLift: number; air: boolean }) {
-  const PAPER = 160;
-  const K = 7; // px por mm
-  const drawNoz = PAPER - zDraw * K;
-  const tipDown = PAPER - Math.max(0, zDraw - CAL_Z) * K; // aperta o papel quando zDraw < CAL_Z: a ponta fica no papel
-  const liftNoz = PAPER - zLift * K;
-  const tipUp = PAPER - (zLift - CAL_Z) * K;
+export function MountSteps({ press, lift, air }: { press: number; lift: number; air: boolean }) {
+  const PAPER = 132;
+  const panel = (i: number, title: string, line2: string, tip: number, screw: boolean) => {
+    const x = 8 + i * 124;
+    const noz = PAPER - 28; // 5 mm "desenhado"
+    return (
+      <g key={i}>
+        <rect x={x} y={4} width={116} height={176} rx={8} fill="#f6f7fb" stroke="#e1e4ee" />
+        <text x={x + 8} y={22} fontSize={11} fontWeight={700} fill={INK}>{title}</text>
+        <rect x={x + 6} y={PAPER} width={104} height={4} fill="#fff" stroke={MUTED} strokeWidth={0.5} />
+        {/* cabeçote parado e bico */}
+        <rect x={x + 14} y={noz - 50} width={40} height={34} rx={4} fill="#eef0f6" stroke={MUTED} />
+        <path d={`M${x + 27} ${noz - 16}h14l-5 16h-4z`} fill={MUTED} />
+        {/* suporte preso no cabeçote */}
+        <rect x={x + 54} y={noz - 44} width={30} height={10} rx={2} fill="#d9dce6" stroke={MUTED} />
+        {screw && <circle cx={x + 92} cy={noz - 39} r={6} fill={ACCENT} stroke="#fff" strokeWidth={1.5} />}
+        {/* caneta */}
+        <rect x={x + 63} y={tip - 70} width={12} height={62} rx={2} fill={INK} />
+        <path d={`M${x + 63} ${tip - 8}h12l-6 8z`} fill={INK} />
+        {i === 0 && <Dim x1={x + 34} y1={noz} x2={x + 34} y2={PAPER} color={ACCENT} />}
+        {i === 1 && <path d={`M${x + 96} ${tip - 60}v36`} stroke={ACCENT} strokeWidth={2} markerEnd="url(#pd-arrow-a)" />}
+        <text x={x + 8} y={160} fontSize={9.5} fill={i === 0 ? ACCENT : INK}>{line2.split("|")[0]}</text>
+        <text x={x + 8} y={172} fontSize={9.5} fill={i === 0 ? ACCENT : INK}>{line2.split("|")[1]}</text>
+      </g>
+    );
+  };
   return (
-    <svg viewBox="0 0 320 200" role="img" aria-label={`De lado: desenhando, o bico fica a ${fmt(zDraw)} mm do papel e a ponta da caneta encosta; entre um traço e outro, o bico sobe para ${fmt(zLift)} mm e a caneta sai do papel.`} style={{ width: "100%", maxWidth: 380 }}>
+    <svg viewBox="0 0 380 216" role="img" aria-label={`Como montar a caneta: 1, a impressora para com o bico a ${fmt(CAL_Z)} mm do papel; 2, solte a caneta no suporte até a ponta encostar no papel; 3, aperte o parafuso e toque em Continuar. Desenhando, o bico desce mais ${fmt(press)} mm e a caneta aperta o papel; entre traços, sobe ${fmt(lift)} mm.`} style={{ width: "100%", maxWidth: 440 }}>
       <defs>
         <marker id="pd-arrow" viewBox="0 0 10 10" refX="5" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-          <path d="M0 0L10 5L0 10z" fill={MUTED} />
+          <path d="M0 0L10 5L0 10z" fill={ACCENT} />
+        </marker>
+        <marker id="pd-arrow-a" viewBox="0 0 10 10" refX="5" refY="5" markerWidth="5" markerHeight="5" orient="auto-start-reverse">
+          <path d="M0 0L10 5L0 10z" fill={ACCENT} />
         </marker>
       </defs>
-      <text x={8} y={14} fontSize={11} fontWeight={700} fill={INK}>De lado</text>
-      <rect x={10} y={PAPER} width={300} height={8} fill="#d9dce6" />
-      <rect x={20} y={PAPER - 2} width={280} height={2} fill="#fff" stroke={MUTED} strokeWidth={0.5} />
-      <text x={300} y={184} fontSize={9} fill={MUTED} textAnchor="end">folha na mesa</text>
-
-      <Head x={30} noz={drawNoz} tipY={tipDown} />
-      <Dim x1={20} y1={PAPER} x2={20} y2={drawNoz} color={ACCENT} />
-      <text x={30} y={196} fontSize={10} fill={ACCENT} fontWeight={700}>desenhando: bico a {fmt(zDraw)} mm</text>
-
-      <Head x={180} noz={liftNoz} tipY={tipUp} dashed />
-      <Dim x1={170} y1={PAPER} x2={170} y2={liftNoz} />
-      <text x={180} y={196} fontSize={10} fill={INK}>entre traços: sobe a {fmt(zLift)} mm</text>
-
-      <line x1={10} x2={310} y1={PAPER - CAL_Z * K} y2={PAPER - CAL_Z * K} stroke={MUTED} strokeDasharray="3 3" strokeWidth={0.6} />
-      <text x={100} y={PAPER - CAL_Z * K - 3} fontSize={8.5} fill={MUTED}>{fmt(CAL_Z)} mm: a ponta só encosta</text>
-      {air && <text x={8} y={30} fontSize={9.5} fill={ACCENT}>Testar no ar ligado: tudo {AIR_MM} mm mais alto, sem encostar</text>}
+      {panel(0, "1. Ela para", `bico parado a ${fmt(CAL_Z)} mm|do papel, no meio`, PAPER - 34, false)}
+      {panel(1, "2. Solte a caneta", "deixe descer até a|ponta encostar", PAPER, false)}
+      {panel(2, "3. Aperte", "aperte o parafuso e|toque em Continuar", PAPER, true)}
+      <text x={8} y={198} fontSize={10} fill={INK}>
+        Desenhando, o bico desce mais <tspan fontWeight={700} fill={ACCENT}>{fmt(press)} mm</tspan>: a caneta aperta o papel.
+      </text>
+      <text x={8} y={212} fontSize={10} fill={air ? ACCENT : INK}>
+        {air ? `Testar no ar ligado: tudo ${AIR_MM} mm mais alto, sem encostar.` : `Entre um traço e outro, sobe ${fmt(lift)} mm.`}
+      </text>
     </svg>
   );
 }

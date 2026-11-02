@@ -22,6 +22,12 @@ const RECT_SVG = '<svg xmlns="http://www.w3.org/2000/svg" width="40mm" height="2
 const svgFile = (svg = RECT_SVG) => new File([svg], "placa.svg", { type: "image/svg+xml" });
 const TALL_SVG = '<svg xmlns="http://www.w3.org/2000/svg" width="20mm" height="40mm" viewBox="0 0 20 40"><rect x="0" y="0" width="20" height="40"/></svg>';
 const text = (path: string) => new TextDecoder().decode(t.files.get(path)!);
+/** #322: a camada nova só entra na mesa em "Adicionar à mesa". */
+async function addToBed(user: ReturnType<typeof userEvent.setup>) {
+  const b = screen.getByRole("button", { name: "Adicionar à mesa" });
+  await waitFor(() => expect(b).toBeEnabled(), { timeout: 15_000 });
+  await user.click(b);
+}
 
 describe("Desenhar com caneta", () => {
   test("sem desenho: Salvar G-code desabilitado e aviso de supervisionar", () => {
@@ -34,6 +40,7 @@ describe("Desenhar com caneta", () => {
     const user = userEvent.setup();
     const { container } = renderWithApp(<PenPlot />);
     await user.upload(container.querySelector<HTMLInputElement>('input[type="file"]')!, svgFile());
+    await addToBed(user);
     await waitFor(() => expect(container.querySelectorAll(".plot-preview polyline")).toHaveLength(1));
     expect(screen.getByLabelText(/^Largura/)).toHaveValue(40);
     await user.click(screen.getByRole("button", { name: /Salvar G-code/ }));
@@ -51,6 +58,7 @@ describe("Desenhar com caneta", () => {
     const user = userEvent.setup();
     const { container } = renderWithApp(<PenPlot />);
     await user.upload(container.querySelector<HTMLInputElement>('input[type="file"]')!, svgFile());
+    await addToBed(user);
     await waitFor(() => expect(container.querySelectorAll(".plot-preview polyline")).toHaveLength(1));
     await user.click(screen.getByRole("button", { name: "Contorno + preencher" }));
     await waitFor(() => expect(container.querySelectorAll(".plot-preview polyline").length).toBeGreaterThan(20));
@@ -70,6 +78,7 @@ describe("Desenhar com caneta", () => {
     const user = userEvent.setup();
     const { container } = renderWithApp(<PenPlot />);
     await user.upload(container.querySelector<HTMLInputElement>('input[type="file"]')!, svgFile(TALL_SVG));
+    await addToBed(user);
     await waitFor(() => expect(container.querySelectorAll(".plot-preview polyline")).toHaveLength(1));
     const w = screen.getByLabelText(/^Largura/);
     await user.clear(w);
@@ -78,15 +87,16 @@ describe("Desenhar com caneta", () => {
     expect(screen.getByRole("button", { name: /Salvar G-code/ })).toBeDisabled();
   });
 
-  test("altura ao desenhar fora do limite: mensagem e nada para salvar", async () => {
+  test("caneta apertando demais: mensagem e nada para salvar", async () => {
     const user = userEvent.setup();
     const { container } = renderWithApp(<PenPlot />);
     await user.upload(container.querySelector<HTMLInputElement>('input[type="file"]')!, svgFile());
+    await addToBed(user);
     await waitFor(() => expect(container.querySelectorAll(".plot-preview polyline")).toHaveLength(1));
-    const z = screen.getByLabelText(/^Altura ao desenhar/);
+    const z = screen.getByLabelText(/^Quanto a caneta aperta o papel/);
     await user.clear(z);
-    await user.type(z, "9");
-    expect(await screen.findByText(/no máximo 6 mm/)).toBeInTheDocument();
+    await user.type(z, "3");
+    expect(await screen.findByText(/no máximo 2 mm/)).toBeInTheDocument();
     expect(screen.getByRole("button", { name: /Salvar G-code/ })).toBeDisabled();
   });
 
@@ -94,6 +104,7 @@ describe("Desenhar com caneta", () => {
     const user = userEvent.setup();
     const { container } = renderWithApp(<PenPlot />);
     await user.click(screen.getByRole("button", { name: "Texto" }));
+    await addToBed(user);
     await waitFor(() => expect(container.querySelectorAll(".plot-preview polyline").length).toBeGreaterThan(3), { timeout: 15_000 });
     expect(screen.getByRole("button", { name: /Salvar G-code/ })).toBeEnabled();
     await user.click(screen.getByRole("button", { name: "Contorno de uma fonte" }));
@@ -106,6 +117,7 @@ test("caneta na frente do bico: a direção vira Y negativo; a folha aparece na 
   const user = userEvent.setup();
   const { container } = renderWithApp(<PenPlot />);
   await user.upload(container.querySelector<HTMLInputElement>('input[type="file"]')!, svgFile());
+  await addToBed(user);
   await waitFor(() => expect(container.querySelectorAll(".plot-preview polyline")).toHaveLength(1));
   expect(screen.getByText(/Folha de 148 × 210 mm/)).toBeInTheDocument();
   await user.click(screen.getByLabelText("Folha deitada"));
@@ -132,9 +144,11 @@ describe("camadas (#320)", () => {
     const user = userEvent.setup();
     const { container } = renderWithApp(<PenPlot />);
     await user.click(screen.getByRole("button", { name: "Texto" }));
+    await addToBed(user);
     await waitFor(() => expect(strokesIn(container)).toBeGreaterThan(3));
     const onlyText = strokesIn(container);
     await user.click(screen.getByRole("button", { name: "Forma" }));
+    await addToBed(user);
     await waitFor(() => expect(strokesIn(container)).toBe(onlyText + 1));
     await user.selectOptions(screen.getByLabelText("Forma"), "star");
     const list = screen.getByRole("list", { name: "Camadas" });
@@ -150,6 +164,7 @@ describe("camadas (#320)", () => {
     const user = userEvent.setup();
     const { container } = renderWithApp(<PenPlot />);
     await user.upload(container.querySelector<HTMLInputElement>('input[type="file"]')!, svgFile());
+    await addToBed(user);
     await waitFor(() => expect(strokesIn(container)).toBe(1));
     const x = screen.getByLabelText(/^X do meio/);
     await user.clear(x);
@@ -172,6 +187,7 @@ describe("camadas (#320)", () => {
     const user = userEvent.setup();
     const { container } = renderWithApp(<PenPlot />);
     await user.upload(container.querySelector<HTMLInputElement>('input[type="file"]')!, new File([boxStl(30, 12, 8)], "bloco.stl"));
+    await addToBed(user);
     await waitFor(() => expect(strokesIn(container)).toBe(1));
     expect(screen.getByRole("heading", { name: "bloco" })).toBeInTheDocument();
     await user.click(screen.getByRole("button", { name: "Próximo traço" }));
@@ -195,5 +211,49 @@ describe("camadas (#320)", () => {
     expect(screen.getByLabelText(/^Distância para o lado/)).toHaveValue(33);
     await user.upload(inputs[inputs.length - 1], new File(["{}"], "outro.json", { type: "application/json" }));
     expect(await screen.findByText(/não é um perfil da caneta/)).toBeInTheDocument();
+  });
+});
+
+describe("#322: adicionar com confirmação, zoom e aperto da caneta", () => {
+  test("a camada nova aparece na prévia, mas só vai para o G-code depois de Adicionar à mesa; Cancelar descarta", async () => {
+    const user = userEvent.setup();
+    const { container } = renderWithApp(<PenPlot />);
+    await user.click(screen.getByRole("button", { name: "Forma" }));
+    await waitFor(() => expect(container.querySelectorAll(".plot-preview polyline")).toHaveLength(1));
+    expect(screen.getByRole("heading", { name: "Nova camada: Forma" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /Salvar G-code/ })).toBeDisabled();
+    expect(screen.queryByRole("list", { name: "Camadas" })).not.toBeInTheDocument();
+    await user.click(screen.getByRole("button", { name: "Cancelar" }));
+    await waitFor(() => expect(container.querySelectorAll(".plot-preview polyline")).toHaveLength(0));
+    await user.click(screen.getByRole("button", { name: "Forma" }));
+    await addToBed(user);
+    expect(screen.getByRole("list", { name: "Camadas" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /Salvar G-code/ })).toBeEnabled();
+  });
+
+  test("botões de zoom aproximam a prévia e Tirar o zoom volta", async () => {
+    const user = userEvent.setup();
+    const { container } = renderWithApp(<PenPlot />);
+    const svg = container.querySelector(".plot-preview")!;
+    const full = svg.getAttribute("viewBox");
+    await user.click(screen.getByRole("button", { name: "Aumentar o zoom" }));
+    await user.click(screen.getByRole("button", { name: "Aumentar o zoom" }));
+    expect(svg.getAttribute("viewBox")).not.toBe(full);
+    expect(screen.getByText(/156% · role o mouse/)).toBeInTheDocument();
+    await user.click(screen.getByRole("button", { name: "Tirar o zoom" }));
+    expect(svg.getAttribute("viewBox")).toBe(full);
+  });
+
+  test("quanto a caneta aperta vira o Z de desenhar (5 − aperto) no G-code", async () => {
+    const user = userEvent.setup();
+    renderWithApp(<PenPlot />);
+    await user.click(screen.getByRole("button", { name: "Forma" }));
+    await addToBed(user);
+    await user.click(screen.getByLabelText(/^Testar no ar/));
+    const press = screen.getByLabelText(/^Quanto a caneta aperta o papel/);
+    await user.clear(press);
+    await user.type(press, "0.8");
+    await user.click(screen.getByText(/Ver o G-code/));
+    await waitFor(() => expect((screen.getByLabelText("G-code") as HTMLTextAreaElement).value).toContain("G1 Z4.20"));
   });
 });

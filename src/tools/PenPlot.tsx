@@ -4,8 +4,8 @@ import { PRINTER_CATALOG, printerLabel } from "../domain/catalog/printers";
 import { bed, parseVolume, type Bed } from "../geometry/bed";
 import { gcode3mf } from "../geometry/gcode3mf";
 import { AlphabetSchema } from "../geometry/handwriting";
-import { contentKey, itemLines, itemName, legacyItems, newItem, type ItemKind, type Line, type PlotItem } from "../geometry/plotItems";
-import { AIR_MM, FillSettings, inside, orderStrokes, PEN_DEFAULTS, penGcode, PenSettings, placeLines, drawArea, PAPER_DEFAULT, PaperSchema, reach, withFill, type Paper, type Pen, type PenJob } from "../geometry/plotter";
+import { contentKey, itemLines, itemName, KIND_LABEL, legacyItems, newItem, type ItemKind, type Line, type PlotItem } from "../geometry/plotItems";
+import { AIR_MM, CAL_Z, FillSettings, inside, orderStrokes, PEN_DEFAULTS, penGcode, PenSettings, placeLines, drawArea, PAPER_DEFAULT, PaperSchema, reach, withFill, type Paper, type Pen, type PenJob } from "../geometry/plotter";
 import { exampleFile, useExample } from "../help/helpStore";
 import Alert from "../ui/Alert";
 import Button from "../ui/Button";
@@ -15,7 +15,7 @@ import { saveFile, slug } from "../ui/saveFile";
 import Segmented from "../ui/Segmented";
 import { errorText, useToast } from "../ui/Toast";
 import { DESIGN_ACCEPT } from "./designInput";
-import { SideView, TopView } from "./PenDiagram";
+import { MountSteps, TopView } from "./PenDiagram";
 import PlotCanvas, { type Placed } from "./PlotCanvas";
 import PlotItemEditor, { MODEL_ACCEPT, readPlotFile } from "./PlotItemEditor";
 import { usePlotSim } from "./PlotSim";
@@ -90,11 +90,13 @@ export default function PenPlot() {
   const setItems = (f: (list: PlotItem[]) => PlotItem[], key: string, selected?: string | null) => tool.set((cur) => ({ ...cur, items: f(cur.items), ...(selected !== undefined ? { selected } : {}) }), key);
   const setItem = (id: string, patch: Partial<PlotItem>, key: string) => setItems((list) => list.map((i) => (i.id === id ? { ...i, ...patch } : i)), `${key}:${id}`);
   const select = (id: string | null) => tool.set((cur) => ({ ...cur, selected: id }), "selected");
-  function add(kind: ItemKind, patch: Partial<PlotItem> = {}) {
-    const w = Math.max(10, Math.min(100, Math.floor(usable.x1 - usable.x0 - 10)));
-    const it = { ...newItem(kind, { x: cx, y: cy, w, rot: 0 }), ...patch };
+  // #322: a camada nova fica num rascunho (aparece na prévia) e só entra na mesa em "Adicionar à mesa"
+  const [draft, setDraft] = useState<PlotItem | null>(null);
+  const fresh = (kind: ItemKind, patch: Partial<PlotItem> = {}): PlotItem => ({ ...newItem(kind, { x: cx, y: cy, w: Math.max(10, Math.min(100, Math.floor(usable.x1 - usable.x0 - 10))), rot: 0 }), ...patch });
+  const commit = (it: PlotItem) => {
     setItems((list) => [...list, it], "add", it.id);
-  }
+    setDraft(null);
+  };
   const duplicate = (it: PlotItem) => {
     const copy = { ...it, id: crypto.randomUUID(), x: it.x + 10, y: it.y - 10 };
     setItems((list) => [...list, copy], "add", copy.id);
@@ -106,18 +108,20 @@ export default function PenPlot() {
     setAddError(null);
     try {
       const patch = await readPlotFile(f);
-      add(patch.kind ?? "design", patch);
+      setDraft(fresh(patch.kind ?? "design", patch));
     } catch (e) {
       setAddError(errorText(e));
     }
   }
-  useExample("plotter", () => void exampleFile("heart").then(addFile)); // "Usar exemplo" da ajuda (#84)
+  // "Usar exemplo" da ajuda (#84): já entra na mesa
+  useExample("plotter", () => void exampleFile("heart").then(readPlotFile).then((patch) => commit(fresh("design", patch))));
 
   // linhas de cada camada: só recalcula quando o conteúdo muda (mover e girar não)
   const [built, setBuilt] = useState<Record<string, { key: string; lines: Line[] | null; error: string | null }>>({});
   const pending = useRef(new Set<string>());
+  const all = useMemo(() => (draft ? [...items, draft] : items), [items, draft]);
   useEffect(() => {
-    for (const it of items) {
+    for (const it of all) {
       const key = contentKey(it, alphabet);
       const job = `${it.id}|${key}`;
       if (built[it.id]?.key === key || pending.current.has(job)) continue;
@@ -132,32 +136,42 @@ export default function PenPlot() {
           setBuilt((cur) => ({ ...cur, [it.id]: r }));
         });
     }
-  }, [items, alphabet, built]);
+  }, [all, alphabet, built]);
 
   const { placed, problems } = useMemo(() => {
     const placed: Placed[] = [];
     const problems: string[] = [];
-    for (const it of items) {
+    for (const it of all) {
+      const ghost = it === draft;
       const r = built[it.id];
+      if (r?.error && ghost) continue; // o erro do rascunho aparece no cartão dele
       if (r?.error) problems.push(`${itemName(it)}: ${r.error}`);
       if (it.hidden || !r?.lines) continue;
       try {
         const { strokes, w, h } = placeLines(r.lines, it);
         const fill = FillSettings.safeParse(it.fill);
-        if (!fill.success) problems.push(`${itemName(it)}: ${fill.error.issues[0]?.message}`);
-        const all = fill.success ? withFill(strokes, fill.data) : strokes;
-        const out = !inside(all, usable);
-        if (out) problems.push(`“${itemName(it)}” não cabe ${where}. Diminua, mova ou gire até a caixa ficar laranja.`);
-        placed.push({ id: it.id, label: itemName(it), strokes: all, hw: Math.max(1.5, w / 2), hh: Math.max(1.5, h / 2), out, x: it.x, y: it.y, w: it.w, rot: it.rot });
+        if (!fill.success && !ghost) problems.push(`${itemName(it)}: ${fill.error.issues[0]?.message}`);
+        const lines = fill.success ? withFill(strokes, fill.data) : strokes;
+        const out = !inside(lines, usable);
+        if (out && !ghost) problems.push(`“${itemName(it)}” não cabe ${where}. Diminua, mova ou gire até a caixa ficar laranja.`);
+        placed.push({ id: it.id, label: itemName(it), strokes: lines, hw: Math.max(1.5, w / 2), hh: Math.max(1.5, h / 2), out, ghost, x: it.x, y: it.y, w: it.w, rot: it.rot });
       } catch (e) {
-        problems.push(`${itemName(it)}: ${errorText(e)}`);
+        if (!ghost) problems.push(`${itemName(it)}: ${errorText(e)}`);
       }
     }
     return { placed, problems };
     // eslint-disable-next-line react-hooks/exhaustive-deps -- usable muda de objeto a cada render; os valores estão nas dependências
-  }, [items, built, usable.x0, usable.y0, usable.x1, usable.y1, where]);
+  }, [all, draft, built, usable.x0, usable.y0, usable.x1, usable.y1, where]);
 
-  const strokes = useMemo(() => (placed.length && !problems.length ? orderStrokes(placed.flatMap((p) => p.strokes)) : null), [placed, problems]);
+  const strokes = useMemo(() => {
+    const real = placed.filter((p) => !p.ghost);
+    return real.length && !problems.length ? orderStrokes(real.flatMap((p) => p.strokes)) : null;
+  }, [placed, problems]);
+  const editing = draft ?? sel;
+  const setEditing = (patch: Partial<PlotItem>, key: string) => (draft ? setDraft({ ...draft, ...patch }) : sel && setItem(sel.id, patch, key));
+  const draftBuilt = draft && built[draft.id];
+  const draftError = draftBuilt?.error ?? null;
+  const draftReady = !!draft && !!draftBuilt?.lines && draftBuilt.key === contentKey(draft, alphabet);
   const sim = usePlotSim(strokes, penCheck.success ? penCheck.data.drawFeed : 1500);
 
   // a caneta: direção + distância na tela; com sinal no estado (X + = direita, Y + = para trás)
@@ -165,6 +179,10 @@ export default function PenPlot() {
   const offY = s.pen.offY ?? 0;
   // a direção fica guardada à parte: com distância 0 o sinal se perde
   const back = s.penBack ?? offY > 0;
+  // #322: em vez de alturas do bico, quanto a caneta aperta e quanto sobe a partir de onde ela foi montada (CAL_Z)
+  const round1 = (n: number) => Math.round(n * 10) / 10;
+  const press = round1(CAL_Z - s.pen.zDraw);
+  const lift = round1(s.pen.zLift - CAL_Z);
   const left = s.penLeft ?? offX < 0;
   const setDir = (k: "penBack" | "penLeft", v: boolean) =>
     tool.set((cur) => ({ ...cur, [k]: v, pen: { ...cur.pen, ...(k === "penBack" ? { offY: Math.abs(cur.pen.offY ?? 0) * (v ? 1 : -1) } : { offX: Math.abs(cur.pen.offX ?? 0) * (v ? -1 : 1) }) } }), k);
@@ -241,9 +259,9 @@ export default function PenPlot() {
         <div className="controls">
           <div className="card stack">
             <h3>Camadas</h3>
-            <div className="row" role="group" aria-label="Adicionar à mesa" style={{ flexWrap: "wrap", gap: 6 }}>
+            <div className="row" role="group" aria-label="Nova camada" style={{ flexWrap: "wrap", gap: 6 }}>
               {ADD.map(([k, l]) => (
-                <Button key={k} size="sm" onClick={() => add(k)}>
+                <Button key={k} size="sm" aria-pressed={draft?.kind === k} onClick={() => setDraft(fresh(k))}>
                   {l}
                 </Button>
               ))}
@@ -278,18 +296,28 @@ export default function PenPlot() {
             )}
             {items.length > 1 && <p className="hint">A impressora faz o caminho mais curto entre todos os traços, de todas as camadas. Camada escondida não sai no G-code.</p>}
           </div>
-          {sel && (
+          {editing && (
             <div className="card stack">
-              <h3>{itemName(sel)}</h3>
-              <PlotItemEditor key={sel.id} item={sel} set={(patch, key) => setItem(sel.id, patch, key)} alphabet={alphabet} saveAlphabet={saveAlphabet} />
+              <h3>{draft ? `Nova camada: ${KIND_LABEL[draft.kind]}` : itemName(editing)}</h3>
+              <PlotItemEditor key={editing.id} item={editing} set={setEditing} alphabet={alphabet} saveAlphabet={saveAlphabet} />
+              {draftError && <Alert kind="error">{draftError}</Alert>}
               <h4>Lugar na mesa</h4>
               <div className="grid two">
-                <NumField label="Largura" value={sel.w} onChange={(v) => setItem(sel.id, { w: v }, "w")} min={2} max={500} step={1} />
-                <NumField label="Giro" value={sel.rot} onChange={(v) => setItem(sel.id, { rot: v }, "rot")} min={-180} max={180} step={1} unit="°" />
-                <NumField label="X do meio" value={sel.x} onChange={(v) => setItem(sel.id, { x: v }, "x")} min={-500} max={1000} step={1} hint="0 = canto esquerdo da mesa." />
-                <NumField label="Y do meio" value={sel.y} onChange={(v) => setItem(sel.id, { y: v }, "y")} min={-500} max={1000} step={1} hint="0 = frente da mesa." />
+                <NumField label="Largura" value={editing.w} onChange={(v) => setEditing({ w: v }, "w")} min={2} max={500} step={1} />
+                <NumField label="Giro" value={editing.rot} onChange={(v) => setEditing({ rot: v }, "rot")} min={-180} max={180} step={1} unit="°" />
+                <NumField label="X do meio" value={editing.x} onChange={(v) => setEditing({ x: v }, "x")} min={-500} max={1000} step={1} hint="0 = canto esquerdo da mesa." />
+                <NumField label="Y do meio" value={editing.y} onChange={(v) => setEditing({ y: v }, "y")} min={-500} max={1000} step={1} hint="0 = frente da mesa." />
               </div>
-              <Button onClick={() => setItem(sel.id, { x: Math.round(cx * 10) / 10, y: Math.round(cy * 10) / 10 }, "center")}>Centralizar {sheet ? "na folha" : "na mesa"}</Button>
+              <Button onClick={() => setEditing({ x: Math.round(cx * 10) / 10, y: Math.round(cy * 10) / 10 }, "center")}>Centralizar {sheet ? "na folha" : "na mesa"}</Button>
+              {draft && (
+                <div className="row">
+                  <Button variant="primary" disabled={!draftReady} onClick={() => commit(draft)}>
+                    Adicionar à mesa
+                  </Button>
+                  <Button onClick={() => setDraft(null)}>Cancelar</Button>
+                </div>
+              )}
+              {draft && !draftReady && !draftError && <p className="hint">{draft.kind === "design" || draft.kind === "model" ? "Escolha o arquivo acima." : draft.kind === "hand" ? "Desenhe no quadro acima." : "Preencha acima."}</p>}
             </div>
           )}
           <div className="card stack">
@@ -331,33 +359,41 @@ export default function PenPlot() {
             <p className="hint">
               Use caneta de ponta fina que escreve com pouca força: <strong>caneta hidrográfica fina ou fineliner</strong> (tipo Stabilo Point 88 ou Faber-Castell Fine Pen 0,4). Esferográfica (BIC) também serve, mas precisa apertar mais e falha mais. Gel borra se a velocidade for alta.
             </p>
-            <SideView zDraw={s.pen.zDraw} zLift={s.pen.zLift} air={s.pen.airTest} />
+            <h4>Montar a caneta (não precisa medir nada)</h4>
+            <MountSteps press={press} lift={lift} air={s.pen.airTest} />
+            <p className="hint">
+              Mande o arquivo <strong>sem a caneta</strong>. A impressora zera e para com o bico a {CAL_Z} mm do papel, no meio da mesa. Prenda o suporte, deixe a caneta descer até a ponta encostar no papel, aperte e ponha o meio da folha embaixo da ponta. Toque em Continuar.
+            </p>
             <label className="check">
               <input type="checkbox" checked={s.pen.airTest} onChange={(e) => setPen("airTest")(e.target.checked)} /> Testar no ar (caneta {AIR_MM} mm acima do papel)
             </label>
             <div className="grid two">
-              <NumField label="Altura ao desenhar" value={s.pen.zDraw} onChange={setPen("zDraw")} min={3} max={6} step={0.1} hint="5 = a ponta só encosta (é onde você ajustou a caneta). Traço fraco ou falhando: diminua de 0,1 em 0,1. Rasgando o papel: aumente." />
-              <NumField label="Altura ao subir" value={s.pen.zLift} onChange={setPen("zLift")} min={7} max={30} step={0.5} hint="Z entre um traço e outro." />
+              <NumField label="Quanto a caneta aperta o papel" value={press} onChange={(v) => setPen("zDraw")(round1(CAL_Z - v))} min={0} max={2} step={0.1} hint="0 = só encosta. Traço fraco ou falhando: aumente de 0,1 em 0,1. Rasgando o papel: diminua." />
+              <NumField label="Quanto sobe entre traços" value={lift} onChange={(v) => setPen("zLift")(round1(CAL_Z + v))} min={2} max={25} step={0.5} hint="A caneta sai do papel para ir ao próximo traço." />
               <NumField label="Velocidade de desenho" value={s.pen.drawFeed} onChange={setPen("drawFeed")} min={100} max={6000} step={100} unit="mm/min" />
               <NumField label="Velocidade de viagem" value={s.pen.travelFeed ?? PEN_DEFAULTS.travelFeed} onChange={setPen("travelFeed")} min={600} max={12000} step={100} unit="mm/min" hint="Com a caneta no alto, de um traço ao outro." />
               <NumField label="Velocidade do Z" value={s.pen.zFeed} onChange={setPen("zFeed")} min={60} max={1200} step={10} unit="mm/min" />
               <NumField label="Pausa depois de mexer o Z" value={s.pen.settleMs} onChange={setPen("settleMs")} min={0} max={2000} step={10} unit="ms" hint="Espera a caneta subir ou descer de vez antes de andar. Risquinho sobrando entre os traços: aumente (150 a 250)." />
             </div>
-            <h4>Onde a caneta fica</h4>
-            <p className="hint">
-              O suporte prende a caneta perto do bico (na maioria, <strong>na frente</strong> dele). Com a caneta no suporte, olhe a impressora de frente e meça com a régua do centro do bico até a ponta da caneta: quanto ela está para a frente (ou para trás) e quanto para o lado. Assim o app desenha no lugar certo.
-            </p>
-            <TopView offX={offX} offY={offY} />
-            <div className="grid two">
-              <div className="stack">
-                <Segmented label="Frente ou trás" value={back ? "back" : "front"} options={[["front", "Na frente"], ["back", "Atrás"]] as const} onChange={(v) => setDir("penBack", v === "back")} />
-                <NumField label="Distância para a frente ou para trás" value={Math.abs(offY)} onChange={(v) => setPen("offY")(v * (back ? 1 : -1))} min={0} max={80} step={0.5} hint="0 = na mesma linha do bico." />
+            <details>
+              <summary>Desenho perto da borda da mesa? Diga onde a caneta fica (opcional)</summary>
+              <div className="stack" style={{ marginTop: 8 }}>
+                <p className="hint">
+                  Não precisa para desenhar: a folha vai embaixo da ponta da caneta na pausa. Só serve para o app saber até onde a caneta alcança perto da borda (o bico não pode sair da mesa). Olhe a impressora de frente e veja, mais ou menos, quanto a ponta da caneta fica para a frente e para o lado do bico.
+                </p>
+                <TopView offX={offX} offY={offY} />
+                <div className="grid two">
+                  <div className="stack">
+                    <Segmented label="Frente ou trás" value={back ? "back" : "front"} options={[["front", "Na frente"], ["back", "Atrás"]] as const} onChange={(v) => setDir("penBack", v === "back")} />
+                    <NumField label="Distância para a frente ou para trás" value={Math.abs(offY)} onChange={(v) => setPen("offY")(v * (back ? 1 : -1))} min={0} max={80} step={0.5} hint="0 = na mesma linha do bico." />
+                  </div>
+                  <div className="stack">
+                    <Segmented label="Lado" value={left ? "left" : "right"} options={[["left", "À esquerda"], ["right", "À direita"]] as const} onChange={(v) => setDir("penLeft", v === "left")} />
+                    <NumField label="Distância para o lado" value={Math.abs(offX)} onChange={(v) => setPen("offX")(v * (left ? -1 : 1))} min={0} max={80} step={0.5} hint="0 = bem no meio do bico." />
+                  </div>
+                </div>
               </div>
-              <div className="stack">
-                <Segmented label="Lado" value={left ? "left" : "right"} options={[["left", "À esquerda"], ["right", "À direita"]] as const} onChange={(v) => setDir("penLeft", v === "left")} />
-                <NumField label="Distância para o lado" value={Math.abs(offX)} onChange={(v) => setPen("offX")(v * (left ? -1 : 1))} min={0} max={80} step={0.5} hint="0 = bem no meio do bico." />
-              </div>
-            </div>
+            </details>
             <h4>Se o teste sair errado</h4>
             <div className="row" style={{ flexWrap: "wrap", gap: 12 }}>
               <label className="check">
@@ -393,7 +429,7 @@ export default function PenPlot() {
             <ol className="hint" style={{ paddingLeft: 18, margin: 0, display: "grid", gap: 4 }}>
               <li>Salve o arquivo e copie para o <strong>cartão microSD</strong> da impressora (na A1, ele fica na frente, embaixo da tela). Use um leitor de cartão no computador.</li>
               <li>Ponha o cartão de volta, toque no ícone de <strong>pasta (Arquivos)</strong> na tela da impressora e escolha o arquivo.</li>
-              <li>Toque em Imprimir. A impressora não aquece nem puxa filamento: só zera, leva o bico ao meio e pausa para você prender a caneta.</li>
+              <li>Toque em Imprimir. A impressora não aquece nem puxa filamento: só zera e pausa no meio da mesa para você prender a caneta.</li>
             </ol>
             <p className="hint">Não precisa abrir no Bambu Studio. As Bambu leem o .gcode.3mf; outras marcas, o .gcode.</p>
             <h4>Meu perfil</h4>
@@ -409,20 +445,15 @@ export default function PenPlot() {
         <div className="preview-col">
           <Alert kind="warn">
             <p>
-              <strong>Fique de olho na impressora.</strong> Comece sempre <strong>sem a caneta</strong>: a impressora zera, leva o bico ao meio da folha e pausa. Aí prenda o suporte, desça a caneta até a ponta encostar no papel, aperte e toque em Continuar na tela. Rode primeiro com “Testar no ar”.
+              <strong>Fique de olho na impressora.</strong> Comece sempre <strong>sem a caneta</strong>: a impressora zera e pausa no meio da mesa. Aí prenda o suporte, desça a caneta até a ponta encostar no papel, aperte, ponha o meio da folha embaixo da ponta e toque em Continuar na tela. Rode primeiro com “Testar no ar”.
               Ponha uma folha de plástico por baixo do papel para não riscar a mesa.
             </p>
           </Alert>
-          {problems.map((p) => (
-            <Alert key={p} kind="error">
-              {p}
-            </Alert>
-          ))}
           <figure>
             <figcaption>
               {b.name ?? "Mesa"}: {b.x} × {b.y} mm
             </figcaption>
-            <PlotCanvas bed={b} area={area} sheet={sheet} items={placed} selected={s.selected} onSelect={select} onPlace={(id, p, key) => setItem(id, p, key)} faded={sim.simulating}>
+            <PlotCanvas bed={b} area={area} sheet={sheet} items={placed} selected={draft?.id ?? s.selected} onSelect={(id) => !draft && select(id)} onPlace={(id, p, key) => (draft?.id === id ? setDraft({ ...draft, ...p }) : setItem(id, p, key))} faded={sim.simulating}>
               {sim.layer}
             </PlotCanvas>
             <figcaption>
@@ -430,6 +461,12 @@ export default function PenPlot() {
               {sheet ? `Folha de ${Math.round(sheet.x1 - sheet.x0)} × ${Math.round(sheet.y1 - sheet.y0)} mm; a cruz é o meio, onde a caneta para no começo.` : "A área cinza é onde a caneta não alcança."}
             </figcaption>
           </figure>
+          {/* #322: embaixo da mesa, para o aviso não empurrar a prévia enquanto se arrasta */}
+          {problems.map((p) => (
+            <Alert key={p} kind="error">
+              {p}
+            </Alert>
+          ))}
           {sim.controls}
           {job && (
             <div className="metrics" aria-live="polite">

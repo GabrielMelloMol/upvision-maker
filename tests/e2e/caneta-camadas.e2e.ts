@@ -8,16 +8,20 @@ test("caneta: texto, estrela e peça 3D juntos; arrastar e girar na prévia; pas
   await go(page, "Desenhar com caneta");
   await page.getByRole("button", { name: "A4", exact: true }).click();
   await page.getByLabel("Folha deitada").check();
-  await page.getByRole("group", { name: "Adicionar à mesa" }).getByRole("button", { name: "Texto" }).click();
+  await page.getByRole("group", { name: "Nova camada" }).getByRole("button", { name: "Texto" }).click();
   await page.getByRole("textbox", { name: "Texto" }).fill("Feliz aniversário!");
   await page.getByLabel(/^Y do meio/).fill("170");
-  await page.getByRole("group", { name: "Adicionar à mesa" }).getByRole("button", { name: "Forma" }).click();
+  await page.getByRole("button", { name: "Adicionar à mesa" }).click();
+  await page.getByRole("group", { name: "Nova camada" }).getByRole("button", { name: "Forma" }).click();
   await page.getByRole("combobox", { name: "Forma" }).selectOption("star");
   await page.getByLabel(/^Largura \(mm\)/).fill("50");
+  await page.getByRole("button", { name: "Adicionar à mesa" }).click();
   await page.locator("input[type=file]").first().setInputFiles("tests/fixtures/3mf/chaveiro-2-partes-bambu.3mf");
-  await expect(page.getByRole("list", { name: "Camadas" }).getByRole("button", { name: "chaveiro-2-partes-bambu", exact: true })).toBeVisible({ timeout: 30_000 });
+  await expect(page.getByRole("heading", { name: "Nova camada: Peça 3D" })).toBeVisible();
   await page.getByLabel(/^Largura \(mm\)/).fill("60");
   await page.getByLabel(/^Y do meio/).fill("60");
+  await page.getByRole("button", { name: "Adicionar à mesa" }).click();
+  await expect(page.getByRole("list", { name: "Camadas" }).getByRole("button", { name: "chaveiro-2-partes-bambu", exact: true })).toBeVisible({ timeout: 30_000 });
   const preview = page.getByRole("img", { name: "Prévia do desenho na mesa" });
   await expect(preview.locator("polyline").nth(5)).toBeAttached();
 
@@ -39,6 +43,20 @@ test("caneta: texto, estrela e peça 3D juntos; arrastar e girar na prévia; pas
   await expect(page.getByLabel(/^Giro/)).not.toHaveValue("0");
   if (SHOTS) await page.screenshot({ path: `${SHOTS}/camadas.png`, fullPage: true });
   if (SHOTS) await page.locator(".preview-col").screenshot({ path: `${SHOTS}/camadas-previa.png` });
+
+  // #322: zoom com a rolagem no ponto do mouse e arrastar o fundo para mover a vista
+  const pv = (await preview.boundingBox())!;
+  await page.mouse.move(pv.x + pv.width * 0.6, pv.y + pv.height * 0.45);
+  for (let i = 0; i < 4; i++) await page.mouse.wheel(0, -100);
+  await expect(page.getByText(/^24\d% · role o mouse/)).toBeVisible();
+  const before = await preview.getAttribute("viewBox");
+  await page.mouse.move(pv.x + 20, pv.y + pv.height - 20);
+  await page.mouse.down();
+  await page.mouse.move(pv.x + 120, pv.y + pv.height - 60, { steps: 6 });
+  await page.mouse.up();
+  expect(await preview.getAttribute("viewBox")).not.toBe(before);
+  if (SHOTS) await page.locator(".preview-col").screenshot({ path: `${SHOTS}/zoom.png` });
+  await page.getByRole("button", { name: "Tirar o zoom" }).click();
 
   await page.getByRole("button", { name: "Próximo traço" }).click();
   await page.getByRole("button", { name: "Próximo traço" }).click();
