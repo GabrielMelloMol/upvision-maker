@@ -100,14 +100,18 @@ describe("Desenhar com caneta", () => {
     expect(screen.getByRole("button", { name: /Salvar G-code/ })).toBeDisabled();
   });
 
-  test("texto: traço único por padrão; contorno de fonte na outra opção", async () => {
+  test("texto: traço único por padrão; contorno de fonte e letras de traço na lista; tamanho em mm (#324)", async () => {
     const user = userEvent.setup();
     const { container } = renderWithApp(<PenPlot />);
     await user.click(screen.getByRole("button", { name: "Texto" }));
     await addToBed(user);
     await waitFor(() => expect(container.querySelectorAll(".plot-preview polyline").length).toBeGreaterThan(3), { timeout: 15_000 });
     expect(screen.getByRole("button", { name: /Salvar G-code/ })).toBeEnabled();
-    await user.click(screen.getByRole("button", { name: "Contorno de uma fonte" }));
+    const letra = screen.getByRole("combobox", { name: "Letra" });
+    expect(screen.getByRole("option", { name: "Bastão" })).toBeInTheDocument();
+    await user.selectOptions(letra, "s:futural");
+    expect(screen.getByLabelText(/^Tamanho da letra/)).toHaveValue(10);
+    await user.selectOptions(letra, "font");
     await waitFor(() => expect(screen.getByText(/caneta passa no contorno das letras/)).toBeInTheDocument());
     await waitFor(() => expect(container.querySelectorAll(".plot-preview polyline").length).toBeGreaterThan(3), { timeout: 15_000 });
   });

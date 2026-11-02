@@ -82,7 +82,8 @@ export function drawArea(bed: { x: number; y: number }, off: { offX?: number; of
 export type Place = { x: number; y: number; w: number; rot: number };
 
 /** Linhas (Y para cima) escaladas para a largura, giradas e com o meio no ponto. `w` × `h` = tamanho antes de girar. */
-export function placeLines(lines: { pts: Pt[]; closed: boolean }[], p: Place): { strokes: Stroke[]; w: number; h: number } {
+/** `box` (#324, texto): as linhas já vêm em mm numa caixa de x = 0 a `p.w`; não escala e centraliza na caixa. */
+export function placeLines(lines: { pts: Pt[]; closed: boolean }[], p: Place, box = false): { strokes: Stroke[]; w: number; h: number } {
   const all = lines.flatMap((l) => l.pts);
   if (!all.length) throw new Error("Nenhum traço no desenho.");
   if (all.length > MAX_POINTS) throw new Error("Desenho com detalhe demais para a caneta. Diminua o Detalhe na Imagem em SVG.");
@@ -90,9 +91,9 @@ export function placeLines(lines: { pts: Pt[]; closed: boolean }[], p: Place): {
   for (const [x, y] of all) [x0, x1, y0, y1] = [Math.min(x0, x), Math.max(x1, x), Math.min(y0, y), Math.max(y1, y)];
   // traço reto em pé (sem largura): a "largura" vale para a altura
   const span = x1 - x0 > 1e-9 ? x1 - x0 : y1 - y0;
-  if (span <= 1e-9) throw new Error("O desenho não tem tamanho.");
-  const s = p.w / span;
-  const [cx, cy] = [(x0 + x1) / 2, (y0 + y1) / 2];
+  if (span <= 1e-9 && !box) throw new Error("O desenho não tem tamanho.");
+  const s = box ? 1 : p.w / span;
+  const [cx, cy] = [box ? p.w / 2 : (x0 + x1) / 2, (y0 + y1) / 2];
   const [c, n] = [Math.cos((p.rot * Math.PI) / 180), Math.sin((p.rot * Math.PI) / 180)];
   const at = ([x, y]: Pt): Pt => {
     const [u, v] = [(x - cx) * s, (y - cy) * s];
@@ -104,7 +105,7 @@ export function placeLines(lines: { pts: Pt[]; closed: boolean }[], p: Place): {
       const pts = l.pts.map(at);
       return l.closed ? [...pts, pts[0]] : pts;
     });
-  return { strokes, w: (x1 - x0) * s, h: (y1 - y0) * s };
+  return { strokes, w: box ? p.w : (x1 - x0) * s, h: (y1 - y0) * s };
 }
 
 /** Todos os pontos dentro da área (folga de 0,01 mm para arredondamento). */

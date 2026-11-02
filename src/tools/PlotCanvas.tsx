@@ -6,10 +6,12 @@ import type { Area, Place, Stroke } from "../geometry/plotter";
 type Pt = [number, number];
 /** Um item já posto na mesa: os traços e a caixa (meio, metade da largura e da altura, giro). */
 /** `ghost` = camada nova ainda não adicionada (#322): aparece mais clara. */
-export type Placed = { id: string; label: string; strokes: Stroke[]; hw: number; hh: number; out: boolean; ghost?: boolean } & Place;
+/** `box` = texto (#324): a alça do lado muda a largura da caixa (as linhas quebram) sem mudar a letra. */
+export type Placed = { id: string; label: string; strokes: Stroke[]; hw: number; hh: number; out: boolean; ghost?: boolean; box?: boolean } & Place;
 
 const RULER = 12; // faixa das réguas, em mm da prévia
-type Drag = { id: string; mode: "move" | "size" | "turn"; from: Pt; start: Place } | { mode: "pan"; client: Pt; view: View };
+type Mode = "move" | "size" | "turn" | "width";
+type Drag = { id: string; mode: Mode; from: Pt; start: Place } | { mode: "pan"; client: Pt; view: View };
 type View = { x: number; y: number; w: number; h: number };
 const MAX_ZOOM = 12;
 const STEP = 1.25;
@@ -18,8 +20,9 @@ const STEP = 1.25;
  * Prévia da mesa (#320): grade de 10 mm, réguas, folha e área que a caneta alcança. Clique escolhe o item; arrastar
  * move, o canto muda o tamanho e a bolinha de cima gira. Teclado e leitor de tela usam os campos de lugar ao lado.
  * Zoom (#322): rolagem do mouse (no ponto do mouse) ou os botões; com zoom, arrastar o fundo move a vista.
+ * Clique duplo no item (#324) abre a edição dele (`onEdit`).
  */
-export default function PlotCanvas({ bed, area, sheet, items, selected, onSelect, onPlace, faded, children }: {
+export default function PlotCanvas({ bed, area, sheet, items, selected, onSelect, onPlace, onEdit, faded, children }: {
   bed: { x: number; y: number };
   area: Area;
   sheet: Area | null;
@@ -27,6 +30,7 @@ export default function PlotCanvas({ bed, area, sheet, items, selected, onSelect
   selected: string | null;
   onSelect: (id: string | null) => void;
   onPlace: (id: string, p: Partial<Place>, key: string) => void;
+  onEdit?: (id: string) => void;
   /** Durante a simulação os traços ficam claros e a caneta desenha por cima (`children`). */
   faded: boolean;
   children?: ReactNode;
@@ -74,7 +78,7 @@ export default function PlotCanvas({ bed, area, sheet, items, selected, onSelect
     const p = new DOMPoint(e.clientX, e.clientY).matrixTransform(m.inverse());
     return [p.x, p.y];
   };
-  const begin = (e: PointerEvent, it: Placed, mode: "move" | "size" | "turn") => {
+  const begin = (e: PointerEvent, it: Placed, mode: Mode) => {
     e.stopPropagation();
     onSelect(it.id);
     const p = at(e);
@@ -100,6 +104,11 @@ export default function PlotCanvas({ bed, area, sheet, items, selected, onSelect
     else if (d.mode === "size") {
       const k = Math.hypot(p[0] - s.x, p[1] - s.y) / Math.max(0.1, Math.hypot(d.from[0] - s.x, d.from[1] - s.y));
       onPlace(d.id, { w: Math.max(2, r1(s.w * k)) }, `size:${d.id}`);
+    } else if (d.mode === "width") {
+      // distância do meio até o mouse, no sentido da largura do item (girado): a caixa cresce para os dois lados
+      const a = (s.rot * Math.PI) / 180;
+      const along = (p[0] - s.x) * Math.cos(a) + (p[1] - s.y) * Math.sin(a);
+      onPlace(d.id, { w: Math.max(5, r1(2 * Math.abs(along))) }, `width:${d.id}`);
     } else {
       const deg = (Math.atan2(p[1] - s.y, p[0] - s.x) * 180) / Math.PI - 90; // a bolinha fica em cima (90°)
       onPlace(d.id, { rot: Math.round(((deg % 360) + 540) % 360) - 180 }, `turn:${d.id}`);
@@ -176,7 +185,7 @@ export default function PlotCanvas({ bed, area, sheet, items, selected, onSelect
                 <polyline key={i} points={st.map((p) => p.join(",")).join(" ")} fill="none" stroke={faded ? "#c9cde0" : it.out ? "#c62828" : "#0B1F66"} strokeWidth={0.4} strokeLinejoin="round" />
               ))}
               {/* caixa de pegar o item (transparente) */}
-              <rect transform={`translate(${it.x} ${it.y}) rotate(${it.rot})`} x={-it.hw} y={-it.hh} width={2 * it.hw} height={2 * it.hh} fill="transparent" style={{ cursor: "move" }} onPointerDown={(e) => begin(e, it, "move")}>
+              <rect transform={`translate(${it.x} ${it.y}) rotate(${it.rot})`} x={-it.hw} y={-it.hh} width={2 * it.hw} height={2 * it.hh} fill="transparent" style={{ cursor: "move" }} onPointerDown={(e) => begin(e, it, "move")} onDoubleClick={() => onEdit?.(it.id)}>
                 <title>{it.label}</title>
               </rect>
             </g>
@@ -191,6 +200,11 @@ export default function PlotCanvas({ bed, area, sheet, items, selected, onSelect
               <rect x={sel.hw - 2.2 * k} y={-sel.hh - 2.2 * k} width={4.4 * k} height={4.4 * k} fill="#F85A00" style={{ cursor: "nwse-resize" }} onPointerDown={(e) => begin(e, sel, "size")}>
                 <title>Mudar o tamanho</title>
               </rect>
+              {sel.box && (
+                <rect x={sel.hw - 1.2 * k} y={-3.5 * k} width={2.4 * k} height={7 * k} rx={1.2 * k} fill="#fff" stroke="#F85A00" strokeWidth={0.6 * k} style={{ cursor: "ew-resize" }} onPointerDown={(e) => begin(e, sel, "width")}>
+                  <title>Largura da caixa (quebra as linhas)</title>
+                </rect>
+              )}
             </g>
           )}
           {children}
