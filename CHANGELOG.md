@@ -3,7 +3,7 @@
 Cada versão aparece para a usuária na tela "O que há de novo" depois da atualização.
 Formato: `## <versão> — <data>` e itens `- …` em linguagem simples.
 
-## Próxima versão
+## 0.15.17 — 2026-11-03
 - **Caneta: várias cores num arquivo só (#333)**: cada camada escolhe a **Caneta** (quantas você quiser: "Nova caneta" cria a próxima), com a cor na prévia. Ela desenha tudo da caneta 1, pausa para você trocar, desenha a 2, e assim por diante; a tela mostra a ordem das trocas. A espera para ajustar a caneta caiu de 60 para **30 s** (ajustável).
 - **Caneta: nada aquece (#330)**: o arquivo da caneta agora começa desligando a mesa e o bico. Mandando pelo Bambu Studio, a mesa chegou a ficar em 65 °C.
 
