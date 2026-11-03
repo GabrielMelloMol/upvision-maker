@@ -73,22 +73,25 @@ test("G-code: sem extrusão nem aquecimento, Z sobe antes de qualquer XY e tudo 
   expect(job.lengthMm).toBeGreaterThan(0);
 });
 
-test("zera sem a caneta, para no meio da mesa a 5 mm e pausa até tocar Continuar, antes de desenhar", () => {
-  const lines = penGcode(placeOnBed([square], 50), pen, BED).gcode.split("\n");
+test("zera sem a caneta, pausa para prender o suporte e depois espera no meio da mesa a 5 mm para ajustar a ponta, antes de desenhar", () => {
+  const lines = penGcode(placeOnBed([square], 50), { ...pen, mountS: 90 }, BED).gcode.split("\n");
   const g28 = lines.findIndex((l) => l.startsWith("G28"));
   const pause = lines.findIndex((l) => l.startsWith("M400 U1"));
+  const wait = lines.findIndex((l) => l.startsWith("G4 S90"));
   expect(g28).toBeGreaterThan(-1);
   expect(pause).toBeGreaterThan(g28);
-  expect(lines.slice(g28, pause).join("\n")).toContain(`G0 X128.00 Y128.00`);
-  expect(zOf(lines[pause - 1])).toBe(CAL_Z);
-  expect(lines.slice(0, pause).filter((l) => /^G1 X/.test(l))).toEqual([]); // nada desenhado antes da caneta
+  // #328: a A1 tira o bico do meio na pausa, então o meio e os 5 mm vêm depois dela, com a espera
+  expect(wait).toBeGreaterThan(pause);
+  expect(lines.slice(pause, wait).join("\n")).toContain(`G0 X128.00 Y128.00`);
+  expect(zOf(lines[wait - 1])).toBe(CAL_Z);
+  expect(lines.slice(0, wait).filter((l) => /^G1 X/.test(l))).toEqual([]); // nada desenhado antes da caneta
   expect(pen.zDraw).toBeLessThan(CAL_Z); // padrão: a caneta aperta um pouco o papel
 });
 
 test("testar no ar: depois da pausa a caneta nunca desce abaixo de Z de desenho + 10 mm", () => {
   const job = penGcode(placeOnBed([square], 50), { ...pen, airTest: true }, BED);
   const after = job.gcode.split("\n");
-  const zs = after.slice(after.findIndex((l) => l.startsWith("M400 U1"))).filter((l) => /^G1 Z/.test(l)).map(zOf);
+  const zs = after.slice(after.findIndex((l) => l.startsWith("G4 S")) + 1).filter((l) => /^G1 Z/.test(l)).map(zOf);
   expect(Math.min(...zs)).toBe(pen.zDraw + AIR_MM);
   expect(job.gcode).toContain("TESTE NO AR");
 });

@@ -61,7 +61,9 @@ export function gcode3mf(gcode: string, opts: { printerName?: string; minutes: n
       xml(`<config>\n  <header>\n    <header_item key="X-BBL-Client-Type" value="slicer"/>\n    <header_item key="X-BBL-Client-Version" value="02.05.00.66"/>\n  </header>\n${plate(
         [["index", "1"], ["extruder_type", "0"], ["nozzle_volume_type", "0"], ["printer_model_id", bambuModelId(opts.printerName)], ["nozzle_diameters", "0.4"], ["timelapse_type", "0"], ["prediction", String(seconds)], ["weight", "0"], ["outside", "false"], ["support_used", "false"], ["label_object_enabled", "false"]]
           .map(([k, v]) => `    <metadata key="${k}" value="${v}"/>\n`)
-          .join(""),
+          .join("") +
+          // #328: sem um filamento listado, a janela de envio do Bambu Studio não tem o que mapear e não deixa enviar
+          `    <filament id="1" tray_info_idx="GFA00" type="PLA" color="#FFFFFF" used_m="0.00" used_g="0.00"/>\n`,
       )}\n</config>`),
     ),
     "Metadata/plate_1.json": strToU8(JSON.stringify({ bed_type: "textured_plate", version: 2 })),

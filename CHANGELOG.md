@@ -3,6 +3,10 @@
 Cada versão aparece para a usuária na tela "O que há de novo" depois da atualização.
 Formato: `## <versão> — <data>` e itens `- …` em linguagem simples.
 
+## Próxima versão
+- **Caneta: o Bambu Studio deixa enviar o .gcode.3mf (#328)**: a janela de envio dizia que o filamento não estava mapeado e o botão Enviar ficava cinza.
+- **Caneta: montar sem pressa (#328)**: a A1 tira o bico do meio quando pausa. Agora a pausa é só para prender o suporte (caneta no alto) e a folha; depois do Continuar, o bico para no meio a 5 mm do papel e **espera 60 s** (ajustável em Tempo para ajustar a caneta) para você soltar a caneta até o papel e apertar.
+
 ## 0.15.15 — 2026-11-02
 - **Texto da caneta como no Canva (#324)**: digite o **tamanho da letra em mm** e a **largura da caixa**: escrever mais quebra a linha em vez de diminuir a letra. A alça do lado da caixa muda a largura; o quadradinho do canto aumenta tudo. **Alinhamento** à esquerda, no centro ou à direita. Todas as letras numa lista só, com **6 letras novas de traço** (bastão, bastão cheia, serifada, itálica, cursiva cheia e gótica), além da Minha letra e das fontes. **Clique duas vezes** numa camada da prévia para editar.
 - **Caneta: o arquivo .gcode.3mf abre no Bambu Studio (#326)**: antes dava "configuração inválida". Agora abre direto na Pré-visualização e dá para mandar para a impressora pela rede, em **Placa de impressão**, sem cartão.

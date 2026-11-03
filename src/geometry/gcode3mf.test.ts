@@ -23,6 +23,7 @@ test(".gcode.3mf: zip abre, traz o G-code intacto com MD5 maiúsculo e o modelo 
   expect(info).toContain('key="printer_model_id" value="N2S"');
   expect(info).toContain('key="prediction" value="210"');
   expect(info.indexOf("extruder_type")).toBeLessThan(info.indexOf("printer_model_id"));
+  expect(info).toMatch(/<filament id="1" [^>]*type="PLA"/); // #328: sem isto o Bambu Studio não deixa enviar
   expect(strFromU8(files["Metadata/model_settings.config"])).toContain('value="Metadata/plate_1.gcode"');
   // #326: sem estes dois o Bambu Studio diz "configuração inválida"
   expect(strFromU8(files["3D/3dmodel.model"])).toMatch(/name="Application">BambuStudio-/);
