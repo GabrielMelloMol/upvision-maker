@@ -5,7 +5,7 @@ import { bed, parseVolume, type Bed } from "../geometry/bed";
 import { gcode3mf } from "../geometry/gcode3mf";
 import { AlphabetSchema } from "../geometry/handwriting";
 import { contentKey, itemLines, itemName, KIND_LABEL, legacyItems, newItem, type ItemKind, type Line, type PlotItem } from "../geometry/plotItems";
-import { AIR_MM, CAL_Z, FillSettings, inside, orderStrokes, PEN_DEFAULTS, penGcode, PenSettings, placeLines, drawArea, PAPER_DEFAULT, PaperSchema, reach, withFill, type Paper, type Pen, type PenJob } from "../geometry/plotter";
+import { AIR_MM, CAL_Z, FillSettings, INKS, inside, orderStrokes, PEN_DEFAULTS, penGcode, PenSettings, placeLines, drawArea, PAPER_DEFAULT, PaperSchema, reach, withFill, type Paper, type Pen, type PenJob } from "../geometry/plotter";
 import { exampleFile, useExample } from "../help/helpStore";
 import Alert from "../ui/Alert";
 import Button from "../ui/Button";
@@ -28,6 +28,7 @@ import { useToolState } from "./useToolState";
 
 type Format = "3mf" | "gcode";
 const PAPER_OPTIONS = [["a4", "A4"], ["a5", "A5"], ["a6", "A6"], ["card", "10 × 15"], ["custom", "Outro"], ["bed", "Mesa toda"]] as const;
+const PENS = [["1", "1"], ["2", "2"], ["3", "3"], ["4", "4"]] as const;
 const FORMATS = [["3mf", ".gcode.3mf (Bambu)"], ["gcode", ".gcode (outras)"]] as const;
 const ADD: [ItemKind, string][] = [["text", "Texto"], ["shape", "Forma"], ["design", "Desenho ou imagem"], ["model", "Peça 3D"], ["hand", "À mão livre"]];
 /** Linhas do G-code mostradas na tela (o arquivo inteiro pode ter centenas de milhares). */
@@ -35,7 +36,7 @@ const GCODE_PREVIEW_LINES = 400;
 /** Perfil em arquivo (#320): caneta, folha, impressora e a minha letra, para levar a outro computador. */
 const PROFILE_APP = "upvision-caneta";
 
-type State = { items: PlotItem[]; selected: string | null; pen: Pen; penBack?: boolean; penLeft?: boolean; format: Format; paper: Paper; /** id do catálogo; "" = a impressora das Preferências */ printer: string };
+type State = { items: PlotItem[]; selected: string | null; pen: Pen; /** cor de cada caneta na prévia (#333) */ inks?: string[]; penBack?: boolean; penLeft?: boolean; format: Format; paper: Paper; /** id do catálogo; "" = a impressora das Preferências */ printer: string };
 
 /** Meio de onde dá para desenhar (folha ou mesa): onde entra a camada nova. */
 function centerOf(b: Bed, pen: Pen, paper: Paper): [number, number] {
@@ -84,6 +85,9 @@ export default function PenPlot() {
   const area = reach(b, off);
   const { area: usable, sheet, cut } = drawArea(b, off, sheetOk);
   const [cx, cy] = [(usable.x0 + usable.x1) / 2, (usable.y0 + usable.y1) / 2];
+  const inks = s.inks ?? INKS;
+  const inkOf = (n = 1) => inks[n - 1] ?? INKS[n - 1];
+  const setInk = (n: number, hex: string) => tool.set((cur) => ({ ...cur, inks: (cur.inks ?? INKS).map((c, i) => (i === n - 1 ? hex : c)) }), `ink${n}`);
   const where = sheet ? "na folha" : usable.x1 - usable.x0 < b.x || usable.y1 - usable.y0 < b.y ? "na área que a caneta alcança" : "na mesa";
 
   // camadas
@@ -154,19 +158,26 @@ export default function PenPlot() {
         const lines = fill.success ? withFill(strokes, fill.data) : strokes;
         const out = !inside(lines, usable);
         if (out && !ghost) problems.push(`“${itemName(it)}” não cabe ${where}. Diminua, mova ou gire até a caixa ficar laranja.`);
-        placed.push({ id: it.id, label: itemName(it), strokes: lines, hw: Math.max(1.5, w / 2), hh: Math.max(1.5, h / 2), out, ghost, box: it.kind === "text", x: it.x, y: it.y, w: it.w, rot: it.rot });
+        placed.push({ id: it.id, label: itemName(it), strokes: lines, hw: Math.max(1.5, w / 2), hh: Math.max(1.5, h / 2), out, ghost, box: it.kind === "text", color: inkOf(it.pen), x: it.x, y: it.y, w: it.w, rot: it.rot });
       } catch (e) {
         if (!ghost) problems.push(`${itemName(it)}: ${errorText(e)}`);
       }
     }
     return { placed, problems };
     // eslint-disable-next-line react-hooks/exhaustive-deps -- usable muda de objeto a cada render; os valores estão nas dependências
-  }, [all, draft, built, usable.x0, usable.y0, usable.x1, usable.y1, where]);
+  }, [all, draft, built, usable.x0, usable.y0, usable.x1, usable.y1, where, inks]);
 
-  const strokes = useMemo(() => {
+  // #333: uma caneta por vez, sempre 1 → 4; `changes` = onde começa cada caneta seguinte (pausa para trocar)
+  const { strokes, changes, order } = useMemo(() => {
     const real = placed.filter((p) => !p.ghost);
-    return real.length && !problems.length ? orderStrokes(real.flatMap((p) => p.strokes)) : null;
-  }, [placed, problems]);
+    if (!real.length || problems.length) return { strokes: null, changes: [], order: [] };
+    const penOf = new Map(all.map((it) => [it.id, it.pen ?? 1]));
+    const pens = [...new Set(real.map((p) => penOf.get(p.id) ?? 1))].sort((x, y) => x - y);
+    const order = pens.map((n) => ({ n, labels: real.filter((p) => penOf.get(p.id) === n).map((p) => p.label) }));
+    const groups = pens.map((n) => orderStrokes(real.filter((p) => penOf.get(p.id) === n).flatMap((p) => p.strokes)));
+    const changes = groups.slice(0, -1).map((_, i) => groups.slice(0, i + 1).reduce((t, g) => t + g.length, 0));
+    return { strokes: groups.flat(), changes, order };
+  }, [placed, problems, all]);
   const editing = draft ?? sel;
   // #324: no texto, o canto aumenta tudo (letra junto), como no Canva; a alça do lado só muda a caixa
   const onPlace = (id: string, p: Partial<PlotItem>, key: string) => {
@@ -207,11 +218,11 @@ export default function PenPlot() {
   const job: PenJob | null = useMemo(() => {
     if (!strokes || !penCheck.success) return null;
     try {
-      return penGcode(strokes, penCheck.data, b);
+      return penGcode(strokes, penCheck.data, b, changes);
     } catch {
       return null;
     }
-  }, [strokes, penCheck.success, penCheck.data, b]);
+  }, [strokes, changes, penCheck.success, penCheck.data, b]);
 
   const first = items.find((i) => !i.hidden);
   const name = slug(first ? itemName(first) : "desenho");
@@ -296,6 +307,7 @@ export default function PenPlot() {
                       title={itemName(it)}
                       style={{ flex: "1 1 0", width: 0, minWidth: 0, justifyContent: "flex-start", textAlign: "left", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", display: "block", opacity: it.hidden ? 0.5 : 1, ...(it.id === s.selected ? { background: "var(--accent-soft)", color: "var(--accent-text)", fontWeight: 600 } : {}) }}
                     >
+                      <span aria-hidden style={{ display: "inline-block", width: 8, height: 8, borderRadius: 4, background: inkOf(it.pen), marginRight: 6 }} />
                       {itemName(it)}
                     </button>
                     <button type="button" className="icon-button" aria-pressed={!!it.hidden} aria-label={`Esconder ${itemName(it)}`} onClick={() => setItem(it.id, { hidden: !it.hidden }, "hidden")}>
@@ -318,6 +330,12 @@ export default function PenPlot() {
               <h3>{draft ? `Nova camada: ${KIND_LABEL[draft.kind]}` : itemName(editing)}</h3>
               <PlotItemEditor key={editing.id} item={editing} set={setEditing} alphabet={alphabet} saveAlphabet={saveAlphabet} />
               {draftError && <Alert kind="error">{draftError}</Alert>}
+              <h4>Caneta</h4>
+              <Segmented label="Caneta" value={String(editing.pen ?? 1)} options={PENS} onChange={(v) => setEditing({ pen: Number(v) }, "pen")} full />
+              <label className="row" style={{ gap: 8, alignItems: "center" }}>
+                <input type="color" value={inkOf(editing.pen)} onChange={(e) => setInk(editing.pen ?? 1, e.target.value)} /> Cor da caneta {editing.pen ?? 1} na prévia
+              </label>
+              <p className="hint">Mais de uma caneta: ela desenha tudo da 1, pausa para você trocar, desenha a 2, e assim por diante.</p>
               <h4>Lugar na mesa</h4>
               <div className="grid two">
                 <NumField label={editing.kind === "text" ? "Largura da caixa" : "Largura"} value={editing.w} onChange={(v) => setEditing({ w: v }, "w")} min={2} max={500} step={1} hint={editing.kind === "text" ? "As linhas quebram nesta largura." : undefined} />
@@ -445,11 +463,11 @@ export default function PenPlot() {
             )}
             <h4>Como mandar para a impressora</h4>
             <ol className="hint" style={{ paddingLeft: 18, margin: 0, display: "grid", gap: 4 }}>
-              <li>Salve o arquivo e copie para o <strong>cartão microSD</strong> da impressora (na A1, ele fica na frente, embaixo da tela). Use um leitor de cartão no computador.</li>
-              <li>Ponha o cartão de volta, toque no ícone de <strong>pasta (Arquivos)</strong> na tela da impressora e escolha o arquivo.</li>
-              <li>Toque em Imprimir. A impressora não aquece nem puxa filamento: só zera e pausa no meio da mesa para você prender a caneta.</li>
+              <li><strong>Pela rede:</strong> abra o .gcode.3mf no Bambu Studio e clique em <strong>Placa de impressão</strong>, com nivelamento, calibração e time-lapse desligados. A prévia lá fica vazia: a caneta não solta plástico.</li>
+              <li><strong>Pelo cartão:</strong> copie para o microSD da impressora (na A1, na frente, embaixo da tela), toque em <strong>Arquivos</strong> na tela e escolha o arquivo.</li>
+              <li>A impressora não aquece nem puxa filamento: zera e pausa para você prender a caneta.</li>
             </ol>
-            <p className="hint">Não precisa abrir no Bambu Studio. As Bambu leem o .gcode.3mf; outras marcas, o .gcode.</p>
+            <p className="hint">As Bambu leem o .gcode.3mf; outras marcas, o .gcode.</p>
             <h4>Meu perfil</h4>
             <p className="hint">Guarda a caneta, a folha, a impressora e a sua letra num arquivo, para usar em outro computador.</p>
             <div className="row" style={{ flexWrap: "wrap", gap: 8 }}>
@@ -486,6 +504,20 @@ export default function PenPlot() {
             </Alert>
           ))}
           {sim.controls}
+          {job && order.length > 1 && (
+            <div className="card stack">
+              <h4>Ordem das canetas</h4>
+              <ol className="hint" style={{ paddingLeft: 18, margin: 0, display: "grid", gap: 4 }}>
+                {order.map(({ n, labels }, i) => (
+                  <li key={n}>
+                    <span aria-hidden style={{ display: "inline-block", width: 10, height: 10, borderRadius: 5, background: inkOf(n), marginRight: 6 }} />
+                    {i ? "Pausa: troque pela " : "Comece com a "}<strong>caneta {n}</strong>: {labels.join(", ")}
+                  </li>
+                ))}
+              </ol>
+              <p className="hint">Em cada pausa: tire a caneta, ponha a próxima presa no alto e toque em Continuar. O bico vai ao meio e espera {mountS} s para você descer a nova até o papel. Não mexa na folha.</p>
+            </div>
+          )}
           {job && (
             <div className="metrics" aria-live="polite">
               <span>

@@ -195,3 +195,19 @@ test("folha: centrada onde a caneta alcança; A4 numa mesa de 256 é cortada; de
   expect(inside(placeOnBed([square], 150), a5.area)).toBe(false);
   expect(inside(placeOnBed([square], 100), a5.area)).toBe(true);
 });
+
+test("várias canetas (#333): antes de cada troca, sobe, pausa e espera no meio a 5 mm para ajustar a nova", () => {
+  const st = placeOnBed([square], 50);
+  const two = [...st, ...st.map((s) => s.map(([x, y]): [number, number] => [x + 1, y]))];
+  const lines = penGcode(two, pen, BED, [st.length]).gcode.split("\n");
+  const pauses = lines.flatMap((l, i) => (l.startsWith("M400 U1") ? [i] : []));
+  expect(pauses).toHaveLength(2);
+  expect(lines[pauses[1]]).toContain("caneta 2");
+  const waits = lines.flatMap((l, i) => (l.startsWith(`G4 S${pen.mountS}`) ? [i] : []));
+  expect(waits).toHaveLength(2);
+  expect(zOf(lines[waits[1] - 1])).toBe(CAL_Z);
+  expect(zOf(lines[pauses[1] - 1])).toBe(pen.zLift + AIR_MM); // caneta bem alta antes de pausar
+  // nenhum traço da caneta 2 antes da troca
+  const firstOf2 = lines.findIndex((l) => l.startsWith(`G0 X${(two[st.length][0][0]).toFixed(2)}`));
+  expect(firstOf2).toBeGreaterThan(waits[1]);
+});
