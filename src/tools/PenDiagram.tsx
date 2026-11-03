@@ -14,7 +14,7 @@ function Dim({ x1, y1, x2, y2, color = MUTED }: { x1: number; y1: number; x2: nu
  * Montar a caneta sem medir nada (#322), em 3 quadros: a impressora para com o bico a 5 mm do papel; solta-se a caneta
  * no suporte até a ponta encostar; aperta-se o parafuso. Fora de escala de propósito (5 mm sumiria).
  */
-export function MountSteps({ press, lift, air }: { press: number; lift: number; air: boolean }) {
+export function MountSteps({ press, lift, air, wait }: { press: number; lift: number; air: boolean; wait: number }) {
   const PAPER = 132;
   const panel = (i: number, title: string, line2: string, tip: number, screw: boolean) => {
     const x = 8 + i * 124;
@@ -41,7 +41,7 @@ export function MountSteps({ press, lift, air }: { press: number; lift: number; 
     );
   };
   return (
-    <svg viewBox="0 0 380 216" role="img" aria-label={`Como montar a caneta: 1, a impressora para com o bico a ${fmt(CAL_Z)} mm do papel; 2, solte a caneta no suporte até a ponta encostar no papel; 3, aperte o parafuso e toque em Continuar. Desenhando, o bico desce mais ${fmt(press)} mm e a caneta aperta o papel; entre traços, sobe ${fmt(lift)} mm.`} style={{ width: "100%", maxWidth: 440 }}>
+    <svg viewBox="0 0 380 216" role="img" aria-label={`Como montar a caneta: 1, depois da pausa, a impressora para com o bico a ${fmt(CAL_Z)} mm do papel e espera ${wait} segundos; 2, solte a caneta no suporte até a ponta encostar no papel; 3, aperte o parafuso e ela desenha sozinha. Desenhando, o bico desce mais ${fmt(press)} mm e a caneta aperta o papel; entre traços, sobe ${fmt(lift)} mm.`} style={{ width: "100%", maxWidth: 440 }}>
       <defs>
         <marker id="pd-arrow" viewBox="0 0 10 10" refX="5" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
           <path d="M0 0L10 5L0 10z" fill={ACCENT} />
@@ -50,9 +50,9 @@ export function MountSteps({ press, lift, air }: { press: number; lift: number; 
           <path d="M0 0L10 5L0 10z" fill={ACCENT} />
         </marker>
       </defs>
-      {panel(0, "1. Ela para", `bico parado a ${fmt(CAL_Z)} mm|do papel, no meio`, PAPER - 34, false)}
+      {panel(0, "1. Ela espera", `bico a ${fmt(CAL_Z)} mm do papel,|no meio, por ${wait} s`, PAPER - 34, false)}
       {panel(1, "2. Solte a caneta", "deixe descer até a|ponta encostar", PAPER, false)}
-      {panel(2, "3. Aperte", "aperte o parafuso e|toque em Continuar", PAPER, true)}
+      {panel(2, "3. Aperte", "aperte o parafuso:|ela desenha sozinha", PAPER, true)}
       <text x={8} y={198} fontSize={10} fill={INK}>
         Desenhando, o bico desce mais <tspan fontWeight={700} fill={ACCENT}>{fmt(press)} mm</tspan>: a caneta aperta o papel.
       </text>

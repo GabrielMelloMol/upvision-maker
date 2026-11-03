@@ -199,6 +199,7 @@ export default function PenPlot() {
   const round1 = (n: number) => Math.round(n * 10) / 10;
   const press = round1(CAL_Z - s.pen.zDraw);
   const lift = round1(s.pen.zLift - CAL_Z);
+  const mountS = s.pen.mountS ?? PEN_DEFAULTS.mountS;
   const left = s.penLeft ?? offX < 0;
   const setDir = (k: "penBack" | "penLeft", v: boolean) =>
     tool.set((cur) => ({ ...cur, [k]: v, pen: { ...cur.pen, ...(k === "penBack" ? { offY: Math.abs(cur.pen.offY ?? 0) * (v ? 1 : -1) } : { offX: Math.abs(cur.pen.offX ?? 0) * (v ? -1 : 1) }) } }), k);
@@ -368,7 +369,7 @@ export default function PenPlot() {
             )}
             {!paperCheck.success && <Alert kind="error">{paperCheck.error.issues[0]?.message}</Alert>}
             {cut && <Alert kind="warn">A folha é maior que a área que a caneta alcança na mesa de {b.x} × {b.y} mm: o desenho fica só na parte do meio dela (a área branca da prévia).</Alert>}
-            {sheet && <p className="hint">Para centralizar: dobre a folha ao meio nos dois sentidos e marque o centro. Na pausa do começo, a ponta da caneta para no meio da mesa: ponha o centro da folha embaixo dela e prenda com fita ou ímãs.</p>}
+            {sheet && <p className="hint">Para centralizar: dobre a folha ao meio nos dois sentidos e marque o centro. O desenho fica no meio da mesa: prenda o centro da folha no centro da mesa com fita ou ímãs, na pausa do começo.</p>}
           </div>
           <div className="card stack">
             <h3>Caneta</h3>
@@ -376,9 +377,9 @@ export default function PenPlot() {
               Use caneta de ponta fina que escreve com pouca força: <strong>caneta hidrográfica fina ou fineliner</strong> (tipo Stabilo Point 88 ou Faber-Castell Fine Pen 0,4). Esferográfica (BIC) também serve, mas precisa apertar mais e falha mais. Gel borra se a velocidade for alta.
             </p>
             <h4>Montar a caneta (não precisa medir nada)</h4>
-            <MountSteps press={press} lift={lift} air={s.pen.airTest} />
+            <MountSteps press={press} lift={lift} air={s.pen.airTest} wait={mountS} />
             <p className="hint">
-              Mande o arquivo <strong>sem a caneta</strong>. A impressora zera e para com o bico a {CAL_Z} mm do papel, no meio da mesa. Prenda o suporte, deixe a caneta descer até a ponta encostar no papel, aperte e ponha o meio da folha embaixo da ponta. Toque em Continuar.
+              Mande o arquivo <strong>sem a caneta</strong>. A impressora zera e pausa com o bico de lado: prenda o suporte com a caneta presa <strong>no alto</strong>, prenda a folha no meio da mesa e toque em Continuar. Aí o bico para no meio, a {CAL_Z} mm do papel, e espera {mountS} s: solte a caneta até a ponta encostar no papel e aperte o parafuso. Depois ela desenha sozinha.
             </p>
             <label className="check">
               <input type="checkbox" checked={s.pen.airTest} onChange={(e) => setPen("airTest")(e.target.checked)} /> Testar no ar (caneta {AIR_MM} mm acima do papel)
@@ -389,6 +390,7 @@ export default function PenPlot() {
               <NumField label="Velocidade de desenho" value={s.pen.drawFeed} onChange={setPen("drawFeed")} min={100} max={6000} step={100} unit="mm/min" />
               <NumField label="Velocidade de viagem" value={s.pen.travelFeed ?? PEN_DEFAULTS.travelFeed} onChange={setPen("travelFeed")} min={600} max={12000} step={100} unit="mm/min" hint="Com a caneta no alto, de um traço ao outro." />
               <NumField label="Velocidade do Z" value={s.pen.zFeed} onChange={setPen("zFeed")} min={60} max={1200} step={10} unit="mm/min" />
+              <NumField label="Tempo para ajustar a caneta" value={mountS} onChange={setPen("mountS")} min={15} max={300} step={5} unit="s" hint="Quanto o bico espera parado no meio para você soltar a caneta até o papel e apertar." />
               <NumField label="Pausa depois de mexer o Z" value={s.pen.settleMs} onChange={setPen("settleMs")} min={0} max={2000} step={10} unit="ms" hint="Espera a caneta subir ou descer de vez antes de andar. Risquinho sobrando entre os traços: aumente (150 a 250)." />
             </div>
             <details>
@@ -461,7 +463,7 @@ export default function PenPlot() {
         <div className="preview-col">
           <Alert kind="warn">
             <p>
-              <strong>Fique de olho na impressora.</strong> Comece sempre <strong>sem a caneta</strong>: a impressora zera e pausa no meio da mesa. Aí prenda o suporte, desça a caneta até a ponta encostar no papel, aperte, ponha o meio da folha embaixo da ponta e toque em Continuar na tela. Rode primeiro com “Testar no ar”.
+              <strong>Fique de olho na impressora.</strong> Comece sempre <strong>sem a caneta</strong>: a impressora zera e pausa. Prenda o suporte com a caneta no alto, prenda a folha no meio da mesa e toque em Continuar. O bico para no meio e espera {mountS} s para você soltar a caneta até o papel e apertar. Rode primeiro com “Testar no ar”.
               Ponha uma folha de plástico por baixo do papel para não riscar a mesa.
             </p>
           </Alert>
