@@ -14,7 +14,7 @@ export type Stroke = Pt[];
  */
 export const CAL_Z = 5;
 
-export const PEN_DEFAULTS = { zDraw: 4.6, zLift: 10, drawFeed: 1500, zFeed: 600, settleMs: 120, airTest: true, mountS: 60, offX: 0, offY: 0, travelFeed: 6000, mirrorX: false, mirrorY: false, motorsOff: false };
+export const PEN_DEFAULTS = { zDraw: 4.6, zLift: 10, drawFeed: 1500, zFeed: 600, settleMs: 120, airTest: true, mountS: 30, offX: 0, offY: 0, travelFeed: 6000, mirrorX: false, mirrorY: false, motorsOff: false };
 
 export const PenSettings = z.object({
   zDraw: z.number().min(CAL_Z - 2, "Quanto a caneta aperta: no máximo 2 mm (mais que isso ela aperta demais).").max(CAL_Z + 1, "Quanto a caneta aperta: no mínimo −1 mm (menos que isso ela não encosta)."),
@@ -25,7 +25,7 @@ export const PenSettings = z.object({
   settleMs: z.number().int().min(0).max(2000),
   airTest: z.boolean(),
   // #328: a A1 tira o bico do meio na pausa; a ponta é ajustada nesta espera, já com o bico parado no meio
-  mountS: z.number().int().min(15, "Tempo para ajustar a caneta: no mínimo 15 s.").max(300, "Tempo para ajustar a caneta: no máximo 300 s.").default(60),
+  mountS: z.number().int().min(15, "Tempo para ajustar a caneta: no mínimo 15 s.").max(300, "Tempo para ajustar a caneta: no máximo 300 s.").default(30),
   /** Ponta da caneta = bico + deslocamento (o suporte prende a caneta ao lado do bico). */
   offX: z.number().min(-80, "Deslocamento X: no máximo 80 mm.").max(80, "Deslocamento X: no máximo 80 mm.").default(0),
   offY: z.number().min(-80, "Deslocamento Y: no máximo 80 mm.").max(80, "Deslocamento Y: no máximo 80 mm.").default(0),
@@ -190,7 +190,11 @@ const f = (n: number) => n.toFixed(2);
 export type PenJob = { gcode: string; strokes: number; lengthMm: number; minutes: number };
 
 /** G-code da caneta. Valida os ajustes e cada ponto contra a mesa antes de escrever qualquer linha. */
-export function penGcode(strokes: Stroke[], pen: Pen, bed: { x: number; y: number }): PenJob {
+/** Cores padrão das canetas (#333), só para a prévia; da 9ª em diante repetem. Nada de vermelho ("não cabe") nem laranja (seleção). */
+export const INKS = ["#0B1F66", "#2A7D3A", "#7E3FD6", "#7B4A2A", "#0E7C86", "#C2185B", "#5D6B00", "#455A64"];
+
+/** `changes` (#333): índices dos traços em que começa a caneta seguinte; antes de cada um, pausa para trocar. */
+export function penGcode(strokes: Stroke[], pen: Pen, bed: { x: number; y: number }, changes: number[] = []): PenJob {
   const p = PenSettings.parse(pen);
   if (!strokes.length) throw new Error("Nenhum traço no desenho.");
   const a = reach(bed, p);
@@ -205,7 +209,16 @@ export function penGcode(strokes: Stroke[], pen: Pen, bed: { x: number; y: numbe
   const settle = p.settleMs > 0 ? [`G4 P${p.settleMs}`] : [];
   const lengthMm = strokes.reduce((t, s) => t + s.slice(1).reduce((u, q, i) => u + dist(s[i], q), 0), 0);
   const travelMm = strokes.reduce((t, s, i) => t + (i ? dist(strokes[i - 1][strokes[i - 1].length - 1], s[0]) : 0), 0);
-  const minutes = lengthMm / p.drawFeed + travelMm / p.travelFeed + (strokes.length * 2 * p.settleMs) / 60000 + (p.mountS ?? 60) / 60;
+  const minutes = lengthMm / p.drawFeed + travelMm / p.travelFeed + (strokes.length * 2 * p.settleMs) / 60000 + ((p.mountS ?? 30) * (changes.length + 1)) / 60;
+  // a A1 tira o bico do meio na pausa (#328): a ponta é ajustada depois, na espera com o bico parado no meio a CAL_Z
+  const mount = (what: string) => [
+    `G1 Z${f(up + AIR_MM)} F${p.zFeed}`,
+    `M400 U1 ; pausa: ${what}`,
+    `G0 X${nx((a.x0 + a.x1) / 2)} Y${ny((a.y0 + a.y1) / 2)} F${p.travelFeed} ; ponta da caneta no meio da folha`,
+    `G1 Z${f(CAL_Z)} F${p.zFeed}`,
+    `G4 S${p.mountS ?? 30} ; espera: solte a caneta até a ponta encostar no papel e aperte o parafuso`,
+    `G1 Z${f(up)} F${p.zFeed}`,
+  ];
   const lines = [
     // cabeçalho que a tela das Bambu lê (tempo e camadas); o resto são comentários
     "; HEADER_BLOCK_START",
@@ -219,20 +232,17 @@ export function penGcode(strokes: Stroke[], pen: Pen, bed: { x: number; y: numbe
     "M104 S0 ; bico desligado (#330: o envio pelo Bambu Studio chegou a deixar mesa e bico a 65 °C)",
     "M140 S0 ; mesa desligada",
     "G28 ; zera os eixos (sem a caneta: a A1 encosta o bico na mesa ao zerar)",
-    `G1 Z${f(up + AIR_MM)} F${p.zFeed}`,
-    "M400 U1 ; pausa: prenda o suporte com a caneta presa no alto, prenda a folha e toque em Continuar",
-    `G0 X${nx((a.x0 + a.x1) / 2)} Y${ny((a.y0 + a.y1) / 2)} F${p.travelFeed} ; ponta da caneta no meio da folha`,
-    `G1 Z${f(CAL_Z)} F${p.zFeed}`,
-    `G4 S${p.mountS ?? 60} ; espera: solte a caneta até a ponta encostar no papel e aperte o parafuso`,
-    `G1 Z${f(up)} F${p.zFeed}`,
+    ...mount("prenda o suporte com a caneta 1 presa no alto, prenda a folha e toque em Continuar"),
   ];
-  for (const s of strokes) {
+  strokes.forEach((s, k) => {
+    const pen = changes.indexOf(k);
+    if (pen >= 0) lines.push(...mount(`troque pela caneta ${pen + 2}, presa no alto, e toque em Continuar`));
     lines.push(`G0 X${nx(s[0][0])} Y${ny(s[0][1])} F${p.travelFeed}`, `G1 Z${f(down)} F${p.zFeed}`, ...settle);
     for (let i = 1; i < s.length; i++) {
       lines.push(`G1 X${nx(s[i][0])} Y${ny(s[i][1])} F${p.drawFeed}`);
     }
     lines.push(`G1 Z${f(up)} F${p.zFeed}`, ...settle);
-  }
+  });
   // fim: caneta bem alta e cabeçote no canto, longe do papel
   lines.push(`G1 Z${f(up + AIR_MM)} F${p.zFeed}`, `G0 X0 Y${f(bed.y)} F${p.travelFeed}`, ...(p.motorsOff ? ["M84 ; solta os motores"] : []), "");
   return { gcode: lines.join("\n"), strokes: strokes.length, lengthMm, minutes };

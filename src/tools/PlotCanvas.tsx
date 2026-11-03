@@ -7,7 +7,7 @@ type Pt = [number, number];
 /** Um item já posto na mesa: os traços e a caixa (meio, metade da largura e da altura, giro). */
 /** `ghost` = camada nova ainda não adicionada (#322): aparece mais clara. */
 /** `box` = texto (#324): a alça do lado muda a largura da caixa (as linhas quebram) sem mudar a letra. */
-export type Placed = { id: string; label: string; strokes: Stroke[]; hw: number; hh: number; out: boolean; ghost?: boolean; box?: boolean } & Place;
+export type Placed = { id: string; label: string; strokes: Stroke[]; hw: number; hh: number; out: boolean; ghost?: boolean; box?: boolean; color?: string } & Place;
 
 const RULER = 12; // faixa das réguas, em mm da prévia
 type Mode = "move" | "size" | "turn" | "width";
@@ -182,7 +182,7 @@ export default function PlotCanvas({ bed, area, sheet, items, selected, onSelect
           {items.map((it) => (
             <g key={it.id} opacity={it.ghost ? 0.6 : 1}>
               {it.strokes.map((st, i) => (
-                <polyline key={i} points={st.map((p) => p.join(",")).join(" ")} fill="none" stroke={faded ? "#c9cde0" : it.out ? "#c62828" : "#0B1F66"} strokeWidth={0.4} strokeLinejoin="round" />
+                <polyline key={i} points={st.map((p) => p.join(",")).join(" ")} fill="none" stroke={faded ? "#c9cde0" : it.out ? "#c62828" : (it.color ?? "#0B1F66")} strokeWidth={0.4} strokeLinejoin="round" />
               ))}
               {/* caixa de pegar o item (transparente) */}
               <rect transform={`translate(${it.x} ${it.y}) rotate(${it.rot})`} x={-it.hw} y={-it.hh} width={2 * it.hw} height={2 * it.hh} fill="transparent" style={{ cursor: "move" }} onPointerDown={(e) => begin(e, it, "move")} onDoubleClick={() => onEdit?.(it.id)}>

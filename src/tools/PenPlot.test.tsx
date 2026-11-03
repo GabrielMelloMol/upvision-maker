@@ -164,6 +164,26 @@ describe("camadas (#320)", () => {
     expect(within(list).getAllByRole("listitem")).toHaveLength(1);
   });
 
+  test("duas canetas (#333): a forma na caneta 2 sai depois de uma pausa de troca; a ordem aparece na tela", async () => {
+    const user = userEvent.setup();
+    renderWithApp(<PenPlot />);
+    await user.click(screen.getByRole("button", { name: "Texto" }));
+    await addToBed(user);
+    await user.click(screen.getByRole("button", { name: "Forma" }));
+    await addToBed(user);
+    const g = () => (screen.getByLabelText("G-code") as HTMLTextAreaElement).value;
+    await waitFor(() => expect(g().match(/M400 U1/g)).toHaveLength(1));
+    expect(screen.getByRole("combobox", { name: "Caneta" })).toHaveTextContent("Nova caneta (2)");
+    await user.selectOptions(screen.getByRole("combobox", { name: "Caneta" }), "2");
+    // sem limite: usando a 2, aparece a 3 nova
+    await waitFor(() => expect(screen.getByRole("combobox", { name: "Caneta" })).toHaveTextContent("Nova caneta (3)"));
+    await waitFor(() => expect(g().match(/M400 U1/g)).toHaveLength(2));
+    expect(g()).toContain("troque pela caneta 2");
+    const order = screen.getByRole("heading", { name: "Ordem das canetas" }).parentElement!;
+    expect(order).toHaveTextContent(/Comece com a caneta 1: Obrigada!/);
+    expect(order).toHaveTextContent(/Pausa: troque pela caneta 2: Círculo/);
+  });
+
   test("lugar e giro mudam o G-code; espelhar e soltar motores entram no arquivo", async () => {
     const user = userEvent.setup();
     const { container } = renderWithApp(<PenPlot />);

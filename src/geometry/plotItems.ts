@@ -21,6 +21,8 @@ export type PlotItem = Place & {
   id: string;
   kind: ItemKind;
   hidden?: boolean;
+  /** Caneta 1, 2, 3… (#333): o G-code desenha uma caneta por vez, em ordem, com pausa para trocar. */
+  pen?: number;
   fill: Fill;
   svg?: { text: string; name: string } | null;
   text?: string;
