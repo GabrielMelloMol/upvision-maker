@@ -1,6 +1,6 @@
 /**
  * Desenhar com caneta (#303): linhas do desenho viram G-code para a impressora mover uma caneta presa no cabeçote.
- * Sem aquecer nada e sem extrusão: só G0/G1 em X, Y e Z. Nenhuma coordenada sai da mesa.
+ * Sem aquecer nada (desliga bico e mesa no começo) e sem extrusão: só G0/G1 em X, Y e Z. Nenhuma coordenada sai da mesa.
  */
 import { z } from "zod";
 
@@ -216,6 +216,8 @@ export function penGcode(strokes: Stroke[], pen: Pen, bed: { x: number; y: numbe
     p.airTest ? `; TESTE NO AR: a caneta fica ${AIR_MM} mm acima do papel` : "; Supervisione: faça antes o teste no ar",
     "G90 ; coordenadas absolutas",
     "G21 ; milímetros",
+    "M104 S0 ; bico desligado (#330: o envio pelo Bambu Studio chegou a deixar mesa e bico a 65 °C)",
+    "M140 S0 ; mesa desligada",
     "G28 ; zera os eixos (sem a caneta: a A1 encosta o bico na mesa ao zerar)",
     `G1 Z${f(up + AIR_MM)} F${p.zFeed}`,
     "M400 U1 ; pausa: prenda o suporte com a caneta presa no alto, prenda a folha e toque em Continuar",

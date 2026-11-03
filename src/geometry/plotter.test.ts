@@ -50,7 +50,7 @@ test("G-code: sem extrusão nem aquecimento, Z sobe antes de qualquer XY e tudo 
   const job = penGcode(orderStrokes(placeOnBed([square, { pts: [[20, 0], [30, 5]], closed: false }], 200)), pen, BED);
   const lines = job.gcode.split("\n").map((l) => l.replace(/;.*/, "").trim()).filter(Boolean);
   expect(lines.some((l) => /\bE-?\d/.test(l))).toBe(false);
-  expect(lines.some((l) => /^M1(04|09|40|90)\b/.test(l))).toBe(false);
+  expect(lines.some((l) => /^M1(04|09|40|90) S[1-9]/.test(l))).toBe(false);
   const firstXY = lines.findIndex((l) => /\bX/.test(l));
   const firstZ = lines.findIndex((l) => /^G1 Z/.test(l));
   expect(firstZ).toBeGreaterThan(-1);
@@ -79,6 +79,9 @@ test("zera sem a caneta, pausa para prender o suporte e depois espera no meio da
   const pause = lines.findIndex((l) => l.startsWith("M400 U1"));
   const wait = lines.findIndex((l) => l.startsWith("G4 S90"));
   expect(g28).toBeGreaterThan(-1);
+  // #330: desliga bico e mesa antes de tudo, e nada liga o aquecimento depois
+  expect(lines.slice(0, g28)).toEqual(expect.arrayContaining([expect.stringMatching(/^M104 S0/), expect.stringMatching(/^M140 S0/)]));
+  expect(lines.filter((l) => /^M(104|109|140|190) S[1-9]/.test(l))).toEqual([]);
   expect(pause).toBeGreaterThan(g28);
   // #328: a A1 tira o bico do meio na pausa, então o meio e os 5 mm vêm depois dela, com a espera
   expect(wait).toBeGreaterThan(pause);
