@@ -190,8 +190,8 @@ const f = (n: number) => n.toFixed(2);
 export type PenJob = { gcode: string; strokes: number; lengthMm: number; minutes: number };
 
 /** G-code da caneta. Valida os ajustes e cada ponto contra a mesa antes de escrever qualquer linha. */
-/** Cores padrão das canetas 1 a 4 (#333), só para a prévia. */
-export const INKS = ["#0B1F66", "#2A7D3A", "#7E3FD6", "#7B4A2A"]; // nada de vermelho (é o "não cabe") nem laranja (seleção)
+/** Cores padrão das canetas (#333), só para a prévia; da 9ª em diante repetem. Nada de vermelho ("não cabe") nem laranja (seleção). */
+export const INKS = ["#0B1F66", "#2A7D3A", "#7E3FD6", "#7B4A2A", "#0E7C86", "#C2185B", "#5D6B00", "#455A64"];
 
 /** `changes` (#333): índices dos traços em que começa a caneta seguinte; antes de cada um, pausa para trocar. */
 export function penGcode(strokes: Stroke[], pen: Pen, bed: { x: number; y: number }, changes: number[] = []): PenJob {

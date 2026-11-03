@@ -28,7 +28,6 @@ import { useToolState } from "./useToolState";
 
 type Format = "3mf" | "gcode";
 const PAPER_OPTIONS = [["a4", "A4"], ["a5", "A5"], ["a6", "A6"], ["card", "10 × 15"], ["custom", "Outro"], ["bed", "Mesa toda"]] as const;
-const PENS = [["1", "1"], ["2", "2"], ["3", "3"], ["4", "4"]] as const;
 const FORMATS = [["3mf", ".gcode.3mf (Bambu)"], ["gcode", ".gcode (outras)"]] as const;
 const ADD: [ItemKind, string][] = [["text", "Texto"], ["shape", "Forma"], ["design", "Desenho ou imagem"], ["model", "Peça 3D"], ["hand", "À mão livre"]];
 /** Linhas do G-code mostradas na tela (o arquivo inteiro pode ter centenas de milhares). */
@@ -86,8 +85,8 @@ export default function PenPlot() {
   const { area: usable, sheet, cut } = drawArea(b, off, sheetOk);
   const [cx, cy] = [(usable.x0 + usable.x1) / 2, (usable.y0 + usable.y1) / 2];
   const inks = s.inks ?? INKS;
-  const inkOf = (n = 1) => inks[n - 1] ?? INKS[n - 1];
-  const setInk = (n: number, hex: string) => tool.set((cur) => ({ ...cur, inks: (cur.inks ?? INKS).map((c, i) => (i === n - 1 ? hex : c)) }), `ink${n}`);
+  const inkOf = (n = 1) => inks[n - 1] ?? INKS[(n - 1) % INKS.length];
+  const setInk = (n: number, hex: string) => tool.set((cur) => ({ ...cur, inks: Array.from({ length: Math.max(n, cur.inks?.length ?? 0) }, (_, i) => (i === n - 1 ? hex : (cur.inks?.[i] ?? INKS[i % INKS.length]))) }), `ink${n}`);
   const where = sheet ? "na folha" : usable.x1 - usable.x0 < b.x || usable.y1 - usable.y0 < b.y ? "na área que a caneta alcança" : "na mesa";
 
   // camadas
@@ -96,6 +95,8 @@ export default function PenPlot() {
   const select = (id: string | null) => tool.set((cur) => ({ ...cur, selected: id }), "selected");
   // #322: a camada nova fica num rascunho (aparece na prévia) e só entra na mesa em "Adicionar à mesa"
   const [draft, setDraft] = useState<PlotItem | null>(null);
+  // sem limite: as canetas em uso e mais uma nova
+  const penCount = Math.max(1, ...items.map((i) => i.pen ?? 1), draft?.pen ?? 1);
   const fresh = (kind: ItemKind, patch: Partial<PlotItem> = {}): PlotItem => ({ ...newItem(kind, { x: cx, y: cy, w: Math.max(10, Math.min(100, Math.floor(usable.x1 - usable.x0 - 10))), rot: 0 }), ...patch });
   const commit = (it: PlotItem) => {
     setItems((list) => [...list, it], "add", it.id);
@@ -330,8 +331,14 @@ export default function PenPlot() {
               <h3>{draft ? `Nova camada: ${KIND_LABEL[draft.kind]}` : itemName(editing)}</h3>
               <PlotItemEditor key={editing.id} item={editing} set={setEditing} alphabet={alphabet} saveAlphabet={saveAlphabet} />
               {draftError && <Alert kind="error">{draftError}</Alert>}
-              <h4>Caneta</h4>
-              <Segmented label="Caneta" value={String(editing.pen ?? 1)} options={PENS} onChange={(v) => setEditing({ pen: Number(v) }, "pen")} full />
+              <label>
+                Caneta
+                <select value={editing.pen ?? 1} onChange={(e) => setEditing({ pen: Number(e.target.value) }, "pen")}>
+                  {Array.from({ length: penCount + 1 }, (_, i) => (
+                    <option key={i} value={i + 1}>{i < penCount ? `Caneta ${i + 1}` : `Nova caneta (${i + 1})`}</option>
+                  ))}
+                </select>
+              </label>
               <label className="row" style={{ gap: 8, alignItems: "center" }}>
                 <input type="color" value={inkOf(editing.pen)} onChange={(e) => setInk(editing.pen ?? 1, e.target.value)} /> Cor da caneta {editing.pen ?? 1} na prévia
               </label>

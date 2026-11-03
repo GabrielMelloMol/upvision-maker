@@ -173,7 +173,10 @@ describe("camadas (#320)", () => {
     await addToBed(user);
     const g = () => (screen.getByLabelText("G-code") as HTMLTextAreaElement).value;
     await waitFor(() => expect(g().match(/M400 U1/g)).toHaveLength(1));
-    await user.click(within(screen.getByRole("group", { name: "Caneta" })).getByRole("button", { name: "2" }));
+    expect(screen.getByRole("combobox", { name: "Caneta" })).toHaveTextContent("Nova caneta (2)");
+    await user.selectOptions(screen.getByRole("combobox", { name: "Caneta" }), "2");
+    // sem limite: usando a 2, aparece a 3 nova
+    await waitFor(() => expect(screen.getByRole("combobox", { name: "Caneta" })).toHaveTextContent("Nova caneta (3)"));
     await waitFor(() => expect(g().match(/M400 U1/g)).toHaveLength(2));
     expect(g()).toContain("troque pela caneta 2");
     const order = screen.getByRole("heading", { name: "Ordem das canetas" }).parentElement!;

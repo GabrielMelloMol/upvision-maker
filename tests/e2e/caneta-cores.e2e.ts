@@ -9,7 +9,7 @@ test("caneta: forma na caneta 2 sai em outra cor, com uma pausa de troca e a ord
   await page.getByRole("group", { name: "Nova camada" }).getByRole("button", { name: "Texto" }).click();
   await page.getByRole("button", { name: "Adicionar à mesa" }).click();
   await page.getByRole("group", { name: "Nova camada" }).getByRole("button", { name: "Forma" }).click();
-  await page.getByRole("group", { name: "Caneta", exact: true }).getByRole("button", { name: "2" }).click();
+  await page.getByRole("combobox", { name: "Caneta", exact: true }).selectOption("2");
   await page.getByRole("button", { name: "Adicionar à mesa" }).click();
   await expect(page.getByLabel("G-code")).toHaveValue(/troque pela caneta 2/, { timeout: 15_000 });
   await expect(page.getByRole("heading", { name: "Ordem das canetas" })).toBeVisible();
@@ -17,6 +17,6 @@ test("caneta: forma na caneta 2 sai em outra cor, com uma pausa de troca e a ord
   if (SHOTS) {
     await page.screenshot({ path: `${SHOTS}/cores.png` });
     await page.locator(".card", { has: page.getByRole("heading", { name: "Ordem das canetas" }) }).screenshot({ path: `${SHOTS}/ordem.png` });
-    await page.locator(".card", { has: page.getByRole("heading", { name: "Caneta", exact: true, level: 4 }) }).first().screenshot({ path: `${SHOTS}/editor.png` });
+    await page.locator(".card", { has: page.getByRole("combobox", { name: "Caneta", exact: true }) }).screenshot({ path: `${SHOTS}/editor.png` });
   }
 });
