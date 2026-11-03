@@ -3,7 +3,7 @@
 Cada versão aparece para a usuária na tela "O que há de novo" depois da atualização.
 Formato: `## <versão> — <data>` e itens `- …` em linguagem simples.
 
-## Próxima versão
+## 0.15.16 — 2026-11-02
 - **Caneta: o Bambu Studio deixa enviar o .gcode.3mf (#328)**: a janela de envio dizia que o filamento não estava mapeado e o botão Enviar ficava cinza.
 - **Caneta: montar sem pressa (#328)**: a A1 tira o bico do meio quando pausa. Agora a pausa é só para prender o suporte (caneta no alto) e a folha; depois do Continuar, o bico para no meio a 5 mm do papel e **espera 60 s** (ajustável em Tempo para ajustar a caneta) para você soltar a caneta até o papel e apertar.
 
